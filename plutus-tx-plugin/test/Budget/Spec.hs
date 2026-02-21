@@ -3,6 +3,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -20,6 +21,7 @@ import Budget.WithoutGHCOptimisations qualified as WithoutGHCOptTest
 import Data.Set qualified as Set
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx hiding (null)
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List.TH (destructList)
@@ -102,6 +104,35 @@ tests =
         goldenBundle' "andWithoutGHCOpts" compiledAndWithoutGHCOpts
       , -- With the function definition in the local module
         goldenBundle' "andWithLocal" compiledAndWithLocal
+      , -- Multi-way if vs hand-optimized BI.ifThenElse comparison
+        goldenBundle
+          "guardIfHappyPath"
+          compiledGuardIf
+          ( compiledGuardIf
+              `unsafeApplyCode` liftCodeDef (5 :: Integer)
+              `unsafeApplyCode` liftCodeDef (3 :: Integer)
+          )
+      , goldenBundle
+          "guardIfErrorPath"
+          compiledGuardIf
+          ( compiledGuardIf
+              `unsafeApplyCode` liftCodeDef (15 :: Integer)
+              `unsafeApplyCode` liftCodeDef (3 :: Integer)
+          )
+      , goldenBundle
+          "handOptIfHappyPath"
+          compiledHandOptIf
+          ( compiledHandOptIf
+              `unsafeApplyCode` liftCodeDef (5 :: Integer)
+              `unsafeApplyCode` liftCodeDef (3 :: Integer)
+          )
+      , goldenBundle
+          "handOptIfErrorPath"
+          compiledHandOptIf
+          ( compiledHandOptIf
+              `unsafeApplyCode` liftCodeDef (15 :: Integer)
+              `unsafeApplyCode` liftCodeDef (3 :: Integer)
+          )
       ]
 
 compiledSum :: CompiledCode Integer
@@ -633,3 +664,43 @@ compiledAndWithLocal =
       code = $$(compile [||f||])
    in flip unsafeApplyCode (liftCodeDef (4 :: Integer)) $
         unsafeApplyCode code (liftCodeDef (4 :: Integer))
+
+-- | Multi-way if with guards (plugin-compiled).
+compiledGuardIf :: CompiledCode (Integer -> Integer -> Bool)
+compiledGuardIf =
+  $$( compile
+        [||
+        \x y ->
+          if
+            | x PlutusTx.> (10 :: Integer) -> PlutusTx.traceError "x too large"
+            | y PlutusTx.< (0 :: Integer) -> PlutusTx.traceError "y negative"
+            | (x PlutusTx.+ y) PlutusTx.> (20 :: Integer) -> PlutusTx.traceError "sum too large"
+            | otherwise -> True
+        ||]
+    )
+
+-- | Hand-optimized BI.ifThenElse with lambda-delay pattern.
+compiledHandOptIf :: CompiledCode (Integer -> Integer -> Bool)
+compiledHandOptIf =
+  $$( compile
+        [||
+        \x y ->
+          BI.ifThenElse
+            (x PlutusTx.> (10 :: Integer))
+            (\_ -> PlutusTx.traceError "x too large")
+            ( \_ ->
+                BI.ifThenElse
+                  (y PlutusTx.< (0 :: Integer))
+                  (\_ -> PlutusTx.traceError "y negative")
+                  ( \_ ->
+                      BI.ifThenElse
+                        ((x PlutusTx.+ y) PlutusTx.> (20 :: Integer))
+                        (\_ -> PlutusTx.traceError "sum too large")
+                        (\_ -> True)
+                        BI.unitval
+                  )
+                  BI.unitval
+            )
+            BI.unitval
+        ||]
+    )
