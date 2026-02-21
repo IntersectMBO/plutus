@@ -22,6 +22,8 @@ open import Data.Fin using (Fin; suc; zero)
 import Data.Fin as Fin using (_≟_)
 open import Data.List using (List; []; _∷_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
+open import Data.Product using (_×_; Σ; ∃; Σ-syntax; ∃-syntax; proj₁; proj₂)
+  renaming (_,_ to infixl 5 _,_)
 open import Untyped.RenamingSubstitution using (_[_]; Sub; _↑ˢ; lifts; extend; weaken)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; extricateU; extricateUList)
@@ -283,6 +285,7 @@ checkPointwise (h ∷ hs) σ zz (M ∷ Ms) (M′ ∷ M′s) =
    do p ← check h σ zz M M′
       ps ← checkPointwise hs σ zz Ms M′s
       proof (p Pointwise.∷ ps)
+
 checkPointwise _ _ _ Ms M′s = abort inlineT Ms M′s
 ```
 
@@ -291,4 +294,22 @@ checkPointwise _ _ _ Ms M′s = abort inlineT Ms M′s
 top-check : (h : InlineHints) (M M′ : 0 ⊢)
             → Proof? (Inline (λ()) □ M M′)
 top-check h M M′ = check h (λ()) □ M M′
+```
+
+# Completeness
+
+```
+complete :
+  (σ : Sub X X)
+  (zz : z ≽ z′)
+  (M M′ : X ⊢)
+  (s : Inline σ zz M M′)
+  → ∃[ h ] (check h σ zz M M′ ≡ proof s)
+complete σ zz (L · M) N′ (r ·↓)
+  with complete σ (drop M zz) L N′ r
+... | (h , e) = (h ·↓ , e′)
+  where
+  e′ : check (h ·↓) σ zz (L · M) N′ ≡ proof (r ·↓)
+  e′ rewrite e = {!   !}
+complete _ _ _ _ _ = {!   !}
 ```
