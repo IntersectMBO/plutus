@@ -129,6 +129,7 @@ test-suite plutus-tx-plugin-tests
     Blueprint.Tests.Lib
     Blueprint.Tests.Lib.AsData.Blueprint
     Blueprint.Tests.Lib.AsData.Decls
+    Budget.BuiltinAndLib
     Budget.Spec
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations

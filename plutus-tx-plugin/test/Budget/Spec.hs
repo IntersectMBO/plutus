@@ -3,18 +3,26 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+
+{-# HLINT ignore "Use camelCase" #-}
+{-# HLINT ignore "Use const" #-}
+{-# HLINT ignore "Redundant if" #-}
 
 module Budget.Spec where
 
 import Test.Tasty.Extras
 
+import Budget.BuiltinAndLib qualified as BuiltinAndLib
 import Budget.WithGHCOptimisations qualified as WithGHCOptTest
 import Budget.WithoutGHCOptimisations qualified as WithoutGHCOptTest
 import Data.Set qualified as Set
@@ -27,21 +35,20 @@ import PlutusTx.Foldable qualified as F
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.List qualified as List
+import PlutusTx.Prelude
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.TH (compile)
 import PlutusTx.Test
 
-AsData.asData
-  [d|
-    data MaybeD a = JustD a | NothingD
-    |]
+AsData.asData [d|data MaybeD a = JustD a | NothingD|]
 makeLift ''MaybeD
 
 tests :: TestNested
 tests =
-  testNested "Budget" . pure $
-    testNestedGhc
+  testNested "Budget"
+    . pure
+    $ testNestedGhc
       [ goldenBundle' "sum" compiledSum
       , goldenBundle' "anyCheap" compiledAnyCheap
       , goldenBundle' "anyExpensive" compiledAnyExpensive
@@ -102,6 +109,31 @@ tests =
         goldenBundle' "andWithoutGHCOpts" compiledAndWithoutGHCOpts
       , -- With the function definition in the local module
         goldenBundle' "andWithLocal" compiledAndWithLocal
+      , -- && vs builtinAnd vs alternatives: boolean AND chaining budget
+        -- Pattern 1: Standard && (lazy, delay/force)
+        goldenBundle' "andLazy_AllTrue" andLazy_AllTrue
+      , goldenBundle' "andLazy_EarlyFail" andLazy_EarlyFail
+      , goldenBundle' "andLazy_LateFail" andLazy_LateFail
+      , -- Pattern 2: builtinAnd (lambda/unit)
+        goldenBundle' "andBuiltinAnd_AllTrue" andBuiltinAnd_AllTrue
+      , goldenBundle' "andBuiltinAnd_EarlyFail" andBuiltinAnd_EarlyFail
+      , goldenBundle' "andBuiltinAnd_LateFail" andBuiltinAnd_LateFail
+      , -- Pattern 3: Multi-way if (negated guards)
+        goldenBundle' "andMultiWayIf_AllTrue" andMultiWayIf_AllTrue
+      , goldenBundle' "andMultiWayIf_EarlyFail" andMultiWayIf_EarlyFail
+      , goldenBundle' "andMultiWayIf_LateFail" andMultiWayIf_LateFail
+      , -- Pattern 4: Direct BI.ifThenElse chain (manual lambda/unit)
+        goldenBundle' "andDirectIfThenElse_AllTrue" andDirectIfThenElse_AllTrue
+      , goldenBundle' "andDirectIfThenElse_EarlyFail" andDirectIfThenElse_EarlyFail
+      , goldenBundle' "andDirectIfThenElse_LateFail" andDirectIfThenElse_LateFail
+      , -- Pattern 5: Philip's claim — if (builtinAnd a $ builtinAnd b c) then ok else error
+        goldenBundle' "andBuiltinAndIfError_AllTrue" andBuiltinAndIfError_AllTrue
+      , goldenBundle' "andBuiltinAndIfError_EarlyFail" andBuiltinAndIfError_EarlyFail
+      , goldenBundle' "andBuiltinAndIfError_LateFail" andBuiltinAndIfError_LateFail
+      , -- Pattern 6: Nested builtinIf (Philip's actual validator pattern)
+        goldenBundle' "andBuiltinIfNest_AllTrue" andBuiltinIfNest_AllTrue
+      , goldenBundle' "andBuiltinIfNest_EarlyFail" andBuiltinIfNest_EarlyFail
+      , goldenBundle' "andBuiltinIfNest_LateFail" andBuiltinIfNest_LateFail
       ]
 
 compiledSum :: CompiledCode Integer
@@ -617,19 +649,176 @@ matchAsData =
 compiledAndWithGHCOpts :: CompiledCode Bool
 compiledAndWithGHCOpts =
   let code = $$(compile [||WithGHCOptTest.f||])
-   in flip unsafeApplyCode (liftCodeDef (4 :: Integer)) $
-        unsafeApplyCode code (liftCodeDef (4 :: Integer))
+   in flip unsafeApplyCode (liftCodeDef (4 :: Integer))
+        $ unsafeApplyCode code (liftCodeDef (4 :: Integer))
 
 compiledAndWithoutGHCOpts :: CompiledCode Bool
 compiledAndWithoutGHCOpts =
   let code = $$(compile [||WithoutGHCOptTest.f||])
-   in flip unsafeApplyCode (liftCodeDef (4 :: Integer)) $
-        unsafeApplyCode code (liftCodeDef (4 :: Integer))
+   in flip unsafeApplyCode (liftCodeDef (4 :: Integer))
+        $ unsafeApplyCode code (liftCodeDef (4 :: Integer))
 
 compiledAndWithLocal :: CompiledCode Bool
 compiledAndWithLocal =
   let f :: Integer -> Integer -> Bool
       f x y = (PlutusTx.&&) (x PlutusTx.< (3 :: Integer)) (y PlutusTx.< (3 :: Integer))
       code = $$(compile [||f||])
-   in flip unsafeApplyCode (liftCodeDef (4 :: Integer)) $
-        unsafeApplyCode code (liftCodeDef (4 :: Integer))
+   in flip unsafeApplyCode (liftCodeDef (4 :: Integer))
+        $ unsafeApplyCode code (liftCodeDef (4 :: Integer))
+
+------------------------------------------------------------------------
+-- && vs builtinAnd vs alternatives: boolean AND chaining budget
+------------------------------------------------------------------------
+
+-- Pattern 1: Standard && (lazy, delay/force)
+andLazyPattern :: Integer -> Integer -> Integer -> Bool
+andLazyPattern x y z = (x < 100) && ((y < 100) && (z < 100))
+{-# INLINEABLE andLazyPattern #-}
+
+-- Patterns 2 and 4 (builtinAnd, direct BI.ifThenElse) are defined in
+-- Budget.BuiltinAndLib with GHC optimisation flags disabled and INLINE pragmas,
+-- matching Philip DiSarro's approach in PR #7562.
+
+-- Pattern 3: Multi-way if (negated guards)
+andMultiWayIfPattern :: Integer -> Integer -> Integer -> Bool
+andMultiWayIfPattern x y z =
+  if
+    | x >= 100 -> False
+    | y >= 100 -> False
+    | z >= 100 -> False
+    | otherwise -> True
+{-# INLINEABLE andMultiWayIfPattern #-}
+
+-- Test scenarios: AllTrue (50,60,70), EarlyFail (150,60,70), LateFail (50,60,150)
+
+-- Pattern 1: Standard &&
+andLazy_AllTrue :: CompiledCode Bool
+andLazy_AllTrue =
+  $$(compile [||andLazyPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andLazy_EarlyFail :: CompiledCode Bool
+andLazy_EarlyFail =
+  $$(compile [||andLazyPattern||])
+    `unsafeApplyCode` liftCodeDef 150
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andLazy_LateFail :: CompiledCode Bool
+andLazy_LateFail =
+  $$(compile [||andLazyPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 150
+
+-- Pattern 2: builtinAnd (from BuiltinAndLib, with -fno-* flags + INLINE)
+andBuiltinAnd_AllTrue :: CompiledCode Bool
+andBuiltinAnd_AllTrue =
+  $$(compile [||BuiltinAndLib.andBuiltinAndPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinAnd_EarlyFail :: CompiledCode Bool
+andBuiltinAnd_EarlyFail =
+  $$(compile [||BuiltinAndLib.andBuiltinAndPattern||])
+    `unsafeApplyCode` liftCodeDef 150
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinAnd_LateFail :: CompiledCode Bool
+andBuiltinAnd_LateFail =
+  $$(compile [||BuiltinAndLib.andBuiltinAndPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 150
+
+-- Pattern 3: Multi-way if
+andMultiWayIf_AllTrue :: CompiledCode Bool
+andMultiWayIf_AllTrue =
+  $$(compile [||andMultiWayIfPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andMultiWayIf_EarlyFail :: CompiledCode Bool
+andMultiWayIf_EarlyFail =
+  $$(compile [||andMultiWayIfPattern||])
+    `unsafeApplyCode` liftCodeDef 150
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andMultiWayIf_LateFail :: CompiledCode Bool
+andMultiWayIf_LateFail =
+  $$(compile [||andMultiWayIfPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 150
+
+-- Pattern 4: Direct BI.ifThenElse (from BuiltinAndLib, with -fno-* flags + INLINE)
+andDirectIfThenElse_AllTrue :: CompiledCode Bool
+andDirectIfThenElse_AllTrue =
+  $$(compile [||BuiltinAndLib.andDirectIfThenElsePattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andDirectIfThenElse_EarlyFail :: CompiledCode Bool
+andDirectIfThenElse_EarlyFail =
+  $$(compile [||BuiltinAndLib.andDirectIfThenElsePattern||])
+    `unsafeApplyCode` liftCodeDef 150
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andDirectIfThenElse_LateFail :: CompiledCode Bool
+andDirectIfThenElse_LateFail =
+  $$(compile [||BuiltinAndLib.andDirectIfThenElsePattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 150
+
+-- Pattern 5: Philip's claim — if (builtinAnd a $ builtinAnd b c) then ok else error
+andBuiltinAndIfError_AllTrue :: CompiledCode BuiltinUnit
+andBuiltinAndIfError_AllTrue =
+  $$(compile [||BuiltinAndLib.andBuiltinAndIfErrorPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinAndIfError_EarlyFail :: CompiledCode BuiltinUnit
+andBuiltinAndIfError_EarlyFail =
+  $$(compile [||BuiltinAndLib.andBuiltinAndIfErrorPattern||])
+    `unsafeApplyCode` liftCodeDef 150
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinAndIfError_LateFail :: CompiledCode BuiltinUnit
+andBuiltinAndIfError_LateFail =
+  $$(compile [||BuiltinAndLib.andBuiltinAndIfErrorPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 150
+
+-- Pattern 6: Nested builtinIf (Philip's actual validator pattern)
+andBuiltinIfNest_AllTrue :: CompiledCode BuiltinUnit
+andBuiltinIfNest_AllTrue =
+  $$(compile [||BuiltinAndLib.andBuiltinIfNestPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinIfNest_EarlyFail :: CompiledCode BuiltinUnit
+andBuiltinIfNest_EarlyFail =
+  $$(compile [||BuiltinAndLib.andBuiltinIfNestPattern||])
+    `unsafeApplyCode` liftCodeDef 150
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinIfNest_LateFail :: CompiledCode BuiltinUnit
+andBuiltinIfNest_LateFail =
+  $$(compile [||BuiltinAndLib.andBuiltinIfNestPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 150
