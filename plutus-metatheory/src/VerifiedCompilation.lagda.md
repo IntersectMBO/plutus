@@ -44,6 +44,7 @@ open import Agda.Builtin.Unit using (⊤)
 import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
+import VerifiedCompilation.UForceCaseDelay as UFCD
 import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
@@ -85,7 +86,7 @@ data Transformation : SimplifierTag → Relation where
   isCSE : {X : ℕ} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
   isInline : {ast ast' : 0 ⊢} → UInline.Inline (λ()) UInline.□ ast ast' → Transformation SimplifierTag.inlineT ast ast'
   isCaseReduce : {X : ℕ} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
-  forceCaseDelayNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
+  isFCD : {X : ℕ} → {ast ast' : X ⊢} → UFCD.ForceCaseDelay ast ast' → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
 data Trace : { X : ℕ }  → List (SimplifierTag × Hints × (X ⊢) × (X ⊢)) → Set where
   empty : {X : ℕ} → Trace {X} []
@@ -105,7 +106,9 @@ isTransformation? tag hints ast ast' | SimplifierTag.floatDelayT with UFlD.isFlo
 isTransformation? tag hints ast ast' | SimplifierTag.forceDelayT with UFD.isForceDelay? ast ast'
 ... | ce ¬p t b a = ce (λ { (isFD x) → ¬p x}) t b a
 ... | proof p = proof (isFD p)
-isTransformation? tag hints ast ast' | SimplifierTag.forceCaseDelayT = proof forceCaseDelayNotImplemented
+isTransformation? tag hints ast ast' | SimplifierTag.forceCaseDelayT with UFCD.isForceCaseDelay? ast ast'
+... | ce ¬p t b a = ce (λ { (isFCD x) → ¬p x}) t b a
+... | proof p = proof (isFCD p)
 isTransformation? tag hints ast ast' | SimplifierTag.caseOfCaseT with UCC.isCaseOfCase? ast ast'
 ... | ce ¬p t b a = ce (λ { (isCoC x) → ¬p x}) t b a
 ... | proof p = proof (isCoC p)

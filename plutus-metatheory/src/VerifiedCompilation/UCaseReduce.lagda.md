@@ -18,7 +18,7 @@ open import Relation.Nullary using (_×-dec_)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; con-integer)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (trans; sym; subst)
+open import Relation.Binary.PropositionalEquality.Core using (trans; sym; subst; cong)
 open import Untyped.CEK using (lookup?; lookup?-deterministic)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc)
@@ -40,10 +40,9 @@ open import Untyped.Reduction using (iterApp)
 
 ```
 data CaseReduce : Relation where
-  casereduce : {X : ℕ} {x : X ⊢} { x' : X ⊢} {vs xs : List (X ⊢)} {i : ℕ}
+  casereduce : {X : ℕ} {x : X ⊢} {vs xs : List (X ⊢)} {i : ℕ}
                          → lookup? i xs ≡ just x
-                         → Translation CaseReduce (iterApp x vs) x'
-                         → CaseReduce (case (constr i vs) xs) x'
+                         → CaseReduce (case (constr i vs) xs) (iterApp x vs)
 ```
 ## Decision Procedure
 
@@ -53,15 +52,14 @@ isCaseReduce? : {X : ℕ} → (ast ast' : X ⊢) → ProofOrCE (Translation Case
 justEq : {X : Set} {x x₁ : X} → (just x) ≡ (just x₁) → x ≡ x₁
 justEq refl = refl
 
-{-# TERMINATING #-}
 isCR? : {X : ℕ} → (ast ast' : X ⊢) → ProofOrCE (CaseReduce ast ast')
 isCR? ast ast' with (isCase? (isConstr? allTerms?) allTerms?) ast
-... | no ¬p = ce (λ { (casereduce _ _) → ¬p (iscase (isconstr _ (allterms _)) (allterms _))} ) caseReduceT ast ast'
+... | no ¬p = ce (λ { (casereduce _) → ¬p (iscase (isconstr _ (allterms _)) (allterms _))} ) caseReduceT ast ast'
 ... | yes (iscase (isconstr i (allterms vs)) (allterms xs)) with lookup? i xs in xv
-...          | nothing = ce (λ { (casereduce p _) → case trans (sym xv) p of λ { () }} ) caseReduceT ast ast'
-...          | just x with isCaseReduce? (iterApp x vs) ast'
-...                  | proof p = proof (casereduce xv p)
-...                  | ce ¬t t b a = ce (λ { (casereduce p t) → ¬t (subst (λ x → Translation CaseReduce (iterApp x vs) ast') (justEq (trans (sym p) xv)) t)}) t b a
+...          | nothing = ce (λ { (casereduce p) → case trans (sym xv) p of λ { () }} ) caseReduceT ast ast'
+...          | just x with ast' ≟ iterApp x vs
+...                  | yes refl = proof (casereduce xv)
+...                  | no ast'≠ = ce (λ { (casereduce p) → ast'≠ (sym (cong (λ y → iterApp y vs) (justEq (trans (sym xv) p))))}) caseReduceT ast ast'
 
 isCaseReduce? = translation? caseReduceT isCR?
 
@@ -91,7 +89,7 @@ ast₁' : 1 ⊢
 ast₁' = ((` zero) · (con-integer 99))
 
 _ : CaseReduce ast₁ ast₁'
-_ = casereduce refl reflexive
+_ = casereduce refl
 
 ```
 The longer example definately executes in the compiler, but requires some true β-reduction to make work here.

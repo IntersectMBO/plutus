@@ -374,6 +374,7 @@ library
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
     MAlonzo.Code.VerifiedCompilation.UCSE
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
+    MAlonzo.Code.VerifiedCompilation.UForceCaseDelay
     MAlonzo.Code.VerifiedCompilation.UForceDelay
     MAlonzo.Code.VerifiedCompilation.UInline
     MAlonzo.Code.VerifiedCompilation.UntypedTranslation
