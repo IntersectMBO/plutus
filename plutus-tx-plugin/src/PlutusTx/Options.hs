@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 -- editorconfig-checker-disable-file
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -11,6 +12,7 @@
 
 module PlutusTx.Options where
 
+{- ORMOLU_DISABLE -}
 import PlutusCore.Error as PLC
 import PlutusCore.Parser as PLC
 import PlutusCore.Quote as PLC
@@ -44,6 +46,11 @@ import Prettyprinter
 import Text.Read (readMaybe)
 import Type.Reflection
 
+#ifdef CERTIFY
+import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
+import Control.Applicative (many, optional, (<|>))
+#endif
+  
 data PluginOptions = PluginOptions
   { _posPlcTargetVersion :: PLC.Version
   , _posDoTypecheck :: Bool
@@ -82,6 +89,9 @@ data PluginOptions = PluginOptions
     -- Which effectively ignores the trace text.
     _posRemoveTrace :: Bool
   , _posDumpCompilationTrace :: Bool
+#ifdef CERTIFY
+  , _posCertify :: Maybe String
+#endif
   }
 
 makeLenses ''PluginOptions
@@ -314,6 +324,20 @@ pluginOptions =
     , let k = "dump-compilation-trace"
           desc = "Dump compilation trace for debugging"
        in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
+#ifdef CERTIFY
+    , let k = "certify"
+          desc =
+            "Produce a certificate for the compiled program, with the given name. "
+            <> "This certificate provides evidence that the compiler optimizations have "
+            <> "preserved the functional behavior of the original program. "
+            <> "Currently, this is only supported for the UPLC compilation pipeline."
+          p =
+            optional $ do
+              firstC <- upperChar
+              rest <- many (alphaNumChar <|> char '_' <|> char '\\')
+              pure (firstC : rest)
+       in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
+#endif
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -387,6 +411,9 @@ defaultPluginOptions =
     , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
+#ifdef CERTIFY
+    , _posCertify = Nothing
+#endif
     }
 
 processOne
