@@ -17,7 +17,7 @@ jobs:
     runs-on: [self-hosted, plutus-runner]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
 
       - name: Run Linkchecker
         run: |
