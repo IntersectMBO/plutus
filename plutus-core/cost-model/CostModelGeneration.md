@@ -40,9 +40,9 @@ costing functions involves a number of steps.
   when testing costing benchmarks.
 
 * Change directory to `plutus-core/cost-model/data/` and run `cabal run
-  plutus-core:generate-cost-model -- --csv <file>`, where `<file>` is the CSV
-  file produced in the previous step.  This runs some R code in
-  [`plutus-core/cost-model/data/models.R`](./data/models.R) which fits a linear
+  plutus-core:generate-cost-model -- --csv <file> -o <output.hs>`, where `<file>` is the CSV
+  file produced in the previous step and `<output.hs>` is the Haskell module file to generate.
+  This runs some R code in [`plutus-core/cost-model/data/models.R`](./data/models.R) which fits a linear
   model to the data for each builtin; the general form of the model for each
   builtin is coded into `models.R`. Certain checks are performed during this
   process: for example it is possible that R will generate a model with a
@@ -50,7 +50,7 @@ costing functions involves a number of steps.
   constant) and if that happens then a warning is printed and the coefficient is
   replaced by zero.
 
-  * The output of `generate-cost-model` is a JSON object describing the form of
+  * The output of `generate-cost-model` is a Haskell module file describing the form of
   the models for each builtin, together with the model coefficients fitted by R.
   By default this is written to the terminal, but an output file can be
   specified with `-o`.  The model coefficients are converted from floating point
@@ -60,23 +60,23 @@ costing functions involves a number of steps.
   on different machines).
 
 * The specific cost model data to be used by the Plutus Core evaluator should be
-  checked in to git in the file
-  [`plutus-core/cost-model/data/builtinCostModelC.json`](./data/builtinCostModelC.json).
-  There are also files called `builtinCostModelA.json` and
-  `builtinCostModelB.json` which are used for evaluating scripts prior to the
-  Chang hard fork: data for new builtins can (if fact, must) be added to these
-  files, but the existing content must not be changed.  The CSV file containing
-  the benchmark results used to generate the cost model should be checked in to
-  the repository; this is not strictly necessary but it can be useful to have
-  the raw data available if the details of the cost model need to be looked at
-  at some later time.  The benchmarking results used to generate the current cost
-  model (March 2025) are checked in in
+  checked in to git as Haskell modules in the directory
+  [`plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/CostModel/Generated/`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostModel/Generated/).
+  The module `BuiltinCostModelC.hs` contains the cost model for the latest version.
+  There are also modules called `BuiltinCostModelA.hs` and `BuiltinCostModelB.hs`
+  which are used for evaluating scripts prior to the Chang hard fork: data for new
+  builtins can (if fact, must) be added to these files, but the existing content
+  must not be changed.  The CSV file containing the benchmark results used to generate
+  the cost model should be checked in to the repository; this is not strictly necessary
+  but it can be useful to have the raw data available if the details of the cost model
+  need to be looked at at some later time.  The benchmarking results used to generate
+  the current cost model (March 2025) are checked in in
   [`plutus-core/cost-model/data/benching-conway.csv`](./data/benching-conway.csv)
   and any new results should be added to the end of that file.
 
-* When the rest of the `plutus-core` package is compiled, the contents of
-  `builtCostModelC.json` are read and used by some Template Haskell code to
-  construct Haskell functions which implement the cost models.
+* When the rest of the `plutus-core` package is compiled, the generated Haskell
+  modules are directly imported and used to construct the cost models. This
+  eliminates the need for Template Haskell file reading at compile time.
 
 * To ensure consistency, `cabal bench plutus-core:cost-model-test` runs some
   QuickCheck tests to run the R models and the Haskell models and checks that
@@ -96,8 +96,8 @@ costing functions involves a number of steps.
   predicted by the builtin cost model, and divide the remaining time
   by the number of basic machine steps executed to arrive at an
   average time for each machine step (see the earlier discussion).
-  This is then stored in another JSON file,
-  [`plutus-core/cost-model/data/cekMachineCosts.json`](./data/cekMachineCosts.json).
+  This is then stored in Haskell modules in the `CostModel/Generated/` directory,
+  such as [`CekMachineCostsC.hs`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostModel/Generated/CekMachineCostsC.hs).
   This cost is currently the same for each step, but more careful
   testing may enable us to produce more precise costs per step at some
   future date.  The JSON file also contains a constant cost for

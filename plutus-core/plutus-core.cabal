@@ -22,13 +22,8 @@ extra-doc-files:
 -- `data-files`.  See https://github.com/haskell/cabal/pull/6889 and the issue
 -- #4746 that it mentions.
 extra-source-files:
+  cost-model/data/*.csv
   cost-model/data/*.R
-  cost-model/data/builtinCostModelA.json
-  cost-model/data/builtinCostModelB.json
-  cost-model/data/builtinCostModelC.json
-  cost-model/data/cekMachineCostsA.json
-  cost-model/data/cekMachineCostsB.json
-  cost-model/data/cekMachineCostsC.json
   plutus-core/test/CostModelInterface/defaultCostModelParams.json
 
 source-repository head
@@ -136,6 +131,12 @@ library
     PlutusCore.Evaluation.Machine.CostingFun.Core
     PlutusCore.Evaluation.Machine.CostingFun.JSON
     PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON
+    PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelA
+    PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelB
+    PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelC
+    PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsA
+    PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsB
+    PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsC
     PlutusCore.Evaluation.Machine.CostModelInterface
     PlutusCore.Evaluation.Machine.CostStream
     PlutusCore.Evaluation.Machine.ExBudget
@@ -350,7 +351,6 @@ library
     , text
     , th-lift
     , th-lift-instances
-    , th-utilities
     , time
     , transformers
     , unordered-containers
@@ -992,6 +992,7 @@ executable generate-cost-model
     buildable: False
 
   build-depends:
+    , aeson
     , aeson-pretty
     , barbies
     , base                  >=4.9   && <5
@@ -1000,9 +1001,9 @@ executable generate-cost-model
     , inline-r              >=1.0.1
     , optparse-applicative
     , plutus-core           ^>=1.58
+    , pretty-show
     , text
 
-  --    , exceptions
   other-modules:
     BuiltinMemoryModels
     CreateBuiltinCostModel
