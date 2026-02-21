@@ -30,8 +30,10 @@ open Eq using (_≡_; refl; isEquivalence; cong)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Relation.Nullary using (_×-dec_)
 open import Data.Product using (_,_)
-open import Data.List using (List; _∷_; [])
+open import Data.List using (List; _∷_; []; map)
+open import Data.List.Relation.Unary.All
 open import RawU using (TmCon)
+open import Data.Fin using (suc; zero; Fin)
 ```
 
 ## Translation Relation
@@ -95,7 +97,7 @@ variable
   Ms' Ns' Ts' Ts'' : List (X ⊢)
   K : TmCon
 
-postulate All : ∀ {A : Set} →(A → Set) → List A → Set
+-- postulate All : ∀ {A : Set} →(A → Set) → List A → Set
 ```
 
 Constructors and constants are directly scrutinizable:
@@ -171,6 +173,17 @@ open import Data.Unit.Base using (⊤)
 data CaseCase : X ⊢ → X ⊢ → Set where
     caseIf' : CaseIf CaseCase M M' → CaseCase M M'
 
+open import Data.Nat using (suc)
+import Data.Unit
+
+data Vec : ℕ → Set where
+    Nil : Vec 0
+    Cons : ∀ {n} → ⊤ → Vec n → Vec (suc n)
+
+length : ∀ n → Vec n → ℕ
+length _ Nil = 0
+length _ (Cons _ v) = suc (length _ v)
+
 caseIf? : (∀ {X} (N N' : X ⊢) → Dec (CaseCase N N') ) → (M M' : X ⊢) → Dec (CaseIf CaseCase M M')
 caseIf? caseCase? M M' with
   (case?
@@ -197,6 +210,7 @@ caseIf? caseCase? M M' with
 ... | no _ = {! !}
 ... | yes PMB = yes (caseIf PMB)
 
+{-# TERMINATING #-}
 caseCase? : (M M' : X ⊢) → Dec (CaseCase M M')
 caseCase? M M' with caseIf? caseCase? M M'
 ... | yes P = yes (caseIf' P)
@@ -265,6 +279,59 @@ isCaseIfPre? t with
                     (wildcard _)) }
 
 
+-- data Preds : Set where
+--   cons : Pred → Preds → Preds
+--   nil : Preds
+
+
+
+-- Pred = {X : ℕ} → (X ⊢) → Set
+-- ListPred = {X : ℕ} → List (X ⊢) → Set
+--
+-- Pred' = (X : ℕ) → (X ⊢) → Set
+-- 
+-- data ZipApply (Y : ℕ) : List Pred' → List (Y ⊢) → Set where
+--   nil : ∀ Y → ZipApply Y [] []
+--   cons : ∀ Y P Ps (M : Y ⊢) (Ms : List (Y ⊢))
+--     P M →
+--     ZipApply Y Ps Ms →
+--     ZipApply Y (P ∷ Ps) (M ∷ Ms)
+{-# TERMINATING #-}
+⟦_⟧ : X ⊢ → (∀{Y} → Y ⊢ → Set)
+⟦ ` _ ⟧ = isVar
+⟦ M · N ⟧ = isApp ⟦ M ⟧ ⟦ N ⟧
+⟦ ƛ T ⟧ = isLambda ⟦ T ⟧
+⟦ force M ⟧ = isForce ⟦ M ⟧
+⟦ delay M ⟧ = isDelay ⟦ M ⟧
+⟦ con K ⟧ = isCon
+⟦ constr i Ms ⟧ = isConstr (Pointwise (λ M → ⟦ M ⟧) Ms)
+⟦ case M Ms ⟧ = isCase ⟦ M ⟧ (Pointwise (λ M → ⟦ M ⟧) Ms)
+⟦ builtin B ⟧ = isBuiltin (_≡_ B)
+⟦ error ⟧ = isError
+
+-- Test: does this reduce in inhabits?
+-- ⟦_⟧' : X ⊢ → (∀{Y} → Y ⊢ → Set)
+-- ⟦ ` _ ⟧' = λ _ → ℕ
+-- ⟦ _ ⟧' = λ _ → ⊤
+-- 
+-- _ : ∀ {n : Fin X} → ⟦ ` n  ⟧' M ≡ ℕ
+-- _ = refl
+-- 
+-- _ : ∀ {n : Fin X} {M N} → ⟦ M ·  N ⟧' M ≡ ⊤
+-- _ = refl
+
+inhabits : (M : X ⊢) → ⟦ M ⟧ M
+inhabits (` n) = isvar n
+inhabits (M · N) = isapp (inhabits M) (inhabits N)
+inhabits (ƛ M) = islambda (inhabits M)
+inhabits (force M) = isforce (inhabits M)
+inhabits (delay M) = isdelay (inhabits M)
+inhabits (con K) = iscon K
+inhabits (constr i Ms) = isconstr i ?
+inhabits (case M Ms) = iscase (inhabits M) ?
+inhabits (builtin b) = isbuiltin b refl
+inhabits error = iserror
+
 isCaseIfPost? : {X : ℕ} → Unary.Decidable (CaseIfPost {X})
 isCaseIfPost? t with
   (force?
@@ -277,12 +344,8 @@ isCaseIfPost? t with
   )
   t
 ... | no ¬CaseIfPost = no λ { (isCaseIfPost b tn fn tt' ft' alts') →
-                              ¬CaseIfPost
-                                (isforce
-                                 (isapp
-                                  (isapp (isapp (isforce (isbuiltin ifThenElse refl)) (wildcard b))
-                                   (isdelay (iscase (isconstr tn (wildcard tt')) (wildcard alts'))))
-                                  (isdelay (iscase (isconstr fn (wildcard ft')) (wildcard alts')))))}
+                              ¬CaseIfPost {! inhabits _ !}
+                                }
 ... | yes (isforce (isapp (isapp (isapp (isforce (isbuiltin .ifThenElse refl)) (wildcard b)) (isdelay (iscase (isconstr tn (wildcard tt')) (wildcard alts'))) ) (isdelay (iscase (isconstr fn (wildcard ft')) (wildcard alts''))))) with alts' ≟ alts''
 ... | yes refl = yes (isCaseIfPost b tn fn tt' ft' alts')
 ... | no ¬p = no λ { (isCaseIfPost .b .tn .fn .tt' .ft' .alts') → ¬p refl }
