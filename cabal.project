@@ -28,6 +28,7 @@ packages: cardano-constitution
           plutus-tx
           plutus-tx-plugin
           doc/docusaurus/docusaurus-examples.cabal
+          --plutus-profiled-plugin-test
 
 -- We never, ever, want this.
 write-ghc-environment-files: never

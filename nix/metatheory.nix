@@ -83,7 +83,7 @@ let
     {
       buildInputs = [
         pkgs.jekyll
-        inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
+        inputs.nixpkgs-2405.legacyPackages.${pkgs.stdenv.hostPlatform.system}.linkchecker
       ];
     } ''
     mkdir "$out"

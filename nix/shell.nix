@@ -5,7 +5,7 @@
 let
 
   # Toolchain versions used in dev shells. Consumed by `project.shellFor`.
-  all-tools = {
+  all-tools = rec {
     "ghc96".cabal = project.projectVariants.ghc96.tool "cabal" "3.12.1.0";
     "ghc96".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest";
     "ghc96".haskell-language-server = project.projectVariants.ghc96.tool "haskell-language-server" "latest";
@@ -19,12 +19,15 @@ let
     "ghc912".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest";
     "ghc912".fourmolu = mkFourmolu ghc;
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
+
+    "ghc96-profiled" = ghc96;
+    "ghc96-plugin" = ghc96;
   };
 
   tools = all-tools.${ghc};
 
   # Pre-commit hooks for the repo. Injects into shell via shellHook.
-  pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
+  pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.stdenv.hostPlatform.system}.run {
     src = ../.;
     hooks = {
       nixpkgs-fmt = {
@@ -90,7 +93,9 @@ let
     metatheory.agda-with-stdlib-and-metatheory
 
     r-with-packages
-    inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
+
+    inputs.nixpkgs-2405.legacyPackages.${pkgs.stdenv.hostPlatform.system}.linkchecker
+    inputs.nixpkgs-2405.legacyPackages.${pkgs.stdenv.hostPlatform.system}.scriv
 
     tools.haskell-language-server
     tools.stylish-haskell
@@ -111,7 +116,6 @@ let
     pkgs.act
     pkgs.bzip2
     pkgs.gawk
-    pkgs.scriv
     pkgs.fswatch
     pkgs.yarn
     pkgs.zlib
@@ -155,6 +159,10 @@ let
   quick-shell = project.projectVariants.${ghc}.shellFor {
     name = "plutus-shell-${ghc}";
     tools = { cabal = "latest"; };
+    buildInputs = [
+      pkgs.git
+    ];
+    withHoogle = false;
     shellHook = ''
       ${locale-archive-hook}
       export PS1="\n\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] "
@@ -166,9 +174,9 @@ let
   # Select shell by compiler used in the project variant.
   shell = {
     ghc96 = full-shell;
-    ghc98 = quick-shell;
-    ghc910 = quick-shell;
     ghc912 = full-shell;
+    ghc96-profiled = quick-shell;
+    ghc96-plugin = quick-shell;
   }.${ghc};
 
 in
