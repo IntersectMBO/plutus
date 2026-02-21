@@ -19,8 +19,13 @@ let
           enableProfiling = true;
           enableLibraryProfiling = true;
         }];
-        ghc98.compiler-nix-name = "ghc98";
-        ghc910.compiler-nix-name = "ghc910";
+        ghc912-profiled = {
+          compiler-nix-name = "ghc912";
+          modules = [{
+            enableProfiling = true;
+            enableLibraryProfiling = true;
+          }];
+        };
         ghc912.compiler-nix-name = "ghc912";
         ghc96-coverage.modules = [{
           packages.plutus-metatheory.doCoverage = true;
