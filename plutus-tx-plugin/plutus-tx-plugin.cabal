@@ -57,6 +57,7 @@ library
     PlutusTx.Compiler.Error
     PlutusTx.Options
     PlutusTx.Plugin
+    PlutusTx.Compiler.Types
 
   other-modules:
     PlutusTx.Compiler.Binders
@@ -68,7 +69,6 @@ library
     PlutusTx.Compiler.Names
     PlutusTx.Compiler.Trace
     PlutusTx.Compiler.Type
-    PlutusTx.Compiler.Types
     PlutusTx.Compiler.Utils
     PlutusTx.PIRTypes
     PlutusTx.PLCTypes
@@ -237,6 +237,31 @@ test-suite size
     , plutus-tx:plutus-tx-testlib
     , tagged
     , tasty
+
+  default-extensions: Strict
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+
+  -- See Note [-fno-full-laziness in Plutus Tx]
+  ghc-options:
+    -fno-strictness -fno-unbox-strict-fields
+    -fno-unbox-small-strict-fields -fno-full-laziness
+
+
+test-suite plutus-tx-plugin-profile-test
+  import:             lang, ghc-version-support, os-support
+  type:               exitcode-stdio-1.0
+  main-is:            ProfileTest.hs
+  hs-source-dirs:     test/Plugin/Profiling
+  build-depends:
+    , base                   >=4.9   && <5
+    , containers
+    , data-default
+    , ghc
+    , ghc-paths
+    , mtl
+    , plutus-core            ^>=1.57
+    , plutus-core:plutus-ir
+    , plutus-tx-plugin       ^>=1.57
 
   default-extensions: Strict
   ghc-options:        -threaded -rtsopts -with-rtsopts=-N

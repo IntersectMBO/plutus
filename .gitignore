@@ -49,6 +49,8 @@ stack.yaml.lock
 *.chi
 *.chs.h
 *.prof
+*.hp
+*.ps
 .liquid/
 
 # Agda
