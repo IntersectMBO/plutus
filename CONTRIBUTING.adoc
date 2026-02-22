@@ -212,6 +212,8 @@ At the moment, our supported GHC versions are:
 - 9.6 (primary)
 - 9.8
 - 9.10
+- 9.12
+- 9.14
 
 === Plugin support
 
@@ -224,11 +226,12 @@ This makes cabal behave reasonably well (it will ignore them and not try and fai
 
 We currently support the plugin on:
 - 9.6
+- 9.12
 
 === Per-version tooling
 
 We have a dev shell for each supported GHC version which you can use if you need to fix issues on that specific version.
-You can access them like this: `nix develop .#ghc98`.
+You can access them like this: `nix develop .#ghc912`.
 
 Note that HLS in particular won't work in the non-primary dev shell as it will still be built with the primary GHC version, but other tooling should work fine.
 
