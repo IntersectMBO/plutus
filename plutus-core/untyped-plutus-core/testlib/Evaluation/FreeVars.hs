@@ -15,8 +15,14 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 import UntypedPlutusCore.Test.DeBruijn.Bad
 import UntypedPlutusCore.Test.DeBruijn.Good
 
+import Data.IORef
+import System.IO.Unsafe
 import Test.Tasty
 import Test.Tasty.HUnit
+
+nothunk :: IORef (Maybe (CekValue DefaultUni DefaultFun ()))
+nothunk = unsafePerformIO $ newIORef Nothing
+{-# OPAQUE nothunk #-}
 
 {-| Test the behaviour of Cek evaluator module *directly*
 by using the Internal module, thus bypassing any prior term conformance checks, e.g.
@@ -71,6 +77,7 @@ testDischargeFree =
         ( VDelay
             (toFakeTerm fun0var0)
             [] -- empty env
+            nothunk
         )
         @?= DischargeNonConstant (toFakeTerm $ Delay () fun0var0)
 

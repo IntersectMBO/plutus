@@ -32,6 +32,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
   , mapTermCekResult
   , CekReport (..)
   , CekValue (..)
+  , CekThunk (..)
   , DischargeResult (..)
   , dischargeResultToTerm
   , ArgStack (..)
@@ -103,6 +104,7 @@ import Data.Bifunctor
 import Data.DList qualified as DList
 import Data.Functor.Identity
 import Data.Hashable (Hashable)
+import Data.IORef
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Semigroup (stimes)
@@ -285,11 +287,16 @@ deriving stock instance
   (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
   => Show (ArgStackNonEmpty uni fun ann)
 
+newtype CekThunk uni fun ann = CekThunk {getCekThunk :: IORef (Maybe (CekValue uni fun ann))}
+
+instance Show (CekThunk uni fun ann) where
+  show _ = "cek_thunk"
+
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun ann
   = -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
-  | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann)
+  | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann) !(CekThunk uni fun ann)
   | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
   | {-| A partial builtin application, accumulating arguments for eventual full application.
     We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
@@ -660,7 +667,7 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
     goValue :: CekValue uni fun ann -> NTerm uni fun ()
     goValue = \case
       VCon val -> Constant () val
-      VDelay body env -> Delay () $ goValEnv env 0 body
+      VDelay body env _thunk -> Delay () $ goValEnv env 0 body
       VLamAbs (NamedDeBruijn n _ix) body env ->
         -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
         LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
@@ -732,6 +739,7 @@ data Context uni fun ann
   | {-| @(force _)@
     See Note [Accumulators for terms] -}
     FrameForce !(Context uni fun ann)
+  | FrameThunk !(CekThunk uni fun ann) !(Context uni fun ann)
   | -- | @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
   | -- | @(case _ C0 .. Cn)@
@@ -837,7 +845,8 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
     computeCek !ctx !env (Delay _ body) = do
       stepAndMaybeSpend BDelay
-      returnCek ctx (VDelay body env)
+      thunk <- newThunk
+      returnCek ctx (VDelay body env thunk)
     -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
     computeCek !ctx !env (Force _ body) = do
       stepAndMaybeSpend BForce
@@ -886,6 +895,7 @@ enterComputeCek = computeCek
       pure $ dischargeCekValue val
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
     returnCek (FrameForce ctx) fun = forceEvaluate ctx fun
+    returnCek (FrameThunk thunk ctx) v = fillThunk thunk v >> returnCek ctx v
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
     returnCek (FrameAwaitFunTerm argVarEnv arg ctx) fun =
       computeCek (FrameAwaitArg fun ctx) argVarEnv arg
@@ -951,7 +961,8 @@ enterComputeCek = computeCek
       :: Context uni fun ann
       -> CekValue uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
-    forceEvaluate !ctx (VDelay body env) = computeCek ctx env body
+    forceEvaluate !ctx (VDelay body env thunk) =
+      maybe (computeCek (FrameThunk thunk ctx) env body) (returnCek ctx) =<< readThunk thunk
     forceEvaluate !ctx (VBuiltin fun term runtime) = do
       -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
       let term' = Force () term
@@ -1079,6 +1090,23 @@ enterComputeCek = computeCek
         varEnv
         (coerce varIx)
     {-# INLINE lookupVarName #-}
+
+    newThunk :: CekM uni fun s (CekThunk uni fun ann)
+    newThunk = CekM . unsafeIOToST . fmap CekThunk $ newIORef Nothing
+    {-# INLINE newThunk #-}
+
+    readThunk
+      :: CekThunk uni fun ann
+      -> CekM uni fun s (Maybe (CekValue uni fun ann))
+    readThunk = CekM . unsafeIOToST . readIORef . getCekThunk
+    {-# INLINE readThunk #-}
+
+    fillThunk
+      :: CekThunk uni fun ann
+      -> CekValue uni fun ann
+      -> CekM uni fun s ()
+    fillThunk (CekThunk thunk) = CekM . unsafeIOToST . writeIORef thunk . pure
+    {-# INLINE fillThunk #-}
 
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
