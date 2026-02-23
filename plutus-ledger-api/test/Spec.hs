@@ -18,6 +18,7 @@ import Spec.Data.Versions qualified
 import Spec.Eq.Golden qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
+import Spec.Ord.Golden qualified
 import Spec.ScriptDecodeError qualified
 import Spec.V1.Data.Value qualified as Data.Value
 import Spec.V1.Value qualified as Value
@@ -225,4 +226,5 @@ tests =
             ]
         ]
     , Spec.Eq.Golden.eqGoldenTests
+    , Spec.Ord.Golden.ordGoldenTests
     ]
