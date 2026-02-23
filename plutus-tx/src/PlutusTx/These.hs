@@ -34,6 +34,7 @@ data These a b = This a | That b | These a b
   deriving anyclass (HasBlueprintDefinition)
 
 deriveEq ''These
+deriveOrd ''These
 deriveShow ''These
 makeLift ''These
 makeIsDataSchemaIndexed ''These [('This, 0), ('That, 1), ('These, 2)]
@@ -53,17 +54,3 @@ these f g h = \case
   That b -> g b
   These a b -> h a b
 {-# INLINEABLE these #-}
-
-instance (Ord a, Ord b) => Ord (These a b) where
-  {-# INLINEABLE compare #-}
-  compare (This a) (This a') = compare a a'
-  compare (That b) (That b') = compare b b'
-  compare (These a b) (These a' b') =
-    case compare a a' of
-      EQ -> compare b b'
-      c -> c
-  compare (This _) _ = LT
-  compare (That _) (This _) = GT
-  compare (That _) (These _ _) = LT
-  compare (These _ _) (This _) = GT
-  compare (These _ _) (That _) = GT
