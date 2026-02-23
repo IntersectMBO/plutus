@@ -82,13 +82,15 @@ goldenTests :: TestTree
 goldenTests =
   runTestNested
     ["test", "Eq", "Golden"]
-    [ $(goldenCodeGen "SomeLargeADT" (deriveEq ''SomeLargeADT))
-    , $(goldenCodeGen "PhantomADT" (deriveEq ''PhantomADT))
-    , $(goldenCodeGen "MyNewtype" (deriveEq ''MyNewtype))
-    , $(goldenCodeGen "Tree" (deriveEq ''Tree))
-    , -- Types from PlutusTx modules that use deriveEq
-      $(goldenCodeGen "Rational" (deriveEq ''Rational))
-    , $(goldenCodeGen "These" (deriveEq ''These))
+    [ testNestedGhc
+        [ $(goldenCodeGen "SomeLargeADT" (deriveEq ''SomeLargeADT))
+        , $(goldenCodeGen "PhantomADT" (deriveEq ''PhantomADT))
+        , $(goldenCodeGen "MyNewtype" (deriveEq ''MyNewtype))
+        , $(goldenCodeGen "Tree" (deriveEq ''Tree))
+        , -- Types from PlutusTx modules that use deriveEq
+          $(goldenCodeGen "Rational" (deriveEq ''Rational))
+        , $(goldenCodeGen "These" (deriveEq ''These))
+        ]
     ]
 
 eqTests :: TestTree
