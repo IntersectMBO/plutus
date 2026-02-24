@@ -294,11 +294,10 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
           finishUp (plusPtr ptr 2) (remaining - 4)
 {-# INLINE unsafeIntegerToByteString #-}
 
+-- | Returns mempty for negative input.
 integerToBytesBE :: Integer -> ByteString
 integerToBytesBE 0 = BS.pack [0]
-integerToBytesBE n =
-  either (\_ -> error "integerToBytesBE: negative input") id $
-    unsafeIntegerToByteString BigEndian 0 n
+integerToBytesBE n = fromRight mempty $ unsafeIntegerToByteString BigEndian 0 n
 {-# INLINE integerToBytesBE #-}
 
 {-| Conversion from 'ByteString' to 'Integer', as per
