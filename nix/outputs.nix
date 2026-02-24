@@ -122,8 +122,6 @@ let
       (packages) //
       { ghc96 = project-variants-hydra-jobs.ghc96; } //
       { ghc912 = project-variants-hydra-jobs.ghc912; } //
-      { ghc96-profiled = project-variants-hydra-jobs.ghc96-profiled; } //
-      { ghc912-profiled = project-variants-hydra-jobs.ghc912-profiled; } //
       { devShells.ghc96 = devShells.ghc96; } //
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-profiled = devShells.ghc96-profiled; } //
@@ -133,8 +131,6 @@ let
     "x86_64-darwin" =
       { ghc96 = project-variants-hydra-jobs.ghc96; } //
       { ghc912 = project-variants-hydra-jobs.ghc912; } //
-      { ghc96-profiled = project-variants-hydra-jobs.ghc96-profiled; } //
-      { ghc912-profiled = project-variants-hydra-jobs.ghc912-profiled; } //
       { devShells.ghc96 = devShells.ghc96; } //
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-profiled = devShells.ghc96-profiled; } //
