@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnboxedTuples #-}
+{-# OPTIONS_GHC -ddump-simpl #-}
 
 {-| Implementations for CIP-121, CIP-122 and CIP-123. Grouped because they all operate on
 'ByteString's, and require similar functionality. -}
@@ -49,6 +50,7 @@ import GHC.Exts
   , Ptr (Ptr)
   , clz#
   , indexWord8Array#
+  , inline
   , int2Word#
   , int8ToWord8#
   , intToInt8#
@@ -116,7 +118,7 @@ integerToByteString endiannessArg lengthArg input
        in -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
           -- denotations. This is because, if we've made it this far, we know that overflow or truncation
           -- are impossible: we've checked that whatever we got given fits inside a (non-negative) Int.
-          case unsafeIntegerToByteString endianness (fromIntegral lengthArg) input of
+          case inline unsafeIntegerToByteString endianness (fromIntegral lengthArg) input of
             Left err -> case err of
               NegativeInput -> do
                 emit "integerToByteString: cannot convert negative Integer"
@@ -290,7 +292,7 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
           poke pEnd (byteSwap16 wStart)
           poke pStart (byteSwap16 wEnd)
           finishUp (plusPtr ptr 2) (remaining - 4)
-{-# INLINEABLE unsafeIntegerToByteString #-}
+{-# INLINE unsafeIntegerToByteString #-}
 
 integerToBytesBE :: Integer -> ByteString
 integerToBytesBE 0 = BS.pack [0]
