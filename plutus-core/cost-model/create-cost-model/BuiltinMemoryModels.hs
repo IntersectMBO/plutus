@@ -374,7 +374,7 @@ builtinMemoryModels =
     , -- See Note [Memory model for Value builtins]
       paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 2 22
     , -- See Note [Memory model for Value builtins]
-      paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 11 1
+      paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 1 11
     , -- See Note [Memory model for Value builtins]
       paramInsertCoin = Id $ ModelFourArgumentsLinearInU $ OneVariableLinearFunction 45 21
     , -- See Note [Memory model for Value builtins]
