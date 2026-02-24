@@ -108,6 +108,7 @@ makeExampleM testname = do
           <> " and error: "
           <> err
     ExitSuccess -> do
+      -- FIXME: ?????
       let certDir = find (fstToUpper testNameCert `isPrefixOf`) . concatMap words . lines $ output
       case certDir of
         Just certDir' -> do

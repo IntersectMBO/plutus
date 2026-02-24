@@ -31,9 +31,11 @@ import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
+import Data.Char
 import Data.Foldable
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
+import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
 import Options.Applicative
 import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
@@ -341,10 +343,17 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert) = do
   writeProgram outp ofmt mode simplified
   case mcert of
     Nothing -> pure ()
-    Just cert -> execCertifier simplificationTrace cert
+    Just cert -> do
+      -- TODO: add command line argument for CertifierOutput options
+      time <- systemNanoseconds <$> getSystemTime
+      let
+        -- FIXME: remove
+        capitalize = \case [] -> []; x : xs -> toUpper x : xs
+        certDir = capitalize cert <> "-" <> show time
+      execCertifier simplificationTrace cert (ProjectOutput certDir)
   where
-    execCertifier simplificationTrace cert = do
-      result <- runCertifier $ mkCertifier simplificationTrace cert
+    execCertifier simplificationTrace cert out = do
+      result <- runCertifier $ mkCertifier simplificationTrace cert out
       case result of
         Left err -> do
           putStrLn $ prettyCertifierError err
@@ -352,9 +361,8 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert) = do
             InvalidCertificate _ -> exitWith $ ExitFailure 1
             InvalidCompilerOutput -> exitWith $ ExitFailure 2
             ValidationError _ -> exitWith $ ExitFailure 3
-        Right certSucc -> do
-          putStrLn $ prettyCertifierSuccess certSucc
-          exitSuccess
+        -- TODO: Only Right True is success
+        Right _ -> exitSuccess
 
 ---------------- Script application ----------------
 

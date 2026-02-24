@@ -116,6 +116,7 @@ executable uplc
     , serialise
     , split
     , text
+    , time
 
 test-suite test-simple
   import:             lang, os-support, ghc-version-support
