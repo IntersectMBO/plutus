@@ -17,18 +17,19 @@ import Codec.Serialise (Serialise (decode, encode))
 import Codec.Serialise.Decoding (decodeSequenceLenIndef, decodeSequenceLenN)
 import Control.DeepSeq (NFData)
 import Control.Monad (unless)
-import Data.Bits (shiftR)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Lazy qualified as BSL
 import Data.Data qualified
 import Data.Hashable
 import Data.Text.Encoding qualified as Text
-import Data.Word (Word64, Word8)
+import Data.Word (Word64)
 import GHC.Generics
 import NoThunks.Class
 import Prettyprinter
 import Prelude
+
+import PlutusCore.Bitwise (integerToBytesBE)
 
 -- Attempting to make this strict made code slower by 2%,
 -- see https://github.com/IntersectMBO/plutus/pull/4622
@@ -176,21 +177,9 @@ encodeInteger i
 -- encoding with a bytestring inside, and since we use bsToTerm, that bytestring will
 -- get chunked up if it's too big.
 -- See Note [Evading the 64-byte limit]
-encodeInteger i | i >= 0 = CBOR.encodeTag 2 <> encodeBs (integerToBytes i)
-encodeInteger i | otherwise = CBOR.encodeTag 3 <> encodeBs (integerToBytes (-1 - i))
-
--- Taken exactly from Codec.CBOR.Write
-integerToBytes :: Integer -> BS.ByteString
-integerToBytes n0
-  | n0 == 0 = BS.pack [0]
-  | otherwise = BS.pack (reverse (go n0))
-  where
-    go n
-      | n == 0 = []
-      | otherwise = narrow n : go (n `shiftR` 8)
-
-    narrow :: Integer -> Word8
-    narrow = fromIntegral
+encodeInteger i
+  | i >= 0 = CBOR.encodeTag 2 <> encodeBs (integerToBytesBE i)
+  | otherwise = CBOR.encodeTag 3 <> encodeBs (integerToBytesBE (-1 - i))
 
 -- | Given an bytestring, create a 'CBOR.Term' that encodes it, following our size restrictions.
 encodeBs :: BS.ByteString -> Encoding

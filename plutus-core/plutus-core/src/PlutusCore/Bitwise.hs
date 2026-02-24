@@ -8,6 +8,7 @@
 'ByteString's, and require similar functionality. -}
 module PlutusCore.Bitwise
   ( integerToByteString
+  , integerToBytesBE
   , byteStringToInteger
   , andByteString
   , orByteString
@@ -24,7 +25,7 @@ module PlutusCore.Bitwise
   , maximumOutputLength
   ) where
 
-import PlutusCore.Builtin (BuiltinResult, builtinResultFailure, emit)
+import PlutusCore.Builtin.Result (BuiltinResult, builtinResultFailure, emit)
 
 import Control.Exception (Exception, throwIO, try)
 import Control.Monad (unless, when)
@@ -289,6 +290,14 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
           poke pEnd (byteSwap16 wStart)
           poke pStart (byteSwap16 wEnd)
           finishUp (plusPtr ptr 2) (remaining - 4)
+{-# INLINEABLE unsafeIntegerToByteString #-}
+
+integerToBytesBE :: Integer -> ByteString
+integerToBytesBE 0 = BS.pack [0]
+integerToBytesBE n =
+  either (\_ -> error "integerToBytesBE: negative input") id $
+    unsafeIntegerToByteString BigEndian 0 n
+{-# INLINE integerToBytesBE #-}
 
 {-| Conversion from 'ByteString' to 'Integer', as per
 [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121). -}
