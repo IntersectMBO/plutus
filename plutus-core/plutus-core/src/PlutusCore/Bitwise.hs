@@ -3,7 +3,6 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnboxedTuples #-}
-{-# OPTIONS_GHC -ddump-simpl #-}
 
 {-| Implementations for CIP-121, CIP-122 and CIP-123. Grouped because they all operate on
 'ByteString's, and require similar functionality. -}
@@ -35,6 +34,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Internal qualified as BSI
 import Data.ByteString.Unsafe qualified as BSU
+import Data.Either (fromRight)
 import Data.Foldable (for_)
 import Data.Primitive.ByteArray (ByteArray (ByteArray), copyByteArrayToAddr)
 import Data.Text (pack)
