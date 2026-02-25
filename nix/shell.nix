@@ -57,8 +57,10 @@ let
         package = pkgs.shellcheck;
       };
       prettier = {
-        enable = false;
+        enable = true;
         package = pkgs.prettier;
+        types_or = [ "json" ];
+        files = "^plutus-core/cost-model/data/.*\\.json$";
       };
       editorconfig-checker = {
         enable = true;
