@@ -6,11 +6,11 @@ module Certifier
   , prettyCertifierError
   , prettyCertifierSuccess
   , CertifierError (..)
+  , CertifierSuccess (..)
   ) where
 
 import Control.Monad.Except (ExceptT (..), runExceptT, throwError)
 import Control.Monad.IO.Class (liftIO)
-import Data.Char (toUpper)
 import Data.List (find)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
@@ -77,26 +77,16 @@ mkCertifier
   -- ^ The name of the certificate to be produced
   -> Certifier CertifierSuccess
 mkCertifier simplTrace certName = do
-  certName' <- validCertName certName
   let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
   case runCertifierMain rawAgdaTrace of
     Just True -> do
-      let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
+      let cert = mkAgdaCertificateProject $ mkCertificate certName rawAgdaTrace
       CertifierSuccess <$> writeCertificateProject cert
     Just False -> do
-      let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
+      let cert = mkAgdaCertificateProject $ mkCertificate certName rawAgdaTrace
       certDir <- writeCertificateProject cert
       throwError $ InvalidCertificate certDir
     Nothing -> throwError InvalidCompilerOutput
-
-validCertName :: String -> Certifier String
-validCertName [] = throwError $ ValidationError []
-validCertName name@(fstC : rest) =
-  if all isValidChar name
-    then pure (toUpper fstC : rest)
-    else throwError $ ValidationError name
-  where
-    isValidChar c = c `elem` ['a' .. 'z'] ++ ['A' .. 'Z'] ++ ['0' .. '9'] ++ "_-"
 
 type EquivClass = Int
 

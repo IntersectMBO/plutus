@@ -165,8 +165,12 @@ test-suite test-certifier
     , base
     , directory
     , filepath
+    , plutus-core
+    , plutus-core:plutus-core-execlib
+    , plutus-metatheory
     , process
     , tasty
     , tasty-hunit
+    , text
 
   build-tool-depends: plutus-executables:uplc
