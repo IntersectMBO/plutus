@@ -49,7 +49,7 @@ mkEvaluationContext =
     >=> mkDynEvaluationContext
       PlutusV2
       ( \pv ->
-          if pv < pv11PV
+          if pv < vanRossemPV
             then unavailableCaserBuiltin $ getMajorProtocolVersion pv
             else CaserBuiltin caseBuiltin
       )
@@ -58,6 +58,6 @@ mkEvaluationContext =
       ( \pv ->
           if
             | pv < changPV -> DefaultFunSemanticsVariantA
-            | pv < pv11PV -> DefaultFunSemanticsVariantB
+            | pv < vanRossemPV -> DefaultFunSemanticsVariantB
             | otherwise -> DefaultFunSemanticsVariantD
       )
