@@ -63,11 +63,11 @@ d_isPure'63'_72 v0 v1
       MAlonzo.Code.Untyped.C__'183'__22 v2 v3
         -> let v4
                  = coe
-                     MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isLambda'63'_70
+                     MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isLambda'63'_72
                      (coe v0)
                      (\ v4 v5 ->
                         coe
-                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_782)
+                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_784)
                      (coe v2) in
            coe
              (case coe v4 of
@@ -76,7 +76,7 @@ d_isPure'63'_72 v0 v1
                        then case coe v6 of
                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v7
                                 -> case coe v7 of
-                                     MAlonzo.Code.VerifiedCompilation.UntypedViews.C_islambda_62 v9
+                                     MAlonzo.Code.VerifiedCompilation.UntypedViews.C_islambda_64 v9
                                        -> case coe v2 of
                                             MAlonzo.Code.Untyped.C_ƛ_20 v10
                                               -> coe
@@ -197,11 +197,11 @@ d_isPure'63'_72 v0 v1
       MAlonzo.Code.Untyped.C_force_24 v2
         -> let v3
                  = coe
-                     MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isDelay'63'_370
+                     MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isDelay'63'_372
                      (coe v0)
                      (\ v3 v4 ->
                         coe
-                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_782)
+                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_784)
                      (coe v2) in
            coe
              (case coe v3 of
@@ -210,7 +210,7 @@ d_isPure'63'_72 v0 v1
                        then case coe v5 of
                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v6
                                 -> case coe v6 of
-                                     MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isdelay_362 v8
+                                     MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isdelay_364 v8
                                        -> case coe v2 of
                                             MAlonzo.Code.Untyped.C_delay_26 v9
                                               -> coe

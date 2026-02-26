@@ -57,19 +57,19 @@ d_isUCSE'63'_30 ::
 d_isUCSE'63'_30 v0 v1 v2
   = let v3
           = coe
-              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_166
+              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_168
               (coe v0)
               (coe
                  (\ v3 ->
                     coe
-                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isLambda'63'_70
+                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isLambda'63'_72
                       (coe v3)
                       (\ v4 v5 ->
                          coe
-                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_782)))
+                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_784)))
               (\ v3 v4 ->
                  coe
-                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_782)
+                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_784)
               (coe v2) in
     coe
       (case coe v3 of
@@ -78,11 +78,11 @@ d_isUCSE'63'_30 v0 v1 v2
                 then case coe v5 of
                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v6
                          -> case coe v6 of
-                              MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_154 v9 v10
+                              MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_156 v9 v10
                                 -> case coe v2 of
                                      MAlonzo.Code.Untyped.C__'183'__22 v11 v12
                                        -> case coe v9 of
-                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.C_islambda_62 v14
+                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.C_islambda_64 v14
                                               -> case coe v11 of
                                                    MAlonzo.Code.Untyped.C_ƛ_20 v15
                                                      -> coe
@@ -121,7 +121,7 @@ d_isUCSE'63'_30 v0 v1 v2
 d_'46'extendedlambda0_46 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isApp_142 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isApp_144 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_UCSE_4 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
