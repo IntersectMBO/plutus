@@ -68,6 +68,7 @@ import Control.Monad.State
 import Control.Monad.Writer
 import PlutusCore.Flat (Flat, flat, unflat)
 
+import Certifier (mkCertifier, prettyCertifierError, prettyCertifierSuccess, runCertifier)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
@@ -83,7 +84,7 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (openBinaryTempFile)
+import System.IO (hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
 
 data PluginCtx = PluginCtx
@@ -637,7 +638,18 @@ runCompiler moduleName opts expr = do
       modifyError PLC.TypeErrorE $
         PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-  (uplcP, _) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+  let optCertify = opts ^. posCertify
+  (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+  liftIO $ case optCertify of
+    Just certName -> do
+      result <- runCertifier $ mkCertifier simplTrace certName
+      case result of
+        Right certSuccess ->
+          hPutStrLn stderr $ prettyCertifierSuccess certSuccess
+        Left err ->
+          hPutStrLn stderr $ prettyCertifierError err
+    Nothing -> pure ()
+
   dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
     dumpFlat

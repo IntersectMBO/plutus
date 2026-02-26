@@ -17,14 +17,14 @@ machineParametersFor
   -> DefaultMachineParameters
 machineParametersFor ledgerLang majorPV =
   MachineParameters
-    ( if majorPV < pv11PV
+    ( if majorPV < vanRossemPV
         then unavailableCaserBuiltin $ getMajorProtocolVersion majorPV
         else CaserBuiltin caseBuiltin
     )
     (mkMachineVariantParameters builtinSemVar $ cekCostModelForVariant builtinSemVar)
   where
     builtinSemVar =
-      if majorPV < pv11PV
+      if majorPV < vanRossemPV
         then case ledgerLang of
           PlutusV1 -> conwayDependentVariant
           PlutusV2 -> conwayDependentVariant

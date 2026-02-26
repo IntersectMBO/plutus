@@ -11,7 +11,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
   , valentinePV
   , changPV
   , plominPV
-  , pv11PV
+  , vanRossemPV
   , newestPV
   , knownPVs
   , futurePV
@@ -81,9 +81,9 @@ introduced in Plutus V2 and V3. -}
 plominPV :: MajorProtocolVersion
 plominPV = MajorProtocolVersion 10
 
--- | Not sure what this is going to be called yet
-pv11PV :: MajorProtocolVersion
-pv11PV = MajorProtocolVersion 11
+-- | The van Rossem HF will be an intra-era HF.
+vanRossemPV :: MajorProtocolVersion
+vanRossemPV = MajorProtocolVersion 11
 
 {-| The set of protocol versions that are "known", i.e. that have been released
 and have actual differences associated with them.  This is currently only
@@ -98,7 +98,7 @@ knownPVs =
   , valentinePV
   , changPV
   , plominPV
-  , pv11PV
+  , vanRossemPV
   ]
 
 -- We're sometimes in an intermediate state where we've added new builtins but
@@ -106,7 +106,7 @@ knownPVs =
 -- decide what PVs the test should include.  UPDATE THIS when we're expecting to
 -- release new builtins in a forthcoming PV.
 newestPV :: MajorProtocolVersion
-newestPV = pv11PV
+newestPV = vanRossemPV
 
 {-| This is a placeholder for when we don't yet know what protocol version will
   be used for something. It's a very high protocol version that should never
@@ -123,7 +123,7 @@ Semantics variants depend on both the protocol version and the ledger language.
 
 Here's a table specifying the mapping in full:
 
-  pv pre-Conway post-Conway post-11
+  pv pre-Conway post-Conway post-van Rossem
 ll
 1       A           B          D
 2       A           B          D
@@ -134,5 +134,5 @@ I.e. for example
 - post-Conway 'PlutusV1' corresponds to 'DefaultFunSemanticsVariantB'
 - pre-Conway  'PlutusV2' corresponds to 'DefaultFunSemanticsVariantA'
 - post-Conway 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantC'
-- post-PV11 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantE'
+- post-van Rossem 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantE'
 -}

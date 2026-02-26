@@ -1,5 +1,5 @@
-{-# LANGUAGE CPP #-}
 -- editorconfig-checker-disable-file
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -30,6 +30,7 @@ import Data.Foldable (toList)
 #else 
 import Data.Foldable (foldl', toList)
 #endif 
+import Control.Applicative (many, optional, (<|>))
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -40,7 +41,7 @@ import Data.Text qualified as Text
 import Data.Type.Equality
 import GHC.Plugins qualified as GHC
 import Prettyprinter
-
+import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
 import Text.Read (readMaybe)
 import Type.Reflection
 
@@ -82,6 +83,7 @@ data PluginOptions = PluginOptions
     -- Which effectively ignores the trace text.
     _posRemoveTrace :: Bool
   , _posDumpCompilationTrace :: Bool
+  , _posCertify :: Maybe String
   }
 
 makeLenses ''PluginOptions
@@ -314,6 +316,18 @@ pluginOptions =
     , let k = "dump-compilation-trace"
           desc = "Dump compilation trace for debugging"
        in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
+    , let k = "certify"
+          desc =
+            "Produce a certificate for the compiled program, with the given name. "
+              <> "This certificate provides evidence that the compiler optimizations have "
+              <> "preserved the functional behavior of the original program. "
+              <> "Currently, this is only supported for the UPLC compilation pipeline."
+          p =
+            optional $ do
+              firstC <- upperChar
+              rest <- many (alphaNumChar <|> char '_' <|> char '\\')
+              pure (firstC : rest)
+       in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -387,6 +401,7 @@ defaultPluginOptions =
     , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
+    , _posCertify = Nothing
     }
 
 processOne

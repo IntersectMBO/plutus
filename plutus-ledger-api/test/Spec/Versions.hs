@@ -52,7 +52,7 @@ showPV (MajorProtocolVersion pv) =
     8 -> "Valentine (PV8)"
     9 -> "Chang (PV9)"
     10 -> "Plomin (PV10)"
-    11 -> "PV11"
+    11 -> "van Rossem (PV11)"
     _ -> "<unknown> (PV" ++ show pv ++ ")"
 
 -- Some scripts for use in the version tests.

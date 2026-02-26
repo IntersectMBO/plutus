@@ -279,8 +279,8 @@ batch5 =
   , Ripemd_160
   ]
 
--- Add new builtins for release in PV11 here.  Once PV11 has happened (by which
--- time we should have replaced pv11PV by the real name), mark this as not to be
+-- Add new builtins for release in the van Rossem HF here (PV10 -> PV11).
+-- Once the van Rossem HF has happened, mark this as not to be
 -- changed and open a new batch.
 batch6 :: [DefaultFun]
 batch6 =
@@ -311,24 +311,24 @@ builtinsIntroducedIn =
     PlutusV1 ->
       Map.fromList
         [ (alonzoPV, Set.fromList batch1)
-        , (pv11PV, Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+        , (vanRossemPV, Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
         ]
     PlutusV2 ->
       Map.fromList
         [ (vasilPV, Set.fromList (batch1 ++ batch2))
         , (valentinePV, Set.fromList batch3)
         , (plominPV, Set.fromList batch4b)
-        , (pv11PV, Set.fromList (batch4a ++ batch5 ++ batch6))
+        , (vanRossemPV, Set.fromList (batch4a ++ batch5 ++ batch6))
         ]
     PlutusV3 ->
       Map.fromList
         [ (changPV, Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
         , (plominPV, Set.fromList batch5)
-        , (pv11PV, Set.fromList batch6)
+        , (vanRossemPV, Set.fromList batch6)
         ]
 
 {-| Return a set containing the builtins which are available in a given LL in a
-given PV.  All builtins are available in all LLs from `pv11PV` onwards. -}
+given PV.  All builtins are available in all LLs from `vanRossemPV` onwards. -}
 builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
 builtinsAvailableIn = collectUpTo . builtinsIntroducedIn
 
@@ -342,12 +342,12 @@ plcVersionsIntroducedIn =
     PlutusV1 ->
       Map.fromList
         [ (alonzoPV, Set.fromList [plcVersion100])
-        , (pv11PV, Set.fromList [plcVersion110])
+        , (vanRossemPV, Set.fromList [plcVersion110])
         ]
     PlutusV2 ->
       Map.fromList
         [ (vasilPV, Set.fromList [plcVersion100])
-        , (pv11PV, Set.fromList [plcVersion110])
+        , (vanRossemPV, Set.fromList [plcVersion110])
         ]
     PlutusV3 ->
       Map.fromList

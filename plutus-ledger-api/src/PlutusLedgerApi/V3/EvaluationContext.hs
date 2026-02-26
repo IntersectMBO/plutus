@@ -46,14 +46,14 @@ mkEvaluationContext =
     >=> mkDynEvaluationContext
       PlutusV3
       ( \pv ->
-          if pv < pv11PV
+          if pv < vanRossemPV
             then unavailableCaserBuiltin $ getMajorProtocolVersion pv
             else CaserBuiltin caseBuiltin
       )
       [DefaultFunSemanticsVariantC, DefaultFunSemanticsVariantE]
       -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
       ( \pv ->
-          if pv < pv11PV
+          if pv < vanRossemPV
             then DefaultFunSemanticsVariantC
             else DefaultFunSemanticsVariantE
       )

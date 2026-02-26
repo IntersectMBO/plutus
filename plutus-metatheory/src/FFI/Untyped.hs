@@ -9,7 +9,7 @@ import PlutusCore.Default
 import UntypedPlutusCore
 
 import Control.DeepSeq
-import Data.Text as T hiding (map)
+import Data.Text qualified as T hiding (map)
 import GHC.Exts (IsList (..))
 import GHC.Generics
 
