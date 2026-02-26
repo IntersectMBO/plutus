@@ -209,81 +209,81 @@ checkPointwise :
         (Ms M′s : List (X ⊢))
         → Proof? (Pointwise (Inline σ zz) Ms M′s)
 
-check : (h : InlineHints)
+check : (M M′ : X ⊢)
+        (h : InlineHints)
         (σ : Sub X X)
         (zz : z ≽ z′)
-        (M M′ : X ⊢)
         → Proof? (Inline σ zz M M′)
-check {z = z} {z′ = z′} var σ zz M@(` x) M′@(` x′)
+check {z = z} {z′ = z′} M@(` x) M′@(` x′) var σ zz
   with x Fin.≟ x′ | z ≟ᶻ z′
 ... | yes refl | yes refl
     with zz ≟ᶻᶻ idᶻᶻ z
 ...   | just refl = proof (` x)
 ...   | nothing = abort inlineT M M′
-check var σ zz M@(` x) M′@(` x′)
+check M@(` x) M′@(` x′) var σ zz
     | _ | _ = abort inlineT M M′
 
-check (expand h) σ zz (` x) M′ =
-   do r ← check h σ zz (σ x) M′
+check (` x) M′ (expand h) σ zz  =
+   do r ← check (σ x) M′ h σ zz
       proof (`↓ r)
 
-check (ƛ h) σ □ (ƛ N) (ƛ N′) =
-   do t ← check h (lifts σ) □ N N′
+check (ƛ N) (ƛ N′) (ƛ h) σ □  =
+   do t ← check N N′ h (lifts σ) □
       proof (ƛ□ t)
 
-check (ƛ h) σ (keep M zz) (ƛ N) (ƛ N′)  =
-   do t ← check h (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N N′
+check (ƛ N) (ƛ N′) (ƛ h) σ (keep M zz)   =
+   do t ← check N N′ h (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ)
       proof (ƛ t)
 
-check (h · h′) σ zz (L · M) (L′ · M′) =
-   do r ← check h σ (keep M zz) L L′
-      s ← check h′ σ □ M M′
+check (L · M) (L′ · M′) (h · h′) σ zz  =
+   do r ← check L L′ h σ (keep M zz)
+      s ← check M M′ h′ σ □
       proof (r · s)
 
-check (h ·↓) σ zz (L · M) N′ =
-   do r ← check h σ (drop M zz) L N′
+check (L · M) N′ (h ·↓) σ zz  =
+   do r ← check L N′ h σ (drop M zz)
       proof (r ·↓)
 
-check (force h) σ zz (force M) (force M′) =
-   do r ← check h σ □ M M′
+check (force M) (force M′) (force h) σ zz  =
+   do r ← check M M′ h σ □
       proof (force r)
 
-check (delay h) σ zz (delay M) (delay M′) =
-   do r ← check h σ □ M M′
+check (delay M) (delay M′) (delay h) σ zz  =
+   do r ← check M M′ h σ □
       proof (delay r)
 
-check con σ zz M@(con c) M′@(con c′)
+check M@(con c) M′@(con c′) con σ zz
   with c ≟ c′
 ... | yes refl = proof con
 ... | no  _ = abort inlineT M M′
 
-check builtin σ zz M@(builtin b) M′@(builtin b′)
+check M@(builtin b) M′@(builtin b′) builtin σ zz
   with b ≟ b′
 ... | yes refl = proof builtin
 ... | no  _ = abort inlineT M M′
 
-check (constr hs) σ zz M@(constr i Ms) M′@(constr i′ M′s) with i ≟ i′
+check M@(constr i Ms) M′@(constr i′ M′s) (constr hs) σ zz  with i ≟ i′
 ... | yes refl =
    do rs ← checkPointwise hs σ □ Ms M′s
       proof (constr rs)
 ... | no _ = abort inlineT M M′
 
-check (case h hs) σ zz (case M Ms) (case M′ M′s) =
-  do r ← check h σ □ M M′
+check (case M Ms) (case M′ M′s) (case h hs) σ zz  =
+  do r ← check M M′ h σ □
      rs ← checkPointwise hs σ □ Ms M′s
      proof (case r rs)
 
-check error σ zz error error = proof error
+check error error error σ zz  = proof error
 
-check h σ (drop M zz) (ƛ N) N′  =
-   do t ← check h (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N (weaken N′)
+check (ƛ N) N′ h σ (drop M zz)   =
+   do t ← check N (weaken N′) h (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ)
       proof (ƛ↓ t)
 
-check h σ zz M M′ = abort inlineT M M′
+check M M′ h σ zz  = abort inlineT M M′
 
 checkPointwise [] σ zz [] [] = proof Pointwise.[]
 checkPointwise (h ∷ hs) σ zz (M ∷ Ms) (M′ ∷ M′s) =
-   do p ← check h σ zz M M′
+   do p ← check M M′ h σ zz
       ps ← checkPointwise hs σ zz Ms M′s
       proof (p Pointwise.∷ ps)
 checkPointwise _ _ _ Ms M′s = abort inlineT Ms M′s
@@ -293,7 +293,7 @@ checkPointwise _ _ _ Ms M′s = abort inlineT Ms M′s
 ```
 top-check : (h : InlineHints) (M M′ : 0 ⊢)
             → Proof? (Inline (λ()) □ M M′)
-top-check h M M′ = check h (λ()) □ M M′
+top-check h M M′ = check M M′ h (λ()) □
 ```
 
 # Lemmas
@@ -312,98 +312,98 @@ reflexiveᶻᶻ (drop M zz) rewrite reflexiveᴬ _≟_ M | reflexiveᶻᶻ zz = 
 # Completeness
 
 ```
-completePointwise :
-  (σ : Sub X X)
-  (zz : z ≽ z′)
-  (Ms M′s : List (X ⊢))
-  (rs : Pointwise (Inline σ zz) Ms M′s)
-  → ∃[ hs ] (checkPointwise hs σ zz Ms M′s ≡ proof rs)
+-- completePointwise :
+--   (σ : Sub X X)
+--   (zz : z ≽ z′)
+--   (Ms M′s : List (X ⊢))
+--   (rs : Pointwise (Inline σ zz) Ms M′s)
+--   → ∃[ hs ] (checkPointwise hs σ zz Ms M′s ≡ proof rs)
 
 complete :
   (σ : Sub X X)
   (zz : z ≽ z′)
   (M M′ : X ⊢)
   (s : Inline σ zz M M′)
-  → ∃[ h ] (check h σ zz M M′ ≡ proof s)
+  → ∃[ h ] (check M M′ h σ zz ≡ proof s)
 complete σ zz (L · M) N′ (r ·↓)
   with complete σ (drop M zz) L N′ r
 ... | (h , e) = (h ·↓ , e′)
   where
-  e′ : check (h ·↓) σ zz (L · M) N′ ≡ proof (r ·↓)
-  e′ rewrite e = refl
-complete {z = z} σ .(idᶻᶻ z) .(` x) .(` x) (` x) = (var , e′)
-  where
-  e′ : check var σ (idᶻᶻ z) (` x) (` x) ≡ proof (` x)
-  e′ rewrite reflexiveᴬ Fin._≟_ x | reflexiveᴬ _≟ᶻ_ z | reflexiveᶻᶻ (idᶻᶻ z) = refl
-complete σ zz (` x) M′ (`↓ s)
-  with complete σ zz (σ x) M′ s
-... | (h , e) = (expand h , e′)
-  where
-  e′ : check (expand h) σ zz (` x) M′ ≡ proof (`↓ s)
-  e′ rewrite e = refl
-complete σ □ (ƛ N) (ƛ N′) (ƛ□ t)
-  with complete (lifts σ) □ N N′ t
-... | (h , e) = (ƛ h , e′)
-  where
-  e′ : check (ƛ h) σ □ (ƛ N) (ƛ N′) ≡ proof (ƛ□ t)
-  e′ rewrite e = refl
-complete σ (keep M zz) (ƛ N) (ƛ N′) (ƛ t)
-  with complete (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N N′ t
-... | (h , e) = (ƛ h , e′)
-  where
-  e′ : check (ƛ h) σ (keep M zz) (ƛ N) (ƛ N′) ≡ proof (ƛ t)
-  e′ rewrite e = refl
-complete σ zz (L · M) (L′ · M′) (r · s)
-  with complete σ (keep M zz) L L′ r | complete σ □ M M′ s
-... | (h , e) | (h′ , e′) = (h · h′ , e″)
-  where
-  e″ : check (h · h′) σ zz (L · M) (L′ · M′) ≡ proof (r · s)
-  e″ rewrite e | e′ = refl
-complete σ zz (force M) (force M′) (force r)
-  with complete σ □ M M′ r
-... | (h , e) = (force h , e′)
-  where
-  e′ : check (force h) σ zz (force M) (force M′) ≡ proof (force r)
-  e′ rewrite e = refl
-complete σ zz (delay M) (delay M′) (delay r)
-  with complete σ □ M M′ r
-... | (h , e) = (delay h , e′)
-  where
-  e′ : check (delay h) σ zz (delay M) (delay M′) ≡ proof (delay r)
-  e′ rewrite e = refl
-complete σ zz (con c) .(con c) con = (con , e)
-  where
-  e : check con σ zz (con c) (con c) ≡ proof con
-  e rewrite reflexiveᴬ _≟_ c = refl
-complete σ zz (builtin b) .(builtin b) builtin = (builtin , e)
-  where
-  e : check builtin σ zz (builtin b) (builtin b) ≡ proof builtin
-  e rewrite reflexiveᴬ _≟_ b = refl
-complete σ zz (constr i Ms) (constr .i M′s) (constr rs)
-  with completePointwise σ □ Ms M′s rs
-... | (hs , e) = (constr hs , e′)
-  where
-  e′ : check (constr hs) σ zz (constr i Ms) (constr i M′s) ≡ proof (constr rs)
-  e′ rewrite reflexiveᴬ _≟_ i | e = refl
-complete σ zz (case M Ms) (case M′ M′s) (case r rs)
-  with complete σ □ M M′ r | completePointwise σ □ Ms M′s rs
-... | (h , e) | (hs , e′) = (case h hs , e″)
-  where
-  e″ : check (case h hs) σ zz (case M Ms) (case M′ M′s) ≡ proof (case r rs)
-  e″ rewrite e | e′ = refl
-complete σ zz error error error = (error , refl)
-complete σ (drop M zz) (ƛ N) N′ (ƛ↓ t)
-  with complete (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N (weaken N′) t
-... | (h , e) = (h , e′)
-  where
-  e′ : check h σ (drop M zz) (ƛ N) N′ ≡ proof (ƛ↓ t)
+  e′ : check (L · M) N′ (h ·↓) σ zz ≡ proof (r ·↓)
   e′ rewrite e = {!   !}
+-- complete {z = z} σ .(idᶻᶻ z) .(` x) .(` x) (` x) = (var , e′)
+--   where
+--   e′ : check var σ (idᶻᶻ z) (` x) (` x) ≡ proof (` x)
+--   e′ rewrite reflexiveᴬ Fin._≟_ x | reflexiveᴬ _≟ᶻ_ z | reflexiveᶻᶻ (idᶻᶻ z) = refl
+-- complete σ zz (` x) M′ (`↓ s)
+--   with complete σ zz (σ x) M′ s
+-- ... | (h , e) = (expand h , e′)
+--   where
+--   e′ : check (expand h) σ zz (` x) M′ ≡ proof (`↓ s)
+--   e′ rewrite e = refl
+-- complete σ □ (ƛ N) (ƛ N′) (ƛ□ t)
+--   with complete (lifts σ) □ N N′ t
+-- ... | (h , e) = (ƛ h , e′)
+--   where
+--   e′ : check (ƛ h) σ □ (ƛ N) (ƛ N′) ≡ proof (ƛ□ t)
+--   e′ rewrite e = refl
+-- complete σ (keep M zz) (ƛ N) (ƛ N′) (ƛ t)
+--   with complete (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N N′ t
+-- ... | (h , e) = (ƛ h , e′)
+--   where
+--   e′ : check (ƛ h) σ (keep M zz) (ƛ N) (ƛ N′) ≡ proof (ƛ t)
+--   e′ rewrite e = refl
+-- complete σ zz (L · M) (L′ · M′) (r · s)
+--   with complete σ (keep M zz) L L′ r | complete σ □ M M′ s
+-- ... | (h , e) | (h′ , e′) = (h · h′ , e″)
+--   where
+--   e″ : check (h · h′) σ zz (L · M) (L′ · M′) ≡ proof (r · s)
+--   e″ rewrite e | e′ = refl
+-- complete σ zz (force M) (force M′) (force r)
+--   with complete σ □ M M′ r
+-- ... | (h , e) = (force h , e′)
+--   where
+--   e′ : check (force h) σ zz (force M) (force M′) ≡ proof (force r)
+--   e′ rewrite e = refl
+-- complete σ zz (delay M) (delay M′) (delay r)
+--   with complete σ □ M M′ r
+-- ... | (h , e) = (delay h , e′)
+--   where
+--   e′ : check (delay h) σ zz (delay M) (delay M′) ≡ proof (delay r)
+--   e′ rewrite e = refl
+-- complete σ zz (con c) .(con c) con = (con , e)
+--   where
+--   e : check con σ zz (con c) (con c) ≡ proof con
+--   e rewrite reflexiveᴬ _≟_ c = refl
+-- complete σ zz (builtin b) .(builtin b) builtin = (builtin , e)
+--   where
+--   e : check builtin σ zz (builtin b) (builtin b) ≡ proof builtin
+--   e rewrite reflexiveᴬ _≟_ b = refl
+-- complete σ zz (constr i Ms) (constr .i M′s) (constr rs)
+--   with completePointwise σ □ Ms M′s rs
+-- ... | (hs , e) = (constr hs , e′)
+--   where
+--   e′ : check (constr hs) σ zz (constr i Ms) (constr i M′s) ≡ proof (constr rs)
+--   e′ rewrite reflexiveᴬ _≟_ i | e = refl
+-- complete σ zz (case M Ms) (case M′ M′s) (case r rs)
+--   with complete σ □ M M′ r | completePointwise σ □ Ms M′s rs
+-- ... | (h , e) | (hs , e′) = (case h hs , e″)
+--   where
+--   e″ : check (case h hs) σ zz (case M Ms) (case M′ M′s) ≡ proof (case r rs)
+--   e″ rewrite e | e′ = refl
+-- complete σ zz error error error = (error , refl)
+-- complete σ (drop M zz) (ƛ N) N′ (ƛ↓ t)
+--   with complete (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N (weaken N′) t
+-- ... | (h , e) = (h , e′)
+--   where
+--   e′ : check h σ (drop M zz) (ƛ N) N′ ≡ proof (ƛ↓ t)
+--   e′ rewrite e = refl
 
-completePointwise σ zz [] [] Pointwise.[] = ([] , refl)
-completePointwise σ zz (M ∷ Ms) (M′ ∷ M′s) (p Pointwise.∷ ps)
-  with complete σ zz M M′ p | completePointwise σ zz Ms M′s ps
-... | (h , e) | (hs , e′) = ((h ∷ hs) , e″)
-  where
-  e″ : checkPointwise (h ∷ hs) σ zz (M ∷ Ms) (M′ ∷ M′s) ≡ proof (p Pointwise.∷ ps)
-  e″ rewrite e | e′ = refl
+-- completePointwise σ zz [] [] Pointwise.[] = ([] , refl)
+-- completePointwise σ zz (M ∷ Ms) (M′ ∷ M′s) (p Pointwise.∷ ps)
+--   with complete σ zz M M′ p | completePointwise σ zz Ms M′s ps
+-- ... | (h , e) | (hs , e′) = ((h ∷ hs) , e″)
+--   where
+--   e″ : checkPointwise (h ∷ hs) σ zz (M ∷ Ms) (M′ ∷ M′s) ≡ proof (p Pointwise.∷ ps)
+--   e″ rewrite e | e′ = refl
 ```
