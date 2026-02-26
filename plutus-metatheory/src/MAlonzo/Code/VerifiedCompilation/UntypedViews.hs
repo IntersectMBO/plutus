@@ -1842,7 +1842,7 @@ du_error'63'_1840 v0
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.UntypedViews.match
 d_match_1870 a0 a1 = ()
-data T_match_1870 = C_'8943''33'_1876
+data T_match_1870 = C_match'33'_1876
 -- VerifiedCompilation.UntypedViews.⋯
 d_'8943'_1880 ::
   () ->
@@ -1856,7 +1856,7 @@ du_'8943'_1880
       (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
       (coe
          MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
-         (coe C_'8943''33'_1876))
+         (coe C_match'33'_1876))
 -- VerifiedCompilation.UntypedViews.Inhabited
 d_Inhabited_1892 a0 = ()
 newtype T_Inhabited_1892 = C_inh_1900 AgdaAny
@@ -1993,7 +1993,7 @@ du_inh'45'error_1994 = coe C_inh_1900 (coe C_error'33'_978)
 d_inh'45'match_2000 :: () -> AgdaAny -> T_Inhabited_1892
 d_inh'45'match_2000 ~v0 ~v1 = du_inh'45'match_2000
 du_inh'45'match_2000 :: T_Inhabited_1892
-du_inh'45'match_2000 = coe C_inh_1900 (coe C_'8943''33'_1876)
+du_inh'45'match_2000 = coe C_inh_1900 (coe C_match'33'_1876)
 -- VerifiedCompilation.UntypedViews.inh-×
 d_inh'45''215'_2006 ::
   () ->
