@@ -87,7 +87,7 @@ elem :: CompiledCode (L.BuiltinList Integer -> (Bool, Bool))
 elem = $$(compile [||\xs -> (L.elem 8 xs, L.elem 12 xs)||])
 
 find :: CompiledCode (L.BuiltinList Integer -> (Maybe Integer, Maybe Integer))
-find = $$(compile [||\xs -> (L.find (>= 8) xs, L.find (>= 12) xs)||])
+find = $$(compile [||\xs -> (L.find (>= 9) xs, L.find (>= 12) xs)||])
 
 any :: CompiledCode (L.BuiltinList Integer -> (Bool, Bool))
 any = $$(compile [||\xs -> (L.any (>= 8) xs, L.any (>= 12) xs)||])

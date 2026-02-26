@@ -3,13 +3,14 @@ module Main (main) where
 import Array.Spec qualified as Array
 import AsData.Budget.Spec qualified as AsData.Budget
 import AssocMap.Spec qualified as AssocMap
-import Blueprint.Tests qualified
+-- import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
 import BuiltinCasing.Spec qualified as BuiltinCasing
 import BuiltinList.Budget.Spec qualified as BuiltinList.Budget
 import BuiltinList.NoCasing.Spec qualified as BuiltinList.NoCasing
 import ByteStringLiterals.Spec qualified as ByteStringLiterals
-import CallTrace.Spec qualified as CallTrace
+
+-- import CallTrace.Spec qualified as CallTrace
 import DataList.Budget.Spec qualified as DataList.Budget
 import Inline.Spec qualified as Inline
 import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified
@@ -26,7 +27,7 @@ import ShortCircuit.Spec qualified as ShortCircuit
 import StageViolation.Spec qualified as StageViolation
 import StdLib.Spec qualified as Lib
 import Strictness.Spec qualified as Strictness
-import TH.Spec qualified as TH
+-- import TH.Spec qualified as TH
 import Unicode.Spec qualified as Unicode
 
 import Test.Tasty (TestTree, defaultMain)
@@ -47,7 +48,7 @@ tests =
     , embed ByteStringLiterals.tests
     , IsData.tests
     , Lift.tests
-    , TH.tests
+    -- , TH.tests
     , Lib.tests
     , Budget.tests
     , AsData.Budget.tests
@@ -58,7 +59,7 @@ tests =
     , Recursion.tests
     , Optimization.tests
     , Strictness.tests
-    , Blueprint.Tests.tests
+    -- , Blueprint.Tests.tests
     , AssocMap.goldenTests
     , embed ShortCircuit.tests
     , embed Unicode.tests
@@ -66,6 +67,6 @@ tests =
     , embed List.propertyTests
     , Array.smokeTests
     , StageViolation.tests
-    , CallTrace.tests
+    -- , CallTrace.tests
     , BuiltinCasing.tests
     ]

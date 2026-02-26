@@ -15,13 +15,21 @@ let
 
       flake.variants = {
         ghc96 = { }; # Alias for the default project
+        ghc912.compiler-nix-name = "ghc912";
         ghc96-profiled.modules = [{
           enableProfiling = true;
           enableLibraryProfiling = true;
         }];
-        ghc98.compiler-nix-name = "ghc98";
-        ghc910.compiler-nix-name = "ghc910";
-        ghc912.compiler-nix-name = "ghc912";
+        ghc96-plugin = {
+          ghcOverride = pkgs.haskell-nix.compiler.ghc967.override {
+            extraFlavourTransformers = [ "+profiled_ghc+no_dynamic_ghc" ];
+            ghc-patches = [ ./profiled-ghc-964.patch ];
+          };
+          modules = [{
+            enableProfiling = true;
+            enableLibraryProfiling = true;
+          }];
+        };
         ghc96-coverage.modules = [{
           packages.plutus-metatheory.doCoverage = true;
           packages.plutus-core.doCoverage = true;
