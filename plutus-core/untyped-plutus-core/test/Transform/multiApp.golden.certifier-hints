@@ -17,13 +17,16 @@ NoHints
 InlDrop
   InlDrop
     InlDrop
-      InlApply
-        InlApply
-          InlExpand
-            InlCon
-          InlExpand
-            InlCon
-        InlExpand
-          InlCon
+      InlLamDrop
+        InlLamDrop
+          InlLamDrop
+            InlApply
+              InlApply
+                InlExpand
+                  InlCon
+                InlExpand
+                  InlCon
+              InlExpand
+                InlCon
 
 
