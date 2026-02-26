@@ -16,12 +16,15 @@ open import Untyped.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation; convert; reflexive)
 import Relation.Binary as Binary using (Decidable)
+open import Data.Empty using (⊥-elim)
 open import Data.Nat using (ℕ; suc; zero)
 open import Data.String using (String; _++_)
 open import Data.Fin using (Fin; suc; zero)
 import Data.Fin as Fin using (_≟_)
 open import Data.List using (List; []; _∷_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
+open import Data.Product using (_×_; Σ; ∃; Σ-syntax; ∃-syntax; proj₁; proj₂)
+  renaming (_,_ to infixl 5 _,_)
 open import Untyped.RenamingSubstitution using (_[_]; Sub; _↑ˢ; lifts; extend; weaken)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; extricateU; extricateUList)
@@ -33,7 +36,7 @@ open import Untyped.RenamingSubstitution using (weaken)
 open import Data.Empty using (⊥)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
-open import VerifiedCompilation.Certificate using (Proof?; _>>=_; InlineHints; var; expand; ƛ; _·_; _·↓; force; delay; con; builtin; error; constr; case; abort; proof; inlineT)
+open import VerifiedCompilation.Certificate using (Proof?; _>>=_; InlineHints; var; expand; ƛ; ƛ↓; _·_; _·↓; force; delay; con; builtin; error; constr; case; abort; proof; inlineT)
 ```
 
 # Zippers, and relating two zippers
@@ -232,7 +235,7 @@ check (ƛ h) σ (keep M zz) (ƛ N) (ƛ N′)  =
    do t ← check h (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N N′
       proof (ƛ t)
 
-check h σ (drop M zz) (ƛ N) N′  =
+check (ƛ↓ h) σ (drop M zz) (ƛ N) N′ =
    do t ← check h (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N (weaken N′)
       proof (ƛ↓ t)
 
@@ -291,4 +294,116 @@ checkPointwise _ _ _ Ms M′s = abort inlineT Ms M′s
 top-check : (h : InlineHints) (M M′ : 0 ⊢)
             → Proof? (Inline (λ()) □ M M′)
 top-check h M M′ = check h (λ()) □ M M′
+```
+
+# Lemmas
+```
+reflexiveᴬ : {A : Set} → (_≟_ : DecidableEquality A) → (a : A) → (a ≟ a) ≡ yes refl
+reflexiveᴬ _≟_ a with a ≟ a
+... | yes refl = refl
+... | no ¬p = ⊥-elim (¬p refl)
+
+reflexiveᶻᶻ : (zz : z ≽ z′) → zz ≟ᶻᶻ zz ≡ just refl
+reflexiveᶻᶻ □ = refl
+reflexiveᶻᶻ (keep M zz) rewrite reflexiveᴬ _≟_ M | reflexiveᶻᶻ zz = refl
+reflexiveᶻᶻ (drop M zz) rewrite reflexiveᴬ _≟_ M | reflexiveᶻᶻ zz = refl
+```
+
+# Completeness
+
+```
+completePointwise :
+  (σ : Sub X X)
+  (zz : z ≽ z′)
+  (Ms M′s : List (X ⊢))
+  (rs : Pointwise (Inline σ zz) Ms M′s)
+  → ∃[ hs ] (checkPointwise hs σ zz Ms M′s ≡ proof rs)
+
+complete :
+  (σ : Sub X X)
+  (zz : z ≽ z′)
+  (M M′ : X ⊢)
+  (s : Inline σ zz M M′)
+  → ∃[ h ] (check h σ zz M M′ ≡ proof s)
+complete σ zz (L · M) N′ (r ·↓)
+  with complete σ (drop M zz) L N′ r
+... | (h , e) = (h ·↓ , e′)
+  where
+  e′ : check (h ·↓) σ zz (L · M) N′ ≡ proof (r ·↓)
+  e′ rewrite e = refl
+complete {z = z} σ .(idᶻᶻ z) .(` x) .(` x) (` x) = (var , e′)
+  where
+  e′ : check var σ (idᶻᶻ z) (` x) (` x) ≡ proof (` x)
+  e′ rewrite reflexiveᴬ Fin._≟_ x | reflexiveᴬ _≟ᶻ_ z | reflexiveᶻᶻ (idᶻᶻ z) = refl
+complete σ zz (` x) M′ (`↓ s)
+  with complete σ zz (σ x) M′ s
+... | (h , e) = (expand h , e′)
+  where
+  e′ : check (expand h) σ zz (` x) M′ ≡ proof (`↓ s)
+  e′ rewrite e = refl
+complete σ □ (ƛ N) (ƛ N′) (ƛ□ t)
+  with complete (lifts σ) □ N N′ t
+... | (h , e) = (ƛ h , e′)
+  where
+  e′ : check (ƛ h) σ □ (ƛ N) (ƛ N′) ≡ proof (ƛ□ t)
+  e′ rewrite e = refl
+complete σ (keep M zz) (ƛ N) (ƛ N′) (ƛ t)
+  with complete (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N N′ t
+... | (h , e) = (ƛ h , e′)
+  where
+  e′ : check (ƛ h) σ (keep M zz) (ƛ N) (ƛ N′) ≡ proof (ƛ t)
+  e′ rewrite e = refl
+complete σ zz (L · M) (L′ · M′) (r · s)
+  with complete σ (keep M zz) L L′ r | complete σ □ M M′ s
+... | (h , e) | (h′ , e′) = (h · h′ , e″)
+  where
+  e″ : check (h · h′) σ zz (L · M) (L′ · M′) ≡ proof (r · s)
+  e″ rewrite e | e′ = refl
+complete σ zz (force M) (force M′) (force r)
+  with complete σ □ M M′ r
+... | (h , e) = (force h , e′)
+  where
+  e′ : check (force h) σ zz (force M) (force M′) ≡ proof (force r)
+  e′ rewrite e = refl
+complete σ zz (delay M) (delay M′) (delay r)
+  with complete σ □ M M′ r
+... | (h , e) = (delay h , e′)
+  where
+  e′ : check (delay h) σ zz (delay M) (delay M′) ≡ proof (delay r)
+  e′ rewrite e = refl
+complete σ zz (con c) .(con c) con = (con , e)
+  where
+  e : check con σ zz (con c) (con c) ≡ proof con
+  e rewrite reflexiveᴬ _≟_ c = refl
+complete σ zz (builtin b) .(builtin b) builtin = (builtin , e)
+  where
+  e : check builtin σ zz (builtin b) (builtin b) ≡ proof builtin
+  e rewrite reflexiveᴬ _≟_ b = refl
+complete σ zz (constr i Ms) (constr .i M′s) (constr rs)
+  with completePointwise σ □ Ms M′s rs
+... | (hs , e) = (constr hs , e′)
+  where
+  e′ : check (constr hs) σ zz (constr i Ms) (constr i M′s) ≡ proof (constr rs)
+  e′ rewrite reflexiveᴬ _≟_ i | e = refl
+complete σ zz (case M Ms) (case M′ M′s) (case r rs)
+  with complete σ □ M M′ r | completePointwise σ □ Ms M′s rs
+... | (h , e) | (hs , e′) = (case h hs , e″)
+  where
+  e″ : check (case h hs) σ zz (case M Ms) (case M′ M′s) ≡ proof (case r rs)
+  e″ rewrite e | e′ = refl
+complete σ zz error error error = (error , refl)
+complete σ (drop M zz) (ƛ N) N′ (ƛ↓ t)
+  with complete (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N (weaken N′) t
+... | (h , e) = (ƛ↓ h , e′)
+  where
+  e′ : check (ƛ↓ h) σ (drop M zz) (ƛ N) N′ ≡ proof (ƛ↓ t)
+  e′ rewrite e = refl
+
+completePointwise σ zz [] [] Pointwise.[] = ([] , refl)
+completePointwise σ zz (M ∷ Ms) (M′ ∷ M′s) (p Pointwise.∷ ps)
+  with complete σ zz M M′ p | completePointwise σ zz Ms M′s ps
+... | (h , e) | (hs , e′) = ((h ∷ hs) , e″)
+  where
+  e″ : checkPointwise (h ∷ hs) σ zz (M ∷ Ms) (M′ ∷ M′s) ≡ proof (p Pointwise.∷ ps)
+  e″ rewrite e | e′ = refl
 ```
