@@ -1,6 +1,9 @@
 module Main (main) where
 
 import Certifier.Common (loadFrom, testScripts)
+import Control.DeepSeq (force)
+import Control.Exception (evaluate)
+import Control.Monad
 import FFI.SimplifierTrace
 import FFI.Untyped (UTerm)
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
@@ -12,7 +15,7 @@ certify trace = runCertifierMain trace @?= Just True
 
 main :: IO ()
 main = do
-  traces <- traverse loadFrom testScripts
+  traces <- traverse (evaluate . force <=< loadFrom) testScripts
   defaultMain . testGroup "certifier" $
     fmap
       (\(name, trace) -> testCase name (certify trace))

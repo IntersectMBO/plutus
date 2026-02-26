@@ -951,6 +951,7 @@ test-suite certifier-test
   build-depends:
     , base                >=4.9 && <5
     , certifier-internal
+    , deepseq
     , plutus-metatheory
     , tasty
     , tasty-hunit
@@ -967,4 +968,5 @@ benchmark certifier-bench
     , base                >=4.9 && <5
     , certifier-internal
     , criterion
+    , deepseq
     , plutus-metatheory

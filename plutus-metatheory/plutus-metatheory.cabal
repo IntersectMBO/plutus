@@ -76,6 +76,7 @@ library
     , base
     , bytestring
     , composition-prelude
+    , deepseq
     , directory
     , extra
     , filepath
