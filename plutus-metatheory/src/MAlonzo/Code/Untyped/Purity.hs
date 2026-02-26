@@ -67,11 +67,11 @@ d_isPure'63'_82 v0 v1
       MAlonzo.Code.Untyped.C__'183'__22 v2 v3
         -> let v4
                  = coe
-                     MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isLambda'63'_70
+                     MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isLambda'63'_72
                      (coe v0)
                      (\ v4 v5 ->
                         coe
-                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_782)
+                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_784)
                      (coe v2) in
            coe
              (case coe v4 of
@@ -80,7 +80,7 @@ d_isPure'63'_82 v0 v1
                        then case coe v6 of
                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v7
                                 -> case coe v7 of
-                                     MAlonzo.Code.VerifiedCompilation.UntypedViews.C_islambda_62 v9
+                                     MAlonzo.Code.VerifiedCompilation.UntypedViews.C_islambda_64 v9
                                        -> case coe v2 of
                                             MAlonzo.Code.Untyped.C_ƛ_20 v10
                                               -> coe
@@ -201,11 +201,11 @@ d_isPure'63'_82 v0 v1
       MAlonzo.Code.Untyped.C_force_24 v2
         -> let v3
                  = coe
-                     MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isDelay'63'_370
+                     MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isDelay'63'_372
                      (coe v0)
                      (\ v3 v4 ->
                         coe
-                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_782)
+                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_784)
                      (coe v2) in
            coe
              (case coe v3 of
@@ -214,7 +214,7 @@ d_isPure'63'_82 v0 v1
                        then case coe v5 of
                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v6
                                 -> case coe v6 of
-                                     MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isdelay_362 v8
+                                     MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isdelay_364 v8
                                        -> case coe v2 of
                                             MAlonzo.Code.Untyped.C_delay_26 v9
                                               -> coe
@@ -533,7 +533,7 @@ d_'46'extendedlambda2_182 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_54 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_56 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
@@ -543,7 +543,7 @@ d_'46'extendedlambda3_200 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_54 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_56 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
@@ -553,7 +553,7 @@ d_'46'extendedlambda4_214 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_54 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_56 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
@@ -565,7 +565,7 @@ d_'46'extendedlambda5_232 ::
   Integer ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_54 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_56 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
@@ -579,7 +579,7 @@ d_'46'extendedlambda6_274 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_54 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isLambda_56 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda6_274 = erased
@@ -588,7 +588,7 @@ d_'46'extendedlambda7_302 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_356 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda7_302 = erased
@@ -598,7 +598,7 @@ d_'46'extendedlambda8_320 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_356 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda8_320 = erased
@@ -607,7 +607,7 @@ d_'46'extendedlambda9_334 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_356 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda9_334 = erased
@@ -618,7 +618,7 @@ d_'46'extendedlambda10_362 ::
   (T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_356 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda10_362 = erased
@@ -630,7 +630,7 @@ d_'46'extendedlambda11_402 ::
   Integer ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_356 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   T_Pure_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda11_402 = erased
