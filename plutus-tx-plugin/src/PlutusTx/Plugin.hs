@@ -10,7 +10,7 @@
 -- For some reason this module is very slow to compile otherwise
 {-# OPTIONS_GHC -O0 #-}
 
-module PlutusTx.Plugin (plugin, plc) where
+module PlutusTx.Plugin (plugin, plc, runCompiler) where
 
 import PlutusPrelude
 import PlutusTx.AsData.Internal qualified
@@ -610,24 +610,31 @@ runCompiler moduleName opts expr = do
             (opts ^. posPreserveLogging)
 
   -- GHC.Core -> Pir translation.
-  pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
+  pirT <-
+    {-# SCC "plinth-plugin-core-to-pir-step" #-}
+    original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
+
   let pirP = PIR.Program noProvenance plcVersion pirT
   when (opts ^. posDumpPir) . liftIO $
     dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
   -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
   spirP <-
+    {-# SCC "plinth-plugin-pir-to-simp-step" #-}
     flip runReaderT pirCtx $
       modifyError (NoContext . PIRError) $
         PIR.compileToReadable pirP
+
   when (opts ^. posDumpPir) . liftIO $
     dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
 
   -- (Simplified) Pir -> Plc translation.
   plcP <-
+    {-# SCC "plinth-plugin-simp-to-plc-step" #-}
     flip runReaderT pirCtx $
       modifyError (NoContext . PIRError) $
         PIR.compileReadableToPlc spirP
+
   when (opts ^. posDumpPlc) . liftIO $
     dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
 
@@ -637,7 +644,11 @@ runCompiler moduleName opts expr = do
       modifyError PLC.TypeErrorE $
         PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-  (uplcP, _) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+  (uplcP, _) <-
+    {-# SCC "plinth-plugin-plc-to-uplc-step" #-}
+    flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+
+
   dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
     dumpFlat
