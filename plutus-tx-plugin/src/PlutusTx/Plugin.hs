@@ -68,7 +68,7 @@ import Control.Monad.State
 import Control.Monad.Writer
 import PlutusCore.Flat (Flat, flat, unflat)
 
-import Certifier (mkCertifier, prettyCertifierError, prettyCertifierSuccess, runCertifier)
+import Certifier (CertifierOutput (..), mkCertifier, prettyCertifierError, runCertifier)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
@@ -642,10 +642,10 @@ runCompiler moduleName opts expr = do
   (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
   liftIO $ case optCertify of
     Just certName -> do
-      result <- runCertifier $ mkCertifier simplTrace certName
+      -- FIXME: add a plugin option to choose from BasicOutput vs. other options
+      result <- runCertifier $ mkCertifier simplTrace certName BasicOutput
       case result of
-        Right certSuccess ->
-          hPutStrLn stderr $ prettyCertifierSuccess certSuccess
+        Right _ -> pure ()
         Left err ->
           hPutStrLn stderr $ prettyCertifierError err
     Nothing -> pure ()
