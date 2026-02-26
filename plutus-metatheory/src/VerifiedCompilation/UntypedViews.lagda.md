@@ -442,10 +442,10 @@ error? M with M
 
 ```
 data match {A : Set} : Pr A where
-  ⋯! : (x : A) → match x
+  match! : (x : A) → match x
 
 ⋯ : ∀{A} → Decidable (match {A})
-⋯ x = yes (⋯! x)
+⋯ x = yes (match! x)
 
 ```
 
@@ -458,7 +458,7 @@ identity function to any term:
 ```
 private
   app-id : Pr (X ⊢)
-  app-id = (ƛᵖ (`ᵖ (_≡_ zero))) ·ᵖ match
+  app-id = ƛᵖ (`ᵖ (_≡_ zero)) ·ᵖ match
 ```
 
 Given a term that satisfies the predicate, there is only one trivial proof
@@ -466,13 +466,13 @@ Given a term that satisfies the predicate, there is only one trivial proof
 
 ```
   ex : 0 ⊢
-  ex = (ƛ (` zero)) · (ƛ (` zero))
+  ex = ƛ (` zero) · ƛ (` zero)
 
   _ : app-id ex
-  _ = ƛ! (`! refl) ·! (⋯! (ƛ (` zero)))
+  _ = ƛ! (`! refl) ·! match! (ƛ (` zero))
 ```
 
-Instead of writing out those proofs, we can use typeclasses/instances. The term
+Instead of writing out those proofs, we can use a typeclass with instance search. The term
 can then instead be given with `inhabitant`.
 
 ```
@@ -530,7 +530,7 @@ instance
   inh-error = inh error!
 
   inh-match : ∀ {A : Set} {X : A} → Inhabited (match X)
-  inh-match = record {inhabitant = ⋯! _}
+  inh-match = record {inhabitant = match! _}
 
   inh-× : ∀ {A B} → {{ Inhabited A }} → {{ Inhabited B }} → Inhabited (A × B)
   inh-× = inh (inhabitant , inhabitant)
@@ -553,7 +553,7 @@ addComm? : (M N : X ⊢) → Dec (AddComm M N)
 addComm? M N
   with (builtin? (_≟_ addInteger) ·? ⋯ ·? ⋯) M
 ... | no ¬P = no λ {addComm → ¬P inhabitant}
-... | yes (builtin! refl ·! (⋯! x) ·! (⋯! y))
+... | yes (builtin! refl ·! match! x ·! match! y)
   with (builtin? (_≟_ addInteger) ·? (_≟_ y) ·? (_≟_ x)) N
 ... | no ¬P = no λ {addComm → ¬P inhabitant}
 ... | yes (builtin! refl ·! refl ·! refl) = yes addComm
