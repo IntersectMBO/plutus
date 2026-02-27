@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
@@ -29,6 +30,7 @@ import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Utils
+import PlutusTx.Plugin.Utils qualified
 import PlutusTx.Trace
 
 import GHC.ByteCode.Types qualified as GHC
@@ -40,9 +42,21 @@ import GHC.Core.Opt.Simplify qualified as GHC
 import GHC.Core.Opt.Simplify.Env qualified as GHC
 import GHC.Core.Opt.Simplify.Monad qualified as GHC
 import GHC.Core.Rules.Config qualified as GHC
+import GHC.Core.TyCo.Rep qualified as GHC
 import GHC.Core.Unfold qualified as GHC
+import GHC.Data.Bag qualified as GHC
+import GHC.Hs qualified as GHC
+import GHC.Hs.Syn.Type qualified as GHC
+import GHC.Iface.Env qualified as GHC
 import GHC.Plugins qualified as GHC
+import GHC.Tc.Types qualified as GHC
+import GHC.Tc.Types.Evidence qualified as GHC
+import GHC.Tc.Utils.Env qualified as GHC
+import GHC.Tc.Utils.Monad qualified as GHC
+import GHC.Types.SrcLoc qualified as GHC
+import GHC.Types.Tickish qualified as GHC
 import GHC.Types.TyThing qualified as GHC
+import GHC.Unit.Finder qualified as GHC
 
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
@@ -72,6 +86,7 @@ import Certifier (CertifierOutput (..), mkCertifier, prettyCertifierError, runCe
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
+import Data.Generics.Uniplate.Data
 import Data.Map qualified as Map
 import Data.Maybe (mapMaybe)
 import Data.Monoid.Extra (mwhen)
@@ -91,6 +106,7 @@ data PluginCtx = PluginCtx
   { pcOpts :: PluginOptions
   , pcFamEnvs :: GHC.FamInstEnvs
   , pcMarkerName :: GHC.Name
+  , pcLocMarkerName :: GHC.Name
   , pcModuleName :: GHC.ModuleName
   , pcModuleModBreaks :: Maybe GHC.ModBreaks
   }
@@ -125,7 +141,8 @@ PIRs, PLCs and UPLCs, causing test failures. Replacing them with `coerce` avoids
 plugin :: GHC.Plugin
 plugin =
   GHC.defaultPlugin
-    { GHC.pluginRecompile = GHC.flagRecompile
+    { GHC.typeCheckResultAction = injectTicks
+    , GHC.pluginRecompile = GHC.flagRecompile
     , GHC.installCoreToDos = install
     }
   where
@@ -143,6 +160,108 @@ plugin =
         simplPass
           : pluginPass
           : rest
+
+plcLocModuleName :: String
+plcLocModuleName = "PlutusTx.Plugin.Utils"
+
+plcLocName :: String
+plcLocName = "plcLoc"
+
+plinthcName :: String
+plinthcName = "plinthc"
+
+injectTicks
+  :: [GHC.CommandLineOption]
+  -> GHC.ModSummary
+  -> GHC.TcGblEnv
+  -> GHC.TcM GHC.TcGblEnv
+injectTicks _ _ env = do
+  liftIO $ putStrLn $ "INJECTING TICKS!"
+  hscEnv <- GHC.getTopEnv
+  findResult <-
+    liftIO $
+      GHC.findImportedModule
+        hscEnv
+        (GHC.mkModuleName plcLocModuleName)
+        GHC.NoPkgQual
+  (plcLocId, plinthcName') <- case findResult of
+    GHC.Found _ m -> do
+      name <- GHC.lookupOrig m (GHC.mkVarOcc plcLocName)
+      plinthcName' <- GHC.lookupOrig m (GHC.mkVarOcc plinthcName)
+      plcLocId <- GHC.tcLookupId name
+      liftIO $ putStrLn $ "FOUNDMODULE!!!!!!!!!!!!! " <> dbg plcLocId
+      pure (plcLocId, plinthcName')
+    _ ->
+      GHC.pprPanic
+        "PlutusTx.Plugin"
+        (GHC.text $ "Could not find module " <> plcLocModuleName)
+  -- srcLocMarkerId <- GHC.lookupThing undefined
+  let binds = GHC.tcg_binds env
+      bindsTicked = transformBi (tickExpr plcLocId plinthcName') binds
+  -- res :: [GHC.LHsBindLR GHC.GhcTc GHC.GhcTc]
+  -- res = universeBi binds
+  -- liftIO $ putStrLn $ "res ==== " <> GHC.showPprUnsafe (GHC.ppr res)
+  pure env {GHC.tcg_binds = bindsTicked}
+
+-- pure env
+
+tickExpr :: GHC.Id -> GHC.Name -> GHC.LHsExpr GHC.GhcTc -> GHC.LHsExpr GHC.GhcTc
+tickExpr plcLocId plinthcMarker le@(GHC.L ann e)
+  | isTickWorthy plinthcMarker e
+  , Just !sp <- GHC.srcSpanToRealSrcSpan (GHC.locA ann) =
+      let locStr = dbg sp
+          locTy = GHC.LitTy (GHC.StrTyLit (GHC.mkFastString locStr))
+          exprTy = GHC.hsExprType e
+          wrapper = GHC.WpTyApp exprTy -- `GHC.WpCompose` GHC.WpTyApp locTy
+          wrappedFn = GHC.mkHsWrap wrapper (GHC.HsVar GHC.noExtField $ GHC.noLocA plcLocId)
+       in unsafePerformIO $ do
+            putStrLn $ "INSERTING SPAN! :::" <> dbg (e, sp)
+            pure $ GHC.noLocA (GHC.HsApp GHC.noExtField (GHC.noLocA wrappedFn) le)
+  | otherwise = le
+
+dbg :: GHC.Outputable a => a -> String
+dbg = GHC.showPprUnsafe . GHC.ppr
+
+isTickWorthy :: GHC.Name -> GHC.HsExpr GHC.GhcTc -> Bool
+isTickWorthy marker expr
+  | isLocMarkerApp marker expr = False
+  | otherwise = case expr of
+      GHC.HsVar {} -> True
+      GHC.HsLam {} -> True
+      GHC.HsApp {} -> True
+      GHC.OpApp {} -> True
+      GHC.NegApp {} -> True
+      GHC.SectionL {} -> True
+      GHC.SectionR {} -> True
+      GHC.HsCase {} -> True
+      GHC.HsIf {} -> True
+      GHC.HsMultiIf {} -> True
+      GHC.HsDo {} -> True
+      GHC.ExplicitTuple {} -> True
+      GHC.ExplicitList {} -> True
+      GHC.RecordCon {} -> True
+      GHC.RecordUpd {} -> True
+      GHC.HsGetField {} -> True
+      GHC.HsProjection {} -> True
+      GHC.ExprWithTySig {} -> True
+      _ -> False
+
+-- GHC.HsLit {} -> False
+-- GHC.HsOverLit {} -> False
+-- GHC.HsPar {} -> False
+-- GHC.XExpr GHC.HsTick {} -> False
+-- _ -> True
+
+isLocMarkerApp :: GHC.Name -> GHC.HsExpr GHC.GhcTc -> Bool
+isLocMarkerApp marker = maybe False (== marker) . appHeadName
+
+appHeadName :: GHC.HsExpr GHC.GhcTc -> Maybe GHC.Name
+appHeadName (GHC.HsVar _ (GHC.L _ vid)) = Just (GHC.getName vid)
+appHeadName (GHC.HsApp _ (GHC.L _ f) _) = appHeadName f
+appHeadName (GHC.HsAppType _ (GHC.L _ f) _) = appHeadName f
+appHeadName (GHC.XExpr (GHC.WrapExpr _ e)) = appHeadName e
+appHeadName (GHC.HsPar _ (GHC.L _ e)) = appHeadName e
+appHeadName _ = Nothing
 
 {- Note [GHC.sm_pre_inline]
 We run a GHC simplifier pass before the plugin, in which we turn on `sm_pre_inline`, which
@@ -248,22 +367,24 @@ mkPluginPass opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> do
   -- Family env code borrowed from SimplCore
   p_fam_env <- GHC.getPackageFamInstEnv
   -- See Note [Marker resolution]
-  maybeMarkerName <- GHC.thNameToGhcName 'plc
-  case maybeMarkerName of
+  maybeMarkerName <- GHC.thNameToGhcName 'plinthc
+  maybeLocMarkerName <- GHC.thNameToGhcName 'plcLoc
+  case (maybeMarkerName, maybeLocMarkerName) of
     -- TODO: test that this branch can happen using TH's 'plc exact syntax.
     -- See Note [Marker resolution]
-    Nothing -> pure guts
-    Just markerName ->
+    (Just markerName, Just locMarkerName) ->
       let pctx =
             PluginCtx
               { pcOpts = opts
               , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
               , pcMarkerName = markerName
+              , pcLocMarkerName = locMarkerName
               , pcModuleName = GHC.moduleName $ GHC.mg_module guts
               , pcModuleModBreaks = GHC.mg_modBreaks guts
               }
        in -- start looking for plc calls from the top-level binds
           GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
+    _ -> pure guts
 
 {-| The monad where the plugin runs in for each module.
 It is a core->core compiler monad, called PluginM, augmented with pure errors. -}
@@ -315,25 +436,19 @@ resulting 'CompiledCode' because that's impredicative polymorphism.
 compileMarkedExprs :: GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
 compileMarkedExprs expr = do
   markerName <- asks pcMarkerName
+  locMarkerName <- asks pcLocMarkerName
+  liftIO $ putStrLn $ "CompileMarkedExprs :: Expr === " <> (GHC.showPprUnsafe . GHC.ppr $ expr)
   case expr of
     GHC.App
       ( GHC.App
-          ( GHC.App
-              ( GHC.App
-                  -- function id
-                  -- sometimes GHCi sticks ticks around this for some reason
-                  (stripTicks -> (GHC.Var fid))
-                  -- first type argument, must be a string literal type
-                  (GHC.Type (GHC.isStrLitTy -> Just fs_locStr))
-                )
-              -- second type argument
-              (GHC.Type codeTy)
-            )
-          _
+          (stripLocMarkers locMarkerName -> (GHC.Var fid))
+          -- first type argument, must be a string literal type
+          -- second type argument
+          (stripLocMarkers locMarkerName -> GHC.Type codeTy)
         )
       -- value argument
       inner
-        | markerName == GHC.idName fid -> compileMarkedExprOrDefer (show fs_locStr) codeTy inner
+        | markerName == GHC.idName fid -> compileMarkedExprOrDefer "" codeTy inner
     e@(GHC.Var fid)
       | markerName == GHC.idName fid ->
           throwError . NoContext . InvalidMarkerError . GHC.showSDocUnsafe $ GHC.ppr e
@@ -412,6 +527,7 @@ compileMarkedExpr locStr codeTy origE = do
            , 'mkNilOpaque
            , 'mkNil
            , 'PlutusTx.Builtins.equalsInteger
+           , 'PlutusTx.Plugin.Utils.plcLoc
            ]
   modBreaks <- asks pcModuleModBreaks
   let coverage =
@@ -718,6 +834,13 @@ stripTicks :: GHC.CoreExpr -> GHC.CoreExpr
 stripTicks = \case
   GHC.Tick _ e -> stripTicks e
   e -> e
+
+stripLocMarkers :: GHC.Name -> GHC.CoreExpr -> GHC.CoreExpr
+stripLocMarkers marker = \case
+  GHC.Tick _ e -> stripLocMarkers marker e
+  GHC.App (GHC.App (GHC.Var f) _codeTy) code
+    | GHC.getName f == marker -> stripLocMarkers marker code
+  other -> other
 
 -- | Helper to avoid doing too much construction of Core ourselves
 mkCompiledCode :: forall a. BS.ByteString -> BS.ByteString -> BS.ByteString -> CompiledCode a

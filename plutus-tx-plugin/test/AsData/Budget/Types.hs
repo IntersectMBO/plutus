@@ -8,6 +8,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 
 module AsData.Budget.Types where
 
@@ -31,6 +32,10 @@ AsData.asData
 
 newtype IntsManual = IntsManualDataCon PlutusTx.BuiltinData
   deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+
+opaqueAdd :: Integer -> Integer -> Integer
+opaqueAdd = (+)
+{-# OPAQUE opaqueAdd #-}
 
 pattern IntsManual :: Integer -> Integer -> Integer -> Integer -> IntsManual
 pattern IntsManual {int1Manual, int2Manual, int3Manual, int4Manual} <-

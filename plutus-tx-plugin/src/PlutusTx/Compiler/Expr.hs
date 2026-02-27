@@ -51,6 +51,7 @@ import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
+import PlutusTx.Plugin.Utils qualified
 
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.HasOpaque qualified as Builtins
@@ -281,6 +282,11 @@ strip :: GHC.CoreExpr -> GHC.CoreExpr
 strip = \case
   GHC.Var n `GHC.App` GHC.Type _ `GHC.App` expr | GHC.getName n == GHC.noinlineIdName -> strip expr
   GHC.Tick _ expr -> strip expr
+  expr -> expr
+
+stripSourceSpanTicks :: GHC.CoreExpr -> GHC.CoreExpr
+stripSourceSpanTicks = \case
+  GHC.Tick tick expr | Just _ <- getSourceSpan Nothing tick -> stripSourceSpanTicks expr
   expr -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
@@ -922,6 +928,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   boolOperatorOr <- lookupGhcName '(PlutusTx.Bool.||)
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
+  plcLocName <- lookupGhcName 'PlutusTx.Plugin.Utils.plcLoc
 
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
   listIndexId <- lookupGhcId '(PlutusTx.List.!!)
@@ -966,6 +973,12 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           Nothing -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
 
   case e of
+    GHC.App
+      (GHC.App (GHC.Var f) (GHC.Type _))
+      e'
+        | GHC.getName f == plcLocName -> do
+            traceCompilation 1 ("GREAT NEWS! Found SOURCE LOCATION!") $ do
+              compileExpr e'
     -- case integer
     GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
       | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do
@@ -1293,9 +1306,10 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- we can use source notes to get a better context for the inner expression
     -- these are put in when you compile with -g
     -- See Note [What source locations to cover]
-    GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
-      traceCompilation 1 ("Compiling expr at:" GHC.<+> GHC.ppr src) $ do
+    GHC.Tick tick body0 | Just src <- getSourceSpan maybeModBreaks tick ->
+      traceCompilation 1 ("Compiling expr at TICK LOCATIOn:" GHC.<+> GHC.ppr src) $ do
         CompileContext {ccOpts = coverageOpts} <- ask
+        let body = stripSourceSpanTicks body0
         -- See Note [Coverage annotations]
         let anns = Set.toList $ activeCoverageTypes coverageOpts
         compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
