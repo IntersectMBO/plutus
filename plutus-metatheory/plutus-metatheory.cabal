@@ -158,6 +158,8 @@ library
     MAlonzo.Code.Builtin.Constant.AtomicType
     MAlonzo.Code.Builtin.Constant.Type
     MAlonzo.Code.Builtin.Signature
+    MAlonzo.Code.Certifier
+    MAlonzo.Code.CertifierReport
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base

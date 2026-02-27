@@ -16,6 +16,7 @@ import Data.Foldable
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromMaybe)
+import Data.Text.IO qualified as T
 import System.Directory (createDirectory)
 import System.FilePath ((</>))
 
@@ -26,7 +27,7 @@ import FFI.Untyped (UTerm)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Simplifier
 
-import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
+import MAlonzo.Code.Certifier (runCertifierMain)
 
 type CertName = String
 type CertDir = FilePath
@@ -81,16 +82,15 @@ mkCertifier simplTrace certName certOutput = do
   certName' <- validCertName certName
   let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
   case runCertifierMain rawAgdaTrace of
-    Just passed -> do
+    Just (passed, report) -> do
       liftIO . putStrLn $
         "Certifier result: "
           <> if passed then "PASS" else "FAIL"
       case certOutput of
         BasicOutput -> pure ()
-        ReportOutput file ->
-          liftIO . writeFile file $
-            -- TODO: populate report
-            "This is your report. Result: " <> if passed then "PASS" else "FAIL"
+        ReportOutput file -> liftIO $ do
+          T.writeFile file report
+          putStrLn $ "Report written to " <> file
         ProjectOutput certDir -> do
           let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
           writeCertificateProject certDir cert

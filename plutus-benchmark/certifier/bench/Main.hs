@@ -7,11 +7,11 @@ import Control.Monad
 import Criterion.Main
 import FFI.SimplifierTrace
 import FFI.Untyped (UTerm)
-import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
+import MAlonzo.Code.Certifier (runCertifierMain)
 
 certify :: Trace UTerm -> ()
 certify trace = case runCertifierMain trace of
-  Just True -> ()
+  Just (True, _) -> ()
   _ -> error "Certification failed"
 
 main :: IO ()

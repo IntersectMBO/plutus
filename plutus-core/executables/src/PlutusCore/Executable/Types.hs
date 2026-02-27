@@ -79,8 +79,10 @@ instance Show Format where
 
 type Certifier = Maybe String
 
+data CertifierOutputMode = CertBasic | CertReport FilePath | CertProject
+
 data ConvertOptions = ConvertOptions Input Format Output Format PrintMode
-data OptimiseOptions = OptimiseOptions Input Format Output Format PrintMode Certifier
+data OptimiseOptions = OptimiseOptions Input Format Output Format PrintMode Certifier CertifierOutputMode
 data PrintOptions = PrintOptions Input Output PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
 data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
