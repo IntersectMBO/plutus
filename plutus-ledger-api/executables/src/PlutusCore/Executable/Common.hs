@@ -215,7 +215,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
         -- Memory usage figures are meaningless in this case
         Unit -> printf "%15s" (show cpu) :: String
     printStepCost constr =
-      printf "%-10s %20s\n" (tail $ show constr) (budgetToString . getSpent $ Cek.BStep constr)
+      printf "%-10s %20s\n" (drop 1 $ show constr) (budgetToString . getSpent $ Cek.BStep constr)
     getBuiltinCost l e = case e of (Cek.BBuiltinApp b, cost) -> (b, cost) : l; _ -> l
     builtinsAndCosts = List.foldl getBuiltinCost [] (H.toList costs)
     totalBuiltinCosts = mconcat (map snd builtinsAndCosts)
