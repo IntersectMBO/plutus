@@ -232,7 +232,7 @@ runTypecheck (TypecheckOptions inp fmt outp printMode nameFormat) = do
 ---------------- Optimisation ----------------
 
 runOptimisations :: OptimiseOptions -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode _) = do
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode _ _) = do
   prog <- readProgram ifmt inp :: IO (PlcProg PLC.SrcSpan)
   let optimised = prog -- No PLC optimisations at present!
   writeProgram outp ofmt mode optimised
