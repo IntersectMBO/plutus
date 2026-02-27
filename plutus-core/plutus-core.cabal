@@ -750,34 +750,6 @@ executable plutus
 -- support libs
 ----------------------------------------------
 
-library plutus-core-execlib
-  import:          lang
-  visibility:      public
-  hs-source-dirs:  executables/src
-  exposed-modules:
-    PlutusCore.Executable.AstIO
-    PlutusCore.Executable.Common
-    PlutusCore.Executable.Parsers
-    PlutusCore.Executable.Types
-
-  build-depends:
-    , aeson
-    , base                             >=4.9   && <5
-    , base16-bytestring                ^>=1.0
-    , bytestring
-    , filepath
-    , lens
-    , megaparsec
-    , monoidal-containers
-    , mtl
-    , optparse-applicative
-    , plutus-core                      ^>=1.58
-    , plutus-core:flat
-    , plutus-core:plutus-core-testlib
-    , plutus-core:plutus-ir
-    , prettyprinter
-    , text
-
 -- could split this up if we split up the main library for UPLC/PLC/PIR
 library plutus-core-testlib
   import:          lang

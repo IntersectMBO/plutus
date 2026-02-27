@@ -68,7 +68,7 @@ executable pir
   other-modules:  Paths_plutus_executables
   hs-source-dirs: executables
   build-depends:
-    , base                             >=4.9   && <5
+    , base                              >=4.9   && <5
     , bytestring
     , cassava
     , containers
@@ -76,9 +76,9 @@ executable pir
     , megaparsec
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.58
-    , plutus-core:plutus-core-execlib
+    , plutus-core                       ^>=1.58
     , plutus-core:plutus-ir
+    , plutus-ledger-api:plutus-execlib
     , text
 
 executable plc
@@ -87,13 +87,13 @@ executable plc
   other-modules:  Paths_plutus_executables
   hs-source-dirs: executables
   build-depends:
-    , base                             >=4.9   && <5
+    , base                              >=4.9   && <5
     , bytestring
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.58
+    , plutus-core                       ^>=1.58
     , plutus-core:flat
-    , plutus-core:plutus-core-execlib
+    , plutus-ledger-api:plutus-execlib
 
 executable uplc
   import:         lang, os-support, ghc-version-support
@@ -101,17 +101,17 @@ executable uplc
   other-modules:  Paths_plutus_executables
   hs-source-dirs: executables
   build-depends:
-    , base                             >=4.9   && <5
+    , base                              >=4.9   && <5
     , bytestring
     , criterion
     , deepseq
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.58
+    , plutus-core                       ^>=1.58
     , plutus-core:flat
-    , plutus-core:plutus-core-execlib
-    , plutus-metatheory                ^>=1.58
+    , plutus-ledger-api:plutus-execlib
+    , plutus-metatheory                 ^>=1.58
     , prettyprinter
     , serialise
     , split

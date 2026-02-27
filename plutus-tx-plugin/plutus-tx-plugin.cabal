@@ -28,6 +28,7 @@ common lang
     DeriveTraversable
     DerivingStrategies
     ExplicitForAll
+    FlexibleContexts
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
     ScopedTypeVariables
@@ -221,6 +222,55 @@ test-suite plutus-tx-plugin-tests
   ghc-options:
     -g -fno-strictness -fno-unbox-strict-fields
     -fno-unbox-small-strict-fields -fno-full-laziness
+
+-- A suite for tests that use the Plutus Tx plugin. We don't merge those into
+-- @plutus-ledger-api-test@, because @plutus-ledger-api@ has to be buildable for older versions of
+-- GHC (a requirement imposed by @cardano-node@) and while its tests don't have to, we don't want to
+-- give up on all @plutus-ledger-api@ tests for older versions of GHC.
+test-suite plutus-ledger-api-plugin-test
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test-ledger-api
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  other-modules:
+    Spec.Budget
+    Spec.Data.Budget
+    Spec.Data.MintValue.V3
+    Spec.Data.ScriptContext
+    Spec.Data.Value
+    Spec.Envelope
+    Spec.MintValue.V3
+    Spec.ReturnUnit.V1
+    Spec.ReturnUnit.V2
+    Spec.ReturnUnit.V3
+    Spec.ScriptSize
+    Spec.Value
+    Spec.Value.WithCurrencySymbol
+
+  if os(windows)
+    buildable: False
+
+  build-depends:
+    , base                                         >=4.9   && <5
+    , bytestring
+    , containers
+    , filepath
+    , lens
+    , mtl
+    , plutus-core                                  ^>=1.58
+    , plutus-core:plutus-core-testlib
+    , plutus-ledger-api                            ^>=1.58
+    , plutus-ledger-api:plutus-ledger-api-testlib
+    , plutus-tx                                    ^>=1.58
+    , plutus-tx-plugin                             ^>=1.58
+    , plutus-tx:plutus-tx-testlib
+    , prettyprinter
+    , QuickCheck
+    , tasty
+    , tasty-golden
+    , tasty-hunit
+    , tasty-quickcheck
 
 test-suite size
   import:             lang, ghc-version-support, os-support

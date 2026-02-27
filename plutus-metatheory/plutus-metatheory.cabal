@@ -86,13 +86,13 @@ library
     , memory
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.58
-    , plutus-core:plutus-core-execlib
+    , plutus-core                       ^>=1.58
+    , plutus-ledger-api:plutus-execlib
     , process
     , text
     , time
     , transformers
-    , vector                           ^>=0.13.2
+    , vector                            ^>=0.13.2
 
   exposed-modules: Paths_plutus_metatheory
   exposed-modules:

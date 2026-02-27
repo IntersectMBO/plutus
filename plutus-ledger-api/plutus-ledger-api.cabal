@@ -46,12 +46,6 @@ common lang
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     -fno-strictness
 
-common ghc-version-support
-  -- This is only used for the plugin tests.
-  -- See the section on GHC versions in CONTRIBUTING
-  if (impl(ghc <9.6) || impl(ghc >=9.7))
-    buildable: False
-
 library
   import:           lang
   hs-source-dirs:   src
@@ -127,6 +121,35 @@ library
     , prettyprinter
     , serialise
     , tagged
+    , text
+
+library plutus-execlib
+  import:          lang
+  visibility:      public
+  hs-source-dirs:  executables/src
+  exposed-modules:
+    PlutusCore.Executable.AstIO
+    PlutusCore.Executable.Common
+    PlutusCore.Executable.Parsers
+    PlutusCore.Executable.Types
+
+  build-depends:
+    , aeson
+    , base                             >=4.9   && <5
+    , base16-bytestring                ^>=1.0
+    , bytestring
+    , filepath
+    , lens
+    , megaparsec
+    , monoidal-containers
+    , mtl
+    , optparse-applicative
+    , plutus-core                      ^>=1.58
+    , plutus-core:flat
+    , plutus-core:plutus-core-testlib
+    , plutus-core:plutus-ir
+    , plutus-ledger-api
+    , prettyprinter
     , text
 
 library plutus-ledger-api-testlib
@@ -215,55 +238,6 @@ test-suite plutus-ledger-api-test
     , tasty-hunit
     , tasty-quickcheck
     , text
-
--- A suite for tests that use the Plutus Tx plugin. We don't merge those into
--- @plutus-ledger-api-test@, because @plutus-ledger-api@ has to be buildable for older versions of
--- GHC (a requirement imposed by @cardano-node@) and while its tests don't have to, we don't want to
--- give up on all @plutus-ledger-api@ tests for older versions of GHC.
-test-suite plutus-ledger-api-plugin-test
-  import:         lang, ghc-version-support
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  hs-source-dirs: test-plugin
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
-  other-modules:
-    Spec.Budget
-    Spec.Data.Budget
-    Spec.Data.MintValue.V3
-    Spec.Data.ScriptContext
-    Spec.Data.Value
-    Spec.Envelope
-    Spec.MintValue.V3
-    Spec.ReturnUnit.V1
-    Spec.ReturnUnit.V2
-    Spec.ReturnUnit.V3
-    Spec.ScriptSize
-    Spec.Value
-    Spec.Value.WithCurrencySymbol
-
-  if os(windows)
-    buildable: False
-
-  build-depends:
-    , base                                         >=4.9   && <5
-    , bytestring
-    , containers
-    , filepath
-    , lens
-    , mtl
-    , plutus-core                                  ^>=1.58
-    , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                            ^>=1.58
-    , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.58
-    , plutus-tx-plugin                             ^>=1.58
-    , plutus-tx:plutus-tx-testlib
-    , prettyprinter
-    , QuickCheck
-    , tasty
-    , tasty-golden
-    , tasty-hunit
-    , tasty-quickcheck
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.
