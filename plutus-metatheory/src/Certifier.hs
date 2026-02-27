@@ -276,6 +276,7 @@ mkCertificateModule certModule agdaTrace imports =
     <> certModule
     <> " where\
        \\n\
+       \\nopen import Certifier\
        \\nopen import VerifiedCompilation\
        \\nopen import VerifiedCompilation.Certificate\
        \\nopen import Untyped\
