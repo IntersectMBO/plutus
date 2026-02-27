@@ -118,6 +118,72 @@ executable uplc
     , text
     , time
 
+executable plutus
+  import:             lang
+  main-is:            Main.hs
+  hs-source-dirs:     plutus
+
+  -- Hydra complains that this is not buildable on mingw32 because of brick.
+  -- Strange, because I thought vty added support for windows.
+  if os(windows)
+    buildable: False
+
+  other-modules:
+    AnyProgram.Apply
+    AnyProgram.Bench
+    AnyProgram.Compile
+    AnyProgram.Debug
+    AnyProgram.Example
+    AnyProgram.IO
+    AnyProgram.Parse
+    AnyProgram.Run
+    AnyProgram.With
+    Common
+    Debugger.TUI.Draw
+    Debugger.TUI.Event
+    Debugger.TUI.Main
+    Debugger.TUI.Types
+    GetOpt
+    Mode.Compile
+    Mode.HelpVersion
+    Mode.ListExamples
+    Mode.PrintBuiltins
+    Mode.PrintCostModel
+    Paths_plutus_executables
+    Types
+
+  build-depends:
+    , aeson-pretty
+    , base                   >=4.9   && <5
+    , brick
+    , bytestring
+    , containers
+    , exceptions
+    , filepath
+    , lens
+    , megaparsec
+    , microlens
+    , microlens-th           ^>=0.4
+    , mono-traversable
+    , mtl
+    , plutus-core            ^>=1.58
+    , plutus-core:flat
+    , plutus-core:plutus-ir
+    , prettyprinter
+    , primitive
+    , serialise
+    , singletons
+    , singletons-th
+    , text
+    , text-zipper
+    , vty                    ^>=6.5
+    , vty-crossplatform      ^>=0.4
+
+  ghc-options:        -O2 -threaded -rtsopts -with-rtsopts=-N
+  default-extensions:
+    GADTs
+    TypeApplications
+
 test-suite test-simple
   import:             lang, os-support, ghc-version-support
   type:               exitcode-stdio-1.0

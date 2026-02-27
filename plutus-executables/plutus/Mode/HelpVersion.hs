@@ -5,7 +5,7 @@ module Mode.HelpVersion
 
 import Data.Version.Extras (gitAwareVersionInfo)
 import GetOpt
-import Paths_plutus_core qualified as Paths
+import Paths_plutus_executables qualified as Paths
 
 runHelp :: IO ()
 runHelp = do

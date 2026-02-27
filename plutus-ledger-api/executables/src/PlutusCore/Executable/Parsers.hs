@@ -71,7 +71,7 @@ formatHelp =
 formatReader :: String -> Maybe Format
 formatReader =
   \case
-    "textual (default)" -> Just Textual
+    "textual" -> Just Textual
     "serialised" -> Just Serialised
     "flat-named" -> Just (Flat Named)
     "flat" -> Just (Flat DeBruijn)

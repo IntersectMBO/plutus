@@ -16,7 +16,7 @@ can be found on the [Latest Release](https://github.com/IntersectMBO/plutus/rele
 using Nix, specifically for your platform:
 
 ``` shell
-$ nix build ".#cabalProject.$(nix eval nixpkgs#stdenv.buildPlatform.system).hsPkgs.plutus-core.components.exes.plutus"
+$ nix build ".#cabalProject.$(nix eval nixpkgs#stdenv.buildPlatform.system).hsPkgs.plutus-executables.components.exes.plutus"
 ```
 
 To consult the tool's usage you can invoke `plutus --help` in your command line:

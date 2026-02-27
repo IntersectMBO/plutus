@@ -46,7 +46,7 @@ let
     uplc = project.flake'.packages."plutus-executables:exe:uplc";
     plc = project.flake'.packages."plutus-executables:exe:plc";
     pir = project.flake'.packages."plutus-executables:exe:pir";
-    plutus = project.flake'.packages."plutus-core:exe:plutus";
+    plutus = project.flake'.packages."plutus-executables:exe:plutus";
     uplc-evaluator = project.flake'.packages."plutus-benchmark:exe:uplc-evaluator";
   };
 
@@ -54,7 +54,7 @@ let
     musl64-pir = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.pir;
     musl64-plc = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.plc;
     musl64-uplc = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.uplc;
-    musl64-plutus = project.projectCross.musl64.hsPkgs.plutus-core.components.exes.plutus;
+    musl64-plutus = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.plutus;
   };
 
   windows-hydra-jobs = {
@@ -180,5 +180,3 @@ in
   inherit checks;
   inherit hydraJobs;
 }
-
-
