@@ -223,7 +223,10 @@ isTestPat? v with isCase? (isCase? isTerm? allTerms?) allTerms? v
 ## Views
 
 The following are slight generalizations on the previously defined views, with
-convenient syntax.
+convenient syntax. It allows you to compose them with existing decision
+procedures such as _≟_ to match for example on a specific built-in function or
+specific terms that were matched before. See the example at the end of this
+module.
 
 We define a predicate for each UPLC term constructor which witnesses that a term
 starts with that constructor. Each such predicate is parametrised by predicates
