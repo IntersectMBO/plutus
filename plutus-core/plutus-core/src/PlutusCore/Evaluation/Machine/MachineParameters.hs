@@ -71,25 +71,27 @@ instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachinePara
     allNoThunks [noThunks ctx caser, noThunks ctx varPars]
 
 {- Note [The CostingPart constraint in mkMachineVariantParameters]
-Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
-to fail to inline the function at its call site regardless of the @INLINE@ pragma and an explicit
-'inline' call.
+Discharging the @CostingPart uni fun ~ builtincosts@ constraint in
+'mkMachineVariantParameters' causes GHC to fail to inline the function at its
+call site regardless of the @INLINE@ pragma and an explicit 'inline' call.
 
-We think that this is because discharging the @CostingPart uni fun ~ builtincosts@ constraint in the
-type of 'mkMachineParameters' somehow causes it to be compiled into @expr `Cast@` co@ , where @co@'s
-type is
+We think that this is because discharging the @CostingPart uni fun ~
+builtincosts@ constraint in the type of 'mkMachineVariantParameters'
+somehow causes it to be compiled into @expr `Cast@` co@ , where @co@'s type is
 
     (CostingPart DefaultUni DefaultFun) ... ~R# ... BuiltinCostModel ...
 
-and this fails to inline, because in order for @inline f@ to work, @f@ must be compiled into either
-a @Var@, or an @App@ whose head is a @Var@, according to https://gitlab.haskell.org/ghc/ghc/-/blob/1f02b7430b2fbab403d7ffdde9cfd006e884678e/compiler/prelude/PrelRules.hs#L1442-1449
-And if @f@ is compiled into a @Cast@ like 'mkMachineParameters' with the discharged constraint, then
-inlining won't work. We don't know why it's implemented this way in GHC.
+and this fails to inline, because in order for @inline f@ to work, @f@ must be
+compiled into either a @Var@, or an @App@ whose head is a @Var@, according to
+https://gitlab.haskell.org/ghc/ghc/-/blob/1f02b7430b2fbab403d7ffdde9cfd006e884678e/compiler/prelude/PrelRules.hs#L1442-1449
+And if @f@ is compiled into a @Cast@ like 'mkMachineVariantParameters' with the
+discharged constraint, then inlining won't work. We don't know why it's
+implemented this way in GHC.
 
 It seems fully applying @f@ helps, i.e.
 
-    - inline mkMachineParameters unlMode <$> <...>
-    + (\x -> inline (mkMachineParameters unlMode x)) <$> <...>
+    - inline mkMachineVariantParameters unlMode <$> <...>
+    + (\x -> inline (mkMachineVariantParameters unlMode x)) <$> <...>
 
 which makes sense: if @f@ receives all its type and term args then there's less reason to throw a
 @Cast@ in there.
@@ -99,7 +101,7 @@ which makes sense: if @f@ receives all its type and term args then there's less 
 -- | This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime.
 mkMachineVariantParameters
   :: ( -- WARNING: do not discharge the equality constraint as that causes GHC to fail to inline the
-       -- function at its call site, see Note [The CostingPart constraint in mkMachineParameters].
+       -- function at its call site, see Note [The CostingPart constraint in mkMachineVariantParameters].
        CostingPart uni fun ~ builtincosts
      , HasMeaningIn uni val
      , ToBuiltinMeaning uni fun

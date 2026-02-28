@@ -246,26 +246,7 @@ assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
 {-# INLINEABLE assetClass #-}
 
-{- Note [Value vs value]
-We call two completely different things "values": the 'Value' type and a value within a key-value
-pair. To distinguish between the two we write the former with a capital "V" and enclosed in single
-quotes and we write the latter with a lower case "v" and without the quotes, i.e. 'Value' vs value.
--}
-
-{- Note [Optimising Value]
-
-We have attempted to improve the performance of 'Value' and other usages of
-'PlutusTx.AssocMap.Map' by choosing a different representation for 'PlutusTx.AssocMap.Map',
-see https://github.com/IntersectMBO/plutus/pull/5697.
-This approach has been found to not be suitable, as the PR's description mentions.
-
-Another approach was to define a specialised 'ByteStringMap', where the key type was 'BuiltinByteString',
-since that is the representation of both 'CurrencySymbol' and 'TokenName'.
-Unfortunately, this approach actually had worse performance in practice. We believe it is worse
-because having two map libraries would make some optimisations, such as CSE, less effective.
-We base this on the fact that turning off all optimisations ended up making the code more performant.
-See https://github.com/IntersectMBO/plutus/pull/5779 for details on the experiment done.
--}
+-- See Note [Optimising Value]
 
 -- See Note [Value vs value].
 -- See Note [Optimising Value].

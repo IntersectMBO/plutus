@@ -113,16 +113,7 @@ mkCheckScriptContext2Code sc =
    in $$(PlutusTx.compile [||checkScriptContext2||])
         `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
-{- Note [Redundant arguments to equality benchmarks]
-The arguments for the benchmarks are passed as terms created with `liftCodeDef`.
-But the benchmark still needs to _evaluate_ these terms, which adds overhead that
-distracts from the main point.
-
-We can't easily remove the overhead, but we can at least include it in both cases to
-make things fairer. Hence we include redundant arguments in the two cases to ensure
-the same work is done in both cases. There is a third case that is just this overhead
-for comparison.
--}
+-- See Note [Redundant arguments to equality benchmarks]
 
 -- This example checks the script context for equality (with itself) when encoded as `Data`.
 -- That means it just takes a single builtin call, which is fast (so long as the builtin is
