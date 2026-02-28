@@ -24,14 +24,20 @@
               (cse (\ds ds ds ds -> ds) (\void -> error)))
            (cse (\ds ds ds ds -> ds) (\void -> error)))
         (\cont fail ->
-           (\l ->
-              (\l ->
-                 (\l ->
-                    cont
-                      (unIData (force headList l))
-                      (unIData (force headList l))
-                      (unIData (force headList l))
-                      (unIData (force headList (force tailList l))))
-                   (force tailList l))
-                (force tailList l))
-             (case (unConstrData d) [(\l r -> r)]))))
+           case
+             ((\l -> constr 0 [(force headList l), (force tailList l)])
+                (case (unConstrData d) [(\l r -> r)]))
+             [ (\ds ds ->
+                  (\ds ->
+                     (\ds ->
+                        (\ds ->
+                           (\ds ->
+                              cont
+                                (unIData ds)
+                                (unIData ds)
+                                (unIData ds)
+                                (unIData (force headList ds)))
+                             (force tailList ds))
+                          (force headList ds))
+                       (force tailList ds))
+                    (force headList ds)) ])))

@@ -1,6 +1,8 @@
 let
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
   !`$mInts` :
      all r.
        data ->
@@ -11,22 +13,32 @@ let
         \(scrut : data)
          (cont : integer -> integer -> integer -> integer -> r)
          (fail : unit -> r) ->
-          let
-            !l : list data
-              = (let
-                    b = list data
-                  in
-                  \(x : pair integer b) ->
-                    case b x [(\(l : integer) (r : b) -> r)])
-                  (unConstrData scrut)
-            !l : list data = tailList {data} l
-            !l : list data = tailList {data} l
-          in
-          cont
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} (tailList {data} l)))
+          Tuple2_match
+            {data}
+            {list data}
+            (let
+              !l : list data
+                = (let
+                      b = list data
+                    in
+                    \(x : pair integer b) ->
+                      case b x [(\(l : integer) (r : b) -> r)])
+                    (unConstrData scrut)
+            in
+            Tuple2 {data} {list data} (headList {data} l) (tailList {data} l))
+            {r}
+            (\(ds : data) (ds : list data) ->
+               let
+                 !ds : data = headList {data} ds
+                 !ds : list data = tailList {data} ds
+                 !ds : data = headList {data} ds
+                 !ds : list data = tailList {data} ds
+               in
+               cont
+                 (unIData ds)
+                 (unIData ds)
+                 (unIData ds)
+                 (unIData (headList {data} ds)))
   !int : data -> integer
     = \(ds : data) ->
         `$mInts`
