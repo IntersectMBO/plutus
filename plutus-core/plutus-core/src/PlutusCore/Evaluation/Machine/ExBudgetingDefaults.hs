@@ -1,7 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -23,7 +22,6 @@ where
 
 import PlutusCore.Builtin
 
-import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
@@ -32,7 +30,13 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-import Data.Aeson.THReader
+-- Import generated cost model modules
+import PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelA (builtinCostModelA)
+import PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelB (builtinCostModelB)
+import PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelC (builtinCostModelC)
+import PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsA (cekMachineCostsA)
+import PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsB (cekMachineCostsB)
+import PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsC (cekMachineCostsC)
 
 -- Not using 'noinline' from "GHC.Exts", because our CI was unable to find it there, somehow.
 import GHC.Magic (noinline)
@@ -41,31 +45,26 @@ import PlutusPrelude
 {- Note [Modifying the cost model]
    When the Haskell representation of the cost model is changed, for example by
    adding a new builtin or changing the name of an existing one,
-   readJSONFromFile will fail when it tries to read a JSON file generated using
-   the previous version.  When this happens, uncomment the three lines below (and
-   comment out the three above) then rerun
+   the generated Haskell modules will need to be regenerated. When this happens,
+   you may need to temporarily use default values. To do this, uncomment the three
+   lines below and comment out the import from the generated module, then rerun
 
       cabal run plutus-core:generate-cost-model
 
+   with appropriate output file specified (e.g., -o BuiltinCostModelC).
    (You may also need to add 'data-default' to the 'build-depends' for the
-   library in plutus-core.cabal). This will generate a new JSON file filled with
-   default values.  After that, restore this file to its previous state and then
-   run "generate-cost-model" again to fill in the JSON file with the correct
-   values (assuming that suitable benchmarking data is in benching.csv and that
+   library in plutus-core.cabal). This will generate a new Haskell module filled with
+   the correct values (assuming that suitable benchmarking data is in benching.csv and that
    models.R contains R code to generate cost models for any new functions).
-
-   Alternatively, modify the appropriate 'builtinCostModelX.json' by hand so
-   that it matches the new format.
  -}
 
 -- import           Data.Default
--- defaultBuiltinCostModel :: BuiltinCostModel
--- defaultBuiltinCostModel = def
+-- builtinCostModelVariantA :: BuiltinCostModel
+-- builtinCostModelVariantA = def
 
 -- | The default cost model for built-in functions (variant A)
 builtinCostModelVariantA :: BuiltinCostModel
-builtinCostModelVariantA =
-  $$(readJSONFromFile DFP.builtinCostModelFileA)
+builtinCostModelVariantA = builtinCostModelA
 -- This is a huge record, inlining it is wasteful.
 {-# OPAQUE builtinCostModelVariantA #-}
 
@@ -75,8 +74,7 @@ appears faster than 'CekMachineCosts' that we get in production after applying
 the costing parameters provided by the ledger. -}
 -- | Default costs for CEK machine instructions (variant A)
 cekMachineCostsVariantA :: CekMachineCosts
-cekMachineCostsVariantA =
-  $$(readJSONFromFile DFP.cekMachineCostsFileA)
+cekMachineCostsVariantA = cekMachineCostsA
 {-# OPAQUE cekMachineCostsVariantA #-}
 
 {-| The default cost model, including both builtin costs and machine step costs.
@@ -91,56 +89,48 @@ cekCostModelVariantA :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantA = CostModel cekMachineCostsVariantA builtinCostModelVariantA
 
 builtinCostModelVariantB :: BuiltinCostModel
-builtinCostModelVariantB =
-  $$(readJSONFromFile DFP.builtinCostModelFileB)
+builtinCostModelVariantB = builtinCostModelB
 {-# OPAQUE builtinCostModelVariantB #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantB :: CekMachineCosts
-cekMachineCostsVariantB =
-  $$(readJSONFromFile DFP.cekMachineCostsFileB)
+cekMachineCostsVariantB = cekMachineCostsB
 {-# OPAQUE cekMachineCostsVariantB #-}
 
 cekCostModelVariantB :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantB = CostModel cekMachineCostsVariantB builtinCostModelVariantB
 
 builtinCostModelVariantC :: BuiltinCostModel
-builtinCostModelVariantC =
-  $$(readJSONFromFile DFP.builtinCostModelFileC)
+builtinCostModelVariantC = builtinCostModelC
 {-# OPAQUE builtinCostModelVariantC #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantC :: CekMachineCosts
-cekMachineCostsVariantC =
-  $$(readJSONFromFile DFP.cekMachineCostsFileC)
+cekMachineCostsVariantC = cekMachineCostsC
 {-# OPAQUE cekMachineCostsVariantC #-}
 
 cekCostModelVariantC :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantC = CostModel cekMachineCostsVariantC builtinCostModelVariantC
 
 builtinCostModelVariantD :: BuiltinCostModel
-builtinCostModelVariantD =
-  $$(readJSONFromFile DFP.builtinCostModelFileD)
+builtinCostModelVariantD = builtinCostModelB -- D uses B's model
 {-# OPAQUE builtinCostModelVariantD #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantD :: CekMachineCosts
-cekMachineCostsVariantD =
-  $$(readJSONFromFile DFP.cekMachineCostsFileD)
+cekMachineCostsVariantD = cekMachineCostsB -- D uses B's costs
 {-# OPAQUE cekMachineCostsVariantD #-}
 
 cekCostModelVariantD :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantD = CostModel cekMachineCostsVariantD builtinCostModelVariantD
 
 builtinCostModelVariantE :: BuiltinCostModel
-builtinCostModelVariantE =
-  $$(readJSONFromFile DFP.builtinCostModelFileE)
+builtinCostModelVariantE = builtinCostModelC -- E uses C's model
 {-# OPAQUE builtinCostModelVariantE #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantE :: CekMachineCosts
-cekMachineCostsVariantE =
-  $$(readJSONFromFile DFP.cekMachineCostsFileE)
+cekMachineCostsVariantE = cekMachineCostsC -- E uses C's costs
 {-# OPAQUE cekMachineCostsVariantE #-}
 
 cekCostModelVariantE :: CostModel CekMachineCosts BuiltinCostModel

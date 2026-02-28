@@ -19,7 +19,7 @@ import Data.Aeson.THReader as Aeson
 
 -- | The default config read from "data/defaultConstitution.json"
 defaultConstitutionConfig :: ConstitutionConfig
-defaultConstitutionConfig = $$(Aeson.readJSONFromFile DFP.defaultConstitutionConfigFile)
+defaultConstitutionConfig = Aeson.readJSONFromFile DFP.defaultConstitutionConfigFile
 {-# INLINEABLE defaultConstitutionConfig #-}
 
 -- | NOTE: **BE CAREFUL** of the ordering. Expected value is first arg, Proposed Value is second arg

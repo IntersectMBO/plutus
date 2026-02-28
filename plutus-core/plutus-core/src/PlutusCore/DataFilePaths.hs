@@ -1,54 +1,19 @@
-{-| Various file paths used in plutus-core, currently all to do with the cost
-model. -}
-module PlutusCore.DataFilePaths
-where
+{-| Various file paths used in plutus-core.
+    These paths are primarily used for testing and benchmarking.
+    Cost models are embedded as Haskell modules in
+    PlutusCore.Evaluation.Machine.CostModel.* -}
+module PlutusCore.DataFilePaths where
 
 import System.FilePath
 
 costModelDataDir :: FilePath
 costModelDataDir = "cost-model" </> "data"
 
-builtinCostModelFileA :: FilePath
-builtinCostModelFileA = costModelDataDir </> "builtinCostModelA" <.> "json"
-
-builtinCostModelFileB :: FilePath
-builtinCostModelFileB = costModelDataDir </> "builtinCostModelB" <.> "json"
-
-builtinCostModelFileC :: FilePath
-builtinCostModelFileC = costModelDataDir </> "builtinCostModelC" <.> "json"
-
-builtinCostModelFileD :: FilePath
-builtinCostModelFileD = costModelDataDir </> "builtinCostModelB" <.> "json"
-
-builtinCostModelFileE :: FilePath
-builtinCostModelFileE = costModelDataDir </> "builtinCostModelC" <.> "json"
-
-latestBuiltinCostModelFile :: FilePath
-latestBuiltinCostModelFile = builtinCostModelFileC
-
-cekMachineCostsFileA :: FilePath
-cekMachineCostsFileA = costModelDataDir </> "cekMachineCostsA" <.> "json"
-
-cekMachineCostsFileB :: FilePath
-cekMachineCostsFileB = costModelDataDir </> "cekMachineCostsB" <.> "json"
-
-cekMachineCostsFileC :: FilePath
-cekMachineCostsFileC = costModelDataDir </> "cekMachineCostsC" <.> "json"
-
-cekMachineCostsFileD :: FilePath
-cekMachineCostsFileD = costModelDataDir </> "cekMachineCostsB" <.> "json"
-
-cekMachineCostsFileE :: FilePath
-cekMachineCostsFileE = costModelDataDir </> "cekMachineCostsC" <.> "json"
-
-latestMachineCostsFile :: FilePath
-latestMachineCostsFile = cekMachineCostsFileC
-
--- | The file containing the R models: only needed for cost-model-test.
+-- | The file containing the R models: needed for cost-model-test and generate-cost-model.
 rModelFile :: FilePath
 rModelFile = costModelDataDir </> "models" <.> "R"
 
-{-| The file containing the benchmark results for the built-in functions: only
-needed for cost-model-test. -}
+{-| The file containing the benchmark results for the built-in functions:
+needed for cost-model-test and generate-cost-model. -}
 benchingResultsFile :: FilePath
 benchingResultsFile = costModelDataDir </> "benching-conway" <.> "csv"

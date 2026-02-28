@@ -19,8 +19,7 @@ import Helpers.TestBuilders
 import Test.Tasty.QuickCheck
 
 defaultConstitutionJSONSchema :: Aeson.Value
-defaultConstitutionJSONSchema =
-  $$(Aeson.readJSONFromFile DFP.defaultConstitutionJSONSchemaFile)
+defaultConstitutionJSONSchema = Aeson.readJSONFromFile DFP.defaultConstitutionJSONSchemaFile
 
 {-| All the examples in the JSON schema are parseable as a list of ConstitutionConfigs.
 Actually the examples 9005 and 9006 should not normally parse,
