@@ -1255,38 +1255,38 @@
                                                  {ChessSet}
                                                  ds
                                                  {Ordering}
-                                                 (\(a : integer)
-                                                   (b : ChessSet) ->
+                                                 (\(l1l : integer)
+                                                   (l2l : ChessSet) ->
                                                     Tuple2_match
                                                       {integer}
                                                       {ChessSet}
                                                       ds
                                                       {Ordering}
-                                                      (\(a' : integer) ->
+                                                      (\(r1r : integer) ->
                                                          let
                                                            ~defaultBody :
                                                               Ordering
                                                              = compare
                                                                  {integer}
                                                                  v
-                                                                 a
-                                                                 a'
+                                                                 l1l
+                                                                 r1r
                                                          in
-                                                         \(b' : ChessSet) ->
+                                                         \(r2r : ChessSet) ->
                                                            Ordering_match
                                                              (compare
                                                                 {integer}
                                                                 v
-                                                                a
-                                                                a')
+                                                                l1l
+                                                                r1r)
                                                              {all dead.
                                                                 Ordering}
                                                              (/\dead ->
                                                                 compare
                                                                   {ChessSet}
                                                                   v
-                                                                  b
-                                                                  b')
+                                                                  l2l
+                                                                  r2r)
                                                              (/\dead ->
                                                                 defaultBody)
                                                              (/\dead ->

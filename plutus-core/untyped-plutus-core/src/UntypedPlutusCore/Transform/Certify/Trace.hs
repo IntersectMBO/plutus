@@ -1,7 +1,12 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 module UntypedPlutusCore.Transform.Certify.Trace where
 
 import UntypedPlutusCore.Core.Type (Term)
 import UntypedPlutusCore.Transform.Certify.Hints qualified as Certify
+
+import Control.DeepSeq
+import GHC.Generics
 
 data SimplifierStage
   = FloatDelay
@@ -11,7 +16,8 @@ data SimplifierStage
   | CaseReduce
   | Inline
   | CSE
-  deriving stock (Show)
+  deriving stock (Show, Generic)
+  deriving anyclass (NFData)
 
 data Simplification name uni fun a
   = Simplification

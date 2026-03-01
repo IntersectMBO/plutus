@@ -162,6 +162,28 @@ printOpts = PrintOptions <$> input <*> output <*> printmode
 convertOpts :: Parser ConvertOptions
 convertOpts = ConvertOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
 
+certifierOutputMode :: Parser CertifierOutputMode
+certifierOutputMode =
+  asum
+    [ flag'
+        CertBasic
+        ( long "certifier-basic"
+            <> help "Certifier produces basic output"
+        )
+    , CertReport
+        <$> strOption
+          ( long "certifier-report"
+              <> metavar "REPORT_FILE"
+              <> help "Certifier writes a report to the given file"
+          )
+    , flag
+        CertProject
+        CertProject
+        ( long "certifier-project"
+            <> help "Certifier produces an Agda project that can be type checked (default)"
+        )
+    ]
+
 optimiseOpts :: Parser OptimiseOptions
 optimiseOpts =
   OptimiseOptions
@@ -171,6 +193,7 @@ optimiseOpts =
     <*> outputformat
     <*> printmode
     <*> certifier
+    <*> certifierOutputMode
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle

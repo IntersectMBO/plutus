@@ -283,6 +283,7 @@ data ProtocolVersion = ProtocolVersion
   deriving anyclass (HasBlueprintDefinition)
 
 PlutusTx.deriveEq ''ProtocolVersion
+PlutusTx.deriveOrd ''ProtocolVersion
 
 instance Pretty ProtocolVersion where
   pretty ProtocolVersion {..} =

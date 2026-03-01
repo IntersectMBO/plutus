@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# OPTIONS_GHC -Wall #-}
@@ -7,8 +8,10 @@ module FFI.Untyped where
 import PlutusCore.Default
 import UntypedPlutusCore
 
-import Data.Text as T hiding (map)
+import Control.DeepSeq
+import Data.Text qualified as T hiding (map)
 import GHC.Exts (IsList (..))
+import GHC.Generics
 
 -- Untyped (Raw) syntax
 
@@ -23,7 +26,8 @@ data UTerm
   | UForce UTerm
   | UConstr Integer [UTerm]
   | UCase UTerm [UTerm]
-  deriving (Eq, Show)
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass (NFData)
 
 unIndex :: Index -> Integer
 unIndex (Index n) = toInteger n

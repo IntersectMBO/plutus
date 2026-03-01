@@ -15,7 +15,7 @@ description:
 
 build-type:    Simple
 data-files:
-  certifier-bench/data/*.uplc
+  certifier/data/*.uplc
   common/templates/*.tpl
   marlowe/scripts/rolepayout/*.benchmark
   marlowe/scripts/semantics/*.benchmark
@@ -928,22 +928,45 @@ test-suite uplc-evaluator-integration-tests
     , uuid
     , with-utf8
 
+library certifier-internal
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  certifier/src
+  exposed-modules: Certifier.Common
+  build-depends:
+    , base                     >=4.9 && <5
+    , bytestring
+    , filepath
+    , lens
+    , plutus-benchmark-common
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-metatheory
+    , transformers
+
+test-suite certifier-test
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: certifier/test
+  build-depends:
+    , base                >=4.9 && <5
+    , certifier-internal
+    , deepseq
+    , plutus-metatheory
+    , tasty
+    , tasty-hunit
+
 benchmark certifier-bench
   import:           lang, ghc-version-support, os-support
   type:             exitcode-stdio-1.0
   default-language: Haskell2010
   main-is:          Main.hs
-  hs-source-dirs:   certifier-bench
+  hs-source-dirs:   certifier/bench
   other-modules:    Paths_plutus_benchmark
   ghc-options:      -rtsopts -with-rtsopts=-I0
   build-depends:
-    , base                     >=4.9   && <5
-    , bytestring
+    , base                >=4.9 && <5
+    , certifier-internal
     , criterion
-    , filepath
-    , lens
-    , plutus-benchmark-common
-    , plutus-core              ^>=1.58
-    , plutus-ledger-api
+    , deepseq
     , plutus-metatheory
-    , transformers

@@ -34,6 +34,7 @@ import Data.ByteString.Lazy as BSL (readFile)
 import Data.Foldable
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
+import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
 import Options.Applicative
 import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
@@ -331,7 +332,7 @@ plutusOpts =
 
 -- | Run the UPLC optimisations
 runOptimisations :: OptimiseOptions -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert) = do
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput) = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
   (simplified, simplificationTrace) <- PLC.runQuoteT $ do
     renamed <- PLC.rename prog
@@ -341,10 +342,18 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert) = do
   writeProgram outp ofmt mode simplified
   case mcert of
     Nothing -> pure ()
-    Just cert -> execCertifier simplificationTrace cert
+    Just cert -> do
+      time <- systemNanoseconds <$> getSystemTime
+      let
+        certDir = cert <> "-" <> show time
+        certOutput = case certifierOutput of
+          CertBasic -> BasicOutput
+          CertReport file -> ReportOutput file
+          CertProject -> ProjectOutput certDir
+      execCertifier simplificationTrace cert certOutput
   where
-    execCertifier simplificationTrace cert = do
-      result <- runCertifier $ mkCertifier simplificationTrace cert
+    execCertifier simplificationTrace cert out = do
+      result <- runCertifier $ mkCertifier simplificationTrace cert out
       case result of
         Left err -> do
           putStrLn $ prettyCertifierError err
@@ -352,9 +361,8 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert) = do
             InvalidCertificate _ -> exitWith $ ExitFailure 1
             InvalidCompilerOutput -> exitWith $ ExitFailure 2
             ValidationError _ -> exitWith $ ExitFailure 3
-        Right certSucc -> do
-          putStrLn $ prettyCertifierSuccess certSucc
-          exitSuccess
+        -- TODO: Only Right True is success
+        Right _ -> exitSuccess
 
 ---------------- Script application ----------------
 

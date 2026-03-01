@@ -7,6 +7,7 @@ import PlutusCore.Quote
 import UntypedPlutusCore as UPLC
 
 import Data.Functor
+import Data.Time.Clock.System
 import System.Directory (getCurrentDirectory, removeDirectoryRecursive, setCurrentDirectory)
 import System.Exit
 import System.FilePath
@@ -38,10 +39,13 @@ loadAndMakeCert name =
   makeCert name =<< loadUplc (fixedPath </> "UPLC" </> name ++ ".uplc")
 
 makeCert :: String -> Term Name DefaultUni DefaultFun () -> IO FilePath
-makeCert name term =
-  runCertifier (mkCertifier (simplify term) name) >>= \case
-    Left _ -> assertFailure $ "Certifier failed on " <> name
-    Right (CertifierSuccess certDir) -> pure certDir
+makeCert name term = do
+  time <- systemNanoseconds <$> getSystemTime
+  let certDir = name <> "-" <> show time
+      certOutput = ProjectOutput certDir
+  runCertifier (mkCertifier (simplify term) name certOutput) >>= \case
+    Right True -> pure certDir
+    _ -> assertFailure $ "Certifier failed on " <> name
 
 -- Serialisation tests: run the certifier to make a certificate,
 -- then try to load it in Agda.

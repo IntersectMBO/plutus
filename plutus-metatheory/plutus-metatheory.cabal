@@ -48,7 +48,7 @@ common lang
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
-  if (impl(ghc <9.6) || impl(ghc >=9.7))
+  if !((impl(ghc >=9.6) && impl(ghc <9.7)) || (impl(ghc >=9.12) && impl(ghc <9.13)))
     buildable: False
 
 -- GHC 9.6 and 9.8 have a bug where profiling ticks cause a panic in
@@ -76,6 +76,7 @@ library
     , base
     , bytestring
     , composition-prelude
+    , deepseq
     , directory
     , extra
     , filepath
@@ -157,6 +158,8 @@ library
     MAlonzo.Code.Builtin.Constant.AtomicType
     MAlonzo.Code.Builtin.Constant.Type
     MAlonzo.Code.Builtin.Signature
+    MAlonzo.Code.Certifier
+    MAlonzo.Code.CertifierReport
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base

@@ -4,18 +4,18 @@ module Certifier
   ( runCertifier
   , mkCertifier
   , prettyCertifierError
-  , prettyCertifierSuccess
   , CertifierError (..)
-  , CertifierSuccess (..)
+  , CertifierOutput (..)
   ) where
 
+import Control.Monad
 import Control.Monad.Except (ExceptT (..), runExceptT, throwError)
 import Control.Monad.IO.Class (liftIO)
-import Data.List (find)
+import Data.Foldable
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromMaybe)
-import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
+import Data.Text.IO qualified as T
 import System.Directory (createDirectory)
 import System.FilePath ((</>))
 
@@ -26,17 +26,23 @@ import FFI.Untyped (UTerm)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Simplifier
 
-import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
+import MAlonzo.Code.Certifier (runCertifierMain)
 
 type CertName = String
-type CertDir = String
+type CertDir = FilePath
 
 data CertifierError
   = InvalidCertificate CertDir
   | InvalidCompilerOutput
   | ValidationError CertName
 
-newtype CertifierSuccess = CertifierSuccess CertDir
+data CertifierOutput
+  = -- | Print minimal basic info, such as "passed" or "failed"
+    BasicOutput
+  | -- | Produce a detailed human readable report
+    ReportOutput FilePath
+  | -- | Produce an Agda project that can be type checked
+    ProjectOutput CertDir
 
 prettyCertifierError :: CertifierError -> String
 prettyCertifierError (InvalidCertificate certDir) =
@@ -58,12 +64,6 @@ prettyCertifierError (ValidationError name) =
        \Please use only alphanumeric characters, underscores and dashes. \
        \The first character must be a letter.\n"
 
-prettyCertifierSuccess :: CertifierSuccess -> String
-prettyCertifierSuccess (CertifierSuccess certDir) =
-  "\n\nCertificate successfully created: "
-    <> certDir
-    <> "\nThe compilation was successfully certified.\n"
-
 type Certifier = ExceptT CertifierError IO
 
 runCertifier :: Certifier a -> IO (Either CertifierError a)
@@ -75,17 +75,26 @@ mkCertifier
   -- ^ The trace produced by the simplification process
   -> CertName
   -- ^ The name of the certificate to be produced
-  -> Certifier CertifierSuccess
-mkCertifier simplTrace certName = do
+  -> CertifierOutput
+  -> Certifier Bool
+mkCertifier simplTrace certName certOutput = do
   let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
   case runCertifierMain rawAgdaTrace of
-    Just True -> do
-      let cert = mkAgdaCertificateProject $ mkCertificate certName rawAgdaTrace
-      CertifierSuccess <$> writeCertificateProject cert
-    Just False -> do
-      let cert = mkAgdaCertificateProject $ mkCertificate certName rawAgdaTrace
-      certDir <- writeCertificateProject cert
-      throwError $ InvalidCertificate certDir
+    Just (passed, report) -> do
+      liftIO . putStrLn $
+        "Certifier result: "
+          <> if passed then "PASS" else "FAIL"
+      case certOutput of
+        BasicOutput -> pure ()
+        ReportOutput file -> liftIO $ do
+          T.writeFile file report
+          putStrLn $ "Report written to " <> file
+        ProjectOutput certDir -> do
+          let cert = mkAgdaCertificateProject $ mkCertificate certName rawAgdaTrace
+          writeCertificateProject certDir cert
+          liftIO . putStrLn $ "Certificate produced in " <> certDir
+          unless passed . throwError $ InvalidCertificate certDir
+      pure passed
     Nothing -> throwError InvalidCompilerOutput
 
 type EquivClass = Int
@@ -256,6 +265,7 @@ mkCertificateModule certModule agdaTrace imports =
     <> certModule
     <> " where\
        \\n\
+       \\nopen import Certifier\
        \\nopen import VerifiedCompilation\
        \\nopen import VerifiedCompilation.Certificate\
        \\nopen import Untyped\
@@ -288,7 +298,6 @@ mkCertificateModule certModule agdaTrace imports =
 data AgdaCertificateProject = AgdaCertificateProject
   { mainModule :: (FilePath, String)
   , astModules :: [(FilePath, String)]
-  , projectDir :: FilePath
   , agdalib :: (FilePath, String)
   }
 
@@ -310,32 +319,29 @@ mkAgdaCertificateProject cert =
   let name = certName cert
       mainModule = mkCertificateFile cert
       astModules = fmap mkAgdaAstFile (certReprAsts cert)
-      projectDir = name
       agdalib = mkAgdaLib name
-   in AgdaCertificateProject {mainModule, astModules, projectDir, agdalib}
+   in AgdaCertificateProject {mainModule, astModules, agdalib}
 
 writeCertificateProject
-  :: AgdaCertificateProject
-  -> Certifier CertDir
+  :: CertDir
+  -> AgdaCertificateProject
+  -> Certifier ()
 writeCertificateProject
+  certDir
   AgdaCertificateProject
     { mainModule
     , astModules
-    , projectDir
     , agdalib
     } =
     liftIO $ do
       let (mainModulePath, mainModuleContents) = mainModule
           (agdalibPath, agdalibContents) = agdalib
-      time <- systemNanoseconds <$> getSystemTime
-      let actualProjectDir = projectDir <> "-" <> show time
-      createDirectory actualProjectDir
-      createDirectory (actualProjectDir </> "src")
-      writeFile (actualProjectDir </> "src" </> mainModulePath) mainModuleContents
-      writeFile (actualProjectDir </> agdalibPath) agdalibContents
-      mapM_
+      createDirectory certDir
+      createDirectory (certDir </> "src")
+      writeFile (certDir </> "src" </> mainModulePath) mainModuleContents
+      writeFile (certDir </> agdalibPath) agdalibContents
+      traverse_
         ( \(path, contents) ->
-            writeFile (actualProjectDir </> "src" </> path) contents
+            writeFile (certDir </> "src" </> path) contents
         )
         astModules
-      pure actualProjectDir
