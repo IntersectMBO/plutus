@@ -157,8 +157,7 @@ BuiltinMeaning.
 We use two type classes for automatic derivation of type/runtime schemes and runtime denotations:
 'KnownPolytype' and 'KnownMonotype'.
 The terminology is due to
-https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system#The_Hindley%E2%80%93Milner_
-type_system
+https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system#The_Hindley%E2%80%93Milner_type_system
 
 Check out the source of "PlutusCore.Builtin.Runtime" for an explanation of what a runtime
 denotation is.
@@ -229,7 +228,7 @@ complicated way. -}
 class KnownMonotype val args res where
   knownMonotype :: TypeScheme val args res
 
-  {-| Convert the denotation of a builtin to its runtime counterpart .
+  {-| Convert the denotation of a builtin to its runtime counterpart.
   The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
   passing the action returning the builtin application around until full saturation, which is
   when the action actually gets run. -}
