@@ -1,4 +1,18 @@
 
+<a id='changelog-1.59.0.0'></a>
+# 1.59.0.0 — 2026-03-02
+
+## Added
+
+- Added certifier hints in Haskell and Agda.
+  They are useful for certifying certain UPLC optimizations such as inlining, since their translation relations are otherwise computationally difficult to decide.
+
+## Changed
+
+- Relaxed the upper bound for the `cardano-crypto-class` dependency (< 2.4)
+
+- Added an Agda checking procedure for the inliner, and updated the UPLC inliner to emit certifier hints.
+
 <a id='changelog-1.58.0.0'></a>
 # 1.58.0.0 — 2026-02-05
 
