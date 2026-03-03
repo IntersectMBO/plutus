@@ -75,8 +75,7 @@ numSites (isCSE p) = just (numSites′ p)
 numSites (isCaseReduce p) = just (numSites′ p)
 -- FIXME: count number of optimization sites for inlining
 numSites (isInline _) = nothing
-numSites forceCaseDelayNotImplemented = nothing
-numSites cocNotImplemented = nothing
+numSites (notImplemented _) = nothing
 
 showSites : {X : ℕ} {tag : SimplifierTag} {M N : X ⊢} → Transformation tag M N → String
 showSites t with numSites t

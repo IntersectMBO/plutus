@@ -43,7 +43,7 @@ d_nl_6 = coe ("\n" :: Data.Text.Text)
 d_hl_8 :: MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_hl_8
   = coe
-      ("\n\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\n"
+      ("\n\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\n"
        ::
        Data.Text.Text)
 -- CertifierReport.showTag
@@ -288,38 +288,36 @@ d_numSites_114 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.T_Transformation_2 ->
+  MAlonzo.Code.VerifiedCompilation.T_Transformation_8 ->
   Maybe Integer
 d_numSites_114 v0 ~v1 v2 v3 v4 = du_numSites_114 v0 v2 v3 v4
 du_numSites_114 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.T_Transformation_2 ->
+  MAlonzo.Code.VerifiedCompilation.T_Transformation_8 ->
   Maybe Integer
 du_numSites_114 v0 v1 v2 v3
   = case coe v3 of
-      MAlonzo.Code.VerifiedCompilation.C_isFD_10 v7
+      MAlonzo.Code.VerifiedCompilation.C_isFD_16 v7
         -> coe
              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
              (coe du_numSites'8242'_20 v0 v1 v2 v7)
-      MAlonzo.Code.VerifiedCompilation.C_isFlD_18 v7
+      MAlonzo.Code.VerifiedCompilation.C_isFlD_24 v7
         -> coe
              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
              (coe du_numSites'8242'_20 v0 v1 v2 v7)
-      MAlonzo.Code.VerifiedCompilation.C_isCSE_26 v7
+      MAlonzo.Code.VerifiedCompilation.C_isCSE_32 v7
         -> coe
              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
              (coe du_numSites'8242'_20 v0 v1 v2 v7)
-      MAlonzo.Code.VerifiedCompilation.C_isInline_32 v6
+      MAlonzo.Code.VerifiedCompilation.C_isInline_38 v6
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
-      MAlonzo.Code.VerifiedCompilation.C_isCaseReduce_40 v7
+      MAlonzo.Code.VerifiedCompilation.C_isCaseReduce_46 v7
         -> coe
              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
              (coe du_numSites'8242'_20 v0 v1 v2 v7)
-      MAlonzo.Code.VerifiedCompilation.C_forceCaseDelayNotImplemented_48
-        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
-      MAlonzo.Code.VerifiedCompilation.C_cocNotImplemented_56
+      MAlonzo.Code.VerifiedCompilation.C_notImplemented_56 v8
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.showSites
@@ -328,14 +326,14 @@ d_showSites_132 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.T_Transformation_2 ->
+  MAlonzo.Code.VerifiedCompilation.T_Transformation_8 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_showSites_132 v0 ~v1 v2 v3 v4 = du_showSites_132 v0 v2 v3 v4
 du_showSites_132 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.T_Transformation_2 ->
+  MAlonzo.Code.VerifiedCompilation.T_Transformation_8 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 du_showSites_132 v0 v1 v2 v3
   = let v4
