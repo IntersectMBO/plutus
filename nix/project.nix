@@ -98,6 +98,36 @@ let
             plutus-tx-plugin.ghcOptions = [ "-Werror" ];
           };
         }
+        {
+          # Pass --no-create to every test suite that uses tasty-golden.
+          # This causes tests to fail (rather than silently create) when a
+          # golden file is missing, catching accidental omissions early.
+          packages = {
+            cardano-constitution.components.tests.cardano-constitution-test.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.bitwise-test.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.bls12-381-costs-test.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.cardano-loans-test.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.coop-test.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.ed25519-costs-test.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.linear-vesting-test.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.plutus-benchmark-lists-tests.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.plutus-benchmark-marlowe-tests.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.plutus-benchmark-nofib-tests.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.plutus-benchmark-script-contexts-tests.testFlags = [ "--no-create" ];
+            plutus-benchmark.components.tests.validation-tests.testFlags = [ "--no-create" ];
+            plutus-conformance.components.tests.agda-conformance.testFlags = [ "--no-create" ];
+            plutus-conformance.components.tests.haskell-conformance.testFlags = [ "--no-create" ];
+            plutus-conformance.components.tests.haskell-steppable-conformance.testFlags = [ "--no-create" ];
+            plutus-core.components.tests.plutus-core-test.testFlags = [ "--no-create" ];
+            plutus-core.components.tests.plutus-ir-test.testFlags = [ "--no-create" ];
+            plutus-core.components.tests.untyped-plutus-core-test.testFlags = [ "--no-create" ];
+            plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.testFlags = [ "--no-create" ];
+            plutus-ledger-api.components.tests.plutus-ledger-api-test.testFlags = [ "--no-create" ];
+            plutus-tx-plugin.components.tests.plutus-tx-plugin-tests.testFlags = [ "--no-create" ];
+            plutus-tx-plugin.components.tests.size.testFlags = [ "--no-create" ];
+            plutus-tx.components.tests.plutus-tx-test.testFlags = [ "--no-create" ];
+          };
+        }
         ({ lib, pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
           # This fixed basement compilation error on Windows (ref: https://ci.iog.io/build/8529222/nixlog/1)
           # ```
