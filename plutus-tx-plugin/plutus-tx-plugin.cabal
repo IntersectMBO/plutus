@@ -54,9 +54,11 @@ library
   import:          lang, ghc-version-support, os-support
   hs-source-dirs:  src
   exposed-modules:
+    Plinth.Plugin
     PlutusTx.Compiler.Error
     PlutusTx.Options
     PlutusTx.Plugin
+    PlutusTx.Plugin.Common
 
   other-modules:
     PlutusTx.Compiler.Binders

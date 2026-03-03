@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 
 module PlutusTx.Compiler.Trace where
 
@@ -23,10 +25,28 @@ turned on via `-fcontext-level=<level>`.
 
 `traceCompilationStep` dumps the full compilation trace, and can be
 turned on via `-fdump-compilation-trace`. -}
+traceCompilationL
+  :: ( MonadReader (CompileContext uni fun) m
+     , MonadState CompileState m
+     , MonadError (WithContext (Text, Maybe GHC.RealSrcSpan) e) m
+     )
+  => Int
+  -- ^ Context level
+  -> GHC.SDoc
+  -- ^ The thing (expr, type, kind, etc.) being compiled
+  -> Maybe GHC.RealSrcSpan
+  -- ^ Source location
+  -> m a
+  -- ^ The compilation action
+  -> m a
+traceCompilationL p sd = \case
+  Just loc -> withContextM p ((,Just loc) <$> sdToTxt sd) . traceCompilationStep sd
+  Nothing -> traceCompilation p sd
+
 traceCompilation
   :: ( MonadReader (CompileContext uni fun) m
      , MonadState CompileState m
-     , MonadError (WithContext Text e) m
+     , MonadError (WithContext (Text, Maybe GHC.RealSrcSpan) e) m
      )
   => Int
   -- ^ Context level
@@ -35,7 +55,8 @@ traceCompilation
   -> m a
   -- ^ The compilation action
   -> m a
-traceCompilation p sd = withContextM p (sdToTxt sd) . traceCompilationStep sd
+traceCompilation p sd =
+  withContextM p ((,Nothing) <$> sdToTxt sd) . traceCompilationStep sd
 
 traceCompilationStep
   :: (MonadReader (CompileContext uni fun) m, MonadState CompileState m)

@@ -31,3 +31,11 @@ plc :: forall (loc :: Symbol) a. Proxy loc -> a -> CompiledCode a
 -- this constructor is only really there to get rid of the unused warning
 plc _ _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx")
 {-# OPAQUE plc #-}
+
+plinthc :: forall a. a -> CompiledCode a
+plinthc _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx")
+{-# OPAQUE plinthc #-}
+
+anchor :: forall (loc :: Symbol) a. a -> a
+anchor a = a
+{-# OPAQUE anchor #-}

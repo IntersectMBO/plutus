@@ -17,6 +17,7 @@ module PlutusTx.Compiler.Error
   , withContextM
   , throwPlain
   , pruneContext
+  , mapContext
   ) where
 
 import PlutusIR.Compiler qualified as PIR
@@ -26,8 +27,8 @@ import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 
 import Control.Monad.Except
-
 import Data.Text qualified as T
+import GHC.Types.SrcLoc qualified as GHC
 import Prettyprinter qualified as PP
 
 {-| An error with some (nested) context. The integer argument to 'WithContextC' represents
@@ -35,7 +36,7 @@ the priority of the context when displaying it. Lower numbers are more prioritis
 data WithContext c e = NoContext e | WithContextC Int c (WithContext c e)
   deriving stock (Functor)
 
-type CompileError uni fun ann = WithContext T.Text (Error uni fun ann)
+type CompileError uni fun ann = WithContext (T.Text, Maybe GHC.RealSrcSpan) (Error uni fun ann)
 
 withContext :: MonadError (WithContext c e) m => Int -> c -> m a -> m a
 withContext p c act = catchError act $ \err -> throwError (WithContextC p c err)
@@ -54,13 +55,18 @@ pruneContext prio = \case
   WithContextC p c e ->
     let inner = pruneContext prio e in if p > prio then inner else WithContextC p c inner
 
+mapContext :: (c -> c') -> WithContext c e -> WithContext c' e
+mapContext f = \case
+  NoContext e -> NoContext e
+  WithContextC p c cs -> WithContextC p (f c) (mapContext f cs)
+
 instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
   pretty = \case
     NoContext e -> "Error:" PP.<+> (PP.align $ PP.pretty e)
     WithContextC _ c e ->
       PP.vsep
-        [ PP.pretty e
-        , "Context:" PP.<+> (PP.align $ PP.pretty c)
+        [ "Context:" PP.<+> (PP.align $ PP.pretty c)
+        , PP.pretty e
         ]
 
 data Error uni fun a

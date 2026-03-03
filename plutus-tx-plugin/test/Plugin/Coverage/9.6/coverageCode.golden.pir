@@ -7,13 +7,8 @@ let
     = \(ds : unit) ->
         trace
           {all dead a. Maybe a}
-          "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 40, _covLocStartCol = 14, _covLocEndCol = 15})"
-          (/\dead ->
-             trace
-               {all dead a. Maybe a}
-               "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 42, _covLocEndLine = 42, _covLocStartCol = 8, _covLocEndCol = 15})"
-               (/\dead -> Nothing)
-               {all dead. dead})
+          "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 42, _covLocEndLine = 42, _covLocStartCol = 8, _covLocEndCol = 15})"
+          (/\dead -> Nothing)
           {all dead. dead}
           {bool}
   !equalsInteger : integer -> integer -> bool = equalsInteger
@@ -103,52 +98,47 @@ in
   in
   trace
     {all dead. Maybe bool}
-    "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 37, _covLocEndLine = 37, _covLocStartCol = 54, _covLocEndCol = 57})"
+    "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 1, _covLocEndCol = 15})"
     (/\dead ->
        trace
          {all dead. Maybe bool}
-         "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 1, _covLocEndCol = 15})"
+         "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 9, _covLocEndCol = 15})"
          (/\dead ->
-            trace
+            Maybe_match
+              {integer}
+              x
               {all dead. Maybe bool}
-              "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 9, _covLocEndCol = 15})"
-              (/\dead ->
-                 Maybe_match
-                   {integer}
-                   x
-                   {all dead. Maybe bool}
-                   (\(y : integer) ->
-                      /\dead ->
-                        trace
-                          {all dead. Maybe bool}
-                          "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 41, _covLocEndLine = 41, _covLocStartCol = 12, _covLocEndCol = 22})"
-                          (/\dead ->
-                             case
-                               (all dead. Maybe bool)
-                               (otherFun
-                                  (trace
-                                     {all dead. integer}
-                                     "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 41, _covLocEndLine = 41, _covLocStartCol = 21, _covLocEndCol = 22})"
-                                     (/\dead -> y)
-                                     {all dead. dead}))
-                               [ (/\dead -> fail ())
-                               , (/\dead ->
-                                    trace
-                                      {all dead. Maybe bool}
-                                      "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 41, _covLocEndLine = 41, _covLocStartCol = 26, _covLocEndCol = 36})"
-                                      (/\dead ->
-                                         Just
-                                           {bool}
-                                           (trace
-                                              {all dead. bool}
-                                              "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 41, _covLocEndLine = 41, _covLocStartCol = 31, _covLocEndCol = 36})"
-                                              (/\dead -> False)
-                                              {all dead. dead}))
-                                      {all dead. dead}) ]
-                               {all dead. dead})
+              (\(y : integer) ->
+                 /\dead ->
+                   trace
+                     {all dead. Maybe bool}
+                     "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 41, _covLocEndLine = 41, _covLocStartCol = 12, _covLocEndCol = 22})"
+                     (/\dead ->
+                        case
+                          (all dead. Maybe bool)
+                          (otherFun
+                             (trace
+                                {all dead. integer}
+                                "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 41, _covLocEndLine = 41, _covLocStartCol = 21, _covLocEndCol = 22})"
+                                (/\dead -> y)
+                                {all dead. dead}))
+                          [ (/\dead -> fail ())
+                          , (/\dead ->
+                               trace
+                                 {all dead. Maybe bool}
+                                 "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 41, _covLocEndLine = 41, _covLocStartCol = 26, _covLocEndCol = 36})"
+                                 (/\dead ->
+                                    Just
+                                      {bool}
+                                      (trace
+                                         {all dead. bool}
+                                         "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 41, _covLocEndLine = 41, _covLocStartCol = 31, _covLocEndCol = 36})"
+                                         (/\dead -> False)
+                                         {all dead. dead}))
+                                 {all dead. dead}) ]
                           {all dead. dead})
-                   (/\dead -> fail ())
-                   {all dead. dead})
+                     {all dead. dead})
+              (/\dead -> fail ())
               {all dead. dead})
          {all dead. dead})
     {all dead. dead}
