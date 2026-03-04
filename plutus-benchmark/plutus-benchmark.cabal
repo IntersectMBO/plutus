@@ -17,6 +17,7 @@ build-type:    Simple
 data-files:
   certifier/data/*.uplc
   common/templates/*.tpl
+  force-delay/data/*.flat
   marlowe/scripts/rolepayout/*.benchmark
   marlowe/scripts/semantics/*.benchmark
   validation/data/*.flat
@@ -302,6 +303,35 @@ benchmark data
     , criterion                >=1.5.9.0
     , data-internal
     , plutus-benchmark-common
+    , plutus-ledger-api        ^>=1.59
+
+---------------- force-delay ----------------
+
+library force-delay-internal
+  import:          lang, os-support
+  hs-source-dirs:  force-delay/src
+  exposed-modules: PlutusBenchmark.ForceDelay.Common
+  build-depends:
+    , base                     >=4.9     && <5
+    , bytestring
+    , criterion                >=1.5.9.0
+    , directory
+    , filepath
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.59
+    , plutus-core:flat
+
+benchmark force-delay
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        BenchCek.hs
+  hs-source-dirs: force-delay/bench
+  build-depends:
+    , base                     >=4.9   && <5
+    , force-delay-internal
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.59
     , plutus-ledger-api        ^>=1.59
 
 ---------------- validation ----------------
