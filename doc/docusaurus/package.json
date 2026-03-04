@@ -27,7 +27,8 @@
     "@docusaurus/module-type-aliases": "^3.6.0",
     "@docusaurus/tsconfig": "^3.6.0",
     "@docusaurus/types": "^3.6.0",
-    "typescript": "~5.2.2"
+    "typescript": "~5.2.2",
+    "ajv": ">=8.18.0"
   },
   "resolutions": {
     "cheerio": "1.0.0-rc.12",
