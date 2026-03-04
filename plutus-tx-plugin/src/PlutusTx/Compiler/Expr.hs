@@ -15,7 +15,12 @@
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
-module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
+module PlutusTx.Compiler.Expr
+  ( compileExpr
+  , compileExprWithDefs
+  , compileDataConRef
+  , encodeSrcSpan
+  ) where
 
 import GHC.Builtin.Names qualified as GHC
 import GHC.Builtin.Types.Prim qualified as GHC
@@ -81,7 +86,7 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BSC
 import Data.Generics.Uniplate.Data (transform, universeBi)
-import Data.List.Extra (elemIndex, isPrefixOf, isSuffixOf, splitOn)
+import Data.List.Extra (elemIndex, intercalate, isPrefixOf, isSuffixOf, splitOn)
 import Data.Map qualified as Map
 import Data.Maybe (mapMaybe)
 import Data.Set qualified as Set
@@ -1641,6 +1646,17 @@ lookupIntegerNegate = do
     Nothing ->
       throwPlain $
         CompilationError "Cannot find the definition of integerNegate. Please file a bug report."
+
+encodeSrcSpan :: GHC.RealSrcSpan -> String
+encodeSrcSpan sp =
+  intercalate
+    "\0"
+    [ GHC.unpackFS (GHC.srcSpanFile sp)
+    , show (GHC.srcSpanStartLine sp)
+    , show (GHC.srcSpanStartCol sp)
+    , show (GHC.srcSpanEndLine sp)
+    , show (GHC.srcSpanEndCol sp)
+    ]
 
 decodeSrcSpan :: String -> Maybe GHC.RealSrcSpan
 decodeSrcSpan str =

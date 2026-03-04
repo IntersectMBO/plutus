@@ -82,7 +82,6 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Generics.Uniplate.Data
-import Data.List qualified as L
 import Data.Map qualified as Map
 import Data.Maybe (mapMaybe, maybeToList)
 import Data.Monoid.Extra (mwhen)
@@ -180,17 +179,6 @@ injectAnchors _ _ env = do
   let binds = GHC.tcg_binds env
       bindsAnchored = Compat.modifyBinds (transformBi (anchorExpr anchorId)) binds
   pure env {GHC.tcg_binds = bindsAnchored}
-
-encodeSrcSpan :: GHC.RealSrcSpan -> String
-encodeSrcSpan sp =
-  L.intercalate
-    "\0"
-    [ GHC.unpackFS (GHC.srcSpanFile sp)
-    , show (GHC.srcSpanStartLine sp)
-    , show (GHC.srcSpanStartCol sp)
-    , show (GHC.srcSpanEndLine sp)
-    , show (GHC.srcSpanEndCol sp)
-    ]
 
 -- | Wrap an @HsExpr@ with @anchor@.
 anchorExpr :: GHC.Id -> GHC.LHsExpr GHC.GhcTc -> GHC.LHsExpr GHC.GhcTc
