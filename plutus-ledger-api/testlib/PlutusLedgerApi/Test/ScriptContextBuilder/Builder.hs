@@ -36,7 +36,6 @@ module PlutusLedgerApi.Test.ScriptContextBuilder.Builder
   , mkMintingScriptWithPurpose
   , addChangeOutput
   , signAndAddChangeOutput
-  , negateValue
   , mkAdaValue
   , mkTxOut
   , withTxOutReferenceScript
@@ -48,6 +47,10 @@ module PlutusLedgerApi.Test.ScriptContextBuilder.Builder
   , buildBalancedScriptContext
   , balanceWithChangeOutput
   , builderPlaceHolderTxOutRef
+
+    -- * Helpers
+  , currencySymbolFromHex
+  , singleCurrencySymbol
   )
 where
 
@@ -56,6 +59,7 @@ import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BS8
 import Data.Function (on)
 import Data.List qualified as List
+import Data.Maybe (isJust)
 import Data.Ord (comparing)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.Test.ScriptContextBuilder.Lenses
@@ -68,10 +72,11 @@ import PlutusLedgerApi.Test.ScriptContextBuilder.Lenses
   , txInfoReferenceInputsL
   , txInfoSignatoriesL
   )
+import PlutusLedgerApi.V1.Address (toPubKeyHash, toScriptHash)
 import PlutusLedgerApi.V3
   ( Address (Address)
   , BuiltinData
-  , Credential (PubKeyCredential, ScriptCredential)
+  , Credential (PubKeyCredential)
   , CurrencySymbol (CurrencySymbol)
   , Datum (Datum)
   , Lovelace (getLovelace)
@@ -100,26 +105,10 @@ import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins.Internal (BuiltinByteString (..))
 import PlutusTx.Eq qualified
+import PlutusTx.Numeric qualified as PlutusTx
 
 instance PlutusTx.Eq.Eq ScriptPurpose where
   a == b = PlutusTx.toBuiltinData a == PlutusTx.toBuiltinData b
-
--- | Convert a hex encoded Haskell 'String' to a 'CurrencySymbol'.
-currencySymbolFromHex :: String -> CurrencySymbol
-currencySymbolFromHex hexStr =
-  case Base16.decode (BS8.pack hexStr) of
-    Left err -> error $ "currencySymbolFromHex: invalid hex: " <> err
-    Right bs -> CurrencySymbol (BuiltinByteString bs)
-
-{-| Extract the single currency symbol from a 'Value'. Errors if the value
-contains zero or more than one currency symbol. -}
-singleCurrencySymbol :: Value -> CurrencySymbol
-singleCurrencySymbol val = case Map.keys (getValue val) of
-  [cs] -> cs
-  keys ->
-    error $
-      "singleCurrencySymbol: expected exactly 1 currency symbol, got "
-        <> show (length keys)
 
 -- | Arguments for a unit test: a script context and additional parameters.
 data UnitTestArgs = UnitTestArgs
@@ -332,42 +321,50 @@ mkMintingScriptWithPurpose mintValue redeemer =
         , txInfoTreasuryDonation = Nothing
         }
 
--- | Negate all token quantities in a 'Value'.
-negateValue :: Value -> Value
-negateValue (Value val) = Value $ Map.mapWithKey (\_ -> Map.mapWithKey (\_ x -> negate x)) val
-
 -- | Compute and add a change output to the given public key hash.
 addChangeOutput :: PubKeyHash -> ScriptContext -> ScriptContext
 addChangeOutput signerPkh ctx =
-  let ti = ctx ^. scriptContextTxInfoL
-      totalInputValue = foldMap (txOutValue . txInInfoResolved) (ti ^. txInfoInputsL)
-      totalOutputValue = foldMap txOutValue (ti ^. txInfoOutputsL)
-      feeValue = mkAdaValue (ti ^. txInfoFeeL)
-      mintedValue = Value $ mintValueToMap (ti ^. txInfoMintL)
-      changeValue = mintedValue <> totalInputValue <> negateValue feeValue <> negateValue totalOutputValue
-      changeOutput = TxOut (Address (PubKeyCredential signerPkh) Nothing) changeValue NoOutputDatum Nothing
+  let info = ctx ^. scriptContextTxInfoL
+      totalInputValue = foldMap (txOutValue . txInInfoResolved) (info ^. txInfoInputsL)
+      totalOutputValue = foldMap txOutValue (info ^. txInfoOutputsL)
+      feeValue = mkAdaValue (info ^. txInfoFeeL)
+      mintedValue = Value (mintValueToMap (info ^. txInfoMintL))
+      changeOutput =
+        TxOut
+          (Address (PubKeyCredential signerPkh) Nothing)
+          ( mintedValue
+              <> totalInputValue
+              <> PlutusTx.negate feeValue
+              <> PlutusTx.negate totalOutputValue
+          )
+          NoOutputDatum
+          Nothing
    in ctx & scriptContextTxInfoL . txInfoOutputsL %~ (changeOutput :)
 
 -- | Balance the transaction by adding a change output to the first public key input.
 balanceWithChangeOutput :: ScriptContext -> ScriptContext
 balanceWithChangeOutput ctx =
-  let ti = ctx ^. scriptContextTxInfoL
-      resolvedInputs = map txInInfoResolved (ti ^. txInfoInputsL)
-      signerPkh = case filter (isPubKeyAddress . txOutAddress) resolvedInputs of
-        (TxOut (Address (PubKeyCredential pkh) _) _ _ _ : _) -> pkh
+  let info = ctx ^. scriptContextTxInfoL
+      resolvedInputs = map txInInfoResolved (info ^. txInfoInputsL)
+      signerPkh = case filter (isJust . toPubKeyHash . txOutAddress) resolvedInputs of
+        TxOut (Address (PubKeyCredential pkh) _) _ _ _ : _ -> pkh
         _ -> PubKeyHash "deadbeef"
       -- \^ Fallback to default if no public key input is found
-      totalInputValue = foldMap (txOutValue . txInInfoResolved) (ti ^. txInfoInputsL)
-      totalOutputValue = foldMap txOutValue (ti ^. txInfoOutputsL)
-      feeValue = mkAdaValue (ti ^. txInfoFeeL)
-      mintedValue = Value $ mintValueToMap (ti ^. txInfoMintL)
-      changeValue = mintedValue <> totalInputValue <> negateValue feeValue <> negateValue totalOutputValue
-      changeOutput = TxOut (Address (PubKeyCredential signerPkh) Nothing) changeValue NoOutputDatum Nothing
+      totalInputValue = foldMap (txOutValue . txInInfoResolved) (info ^. txInfoInputsL)
+      totalOutputValue = foldMap txOutValue (info ^. txInfoOutputsL)
+      feeValue = mkAdaValue (info ^. txInfoFeeL)
+      mintedValue = Value $ mintValueToMap (info ^. txInfoMintL)
+      changeOutput =
+        TxOut
+          (Address (PubKeyCredential signerPkh) Nothing)
+          ( mintedValue
+              <> totalInputValue
+              <> PlutusTx.negate feeValue
+              <> PlutusTx.negate totalOutputValue
+          )
+          NoOutputDatum
+          Nothing
    in ctx & scriptContextTxInfoL . txInfoOutputsL %~ (<> [changeOutput])
-  where
-    isPubKeyAddress :: Address -> Bool
-    isPubKeyAddress (Address (PubKeyCredential _) _) = True
-    isPubKeyAddress _ = False
 
 -- | Add a signatory to an existing 'ScriptContext'.
 addSigner :: PubKeyHash -> ScriptContext -> ScriptContext
@@ -457,18 +454,13 @@ withOutput modify = ScriptContextBuilder \scb ->
 
 -- | Add a public-key input. Errors if the address is a script address.
 withInput :: InputBuilder -> ScriptContextBuilder
-withInput modify = ScriptContextBuilder \scb ->
-  let newInput = mkInput modify
-      newInputAddress = txOutAddress $ txInInfoResolved newInput
-   in if isPubKeyAddress newInputAddress
-        then
-          scb {scbInputs = List.insertBy (comparing txInInfoOutRef) newInput (scbInputs scb)}
-        else
-          error "withInput: Input address is not a public key address"
+withInput inputBuilder = ScriptContextBuilder \scb ->
+  if isJust (toPubKeyHash (txOutAddress (txInInfoResolved newInput)))
+    then scb {scbInputs = List.insertBy (comparing txInInfoOutRef) newInput (scbInputs scb)}
+    else error "withInput: Input address is not a public key address"
   where
-    isPubKeyAddress :: Address -> Bool
-    isPubKeyAddress (Address (PubKeyCredential _) _) = True
-    isPubKeyAddress _ = False
+    newInput :: TxInInfo
+    newInput = mkInput inputBuilder
 
 -- | Add a script input with a redeemer. Errors if the address is not a script address.
 withScriptInput :: BuiltinData -> InputBuilder -> ScriptContextBuilder
@@ -476,17 +468,13 @@ withScriptInput redeemer modify = ScriptContextBuilder \scb ->
   let newInput = mkInput modify
       inputOutRef = txInInfoOutRef newInput
       newRedeemers = Map.insert (Spending inputOutRef) (Redeemer redeemer) (scbRedeemers scb)
-   in if isScriptAddress (txOutAddress $ txInInfoResolved newInput)
+   in if isJust (toScriptHash (txOutAddress $ txInInfoResolved newInput))
         then
           scb
             { scbInputs = List.insertBy (comparing txInInfoOutRef) newInput (scbInputs scb)
             , scbRedeemers = newRedeemers
             }
         else error "withScriptInput: Input address is not a script address"
-  where
-    isScriptAddress :: Address -> Bool
-    isScriptAddress (Address (ScriptCredential _) _) = True
-    isScriptAddress _ = False
 
 -- | Add a reference input (read-only, not spent).
 withReferenceInput :: InputBuilder -> ScriptContextBuilder
@@ -630,3 +618,22 @@ buildBalancedScriptContext modify =
       }
   where
     finalState = runBuilder modify defaultScriptContextBuilderState
+
+-- * Helpers
+
+-- | Convert a hex encoded Haskell 'String' to a 'CurrencySymbol'.
+currencySymbolFromHex :: String -> CurrencySymbol
+currencySymbolFromHex hexStr =
+  case Base16.decode (BS8.pack hexStr) of
+    Left err -> error $ "currencySymbolFromHex: invalid hex: " <> err
+    Right bs -> CurrencySymbol (BuiltinByteString bs)
+
+{-| Extract the single currency symbol from a 'Value'. Errors if the value
+contains zero or more than one currency symbol. -}
+singleCurrencySymbol :: Value -> CurrencySymbol
+singleCurrencySymbol val = case Map.keys (getValue val) of
+  [cs] -> cs
+  keys ->
+    error $
+      "singleCurrencySymbol: expected exactly 1 currency symbol, got "
+        <> show (length keys)
