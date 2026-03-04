@@ -11,7 +11,7 @@ import PlutusCore.Version
 import PlutusPrelude (unsafeFromRight)
 import UntypedPlutusCore as UPLC
 
-import Data.Foldable
+import Data.Foldable qualified as F
 import Data.Text qualified as T
 
 nameToDebruijn
@@ -30,7 +30,7 @@ nested0 n
       name <- freshName "a"
       let body = LamAbs () name $ Var () name
           inner = foldr (\_ acc -> Delay () acc) body (replicate n ())
-          result = foldl (\acc _ -> Force () acc) inner (replicate n ())
+          result = F.foldl' (\acc _ -> Force () acc) inner (replicate n ())
       pure result
 
 nested1 :: Int -> Program DeBruijn DefaultUni DefaultFun ()
@@ -41,7 +41,7 @@ nested1 n
       let body = Var () (last names)
           delayed = foldr (\a acc -> Delay () (LamAbs () a acc)) body names
           args = [mkConstant @Integer () (toInteger i) | i <- [1 .. n]]
-      pure $ foldl' (\acc arg -> Apply () (Force () acc) arg) delayed args
+      pure $ F.foldl' (\acc arg -> Apply () (Force () acc) arg) delayed args
 
 nested2 :: Int -> Program DeBruijn DefaultUni DefaultFun ()
 nested2 n
@@ -52,4 +52,4 @@ nested2 n
       let body = Var () (last namesA)
           delayed = foldr (\(a, b) acc -> Delay () (LamAbs () a $ LamAbs () b acc)) body (namesA `zip` namesB)
           args = [mkConstant @Integer () (toInteger i) | i <- [1 .. n]]
-      pure $ foldl' (\acc arg -> Apply () (Apply () (Force () acc) arg) arg) delayed args
+      pure $ F.foldl' (\acc arg -> Apply () (Apply () (Force () acc) arg) arg) delayed args
