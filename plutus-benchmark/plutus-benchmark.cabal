@@ -778,8 +778,9 @@ library linear-vesting-internal
     LinearVesting.Validator
 
   build-depends:
-    , base               >=4.9 && <5
+    , base                                         >=4.9 && <5
     , plutus-ledger-api
+    , plutus-ledger-api:plutus-ledger-api-testlib
     , plutus-tx
     , plutus-tx-plugin
 
