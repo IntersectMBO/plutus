@@ -23,6 +23,8 @@ jobs:
   run:
     name: Run
     runs-on: [self-hosted, plutus-runner]
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.1
