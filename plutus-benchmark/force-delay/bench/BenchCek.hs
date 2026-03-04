@@ -1,6 +1,7 @@
 {-| Force-delay benchmarks.
 
-It has the same setup as the validation benchmark. -}
+It has the same setup as the validation benchmark. The scripts are produced
+using the code in @PlutusBenchmark.ForceDelay.Script@. -}
 module Main where
 
 import Control.Exception (evaluate)
@@ -10,7 +11,7 @@ import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA)
 import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV1))
 import UntypedPlutusCore as UPLC
 
--- Benchmarks only for the CEK execution time of the data/*.flat scripts
+-- Benchmarks only for the CEK execution time of the data/*.flat scripts.
 main :: IO ()
 main = do
   evalCtx <- evaluate $ mkEvalCtx PlutusV1 DefaultFunSemanticsVariantA

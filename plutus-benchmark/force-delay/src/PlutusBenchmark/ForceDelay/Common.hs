@@ -9,6 +9,7 @@ module PlutusBenchmark.ForceDelay.Common
 
 import PlutusBenchmark.Common (benchTermCek, getConfig, getDataDir, mkEvalCtx)
 import PlutusBenchmark.NaturalSort
+import PlutusCore.Flat
 import UntypedPlutusCore qualified as UPLC
 
 import Criterion.Main
@@ -16,7 +17,6 @@ import Criterion.Main.Options (Mode, parseWith)
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
 import Options.Applicative
-import PlutusCore.Flat
 import System.Directory (listDirectory)
 import System.FilePath
 

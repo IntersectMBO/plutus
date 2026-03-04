@@ -310,7 +310,10 @@ benchmark data
 library force-delay-internal
   import:          lang, os-support
   hs-source-dirs:  force-delay/src
-  exposed-modules: PlutusBenchmark.ForceDelay.Common
+  exposed-modules:
+    PlutusBenchmark.ForceDelay.Common
+    PlutusBenchmark.ForceDelay.Script
+
   build-depends:
     , base                     >=4.9     && <5
     , bytestring
@@ -321,6 +324,7 @@ library force-delay-internal
     , plutus-benchmark-common
     , plutus-core              ^>=1.59
     , plutus-core:flat
+    , text
 
 benchmark force-delay
   import:         lang, os-support
