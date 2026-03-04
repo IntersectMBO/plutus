@@ -156,9 +156,6 @@ plinthcModName = "PlutusTx.Plugin.Utils"
 anchorName :: String
 anchorName = "anchor"
 
-plinthcName :: String
-plinthcName = "plinthc"
-
 -- | Wrap certain @HsExpr@s in the typed checked module with @anchor@.
 injectAnchors
   :: [GHC.CommandLineOption]
@@ -173,18 +170,15 @@ injectAnchors _ _ env = do
         hscEnv
         (GHC.mkModuleName plinthcModName)
         GHC.NoPkgQual
-  (anchorId, plinthcGhcName) <- case findResult of
+  anchorId <- case findResult of
     GHC.Found _ m -> do
-      name <- GHC.lookupOrig m (GHC.mkVarOcc anchorName)
-      anchorId <- GHC.tcLookupId name
-      plinthcGhcName <- GHC.lookupOrig m (GHC.mkVarOcc plinthcName)
-      pure (anchorId, plinthcGhcName)
+      GHC.tcLookupId =<< GHC.lookupOrig m (GHC.mkVarOcc anchorName)
     _ ->
       GHC.pprPanic
         "Plinth.Plugin"
         (GHC.text $ "Could not find module " <> plinthcModName)
   let binds = GHC.tcg_binds env
-      bindsAnchored = Compat.modifyBinds (transformBi (anchorExpr anchorId plinthcGhcName)) binds
+      bindsAnchored = Compat.modifyBinds (transformBi (anchorExpr anchorId)) binds
   pure env {GHC.tcg_binds = bindsAnchored}
 
 encodeSrcSpan :: GHC.RealSrcSpan -> String
@@ -199,9 +193,9 @@ encodeSrcSpan sp =
     ]
 
 -- | Wrap an @HsExpr@ with @anchor@.
-anchorExpr :: GHC.Id -> GHC.Name -> GHC.LHsExpr GHC.GhcTc -> GHC.LHsExpr GHC.GhcTc
-anchorExpr anchorId plinthcMarker le@(GHC.L ann e)
-  | isAnchorWorthy plinthcMarker e
+anchorExpr :: GHC.Id -> GHC.LHsExpr GHC.GhcTc -> GHC.LHsExpr GHC.GhcTc
+anchorExpr anchorId le@(GHC.L ann e)
+  | isAnchorWorthy anchorId e
   , Just !sp <- GHC.srcSpanToRealSrcSpan (GHC.locA ann) =
       let locStr = encodeSrcSpan sp
           locTy = GHC.LitTy (GHC.StrTyLit (GHC.mkFastString locStr))
@@ -211,7 +205,7 @@ anchorExpr anchorId plinthcMarker le@(GHC.L ann e)
        in GHC.noLocA (Compat.hsAppTc (GHC.noLocA anchor) le)
   | otherwise = le
 
-isAnchorWorthy :: GHC.Name -> GHC.HsExpr GHC.GhcTc -> Bool
+isAnchorWorthy :: GHC.Id -> GHC.HsExpr GHC.GhcTc -> Bool
 isAnchorWorthy marker expr
   -- This should never happen since we add anchors bottom-up, but just in case.
   | isAnchorApp marker expr = False
@@ -234,11 +228,11 @@ isTick = \case
   GHC.XExpr (GHC.HsTick _ _) -> True
   _ -> False
 
-isAnchorApp :: GHC.Name -> GHC.HsExpr GHC.GhcTc -> Bool
+isAnchorApp :: GHC.Id -> GHC.HsExpr GHC.GhcTc -> Bool
 isAnchorApp marker = (Just marker ==) . appHead
   where
     appHead = \case
-      GHC.HsVar _ (GHC.L _ v) -> Just (GHC.getName v)
+      GHC.HsVar _ (GHC.L _ v) -> Just v
       GHC.HsApp _ (GHC.L _ f) _ -> appHead f
       Compat.HsAppType _ (GHC.L _ f) _ -> appHead f
       GHC.XExpr (Compat.WrapExpr e) -> appHead e
@@ -323,14 +317,14 @@ mkSimplPass dflags =
         }
 
 {- Note [Marker resolution]
-We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as explained in:
+We use TH's 'foo exact syntax for resolving the marker's ghc name, as explained in:
 <https://hackage.haskell.org/package/ghc-9.6.6/docs/GHC-Plugins.html#v:thNameToGhcName>
 
 The GHC haddock suggests that the "exact syntax" will always succeed because it is statically
 resolved here (inside this Plugin module);
 
 If this is the case, then it means that our plugin will always traverse each module's binds
-searching for plc markers even in the case that the `plc` name is not in scope locally in the module
+searching for the marker even in the case that the marker name is not in scope locally in the module
  under compilation.
 
 The alternative is to use the "dynamic syntax" (`TH.mkName "plc"`), which implies that
@@ -342,7 +336,7 @@ because the user may have imported "plc" qualified or aliased it, which will fai
 -}
 
 {-| Our plugin works at haskell-module level granularity; the plugin
-looks at the module's top-level bindings for plc markers and compiles their right-hand-side core
+looks at the module's top-level bindings for markers and compiles their right-hand-side core
 expressions. -}
 mkPluginPass :: TH.Name -> PluginOptions -> GHC.CoreToDo
 mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> do
@@ -352,7 +346,6 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
   maybeMarkerName <- GHC.thNameToGhcName markerTHName
   maybeanchorGhcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.anchor
   case (maybeMarkerName, maybeanchorGhcName) of
-    -- TODO: test that this branch can happen using TH's 'plc exact syntax.
     -- See Note [Marker resolution]
     (Just markerName, Just anchorGhcName) ->
       let pctx =
@@ -364,7 +357,7 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
               , pcModuleName = GHC.moduleName $ GHC.mg_module guts
               , pcModuleModBreaks = GHC.mg_modBreaks guts
               }
-       in -- start looking for plc calls from the top-level binds
+       in -- start looking for marker calls from the top-level binds
           GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
     _ -> pure guts
 
@@ -474,7 +467,8 @@ compileBind = \case
 Working out what to process and where to put it is tricky. We are going to turn the result in
 to a 'CompiledCode', not the Haskell expression we started with!
 
-Currently we look for calls to the @plc :: a -> CompiledCode a@ function,
+Currently we look for calls to the @marker :: a -> CompiledCode a@ function,
+where @marker@ can be @plc@ or @plinthc@,
 and we replace the whole application with the generated code object, which will still be well-typed.
 -}
 
@@ -483,13 +477,14 @@ If you try and use the plugin on a polymorphic expression, then GHC will replace
 types with 'Any' and remove the type lambdas. This is pretty annoying, and I don't entirely
 understand why it happens, despite poking around in GHC a fair bit.
 
-Possibly it has to do with the type that is given to 'plc' being unconstrained, resulting in GHC
+Possibly it has to do with the type that is given to the marker being unconstrained, resulting in GHC
 putting 'Any' there, and that then propagating into the type of the quote. It's tricky to experiment
 with this, since you can't really specify a polymorphic type in a type application or in the
 resulting 'CompiledCode' because that's impredicative polymorphism.
 -}
 
--- | Compiles all the core-expressions surrounded by plc in the given expression into PLC literals.
+{-| Compiles all the core-expressions surrounded by the marker in the given expression
+into PLC literals. -}
 compileMarkedExprs :: GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
 compileMarkedExprs expr = do
   markerName <- asks pcMarkerName

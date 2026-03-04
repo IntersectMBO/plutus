@@ -638,14 +638,10 @@ hoistExpr var t = do
       addSpan = case varSpan of
         Nothing -> id
         Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
-  -- varSpanMsg = case varSpan of
-  --   Nothing -> ""
-  --   Just src -> ", located at" GHC.<+> GHC.ppr src
   case maybeDef of
     Just term -> pure term
     -- See Note [Dependency tracking]
     Nothing -> withCurDef lexName $ do
-      -- . traceCompilation 1 ("Compiling definition of:" GHC.<+> GHC.ppr var GHC.<> varSpanMsg)
       var' <- compileVarFresh ann var
       -- See Note [Occurrences of recursive names]
       PIR.defineTerm

@@ -36,6 +36,8 @@ plinthc :: forall a. a -> CompiledCode a
 plinthc _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx")
 {-# OPAQUE plinthc #-}
 
+{-| This function is used in `typeCheckResultAction` to mark the given expression
+with its source location. -}
 anchor :: forall (loc :: Symbol) a. a -> a
 anchor a = a
 {-# OPAQUE anchor #-}
