@@ -26,6 +26,7 @@ There are several reasons why checking procedures can be desirable, even though 
 ```
 module VerifiedCompilation.Certificate where
 
+open import VerifiedCompilation.Trace public
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 import Relation.Binary as Binary using (Decidable)
 open import Level
@@ -36,41 +37,6 @@ open import Data.Sum using (_⊎_;inj₁; inj₂)
 open import Data.List using (List; []; _∷_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Data.List.Relation.Binary.Pointwise using (Pointwise-≡⇒≡; ≡⇒Pointwise-≡)
-
-data SimplifierTag : Set where
-  floatDelayT : SimplifierTag
-  forceDelayT : SimplifierTag
-  forceCaseDelayT : SimplifierTag
-  caseOfCaseT : SimplifierTag
-  caseReduceT : SimplifierTag
-  inlineT : SimplifierTag
-  cseT : SimplifierTag
-  applyToCaseT : SimplifierTag
-
-data InlineHints : Set where
-  var     : InlineHints
-  expand  : InlineHints → InlineHints
-  ƛ       : InlineHints → InlineHints
-  ƛ↓      : InlineHints → InlineHints
-  _·_     : InlineHints → InlineHints → InlineHints
-  _·↓     : InlineHints → InlineHints
-  force   : InlineHints → InlineHints
-  delay   : InlineHints → InlineHints
-  con     : InlineHints
-  builtin : InlineHints
-  error   : InlineHints
-  constr  : List InlineHints → InlineHints
-  case    : InlineHints → List InlineHints → InlineHints
-
-data Hints : Set where
-  inline : InlineHints → Hints
-  none : Hints
-
-{-# FOREIGN GHC import UntypedPlutusCore.Transform.Certify.Trace #-}
-{-# FOREIGN GHC import qualified UntypedPlutusCore.Transform.Certify.Hints as Hints #-}
-{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE | ApplyToCase) #-}
-{-# COMPILE GHC InlineHints = data Hints.Inline (Hints.InlVar | Hints.InlExpand | Hints.InlLam | Hints.InlLamDrop | Hints.InlApply | Hints.InlDrop | Hints.InlForce | Hints.InlDelay | Hints.InlCon | Hints.InlBuiltin | Hints.InlError | Hints.InlConstr | Hints.InlCase) #-}
-{-# COMPILE GHC Hints = data Hints.Hints (Hints.Inline | Hints.NoHints) #-}
 
 variable
   𝓁 𝓂 : Level
@@ -96,6 +62,29 @@ _>>=_ : ∀ {𝓁 𝓁′} {P : Set 𝓁} {P′ : Set 𝓁′} → Proof? P → 
 proof p >>= k = k p
 abort tag b a >>= _ = abort tag b a
 
+-- Shorthands for deciders/checkers/certifiers
+
+DecidableCE : {X X' : Set} {𝓁 : Level} → (P : X → X' → Set 𝓁) → Set (suc 𝓁)
+DecidableCE {X} {X'} P = (a : X) → (b : X') → ProofOrCE (P a b)
+
+Checkable : {X X' : Set} → (P : X → X' → Set) → Set₁
+Checkable {X} {X'} P = (a : X) → (b : X') → Proof? (P a b)
+
+Certifiable : {X : Set} (P : X → X → Set) → Set₁
+Certifiable {X} P = ∀ (a b : X) → CertResult (P a b)
+
+-- Conversions
+
+checker : ∀ {X} {P : X → X → Set} → Checkable P → Certifiable P
+checker f x y with f x y
+... | proof p = proof p
+... | abort tag a b = abort tag a b
+
+decider : ∀ {X} {P : X → X → Set} → DecidableCE P → Certifiable P
+decider f x y with f x y
+... | proof p = proof p
+... | ce ¬p tag a b = ce ¬p tag a b
+
 decToPCE : {X : Set} {P : Set} → SimplifierTag → Dec P → {before after : X} → ProofOrCE P
 decToPCE _ (yes p) = proof p
 decToPCE tag (no ¬p) {before} {after} = ce ¬p tag before after
@@ -104,15 +93,12 @@ pceToDec : {P : Set} → ProofOrCE P → Dec P
 pceToDec (proof p) = yes p
 pceToDec (ce ¬p _ _ _) = no ¬p
 
-MatchOrCE : {X X' : Set} {𝓁 : Level} → (P : X → X' → Set 𝓁) → Set (suc 𝓁)
-MatchOrCE {X} {X'} P = (a : X) → (b : X') → ProofOrCE (P a b)
-
-matchOrCE : {X X' : Set} {𝓁 : Level} → {P : X → X' → Set 𝓁} → SimplifierTag → Binary.Decidable P → MatchOrCE P
+matchOrCE : {X X' : Set} {𝓁 : Level} → {P : X → X' → Set 𝓁} → SimplifierTag → Binary.Decidable P → DecidableCE P
 matchOrCE tag P a b with P a b
 ... | yes p = proof p
 ... | no ¬p = ce ¬p tag a b
 
-pcePointwise : {X X' : Set} {𝓁 : Level} {P : X → X' → Set 𝓁} → SimplifierTag → MatchOrCE P → MatchOrCE (Pointwise P)
+pcePointwise : {X X' : Set} {𝓁 : Level} {P : X → X' → Set 𝓁} → SimplifierTag → DecidableCE P → DecidableCE (Pointwise P)
 pcePointwise tag isP? [] [] = proof Pointwise.[]
 pcePointwise {X = X} tag isP? [] (y ∷ ys) = ce (λ ()) {X = List X} tag [] ys
 pcePointwise {X' = X'} tag isP? (x ∷ xs) [] = ce (λ ()) {X' = List X'} tag xs []

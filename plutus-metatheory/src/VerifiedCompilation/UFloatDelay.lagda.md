@@ -33,7 +33,7 @@ open import Builtin using (Builtin)
 open import RawU using (TmCon)
 open import Untyped.Purity using (Pure; isPure?)
 open import Data.List.Relation.Unary.All using (All; all?)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; floatDelayT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; DecidableCE; floatDelayT)
 
 variable
   X : ℕ
@@ -144,10 +144,10 @@ FloatDelay = Translation FlD
 ## Decision Procedure
 ```
 
-isFloatDelay? : {X : ℕ} → MatchOrCE (FloatDelay {X})
+isFloatDelay? : {X : ℕ} → DecidableCE (FloatDelay {X})
 
 {-# TERMINATING #-}
-isFlD? : {X : ℕ} → MatchOrCE (FlD {X})
+isFlD? : {X : ℕ} → DecidableCE (FlD {X})
 isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
 ... | no ¬match = ce (λ { (floatdelay x x₁ x₂) → ¬match (isapp (islambda (isterm _)) (isdelay (isterm _)))}) floatDelayT ast ast'
 ... | yes (isapp (islambda (isterm t₁)) (isdelay (isterm t₂))) with (isApp? (isLambda? isTerm?) isTerm?) ast'
