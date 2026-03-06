@@ -7,14 +7,14 @@ module Main where
 import Control.Exception (evaluate)
 import PlutusBenchmark.Common (toNamedDeBruijnTerm)
 import PlutusBenchmark.ForceDelay.Common (benchTermCek, benchWith, mkEvalCtx, unsafeUnflat)
-import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA))
-import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV1))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantE))
+import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV3))
 import UntypedPlutusCore as UPLC
 
 -- Benchmarks only for the CEK execution time of the data/*.flat scripts.
 main :: IO ()
 main = do
-  evalCtx <- evaluate $ mkEvalCtx PlutusV1 DefaultFunSemanticsVariantA
+  evalCtx <- evaluate $ mkEvalCtx PlutusV3 DefaultFunSemanticsVariantE
   let mkCekBM file program =
         benchTermCek evalCtx . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
   benchWith mkCekBM
