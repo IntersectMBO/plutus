@@ -58,6 +58,8 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 import Control.Lens hiding (Context)
 import Control.Monad
 import Control.Monad.Primitive
+import Control.Monad.ST.Unsafe
+import Data.IORef
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.RandomAccessList.SkewBinary qualified as Env
@@ -131,7 +133,8 @@ computeCek !ctx !env (LamAbs _ name body) = do
   pure $ Returning ctx (VLamAbs name body env)
 computeCek !ctx !env (Delay _ body) = do
   stepAndMaybeSpend BDelay
-  pure $ Returning ctx (VDelay body env)
+  thunk <- CekM . unsafeIOToST . fmap CekThunk $ newIORef Nothing
+  pure $ Returning ctx (VDelay body env thunk)
 -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
 computeCek !ctx !env (Force _ body) = do
   stepAndMaybeSpend BForce
@@ -238,7 +241,7 @@ forceEvaluate
   => Context uni fun ann
   -> CekValue uni fun ann
   -> CekM uni fun s (CekState uni fun ann)
-forceEvaluate !ctx (VDelay body env) =
+forceEvaluate !ctx (VDelay body env _) =
   pure $ Computing ctx env body
 forceEvaluate !ctx (VBuiltin fun term runtime) = do
   -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.

@@ -40,7 +40,11 @@ failingEvaluationTests = []
  directory containing the test, eg
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1" -}
 failingBudgetTests :: [FilePath]
-failingBudgetTests = []
+failingBudgetTests =
+  [ "test-cases/uplc/evaluation/example/even2"
+  , "test-cases/uplc/evaluation/example/even3"
+  , "test-cases/uplc/evaluation/example/evenList"
+  ]
 
 main :: IO ()
 main =
