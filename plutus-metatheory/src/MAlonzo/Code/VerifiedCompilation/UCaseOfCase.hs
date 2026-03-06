@@ -53,54 +53,54 @@ d_isCoCCase'63'_58 ::
 d_isCoCCase'63'_58 v0 v1
   = let v2
           = coe
-              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isCase'63'_598
+              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isCase'63'_600
               (coe v0)
               (coe
                  (\ v2 ->
                     coe
-                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_166
+                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_168
                       (coe v2)
                       (coe
                          (\ v3 ->
                             coe
-                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_166
+                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_168
                               (coe v3)
                               (coe
                                  (\ v4 ->
                                     coe
-                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_166
+                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_168
                                       (coe v4)
                                       (coe
                                          (\ v5 ->
                                             coe
-                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isForce'63'_284
+                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isForce'63'_286
                                               (coe v5)
                                               (\ v6 v7 ->
                                                  coe
-                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isBuiltin'63'_708
+                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isBuiltin'63'_710
                                                    v7)))
                                       (\ v5 v6 ->
                                          coe
-                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_782)))
+                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_784)))
                               (coe
                                  (\ v4 ->
                                     coe
-                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isConstr'63'_496
+                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isConstr'63'_498
                                       (coe v4)
                                       (\ v5 v6 ->
                                          coe
-                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_798)))))
+                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_800)))))
                       (coe
                          (\ v3 ->
                             coe
-                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isConstr'63'_496
+                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isConstr'63'_498
                               (coe v3)
                               (\ v4 v5 ->
                                  coe
-                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_798)))))
+                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_800)))))
               (\ v2 v3 ->
                  coe
-                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_798)
+                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_800)
               (coe v1) in
     coe
       (case coe v2 of
@@ -109,23 +109,23 @@ d_isCoCCase'63'_58 v0 v1
                 then case coe v4 of
                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v5
                          -> case coe v5 of
-                              MAlonzo.Code.VerifiedCompilation.UntypedViews.C_iscase_586 v8 v9
+                              MAlonzo.Code.VerifiedCompilation.UntypedViews.C_iscase_588 v8 v9
                                 -> case coe v1 of
                                      MAlonzo.Code.Untyped.C_case_40 v10 v11
                                        -> case coe v8 of
-                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_154 v14 v15
+                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_156 v14 v15
                                               -> case coe v10 of
                                                    MAlonzo.Code.Untyped.C__'183'__22 v16 v17
                                                      -> case coe v14 of
-                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_154 v20 v21
+                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_156 v20 v21
                                                             -> case coe v16 of
                                                                  MAlonzo.Code.Untyped.C__'183'__22 v22 v23
                                                                    -> case coe v20 of
-                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_154 v26 v27
+                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_156 v26 v27
                                                                           -> case coe v22 of
                                                                                MAlonzo.Code.Untyped.C__'183'__22 v28 v29
                                                                                  -> case coe v26 of
-                                                                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isforce_276 v31
+                                                                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isforce_278 v31
                                                                                         -> case coe
                                                                                                   v28 of
                                                                                              MAlonzo.Code.Untyped.C_force_24 v32
@@ -142,14 +142,14 @@ d_isCoCCase'63'_58 v0 v1
                                                                                                                  v27)
                                                                                                               (case coe
                                                                                                                       v21 of
-                                                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isconstr_488 v36
+                                                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isconstr_490 v36
                                                                                                                    -> coe
                                                                                                                         seq
                                                                                                                         (coe
                                                                                                                            v36)
                                                                                                                         (case coe
                                                                                                                                 v15 of
-                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isconstr_488 v39
+                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isconstr_490 v39
                                                                                                                              -> coe
                                                                                                                                   seq
                                                                                                                                   (coe
@@ -225,77 +225,77 @@ d_isCoCForce'63'_162 ::
 d_isCoCForce'63'_162 v0 v1
   = let v2
           = coe
-              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isForce'63'_284
+              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isForce'63'_286
               (coe v0)
               (coe
                  (\ v2 ->
                     coe
-                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_166
+                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_168
                       (coe v2)
                       (coe
                          (\ v3 ->
                             coe
-                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_166
+                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_168
                               (coe v3)
                               (coe
                                  (\ v4 ->
                                     coe
-                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_166
+                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_168
                                       (coe v4)
                                       (coe
                                          (\ v5 ->
                                             coe
-                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isForce'63'_284
+                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isForce'63'_286
                                               (coe v5)
                                               (\ v6 v7 ->
                                                  coe
-                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isBuiltin'63'_708
+                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isBuiltin'63'_710
                                                    v7)))
                                       (\ v5 v6 ->
                                          coe
-                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_782)))
+                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_784)))
                               (coe
                                  (\ v4 ->
                                     coe
-                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isDelay'63'_370
+                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isDelay'63'_372
                                       (coe v4)
                                       (coe
                                          (\ v5 ->
                                             coe
-                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isCase'63'_598
+                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isCase'63'_600
                                               (coe v5)
                                               (coe
                                                  (\ v6 ->
                                                     coe
-                                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isConstr'63'_496
+                                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isConstr'63'_498
                                                       (coe v6)
                                                       (\ v7 v8 ->
                                                          coe
-                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_798)))
+                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_800)))
                                               (\ v6 v7 ->
                                                  coe
-                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_798)))))))
+                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_800)))))))
                       (coe
                          (\ v3 ->
                             coe
-                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isDelay'63'_370
+                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isDelay'63'_372
                               (coe v3)
                               (coe
                                  (\ v4 ->
                                     coe
-                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isCase'63'_598
+                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isCase'63'_600
                                       (coe v4)
                                       (coe
                                          (\ v5 ->
                                             coe
-                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isConstr'63'_496
+                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isConstr'63'_498
                                               (coe v5)
                                               (\ v6 v7 ->
                                                  coe
-                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_798)))
+                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_800)))
                                       (\ v5 v6 ->
                                          coe
-                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_798)))))))
+                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.du_allTerms'63'_800)))))))
               (coe v1) in
     coe
       (case coe v2 of
@@ -304,23 +304,23 @@ d_isCoCForce'63'_162 v0 v1
                 then case coe v4 of
                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v5
                          -> case coe v5 of
-                              MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isforce_276 v7
+                              MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isforce_278 v7
                                 -> case coe v1 of
                                      MAlonzo.Code.Untyped.C_force_24 v8
                                        -> case coe v7 of
-                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_154 v11 v12
+                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_156 v11 v12
                                               -> case coe v8 of
                                                    MAlonzo.Code.Untyped.C__'183'__22 v13 v14
                                                      -> case coe v11 of
-                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_154 v17 v18
+                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_156 v17 v18
                                                             -> case coe v13 of
                                                                  MAlonzo.Code.Untyped.C__'183'__22 v19 v20
                                                                    -> case coe v17 of
-                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_154 v23 v24
+                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isapp_156 v23 v24
                                                                           -> case coe v19 of
                                                                                MAlonzo.Code.Untyped.C__'183'__22 v25 v26
                                                                                  -> case coe v23 of
-                                                                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isforce_276 v28
+                                                                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isforce_278 v28
                                                                                         -> case coe
                                                                                                   v25 of
                                                                                              MAlonzo.Code.Untyped.C_force_24 v29
@@ -337,19 +337,19 @@ d_isCoCForce'63'_162 v0 v1
                                                                                                                  v24)
                                                                                                               (case coe
                                                                                                                       v18 of
-                                                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isdelay_362 v32
+                                                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isdelay_364 v32
                                                                                                                    -> case coe
                                                                                                                              v20 of
                                                                                                                         MAlonzo.Code.Untyped.C_delay_26 v33
                                                                                                                           -> case coe
                                                                                                                                     v32 of
-                                                                                                                               MAlonzo.Code.VerifiedCompilation.UntypedViews.C_iscase_586 v36 v37
+                                                                                                                               MAlonzo.Code.VerifiedCompilation.UntypedViews.C_iscase_588 v36 v37
                                                                                                                                  -> case coe
                                                                                                                                            v33 of
                                                                                                                                       MAlonzo.Code.Untyped.C_case_40 v38 v39
                                                                                                                                         -> case coe
                                                                                                                                                   v36 of
-                                                                                                                                             MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isconstr_488 v42
+                                                                                                                                             MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isconstr_490 v42
                                                                                                                                                -> coe
                                                                                                                                                     seq
                                                                                                                                                     (coe
@@ -360,19 +360,19 @@ d_isCoCForce'63'_162 v0 v1
                                                                                                                                                           v37)
                                                                                                                                                        (case coe
                                                                                                                                                                v12 of
-                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isdelay_362 v44
+                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isdelay_364 v44
                                                                                                                                                             -> case coe
                                                                                                                                                                       v14 of
                                                                                                                                                                  MAlonzo.Code.Untyped.C_delay_26 v45
                                                                                                                                                                    -> case coe
                                                                                                                                                                              v44 of
-                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.C_iscase_586 v48 v49
+                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.C_iscase_588 v48 v49
                                                                                                                                                                           -> case coe
                                                                                                                                                                                     v45 of
                                                                                                                                                                                MAlonzo.Code.Untyped.C_case_40 v50 v51
                                                                                                                                                                                  -> case coe
                                                                                                                                                                                            v48 of
-                                                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isconstr_488 v54
+                                                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.C_isconstr_490 v54
                                                                                                                                                                                         -> coe
                                                                                                                                                                                              seq
                                                                                                                                                                                              (coe

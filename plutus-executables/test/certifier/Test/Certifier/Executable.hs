@@ -1,7 +1,13 @@
 module Test.Certifier.Executable where
 
-import Data.Char (toUpper)
-import Data.List (find, isPrefixOf)
+import Certifier
+import PlutusCore.Default.Builtins
+import PlutusCore.Executable.Common
+import PlutusCore.Quote
+import UntypedPlutusCore as UPLC
+
+import Data.Functor
+import Data.Time.Clock.System
 import System.Directory (getCurrentDirectory, removeDirectoryRecursive, setCurrentDirectory)
 import System.Exit
 import System.FilePath
@@ -14,121 +20,32 @@ import Test.Tasty.HUnit
     unoptimised UPLC is fed to the optimiser with the certifier turned
     on, which will then call the Agda decision procedures for each of
     the phases. -}
-{-| Run an external executable with some arguments.  This is for use inside
-    HUnit Assertions -}
+loadUplc :: FilePath -> IO (Term Name DefaultUni DefaultFun ())
+loadUplc path = UPLC._progTerm . void . snd <$> parseInput (FileInput path)
 
--- TODO(https://github.com/IntersectMBO/plutus-private/issues/1582):
--- this is a mess, makeExampleM uses another function to run the certifier, need to
--- refactor things to introduce less duplication
-makeUplcCert :: String -> IO FilePath
-makeUplcCert name = do
-  let inputFile = fixedPath </> "UPLC" </> name ++ ".uplc"
-  let args =
-        [ "optimise"
-        , "--certify"
-        , name
-        , "--input"
-        , inputFile
-        , "--print-mode"
-        , "Classic"
-        ]
-  (exitCode, output, err) <- readProcessWithExitCode "uplc" args ""
-  let certDir = find (fstToUpper name `isPrefixOf`) . concatMap words . lines $ output
-  case exitCode of
-    ExitFailure code ->
-      assertFailure $
-        "uplc failed with code: "
-          <> show code
-          <> " and output: "
-          <> output
-          <> " and error: "
-          <> err
-    ExitSuccess ->
-      case certDir of
-        Just certDir' -> pure certDir'
-        Nothing ->
-          assertFailure $
-            "uplc failed to produce a certificate for "
-              <> name
-              <> " with output: "
-              <> output
-              <> " and error: "
-              <> err
+simplify
+  :: Term Name DefaultUni DefaultFun ()
+  -> SimplifierTrace Name DefaultUni DefaultFun ()
+simplify =
+  runQuote
+    . fmap snd
+    . runSimplifierT
+    . termSimplifier
+      defaultSimplifyOpts
+      DefaultFunSemanticsVariantE
 
-fstToUpper :: String -> String
-fstToUpper [] = []
-fstToUpper (x : xs) = toUpper x : xs
+loadAndMakeCert :: String -> IO FilePath
+loadAndMakeCert name =
+  makeCert name =<< loadUplc (fixedPath </> "UPLC" </> name ++ ".uplc")
 
-makeSimpleCertTest :: String -> TestTree
-makeSimpleCertTest name =
-  testCase name $ do
-    dirName <- makeUplcCert name
-    removeDirectoryRecursive dirName
-
--- These come from `uplc example -a`
-exampleNames :: [String]
-exampleNames =
-  [ "succInteger"
-  , "unitval"
-  , "true"
-  , "false"
-  , "churchZero"
-  , "churchSucc"
-  , "overapplication"
-  , "factorial"
-  , "fibonacci"
-  , "NatRoundTrip"
-  , "ScottListSum"
-  , "IfIntegers"
-  , "ApplyAdd1"
-  , "ApplyAdd2"
-  , "DivideByZero"
-  , "DivideByZeroDrop"
-  ]
-
-makeExampleM :: String -> IO ExitCode
-makeExampleM testname = do
-  (_, example, _) <- readProcessWithExitCode "uplc" ["example", "-s", testname] []
-  let testNameCert = testname <> "Cert"
-      args =
-        [ "optimise"
-        , "--certify"
-        , testNameCert
-        , "--print-mode"
-        , "Classic"
-        ]
-  (exitCode, output, err) <- readProcessWithExitCode "uplc" args example
-  case exitCode of
-    ExitFailure code ->
-      assertFailure $
-        "uplc failed with code: "
-          <> show code
-          <> " and output: "
-          <> output
-          <> " and error: "
-          <> err
-    ExitSuccess -> do
-      -- FIXME: ?????
-      let certDir = find (fstToUpper testNameCert `isPrefixOf`) . concatMap words . lines $ output
-      case certDir of
-        Just certDir' -> do
-          removeDirectoryRecursive certDir'
-          pure exitCode
-        Nothing ->
-          assertFailure $
-            "uplc failed to produce a certificate for "
-              <> testNameCert
-              <> " with output: "
-              <> output
-              <> " and error: "
-              <> err
-
-makeExample :: String -> Assertion
-makeExample testname = do
-  result <- makeExampleM testname
-  assertBool
-    (testname ++ " fails to certify")
-    $ result == ExitSuccess
+makeCert :: String -> Term Name DefaultUni DefaultFun () -> IO FilePath
+makeCert name term = do
+  time <- systemNanoseconds <$> getSystemTime
+  let certDir = name <> "-" <> show time
+      certOutput = ProjectOutput certDir
+  runCertifier (mkCertifier (simplify term) name certOutput) >>= \case
+    Right True -> pure certDir
+    _ -> assertFailure $ "Certifier failed on " <> name
 
 -- Serialisation tests: run the certifier to make a certificate,
 -- then try to load it in Agda.
@@ -139,10 +56,10 @@ runAgda file = do
 
 agdaTestCert :: String -> Assertion
 agdaTestCert name = do
-  certDir <- makeUplcCert name
+  certDir <- loadAndMakeCert name
   oldDir <- getCurrentDirectory
   setCurrentDirectory certDir
-  (resCode, resText) <- runAgda ("src" </> fstToUpper name <> ".agda")
+  (resCode, resText) <- runAgda ("src" </> name <.> "agda")
   setCurrentDirectory oldDir
   if resCode == ExitSuccess
     then removeDirectoryRecursive certDir
@@ -173,11 +90,10 @@ srcTests =
   , "builtinUnparse"
   ]
 
-makeExampleTests :: [String] -> [TestTree]
-makeExampleTests = map (\testname -> testCase testname (makeExample testname))
-
-makeSimpleTests :: [String] -> [TestTree]
-makeSimpleTests = map $ makeSimpleCertTest
+makeExampleTests :: [(String, Term Name DefaultUni DefaultFun ())] -> [TestTree]
+makeExampleTests = map (\(name, term) -> testCase name (makeCertAndCleanup name term))
+  where
+    makeCertAndCleanup name term = makeCert name term >>= removeDirectoryRecursive
 
 makeSerialisationTests :: [String] -> [TestTree]
 makeSerialisationTests = map (\testname -> testCase testname (agdaTestCert testname))
@@ -187,14 +103,13 @@ makeSerialisationExampleTests :: [ String ] -> [ TestTree]
 makeSerialisationExampleTests = map (\testname -> testCase testname (agdaExampleCert testname))
 -}
 
-executableTests :: TestTree
-executableTests =
+executableTests :: [(String, Term Name DefaultUni DefaultFun ())] -> TestTree
+executableTests examples =
   testGroup
     "certifier executable tests"
     [ -- TODO: tracked by https://github.com/IntersectMBO/plutus-private/issues/1556
       -- testGroup "example serialisation certification"
       --                $ makeSerialisationExampleTests exampleNames
-      testGroup "simple certification" $ makeSimpleTests srcTests
-    , testGroup "example certification" $ makeExampleTests exampleNames
+      testGroup "example certification" $ makeExampleTests examples
     , testGroup "serialisation certification" $ makeSerialisationTests srcTests
     ]

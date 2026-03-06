@@ -331,15 +331,6 @@ createOneTermBuiltinBench_NF
   -> Benchmark
 createOneTermBuiltinBench_NF = createOneTermBuiltinBenchWithWrapper_NF id
 
-{- Note [Adjusting the memory usage of arguments of costing benchmarks] In some
-  cases we want to measure the (so-called) "memory usage" of a builtin argument
-  in a nonstandard way for benchmarking and costing purposes. This function
-  allows you to supply suitable wrapping functions in the benchmarks to achieve
-  this.  NB: wrappers used in benchmarks *MUST* be the same as wrappers used in
-  builtin denotations to make sure that during script execution the inputs to
-  the costing functions are costed in the same way as the are in the
-  benchmmarks.
--}
 -- FIXME: can we add a `Normaliser` argument to remove some of the overlap with
 -- `createOneTermBuiltinBenchWithWrapper` here?  We only want to use this in
 -- exceptional circumstances though, so we probably don't want to add an extra

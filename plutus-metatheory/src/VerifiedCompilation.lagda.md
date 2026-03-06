@@ -180,11 +180,6 @@ data Cert : Set₂ where
     → CertResult (Trace {X} result)
     → Cert
 
-runCertifier : List (SimplifierTag × Hints × Untyped × Untyped) → Maybe Cert
-runCertifier rawInput with traverseEitherList scopeCheckU0 rawInput
-... | inj₁ _ = nothing
-... | inj₂ inputTrace = just (cert (isTrace? inputTrace))
-
 getCE : {A B : Set} → Maybe Cert → Maybe (Σ _ \A → (Σ _ \B → (SimplifierTag × A × B)))
 getCE nothing = nothing
 getCE (just (cert (proof _))) = nothing
@@ -199,11 +194,3 @@ passed? (just (cert (ce _ _ _ _))) = false
 passed? (just (cert (abort _ _ _))) = false
 passed? (just (cert (proof _))) = true
 passed? nothing = false
-
-runCertifierMain : List (SimplifierTag × Hints × Untyped × Untyped) → Maybe Bool
-runCertifierMain asts with runCertifier asts
-... | just (cert (proof a)) = just true
-... | just (cert (ce ¬p t b a)) = just false
-... | just (cert (abort _ _ _)) = just false
-... | nothing = nothing
-{-# COMPILE GHC runCertifierMain as runCertifierMain #-}

@@ -31,7 +31,6 @@ import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
-import Data.Char
 import Data.Foldable
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
@@ -333,7 +332,7 @@ plutusOpts =
 
 -- | Run the UPLC optimisations
 runOptimisations :: OptimiseOptions -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert) = do
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput) = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
   (simplified, simplificationTrace) <- PLC.runQuoteT $ do
     renamed <- PLC.rename prog
@@ -344,13 +343,14 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert) = do
   case mcert of
     Nothing -> pure ()
     Just cert -> do
-      -- TODO: add command line argument for CertifierOutput options
       time <- systemNanoseconds <$> getSystemTime
       let
-        -- FIXME: remove
-        capitalize = \case [] -> []; x : xs -> toUpper x : xs
-        certDir = capitalize cert <> "-" <> show time
-      execCertifier simplificationTrace cert (ProjectOutput certDir)
+        certDir = cert <> "-" <> show time
+        certOutput = case certifierOutput of
+          CertBasic -> BasicOutput
+          CertReport file -> ReportOutput file
+          CertProject -> ProjectOutput certDir
+      execCertifier simplificationTrace cert certOutput
   where
     execCertifier simplificationTrace cert out = do
       result <- runCertifier $ mkCertifier simplificationTrace cert out

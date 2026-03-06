@@ -355,7 +355,7 @@ headSpine :: a -> [b] -> HeadSpine err a b
 headSpine h [] = HeadOnly h
 headSpine h (x : xs) =
   -- It's critical to use 'foldr' here, so that deforestation kicks in.
-  -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
+  -- See Note "Definition of foldl'" in "GHC.List" and related Notes around for an explanation
   -- of the trick.
   HeadSpine h $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x
 {-# INLINE headSpine #-}

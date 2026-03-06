@@ -1,0 +1,6 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Data.Tx.TxOutRef where
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V3.Data.Tx.TxOutRef l1l_0)
+    (PlutusLedgerApi.V3.Data.Tx.TxOutRef r1r_0) = l1l_0
+      PlutusTx.Eq.Class.== r1r_0
+  {-# INLINABLE (PlutusTx.Eq.Class.==) #-}

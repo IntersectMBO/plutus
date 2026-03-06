@@ -96,16 +96,7 @@ import PlutusLedgerApi.V1.Data.Value (CurrencySymbol (..), Value)
 import PlutusLedgerApi.V1.Scripts
 import Prelude qualified as Haskell
 
-{- Note [Script types in pending transactions]
-To validate a transaction, we have to evaluate the validation script of each of
-the transaction's inputs. The validation script sees the data of the
-transaction output it validates, and the redeemer of the transaction input of
-the transaction that consumes it.
-In addition, the validation script also needs information on the transaction as
-a whole (not just the output-input pair it is concerned with). This information
-is provided by the `TxInfo` type. A `TxInfo` contains the hashes of
-redeemer and data scripts of all of its inputs and outputs.
--}
+-- See Note [Script types in pending transactions]
 
 -- | An input of a pending transaction.
 PlutusTx.asData
@@ -306,29 +297,7 @@ getContinuingOutputs _ =
   traceError "Lf" -- "Can't get any continuing outputs"
 {-# INLINEABLE getContinuingOutputs #-}
 
-{- Note [Hashes in validator scripts]
-
-We need to deal with hashes of four different things in a validator script:
-
-1. Transactions
-2. Validator scripts
-3. Data scripts
-4. Redeemer scripts
-
-The mockchain code in 'Ledger.Tx' only deals with the hashes of(1)
-and (2), and uses the 'Ledger.Tx.TxId' and `Digest SHA256` types for
-them.
-
-In PLC validator scripts the situation is different: First, they need to work
-with hashes of (1-4). Second, the `Digest SHA256` type is not available in PLC
-- we have to represent all hashes as `ByteStrings`.
-
-To ensure that we only compare hashes of the correct type inside a validator
-script, we define a newtype for each of them, as well as functions for creating
-them from the correct types in Haskell, and for comparing them (in
-`Language.Plutus.Runtime.TH`).
-
--}
+-- See Note [Hashes in validator scripts]
 
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> PubKeyHash -> Bool

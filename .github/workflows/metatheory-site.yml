@@ -52,10 +52,10 @@ jobs:
     environment:
       name: github-pages
     steps:
-      - name: Checkout
+      - name: Checkout gh-pages
         uses: actions/checkout@v6.0.1
         with:
-          ref: ${{ inputs.ref || github.ref_name }}
+          ref: gh-pages
 
       - name: Delete Oldest Build
         run: |
@@ -70,6 +70,11 @@ jobs:
             git commit -am "Delete oldest metatheory build $OLDEST_BUILD"
             git push origin gh-pages
           fi  
+
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref_name }}
 
       - name: Build Site
         run: | 

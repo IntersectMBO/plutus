@@ -25,8 +25,8 @@ We don't really need 'HasConstant' and could get away with only having 'HasConst
 defining the latter directly as a @class@ instead of a type synonym in terms of the former is
 detrimental to performance, see the comments in https://github.com/IntersectMBO/plutus/pull/4417
 
-This is likely due to the same reason as in 'mkMachineParameters',
-see Note [The CostingPart constraint in mkMachineParameters].
+This is likely due to the same reason as in 'mkMachineVariantParameters',
+see Note [The CostingPart constraint in mkMachineVariantParameters].
 -}
 
 -- See Note [Existence of HasConstant].

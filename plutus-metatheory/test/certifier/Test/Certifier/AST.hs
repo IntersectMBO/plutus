@@ -6,7 +6,7 @@ import UntypedPlutusCore
 import UntypedPlutusCore.Transform.Certify.Hints qualified as Hints
 
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
-import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
+import MAlonzo.Code.Certifier (runCertifierMain)
 
 import Data.Text.Encoding qualified as Text
 import Test.Tasty
@@ -35,7 +35,7 @@ runCertifierWithMockTrace
 runCertifierWithMockTrace trace = do
   let rawAgdaTrace = mkFfiSimplifierTrace trace
   case runCertifierMain rawAgdaTrace of
-    Just result -> pure result
+    Just (result, _report) -> pure result
     Nothing ->
       assertFailure "The certifier exited with an error."
 

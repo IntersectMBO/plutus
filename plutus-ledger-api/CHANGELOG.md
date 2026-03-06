@@ -1,4 +1,14 @@
 
+<a id='changelog-1.59.0.0'></a>
+# 1.59.0.0 — 2026-03-02
+
+## Changed
+
+- Replace hand-written `PlutusTx.Eq` instances with `deriveEq` across all V1/V2/V3 types
+- Add `PlutusTx.Eq` instance for `MintValue`
+
+- Replace hand-written `PlutusTx.Ord` instances with `deriveOrd` for `V1.Extended` and `V3.ProtocolVersion`
+
 <a id='changelog-1.57.0.0'></a>
 # 1.57.0.0 — 2026-01-20
 

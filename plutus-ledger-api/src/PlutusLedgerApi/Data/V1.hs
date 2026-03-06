@@ -201,23 +201,7 @@ import PlutusLedgerApi.V1.Scripts as Scripts
 thisLedgerLanguage :: PlutusLedgerLanguage
 thisLedgerLanguage = PlutusV1
 
-{- Note [Abstract types in the ledger API]
-We need to support old versions of the ledger API as we update the code that
-it depends on. You might think that we should therefore make the types that
-we expose abstract, and only expose specific functions for constructing and
-working with them. However the situation is slightly different for us.
-
-Normally, when you are in this situation, you want to retain the same *interface*
-as the old version, but with the new types and functions underneath. Abstraction
-lets you do this easily. But we actually want to keep the old *implementation*,
-because things really have to work the same, bug-for-bug. And the types have to
-translate into Plutus Core in exactly the same way, and so on.
-
-So we're going to end up with multiple versions of the types and functions that
-we expose here, even internally. That means we don't lose anything by exposing
-all the details: we're never going to remove anything, we're just going to create
-new versions.
--}
+-- See Note [Abstract types in the ledger API]
 
 {-| The deserialization from a serialised script into a `ScriptForEvaluation`,
 ready to be evaluated on-chain.

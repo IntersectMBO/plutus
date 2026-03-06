@@ -1,7 +1,7 @@
 module Test.Certifier.Optimizer where
 
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
-import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
+import MAlonzo.Code.Certifier (runCertifierMain)
 import PlutusCore qualified as PLC
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase)
@@ -27,7 +27,7 @@ mkUPLCTest simplifierFunc name input =
           simplifierTrace <- snd <$> simplifierFunc input
           return $ mkFfiSimplifierTrace simplifierTrace
      in case runCertifierMain rawAgdaTrace of
-          Just result ->
+          Just (result, _report) ->
             assertBool "The certifier returned false." result
           Nothing ->
             assertFailure "The certifier exited with an error."

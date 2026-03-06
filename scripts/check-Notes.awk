@@ -163,8 +163,8 @@ maybeSplitReference && /^[- \t-]*\[/ {
     noteName = getNoteName()
     if (defined[noteName]) {
         if (longOutput) {
-            printf ("Duplicate Note [%s] at %s:%d and %s", noteName, FILENAME, FNR, defined[noteName])
-            printf ("> %s\n\n", $0)
+            printf ("Duplicate Note [%s]\nat  %s:%d\nand %s", noteName, FILENAME, FNR, defined[noteName])
+            printf ("\n\n", $0)
         }
         else printf ("Duplicate Note [%s]\n", noteName)
     }

@@ -5,20 +5,25 @@ layout: page
 # Predicates and View Types for Untyped Terms
 ```
 module VerifiedCompilation.UntypedViews where
+module SimpleTypeClass where
 
 open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error)
-open import Relation.Unary as Unary using (Decidable)
+open import Relation.Unary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Relation.Nullary.Negation
 open import Utils as U using (Maybe; nothing; just; Either)
 open import Relation.Nullary using (_×-dec_)
-open import Data.Product using (_,_)
+open import Data.Product using (_,_; _×_)
 open import RawU using (TmCon)
-open import Builtin using (Builtin)
-open import Untyped.Equality using (decEq-⊢)
+open import Builtin using (Builtin; addInteger)
+open import Untyped.Equality using (decEq-⊢; _≟_)
 open import Data.List using (List; [_])
-open import Data.Fin using (Fin)
+open import Data.Fin using (Fin; suc; zero)
 open import Data.Nat using (ℕ; suc; zero)
 open import Function using (_∋_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise; _∷_; [])
+open import Data.List using (List; _∷_; []; map)
 
 ```
 ## Pattern Views for Terms
@@ -213,4 +218,346 @@ isTestPat? v with isCase? (isCase? isTerm? allTerms?) allTerms? v
 ... | yes (iscase (iscase (isterm t) (allterms ts)) (allterms ts₁)) = yes (tp t ts ts₁)
 ... | no ¬tp = no λ { (tp t ts ts₂) → ¬tp (iscase (iscase (isterm t) (allterms ts)) (allterms ts₂)) }
 
+```
+
+## Views
+
+The following are slight generalizations on the previously defined views, with
+convenient syntax. It allows you to compose them with existing decision
+procedures such as _≟_ to match for example on a specific built-in function or
+specific terms that were matched before. See the example at the end of this
+module.
+
+We define a predicate for each UPLC term constructor which witnesses that a term
+starts with that constructor. Each such predicate is parametrised by predicates
+for all arguments of that term constructor.
+
+```
+Pr : Set → Set₁
+Pr A = A → Set
+```
+
+### Notation
+For each term constructor, a `ᵖ` suffix denotes the predicate, A `!` suffix
+denotes the witness of the predicate and a `?` suffix denotes the decision
+procedure (see below).
+
+```
+
+private variable
+  X : ℕ
+
+data `ᵖ (P : Pr (Fin X)) : Pr (X ⊢ ) where
+  `! : ∀ {n} → P n → `ᵖ P (` n)
+
+data ƛᵖ (P : Pr (suc X ⊢)) : Pr (X ⊢) where
+  ƛ! : ∀ {M} → P M → ƛᵖ P (ƛ M)
+
+infixl 7 _·ᵖ_
+infixl 7 _·!_
+
+data _·ᵖ_ (P Q : Pr (X ⊢)) : Pr (X ⊢) where
+  _·!_ : ∀ {M N} → P M → Q N → (P ·ᵖ Q) (M · N)
+
+data forceᵖ (P : Pr (X ⊢)) : Pr (X ⊢) where
+  force! : ∀ {M} → P M → forceᵖ P (force M)
+
+data delayᵖ (P : Pr (X ⊢)) : Pr (X ⊢) where
+  delay! : ∀ {M} → P M → delayᵖ P (delay M)
+
+data caseᵖ (P : Pr (X ⊢)) (Ps : Pr (List (X ⊢))) : Pr (X ⊢) where
+  case! : ∀ {M Ms} → P M → Ps Ms → caseᵖ P Ps (case M Ms)
+
+data constrᵖ (P : Pr ℕ) (Ps : Pr (List (X ⊢))) : Pr (X ⊢) where
+  constr! : ∀ {i Ms} → P i → Ps Ms → constrᵖ P Ps (constr i Ms)
+
+data conᵖ (P : Pr TmCon) : Pr (X ⊢) where
+  con! : ∀ {k} → P k → conᵖ P (con {X} k)
+
+data builtinᵖ (P : Pr Builtin) : Pr (X ⊢) where
+  builtin! : ∀ {b} → P b → builtinᵖ P (builtin {X} b)
+
+data errorᵖ : Pr (X ⊢) where
+  error! : errorᵖ {X} error
+```
+
+Each predicate is decidable if the predicates on sub-terms are decidable.
+
+```
+`? : ∀ {P : Pr (Fin X)} → Decidable P →  Decidable (`ᵖ P)
+`? P? M with M
+... | ƛ x         = no λ ()
+... | x · x₁      = no λ ()
+... | force x     = no λ ()
+... | delay x     = no λ ()
+... | con x       = no λ ()
+... | constr i xs = no λ ()
+... | case x ts   = no λ ()
+... | builtin b   = no λ ()
+... | error       = no λ ()
+... | (` x)
+  with P? x
+... | yes Px = yes (`! Px)
+... | no ¬Px = no (λ {(`! Px) → ¬Px Px})
+
+ƛ? : ∀ {P : Pr (suc X ⊢)} → Decidable P → Decidable (ƛᵖ P)
+ƛ? P? M with M
+... | ` x         = no λ ()
+... | t · t₁      = no λ ()
+... | force t     = no λ ()
+... | delay t     = no λ ()
+... | con x       = no λ ()
+... | constr i xs = no λ ()
+... | case t ts   = no λ ()
+... | builtin b   = no λ ()
+... | error       = no λ ()
+... | ƛ t
+  with P? t
+... | yes PM = yes (ƛ! PM)
+... | no ¬PM = no λ {(ƛ! PM) → ¬PM PM }
+
+infixl 7 _·?_
+
+_·?_  : ∀ {P Q : Pr (X ⊢)} → Decidable P → Decidable Q → Decidable (P ·ᵖ Q)
+(P? ·? Q?) M with M
+... | ` _        = no λ ()
+... | ƛ _        = no λ ()
+... | force _    = no λ ()
+... | delay _    = no λ ()
+... | con _      = no λ ()
+... | constr _ _ = no λ ()
+... | case _ _   = no λ ()
+... | builtin _  = no λ ()
+... | error      = no λ ()
+... | (M · N)
+  with P? M ×-dec Q? N
+... | yes (PM , QN) = yes (PM ·! QN)
+... | no ¬PM×QN = no λ { (PM ·! QN) → ¬PM×QN (PM , QN)}
+
+
+force? : ∀ {P : Pr (X ⊢)} → Decidable P → Decidable (forceᵖ P)
+force? P? M with M
+... | ` _        = no λ ()
+... | ƛ _        = no λ ()
+... | _ · _      = no λ ()
+... | delay _    = no λ ()
+... | con _      = no λ ()
+... | constr _ _ = no λ ()
+... | case _ _   = no λ ()
+... | builtin _  = no λ ()
+... | error      = no λ ()
+... | force M
+  with P? M
+...   | yes PM = yes (force! PM)
+...   | no ¬PM = no λ { (force! PM) → ¬PM PM}
+
+delay? : {P : Pr (X ⊢)} → Decidable P → Decidable (delayᵖ P)
+delay? P? M with M
+... | ` _        = no λ ()
+... | ƛ _        = no λ ()
+... | _ · _      = no λ ()
+... | force _    = no λ ()
+... | con _      = no λ ()
+... | constr _ _ = no λ ()
+... | case _ _   = no λ ()
+... | builtin _  = no λ ()
+... | error      = no λ ()
+... | delay N with P? N
+...   | yes PN = yes (delay! PN)
+...   | no ¬PN = no λ { (delay! PN) → ¬PN PN}
+
+case? : {P : Pr (X ⊢)} {Q : Pr (List (X ⊢))} → Decidable P → Decidable Q → Decidable (caseᵖ P Q)
+case? P? Q? M with M
+... | ` _        = no λ ()
+... | ƛ _        = no λ ()
+... | _ · _      = no λ ()
+... | force _    = no λ ()
+... | delay _    = no λ ()
+... | con _      = no λ ()
+... | constr _ _ = no λ ()
+... | builtin _  = no λ ()
+... | error      = no λ ()
+... | case M Ms with P? M ×-dec Q? Ms
+...   | yes (Pn , QMs) = yes (case! Pn QMs)
+...   | no ¬PQ = no λ {(case! Pn QMs) → ¬PQ (Pn , QMs)}
+
+constr? : {P : Pr ℕ} {Q : Pr (List (X ⊢))} → Decidable P → Decidable Q → Decidable (constrᵖ P Q)
+constr? P? Q? M with M
+... | ` _        = no λ ()
+... | ƛ _        = no λ ()
+... | _ · _      = no λ ()
+... | force _    = no λ ()
+... | delay _    = no λ ()
+... | con _      = no λ ()
+... | case _ _   = no λ ()
+... | builtin _  = no λ ()
+... | error      = no λ ()
+... | constr i Ms with P? i ×-dec Q? Ms
+...   | yes (Pi , QMs) = yes (constr! Pi QMs)
+...   | no ¬PQ = no λ {(constr! Pi QMs) → ¬PQ (Pi , QMs)}
+
+con? : ∀ {P} → Decidable P → Decidable {A = X ⊢} (conᵖ P)
+con? P? M with M
+... | ` _        = no λ ()
+... | ƛ _        = no λ ()
+... | _ · _      = no λ ()
+... | force _    = no λ ()
+... | delay _    = no λ ()
+... | constr _ _ = no λ ()
+... | case _ _   = no λ ()
+... | builtin _      = no λ ()
+... | error      = no λ ()
+... | con b  with P? b
+...   | yes Pb = yes (con! Pb)
+...   | no ¬Pb = no λ {(con! Pb) → ¬Pb Pb}
+
+builtin? : ∀ {P} → Decidable P → Decidable {A = X ⊢} (builtinᵖ P)
+builtin? P? M with M
+... | ` _        = no λ ()
+... | ƛ _        = no λ ()
+... | _ · _      = no λ ()
+... | force _    = no λ ()
+... | delay _    = no λ ()
+... | con _      = no λ ()
+... | constr _ _ = no λ ()
+... | case _ _   = no λ ()
+... | error      = no λ ()
+... | builtin b  with P? b
+...   | yes Pb = yes (builtin! Pb)
+...   | no ¬Pb = no λ {(builtin! Pb) → ¬Pb Pb}
+
+
+error? : Decidable {A = X ⊢} (errorᵖ)
+error? M with M
+... | ` _        = no λ ()
+... | ƛ _        = no λ ()
+... | _ · _      = no λ ()
+... | force _    = no λ ()
+... | delay _    = no λ ()
+... | con _      = no λ ()
+... | constr _ _ = no λ ()
+... | case _ _   = no λ ()
+... | builtin _  = no λ ()
+... | error      = yes error!
+```
+
+`match` is the trivial predicate that always holds:
+
+```
+data match {A : Set} : Pr A where
+  match! : (x : A) → match x
+
+⋯ : ∀{A} → Decidable (match {A})
+⋯ x = yes (match! x)
+
+```
+
+## Inhabited types
+
+In decision procedures that use the above views, we often find ourselves writing
+trivial proof terms. E.g. suppose we have a predicate for application of the
+identity function to any term:
+
+```
+private
+  app-id : Pr (X ⊢)
+  app-id = ƛᵖ (`ᵖ (_≡_ zero)) ·ᵖ match
+```
+
+Given a term that satisfies the predicate, there is only one trivial proof
+(inhabitant):
+
+```
+  ex : 0 ⊢
+  ex = ƛ (` zero) · ƛ (` zero)
+
+  _ : app-id ex
+  _ = ƛ! (`! refl) ·! match! (ƛ (` zero))
+```
+
+Instead of writing out those proofs, we can use a typeclass with instance search. The term
+can then instead be given with `inhabitant`.
+
+```
+record Inhabited (A : Set) : Set where
+  constructor inh
+  field inhabitant : A
+
+open Inhabited {{...}} public
+
+```
+
+Each of the term predicates has an instance:
+
+```
+instance
+  inh-var : ∀ {n : Fin X} {P} → {{Inhabited (P n)}} → Inhabited (`ᵖ P (` n))
+  inh-var {X} {n} = inh (`! inhabitant)
+
+  inh-lam : ∀ {X} {M : suc X ⊢} {P} → {{Inhabited (P M)}} → Inhabited (ƛᵖ P (ƛ M))
+  inh-lam = inh (ƛ! inhabitant)
+
+  inh-app : ∀ {X} {P Q} {M N : X ⊢} → {{Inhabited (P M)}} → {{Inhabited (Q N)}} →  Inhabited ((P ·ᵖ Q) (M · N))
+  inh-app = inh (inhabitant ·! inhabitant)
+
+  inh-force : ∀ {X} {P} {M : X ⊢} → {{Inhabited (P M)}} → Inhabited (forceᵖ P (force M))
+  inh-force = inh (force! inhabitant)
+
+  inh-delay : ∀ {X} {P} {M : X ⊢} → {{Inhabited (P M)}} → Inhabited (delayᵖ P (delay M))
+  inh-delay = inh (delay! inhabitant)
+
+  inh-case : ∀ {X} {P Q} {M : X ⊢} {Ms : List (X ⊢)} →
+    {{Inhabited (P M)}} →
+    {{Inhabited (Q Ms)}} →
+    Inhabited (caseᵖ P Q (case M Ms))
+  inh-case = inh (case! inhabitant inhabitant)
+
+  inh-constr : ∀ {X} {P Q} {i} {Ms : List (X ⊢)} →
+    {{Inhabited (P i)}} →
+    {{Inhabited (Q Ms)}} →
+    Inhabited (constrᵖ P Q (constr i Ms))
+  inh-constr = inh (constr! inhabitant inhabitant)
+
+  inh-builtin : ∀ {X P b} →
+    {{Inhabited (P b) }} →
+    Inhabited (builtinᵖ P (builtin {X} b))
+  inh-builtin = inh (builtin! inhabitant)
+
+  inh-con : ∀ {X P b} →
+    {{Inhabited (P b) }} →
+    Inhabited (conᵖ P (con {X} b))
+  inh-con = inh (con! inhabitant)
+
+  inh-error : ∀ {X} →
+    Inhabited (errorᵖ (error {X}))
+  inh-error = inh error!
+
+  inh-match : ∀ {A : Set} {X : A} → Inhabited (match X)
+  inh-match = record {inhabitant = match! _}
+
+  inh-× : ∀ {A B} → {{ Inhabited A }} → {{ Inhabited B }} → Inhabited (A × B)
+  inh-× = inh (inhabitant , inhabitant)
+
+  inh-≡ : ∀ {A : Set} {x : A} → Inhabited (x ≡ x)
+  inh-≡ = record {inhabitant = refl}
+```
+
+### Examples
+
+`AddCom` relates term `M + N` to `N + M`.
+
+```
+data AddComm : X ⊢ → X ⊢ → Set where
+  addComm :
+    ∀ {M N : X ⊢} →
+    AddComm (builtin addInteger · M · N) (builtin addInteger · N · M)
+
+addComm? : (M N : X ⊢) → Dec (AddComm M N)
+addComm? M N
+  with (builtin? (_≟_ addInteger) ·? ⋯ ·? ⋯) M
+... | no ¬P = no λ {addComm → ¬P inhabitant}
+... | yes (builtin! refl ·! match! x ·! match! y)
+  with (builtin? (_≟_ addInteger) ·? (_≟_ y) ·? (_≟_ x)) N
+... | no ¬P = no λ {addComm → ¬P inhabitant}
+... | yes (builtin! refl ·! refl ·! refl) = yes addComm
 ```

@@ -1890,7 +1890,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     let dropListDenotation
           :: IntegerCostedLiterally -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
         dropListDenotation i (SomeConstant (Some (ValueOf uniListA xs))) = do
-          -- See Note [Operational vs structural errors within builtins].
+          -- See Note [Structural vs operational errors within builtins].
           case uniListA of
             DefaultUniList _ ->
               -- The fastest way of dropping elements from a list is by operating on

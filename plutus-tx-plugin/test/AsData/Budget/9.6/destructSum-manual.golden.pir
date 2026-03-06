@@ -31,6 +31,8 @@ let
             (unIData (headList {data} l))
             (unIData (headList {data} l))
             (unIData (headList {data} (tailList {data} l)))
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
 in
 \(d : data) ->
   let
@@ -59,46 +61,51 @@ in
                      (case integer tup [(\(l : integer) (r : list data) -> l)]))
                   [ (/\dead -> fail ())
                   , (/\dead ->
-                       let
-                         !args : list data
-                           = case
-                               (list data)
-                               tup
-                               [(\(l : integer) (r : list data) -> r)]
-                         !y : data = headList {data} (tailList {data} args)
-                         !ds : data = headList {data} args
-                       in
-                       `$mInts`
+                       Tuple2_match
                          {data}
-                         ds
-                         (\(x : integer)
-                           (y : integer)
-                           (z : integer)
-                           (w : integer) ->
+                         {data}
+                         (let
+                           !args : list data
+                             = case
+                                 (list data)
+                                 tup
+                                 [(\(l : integer) (r : list data) -> r)]
+                           !y : data = headList {data} (tailList {data} args)
+                         in
+                         Tuple2 {data} {data} (headList {data} args) y)
+                         {data}
+                         (\(arg : data) (arg : data) ->
                             `$mInts`
                               {data}
-                              y
+                              arg
                               (\(x : integer)
                                 (y : integer)
                                 (z : integer)
                                 (w : integer) ->
-                                 constrData
-                                   0
-                                   (mkCons
-                                      {data}
-                                      (iData (addInteger x x))
-                                      (mkCons
-                                         {data}
-                                         (iData (addInteger y y))
-                                         (mkCons
-                                            {data}
-                                            (iData (addInteger z z))
-                                            (mkCons
-                                               {data}
-                                               (iData (addInteger w w))
-                                               [])))))
-                              (\(void : unit) -> fail ()))
-                         (\(void : unit) -> fail ())) ]
+                                 `$mInts`
+                                   {data}
+                                   arg
+                                   (\(x : integer)
+                                     (y : integer)
+                                     (z : integer)
+                                     (w : integer) ->
+                                      constrData
+                                        0
+                                        (mkCons
+                                           {data}
+                                           (iData (addInteger x x))
+                                           (mkCons
+                                              {data}
+                                              (iData (addInteger y y))
+                                              (mkCons
+                                                 {data}
+                                                 (iData (addInteger z z))
+                                                 (mkCons
+                                                    {data}
+                                                    (iData (addInteger w w))
+                                                    [])))))
+                                   (\(void : unit) -> fail ()))
+                              (\(void : unit) -> fail ()))) ]
                   {all dead. dead})
            , (/\dead ->
                 headList

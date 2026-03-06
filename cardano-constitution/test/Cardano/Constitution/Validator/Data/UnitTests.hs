@@ -35,12 +35,7 @@ import Test.Tasty.QuickCheck
 -- All limits tested
 -- MC/DC coverage
 
-{- Note [Why de-duplicated ChangedParameters]
-\**ALL** The following ScriptContext examples *MUST* be de-duplicated Lists.
-Otherwise, both the sorted and unsorted scripts will produce
-"wrong" results (for different reasons).
-See also Guarantee(2) in README.md
--}
+-- See Note [Why de-duplicated ChangedParameters]
 
 -- all these are actually unit tests (by using QuickCheck.once)
 

@@ -35,13 +35,7 @@ import Test.Tasty
 import Test.Tasty.Extras (ignoreTestWhenHpcEnabled)
 import Test.Tasty.HUnit
 
-{- Note [Direct UPLC code]
-For this test-suite we write the programs directly in the UPLC AST,
-bypassing the GHC typechecker & compiler, the PIR typechecker & compiler and the PLC typechecker.
-The reason is that users can submit such hand-crafted code, and we want to test how it behaves.
-Because this is part of our API, we have to be careful not to change the behaviour of even weird untypeable programs.
-In particular, we test the online part (API module).
--}
+-- See Note [Direct UPLC code]
 
 type T = Term DeBruijn DefaultUni DefaultFun ()
 
