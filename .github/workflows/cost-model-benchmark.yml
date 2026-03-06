@@ -4,6 +4,8 @@
 
 
 name: "💰 Cost Model Benchmark" 
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:

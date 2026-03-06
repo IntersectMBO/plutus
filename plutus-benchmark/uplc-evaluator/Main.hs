@@ -322,7 +322,7 @@ processProgram Config {..} inputPath = do
       -- Read the file content as Text
       -- TODO [Flat Encoding Support]: For .uplc.flat files, read as ByteString
       -- and use binary deserialization instead of text parsing.
-      -- See Note [Flat Encoding Support] at isUplcFile.
+      -- See [Flat Encoding Support] at isUplcFile.
       readResult <- try @SomeException $ TIO.readFile inputPath
 
       case readResult of

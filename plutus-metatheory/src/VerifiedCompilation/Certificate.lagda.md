@@ -47,18 +47,19 @@ data SimplifierTag : Set where
   cseT : SimplifierTag
 
 data InlineHints : Set where
-  var    : InlineHints
-  expand : InlineHints → InlineHints
-  ƛ     : InlineHints → InlineHints
-  _·_    : InlineHints → InlineHints → InlineHints
-  _·↓    : InlineHints → InlineHints
-  force : InlineHints → InlineHints
-  delay : InlineHints → InlineHints
+  var     : InlineHints
+  expand  : InlineHints → InlineHints
+  ƛ       : InlineHints → InlineHints
+  ƛ↓      : InlineHints → InlineHints
+  _·_     : InlineHints → InlineHints → InlineHints
+  _·↓     : InlineHints → InlineHints
+  force   : InlineHints → InlineHints
+  delay   : InlineHints → InlineHints
   con     : InlineHints
   builtin : InlineHints
   error   : InlineHints
-  constr : List InlineHints → InlineHints
-  case   : InlineHints → List InlineHints → InlineHints
+  constr  : List InlineHints → InlineHints
+  case    : InlineHints → List InlineHints → InlineHints
 
 data Hints : Set where
   inline : InlineHints → Hints
@@ -67,7 +68,7 @@ data Hints : Set where
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Certify.Trace #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Transform.Certify.Hints as Hints #-}
 {-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
-{-# COMPILE GHC InlineHints = data Hints.Inline (Hints.InlVar | Hints.InlExpand | Hints.InlLam | Hints.InlApply | Hints.InlDrop | Hints.InlForce | Hints.InlDelay | Hints.InlCon | Hints.InlBuiltin | Hints.InlError | Hints.InlConstr | Hints.InlCase) #-}
+{-# COMPILE GHC InlineHints = data Hints.Inline (Hints.InlVar | Hints.InlExpand | Hints.InlLam | Hints.InlLamDrop | Hints.InlApply | Hints.InlDrop | Hints.InlForce | Hints.InlDelay | Hints.InlCon | Hints.InlBuiltin | Hints.InlError | Hints.InlConstr | Hints.InlCase) #-}
 {-# COMPILE GHC Hints = data Hints.Hints (Hints.Inline | Hints.NoHints) #-}
 
 variable

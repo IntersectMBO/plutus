@@ -46,6 +46,8 @@ is that only variables in the context are used. The context uses de Bruijn namin
 so the variables are numbered.
 
 ```
+infixl 7 _·_
+
 data _⊢ (n : ℕ) : Set where
   `   : Fin n → n ⊢
   ƛ   : suc n ⊢ → n ⊢

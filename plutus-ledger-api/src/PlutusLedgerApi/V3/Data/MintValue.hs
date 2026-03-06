@@ -44,17 +44,7 @@ import Prettyprinter (Pretty)
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
 import Prelude qualified as Haskell
 
-{- Note [MintValue vs Value]
-
-'MintValue' differs conceptually from 'Value' in how negative quantities are interpreted:
-
-In 'MintValue', negative quantities are interpreted as assets being burned. For 'Value',
-negative quantities are either don't make sense (e.g. in a transaction output) or interpreted
-as a negative balance.
-
-We want to distinguish these at the type level to avoid using 'MintValue' where 'Value' is assumed.
-Users should project 'MintValue' into 'Value' using 'mintValueMinted' or 'mintValueBurned'.
--}
+--  See Note [MintValue vs Value]
 
 -- | A 'MintValue' represents assets that are minted and burned in a transaction.
 newtype MintValue = UnsafeMintValue (Map CurrencySymbol (Map TokenName Integer))

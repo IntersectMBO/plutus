@@ -550,28 +550,7 @@ after
 after h (Interval _ t) = upperBound h > t
 {-# INLINEABLE after #-}
 
-{- Note [Enumerable Intervals]
-The 'Interval' type is set up to handle open intervals, where we have non-inclusive
-bounds. These are only meaningful for orders where there do not exist (computable)
-joins and meets over all elements greater or less than an element.
-
-If those do exist, we can eliminate non-inclusive bounds in favour of inclusive bounds.
-For example, in the integers, (x, y) is equivalent to [x+1, y-1], because
-x+1 = sup { z | z > x} and y-1 = inf { z | z < y }.
-
-Checking equality, containment etc. of intervals with non-inclusive bounds is
-tricky. For example, to know if (x, y) is empty, we need to know if there is a
-value between x and y. We don't have a typeclass for that!
-
-In practice, most of the intervals we care about are enumerable (have 'Enum'
-instances). We assume that `pred` and `succ` calculate the infima/suprema described
-above, and so we can turn non-inclusive bounds into inclusive bounds, which
-makes things much easier. The downside is that some of the `Enum` instances have
-partial implementations, which means that, e.g. `isEmpty (False, True]` will
-throw.
-
-The upshot of this is that many functions in this module require 'Enum'.
--}
+-- See Note [Enumerable Intervals]
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------

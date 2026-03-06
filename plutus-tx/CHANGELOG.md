@@ -1,4 +1,15 @@
 
+<a id='changelog-1.59.0.0'></a>
+# 1.59.0.0 — 2026-03-02
+
+## Added
+
+- A `deriveOrd` command to derive PlutusTx.Ord instances for datatypes/newtypes, similar to Haskell's
+  `deriving stock Ord`
+
+- `PlutusTx.deriveEq`: Template Haskell function to derive `PlutusTx.Eq` instances
+  for datatypes and newtypes, similar to Haskell's `deriving stock Eq`
+
 <a id='changelog-1.57.0.0'></a>
 # 1.57.0.0 — 2026-01-20
 

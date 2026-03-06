@@ -24,6 +24,9 @@ on:
       - "🏆 Compare Golden Budgets"
       - "pages-build-deployment"
 
+permissions:
+  contents: read
+
 jobs:
   Send:
     runs-on: [ubuntu-latest]

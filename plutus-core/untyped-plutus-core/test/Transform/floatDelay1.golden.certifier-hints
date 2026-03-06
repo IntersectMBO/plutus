@@ -15,12 +15,13 @@ NoHints
 
 -- Certifier hints #6 (Inline) --
 InlDrop
-  InlApply
+  InlLamDrop
     InlApply
-      InlBuiltin
+      InlApply
+        InlBuiltin
+        InlExpand
+          InlCon
       InlExpand
         InlCon
-    InlExpand
-      InlCon
 
 

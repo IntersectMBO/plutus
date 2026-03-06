@@ -43,7 +43,7 @@ d_nl_6 = coe ("\n" :: Data.Text.Text)
 d_hl_8 :: MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_hl_8
   = coe
-      ("\n\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\n"
+      ("\n\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\n"
        ::
        Data.Text.Text)
 -- CertifierReport.showTag
@@ -408,16 +408,16 @@ d_reportPasses_182 ::
     (MAlonzo.Code.Utils.T__'215'__396
        MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4
        (MAlonzo.Code.Utils.T__'215'__396
-          MAlonzo.Code.VerifiedCompilation.Certificate.T_Hints_46
+          MAlonzo.Code.VerifiedCompilation.Certificate.T_Hints_48
           (MAlonzo.Code.Utils.T__'215'__396
              MAlonzo.Code.Untyped.T__'8866'_14
              MAlonzo.Code.Untyped.T__'8866'_14))) ->
   Integer ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_CertResult_60 ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_CertResult_62 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_reportPasses_182 v0 v1 v2 v3
   = case coe v3 of
-      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_66 v4
+      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_68 v4
         -> case coe v4 of
              MAlonzo.Code.VerifiedCompilation.C_empty_64
                -> coe ("" :: Data.Text.Text)
@@ -507,7 +507,7 @@ d_reportPasses_182 v0 v1 v2 v3
                                                                                                 (coe
                                                                                                    v2))
                                                                                              (coe
-                                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_66
+                                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_68
                                                                                                 (coe
                                                                                                    v12)))))))))))))))))
                                          _ -> MAlonzo.RTE.mazUnreachableError
@@ -515,7 +515,7 @@ d_reportPasses_182 v0 v1 v2 v3
                            _ -> MAlonzo.RTE.mazUnreachableError
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_74 v7 v8 v9
+      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_76 v7 v8 v9
         -> coe
              MAlonzo.Code.Data.String.Base.d__'43''43'__20 d_hl_8
              (coe
@@ -533,7 +533,7 @@ d_reportPasses_182 v0 v1 v2 v3
                          (coe
                             MAlonzo.Code.Data.String.Base.d__'43''43'__20
                             ("  \10060 FAILED" :: Data.Text.Text) d_hl_8)))))
-      MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_80 v6 v7 v8
+      MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_82 v6 v7 v8
         -> coe
              MAlonzo.Code.Data.String.Base.d__'43''43'__20 d_hl_8
              (coe
@@ -559,11 +559,11 @@ d_makeReport_210 ::
     (MAlonzo.Code.Utils.T__'215'__396
        MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4
        (MAlonzo.Code.Utils.T__'215'__396
-          MAlonzo.Code.VerifiedCompilation.Certificate.T_Hints_46
+          MAlonzo.Code.VerifiedCompilation.Certificate.T_Hints_48
           (MAlonzo.Code.Utils.T__'215'__396
              MAlonzo.Code.Untyped.T__'8866'_14
              MAlonzo.Code.Untyped.T__'8866'_14))) ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_CertResult_60 ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_CertResult_62 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_makeReport_210 v0 v1 v2
   = coe

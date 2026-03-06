@@ -1,20 +1,21 @@
-cabal-version:   3.0
-name:            plutus-ledger-api
-version:         1.58.0.0
-license:         Apache-2.0
+cabal-version:      3.0
+name:               plutus-ledger-api
+version:            1.59.0.0
+license:            Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-maintainer:      michael.peyton-jones@iohk.io
-author:          Michael Peyton Jones, Jann Mueller
-synopsis:        Interface to the Plutus ledger for the Cardano ledger.
+maintainer:         michael.peyton-jones@iohk.io
+author:             Michael Peyton Jones, Jann Mueller
+synopsis:           Interface to the Plutus ledger for the Cardano ledger.
 description:
   Interface to the Plutus scripting support for the Cardano ledger.
 
-category:        Language
-build-type:      Simple
-extra-doc-files: CHANGELOG.md
+category:           Language
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+extra-source-files: CostModel/**/*.golden.txt
 
 source-repository head
   type:     git
@@ -116,8 +117,8 @@ library
     , lens
     , mtl
     , nothunks           >=0.2   && <0.4
-    , plutus-core        ^>=1.58
-    , plutus-tx          ^>=1.58
+    , plutus-core        ^>=1.59
+    , plutus-tx          ^>=1.59
     , prettyprinter
     , serialise
     , tagged
@@ -144,7 +145,7 @@ library plutus-execlib
     , monoidal-containers
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.58
+    , plutus-core                      ^>=1.59
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
@@ -179,10 +180,10 @@ library plutus-ledger-api-testlib
     , base64-bytestring
     , bytestring
     , containers
-    , plutus-core                      ^>=1.58
+    , plutus-core                      ^>=1.59
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                ^>=1.58
-    , plutus-tx                        ^>=1.58
+    , plutus-ledger-api                ^>=1.59
+    , plutus-tx                        ^>=1.59
     , prettyprinter
     , QuickCheck
     , serialise
@@ -225,11 +226,11 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core                                  ^>=1.58
+    , plutus-core                                  ^>=1.59
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                            ^>=1.58
+    , plutus-ledger-api                            ^>=1.59
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.58
+    , plutus-tx                                    ^>=1.59
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , serialise
@@ -289,8 +290,8 @@ executable test-onchain-evaluation
     , extra
     , filepath
     , mtl
-    , plutus-core                                  ^>=1.58
-    , plutus-ledger-api                            ^>=1.58
+    , plutus-core                                  ^>=1.59
+    , plutus-ledger-api                            ^>=1.59
     , plutus-ledger-api:plutus-ledger-api-testlib
     , serialise
     , tasty
@@ -309,10 +310,10 @@ executable analyse-script-events
     , filepath
     , lens
     , mtl
-    , plutus-core                                  ^>=1.58
-    , plutus-ledger-api                            ^>=1.58
+    , plutus-core                                  ^>=1.59
+    , plutus-ledger-api                            ^>=1.59
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.58
+    , plutus-tx                                    ^>=1.59
     , primitive
     , serialise
 
@@ -331,7 +332,7 @@ executable dump-cost-model-parameters
     , containers
     , extra
     , optparse-applicative
-    , plutus-core           ^>=1.58
-    , plutus-ledger-api     ^>=1.58
+    , plutus-core           ^>=1.59
+    , plutus-ledger-api     ^>=1.59
     , text
     , vector

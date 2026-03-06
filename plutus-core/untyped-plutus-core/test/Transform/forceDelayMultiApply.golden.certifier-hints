@@ -19,16 +19,20 @@ InlLam
     InlDrop
       InlDrop
         InlDrop
-          InlApply
-            InlApply
-              InlApply
-                InlExpand
-                  InlVar
-                InlExpand
-                  InlCon
-              InlExpand
-                InlCon
-            InlExpand
-              InlCon
+          InlLamDrop
+            InlLamDrop
+              InlLamDrop
+                InlLamDrop
+                  InlApply
+                    InlApply
+                      InlApply
+                        InlExpand
+                          InlVar
+                        InlExpand
+                          InlCon
+                      InlExpand
+                        InlCon
+                    InlExpand
+                      InlCon
 
 

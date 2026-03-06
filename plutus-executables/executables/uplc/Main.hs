@@ -31,7 +31,6 @@ import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
-import Data.Char
 import Data.Foldable
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
@@ -346,9 +345,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput)
     Just cert -> do
       time <- systemNanoseconds <$> getSystemTime
       let
-        -- FIXME: remove
-        capitalize = \case [] -> []; x : xs -> toUpper x : xs
-        certDir = capitalize cert <> "-" <> show time
+        certDir = cert <> "-" <> show time
         certOutput = case certifierOutput of
           CertBasic -> BasicOutput
           CertReport file -> ReportOutput file

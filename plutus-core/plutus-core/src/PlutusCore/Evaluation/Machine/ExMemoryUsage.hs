@@ -28,7 +28,6 @@ import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 
 import Data.ByteString qualified as BS
-import Data.Functor
 import Data.Map.Strict qualified as Map
 import Data.Proxy
 import Data.SatInt
@@ -202,7 +201,7 @@ instance ExMemoryUsage (a, b) where
   memoryUsage _ = singletonRose maxBound
   {-# INLINE memoryUsage #-}
 
-{- Note the the `memoryUsage` of an empty list is zero.  This shouldn't cause any
+{- Note that the `memoryUsage` of an empty list is zero.  This shouldn't cause any
  problems, but be sure to check that no costing function involving lists can
  return zero for an empty list (or any other input).
 -}
@@ -224,7 +223,7 @@ instance ExMemoryUsage [a] where
         Nothing -> singletonRose (fromIntegral (length xs))
   {-# INLINE memoryUsage #-}
 
-{- Note the the `memoryUsage` of an empty array is zero.  This shouldn't cause any
+{- Note that the `memoryUsage` of an empty array is zero.  This shouldn't cause any
  problems, but be sure to check that no costing function involving arrays can
  return zero for an empty array (or any other input).
 -}
@@ -333,7 +332,15 @@ instance ExMemoryUsage T.Text where
   --
   -- We may want to make this a bit less of an overestimate in future just not to overcharge
   -- users.
-  memoryUsage = singletonRose . fromIntegral . T.length
+  memoryUsage = go
+    where
+      go xs
+        | T.null ys = singletonRose (fromIntegral (T.length xs))
+        | otherwise = CostRose 100 [go ys]
+        where
+          -- This is similar to the ExMemoryUsage [a] instance, but no need to do
+          -- compile time unrolling since it doesn't apply to Text.
+          ys = T.drop 100 xs
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
@@ -383,9 +390,9 @@ instance ExMemoryUsage Data where
 
       sizeData d = addConstantRose dataNodeRose $ case d of
         -- TODO: include the size of the tag, but not just yet. See PLT-1176.
-        Constr _ l -> CostRose 0 $ l <&> sizeData
-        Map l -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
-        List l -> CostRose 0 $ l <&> sizeData
+        Constr _ l -> CostRose 0 $ sizeData <$> l
+        Map l -> CostRose 0 $ foldr (\(d1, d2) acc -> sizeData d1 : sizeData d2 : acc) [] l
+        List l -> CostRose 0 $ sizeData <$> l
         I n -> memoryUsage n
         B b -> memoryUsage b
 
@@ -399,16 +406,17 @@ instance ExMemoryUsage DataNodeCount where
     where
       go d = CostRose 1 $
         case d of
-          Constr _ ds -> ds <&> go
-          Map pairs -> pairs >>= \(d1, d2) -> [d1, d2] <&> go
-          List ds -> ds <&> go
+          Constr _ ds -> go <$> ds
+          Map pairs -> foldr (\(d1, d2) acc -> go d1 : go d2 : acc) [] pairs
+          List ds -> go <$> ds
           I _ -> []
           B _ -> []
       {-# INLINE go #-}
   {-# INLINE memoryUsage #-}
 
+-- | Measure the size of a `Value` by its `Value.totalSize`.
 instance ExMemoryUsage Value where
-  memoryUsage = singletonRose . fromIntegral . Value.totalSize
+  memoryUsage = memoryUsage . ValueTotalSize
   {-# INLINE memoryUsage #-}
 
 -- | Measure the size of a `Value` by its `Value.totalSize`.

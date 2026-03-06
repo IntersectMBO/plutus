@@ -9,6 +9,10 @@
 module PlutusCore.Executable.Common
   ( module PlutusCore.Executable.Types
   , PrintBudgetState
+  , SomeExample (..)
+  , SomeTypedExample (..)
+  , SomeUntypedExample (..)
+  , UntypedTermExample (..)
   , getInput
   , getInteresting
   , getPlcExamples
