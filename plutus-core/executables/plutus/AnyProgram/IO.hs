@@ -29,31 +29,35 @@ import Prettyprinter
 import Prettyprinter.Render.Text
 import System.IO
 
-readProgram
-  :: (?opts :: Opts)
-  => SLang s -> File s -> IO (FromLang s)
+readProgram :: (?opts :: Opts)
+            => SLang s -> File s -> IO (FromLang s)
 readProgram sngS fileS =
-  case fileS ^. fName of
-    Just (Example _eName) ->
-      failE "Reading from examples is not supported yet. Provide a file path instead."
-    -- case sngS of
-    --     SPir SName SUnit ->
-    --         case lookup eName termExamples of
-    --             Just ast -> pure $ PIR.Program () undefined ast
-    --             Nothing -> error $ "Couldn't find example with name " ++ eName
-    _ -> case fileS ^. fType . fFormat of
+    case fileS^.fName of
+        Just (Example _eName) ->
+            error "FIXME: Not implemented yet."
+            -- case sngS of
+            --     SPir SName SUnit ->
+            --         case lookup eName termExamples of
+            --             Just ast -> pure $ PIR.Program () undefined ast
+            --             Nothing -> error $ "Couldn't find example with name " ++ eName
+         
+        _ -> do
+            fileName <- case fileS^.fName of
+                Just name -> pure name
+                Nothing -> failE "No input file specified."
+            case fileS^.fType.fFormat of
       Text -> do
-        bs <- readFileName (fromJust $ fileS ^. fName)
+      bs <- readFileName fileName
         case parseProgram sngS $ T.decodeUtf8Lenient bs of
           Left err -> failE $ show err
           Right res -> pure res
       Flat_ -> withLang @Flat sngS $ do
-        bs <- readFileName (fromJust $ fileS ^. fName)
+        bs <- readFileName fileName
         case unflat bs of
           Left err -> failE $ show err
           Right res -> pure res
       Cbor -> do
-        bs <- readFileName (fromJust $ fileS ^. fName)
+        bs <- readFileName fileName
         -- TODO: deduplicate
         case sngS %~ SData of
           Proved Refl ->
