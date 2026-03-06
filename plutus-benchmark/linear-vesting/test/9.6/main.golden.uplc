@@ -1207,7 +1207,25 @@
            (\s -> f (\x -> s s x)))
       (Constr 0
          [ Constr 0
-             [ List []
+             [ List
+                 [ Constr 0
+                     [ Constr 0
+                         [ B #058fdca70be67c74151cea3846be7f73342d92c0090b62c1052e6790ad83f145
+                         , I 0 ]
+                     , Constr 0
+                         [ Constr 0
+                             [Constr 1 [B #6465616462656566], Constr 1 []]
+                         , Map []
+                         , Constr 2
+                             [ Constr 0
+                                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                                 , Constr 0 [B #24, B #746573742d6173736574]
+                                 , I 1000
+                                 , I 0
+                                 , I 100
+                                 , I 10
+                                 , I 10 ] ]
+                         , Constr 1 [] ] ] ]
              , List []
              , List []
              , I 0
@@ -1218,9 +1236,14 @@
                  [ Constr 0 [Constr 1 [I 110], Constr 1 []]
                  , Constr 0 [Constr 1 [I 1100], Constr 1 []] ]
              , List [B #]
+             , Map
+                 [ ( Constr 1
+                       [ Constr 0
+                           [ B #058fdca70be67c74151cea3846be7f73342d92c0090b62c1052e6790ad83f145
+                           , I 0 ] ]
+                 , Constr 1 [] ) ]
              , Map []
-             , Map []
-             , B #058fdca70be67c74151cea3846be7f73342d92c0090b62c1052e6790ad83f145
+             , B #6465616462656566
              , Map []
              , List []
              , Constr 1 []
