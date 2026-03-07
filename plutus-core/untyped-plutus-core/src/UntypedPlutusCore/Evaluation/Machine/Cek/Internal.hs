@@ -836,11 +836,11 @@ enterComputeCek = computeCek
       returnCek ctx (VLamAbs name body env)
     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
     computeCek !ctx !env (Delay _ body) = do
-      stepAndMaybeSpend BDelay
+      -- stepAndMaybeSpend BDelay
       returnCek ctx (VDelay body env)
     -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
     computeCek !ctx !env (Force _ body) = do
-      stepAndMaybeSpend BForce
+      -- stepAndMaybeSpend BForce
       computeCek (FrameForce ctx) env body
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
     computeCek !ctx !env (Apply _ fun arg) = do
@@ -953,6 +953,7 @@ enterComputeCek = computeCek
       -> CekM uni fun s (DischargeResult uni fun)
     forceEvaluate !ctx (VDelay body env) = computeCek ctx env body
     forceEvaluate !ctx (VBuiltin fun term runtime) = do
+      stepAndMaybeSpend BForce
       -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
       let term' = Force () term
       case runtime of
