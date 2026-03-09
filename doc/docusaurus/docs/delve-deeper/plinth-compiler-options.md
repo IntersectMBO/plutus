@@ -20,13 +20,15 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 
 |Option|Value Type|Default|Description|
 |-|-|-|-|
-|`certify`|Maybe [Char]||Produce a certificate for the compiled program, with the given name. This certificate provides evidence that the compiler optimizations have preserved the functional behavior of the original program. Currently, this is only supported for the UPLC compilation pipeline. Warning: this is an experimental feature and may not work as expected.|
+|`apply-to-case`|Bool|True|Run the apply-to-case pass, turning multi-argument applications into case-constr form.|
+|`certify`|Maybe [Char]||Produce a certificate for the compiled program, with the given name. This certificate provides evidence that the compiler optimizations have preserved the functional behavior of the original program. Currently, this is only supported for the UPLC compilation pipeline.|
 |`conservative-optimisation`|Bool|False|When conservative optimisation is used, only the optimisations that never make the program worse (in terms of cost or size) are employed. Implies `no-relaxed-float-in`, `no-inline-constants`, `no-inline-fix`, `no-simplifier-evaluate-builtins`, and `preserve-logging`.|
 |`context-level`|Int|1|Set context level for error messages.|
 |`coverage-all`|Bool|False|Add all available coverage annotations in the trace output|
 |`coverage-boolean`|Bool|False|Add boolean coverage annotations in the trace output|
 |`coverage-location`|Bool|False|Add location coverage annotations in the trace output|
-|`datatypes`|DatatypeCompilationOpts|SumsOfProducts|BuiltinCasing|Set datatype encoding style|
+|`cse-which-subterms`|CseWhichSubterms|ExcludeWorkFree|Which subterms CSE should consider (after uniquely renaming the program)|
+|`datatypes`|DatatypeCompilationOpts|SumsOfProducts|Set datatype encoding style|
 |`defer-errors`|Bool|False|If a compilation error happens and this option is turned on, the compilation error is suppressed and the original Haskell expression is replaced with a runtime-error expression.|
 |`dump-compilation-trace`|Bool|False|Dump compilation trace for debugging|
 |`dump-pir`|Bool|False|Dump Plutus IR|
@@ -36,7 +38,6 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`inline-constants`|Bool|True|Always inline constants. Inlining constants always reduces script costs slightly, but may increase script sizes if a large constant is used more than once. Implied by `no-conservative-optimisation`.|
 |`inline-fix`|Bool|True|Always inline fixed point combinators. This is generally preferable as it often enables further optimization, though it may increase script size.|
 |`max-cse-iterations`|Int|4|Set the max iterations for CSE|
-|`cse-which-subterms`|CseWhichSubterms|ExcludeWorkFree|Which subterms should CSE consider? Either `AllSubterms` or `ExcludeWorkFree`|
 |`max-simplifier-iterations-pir`|Int|12|Set the max iterations for the PIR simplifier|
 |`max-simplifier-iterations-uplc`|Int|12|Set the max iterations for the UPLC simplifier|
 |`optimize`|Bool|True|Run optimization passes such as simplification and floating let-bindings.|

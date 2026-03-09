@@ -25,3 +25,6 @@ InlDrop
         InlCon
 
 
+-- Certifier hints #7 (ApplyToCase) --
+NoHints
+

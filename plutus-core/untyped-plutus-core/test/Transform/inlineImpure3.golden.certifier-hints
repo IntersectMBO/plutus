@@ -21,3 +21,6 @@ InlApply
   InlError
 
 
+-- Certifier hints #7 (ApplyToCase) --
+NoHints
+

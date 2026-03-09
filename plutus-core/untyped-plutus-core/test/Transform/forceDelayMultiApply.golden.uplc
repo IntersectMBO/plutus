@@ -1,1 +1,1 @@
-\funcVar -> funcVar 1 2 3
+\funcVar -> case (constr 0 [1, 2, 3]) [funcVar]
