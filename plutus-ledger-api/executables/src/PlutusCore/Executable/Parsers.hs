@@ -73,6 +73,7 @@ formatReader =
   \case
     "textual" -> Just Textual
     "serialised" -> Just Serialised
+    "hex" -> Just Hex
     "flat-named" -> Just (Flat Named)
     "flat" -> Just (Flat DeBruijn)
     "flat-deBruijn" -> Just (Flat DeBruijn)

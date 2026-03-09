@@ -70,11 +70,13 @@ type Files = [FilePath]
 data Format
   = Textual
   | Serialised
+  | Hex
   | Flat AstNameType
 
 instance Show Format where
   show Textual = "textual"
   show Serialised = "serialised"
+  show Hex = "hex"
   show (Flat Named) = "flat-named"
   show (Flat DeBruijn) = "flat-deBruijn"
   show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
