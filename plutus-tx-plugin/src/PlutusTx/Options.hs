@@ -27,9 +27,9 @@ import Data.Coerce (coerce)
 import Data.Either.Validation
 #if __GLASGOW_HASKELL__ >= 912
 import Data.Foldable (toList)
-#else 
+#else
 import Data.Foldable (foldl', toList)
-#endif 
+#endif
 import Control.Applicative (many, optional, (<|>))
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
@@ -67,6 +67,7 @@ data PluginOptions = PluginOptions
   , _posDoSimplifierEvaluateBuiltins :: Bool
   , _posDoSimplifierStrictifyBindings :: Bool
   , _posDoSimplifierRemoveDeadBindings :: Bool
+  , _posApplyToCase :: Bool
   , _posProfile :: ProfileOpts
   , _posCoverageAll :: Bool
   , _posCoverageLocation :: Bool
@@ -157,7 +158,14 @@ pluginOptions =
   Map.fromList
     [ let k = "target-version"
           desc = "The target Plutus Core language version"
-       in (k, PluginOption typeRep (plcParserOption PLC.version k) posPlcTargetVersion desc [])
+       in ( k
+          , PluginOption
+              typeRep
+              (plcParserOption PLC.version k)
+              posPlcTargetVersion
+              desc
+              [Implication (== PLC.plcVersion100) posApplyToCase False]
+          )
     , let k = "typecheck"
           desc = "Perform type checking during compilation."
        in (k, PluginOption typeRep (setTrue k) posDoTypecheck desc [])
@@ -287,6 +295,9 @@ pluginOptions =
     , let k = "simplifier-remove-dead-bindings"
           desc = "Run a simplification pass that removes dead bindings"
        in (k, PluginOption typeRep (setTrue k) posDoSimplifierRemoveDeadBindings desc [])
+    , let k = "apply-to-case"
+          desc = "Run the apply-to-case pass, turning multi-argument applications into case-constr form."
+       in (k, PluginOption typeRep (setTrue k) posApplyToCase desc [])
     , let k = "profile-all"
           desc = "Set profiling options to All, which adds tracing when entering and exiting a term."
        in (k, PluginOption typeRep (flag (const All) k) posProfile desc [])
@@ -389,6 +400,7 @@ defaultPluginOptions =
     , _posDoSimplifierEvaluateBuiltins = True
     , _posDoSimplifierStrictifyBindings = True
     , _posDoSimplifierRemoveDeadBindings = True
+    , _posApplyToCase = True
     , _posProfile = None
     , _posCoverageAll = False
     , _posCoverageLocation = False

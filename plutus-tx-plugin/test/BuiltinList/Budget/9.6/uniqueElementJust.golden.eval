@@ -1,6 +1,6 @@
-CPU:                 1_477_344
-Memory:                  7_736
-AST Size:                   74
-Flat Size:                  89
+CPU:                 1_445_344
+Memory:                  7_536
+AST Size:                   72
+Flat Size:                  91
 
 (constr 0 (con integer 1))

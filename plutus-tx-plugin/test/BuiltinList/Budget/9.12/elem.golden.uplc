@@ -3,8 +3,8 @@
    (\xs ->
       (\elem ->
          constr 0
-           [ (elem (\x y -> equalsInteger x y) 8 xs)
-           , (elem (\x y -> equalsInteger x y) 12 xs) ])
+           [ (case (constr 0 [(\x y -> equalsInteger x y), 8, xs]) [elem])
+           , (case (constr 0 [(\x y -> equalsInteger x y), 12, xs]) [elem]) ])
         (\`$dEq` a ->
            (\s -> s s)
              (\s xs ->

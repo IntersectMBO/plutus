@@ -8,6 +8,9 @@
               [ (\x xs' ->
                    case
                      ys
-                     [ (\y ys' -> force mkCons (addInteger x y) (s s xs' ys'))
+                     [ (\y ys' ->
+                          force mkCons
+                            (addInteger x y)
+                            (case (constr 0 [s, xs', ys']) [s]))
                      , [] ])
               , [] ]))))

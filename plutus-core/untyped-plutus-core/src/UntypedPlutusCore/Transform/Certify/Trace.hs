@@ -16,6 +16,7 @@ data SimplifierStage
   | CaseReduce
   | Inline
   | CSE
+  | ApplyToCase
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 

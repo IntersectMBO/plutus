@@ -103,7 +103,14 @@ safeLiftWith f g v x = do
           & set
             (ccOpts . coDatatypes . dcoStyle)
             (if v >= PLC.plcVersion110 then SumsOfProducts else ScottEncoding)
-      ucOpts = g PLC.defaultCompilationOpts
+      ucOpts =
+        ( g
+            . ( if v == PLC.plcVersion100
+                  then set (PLC.coSimplifyOpts . UPLC.soApplyToCase) False
+                  else id
+              )
+        )
+          PLC.defaultCompilationOpts
   plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
   uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
   UPLC.Program _ _ db <-
@@ -159,6 +166,7 @@ safeLiftUnopt =
     (set coMaxSimplifierIterations 0)
     ( set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) 0
         . set (PLC.coSimplifyOpts . UPLC.soMaxCseIterations) 0
+        . set (PLC.coSimplifyOpts . UPLC.soApplyToCase) False
     )
 
 {-| Get a Plutus Core program corresponding to the given value, applying default PIR/UPLC

@@ -14,8 +14,10 @@
                    (\go ys ->
                       case
                         (go xs)
-                        [ (force mkCons y (s s ys (force mkCons y xs)))
-                        , (s s ys xs) ])
+                        [ (force mkCons
+                             y
+                             (case (constr 0 [s, ys, (force mkCons y xs)]) [s]))
+                        , (case (constr 0 [s, ys, xs]) [s]) ])
                      ((\s -> s s)
                         (\s xs ->
                            case

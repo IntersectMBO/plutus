@@ -2,6 +2,7 @@
 
 module UntypedPlutusCore.Simplify.Opts
   ( SimplifyOpts (..)
+  , soApplyToCase
   , soMaxSimplifierIterations
   , soMaxCseIterations
   , soCseWhichSubterms
@@ -29,6 +30,7 @@ data SimplifyOpts name a = SimplifyOpts
   , _soInlineConstants :: Bool
   , _soInlineCallsiteGrowth :: AstSize
   , _soPreserveLogging :: Bool
+  , _soApplyToCase :: Bool
   }
   deriving stock (Show)
 
@@ -45,4 +47,5 @@ defaultSimplifyOpts =
     , _soInlineConstants = True
     , _soInlineCallsiteGrowth = 5
     , _soPreserveLogging = True
+    , _soApplyToCase = True
     }

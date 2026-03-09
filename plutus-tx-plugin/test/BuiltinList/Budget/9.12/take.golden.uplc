@@ -1,6 +1,6 @@
 (program
    1.1.0
-   ((\take xs -> force take [] 5 xs)
+   ((\take xs -> case (constr 0 [[], 5, xs]) [(force take)])
       ((\s -> s s)
          (\s arg ->
             delay
@@ -12,10 +12,10 @@
                         [ (\x xs ->
                              force mkCons
                                x
-                               (force (s s (delay (\x -> x)))
-                                  `$dMkNil`
-                                  (subtractInteger n 1)
-                                  xs))
+                               (case
+                                  (constr 0
+                                     [`$dMkNil`, (subtractInteger n 1), xs])
+                                  [(force (s s (delay (\x -> x))))]))
                         , `$dMkNil` ])
                    , `$dMkNil` ]))
          (delay (\x -> x)))))

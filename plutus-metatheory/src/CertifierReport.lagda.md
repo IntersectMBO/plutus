@@ -39,6 +39,7 @@ showTag caseOfCaseT = "Case-of-Case"
 showTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
 showTag inlineT = "Inlining"
 showTag cseT = "Common Subexpression Elimination"
+showTag applyToCaseT = "Transform multi-argument applications into case-constr form"
 ```
 
 Number of times an optimization is applied on the given term in one compiler pass:
@@ -77,6 +78,7 @@ numSites (isCaseReduce p) = just (numSites′ p)
 numSites (isInline _) = nothing
 numSites forceCaseDelayNotImplemented = nothing
 numSites cocNotImplemented = nothing
+numSites applyToCaseNotImplemented = nothing
 
 showSites : {X : ℕ} {tag : SimplifierTag} {M N : X ⊢} → Transformation tag M N → String
 showSites t with numSites t

@@ -58,6 +58,7 @@ instance AgdaUnparse SimplifierStage where
   agdaUnparse CaseReduce = "caseReduceT"
   agdaUnparse Inline = "inlineT"
   agdaUnparse CSE = "cseT"
+  agdaUnparse ApplyToCase = "applyToCaseT"
 
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case

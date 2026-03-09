@@ -86,6 +86,7 @@ data Transformation : SimplifierTag → Relation where
   isCaseReduce : {X : ℕ} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
   forceCaseDelayNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
   cocNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.caseOfCaseT ast ast'
+  applyToCaseNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.applyToCaseT ast ast'
 
 data Trace : { X : ℕ }  → List (SimplifierTag × Hints × (X ⊢) × (X ⊢)) → Set where
   empty : {X : ℕ} → Trace {X} []
@@ -119,6 +120,7 @@ isTransformation? tag hints ast ast' | SimplifierTag.inlineT
 isTransformation? tag hints ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast ast'
 ... | ce ¬p t b a = ce (λ { (isCSE x) → ¬p x}) t b a
 ... | proof p = proof (isCSE p)
+isTransformation? tag hints ast ast' | SimplifierTag.applyToCaseT = proof applyToCaseNotImplemented
 
 isTrace? : {X : ℕ}  → (t : List (SimplifierTag × Hints × (X ⊢) × (X ⊢))) → CertResult (Trace {X} t)
 isTrace? [] = proof empty

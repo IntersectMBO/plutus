@@ -45,6 +45,7 @@ data SimplifierTag : Set where
   caseReduceT : SimplifierTag
   inlineT : SimplifierTag
   cseT : SimplifierTag
+  applyToCaseT : SimplifierTag
 
 data InlineHints : Set where
   var     : InlineHints
@@ -67,7 +68,7 @@ data Hints : Set where
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Certify.Trace #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Transform.Certify.Hints as Hints #-}
-{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
+{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE | ApplyToCase) #-}
 {-# COMPILE GHC InlineHints = data Hints.Inline (Hints.InlVar | Hints.InlExpand | Hints.InlLam | Hints.InlLamDrop | Hints.InlApply | Hints.InlDrop | Hints.InlForce | Hints.InlDelay | Hints.InlCon | Hints.InlBuiltin | Hints.InlError | Hints.InlConstr | Hints.InlCase) #-}
 {-# COMPILE GHC Hints = data Hints.Hints (Hints.Inline | Hints.NoHints) #-}
 
