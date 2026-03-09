@@ -20,10 +20,10 @@ tests_plutus_conformance=(
 tests_plutus_tx_plugin=(
   "cabal run plutus-tx-plugin-tests -- --accept"
   "cabal run size -- --accept"
+  "cabal run plutus-ledger-api-plugin-test -- --accept"
 )
 tests_plutus_ledger_api=(
   "cabal run plutus-ledger-api-test -- --accept"
-  "cabal run plutus-ledger-api-plugin-test -- --accept"
 )
 tests_plutus_benchmark=(
   "cabal run plutus-benchmark-nofib-tests -- --accept"
