@@ -71,6 +71,7 @@ import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 import Control.Monad.Except
 import Data.Aeson qualified as Aeson
 import Data.ByteString qualified as B
+import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as SBS
 import Data.HashMap.Monoidal qualified as H
@@ -80,6 +81,7 @@ import Data.List qualified as List
 import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
 import Data.Text.IO qualified as T
 import GHC.TypeLits (symbolVal)
 import PlutusCore.Flat (Flat)
@@ -113,6 +115,8 @@ class ProgramLike p where
 
   loadASTfromSerialised :: Input -> IO (p ())
 
+  loadASTfromHex :: Input -> IO (p ())
+
   serialiseAST :: p () -> B.ByteString
 
 -- | Instance for PIR program.
@@ -122,6 +126,7 @@ instance ProgramLike PirProg where
   serialiseProgramFlat = serialisePirProgramFlat
   loadASTfromFlat = loadPirASTfromFlat
   loadASTfromSerialised _ = fail "loadASTfromSerialised unsupported for PIR"
+  loadASTfromHex _ = fail "loadASTfromHex unsupported for PIR"
   serialiseAST = error "serialiseAST unsupported for PIR"
 
 -- | Instance for PLC program.
@@ -131,6 +136,7 @@ instance ProgramLike PlcProg where
   serialiseProgramFlat = serialisePlcProgramFlat
   loadASTfromFlat = loadPlcASTfromFlat
   loadASTfromSerialised _ = fail "loadASTfromSerialised unsupported for TPLC"
+  loadASTfromHex _ = fail "loadASTfromHex unsupported for TPLC"
   serialiseAST = error "serialiseAST unsupported for TPLC"
 
 -- | Instance for UPLC program.
@@ -140,6 +146,7 @@ instance ProgramLike UplcProg where
   serialiseProgramFlat = serialiseUplcProgramFlat
   loadASTfromFlat = loadUplcASTfromFlat
   loadASTfromSerialised = loadUplcASTfromSerialised
+  loadASTfromHex = loadUplcASTfromHex
   serialiseAST = SBS.fromShort . serialiseUPLC . toDeBruijnUPLC
 
 ---------------- Printing budgets and costs ----------------
@@ -312,6 +319,9 @@ readProgram
 readProgram fmt inp =
   case fmt of
     Textual -> snd <$> parseInput inp
+    Hex -> do
+      prog <- loadASTfromHex inp
+      pure $ topSrcSpan <$ prog
     Serialised -> do
       prog <- loadASTfromSerialised inp
       pure $ topSrcSpan <$ prog
@@ -343,6 +353,12 @@ writeSerialised outp prog = do
     StdOutput -> B.putStr prog
     NoOutput -> pure ()
 
+writeText :: Output -> T.Text -> IO ()
+writeText outp prog = case outp of
+  FileOutput file -> T.writeFile file prog
+  StdOutput -> T.putStrLn prog
+  NoOutput -> pure ()
+
 ---------------- Write an AST as PLC source ----------------
 
 prettyPrintByMode
@@ -365,6 +381,7 @@ writeProgram
   -> IO ()
 writeProgram outp Textual mode prog = writePrettyToOutput outp mode prog
 writeProgram outp Serialised _ prog = writeSerialised outp $ serialiseAST (void prog)
+writeProgram outp Hex _ prog = writeText outp . T.decodeUtf8 . Base16.encode $ serialiseAST (void prog)
 writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 
 writePrettyToOutput

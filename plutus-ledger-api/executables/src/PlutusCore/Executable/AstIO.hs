@@ -11,6 +11,7 @@ module PlutusCore.Executable.AstIO
   , loadPlcASTfromFlat
   , loadUplcASTfromFlat
   , loadUplcASTfromSerialised
+  , loadUplcASTfromHex
   , fromNamedDeBruijnUPLC
   , toDeBruijnTermPLC
   , toDeBruijnTermUPLC
@@ -187,12 +188,25 @@ getBinaryInput StdInput = BSL.getContents
 getBinaryInput (FileInput file)
   | takeExtension file == ".hex" = do
       hexBytes <- BS.readFile file
-      case Base16.decode (BS.filter (not . isHexWhitespace) hexBytes) of
+      case decodeHex hexBytes of
         Left err -> error $ "Hex decode failure for " ++ show file ++ ": " ++ err
         Right bs -> pure $ BSL.fromStrict bs
   | otherwise = BSL.readFile file
-  where
-    isHexWhitespace c = c == 0x20 || c == 0x0A || c == 0x0D || c == 0x09
+
+getHexInput :: Input -> IO BSL.ByteString
+getHexInput inp = do
+  contents <- case inp of
+    StdInput -> BS.getContents
+    FileInput file -> BS.readFile file
+  case decodeHex contents of
+    Left err -> error $ "Hex decode failure : " ++ err
+    Right bs -> pure $ BSL.fromStrict bs
+
+decodeHex :: BS.ByteString -> Either String BS.ByteString
+decodeHex = Base16.decode . BS.filter (not . isHexWhitespace)
+
+isHexWhitespace :: Word8 -> Bool
+isHexWhitespace c = c == 0x20 || c == 0x0A || c == 0x0D || c == 0x09
 
 unflatOrFail :: Flat a => BSL.ByteString -> a
 unflatOrFail input =
@@ -238,10 +252,15 @@ loadUplcASTfromFlat flatMode inp =
       NamedDeBruijn -> unflatOrFail <&> UPLC.unUnrestrictedProgram <&> fromNamedDeBruijnUPLC
 
 loadUplcASTfromSerialised :: Input -> IO (UplcProg ())
-loadUplcASTfromSerialised inp =
+loadUplcASTfromSerialised = fmap deserialiseUplcProg . getBinaryInput
+
+loadUplcASTfromHex :: Input -> IO (UplcProg ())
+loadUplcASTfromHex = fmap deserialiseUplcProg . getHexInput
+
+deserialiseUplcProg :: BSL.ByteString -> UplcProg ()
+deserialiseUplcProg =
   fromNamedDeBruijnUPLC
     . UPLC.programMapNames fakeNameDeBruijn
     . uncheckedDeserialiseUPLC
     . SBS.toShort
     . BSL.toStrict
-    <$> getBinaryInput inp

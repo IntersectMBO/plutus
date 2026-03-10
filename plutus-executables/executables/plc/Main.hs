@@ -268,6 +268,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
     Textual -> writePrettyToOutput outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
     Serialised -> fail "Serialised format unsupported for TPLC"
+    Hex -> fail "Hex format unsupported for TPLC"
 
 ---------------- Version ----------------
 

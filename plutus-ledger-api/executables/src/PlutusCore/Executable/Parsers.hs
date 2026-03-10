@@ -66,6 +66,8 @@ noOutput =
 formatHelp :: String
 formatHelp =
   "textual, flat-named (names), flat (de Bruijn indices), "
+    <> "serialised (cbor + flat, with de Bruijn indices), "
+    <> "hex (hex + cbor + flat), "
     <> "or flat-namedDeBruijn (names and de Bruijn indices)"
 
 formatReader :: String -> Maybe Format
@@ -73,6 +75,7 @@ formatReader =
   \case
     "textual" -> Just Textual
     "serialised" -> Just Serialised
+    "hex" -> Just Hex
     "flat-named" -> Just (Flat Named)
     "flat" -> Just (Flat DeBruijn)
     "flat-deBruijn" -> Just (Flat DeBruijn)
