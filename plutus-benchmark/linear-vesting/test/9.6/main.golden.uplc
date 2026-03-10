@@ -1,1227 +1,838 @@
 (program
    1.1.0
-   ((\fix1
-      scriptContextData ->
-       force
-         (case
-            (force trace
-               "Parsing ScriptContext..."
-               (constr 0 [scriptContextData]))
-            [ ((\vestingPeriodEnd ->
-                  (\find ->
-                     (\`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` ->
-                        (\`$mTxInfo` ->
-                           (\txSignedBy ->
-                              (\txOutValue ->
-                                 (\`$mTxOut` ->
-                                    (\txOutDatum ->
-                                       (\txOutAddress ->
-                                          (\txInfoValidRange ->
-                                             (\txInInfoResolved ->
-                                                (\totalInstallments ->
-                                                   (\`$mScriptContext` ->
-                                                      (\scriptContextTxInfo ->
-                                                         (\scriptContextScriptInfo ->
-                                                            (\traceError ->
-                                                               (\getLowerInclusiveTimeRange ->
-                                                                  (\addressCredential ->
-                                                                     (\`$mScriptCredential` ->
-                                                                        (\beneficiary ->
-                                                                           (\assetClassValueOf ->
-                                                                              (\`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` ->
-                                                                                 (\`$mSpendingScript` ->
-                                                                                    (\`$mPubKeyCredential` ->
-                                                                                       (\divCeil
-                                                                                         ctx ->
-                                                                                          delay
-                                                                                            (case
-                                                                                               ((\context ->
-                                                                                                   force
-                                                                                                     trace
-                                                                                                     "Validation completed"
-                                                                                                     (case
-                                                                                                        (case
-                                                                                                           ((\d ->
-                                                                                                               case
-                                                                                                                 (constr 0
-                                                                                                                    [ d
-                                                                                                                    , (\ds ->
-                                                                                                                         case
-                                                                                                                           (unConstrData
-                                                                                                                              d)
-                                                                                                                           [ (\l
-                                                                                                                               r ->
-                                                                                                                                case
-                                                                                                                                  (equalsInteger
-                                                                                                                                     0
-                                                                                                                                     l)
-                                                                                                                                  [ (case
-                                                                                                                                       (equalsInteger
-                                                                                                                                          1
-                                                                                                                                          l)
-                                                                                                                                       [ (constr 1
-                                                                                                                                            [  ])
-                                                                                                                                       , (constr 0
-                                                                                                                                            [ (constr 0
-                                                                                                                                                 [  ]) ]) ])
-                                                                                                                                  , (constr 0
-                                                                                                                                       [ (constr 1
-                                                                                                                                            [  ]) ]) ]) ])
-                                                                                                                    , (\ds ->
-                                                                                                                         constr 1
-                                                                                                                           [  ])
-                                                                                                                    , (\ds ->
-                                                                                                                         constr 1
-                                                                                                                           [  ])
-                                                                                                                    , (\ds ->
-                                                                                                                         constr 1
-                                                                                                                           [  ])
-                                                                                                                    , (\ds ->
-                                                                                                                         constr 1
-                                                                                                                           [  ])
-                                                                                                                    , (constr 0
-                                                                                                                         [  ]) ])
-                                                                                                                 [ (force
-                                                                                                                      chooseData) ])
-                                                                                                              (case
-                                                                                                                 (constr 0
-                                                                                                                    [ context
-                                                                                                                    , (\ds
-                                                                                                                        ds
-                                                                                                                        ds ->
-                                                                                                                         ds)
-                                                                                                                    , (\void ->
-                                                                                                                         error) ])
-                                                                                                                 [ `$mScriptContext` ]))
-                                                                                                           [ (\r ->
-                                                                                                                force
-                                                                                                                  trace
-                                                                                                                  "Parsed Redeemer"
-                                                                                                                  r)
-                                                                                                           , ((\x ->
-                                                                                                                 error)
-                                                                                                                (force
-                                                                                                                   trace
-                                                                                                                   "Failed to parse Redeemer"
-                                                                                                                   (constr 0
-                                                                                                                      [  ]))) ])
-                                                                                                        [ ((\ctx ->
-                                                                                                              case
-                                                                                                                (case
-                                                                                                                   (constr 0
-                                                                                                                      [ (scriptContextScriptInfo
-                                                                                                                           ctx)
-                                                                                                                      , (\_ownRef
-                                                                                                                          ds ->
-                                                                                                                           case
-                                                                                                                             ds
-                                                                                                                             [ (\ds ->
-                                                                                                                                  constr 0
-                                                                                                                                    [ _ownRef
-                                                                                                                                    , ds ])
-                                                                                                                             , ((\defaultBody ->
-                                                                                                                                   case
-                                                                                                                                     error
-                                                                                                                                     [ defaultBody ])
-                                                                                                                                  error) ])
-                                                                                                                      , (\void ->
-                                                                                                                           (\defaultBody ->
-                                                                                                                              case
-                                                                                                                                error
-                                                                                                                                [ defaultBody ])
-                                                                                                                             error) ])
-                                                                                                                   [ `$mSpendingScript` ])
-                                                                                                                [ (\ipv
-                                                                                                                    ipv ->
-                                                                                                                     (\vestingDatum ->
-                                                                                                                        case
-                                                                                                                          (case
-                                                                                                                             (constr 0
-                                                                                                                                [ (addressCredential
-                                                                                                                                     (beneficiary
-                                                                                                                                        vestingDatum))
-                                                                                                                                , (\beneficiaryKey ->
-                                                                                                                                     constr 0
-                                                                                                                                       [ beneficiaryKey ])
-                                                                                                                                , (\void ->
-                                                                                                                                     (\defaultBody ->
-                                                                                                                                        case
-                                                                                                                                          error
-                                                                                                                                          [ defaultBody ])
-                                                                                                                                       error) ])
-                                                                                                                             [ `$mPubKeyCredential` ])
-                                                                                                                          [ (\ipv ->
-                                                                                                                               (\txInfo ->
-                                                                                                                                  (\ds ->
-                                                                                                                                     case
-                                                                                                                                       (txSignedBy
-                                                                                                                                          txInfo
-                                                                                                                                          ipv)
-                                                                                                                                       [ (traceError
-                                                                                                                                            "Missing beneficiary signature")
-                                                                                                                                       , (case
-                                                                                                                                            (lessThanInteger
-                                                                                                                                               (vestingPeriodEnd
-                                                                                                                                                  vestingDatum)
-                                                                                                                                               ds)
-                                                                                                                                            [ (traceError
-                                                                                                                                                 "Unlock not permitted until vestingPeriodEnd time")
-                                                                                                                                            , True ]) ])
-                                                                                                                                    (getLowerInclusiveTimeRange
-                                                                                                                                       (txInfoValidRange
-                                                                                                                                          txInfo)))
-                                                                                                                                 (scriptContextTxInfo
-                                                                                                                                    ctx)) ])
-                                                                                                                       (case
-                                                                                                                          (unConstrData
-                                                                                                                             ipv)
-                                                                                                                          [ (\index
-                                                                                                                              args ->
-                                                                                                                               case
-                                                                                                                                 index
-                                                                                                                                 [ (\ds ->
-                                                                                                                                      (\l ->
-                                                                                                                                         (\l ->
-                                                                                                                                            (\l ->
-                                                                                                                                               (\l ->
-                                                                                                                                                  (\l ->
-                                                                                                                                                     constr 0
-                                                                                                                                                       [ (force
-                                                                                                                                                            headList
-                                                                                                                                                            ds)
-                                                                                                                                                       , (case
-                                                                                                                                                            (unConstrData
-                                                                                                                                                               (force
-                                                                                                                                                                  headList
-                                                                                                                                                                  l))
-                                                                                                                                                            [ (\index
-                                                                                                                                                                args ->
-                                                                                                                                                                 case
-                                                                                                                                                                   index
-                                                                                                                                                                   [ (\ds ->
-                                                                                                                                                                        constr 0
-                                                                                                                                                                          [ (unBData
-                                                                                                                                                                               (force
-                                                                                                                                                                                  headList
-                                                                                                                                                                                  ds))
-                                                                                                                                                                          , (unBData
-                                                                                                                                                                               (force
-                                                                                                                                                                                  headList
-                                                                                                                                                                                  (force
-                                                                                                                                                                                     tailList
-                                                                                                                                                                                     ds))) ]) ]
-                                                                                                                                                                   args) ])
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               l))
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               l))
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               l))
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               l))
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               (force
-                                                                                                                                                                  tailList
-                                                                                                                                                                  l))) ])
-                                                                                                                                                    (force
-                                                                                                                                                       tailList
-                                                                                                                                                       l))
-                                                                                                                                                 (force
-                                                                                                                                                    tailList
-                                                                                                                                                    l))
-                                                                                                                                              (force
-                                                                                                                                                 tailList
-                                                                                                                                                 l))
-                                                                                                                                           (force
-                                                                                                                                              tailList
-                                                                                                                                              l))
-                                                                                                                                        (force
-                                                                                                                                           tailList
-                                                                                                                                           ds)) ]
-                                                                                                                                 args) ])) ])
-                                                                                                             (force
-                                                                                                                trace
-                                                                                                                "Full unlock requested"
-                                                                                                                context))
-                                                                                                        , ((\ctx ->
-                                                                                                              case
-                                                                                                                (case
-                                                                                                                   (constr 0
-                                                                                                                      [ (scriptContextScriptInfo
-                                                                                                                           ctx)
-                                                                                                                      , (\ownRef
-                                                                                                                          ds ->
-                                                                                                                           case
-                                                                                                                             ds
-                                                                                                                             [ (\ds ->
-                                                                                                                                  constr 0
-                                                                                                                                    [ ownRef
-                                                                                                                                    , ds ])
-                                                                                                                             , ((\defaultBody ->
-                                                                                                                                   case
-                                                                                                                                     error
-                                                                                                                                     [ defaultBody ])
-                                                                                                                                  error) ])
-                                                                                                                      , (\void ->
-                                                                                                                           (\defaultBody ->
-                                                                                                                              case
-                                                                                                                                error
-                                                                                                                                [ defaultBody ])
-                                                                                                                             error) ])
-                                                                                                                   [ `$mSpendingScript` ])
-                                                                                                                [ (\ipv
-                                                                                                                    ipv ->
-                                                                                                                     (\vestingDatum ->
-                                                                                                                        (\ds ->
-                                                                                                                           (\ds ->
-                                                                                                                              case
-                                                                                                                                (case
-                                                                                                                                   (constr 0
-                                                                                                                                      [ (addressCredential
-                                                                                                                                           (beneficiary
-                                                                                                                                              vestingDatum))
-                                                                                                                                      , (\beneficiaryHash ->
-                                                                                                                                           constr 0
-                                                                                                                                             [ beneficiaryHash ])
-                                                                                                                                      , (\void ->
-                                                                                                                                           (\defaultBody ->
-                                                                                                                                              case
-                                                                                                                                                error
-                                                                                                                                                [ defaultBody ])
-                                                                                                                                             error) ])
-                                                                                                                                   [ `$mPubKeyCredential` ])
-                                                                                                                                [ ((\asset
-                                                                                                                                     ipv ->
-                                                                                                                                      (\txInfo ->
-                                                                                                                                         (\nt ->
-                                                                                                                                            case
-                                                                                                                                              (case
-                                                                                                                                                 (case
-                                                                                                                                                    (constr 0
-                                                                                                                                                       [ `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                                                                       , (\eta ->
-                                                                                                                                                            equalsData
+   ((\fix1 ->
+       (\countInputsAtScript ->
+          (\caseList' ->
+             (\findInputByOutRef ->
+                (\findOutputByAddress ->
+                   (\txSignedBy'
+                     scriptContextData ->
+                      (\ctxFields ->
+                         (\txInfoFields ->
+                            (\txInfoFields ->
+                               (\txInfoFields ->
+                                  (\txSignatories ->
+                                     (\txValidRange ->
+                                        (\txOutputs ->
+                                           (\txInputs ->
+                                              (\redeemerTag ->
+                                                 (\spendingInfo ->
+                                                    (\ownRef ->
+                                                       (\datumData ->
+                                                          case
+                                                            (force
+                                                               trace
+                                                               "Parsed ScriptContext"
+                                                               (force
+                                                                  trace
+                                                                  "Parsed Redeemer"
+                                                                  (case
+                                                                     redeemerTag
+                                                                     [ (force
+                                                                          trace
+                                                                          "Partial unlock requested"
+                                                                          ((\currentTimeApproximation ->
+                                                                              (\vdFields ->
+                                                                                 (\vdFields ->
+                                                                                    (\vdFields ->
+                                                                                       (\vdFields ->
+                                                                                          (\vdFields ->
+                                                                                             (\vdFields ->
+                                                                                                (\totalInstallments ->
+                                                                                                   (\firstUnlockPossibleAfter ->
+                                                                                                      (\vestingPeriodEnd ->
+                                                                                                         (\vestingTimeRemaining ->
+                                                                                                            (\timeBetweenTwoInstallments ->
+                                                                                                               (\expectedRemainingQty ->
+                                                                                                                  (\assetFields ->
+                                                                                                                     (\assetCs ->
+                                                                                                                        (\assetTn ->
+                                                                                                                           (\findToken ->
+                                                                                                                              (\findCurrency ->
+                                                                                                                                 (\findToken ->
+                                                                                                                                    (\findCurrency ->
+                                                                                                                                       (\beneficiaryHash ->
+                                                                                                                                          (\signed ->
+                                                                                                                                             (\resolvedFields ->
+                                                                                                                                                (\inputAddress ->
+                                                                                                                                                   (\scriptHash ->
+                                                                                                                                                      (\ownOutputFields ->
+                                                                                                                                                         (\outputDatum ->
+                                                                                                                                                            (\newRemainingQty ->
+                                                                                                                                                               (\resolvedDatum ->
+                                                                                                                                                                  (\oldRemainingQty ->
+                                                                                                                                                                     case
+                                                                                                                                                                       signed
+                                                                                                                                                                       [ ((\x ->
+                                                                                                                                                                             error)
+                                                                                                                                                                            (force
+                                                                                                                                                                               trace
+                                                                                                                                                                               "Missing beneficiary signature"
+                                                                                                                                                                               (constr 0
+                                                                                                                                                                                  [  ])))
+                                                                                                                                                                       , (case
+                                                                                                                                                                            (lessThanEqualsInteger
+                                                                                                                                                                               currentTimeApproximation
+                                                                                                                                                                               firstUnlockPossibleAfter)
+                                                                                                                                                                            [ (case
+                                                                                                                                                                                 (lessThanEqualsInteger
+                                                                                                                                                                                    newRemainingQty
+                                                                                                                                                                                    0)
+                                                                                                                                                                                 [ (case
+                                                                                                                                                                                      (lessThanEqualsInteger
+                                                                                                                                                                                         oldRemainingQty
+                                                                                                                                                                                         newRemainingQty)
+                                                                                                                                                                                      [ (case
+                                                                                                                                                                                           (equalsInteger
+                                                                                                                                                                                              expectedRemainingQty
+                                                                                                                                                                                              newRemainingQty)
+                                                                                                                                                                                           [ ((\x ->
+                                                                                                                                                                                                 error)
+                                                                                                                                                                                                (force
+                                                                                                                                                                                                   trace
+                                                                                                                                                                                                   "Mismatched remaining asset"
+                                                                                                                                                                                                   (constr 0
+                                                                                                                                                                                                      [  ])))
+                                                                                                                                                                                           , (case
+                                                                                                                                                                                                (equalsData
+                                                                                                                                                                                                   resolvedDatum
+                                                                                                                                                                                                   outputDatum)
+                                                                                                                                                                                                [ ((\x ->
+                                                                                                                                                                                                      error)
+                                                                                                                                                                                                     (force
+                                                                                                                                                                                                        trace
+                                                                                                                                                                                                        "Datum Modification Prohibited"
+                                                                                                                                                                                                        (constr 0
+                                                                                                                                                                                                           [  ])))
+                                                                                                                                                                                                , (case
+                                                                                                                                                                                                     (equalsInteger
+                                                                                                                                                                                                        1
+                                                                                                                                                                                                        (countInputsAtScript
+                                                                                                                                                                                                           scriptHash
+                                                                                                                                                                                                           txInputs))
+                                                                                                                                                                                                     [ ((\x ->
+                                                                                                                                                                                                           error)
+                                                                                                                                                                                                          (force
+                                                                                                                                                                                                             trace
+                                                                                                                                                                                                             "Double satisfaction"
+                                                                                                                                                                                                             (constr 0
+                                                                                                                                                                                                                [  ])))
+                                                                                                                                                                                                     , True ]) ]) ])
+                                                                                                                                                                                      , ((\x ->
+                                                                                                                                                                                            error)
+                                                                                                                                                                                           (force
+                                                                                                                                                                                              trace
+                                                                                                                                                                                              "Remaining asset is not decreasing"
+                                                                                                                                                                                              (constr 0
+                                                                                                                                                                                                 [  ]))) ])
+                                                                                                                                                                                 , ((\x ->
+                                                                                                                                                                                       error)
+                                                                                                                                                                                      (force
+                                                                                                                                                                                         trace
+                                                                                                                                                                                         "Zero remaining assets not allowed"
+                                                                                                                                                                                         (constr 0
+                                                                                                                                                                                            [  ]))) ])
+                                                                                                                                                                            , ((\x ->
+                                                                                                                                                                                  error)
+                                                                                                                                                                                 (force
+                                                                                                                                                                                    trace
+                                                                                                                                                                                    "Unlock not permitted until firstUnlockPossibleAfter time"
+                                                                                                                                                                                    (constr 0
+                                                                                                                                                                                       [  ]))) ]) ])
+                                                                                                                                                                    (findCurrency
+                                                                                                                                                                       (unMapData
+                                                                                                                                                                          (force
+                                                                                                                                                                             headList
+                                                                                                                                                                             (force
+                                                                                                                                                                                tailList
+                                                                                                                                                                                resolvedFields)))))
+                                                                                                                                                                 (force
+                                                                                                                                                                    headList
+                                                                                                                                                                    (force
+                                                                                                                                                                       tailList
+                                                                                                                                                                       (force
+                                                                                                                                                                          tailList
+                                                                                                                                                                          resolvedFields))))
+                                                                                                                                                              (findCurrency
+                                                                                                                                                                 (unMapData
+                                                                                                                                                                    (force
+                                                                                                                                                                       headList
+                                                                                                                                                                       (force
+                                                                                                                                                                          tailList
+                                                                                                                                                                          ownOutputFields)))))
+                                                                                                                                                           (force
+                                                                                                                                                              headList
+                                                                                                                                                              (force
+                                                                                                                                                                 tailList
+                                                                                                                                                                 (force
+                                                                                                                                                                    tailList
+                                                                                                                                                                    ownOutputFields))))
+                                                                                                                                                        (case
+                                                                                                                                                           (unConstrData
+                                                                                                                                                              (findOutputByAddress
+                                                                                                                                                                 inputAddress
+                                                                                                                                                                 txOutputs))
+                                                                                                                                                           [ (\l
+                                                                                                                                                               r ->
+                                                                                                                                                                r) ]))
+                                                                                                                                                     (unBData
+                                                                                                                                                        (force
+                                                                                                                                                           headList
+                                                                                                                                                           (case
+                                                                                                                                                              (unConstrData
+                                                                                                                                                                 (force
+                                                                                                                                                                    headList
+                                                                                                                                                                    (case
+                                                                                                                                                                       (unConstrData
+                                                                                                                                                                          inputAddress)
+                                                                                                                                                                       [ (\l
+                                                                                                                                                                           r ->
+                                                                                                                                                                            r) ])))
+                                                                                                                                                              [ (\l
+                                                                                                                                                                  r ->
+                                                                                                                                                                   r) ]))))
+                                                                                                                                                  (force
+                                                                                                                                                     headList
+                                                                                                                                                     resolvedFields))
+                                                                                                                                               (case
+                                                                                                                                                  (unConstrData
+                                                                                                                                                     (force
+                                                                                                                                                        headList
+                                                                                                                                                        (force
+                                                                                                                                                           tailList
+                                                                                                                                                           (case
+                                                                                                                                                              (unConstrData
+                                                                                                                                                                 (findInputByOutRef
+                                                                                                                                                                    ownRef
+                                                                                                                                                                    txInputs))
+                                                                                                                                                              [ (\l
+                                                                                                                                                                  r ->
+                                                                                                                                                                   r) ]))))
+                                                                                                                                                  [ (\l
+                                                                                                                                                      r ->
+                                                                                                                                                       r) ]))
+                                                                                                                                            (txSignedBy'
+                                                                                                                                               txSignatories
+                                                                                                                                               beneficiaryHash))
+                                                                                                                                         (unBData
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               (case
+                                                                                                                                                  (unConstrData
+                                                                                                                                                     (force
+                                                                                                                                                        headList
+                                                                                                                                                        (case
+                                                                                                                                                           (unConstrData
                                                                                                                                                               (force
                                                                                                                                                                  headList
-                                                                                                                                                                 (case
-                                                                                                                                                                    (unConstrData
-                                                                                                                                                                       eta)
-                                                                                                                                                                    [ (\l
-                                                                                                                                                                        r ->
-                                                                                                                                                                         r) ]))
-                                                                                                                                                              ipv)
-                                                                                                                                                       , nt ])
-                                                                                                                                                    [ find ])
-                                                                                                                                                 [ (\ownVestingInput ->
-                                                                                                                                                      constr 0
-                                                                                                                                                        [ ownVestingInput ])
-                                                                                                                                                 , ((\defaultBody ->
-                                                                                                                                                       case
-                                                                                                                                                         error
-                                                                                                                                                         [ defaultBody ])
-                                                                                                                                                      error) ])
-                                                                                                                                              [ (\ipv ->
-                                                                                                                                                   (\nt ->
-                                                                                                                                                      (\nt ->
-                                                                                                                                                         case
-                                                                                                                                                           (case
-                                                                                                                                                              (constr 0
-                                                                                                                                                                 [ (addressCredential
-                                                                                                                                                                      nt)
-                                                                                                                                                                 , (\scriptHash ->
-                                                                                                                                                                      constr 0
-                                                                                                                                                                        [ scriptHash ])
-                                                                                                                                                                 , (\void ->
-                                                                                                                                                                      (\defaultBody ->
-                                                                                                                                                                         case
-                                                                                                                                                                           error
-                                                                                                                                                                           [ defaultBody ])
-                                                                                                                                                                        error) ])
-                                                                                                                                                              [ `$mScriptCredential` ])
-                                                                                                                                                           [ (\ipv ->
-                                                                                                                                                                (\go ->
-                                                                                                                                                                   (\ds ->
-                                                                                                                                                                      (\ownVestingOutput ->
-                                                                                                                                                                         (\nt ->
-                                                                                                                                                                            (\ds ->
-                                                                                                                                                                               (\currentTimeApproximation ->
-                                                                                                                                                                                  (\ds ->
-                                                                                                                                                                                     case
-                                                                                                                                                                                       (txSignedBy
-                                                                                                                                                                                          txInfo
-                                                                                                                                                                                          ipv)
-                                                                                                                                                                                       [ (traceError
-                                                                                                                                                                                            "Missing beneficiary signature")
-                                                                                                                                                                                       , (case
-                                                                                                                                                                                            (lessThanInteger
-                                                                                                                                                                                               (case
-                                                                                                                                                                                                  vestingDatum
-                                                                                                                                                                                                  [ (\ds
-                                                                                                                                                                                                      ds
-                                                                                                                                                                                                      ds
-                                                                                                                                                                                                      ds
-                                                                                                                                                                                                      ds
-                                                                                                                                                                                                      ds
-                                                                                                                                                                                                      ds ->
-                                                                                                                                                                                                       ds) ])
-                                                                                                                                                                                               currentTimeApproximation)
-                                                                                                                                                                                            [ (traceError
-                                                                                                                                                                                                 "Unlock not permitted until firstUnlockPossibleAfter time")
-                                                                                                                                                                                            , (force
-                                                                                                                                                                                                 ((\newRemainingQty ->
-                                                                                                                                                                                                     case
-                                                                                                                                                                                                       (lessThanEqualsInteger
-                                                                                                                                                                                                          (force
-                                                                                                                                                                                                             newRemainingQty)
-                                                                                                                                                                                                          0)
-                                                                                                                                                                                                       [ (delay
-                                                                                                                                                                                                            (case
-                                                                                                                                                                                                               (lessThanInteger
-                                                                                                                                                                                                                  (force
-                                                                                                                                                                                                                     newRemainingQty)
-                                                                                                                                                                                                                  ds)
-                                                                                                                                                                                                               [ (traceError
-                                                                                                                                                                                                                    "Remaining asset is not decreasing")
-                                                                                                                                                                                                               , (case
-                                                                                                                                                                                                                    (equalsInteger
-                                                                                                                                                                                                                       ds
-                                                                                                                                                                                                                       (force
-                                                                                                                                                                                                                          newRemainingQty))
-                                                                                                                                                                                                                    [ (traceError
-                                                                                                                                                                                                                         "Mismatched remaining asset")
-                                                                                                                                                                                                                    , (case
-                                                                                                                                                                                                                         (equalsData
-                                                                                                                                                                                                                            (txOutDatum
-                                                                                                                                                                                                                               nt)
-                                                                                                                                                                                                                            nt)
-                                                                                                                                                                                                                         [ (traceError
-                                                                                                                                                                                                                              "Datum Modification Prohibited")
-                                                                                                                                                                                                                         , (case
-                                                                                                                                                                                                                              (equalsInteger
-                                                                                                                                                                                                                                 (go
-                                                                                                                                                                                                                                    0
-                                                                                                                                                                                                                                    nt)
-                                                                                                                                                                                                                                 1)
-                                                                                                                                                                                                                              [ (traceError
-                                                                                                                                                                                                                                   "Double satisfaction")
-                                                                                                                                                                                                                              , True ]) ]) ]) ]))
-                                                                                                                                                                                                       , (delay
-                                                                                                                                                                                                            (traceError
-                                                                                                                                                                                                               "Zero remaining assets not allowed")) ])
-                                                                                                                                                                                                    (delay
-                                                                                                                                                                                                       (case
-                                                                                                                                                                                                          ds
-                                                                                                                                                                                                          [ (\newRemainingQty ->
-                                                                                                                                                                                                               newRemainingQty) ])))) ]) ])
-                                                                                                                                                                                    (divCeil
-                                                                                                                                                                                       (multiplyInteger
-                                                                                                                                                                                          (divCeil
-                                                                                                                                                                                             (subtractInteger
-                                                                                                                                                                                                (vestingPeriodEnd
-                                                                                                                                                                                                   vestingDatum)
-                                                                                                                                                                                                currentTimeApproximation)
-                                                                                                                                                                                             ds)
-                                                                                                                                                                                          (case
-                                                                                                                                                                                             vestingDatum
-                                                                                                                                                                                             [ (\ds
-                                                                                                                                                                                                 ds
-                                                                                                                                                                                                 ds
-                                                                                                                                                                                                 ds
-                                                                                                                                                                                                 ds
-                                                                                                                                                                                                 ds
-                                                                                                                                                                                                 ds ->
-                                                                                                                                                                                                  ds) ]))
-                                                                                                                                                                                       (totalInstallments
-                                                                                                                                                                                          vestingDatum)))
-                                                                                                                                                                                 (getLowerInclusiveTimeRange
-                                                                                                                                                                                    (txInfoValidRange
-                                                                                                                                                                                       txInfo)))
-                                                                                                                                                                              (constr 0
-                                                                                                                                                                                 [ (assetClassValueOf
-                                                                                                                                                                                      (txOutValue
-                                                                                                                                                                                         ownVestingOutput)
-                                                                                                                                                                                      (force
-                                                                                                                                                                                         asset)) ]))
-                                                                                                                                                                           (txOutDatum
-                                                                                                                                                                              ownVestingOutput))
-                                                                                                                                                                        (case
-                                                                                                                                                                           (case
-                                                                                                                                                                              (case
-                                                                                                                                                                                 (constr 0
-                                                                                                                                                                                    [ `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                                                                                                    , (\eta ->
-                                                                                                                                                                                         equalsData
-                                                                                                                                                                                           (txOutAddress
-                                                                                                                                                                                              eta)
-                                                                                                                                                                                           nt)
-                                                                                                                                                                                    , (case
-                                                                                                                                                                                         (constr 0
-                                                                                                                                                                                            [ txInfo
-                                                                                                                                                                                            , (\ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds
-                                                                                                                                                                                                ds ->
-                                                                                                                                                                                                 ds)
-                                                                                                                                                                                            , (\void ->
-                                                                                                                                                                                                 error) ])
-                                                                                                                                                                                         [ `$mTxInfo` ]) ])
-                                                                                                                                                                                 [ find ])
-                                                                                                                                                                              [ (\ownVestingOutput ->
-                                                                                                                                                                                   constr 0
-                                                                                                                                                                                     [ ownVestingOutput ])
-                                                                                                                                                                              , ((\defaultBody ->
-                                                                                                                                                                                    case
-                                                                                                                                                                                      error
-                                                                                                                                                                                      [ defaultBody ])
-                                                                                                                                                                                   error) ])
-                                                                                                                                                                           [ (\ownVestingOutput ->
-                                                                                                                                                                                ownVestingOutput) ]))
-                                                                                                                                                                     (assetClassValueOf
-                                                                                                                                                                        (txOutValue
-                                                                                                                                                                           nt)
-                                                                                                                                                                        (force
-                                                                                                                                                                           asset)))
-                                                                                                                                                                  (fix1
-                                                                                                                                                                     (\go
-                                                                                                                                                                       n
-                                                                                                                                                                       ds ->
-                                                                                                                                                                        case
-                                                                                                                                                                          ds
-                                                                                                                                                                          [ (\x
-                                                                                                                                                                              eta ->
-                                                                                                                                                                               case
-                                                                                                                                                                                 (constr 0
-                                                                                                                                                                                    [ (addressCredential
-                                                                                                                                                                                         (txOutAddress
-                                                                                                                                                                                            (txInInfoResolved
-                                                                                                                                                                                               x)))
-                                                                                                                                                                                    , (\vh ->
-                                                                                                                                                                                         case
-                                                                                                                                                                                           (equalsByteString
-                                                                                                                                                                                              vh
-                                                                                                                                                                                              ipv)
-                                                                                                                                                                                           [ (go
-                                                                                                                                                                                                n
-                                                                                                                                                                                                eta)
-                                                                                                                                                                                           , (go
-                                                                                                                                                                                                (addInteger
-                                                                                                                                                                                                   1
-                                                                                                                                                                                                   n)
-                                                                                                                                                                                                eta) ])
-                                                                                                                                                                                    , (\void ->
-                                                                                                                                                                                         go
-                                                                                                                                                                                           n
-                                                                                                                                                                                           eta) ])
-                                                                                                                                                                                 [ `$mScriptCredential` ])
-                                                                                                                                                                          , n ]))) ])
-                                                                                                                                                        (txOutAddress
-                                                                                                                                                           nt))
-                                                                                                                                                     (txInInfoResolved
-                                                                                                                                                        ipv)) ])
-                                                                                                                                           (case
-                                                                                                                                              (constr 0
-                                                                                                                                                 [ txInfo
-                                                                                                                                                 , (\ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds
-                                                                                                                                                     ds ->
-                                                                                                                                                      ds)
-                                                                                                                                                 , (\void ->
-                                                                                                                                                      error) ])
-                                                                                                                                              [ `$mTxInfo` ]))
-                                                                                                                                        (scriptContextTxInfo
-                                                                                                                                           ctx))
-                                                                                                                                     (delay
-                                                                                                                                        (case
-                                                                                                                                           ds
-                                                                                                                                           [ (\asset ->
-                                                                                                                                                asset) ]))) ])
-                                                                                                                             (divCeil
-                                                                                                                                (subtractInteger
-                                                                                                                                   (vestingPeriodEnd
-                                                                                                                                      vestingDatum)
-                                                                                                                                   (case
-                                                                                                                                      vestingDatum
-                                                                                                                                      [ (\ds
-                                                                                                                                          ds
-                                                                                                                                          ds
-                                                                                                                                          ds
-                                                                                                                                          ds
-                                                                                                                                          ds
-                                                                                                                                          ds ->
-                                                                                                                                           ds) ]))
-                                                                                                                                (totalInstallments
-                                                                                                                                   vestingDatum)))
-                                                                                                                          (constr 0
-                                                                                                                             [ (case
-                                                                                                                                  vestingDatum
-                                                                                                                                  [ (\ds
-                                                                                                                                      ds
-                                                                                                                                      ds
-                                                                                                                                      ds
-                                                                                                                                      ds
-                                                                                                                                      ds
-                                                                                                                                      ds ->
-                                                                                                                                       ds) ]) ]))
-                                                                                                                       (case
-                                                                                                                          (unConstrData
-                                                                                                                             ipv)
-                                                                                                                          [ (\index
-                                                                                                                              args ->
-                                                                                                                               case
-                                                                                                                                 index
-                                                                                                                                 [ (\ds ->
-                                                                                                                                      (\l ->
-                                                                                                                                         (\l ->
-                                                                                                                                            (\l ->
-                                                                                                                                               (\l ->
-                                                                                                                                                  (\l ->
-                                                                                                                                                     constr 0
-                                                                                                                                                       [ (force
-                                                                                                                                                            headList
-                                                                                                                                                            ds)
-                                                                                                                                                       , (case
-                                                                                                                                                            (unConstrData
-                                                                                                                                                               (force
-                                                                                                                                                                  headList
-                                                                                                                                                                  l))
-                                                                                                                                                            [ (\index
-                                                                                                                                                                args ->
-                                                                                                                                                                 case
-                                                                                                                                                                   index
-                                                                                                                                                                   [ (\ds ->
-                                                                                                                                                                        constr 0
-                                                                                                                                                                          [ (unBData
-                                                                                                                                                                               (force
-                                                                                                                                                                                  headList
-                                                                                                                                                                                  ds))
-                                                                                                                                                                          , (unBData
-                                                                                                                                                                               (force
-                                                                                                                                                                                  headList
-                                                                                                                                                                                  (force
-                                                                                                                                                                                     tailList
-                                                                                                                                                                                     ds))) ]) ]
-                                                                                                                                                                   args) ])
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               l))
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               l))
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               l))
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               l))
-                                                                                                                                                       , (unIData
-                                                                                                                                                            (force
-                                                                                                                                                               headList
-                                                                                                                                                               (force
-                                                                                                                                                                  tailList
-                                                                                                                                                                  l))) ])
-                                                                                                                                                    (force
-                                                                                                                                                       tailList
-                                                                                                                                                       l))
-                                                                                                                                                 (force
-                                                                                                                                                    tailList
-                                                                                                                                                    l))
+                                                                                                                                                                 vdFields))
+                                                                                                                                                           [ (\l
+                                                                                                                                                               r ->
+                                                                                                                                                                r) ])))
+                                                                                                                                                  [ (\l
+                                                                                                                                                      r ->
+                                                                                                                                                       r) ]))))
+                                                                                                                                      (fix1
+                                                                                                                                         (\findCurrency
+                                                                                                                                           pairs ->
+                                                                                                                                            case
                                                                                                                                               (force
-                                                                                                                                                 tailList
-                                                                                                                                                 l))
+                                                                                                                                                 nullList
+                                                                                                                                                 pairs)
+                                                                                                                                              [ ((\pair ->
+                                                                                                                                                    case
+                                                                                                                                                      (equalsByteString
+                                                                                                                                                         (unBData
+                                                                                                                                                            (case
+                                                                                                                                                               pair
+                                                                                                                                                               [ (\l
+                                                                                                                                                                   r ->
+                                                                                                                                                                    l) ]))
+                                                                                                                                                         assetCs)
+                                                                                                                                                      [ (findCurrency
+                                                                                                                                                           (force
+                                                                                                                                                              tailList
+                                                                                                                                                              pairs))
+                                                                                                                                                      , (findToken
+                                                                                                                                                           (unMapData
+                                                                                                                                                              (case
+                                                                                                                                                                 pair
+                                                                                                                                                                 [ (\l
+                                                                                                                                                                     r ->
+                                                                                                                                                                      r) ]))) ])
+                                                                                                                                                   (force
+                                                                                                                                                      headList
+                                                                                                                                                      pairs))
+                                                                                                                                              , 0 ])))
+                                                                                                                                   (fix1
+                                                                                                                                      (\findToken
+                                                                                                                                        pairs ->
+                                                                                                                                         case
                                                                                                                                            (force
-                                                                                                                                              tailList
-                                                                                                                                              l))
+                                                                                                                                              nullList
+                                                                                                                                              pairs)
+                                                                                                                                           [ ((\pair ->
+                                                                                                                                                 case
+                                                                                                                                                   (equalsByteString
+                                                                                                                                                      (unBData
+                                                                                                                                                         (case
+                                                                                                                                                            pair
+                                                                                                                                                            [ (\l
+                                                                                                                                                                r ->
+                                                                                                                                                                 l) ]))
+                                                                                                                                                      assetTn)
+                                                                                                                                                   [ (findToken
+                                                                                                                                                        (force
+                                                                                                                                                           tailList
+                                                                                                                                                           pairs))
+                                                                                                                                                   , (unIData
+                                                                                                                                                        (case
+                                                                                                                                                           pair
+                                                                                                                                                           [ (\l
+                                                                                                                                                               r ->
+                                                                                                                                                                r) ])) ])
+                                                                                                                                                (force
+                                                                                                                                                   headList
+                                                                                                                                                   pairs))
+                                                                                                                                           , 0 ])))
+                                                                                                                                (fix1
+                                                                                                                                   (\findCurrency
+                                                                                                                                     pairs ->
+                                                                                                                                      case
                                                                                                                                         (force
-                                                                                                                                           tailList
-                                                                                                                                           ds)) ]
-                                                                                                                                 args) ])) ])
-                                                                                                             (force
-                                                                                                                trace
-                                                                                                                "Partial unlock requested"
-                                                                                                                context)) ]))
-                                                                                                  (force
-                                                                                                     trace
-                                                                                                     "Parsed ScriptContext"
-                                                                                                     ctx))
-                                                                                               [ (traceError
-                                                                                                    "PT5")
-                                                                                               , () ]))
-                                                                                         (\x
-                                                                                           y ->
-                                                                                            addInteger
-                                                                                              1
-                                                                                              (divideInteger
-                                                                                                 (subtractInteger
-                                                                                                    x
-                                                                                                    1)
-                                                                                                 y)))
-                                                                                      (\scrut
-                                                                                        cont
-                                                                                        fail ->
-                                                                                         (\tup ->
-                                                                                            case
-                                                                                              (equalsInteger
-                                                                                                 0
-                                                                                                 (case
-                                                                                                    tup
-                                                                                                    [ (\l
-                                                                                                        r ->
-                                                                                                         l) ]))
-                                                                                              [ (fail
-                                                                                                   ())
-                                                                                              , (cont
-                                                                                                   (unBData
-                                                                                                      (force
-                                                                                                         headList
-                                                                                                         (case
-                                                                                                            tup
-                                                                                                            [ (\l
-                                                                                                                r ->
-                                                                                                                 r) ])))) ])
-                                                                                           (unConstrData
-                                                                                              scrut)))
-                                                                                   (\scrut
-                                                                                     cont
-                                                                                     fail ->
-                                                                                      (\tup ->
-                                                                                         case
-                                                                                           (equalsInteger
-                                                                                              1
-                                                                                              (case
-                                                                                                 tup
-                                                                                                 [ (\l
-                                                                                                     r ->
-                                                                                                      l) ]))
-                                                                                           [ (fail
-                                                                                                ())
-                                                                                           , ((\l ->
-                                                                                                 cont
+                                                                                                                                           nullList
+                                                                                                                                           pairs)
+                                                                                                                                        [ ((\pair ->
+                                                                                                                                              case
+                                                                                                                                                (equalsByteString
+                                                                                                                                                   (unBData
+                                                                                                                                                      (case
+                                                                                                                                                         pair
+                                                                                                                                                         [ (\l
+                                                                                                                                                             r ->
+                                                                                                                                                              l) ]))
+                                                                                                                                                   assetCs)
+                                                                                                                                                [ (findCurrency
+                                                                                                                                                     (force
+                                                                                                                                                        tailList
+                                                                                                                                                        pairs))
+                                                                                                                                                , (findToken
+                                                                                                                                                     (unMapData
+                                                                                                                                                        (case
+                                                                                                                                                           pair
+                                                                                                                                                           [ (\l
+                                                                                                                                                               r ->
+                                                                                                                                                                r) ]))) ])
+                                                                                                                                             (force
+                                                                                                                                                headList
+                                                                                                                                                pairs))
+                                                                                                                                        , 0 ])))
+                                                                                                                             (fix1
+                                                                                                                                (\findToken
+                                                                                                                                  pairs ->
+                                                                                                                                   case
+                                                                                                                                     (force
+                                                                                                                                        nullList
+                                                                                                                                        pairs)
+                                                                                                                                     [ ((\pair ->
+                                                                                                                                           case
+                                                                                                                                             (equalsByteString
+                                                                                                                                                (unBData
+                                                                                                                                                   (case
+                                                                                                                                                      pair
+                                                                                                                                                      [ (\l
+                                                                                                                                                          r ->
+                                                                                                                                                           l) ]))
+                                                                                                                                                assetTn)
+                                                                                                                                             [ (findToken
+                                                                                                                                                  (force
+                                                                                                                                                     tailList
+                                                                                                                                                     pairs))
+                                                                                                                                             , (unIData
+                                                                                                                                                  (case
+                                                                                                                                                     pair
+                                                                                                                                                     [ (\l
+                                                                                                                                                         r ->
+                                                                                                                                                          r) ])) ])
+                                                                                                                                          (force
+                                                                                                                                             headList
+                                                                                                                                             pairs))
+                                                                                                                                     , 0 ])))
+                                                                                                                          (unBData
+                                                                                                                             (force
+                                                                                                                                headList
+                                                                                                                                (force
+                                                                                                                                   tailList
+                                                                                                                                   assetFields))))
+                                                                                                                       (unBData
+                                                                                                                          (force
+                                                                                                                             headList
+                                                                                                                             assetFields)))
+                                                                                                                    (case
+                                                                                                                       (unConstrData
+                                                                                                                          (force
+                                                                                                                             headList
+                                                                                                                             vdFields))
+                                                                                                                       [ (\l
+                                                                                                                           r ->
+                                                                                                                            r) ]))
+                                                                                                                 (addInteger
+                                                                                                                    1
+                                                                                                                    (divideInteger
+                                                                                                                       (subtractInteger
+                                                                                                                          (multiplyInteger
+                                                                                                                             (addInteger
+                                                                                                                                1
+                                                                                                                                (divideInteger
+                                                                                                                                   (subtractInteger
+                                                                                                                                      vestingTimeRemaining
+                                                                                                                                      1)
+                                                                                                                                   timeBetweenTwoInstallments))
+                                                                                                                             (unIData
+                                                                                                                                (force
+                                                                                                                                   headList
+                                                                                                                                   vdFields)))
+                                                                                                                          1)
+                                                                                                                       totalInstallments)))
+                                                                                                              (addInteger
+                                                                                                                 1
+                                                                                                                 (divideInteger
+                                                                                                                    (subtractInteger
+                                                                                                                       (subtractInteger
+                                                                                                                          vestingPeriodEnd
+                                                                                                                          (unIData
+                                                                                                                             (force
+                                                                                                                                headList
+                                                                                                                                vdFields)))
+                                                                                                                       1)
+                                                                                                                    totalInstallments)))
+                                                                                                           (subtractInteger
+                                                                                                              vestingPeriodEnd
+                                                                                                              currentTimeApproximation))
+                                                                                                        (unIData
+                                                                                                           (force
+                                                                                                              headList
+                                                                                                              vdFields)))
+                                                                                                     (unIData
+                                                                                                        (force
+                                                                                                           headList
+                                                                                                           vdFields)))
+                                                                                                  (unIData
+                                                                                                     (force
+                                                                                                        headList
+                                                                                                        (force
+                                                                                                           tailList
+                                                                                                           vdFields))))
+                                                                                               (force
+                                                                                                  tailList
+                                                                                                  vdFields))
+                                                                                            (force
+                                                                                               tailList
+                                                                                               vdFields))
+                                                                                         (force
+                                                                                            tailList
+                                                                                            vdFields))
+                                                                                      (force
+                                                                                         tailList
+                                                                                         vdFields))
+                                                                                   (force
+                                                                                      tailList
+                                                                                      vdFields))
+                                                                                (case
+                                                                                   (unConstrData
+                                                                                      datumData)
+                                                                                   [ (\l
+                                                                                       r ->
+                                                                                        r) ]))
+                                                                             ((\lowerFields ->
+                                                                                 (\extCon ->
+                                                                                    (\extTag ->
+                                                                                       (\extFields ->
+                                                                                          (\offset ->
+                                                                                             case
+                                                                                               (equalsInteger
+                                                                                                  1
+                                                                                                  extTag)
+                                                                                               [ ((\x ->
+                                                                                                     error)
+                                                                                                    (force
+                                                                                                       trace
+                                                                                                       "Time range not Finite"
+                                                                                                       (constr 0
+                                                                                                          [  ])))
+                                                                                               , (addInteger
+                                                                                                    (unIData
+                                                                                                       (force
+                                                                                                          headList
+                                                                                                          extFields))
+                                                                                                    offset) ])
+                                                                                            (case
+                                                                                               (equalsInteger
+                                                                                                  1
+                                                                                                  (case
+                                                                                                     (unConstrData
+                                                                                                        (force
+                                                                                                           headList
+                                                                                                           (force
+                                                                                                              tailList
+                                                                                                              lowerFields)))
+                                                                                                     [ (\l
+                                                                                                         r ->
+                                                                                                          l) ]))
+                                                                                               [ 1
+                                                                                               , 0 ]))
+                                                                                         (case
+                                                                                            extCon
+                                                                                            [ (\l
+                                                                                                r ->
+                                                                                                 r) ]))
+                                                                                      (case
+                                                                                         extCon
+                                                                                         [ (\l
+                                                                                             r ->
+                                                                                              l) ]))
+                                                                                   (unConstrData
+                                                                                      (force
+                                                                                         headList
+                                                                                         lowerFields)))
+                                                                                (case
+                                                                                   (unConstrData
+                                                                                      (force
+                                                                                         headList
+                                                                                         (case
+                                                                                            (unConstrData
+                                                                                               txValidRange)
+                                                                                            [ (\l
+                                                                                                r ->
+                                                                                                 r) ])))
+                                                                                   [ (\l
+                                                                                       r ->
+                                                                                        r) ]))))
+                                                                     , (force
+                                                                          trace
+                                                                          "Full unlock requested"
+                                                                          ((\currentTimeApproximation ->
+                                                                              (\vdFields ->
+                                                                                 (\vestingPeriodEnd ->
+                                                                                    (\beneficiaryHash ->
+                                                                                       case
+                                                                                         (txSignedBy'
+                                                                                            txSignatories
+                                                                                            beneficiaryHash)
+                                                                                         [ ((\x ->
+                                                                                               error)
+                                                                                              (force
+                                                                                                 trace
+                                                                                                 "Missing beneficiary signature"
+                                                                                                 (constr 0
+                                                                                                    [  ])))
+                                                                                         , (case
+                                                                                              (lessThanEqualsInteger
+                                                                                                 currentTimeApproximation
+                                                                                                 vestingPeriodEnd)
+                                                                                              [ True
+                                                                                              , ((\x ->
+                                                                                                    error)
                                                                                                    (force
-                                                                                                      headList
-                                                                                                      l)
-                                                                                                   (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                                                      `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                      (force
-                                                                                                         headList
-                                                                                                         (force
-                                                                                                            tailList
-                                                                                                            l))))
-                                                                                                (case
-                                                                                                   tup
-                                                                                                   [ (\l
-                                                                                                       r ->
-                                                                                                        r) ])) ])
-                                                                                        (unConstrData
-                                                                                           scrut)))
-                                                                                (\d ->
-                                                                                   d))
-                                                                             ((\lookup'
-                                                                                v
-                                                                                ds ->
-                                                                                 case
-                                                                                   ds
-                                                                                   [ (\c
-                                                                                       t ->
-                                                                                        case
-                                                                                          (lookup'
-                                                                                             (bData
-                                                                                                c)
-                                                                                             v)
-                                                                                          [ (\a ->
-                                                                                               (\m ->
-                                                                                                  case
-                                                                                                    (lookup'
-                                                                                                       (bData
-                                                                                                          t)
-                                                                                                       m)
-                                                                                                    [ (\a ->
-                                                                                                         unIData
-                                                                                                           a)
-                                                                                                    , 0 ])
-                                                                                                 (unMapData
-                                                                                                    a))
-                                                                                          , 0 ]) ])
-                                                                                (\k ->
-                                                                                   (\go
-                                                                                     m ->
-                                                                                      go
-                                                                                        m)
-                                                                                     (fix1
-                                                                                        (\go
-                                                                                          xs ->
-                                                                                           case
-                                                                                             xs
-                                                                                             [ (\hd ->
-                                                                                                  case
-                                                                                                    (equalsData
-                                                                                                       k
-                                                                                                       (case
-                                                                                                          hd
-                                                                                                          [ (\l
-                                                                                                              r ->
-                                                                                                               l) ]))
-                                                                                                    [ go
-                                                                                                    , (\ds ->
-                                                                                                         constr 0
-                                                                                                           [ (case
-                                                                                                                hd
-                                                                                                                [ (\l
-                                                                                                                    r ->
-                                                                                                                     r) ]) ]) ])
-                                                                                             , (constr 1
-                                                                                                  [  ]) ])))))
-                                                                          (\ds ->
-                                                                             case
-                                                                               ds
-                                                                               [ (\ds
-                                                                                   ds
-                                                                                   ds
-                                                                                   ds
-                                                                                   ds
-                                                                                   ds
-                                                                                   ds ->
-                                                                                    ds) ]))
-                                                                       (\scrut
-                                                                         cont
-                                                                         fail ->
-                                                                          (\tup ->
-                                                                             case
-                                                                               (equalsInteger
-                                                                                  1
-                                                                                  (case
-                                                                                     tup
-                                                                                     [ (\l
-                                                                                         r ->
-                                                                                          l) ]))
-                                                                               [ (fail
-                                                                                    ())
-                                                                               , (cont
-                                                                                    (unBData
-                                                                                       (force
-                                                                                          headList
-                                                                                          (case
-                                                                                             tup
-                                                                                             [ (\l
-                                                                                                 r ->
-                                                                                                  r) ])))) ])
-                                                                            (unConstrData
-                                                                               scrut)))
-                                                                    (\ds ->
-                                                                       force
-                                                                         headList
-                                                                         (case
-                                                                            (unConstrData
-                                                                               ds)
-                                                                            [ (\l
-                                                                                r ->
-                                                                                 r) ])))
-                                                                 (\ds ->
-                                                                    (\l ->
-                                                                       (\tup ->
-                                                                          case
-                                                                            (equalsInteger
-                                                                               1
-                                                                               (case
-                                                                                  tup
-                                                                                  [ (\l
-                                                                                      r ->
-                                                                                       l) ]))
-                                                                            [ (traceError
-                                                                                 "Time range not Finite")
-                                                                            , ((\posixTime ->
-                                                                                  case
-                                                                                    (case
-                                                                                       (unConstrData
-                                                                                          (force
-                                                                                             headList
-                                                                                             (force
-                                                                                                tailList
-                                                                                                l)))
-                                                                                       [ (\index
-                                                                                           args ->
-                                                                                            case
-                                                                                              index
-                                                                                              [ (\ds ->
-                                                                                                   False)
-                                                                                              , (\ds ->
-                                                                                                   True) ]
-                                                                                              args) ])
-                                                                                    [ (addInteger
-                                                                                         1
-                                                                                         posixTime)
-                                                                                    , posixTime ])
-                                                                                 (unIData
-                                                                                    (force
-                                                                                       headList
-                                                                                       (case
-                                                                                          tup
-                                                                                          [ (\l
-                                                                                              r ->
-                                                                                               r) ])))) ])
-                                                                         (unConstrData
-                                                                            (force
-                                                                               headList
-                                                                               l)))
-                                                                      (case
-                                                                         (unConstrData
-                                                                            (force
-                                                                               headList
-                                                                               (case
-                                                                                  (unConstrData
-                                                                                     ds)
-                                                                                  [ (\l
-                                                                                      r ->
-                                                                                       r) ])))
-                                                                         [ (\l
-                                                                             r ->
-                                                                              r) ])))
-                                                              (\str ->
-                                                                 (\x -> error)
-                                                                   (force trace
-                                                                      str
-                                                                      (constr 0
-                                                                         []))))
-                                                           (\ds ->
-                                                              case
-                                                                (constr 0
-                                                                   [ ds
-                                                                   , (\ds
-                                                                       ds
-                                                                       ds ->
-                                                                        ds)
-                                                                   , (\void ->
-                                                                        error) ])
-                                                                [ `$mScriptContext` ]))
-                                                        (\ds ->
-                                                           case
-                                                             (constr 0
-                                                                [ ds
-                                                                , (\ds ds ds ->
-                                                                     ds)
-                                                                , (\void ->
-                                                                     error) ])
-                                                             [ `$mScriptContext` ]))
-                                                     (\scrut
-                                                       cont
-                                                       fail ->
-                                                        (\l ->
-                                                           (\l ->
-                                                              case
-                                                                (constr 0
-                                                                   [ (force
-                                                                        headList
-                                                                        l)
-                                                                   , (force
-                                                                        headList
-                                                                        l)
-                                                                   , (force
-                                                                        headList
-                                                                        (force
-                                                                           tailList
-                                                                           l)) ])
-                                                                [cont])
-                                                             (force tailList l))
-                                                          (case
-                                                             (unConstrData
-                                                                scrut)
-                                                             [(\l r -> r)])))
-                                                  (\ds ->
-                                                     case
-                                                       ds
-                                                       [ (\ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds
-                                                           ds ->
-                                                            ds) ]))
-                                               (\ds ->
-                                                  force headList
-                                                    (force tailList
-                                                       (case
-                                                          (unConstrData ds)
-                                                          [(\l r -> r)]))))
-                                            (\ds ->
-                                               case
-                                                 (constr 0
-                                                    [ ds
-                                                    , (\ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds
-                                                        ds ->
-                                                         ds)
-                                                    , (\void -> error) ])
-                                                 [`$mTxInfo`]))
-                                         (\ds ->
-                                            case
-                                              (constr 0
-                                                 [ ds
-                                                 , (\ds ds ds ds -> ds)
-                                                 , (\void -> error) ])
-                                              [`$mTxOut`]))
-                                      (\ds ->
-                                         case
-                                           (constr 0
-                                              [ ds
-                                              , (\ds ds ds ds -> ds)
-                                              , (\void -> error) ])
-                                           [`$mTxOut`]))
-                                   (\scrut
-                                     cont
-                                     fail ->
-                                      (\l ->
-                                         (\l ->
-                                            (\l ->
-                                               case
-                                                 (constr 0
-                                                    [ (force headList l)
-                                                    , (unMapData
-                                                         (force headList l))
-                                                    , (force headList l)
-                                                    , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                         unBData
-                                                         (force headList
-                                                            (force tailList
-                                                               l))) ])
-                                                 [cont])
-                                              (force tailList l))
-                                           (force tailList l))
-                                        (case
-                                           (unConstrData scrut)
-                                           [(\l r -> r)])))
-                                (\ds ->
-                                   unMapData
-                                     (force headList
-                                        (force tailList
-                                           (case
-                                              (unConstrData ds)
-                                              [(\l r -> r)])))))
-                             (\ds k ->
-                                case
-                                  (constr 0
-                                     [ ds
-                                     , (\ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds
-                                         ds ->
-                                          case
-                                            (case
-                                               (constr 0
-                                                  [ unBData
-                                                  , (\y -> equalsByteString k y)
-                                                  , ds ])
-                                               [find])
-                                            [(\ds -> True), False])
-                                     , (\void ->
-                                          (\defaultBody ->
-                                             case error [defaultBody])
-                                            error) ])
-                                  [`$mTxInfo`]))
-                          (\scrut
-                            cont
-                            fail ->
-                             (\l ->
-                                (\l ->
-                                   (\l ->
-                                      (\l ->
-                                         (\l ->
-                                            (\l ->
-                                               (\l ->
-                                                  (\l ->
-                                                     (\l ->
-                                                        (\l ->
-                                                           (\l ->
-                                                              (\l ->
-                                                                 (\l ->
-                                                                    (\l ->
-                                                                       (\l ->
-                                                                          case
-                                                                            (constr 0
-                                                                               [ (unListData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unListData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unListData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unIData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unMapData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unListData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unMapData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (force
-                                                                                    headList
-                                                                                    l)
-                                                                               , (unListData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unMapData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unMapData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unBData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unMapData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (unListData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                                    unIData
-                                                                                    (force
-                                                                                       headList
-                                                                                       l))
-                                                                               , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                                    unIData
-                                                                                    (force
-                                                                                       headList
-                                                                                       (force
-                                                                                          tailList
-                                                                                          l))) ])
-                                                                            [ cont ])
-                                                                         (force
-                                                                            tailList
-                                                                            l))
-                                                                      (force
-                                                                         tailList
-                                                                         l))
-                                                                   (force
-                                                                      tailList
-                                                                      l))
-                                                                (force tailList
-                                                                   l))
-                                                             (force tailList l))
-                                                          (force tailList l))
-                                                       (force tailList l))
-                                                    (force tailList l))
-                                                 (force tailList l))
-                                              (force tailList l))
-                                           (force tailList l))
-                                        (force tailList l))
-                                     (force tailList l))
-                                  (force tailList l))
-                               (case (unConstrData scrut) [(\l r -> r)])))
-                       (\`$dUnsafeFromData` d ->
-                          case
-                            (unConstrData d)
-                            [ (\index args ->
-                                 case
-                                   index
-                                   [ (\ds ->
-                                        constr 0
-                                          [ (`$dUnsafeFromData`
-                                               (force headList ds)) ])
-                                   , (\ds -> constr 1 []) ]
-                                   args) ]))
-                    (\`$dUnsafeFromData` pred' ->
-                       (\go eta -> go eta)
-                         (fix1
-                            (\go ds ->
+                                                                                                      trace
+                                                                                                      "Unlock not permitted until vestingPeriodEnd time"
+                                                                                                      (constr 0
+                                                                                                         [  ]))) ]) ])
+                                                                                      (unBData
+                                                                                         (force
+                                                                                            headList
+                                                                                            (case
+                                                                                               (unConstrData
+                                                                                                  (force
+                                                                                                     headList
+                                                                                                     (case
+                                                                                                        (unConstrData
+                                                                                                           (force
+                                                                                                              headList
+                                                                                                              vdFields))
+                                                                                                        [ (\l
+                                                                                                            r ->
+                                                                                                             r) ])))
+                                                                                               [ (\l
+                                                                                                   r ->
+                                                                                                    r) ]))))
+                                                                                   (unIData
+                                                                                      (force
+                                                                                         headList
+                                                                                         (force
+                                                                                            tailList
+                                                                                            (force
+                                                                                               tailList
+                                                                                               (force
+                                                                                                  tailList
+                                                                                                  (force
+                                                                                                     tailList
+                                                                                                     vdFields)))))))
+                                                                                (case
+                                                                                   (unConstrData
+                                                                                      datumData)
+                                                                                   [ (\l
+                                                                                       r ->
+                                                                                        r) ]))
+                                                                             ((\lowerFields ->
+                                                                                 (\extCon ->
+                                                                                    (\extTag ->
+                                                                                       (\extFields ->
+                                                                                          (\offset ->
+                                                                                             case
+                                                                                               (equalsInteger
+                                                                                                  1
+                                                                                                  extTag)
+                                                                                               [ ((\x ->
+                                                                                                     error)
+                                                                                                    (force
+                                                                                                       trace
+                                                                                                       "Time range not Finite"
+                                                                                                       (constr 0
+                                                                                                          [  ])))
+                                                                                               , (addInteger
+                                                                                                    (unIData
+                                                                                                       (force
+                                                                                                          headList
+                                                                                                          extFields))
+                                                                                                    offset) ])
+                                                                                            (case
+                                                                                               (equalsInteger
+                                                                                                  1
+                                                                                                  (case
+                                                                                                     (unConstrData
+                                                                                                        (force
+                                                                                                           headList
+                                                                                                           (force
+                                                                                                              tailList
+                                                                                                              lowerFields)))
+                                                                                                     [ (\l
+                                                                                                         r ->
+                                                                                                          l) ]))
+                                                                                               [ 1
+                                                                                               , 0 ]))
+                                                                                         (case
+                                                                                            extCon
+                                                                                            [ (\l
+                                                                                                r ->
+                                                                                                 r) ]))
+                                                                                      (case
+                                                                                         extCon
+                                                                                         [ (\l
+                                                                                             r ->
+                                                                                              l) ]))
+                                                                                   (unConstrData
+                                                                                      (force
+                                                                                         headList
+                                                                                         lowerFields)))
+                                                                                (case
+                                                                                   (unConstrData
+                                                                                      (force
+                                                                                         headList
+                                                                                         (case
+                                                                                            (unConstrData
+                                                                                               txValidRange)
+                                                                                            [ (\l
+                                                                                                r ->
+                                                                                                 r) ])))
+                                                                                   [ (\l
+                                                                                       r ->
+                                                                                        r) ])))) ])))
+                                                            [ ((\x ->
+                                                                  error)
+                                                                 (force
+                                                                    trace
+                                                                    "Validation failed"
+                                                                    (constr 0
+                                                                       [])))
+                                                            , (force
+                                                                 trace
+                                                                 "Validation completed"
+                                                                 ()) ])
+                                                         (case
+                                                            spendingInfo
+                                                            [(\l r -> r)]))
+                                                      (case
+                                                         spendingInfo
+                                                         [(\l r -> l)]))
+                                                   ((\con ->
+                                                       (\tag ->
+                                                          (\fields ->
+                                                             case
+                                                               (equalsInteger
+                                                                  1
+                                                                  tag)
+                                                               [ ((\x ->
+                                                                     error)
+                                                                    (force
+                                                                       trace
+                                                                       "Not spending script"
+                                                                       (constr 0
+                                                                          [])))
+                                                               , ((\mdCon ->
+                                                                     (\mdTag ->
+                                                                        (\mdFields ->
+                                                                           (\ownRef ->
+                                                                              case
+                                                                                (equalsInteger
+                                                                                   0
+                                                                                   mdTag)
+                                                                                [ ((\x ->
+                                                                                      error)
+                                                                                     (force
+                                                                                        trace
+                                                                                        "Missing datum"
+                                                                                        (constr 0
+                                                                                           [  ])))
+                                                                                , (mkPairData
+                                                                                     ownRef
+                                                                                     (force
+                                                                                        headList
+                                                                                        mdFields)) ])
+                                                                             (force
+                                                                                headList
+                                                                                fields))
+                                                                          (case
+                                                                             mdCon
+                                                                             [ (\l
+                                                                                 r ->
+                                                                                  r) ]))
+                                                                       (case
+                                                                          mdCon
+                                                                          [ (\l
+                                                                              r ->
+                                                                               l) ]))
+                                                                    (unConstrData
+                                                                       (force
+                                                                          headList
+                                                                          (force
+                                                                             tailList
+                                                                             fields)))) ])
+                                                            (case
+                                                               con
+                                                               [(\l r -> r)]))
+                                                         (case
+                                                            con
+                                                            [(\l r -> l)]))
+                                                      (unConstrData
+                                                         (force
+                                                            headList
+                                                            (force
+                                                               tailList
+                                                               (force
+                                                                  tailList
+                                                                  ctxFields))))))
+                                                (case
+                                                   (unConstrData
+                                                      (force headList
+                                                         (force tailList
+                                                            ctxFields)))
+                                                   [(\l r -> l)]))
+                                             (unListData
+                                                (force headList txInfoFields)))
+                                          (unListData
+                                             (force headList txInfoFields)))
+                                       (force headList txInfoFields))
+                                    (unListData
+                                       (force headList
+                                          (force tailList txInfoFields))))
+                                 (force tailList
+                                    (force tailList
+                                       (force tailList
+                                          (force tailList
+                                             (force tailList txInfoFields))))))
+                              (force tailList (force tailList txInfoFields)))
+                           (case
+                              (unConstrData (force headList ctxFields))
+                              [(\l r -> r)]))
+                        (case
+                           (unConstrData
+                              (force trace
+                                 "Parsing ScriptContext..."
+                                 scriptContextData))
+                           [(\l r -> r)]))
+                     (fix1
+                        (\txSignedBy' signatories pkh ->
+                           case
+                             signatories
+                             [ (\s ss ->
+                                  case
+                                    (equalsByteString (unBData s) pkh)
+                                    [(txSignedBy' ss pkh), True])
+                             , False ])))
+                  (fix1
+                     (\findOutputByAddress addr outputs ->
+                        case
+                          (constr 0
+                             [ ((\x -> error)
+                                  (force trace
+                                     "Own output not found"
+                                     (constr 0 [])))
+                             , (\out outs ->
+                                  case
+                                    (equalsData
+                                       (force headList
+                                          (case
+                                             (unConstrData out)
+                                             [(\l r -> r)]))
+                                       addr)
+                                    [(findOutputByAddress addr outs), out])
+                             , outputs ])
+                          [caseList'])))
+               (fix1
+                  (\findInputByOutRef ref inputs ->
+                     case
+                       (constr 0
+                          [ ((\x -> error)
+                               (force trace
+                                  "Own input not found"
+                                  (constr 0 [])))
+                          , (\txIn txIns ->
                                case
-                                 ds
-                                 [ (\x eta ->
-                                      (\h ->
-                                         case
-                                           (pred' h)
-                                           [(go eta), (constr 0 [h])])
-                                        (`$dUnsafeFromData` x))
-                                 , (constr 1 []) ]))))
-                 (\ds -> case ds [(\ds ds ds ds ds ds ds -> ds)]))
-            , (delay
-                 ((\x -> error)
-                    (force trace
-                       "Failed to parse ScriptContext"
-                       (constr 0 [])))) ]))
+                                 (equalsData
+                                    (force headList
+                                       (case (unConstrData txIn) [(\l r -> r)]))
+                                    ref)
+                                 [(findInputByOutRef ref txIns), txIn])
+                          , inputs ])
+                       [caseList'])))
+            (\z f xs -> case xs [f, z]))
+         (fix1
+            (\countInputsAtScript scriptHash inputs ->
+               case
+                 inputs
+                 [ (\txIn txIns ->
+                      (\rest ->
+                         (\credCon ->
+                            (\credTag ->
+                               (\credFields ->
+                                  case
+                                    (equalsInteger 1 credTag)
+                                    [ rest
+                                    , (case
+                                         (equalsByteString
+                                            (unBData
+                                               (force headList credFields))
+                                            scriptHash)
+                                         [rest, (addInteger 1 rest)]) ])
+                                 (case credCon [(\l r -> r)]))
+                              (case credCon [(\l r -> l)]))
+                           (unConstrData
+                              (force headList
+                                 (case
+                                    (unConstrData
+                                       (force headList
+                                          (case
+                                             (unConstrData
+                                                (force headList
+                                                   (force tailList
+                                                      (case
+                                                         (unConstrData txIn)
+                                                         [(\l r -> r)]))))
+                                             [(\l r -> r)])))
+                                    [(\l r -> r)]))))
+                        (countInputsAtScript scriptHash txIns))
+                 , 0 ])))
       (\f ->
          (\s ->
             f
