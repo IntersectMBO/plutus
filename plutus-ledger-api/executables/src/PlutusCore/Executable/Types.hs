@@ -69,8 +69,11 @@ type Files = [FilePath]
 -- | Input/output format for programs
 data Format
   = Textual
-  | Serialised
-  | Hex
+  | -- | standard serialization/deserialization using `PlutusLedgerApi.Common.SerialisedScript`.
+    Serialised
+  | {-| serialization plus hex encoding. This is the format used in the blueprints and
+    most other places. -}
+    Hex
   | Flat AstNameType
 
 instance Show Format where
