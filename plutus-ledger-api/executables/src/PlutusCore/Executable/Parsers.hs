@@ -66,6 +66,8 @@ noOutput =
 formatHelp :: String
 formatHelp =
   "textual, flat-named (names), flat (de Bruijn indices), "
+    <> "serialised (cbor + flat, with de Bruijn indices), "
+    <> "hex (hex + cbor + flat), "
     <> "or flat-namedDeBruijn (names and de Bruijn indices)"
 
 formatReader :: String -> Maybe Format

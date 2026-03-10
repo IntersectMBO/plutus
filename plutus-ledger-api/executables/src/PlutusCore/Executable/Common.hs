@@ -356,7 +356,7 @@ writeSerialised outp prog = do
 writeText :: Output -> T.Text -> IO ()
 writeText outp prog = case outp of
   FileOutput file -> T.writeFile file prog
-  StdOutput -> T.putStr prog
+  StdOutput -> T.putStrLn prog
   NoOutput -> pure ()
 
 ---------------- Write an AST as PLC source ----------------
