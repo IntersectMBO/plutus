@@ -70,44 +70,42 @@ program
                                                           go
                                                           g
                                                           f ->
-                                                           case
-                                                             (constr 0
-                                                                [ (\arg ->
-                                                                     delay
-                                                                       (\x ->
-                                                                          (\x ->
-                                                                             force
-                                                                               g
-                                                                               (force
-                                                                                  (f
-                                                                                     (delay
-                                                                                        (\x ->
-                                                                                           x)))
-                                                                                  x))
-                                                                            x))
-                                                                , (\arg ->
-                                                                     delay
-                                                                       (force
-                                                                          map
+                                                           choose
+                                                             (\arg ->
+                                                                delay
+                                                                  (\x ->
+                                                                     (\x ->
+                                                                        force
+                                                                          g
                                                                           (force
-                                                                             (go
+                                                                             (f
                                                                                 (delay
                                                                                    (\x ->
-                                                                                      x))))))
-                                                                , (\arg ->
-                                                                     delay
-                                                                       (\x ->
-                                                                          (\x ->
-                                                                             force
-                                                                               (g
-                                                                                  (delay
-                                                                                     (\x ->
-                                                                                        x)))
-                                                                               (force
-                                                                                  f
-                                                                                  x))
-                                                                            x)) ])
-                                                             [choose]))))
+                                                                                      x)))
+                                                                             x))
+                                                                       x))
+                                                             (\arg ->
+                                                                delay
+                                                                  (force
+                                                                     map
+                                                                     (force
+                                                                        (go
+                                                                           (delay
+                                                                              (\x ->
+                                                                                 x))))))
+                                                             (\arg ->
+                                                                delay
+                                                                  (\x ->
+                                                                     (\x ->
+                                                                        force
+                                                                          (g
+                                                                             (delay
+                                                                                (\x ->
+                                                                                   x)))
+                                                                          (force
+                                                                             f
+                                                                             x))
+                                                                       x))))))
                                                (map (delay (\x -> x))))
                                             (force tup (\arg_0 -> arg_0)))
                                          (delay

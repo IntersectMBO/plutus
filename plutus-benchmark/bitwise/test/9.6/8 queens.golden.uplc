@@ -17,12 +17,15 @@
                                    , ((\cse ->
                                          case
                                            (constr 0
-                                              [ cse
+                                              [ 0
+                                              , 0
+                                              , cse
+                                              , cse
                                               , cse
                                               , (replicateByte
                                                    bytesNeeded
                                                    255) ])
-                                           [(case (constr 0 [0, 0, cse]) [go])])
+                                           [go])
                                         (replicateByte bytesNeeded 0)) ])
                               , (constr 0 []) ])
                            (quotientInteger dim 8))
@@ -51,30 +54,26 @@
                                                                   case
                                                                     (case
                                                                        (constr 0
-                                                                          [ newDown
+                                                                          [ s
+                                                                          , 0
+                                                                          , newRow
+                                                                          , newDown
                                                                           , newLeft
-                                                                          , newRight ])
-                                                                       [ (case
-                                                                            (constr 0
-                                                                               [ s
-                                                                               , 0
-                                                                               , newRow ])
-                                                                            [ s ]) ]
-                                                                       newControl)
+                                                                          , newRight
+                                                                          , newControl ])
+                                                                       [s])
                                                                     [ (case
                                                                          (constr 0
-                                                                            [ down
+                                                                            [ s
+                                                                            , (addInteger
+                                                                                 1
+                                                                                 selectIx)
+                                                                            , row
+                                                                            , down
                                                                             , left
-                                                                            , right ])
-                                                                         [ (case
-                                                                              (constr 0
-                                                                                 [ s
-                                                                                 , (addInteger
-                                                                                      1
-                                                                                      selectIx)
-                                                                                 , row ])
-                                                                              [ s ]) ]
-                                                                         control)
+                                                                            , right
+                                                                            , control ])
+                                                                         [s])
                                                                     , (\ipv
                                                                         ipv ->
                                                                          constr 1
@@ -83,16 +82,14 @@
                                                                                 , available ])
                                                                            , (case
                                                                                 (constr 0
-                                                                                   [ newDown
+                                                                                   [ s
+                                                                                   , 0
+                                                                                   , newRow
+                                                                                   , newDown
                                                                                    , newLeft
-                                                                                   , newRight ])
-                                                                                [ (case
-                                                                                     (constr 0
-                                                                                        [ s
-                                                                                        , 0
-                                                                                        , newRow ])
-                                                                                     [ s ]) ]
-                                                                                newControl) ]) ])
+                                                                                   , newRight
+                                                                                   , newControl ])
+                                                                                [ s ]) ]) ])
                                                                  (complementByteString
                                                                     (case
                                                                        (constr 0

@@ -44,47 +44,45 @@
                                                                                                            ((\d ->
                                                                                                                case
                                                                                                                  (constr 0
-                                                                                                                    [ (\ds ->
-                                                                                                                         constr 1
-                                                                                                                           [  ])
+                                                                                                                    [ d
                                                                                                                     , (\ds ->
-                                                                                                                         constr 1
-                                                                                                                           [  ])
-                                                                                                                    , (\ds ->
-                                                                                                                         constr 1
-                                                                                                                           [  ]) ])
-                                                                                                                 [ (case
-                                                                                                                      (constr 0
-                                                                                                                         [ d
-                                                                                                                         , (\ds ->
-                                                                                                                              case
-                                                                                                                                (unConstrData
-                                                                                                                                   d)
-                                                                                                                                [ (\l
-                                                                                                                                    r ->
-                                                                                                                                     case
+                                                                                                                         case
+                                                                                                                           (unConstrData
+                                                                                                                              d)
+                                                                                                                           [ (\l
+                                                                                                                               r ->
+                                                                                                                                case
+                                                                                                                                  (equalsInteger
+                                                                                                                                     0
+                                                                                                                                     l)
+                                                                                                                                  [ (case
                                                                                                                                        (equalsInteger
-                                                                                                                                          0
+                                                                                                                                          1
                                                                                                                                           l)
-                                                                                                                                       [ (case
-                                                                                                                                            (equalsInteger
-                                                                                                                                               1
-                                                                                                                                               l)
-                                                                                                                                            [ (constr 1
-                                                                                                                                                 [  ])
-                                                                                                                                            , (constr 0
-                                                                                                                                                 [ (constr 0
-                                                                                                                                                      [  ]) ]) ])
+                                                                                                                                       [ (constr 1
+                                                                                                                                            [  ])
                                                                                                                                        , (constr 0
-                                                                                                                                            [ (constr 1
-                                                                                                                                                 [  ]) ]) ]) ])
-                                                                                                                         , (\ds ->
-                                                                                                                              constr 1
-                                                                                                                                [  ]) ])
-                                                                                                                      [ (force
-                                                                                                                           chooseData) ]) ]
-                                                                                                                 (constr 0
-                                                                                                                    [  ]))
+                                                                                                                                            [ (constr 0
+                                                                                                                                                 [  ]) ]) ])
+                                                                                                                                  , (constr 0
+                                                                                                                                       [ (constr 1
+                                                                                                                                            [  ]) ]) ]) ])
+                                                                                                                    , (\ds ->
+                                                                                                                         constr 1
+                                                                                                                           [  ])
+                                                                                                                    , (\ds ->
+                                                                                                                         constr 1
+                                                                                                                           [  ])
+                                                                                                                    , (\ds ->
+                                                                                                                         constr 1
+                                                                                                                           [  ])
+                                                                                                                    , (\ds ->
+                                                                                                                         constr 1
+                                                                                                                           [  ])
+                                                                                                                    , (constr 0
+                                                                                                                         [  ]) ])
+                                                                                                                 [ (force
+                                                                                                                      chooseData) ])
                                                                                                               (case
                                                                                                                  (constr 0
                                                                                                                     [ context
@@ -1031,12 +1029,13 @@
                                                     [ (force headList l)
                                                     , (unMapData
                                                          (force headList l))
-                                                    , (force headList l) ])
-                                                 [cont]
-                                                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                    unBData
-                                                    (force headList
-                                                       (force tailList l))))
+                                                    , (force headList l)
+                                                    , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                         unBData
+                                                         (force headList
+                                                            (force tailList
+                                                               l))) ])
+                                                 [cont])
                                               (force tailList l))
                                            (force tailList l))
                                         (case
@@ -1102,7 +1101,54 @@
                                                                        (\l ->
                                                                           case
                                                                             (constr 0
-                                                                               [ (unMapData
+                                                                               [ (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unIData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (force
+                                                                                    headList
+                                                                                    l)
+                                                                               , (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unBData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
                                                                                     (force
                                                                                        headList
                                                                                        l))
@@ -1114,70 +1160,15 @@
                                                                                     unIData
                                                                                     (force
                                                                                        headList
-                                                                                       l)) ])
-                                                                            [ (case
-                                                                                 (constr 0
-                                                                                    [ (unMapData
-                                                                                         (force
-                                                                                            headList
-                                                                                            l))
-                                                                                    , (unMapData
-                                                                                         (force
-                                                                                            headList
-                                                                                            l))
-                                                                                    , (unBData
-                                                                                         (force
-                                                                                            headList
-                                                                                            l)) ])
-                                                                                 [ (case
-                                                                                      (constr 0
-                                                                                         [ (unMapData
-                                                                                              (force
-                                                                                                 headList
-                                                                                                 l))
-                                                                                         , (force
-                                                                                              headList
-                                                                                              l)
-                                                                                         , (unListData
-                                                                                              (force
-                                                                                                 headList
-                                                                                                 l)) ])
-                                                                                      [ (case
-                                                                                           (constr 0
-                                                                                              [ (unIData
-                                                                                                   (force
-                                                                                                      headList
-                                                                                                      l))
-                                                                                              , (unMapData
-                                                                                                   (force
-                                                                                                      headList
-                                                                                                      l))
-                                                                                              , (unListData
-                                                                                                   (force
-                                                                                                      headList
-                                                                                                      l)) ])
-                                                                                           [ (case
-                                                                                                (constr 0
-                                                                                                   [ (unListData
-                                                                                                        (force
-                                                                                                           headList
-                                                                                                           l))
-                                                                                                   , (unListData
-                                                                                                        (force
-                                                                                                           headList
-                                                                                                           l))
-                                                                                                   , (unListData
-                                                                                                        (force
-                                                                                                           headList
-                                                                                                           l)) ])
-                                                                                                [ cont ]) ]) ]) ]) ]
-                                                                            (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                               unIData
-                                                                               (force
-                                                                                  headList
-                                                                                  (force
-                                                                                     tailList
-                                                                                     l))))
+                                                                                       l))
+                                                                               , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                                    unIData
+                                                                                    (force
+                                                                                       headList
+                                                                                       (force
+                                                                                          tailList
+                                                                                          l))) ])
+                                                                            [ cont ])
                                                                          (force
                                                                             tailList
                                                                             l))

@@ -5,23 +5,23 @@
           (\nt ->
              (\lookup ->
                 constr 0
-                  [ (case (constr 0 [(\i -> iData i), unIData, n]) [lookup] nt)
+                  [ (case (constr 0 [(\i -> iData i), unIData, n, nt]) [lookup])
                   , (case
-                       (constr 0 [(\i -> iData i), unIData, (addInteger 5 n)])
-                       [lookup]
-                       nt)
+                       (constr 0
+                          [(\i -> iData i), unIData, (addInteger 5 n), nt])
+                       [lookup])
                   , (case
-                       (constr 0 [(\i -> iData i), unIData, (addInteger 10 n)])
-                       [lookup]
-                       nt)
+                       (constr 0
+                          [(\i -> iData i), unIData, (addInteger 10 n), nt])
+                       [lookup])
                   , (case
-                       (constr 0 [(\i -> iData i), unIData, (addInteger 20 n)])
-                       [lookup]
-                       nt)
+                       (constr 0
+                          [(\i -> iData i), unIData, (addInteger 20 n), nt])
+                       [lookup])
                   , (case
-                       (constr 0 [(\i -> iData i), unIData, (addInteger 5 n)])
-                       [lookup]
-                       nt) ])
+                       (constr 0
+                          [(\i -> iData i), unIData, (addInteger 5 n), nt])
+                       [lookup]) ])
                (\`$dToData` `$dUnsafeFromData` ds ds ->
                   case
                     ((\k ->

@@ -51,12 +51,12 @@
                                                (constr 0
                                                   [ (unIData (force headList l))
                                                   , (unIData (force headList l))
+                                                  , (unIData (force headList l))
                                                   , (unIData
-                                                       (force headList l)) ])
-                                               [cont]
-                                               (unIData
-                                                  (force headList
-                                                     (force tailList l))))
+                                                       (force headList
+                                                          (force tailList
+                                                             l))) ])
+                                               [cont])
                                             (force tailList l))
                                          (force tailList l))
                                       (case (unConstrData scrut) [(\l r -> r)]))

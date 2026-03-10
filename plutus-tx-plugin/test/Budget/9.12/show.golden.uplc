@@ -268,8 +268,9 @@
                     , (\eta ->
                          constr 1
                            [ "-"
-                           , (case (constr 0 [s, p, (subtractInteger 0 n)]) [s]
-                                eta) ]) ])))
+                           , (case
+                                (constr 0 [s, p, (subtractInteger 0 n), eta])
+                                [s]) ]) ])))
          ((\s ->
              s s)
             (\s

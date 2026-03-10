@@ -3,7 +3,8 @@ Transform multi-argument applications into case-constr form.
 
 This is essentially the reverse of 'CaseReduce'. An application of 3 or more
 arguments, e.g., @f x y z@ is rewritten to @case (constr 0 [x, y, z]) [f]@,
-which is cheaper, and smaller in AST size, though slightly bigger in cbor size.
+which is cheaper, and smaller in AST size, though it is sometimes slightly
+bigger in cbor size.
 
 I cannot think of any case where this pass could enable further optimizations.
 It can certainly destroy optimization opportunities, similar to CSE.
@@ -12,7 +13,7 @@ run at the end, but it runs for multiple iterations interleaved with other
 optimizations, because CSE can both destroy and enable further optimizations. -}
 module UntypedPlutusCore.Transform.ApplyToCase (applyToCase) where
 
-import Control.Lens (transformOf)
+import Control.Lens (over)
 import Data.Vector qualified as V
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Simplifier
@@ -30,7 +31,7 @@ applyToCase
   => Term name uni fun a
   -> SimplifierT name uni fun a m (Term name uni fun a)
 applyToCase term = do
-  let result = transformOf termSubterms processTerm term
+  let result = processTerm term
   recordSimplification term ApplyToCase result
   pure result
 
@@ -39,5 +40,5 @@ processTerm t = case splitApplication t of
   (fun, args)
     | length args >= minArgs ->
         let ann = termAnn t
-         in Case ann (Constr ann 0 (snd <$> args)) (V.singleton fun)
-  _ -> t
+         in Case ann (Constr ann 0 (processTerm . snd <$> args)) (V.singleton fun)
+  _ -> over termSubterms processTerm t
