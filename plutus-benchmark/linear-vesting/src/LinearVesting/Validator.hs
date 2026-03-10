@@ -174,29 +174,19 @@ valueOf valueData cs tn =
                 then BI.unsafeDataAsI (BI.snd pair)
                 else findToken (BI.tail pairs)
 
+-- No credential tag check needed: called on the input being validated,
+-- so the ledger guarantees it's a ScriptCredential.
 {-# INLINE getScriptHashFromAddress #-}
 getScriptHashFromAddress :: BI.BuiltinData -> BI.BuiltinByteString
 getScriptHashFromAddress addr =
-  let addrFields = BI.snd (BI.unsafeDataAsConstr addr)
-      cred = BI.head addrFields
-      !credCon = BI.unsafeDataAsConstr cred
-      credTag = BI.fst credCon
-      credFields = BI.snd credCon
-   in if BI.equalsInteger credTag 1
-        then BI.unsafeDataAsB (BI.head credFields)
-        else traceError "Expected ScriptCredential"
+  BI.unsafeDataAsB (BI.head (BI.snd (BI.unsafeDataAsConstr (BI.head (BI.snd (BI.unsafeDataAsConstr addr))))))
 
+-- No credential tag check needed: the extracted hash is verified
+-- against txInfoSignatories, which the ledger validates.
 {-# INLINE getPubKeyHashFromAddress #-}
 getPubKeyHashFromAddress :: BI.BuiltinData -> BI.BuiltinByteString
 getPubKeyHashFromAddress addr =
-  let addrFields = BI.snd (BI.unsafeDataAsConstr addr)
-      cred = BI.head addrFields
-      !credCon = BI.unsafeDataAsConstr cred
-      credTag = BI.fst credCon
-      credFields = BI.snd credCon
-   in if BI.equalsInteger credTag 0
-        then BI.unsafeDataAsB (BI.head credFields)
-        else traceError "Expected PubKeyCredential"
+  BI.unsafeDataAsB (BI.head (BI.snd (BI.unsafeDataAsConstr (BI.head (BI.snd (BI.unsafeDataAsConstr addr))))))
 
 {-# INLINE getSpendingInfo #-}
 getSpendingInfo :: BI.BuiltinData -> BI.BuiltinPair BI.BuiltinData BI.BuiltinData

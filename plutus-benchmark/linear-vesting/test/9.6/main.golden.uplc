@@ -175,43 +175,22 @@
                                                                                                                                                            [ (\l
                                                                                                                                                                r ->
                                                                                                                                                                 r) ]))
-                                                                                                                                                     ((\credCon ->
-                                                                                                                                                         (\credTag ->
-                                                                                                                                                            (\credFields ->
-                                                                                                                                                               case
-                                                                                                                                                                 (equalsInteger
-                                                                                                                                                                    1
-                                                                                                                                                                    credTag)
-                                                                                                                                                                 [ ((\x ->
-                                                                                                                                                                       error)
-                                                                                                                                                                      (force
-                                                                                                                                                                         trace
-                                                                                                                                                                         "Expected ScriptCredential"
-                                                                                                                                                                         (constr 0
-                                                                                                                                                                            [  ])))
-                                                                                                                                                                 , (unBData
-                                                                                                                                                                      (force
-                                                                                                                                                                         headList
-                                                                                                                                                                         credFields)) ])
-                                                                                                                                                              (case
-                                                                                                                                                                 credCon
-                                                                                                                                                                 [ (\l
-                                                                                                                                                                     r ->
-                                                                                                                                                                      r) ]))
+                                                                                                                                                     (unBData
+                                                                                                                                                        (force
+                                                                                                                                                           headList
                                                                                                                                                            (case
-                                                                                                                                                              credCon
+                                                                                                                                                              (unConstrData
+                                                                                                                                                                 (force
+                                                                                                                                                                    headList
+                                                                                                                                                                    (case
+                                                                                                                                                                       (unConstrData
+                                                                                                                                                                          inputAddress)
+                                                                                                                                                                       [ (\l
+                                                                                                                                                                           r ->
+                                                                                                                                                                            r) ])))
                                                                                                                                                               [ (\l
                                                                                                                                                                   r ->
-                                                                                                                                                                   l) ]))
-                                                                                                                                                        (unConstrData
-                                                                                                                                                           (force
-                                                                                                                                                              headList
-                                                                                                                                                              (case
-                                                                                                                                                                 (unConstrData
-                                                                                                                                                                    inputAddress)
-                                                                                                                                                                 [ (\l
-                                                                                                                                                                     r ->
-                                                                                                                                                                      r) ])))))
+                                                                                                                                                                   r) ]))))
                                                                                                                                                   (force
                                                                                                                                                      headList
                                                                                                                                                      resolvedFields))
@@ -235,45 +214,24 @@
                                                                                                                                             (txSignedBy'
                                                                                                                                                txSignatories
                                                                                                                                                beneficiaryHash))
-                                                                                                                                         ((\credCon ->
-                                                                                                                                             (\credTag ->
-                                                                                                                                                (\credFields ->
-                                                                                                                                                   case
-                                                                                                                                                     (equalsInteger
-                                                                                                                                                        0
-                                                                                                                                                        credTag)
-                                                                                                                                                     [ ((\x ->
-                                                                                                                                                           error)
-                                                                                                                                                          (force
-                                                                                                                                                             trace
-                                                                                                                                                             "Expected PubKeyCredential"
-                                                                                                                                                             (constr 0
-                                                                                                                                                                [  ])))
-                                                                                                                                                     , (unBData
-                                                                                                                                                          (force
-                                                                                                                                                             headList
-                                                                                                                                                             credFields)) ])
-                                                                                                                                                  (case
-                                                                                                                                                     credCon
-                                                                                                                                                     [ (\l
-                                                                                                                                                         r ->
-                                                                                                                                                          r) ]))
+                                                                                                                                         (unBData
+                                                                                                                                            (force
+                                                                                                                                               headList
                                                                                                                                                (case
-                                                                                                                                                  credCon
+                                                                                                                                                  (unConstrData
+                                                                                                                                                     (force
+                                                                                                                                                        headList
+                                                                                                                                                        (case
+                                                                                                                                                           (unConstrData
+                                                                                                                                                              (force
+                                                                                                                                                                 headList
+                                                                                                                                                                 vdFields))
+                                                                                                                                                           [ (\l
+                                                                                                                                                               r ->
+                                                                                                                                                                r) ])))
                                                                                                                                                   [ (\l
                                                                                                                                                       r ->
-                                                                                                                                                       l) ]))
-                                                                                                                                            (unConstrData
-                                                                                                                                               (force
-                                                                                                                                                  headList
-                                                                                                                                                  (case
-                                                                                                                                                     (unConstrData
-                                                                                                                                                        (force
-                                                                                                                                                           headList
-                                                                                                                                                           vdFields))
-                                                                                                                                                     [ (\l
-                                                                                                                                                         r ->
-                                                                                                                                                          r) ])))))
+                                                                                                                                                       r) ]))))
                                                                                                                                       (fix1
                                                                                                                                          (\findCurrency
                                                                                                                                            pairs ->
@@ -580,45 +538,24 @@
                                                                                                       "Unlock not permitted until vestingPeriodEnd time"
                                                                                                       (constr 0
                                                                                                          [  ]))) ]) ])
-                                                                                      ((\credCon ->
-                                                                                          (\credTag ->
-                                                                                             (\credFields ->
-                                                                                                case
-                                                                                                  (equalsInteger
-                                                                                                     0
-                                                                                                     credTag)
-                                                                                                  [ ((\x ->
-                                                                                                        error)
-                                                                                                       (force
-                                                                                                          trace
-                                                                                                          "Expected PubKeyCredential"
-                                                                                                          (constr 0
-                                                                                                             [  ])))
-                                                                                                  , (unBData
-                                                                                                       (force
-                                                                                                          headList
-                                                                                                          credFields)) ])
-                                                                                               (case
-                                                                                                  credCon
-                                                                                                  [ (\l
-                                                                                                      r ->
-                                                                                                       r) ]))
+                                                                                      (unBData
+                                                                                         (force
+                                                                                            headList
                                                                                             (case
-                                                                                               credCon
+                                                                                               (unConstrData
+                                                                                                  (force
+                                                                                                     headList
+                                                                                                     (case
+                                                                                                        (unConstrData
+                                                                                                           (force
+                                                                                                              headList
+                                                                                                              vdFields))
+                                                                                                        [ (\l
+                                                                                                            r ->
+                                                                                                             r) ])))
                                                                                                [ (\l
                                                                                                    r ->
-                                                                                                    l) ]))
-                                                                                         (unConstrData
-                                                                                            (force
-                                                                                               headList
-                                                                                               (case
-                                                                                                  (unConstrData
-                                                                                                     (force
-                                                                                                        headList
-                                                                                                        vdFields))
-                                                                                                  [ (\l
-                                                                                                      r ->
-                                                                                                       r) ])))))
+                                                                                                    r) ]))))
                                                                                    (unIData
                                                                                       (force
                                                                                          headList

@@ -472,40 +472,21 @@
                     in
                     let
                       !beneficiaryHash : bytestring
-                        = let
-                          !credCon : pair integer (list data)
-                            = unConstrData
-                                (headList
-                                   {data}
-                                   (case
-                                      (list data)
-                                      (unConstrData (headList {data} vdFields))
-                                      [(\(l : integer) (r : list data) -> r)]))
-                          !credTag : integer
-                            = case
-                                integer
-                                credCon
-                                [(\(l : integer) (r : list data) -> l)]
-                          !credFields : list data
-                            = case
-                                (list data)
-                                credCon
-                                [(\(l : integer) (r : list data) -> r)]
-                        in
-                        case
-                          (all dead. bytestring)
-                          (equalsInteger 0 credTag)
-                          [ (/\dead ->
-                               let
-                                 !x : Unit
-                                   = trace
-                                       {Unit}
-                                       "Expected PubKeyCredential"
-                                       Unit
-                               in
-                               error {bytestring})
-                          , (/\dead -> unBData (headList {data} credFields)) ]
-                          {all dead. dead}
+                        = unBData
+                            (headList
+                               {data}
+                               (case
+                                  (list data)
+                                  (unConstrData
+                                     (headList
+                                        {data}
+                                        (case
+                                           (list data)
+                                           (unConstrData
+                                              (headList {data} vdFields))
+                                           [ (\(l : integer) (r : list data) ->
+                                                r) ])))
+                                  [(\(l : integer) (r : list data) -> r)]))
                       !signed : bool = txSignedBy' txSignatories beneficiaryHash
                       !resolvedFields : list data
                         = case
@@ -524,40 +505,20 @@
                             [(\(l : integer) (r : list data) -> r)]
                       !inputAddress : data = headList {data} resolvedFields
                       !scriptHash : bytestring
-                        = let
-                          !credCon : pair integer (list data)
-                            = unConstrData
-                                (headList
-                                   {data}
-                                   (case
-                                      (list data)
-                                      (unConstrData inputAddress)
-                                      [(\(l : integer) (r : list data) -> r)]))
-                          !credTag : integer
-                            = case
-                                integer
-                                credCon
-                                [(\(l : integer) (r : list data) -> l)]
-                          !credFields : list data
-                            = case
-                                (list data)
-                                credCon
-                                [(\(l : integer) (r : list data) -> r)]
-                        in
-                        case
-                          (all dead. bytestring)
-                          (equalsInteger 1 credTag)
-                          [ (/\dead ->
-                               let
-                                 !x : Unit
-                                   = trace
-                                       {Unit}
-                                       "Expected ScriptCredential"
-                                       Unit
-                               in
-                               error {bytestring})
-                          , (/\dead -> unBData (headList {data} credFields)) ]
-                          {all dead. dead}
+                        = unBData
+                            (headList
+                               {data}
+                               (case
+                                  (list data)
+                                  (unConstrData
+                                     (headList
+                                        {data}
+                                        (case
+                                           (list data)
+                                           (unConstrData inputAddress)
+                                           [ (\(l : integer) (r : list data) ->
+                                                r) ])))
+                                  [(\(l : integer) (r : list data) -> r)]))
                       !ownOutputFields : list data
                         = case
                             (list data)
@@ -789,40 +750,21 @@
                                         {data}
                                         (tailList {data} vdFields)))))
                       !beneficiaryHash : bytestring
-                        = let
-                          !credCon : pair integer (list data)
-                            = unConstrData
-                                (headList
-                                   {data}
-                                   (case
-                                      (list data)
-                                      (unConstrData (headList {data} vdFields))
-                                      [(\(l : integer) (r : list data) -> r)]))
-                          !credTag : integer
-                            = case
-                                integer
-                                credCon
-                                [(\(l : integer) (r : list data) -> l)]
-                          !credFields : list data
-                            = case
-                                (list data)
-                                credCon
-                                [(\(l : integer) (r : list data) -> r)]
-                        in
-                        case
-                          (all dead. bytestring)
-                          (equalsInteger 0 credTag)
-                          [ (/\dead ->
-                               let
-                                 !x : Unit
-                                   = trace
-                                       {Unit}
-                                       "Expected PubKeyCredential"
-                                       Unit
-                               in
-                               error {bytestring})
-                          , (/\dead -> unBData (headList {data} credFields)) ]
-                          {all dead. dead}
+                        = unBData
+                            (headList
+                               {data}
+                               (case
+                                  (list data)
+                                  (unConstrData
+                                     (headList
+                                        {data}
+                                        (case
+                                           (list data)
+                                           (unConstrData
+                                              (headList {data} vdFields))
+                                           [ (\(l : integer) (r : list data) ->
+                                                r) ])))
+                                  [(\(l : integer) (r : list data) -> r)]))
                     in
                     case
                       (all dead. bool)
