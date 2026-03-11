@@ -358,7 +358,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput)
         Left err -> do
           putStrLn $ prettyCertifierError err
           case err of
-            InvalidCertificate _ -> exitWith $ ExitFailure 1
+            InvalidCertificate _ _ -> exitWith $ ExitFailure 1
             InvalidCompilerOutput -> exitWith $ ExitFailure 2
             ValidationError _ -> exitWith $ ExitFailure 3
         -- TODO: Only Right True is success

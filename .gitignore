@@ -83,6 +83,7 @@ act-event.json
 .history/
 .virtualenv
 .vscode/
+.claude/
 .hsenv
 TAGS
 .DS_Store

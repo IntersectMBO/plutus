@@ -8,6 +8,7 @@ module PlutusTx.TH
   , loadFromFile
   ) where
 
+import Data.List (intercalate)
 import Data.Proxy
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Syntax qualified as TH
@@ -49,6 +50,19 @@ compileUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
 compileUntyped e = do
   TH.addCorePlugin "PlutusTx.Plugin"
   loc <- TH.location
-  let locStr = TH.pprint loc
+  let locStr = encodeTHLoc loc
   -- See Note [Typed TH]
   [|plc (Proxy :: Proxy $(TH.litT $ TH.strTyLit locStr)) $(e)|]
+
+{-| Encode a TH location in the same null-separated format as
+'PlutusTx.Compiler.Expr.encodeSrcSpan', so that 'decodeSrcSpan' can parse it. -}
+encodeTHLoc :: TH.Loc -> String
+encodeTHLoc loc =
+  intercalate
+    "\0"
+    [ TH.loc_filename loc
+    , show (fst (TH.loc_start loc))
+    , show (snd (TH.loc_start loc))
+    , show (fst (TH.loc_end loc))
+    , show (snd (TH.loc_end loc))
+    ]

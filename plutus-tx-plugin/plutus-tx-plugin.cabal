@@ -82,8 +82,10 @@ library
     , base16-bytestring
     , bytestring
     , containers
+    , directory
     , either
     , extra
+    , filepath
     , ghc
     , lens
     , megaparsec

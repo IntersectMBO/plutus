@@ -20,6 +20,7 @@ module PlutusTx.Compiler.Expr
   , compileExprWithDefs
   , compileDataConRef
   , encodeSrcSpan
+  , decodeSrcSpan
   ) where
 
 import GHC.Builtin.Names qualified as GHC
