@@ -108,7 +108,7 @@ d_runCertifierMain_16 v0
                                 MAlonzo.Code.Utils.C__'44'__410
                                 (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
                                 (coe
-                                   MAlonzo.Code.CertifierReport.d_makeReport_210 (coe v3) (coe v2)
+                                   MAlonzo.Code.CertifierReport.d_makeReport_272 (coe v3) (coe v2)
                                    (coe v4)))
                       MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_78 v8 v9 v10
                         -> coe
@@ -117,7 +117,7 @@ d_runCertifierMain_16 v0
                                 MAlonzo.Code.Utils.C__'44'__410
                                 (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                                 (coe
-                                   MAlonzo.Code.CertifierReport.d_makeReport_210 (coe v3) (coe v2)
+                                   MAlonzo.Code.CertifierReport.d_makeReport_272 (coe v3) (coe v2)
                                    (coe
                                       MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_78 v8 v9
                                       v10)))
@@ -128,7 +128,7 @@ d_runCertifierMain_16 v0
                                 MAlonzo.Code.Utils.C__'44'__410
                                 (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                                 (coe
-                                   MAlonzo.Code.CertifierReport.d_makeReport_210 (coe v3) (coe v2)
+                                   MAlonzo.Code.CertifierReport.d_makeReport_272 (coe v3) (coe v2)
                                    (coe
                                       MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_84 v7 v8
                                       v9)))

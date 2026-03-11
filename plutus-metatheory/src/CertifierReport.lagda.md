@@ -10,7 +10,9 @@ module CertifierReport where
 open import VerifiedCompilation
 open import VerifiedCompilation.Certificate
 open import VerifiedCompilation.UntypedTranslation
+open import VerifiedCompilation.UInline
 open import Untyped
+open import Untyped.RenamingSubstitution using (Sub)
 open import Utils as U using (List; _×_)
 
 open import Data.List as L using (List)
@@ -69,13 +71,45 @@ numSites′ = go 0
   goᵖʷ n Pointwise.[] = n
   goᵖʷ n (x Pointwise.∷ xs) = goᵖʷ (go n x) xs
 
+numSitesInlineᵖʷ :
+  {X : ℕ}
+  {σ : Sub X X}
+  {Ms Ns : L.List (X ⊢)}
+  (p : Pointwise (Inline σ □) Ms Ns)
+  → ℕ
+
+numSitesInline :
+  {X : ℕ}
+  {σ : Sub X X}
+  {z z′ : X ↝}
+  {zz : z ≽ z′}
+  {M M′ : X ⊢}
+  (p : Inline σ zz M M′)
+  → ℕ
+numSitesInline (` x) = 0
+numSitesInline (`↓ r) = numSitesInline r + 1
+numSitesInline (ƛ□ r) = numSitesInline r
+numSitesInline (ƛ r) = numSitesInline r
+numSitesInline (ƛ↓ r) = numSitesInline r
+numSitesInline (r · s) = numSitesInline r + numSitesInline s
+numSitesInline (r ·↓) = numSitesInline r
+numSitesInline (force r) = numSitesInline r
+numSitesInline (delay r) = numSitesInline r
+numSitesInline con = 0
+numSitesInline builtin = 0
+numSitesInline error = 0
+numSitesInline (constr rs) = numSitesInlineᵖʷ rs
+numSitesInline (case r rs) = numSitesInline r + numSitesInlineᵖʷ rs
+
+numSitesInlineᵖʷ Pointwise.[] = 0
+numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖʷ xs
+
 numSites : {X : ℕ} {tag : SimplifierTag} {M N : X ⊢} → Transformation tag M N → Maybe ℕ
 numSites (isFD p) = just (numSites′ p)
 numSites (isFlD p) = just (numSites′ p)
 numSites (isCSE p) = just (numSites′ p)
 numSites (isCaseReduce p) = just (numSites′ p)
--- FIXME: count number of optimization sites for inlining
-numSites (isInline _) = nothing
+numSites (isInline p) = just (numSitesInline p)
 numSites forceCaseDelayNotImplemented = nothing
 numSites cocNotImplemented = nothing
 numSites applyToCaseNotImplemented = nothing
