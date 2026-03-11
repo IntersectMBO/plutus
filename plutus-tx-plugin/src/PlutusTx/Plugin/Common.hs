@@ -48,6 +48,7 @@ import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Utils qualified
 import PlutusTx.Trace
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Transform.Simplifier (SimplifierTrace)
 
 import GHC.ByteCode.Types qualified as GHC
 import GHC.Core.Coercion.Opt qualified as GHC
@@ -638,6 +639,7 @@ compileMarkedExpr locStr codeTy origE = do
           , ccDebugTraceOn = _posDumpCompilationTrace opts
           , ccRewriteRules = makeRewriteRules opts
           , ccSafeToInline = False
+          , ccCurrentLoc = Nothing
           }
       st = CompileState 0 mempty
   -- See Note [Occurrence analysis]
@@ -839,7 +841,9 @@ runCompiler packageName moduleName locStr opts expr = do
   (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
   case opts ^. posCertify of
     Nothing -> pure ()
-    Just certifyPath -> liftIO $ generateCertificate simplTrace certifyPath
+    Just certifyPath ->
+      liftIO $
+        generateCertificate packageName moduleName locStr opts simplTrace certifyPath
 
   dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
@@ -865,51 +869,59 @@ runCompiler packageName moduleName locStr opts expr = do
     getSrcSpans :: PIR.Provenance Ann -> SrcSpans
     getSrcSpans = SrcSpans . Set.unions . fmap (unSrcSpans . annSrcSpans) . toList
 
-    generateCertificate simplTrace certifyPath = do
-      -- Absolutize the path relative to the project root (not CWD, which
-      -- cabal sets per-package), so all certificates land in one place.
-      absCertifyPath <-
-        if null certifyPath
-          then pure ""
-          else
-            if isRelative certifyPath
-              then do
-                root <- findProjectRoot
-                pure (root </> certifyPath)
-              else pure certifyPath
-      let sanitise c = if c == '.' Prelude.|| c == '-' then '_' else c
-          certName = map sanitise packageName ++ "_" ++ map sanitise moduleName
-          locTag = case decodeSrcSpan locStr of
-            Just sp ->
-              let line = show (GHC.srcSpanStartLine sp)
-                  col = show (GHC.srcSpanStartCol sp)
-               in ":" ++ line ++ ":" ++ col
-            Nothing -> ":unknown-location"
-          certDirName =
-            packageName ++ "_" ++ moduleName ++ locTag ++ ".agda-cert"
-          certDir
-            | null absCertifyPath =
-                -- No path given: place next to the source file
-                case decodeSrcSpan locStr of
-                  Just sp ->
-                    let sourceFile = GHC.unpackFS (GHC.srcSpanFile sp)
-                     in takeDirectory sourceFile </> certDirName
-                  Nothing -> certDirName
-            | otherwise =
-                -- Path given: place all certificates under that directory
-                absCertifyPath </> certDirName
-      let verbose = opts ^. posVerbosity Prelude./= Quiet
-      result <- runCertifier $ mkCertifier simplTrace certName (ProjectOutput certDir)
-      case result of
-        Right _ -> do
-          writeFile (certDir </> "plinth-certifier-PASS.txt") ""
-          when verbose $
-            hPutStrLn stderr $
-              "Certifier result: PASS — " ++ certDir
-        Left err -> do
-          let errMsg = prettyCertifierError err
-          writeFile (certDir </> "plinth-certifier-FAIL.txt") (errMsg ++ "\n")
-          hPutStrLn stderr $ "Certifier result: FAIL — " ++ certDir ++ "\n" ++ errMsg
+generateCertificate
+  :: String
+  -> String
+  -> String
+  -> PluginOptions
+  -> SimplifierTrace PLC.Name PLC.DefaultUni PLC.DefaultFun a
+  -> String
+  -> IO ()
+generateCertificate packageName moduleName locStr opts simplTrace certifyPath = do
+  -- Absolutize the path relative to the project root (not CWD, which
+  -- cabal sets per-package), so all certificates land in one place.
+  absCertifyPath <-
+    if null certifyPath
+      then pure ""
+      else
+        if isRelative certifyPath
+          then do
+            root <- findProjectRoot
+            pure (root </> certifyPath)
+          else pure certifyPath
+  let sanitise c = if c == '.' Prelude.|| c == '-' then '_' else c
+      certName = map sanitise packageName ++ "_" ++ map sanitise moduleName
+      locTag = case decodeSrcSpan locStr of
+        Just sp ->
+          let line = show (GHC.srcSpanStartLine sp)
+              col = show (GHC.srcSpanStartCol sp)
+           in ":" ++ line ++ ":" ++ col
+        Nothing -> ":unknown-location"
+      certDirName =
+        packageName ++ "_" ++ moduleName ++ locTag ++ ".agda-cert"
+      certDir
+        | null absCertifyPath =
+            -- No path given: place next to the source file
+            case decodeSrcSpan locStr of
+              Just sp ->
+                let sourceFile = GHC.unpackFS (GHC.srcSpanFile sp)
+                 in takeDirectory sourceFile </> certDirName
+              Nothing -> certDirName
+        | otherwise =
+            -- Path given: place all certificates under that directory
+            absCertifyPath </> certDirName
+  let verbose = opts ^. posVerbosity Prelude./= Quiet
+  result <- runCertifier $ mkCertifier simplTrace certName (ProjectOutput certDir)
+  case result of
+    Right _ -> do
+      writeFile (certDir </> "plinth-certifier-PASS.txt") ""
+      when verbose $
+        hPutStrLn stderr $
+          "Certifier result: PASS — " ++ certDir
+    Left err -> do
+      let errMsg = prettyCertifierError err
+      writeFile (certDir </> "plinth-certifier-FAIL.txt") (errMsg ++ "\n")
+      hPutStrLn stderr $ "Certifier result: FAIL — " ++ certDir ++ "\n" ++ errMsg
 
 {-| Strip version and hash suffixes from a GHC unit ID string.
 E.g. @"plutus-tx-plugin-1.59.0.0-inplace"@ becomes @"plutus-tx-plugin"@,

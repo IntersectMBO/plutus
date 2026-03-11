@@ -464,8 +464,8 @@ def make_parser() -> argparse.ArgumentParser:
 
     # -- check --
     p_check = sub.add_parser("check", help="Run Agda type-checking on certificates")
-    p_check.add_argument("-j", "--jobs", type=int, default=8,
-                         help="Parallel Agda processes (default: 8)")
+    p_check.add_argument("-j", "--jobs", type=int, default=1,
+                         help="Parallel Agda processes (default: 1)")
     p_check.add_argument("--force", action="store_true",
                          help="Re-check all certificates, even those already checked. "
                               "Also deletes Agda _build directories to force a clean rebuild.")
