@@ -28,6 +28,7 @@ import StdLib.Spec qualified as Lib
 import Strictness.Spec qualified as Strictness
 import TH.Spec qualified as TH
 import Unicode.Spec qualified as Unicode
+import Unsupported.Spec qualified as Unsupported
 
 import Test.Tasty (TestTree, defaultMain)
 import Test.Tasty.Extras (embed, runTestNested)
@@ -68,4 +69,5 @@ tests =
     , StageViolation.tests
     , CallTrace.tests
     , BuiltinCasing.tests
+    , Unsupported.tests
     ]
