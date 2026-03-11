@@ -69,6 +69,9 @@ data CompileContext uni fun = CompileContext
   , ccRewriteRules :: PIR.RewriteRules uni fun
   , ccSafeToInline :: Bool
   , ccCurrentLoc :: Maybe GHC.RealSrcSpan
+  , ccPackageName :: String
+  , ccModuleName :: String
+  , ccSourceLoc :: Maybe GHC.RealSrcSpan
   }
 
 data CompileState = CompileState
