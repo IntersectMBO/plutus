@@ -83,7 +83,7 @@ import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Generics.Uniplate.Data
 import Data.Map qualified as Map
-import Data.Maybe (mapMaybe, maybeToList)
+import Data.Maybe (fromJust, mapMaybe, maybeToList)
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
 import Data.Text (Text)
@@ -149,19 +149,15 @@ installCorePlugin markerTHName args rest = do
       : pluginPass
       : rest
 
-plinthcModName :: String
-plinthcModName = "PlutusTx.Plugin.Utils"
-
-anchorName :: String
-anchorName = "anchor"
+plinthcModName, anchorName :: String
+plinthcModName = fromJust $ TH.nameModule 'PlutusTx.Plugin.Utils.anchor
+anchorName = TH.nameBase 'PlutusTx.Plugin.Utils.anchor
 
 -- | Wrap certain @HsExpr@s in the typed checked module with @anchor@.
 injectAnchors
-  :: [GHC.CommandLineOption]
-  -> GHC.ModSummary
-  -> GHC.TcGblEnv
+  :: GHC.TcGblEnv
   -> GHC.TcM GHC.TcGblEnv
-injectAnchors _ _ env = do
+injectAnchors env = do
   hscEnv <- GHC.getTopEnv
   findResult <-
     liftIO $
@@ -433,7 +429,7 @@ formatSourceSnippet lineNum startCol0 endCol0 l0 = PP.vsep [preCode, numberedLin
     reduceIndent :: String -> (String, Int)
     reduceIndent s
       | ind >= 5 = (replicate 5 ' ' ++ rest, ind - 5)
-      | otherwise = (rest, 0)
+      | otherwise = (s, 0)
       where
         (spaces, rest) = span (== ' ') s
         ind = length spaces
@@ -584,6 +580,7 @@ compileMarkedExpr _locStr codeTy origE = do
            , 'mkNil
            , 'PlutusTx.Builtins.equalsInteger
            , 'PlutusTx.Plugin.Utils.anchor
+           , 'PlutusTx.Plugin.Utils.unsupported
            ]
   modBreaks <- asks pcModuleModBreaks
   let coverage =

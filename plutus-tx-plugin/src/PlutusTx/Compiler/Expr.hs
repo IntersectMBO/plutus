@@ -931,6 +931,7 @@ compileExpr mloc e = do
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
   anchorName <- lookupGhcName 'PlutusTx.Plugin.Utils.anchor
+  unsupportedName <- lookupGhcName 'PlutusTx.Plugin.Utils.unsupported
 
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
   listIndexId <- lookupGhcId '(PlutusTx.List.!!)
@@ -973,6 +974,11 @@ compileExpr mloc e = do
           Just (SomeStarIn (ty' :: PLC.DefaultUni (PLC.Esc a))) ->
             pure $ PLC.constant annMayInline $ PLC.Some $ PLC.ValueOf (PLC.DefaultUniList ty') []
           Nothing -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
+
+  case extractUnsupported unsupportedName e of
+    Just (msg, sp) -> traceCompilationL 2 (traceExprMsg (Just sp) GHC.$$ GHC.ppr e) (Just sp) $ do
+      throwPlain . UnsupportedError $ T.pack msg
+    Nothing -> pure ()
 
   case extractLoc anchorName maybeModBreaks e of
     (Just loc, e') -> do
@@ -1691,6 +1697,28 @@ extractLoc anchorName modBreaks = go Nothing
         | Just ss <- getSourceSpan modBreaks tick ->
             go (Just ss) e
       other -> (acc, other)
+
+extractUnsupported
+  :: GHC.Name
+  -> GHC.CoreExpr
+  -> Maybe (String, GHC.RealSrcSpan)
+extractUnsupported markerName = \case
+  GHC.App
+    ( GHC.App
+        ( GHC.App
+            ( GHC.App
+                (GHC.Var var)
+                (GHC.Type (GHC.LitTy (GHC.StrTyLit (GHC.unpackFS -> msg))))
+              )
+            (GHC.Type (GHC.LitTy (GHC.StrTyLit (GHC.unpackFS -> loc))))
+          )
+        (GHC.Type _)
+      )
+    _arg
+      | GHC.getName var == markerName
+      , Just sp <- decodeSrcSpan loc ->
+          Just (msg, sp)
+  _ -> Nothing
 
 compileExprWithDefs
   :: CompilingDefault uni fun m ann

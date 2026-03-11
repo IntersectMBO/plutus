@@ -75,6 +75,7 @@ library
     PlutusTx.Compiler.Utils
     PlutusTx.PIRTypes
     PlutusTx.PLCTypes
+    PlutusTx.Plugin.Unsupported
 
   build-depends:
     , array

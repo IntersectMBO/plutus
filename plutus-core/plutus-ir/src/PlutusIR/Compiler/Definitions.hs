@@ -129,6 +129,7 @@ newtype DefT key uni fun ann m a = DefT {unDefT :: StateT (DefState key uni fun 
     , MonadReader r
     , MonadQuote
     , MonadWriter w
+    , MonadIO
     )
 
 -- Need to write this by hand, deriving wants to derive the one for DefState

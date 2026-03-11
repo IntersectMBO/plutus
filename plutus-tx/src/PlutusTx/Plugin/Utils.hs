@@ -41,3 +41,9 @@ with its source location. -}
 anchor :: forall (loc :: Symbol) a. a -> a
 anchor a = a
 {-# OPAQUE anchor #-}
+
+{-| This function is used in `typeCheckResultAction` to mark the given expression
+as unsupported by Plinth. -}
+unsupported :: forall (err :: Symbol) (loc :: Symbol) a. a -> a
+unsupported x = x
+{-# OPAQUE unsupported #-}

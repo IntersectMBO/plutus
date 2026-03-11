@@ -206,6 +206,7 @@ type Compiling uni fun m ann =
   , MonadState CompileState m
   , MonadDefs LexName uni fun Ann m
   , MonadWriter CoverageIndex m
+  , MonadIO m
   )
 
 -- Packing up equality constraints gives us a nice way of writing type signatures as this way
