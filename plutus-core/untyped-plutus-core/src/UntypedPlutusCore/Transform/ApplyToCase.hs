@@ -40,5 +40,5 @@ processTerm t = case splitApplication t of
   (fun, args)
     | length args >= minArgs ->
         let ann = termAnn t
-         in Case ann (Constr ann 0 (processTerm . snd <$> args)) (V.singleton fun)
+         in Case ann (Constr ann 0 (processTerm . snd <$> args)) (V.singleton (processTerm fun))
   _ -> over termSubterms processTerm t
