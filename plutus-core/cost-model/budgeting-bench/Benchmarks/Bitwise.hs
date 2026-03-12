@@ -153,9 +153,9 @@ benchWriteBits1 =
 benchWriteBits :: Benchmark
 benchWriteBits =
   let num = 16
-      sizes = fmap (64 *) [1 .. num] -- Up to 64K
+      sizes = fmap (64 *) [1 .. num]
       xs = makeSizedByteStrings seedA sizes
-      updateCounts = fmap (20 *) [1 .. num]
+      updateCounts = fmap (4 *) [1 .. num]
       positions s = fmap (\n -> replicate n (topBitIndex s)) updateCounts
    in bgroup (show WriteBits) [bgroup (showMemoryUsage x) [mkBM x y | y <- positions x] | x <- xs]
   where
