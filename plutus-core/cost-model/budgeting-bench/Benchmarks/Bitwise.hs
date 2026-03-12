@@ -156,10 +156,22 @@ benchWriteBits =
       sizes = fmap (512 *) [1 .. num] -- Up to 64K
       xs = makeSizedByteStrings seedA sizes
       updateCounts = fmap (20 *) [1 .. num]
-      positions = zipWith (\x n -> replicate (1 * n) (topBitIndex x)) xs updateCounts
-   in bgroup (show WriteBits) [bgroup (showMemoryUsage x) [mkBM x y | y <- positions] | x <- xs]
+      positions s = fmap (\n -> replicate n (topBitIndex s)) updateCounts
+   in bgroup (show WriteBits) [bgroup (showMemoryUsage x) [mkBM x y | y <- positions x] | x <- xs]
   where
-    mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 WriteBits [] x y
+    mkBM x y = benchDefault (showMemoryUsage y) $ mkApp3 WriteBits [] x y True
+
+{-
+    benchWriteBits3 :: Benchmark
+benchWriteBits3 =
+  let numSamples :: Integer = 20
+      sizes = fmap (500 *) [1..numSamples] -- Up to size 10000, ie 80,000 bytes.
+      xs = makeSizedByteStrings seedA (fmap fromInteger sizes)
+      updateCounts :: [Integer] = fmap (5*) [1..20]
+      positions = fmap (\x -> replicate (fromInteger x) (5::Integer)) updateCounts
+--      inputs = zip3 xs positions (replicate numSamples True)
+   in createThreeTermBuiltinBenchWithWrappers (id, id, id) WriteBits [] xs positions [True]
+-}
 
 {- For small inputs `replicateByte` looks constant-time.  For larger inputs it's
    linear.  We're limiting the output to 8192 bytes (size 1024), so we may as
