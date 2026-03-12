@@ -17,7 +17,9 @@ module PlutusCore.Flat.Filler
 
 import Control.DeepSeq (NFData)
 import Data.Typeable (Typeable)
-import PlutusCore.Flat.Class (Flat (..), Generic)
+import GHC.Generics (Generic)
+import PlutusCore.Flat.Class (Flat (..))
+import PlutusCore.Flat.Decoder.Prim (dBool)
 import PlutusCore.Flat.Decoder.Types (Get)
 import PlutusCore.Flat.Encoder.Strict (eFiller, sFillerMax)
 
@@ -33,6 +35,9 @@ data Filler
 instance Flat Filler where
   encode _ = eFiller
   size = sFillerMax
+  decode = do
+    tag <- dBool
+    if tag then pure FillerEnd else FillerBit <$> decode
 
 -- use generated decode
 
@@ -50,7 +55,12 @@ instance Flat a => Flat (PostAligned a) where
 #else
 
 data PostAligned a = PostAligned { postValue :: a, postFiller :: Filler }
-  deriving (Show, Eq, Ord, Generic, NFData,Flat)
+  deriving (Show, Eq, Ord, Generic, NFData)
+
+instance Flat a => Flat (PostAligned a) where
+    encode (PostAligned v f) = encode v <> encode f
+    decode = PostAligned <$> decode <*> decode
+    size (PostAligned v f) n = size v (size f n)
 
 #endif
 
@@ -58,7 +68,12 @@ data PostAligned a = PostAligned { postValue :: a, postFiller :: Filler }
 
  Useful to prealign ByteArrays, Texts and any structure that can be encoded more efficiently when byte aligned. -}
 data PreAligned a = PreAligned {preFiller :: Filler, preValue :: a}
-  deriving (Show, Eq, Ord, Generic, NFData, Flat)
+  deriving (Show, Eq, Ord, Generic, NFData)
+
+instance Flat a => Flat (PreAligned a) where
+  encode (PreAligned f v) = encode f <> encode v
+  decode = PreAligned <$> decode <*> decode
+  size (PreAligned f v) n = size f (size v n)
 
 -- | Length of a filler in bits
 fillerLength :: Num a => Filler -> a

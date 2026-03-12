@@ -110,7 +110,12 @@ data SrcSpan = SrcSpan
   is the line break). -}
   }
   deriving stock (Eq, Ord, Generic)
-  deriving anyclass (Flat, Hashable, NFData)
+  deriving anyclass (Hashable, NFData)
+
+instance Flat SrcSpan where
+  encode (SrcSpan f sl sc el ec) = encode f <> encode sl <> encode sc <> encode el <> encode ec
+  decode = SrcSpan <$> decode <*> decode <*> decode <*> decode <*> decode
+  size (SrcSpan f sl sc el ec) n = size f (size sl (size sc (size el (size ec n))))
 
 instance Show SrcSpan where
   showsPrec _ s =
@@ -130,7 +135,11 @@ instance Pretty SrcSpan where
 newtype SrcSpans = SrcSpans {unSrcSpans :: Set SrcSpan}
   deriving newtype (Eq, Ord, Hashable, Semigroup, Monoid, MonoFoldable, NFData)
   deriving stock (Generic)
-  deriving anyclass (Flat)
+
+instance Flat SrcSpans where
+  encode (SrcSpans s) = encode s
+  decode = SrcSpans <$> decode
+  size (SrcSpans s) n = size s n
 
 type instance Element SrcSpans = SrcSpan
 

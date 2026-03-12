@@ -1,13 +1,10 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE StandaloneDeriving #-}
-
 module Test.E.Flat () where
 
 import PlutusCore.Flat
-import PlutusCore.Flat.Decoder ()
-import PlutusCore.Flat.Encoder ()
+import PlutusCore.Flat.Decoder.Prim (dBEBits8, dBool)
+import PlutusCore.Flat.Encoder (eBits16, eFalse, eTrue, mempty, (<>))
 import Test.E
+import Prelude hiding (mempty, (<>))
 
 -- t = putStrLn $ gen 4
 
@@ -31,28 +28,106 @@ gen numBits =
         , dec "_" (snd $ last cs)
         ]
 
-deriving instance Flat S3
-deriving instance Flat E2
-deriving instance Flat E3
-deriving instance Flat E4
-deriving instance Flat E8
-deriving instance Flat E16
-deriving instance Flat E17
-deriving instance Flat E32
+instance Flat S3 where
+  encode S_1 = eFalse
+  encode (S_2 b) = eTrue <> eFalse <> encode b
+  encode (S_3 c) = eTrue <> eTrue <> encode c
+  decode = do
+    tag <- dBool
+    if tag
+      then do
+        tag2 <- dBool
+        if tag2 then S_3 <$> decode else S_2 <$> decode
+      else pure S_1
+  size S_1 n = 1 + n
+  size (S_2 b) n = 2 + size b n
+  size (S_3 c) n = 2 + size c n
 
-#ifdef ENUM_LARGE
-deriving instance Flat E256
-deriving instance Flat E258
-#endif
+instance Flat E2 where
+  encode E2_1 = eFalse
+  encode E2_2 = eTrue
+  decode = do
+    tag <- dBool
+    if tag then pure E2_2 else pure E2_1
+  size _ n = n + 1
 
--- fs =
---     [ flat E2_1,flat E3_1
---     , flat E4_1
---     , flat E8_1
---     , flat E16_1
---     , flat E32_1
---     , flat E256_255
---     , flat E256_254
---     , flat E256_253
---     , flat E256_256
---     ]
+instance Flat E3 where
+  encode E3_1 = eFalse
+  encode E3_2 = eTrue <> eFalse
+  encode E3_3 = eTrue <> eTrue
+  decode = do
+    tag <- dBool
+    if tag
+      then do
+        tag2 <- dBool
+        if tag2 then pure E3_3 else pure E3_2
+      else pure E3_1
+  size E3_1 n = n + 1
+  size _ n = n + 2
+
+instance Flat E4 where
+  encode E4_1 = eBits16 2 0
+  encode E4_2 = eBits16 2 1
+  encode E4_3 = eBits16 2 2
+  encode E4_4 = eBits16 2 3
+  decode = do
+    tag <- dBEBits8 2
+    case tag of
+      0 -> pure E4_1
+      1 -> pure E4_2
+      2 -> pure E4_3
+      _ -> pure E4_4
+  size _ n = n + 2
+
+instance Flat E8 where
+  encode E8_1 = eBits16 3 0
+  encode E8_2 = eBits16 3 1
+  encode E8_3 = eBits16 3 2
+  encode E8_4 = eBits16 3 3
+  encode E8_5 = eBits16 3 4
+  encode E8_6 = eBits16 3 5
+  encode E8_7 = eBits16 3 6
+  encode E8_8 = eBits16 3 7
+  decode = do
+    tag <- dBEBits8 3
+    case tag of
+      0 -> pure E8_1
+      1 -> pure E8_2
+      2 -> pure E8_3
+      3 -> pure E8_4
+      4 -> pure E8_5
+      5 -> pure E8_6
+      6 -> pure E8_7
+      _ -> pure E8_8
+  size _ n = n + 3
+
+instance Flat E16 where
+  encode x = eBits16 4 (fromIntegral (fromEnum x))
+  decode = do
+    tag <- dBEBits8 4
+    pure (toEnum (fromIntegral tag))
+  size _ n = n + 4
+
+instance Flat E17 where
+  encode x =
+    let n = fromEnum x
+     in if n < 15
+          then eBits16 4 (fromIntegral n)
+          else eBits16 5 (fromIntegral (n + 15))
+  decode = do
+    tag <- dBEBits8 4
+    if tag < 15
+      then pure (toEnum (fromIntegral tag))
+      else do
+        b <- dBool
+        if b then pure E17_17 else pure E17_16
+  size E17_16 n = n + 5
+  size E17_17 n = n + 5
+  size _ n = n + 4
+
+instance Flat E32 where
+  encode x = eBits16 5 (fromIntegral (fromEnum x))
+  decode = do
+    tag <- dBEBits8 5
+    pure (toEnum (fromIntegral tag))
+  size _ n = n + 5

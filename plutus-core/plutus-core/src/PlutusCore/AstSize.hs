@@ -18,7 +18,7 @@ import PlutusCore.Core
 import Control.Lens
 import Data.ByteString qualified as BS
 import Data.Monoid
-import PlutusCore.Flat hiding (to)
+import PlutusCore.Flat
 
 newtype AstSize = AstSize
   { unAstSize :: Integer

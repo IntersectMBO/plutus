@@ -90,6 +90,8 @@ instance Flat.Flat K where
     b <- Flat.decode
     maybe (fail $ "Invalid Value key: " <> show (B.unpack b)) pure (k b)
   {-# INLINEABLE decode #-}
+  size (UnsafeK b) = Flat.size b
+  {-# INLINE size #-}
 
 instance CBOR.Serialise K where
   encode (UnsafeK b) = CBOR.encode b
@@ -126,6 +128,8 @@ instance Flat.Flat Quantity where
       Just q -> pure q
       Nothing -> fail $ "Quantity out of signed 128-bit integer bounds: " <> show i
   {-# INLINEABLE decode #-}
+  size (UnsafeQuantity i) = Flat.size i
+  {-# INLINE size #-}
 
 instance Pretty Quantity where
   pretty (UnsafeQuantity i) = pretty i
@@ -201,6 +205,8 @@ instance Flat.Flat Value where
   {-# INLINE encode #-}
   decode = pack <$> Flat.decode
   {-# INLINE decode #-}
+  size (Value v _ _ _) = Flat.size v
+  {-# INLINE size #-}
 
 {-| Unpack a `Value` into a map from (currency symbol, token name) to quantity.
 

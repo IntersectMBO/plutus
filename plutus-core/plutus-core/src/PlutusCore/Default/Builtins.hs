@@ -67,10 +67,7 @@ import GHC.Natural (naturalFromInteger)
 import GHC.Num.Integer (Integer (..))
 import GHC.Types (Int (..))
 import NoThunks.Class (NoThunks)
-import PlutusCore.Flat hiding
-  ( from
-  , to
-  )
+import PlutusCore.Flat
 import PlutusCore.Flat.Decoder (Get, dBEBits8)
 import PlutusCore.Flat.Encoder as Flat
   ( Encoding

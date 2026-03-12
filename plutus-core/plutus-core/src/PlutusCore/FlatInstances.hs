@@ -170,12 +170,14 @@ deriving newtype instance Flat Unique -- via int
 instance Flat Name where
   encode (Name txt u) = encode txt <> encode u
   decode = Name <$> decode <*> decode
+  size (Name txt u) n = size txt (size u n)
 
 deriving newtype instance Flat TyName -- via Name
 
 instance Flat Version where
   encode (Version n n' n'') = encode n <> encode n' <> encode n''
   decode = Version <$> decode <*> decode <*> decode
+  size (Version n n' n'') s = size n (size n' (size n'' s))
 
 -- | Use 1 bit to encode kind tags.
 kindTagWidth :: NumBits
@@ -342,10 +344,12 @@ instance
   where
   encode (VarDecl t name tyname) = encode t <> encode name <> encode tyname
   decode = VarDecl <$> decode <*> decode <*> decode
+  size (VarDecl t name tyname) n = size t (size name (size tyname n))
 
 instance (Flat ann, Flat tyname) => Flat (TyVarDecl tyname ann) where
   encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
   decode = TyVarDecl <$> decode <*> decode <*> decode
+  size (TyVarDecl t tyname kind) n = size t (size tyname (size kind n))
 
 instance
   ( Flat ann
@@ -355,6 +359,7 @@ instance
   where
   encode (Program ann v t) = encode ann <> encode v <> encode t
   decode = Program <$> decode <*> decode <*> decode
+  size (Program ann v t) n = size ann (size v (size t n))
 
 deriving newtype instance Flat a => Flat (Normalized a)
 
@@ -367,6 +372,7 @@ deriving newtype instance Flat TyDeBruijn -- via debruijn
 instance Flat NamedDeBruijn where
   encode (NamedDeBruijn txt ix) = encode txt <> encode ix
   decode = NamedDeBruijn <$> decode <*> decode
+  size (NamedDeBruijn txt ix) n = size txt (size ix n)
 
 deriving newtype instance Flat NamedTyDeBruijn -- via nameddebruijn
 

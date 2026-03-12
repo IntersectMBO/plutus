@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -10,6 +11,7 @@ import PlutusCore.FlatInstances ()
 
 import Data.Either (isLeft)
 import Data.Word
+import GHC.Generics (Generic)
 import GHC.Natural
 import Hedgehog
 import Hedgehog.Gen qualified as Gen

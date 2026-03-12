@@ -1,8 +1,6 @@
 {-# LANGUAGE CPP                #-}
-{-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE StandaloneDeriving #-}
 
 -- | Flat instances for the base library
 module PlutusCore.Flat.Instances.Base () where
@@ -206,7 +204,14 @@ instance Flat Char where
 >>> test (Just False::Maybe Bool)
 (True,2,"10")
 -}
-instance Flat a => Flat (Maybe a)
+instance Flat a => Flat (Maybe a) where
+    encode Nothing  = eFalse
+    encode (Just x) = eTrue <> encode x
+    decode = do
+      tag <- dBool
+      if tag then Just <$> decode else pure Nothing
+    size Nothing  n = 1 + n
+    size (Just x) n = 1 + size x n
 
 {- |
 >>> test (Left False::Either Bool ())
@@ -215,7 +220,14 @@ instance Flat a => Flat (Maybe a)
 >>> test (Right ()::Either Bool ())
 (True,1,"1")
 -}
-instance (Flat a, Flat b) => Flat (Either a b)
+instance (Flat a, Flat b) => Flat (Either a b) where
+    encode (Left  x) = eFalse <> encode x
+    encode (Right x) = eTrue <> encode x
+    decode = do
+      tag <- dBool
+      if tag then Right <$> decode else Left <$> decode
+    size (Left  x) n = 1 + size x n
+    size (Right x) n = 1 + size x n
 
 {- |
 >>> test (MkFixed 123 :: Fixed E0)
@@ -598,7 +610,10 @@ instance Flat Double where
 >>> test (4 :+ 2 :: Complex Word8)
 (True,16,"00000100 00000010")
 -}
-instance Flat a => Flat (Complex a)
+instance Flat a => Flat (Complex a) where
+    encode (r :+ i) = encode r <> encode i
+    decode = (:+) <$> decode <*> decode
+    size (r :+ i) n = size r (size i n)
 
 {- |
 Ratios are encoded as tuples of (numerator,denominator)
@@ -624,7 +639,14 @@ instance (Integral a, Flat a) => Flat (Ratio a) where
 This instance and other similar ones are declared as @OVERLAPPABLE@, because for better encoding/decoding
 performance it can be useful to declare instances of concrete types, such as @[Char]@ (not provided out of the box).
 -}
-instance {-# OVERLAPPABLE #-} Flat a => Flat [a]
+instance {-# OVERLAPPABLE #-} Flat a => Flat [a] where
+    encode []     = eFalse
+    encode (x:xs) = eTrue <> encode x <> encode xs
+    decode = do
+      tag <- dBool
+      if tag then (:) <$> decode <*> decode else pure []
+    size []     n = 1 + n
+    size (x:xs) n = 1 + size x (size xs n)
 
 {-
 >>> import Weigh
@@ -658,7 +680,10 @@ instance {-# OVERLAPPABLE #-} Flat a => Flat [a]
 >>> test (B.fromList [False,False])
 (True,4,"0100")
 -}
-instance {-# OVERLAPPABLE #-} Flat a => Flat (B.NonEmpty a)
+instance {-# OVERLAPPABLE #-} Flat a => Flat (B.NonEmpty a) where
+    encode (x B.:| xs) = encode x <> encode xs
+    decode = (B.:|) <$> decode <*> decode
+    size (x B.:| xs) n = size x (size xs n)
 
 -- #endif
 
@@ -681,24 +706,39 @@ tst (1::Int,"2","3","4","5","6","7","8")
 -}
 
 -- Not sure if these should be OVERLAPPABLE
-instance {-# OVERLAPPABLE #-} (Flat a, Flat b) => Flat (a, b)
+instance {-# OVERLAPPABLE #-} (Flat a, Flat b) => Flat (a, b) where
+    encode (a, b) = encode a <> encode b
+    decode = (,) <$> decode <*> decode
+    size (a, b) n = size a (size b n)
 
-instance {-# OVERLAPPABLE #-} (Flat a, Flat b, Flat c) => Flat (a, b, c)
+instance {-# OVERLAPPABLE #-} (Flat a, Flat b, Flat c) => Flat (a, b, c) where
+    encode (a, b, c) = encode a <> encode b <> encode c
+    decode = (,,) <$> decode <*> decode <*> decode
+    size (a, b, c) n = size a (size b (size c n))
 
 instance
     {-# OVERLAPPABLE #-}
     (Flat a, Flat b, Flat c, Flat d) =>
-    Flat (a, b, c, d)
+    Flat (a, b, c, d) where
+    encode (a, b, c, d) = encode a <> encode b <> encode c <> encode d
+    decode = (,,,) <$> decode <*> decode <*> decode <*> decode
+    size (a, b, c, d) n = size a (size b (size c (size d n)))
 
 instance
     {-# OVERLAPPABLE #-}
     (Flat a, Flat b, Flat c, Flat d, Flat e) =>
-    Flat (a, b, c, d, e)
+    Flat (a, b, c, d, e) where
+    encode (a, b, c, d, e) = encode a <> encode b <> encode c <> encode d <> encode e
+    decode = (,,,,) <$> decode <*> decode <*> decode <*> decode <*> decode
+    size (a, b, c, d, e) n = size a (size b (size c (size d (size e n))))
 
 instance
     {-# OVERLAPPABLE #-}
     (Flat a, Flat b, Flat c, Flat d, Flat e, Flat f) =>
-    Flat (a, b, c, d, e, f)
+    Flat (a, b, c, d, e, f) where
+    encode (a, b, c, d, e, f) = encode a <> encode b <> encode c <> encode d <> encode e <> encode f
+    decode = (,,,,,) <$> decode <*> decode <*> decode <*> decode <*> decode <*> decode
+    size (a, b, c, d, e, f) n = size a (size b (size c (size d (size e (size f n)))))
 
 instance
     {-# OVERLAPPABLE #-}
@@ -710,4 +750,7 @@ instance
     , Flat f
     , Flat g
     ) =>
-    Flat (a, b, c, d, e, f, g)
+    Flat (a, b, c, d, e, f, g) where
+    encode (a, b, c, d, e, f, g) = encode a <> encode b <> encode c <> encode d <> encode e <> encode f <> encode g
+    decode = (,,,,,,) <$> decode <*> decode <*> decode <*> decode <*> decode <*> decode <*> decode
+    size (a, b, c, d, e, f, g) n = size a (size b (size c (size d (size e (size f (size g n))))))

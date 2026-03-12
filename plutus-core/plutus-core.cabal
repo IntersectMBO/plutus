@@ -1068,7 +1068,6 @@ library flat
     PlutusCore.Flat.Instances.Vector
     PlutusCore.Flat.Memory
     PlutusCore.Flat.Run
-    PlutusCore.Flat.Tutorial
     PlutusCore.Flat.Types
 
   ghc-options:
@@ -1100,7 +1099,6 @@ test-suite flat-test
   default-language: Haskell2010
   main-is:          Spec.hs
   cpp-options:      -DLIST_BIT -DTEST_DECBITS
-  cpp-options:      -DENUM_LARGE
   ghc-options:
     -Wno-unused-top-binds -Wno-type-defaults -Wno-missing-signatures
     -Wno-missing-deriving-strategies -Wno-orphans -Wno-name-shadowing

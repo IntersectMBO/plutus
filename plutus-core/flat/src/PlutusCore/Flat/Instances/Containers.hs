@@ -1,10 +1,7 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
@@ -20,6 +17,7 @@ import Data.Map
 import Data.Sequence
 import Data.Set
 import Data.Tree
+import PlutusCore.Flat.Class qualified as Flat
 import PlutusCore.Flat.Instances.Base ()
 import PlutusCore.Flat.Instances.Mono
 import PlutusCore.Flat.Instances.Util
@@ -108,8 +106,7 @@ instance (Flat a, Ord a) => Flat (Set a) where
 {-|
 >>>  tst (Node (1::Word8) [Node 2 [Node 3 []], Node 4 []])
 (True,39,[1,129,64,200,32]) -}
-#if ! MIN_VERSION_containers(0,5,8)
-deriving instance Generic (Tree a)
-#endif
-
-instance Flat a => Flat (Tree a)
+instance Flat a => Flat (Tree a) where
+  encode (Node x ts) = Flat.encode x <> Flat.encode ts
+  decode = Node <$> Flat.decode <*> Flat.decode
+  size (Node x ts) n = Flat.size x (Flat.size ts n)

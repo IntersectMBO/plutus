@@ -1,3 +1,4 @@
+{- FOURMOLU_DISABLE -}
 {-# LANGUAGE BinaryLiterals            #-}
 {-# LANGUAGE CPP                       #-}
 {-# LANGUAGE FlexibleContexts          #-}
@@ -63,7 +64,7 @@ instance Arbitrary UTF8Text where
 
   shrink t = UTF8Text <$> shrink (unUTF8 t)
 
-#if! defined (ETA_VERSION)
+#if !defined(ETA_VERSION)
 instance Arbitrary UTF16Text where
   arbitrary = UTF16Text <$> arbitrary
 
@@ -106,7 +107,7 @@ testEncDec = testGroup
 
 testFlat = testGroup
   "flat/unflat"
-  [testSize, testLargeEnum, testContainers, flatUnflatRT, flatTests]
+  [testSize, testContainers, flatUnflatRT, flatTests]
 
 -- Flat.Endian tests (to run, need to modify imports and cabal file)
 testEndian = testGroup
@@ -333,24 +334,6 @@ sz v e = let calculated = getSize v
           -- ,testCase (unwords ["calculated size <= actual", sshow v]) $ actual <= calculated @? unwords ["calculated size",show calculated,"actual",show actual]
           ]
 
--- E258_256 = 11111110 _257 = 111111110 _258 = 111111111
-testLargeEnum = testGroup "test enum with more than 256 constructors"
-  $ concat
-    [
-#ifdef ENUM_LARGE
-      sz E258_256 8
-    , sz E258_257 9
-    , sz E258_258 9
-      -- As encodes are inlined, this is going to take for ever if this is compiled with -O1 or -O2
-      -- , encRaw (E258_256) [0b11111110]
-      -- , encRaw (E258_257) [0b11111111,0b00000000]
-      -- , encRaw (E258_258) [0b11111111,0b10000000]
-      -- , encRaw (E258_256,E258_257,E258_258) [0b11111110,0b11111111,0b01111111,0b11000000]
-    , map trip [E258_1, E258_256, E258_257, E258_258]
-    , map trip [E256_1, E256_134, E256_256]
-#endif
-    ]
-
 testContainers =
   testGroup "containers" [trip longSeq, trip dataMap, trip listMap]
 
@@ -386,7 +369,7 @@ flatUnflatRT = testGroup
   , rt "Double" (prop_Flat_roundtrip :: RT Double)
   , rt "Text" (prop_Flat_roundtrip :: RT T.Text)
   , rt "UTF8 Text" (prop_Flat_roundtrip :: RT UTF8Text)
-#if! defined (ETA_VERSION)
+#if !defined(ETA_VERSION)
   , rt "UTF16 Text" (prop_Flat_roundtrip :: RT UTF16Text)
 #endif
   , rt "ByteString" (prop_Flat_roundtrip :: RT B.ByteString)
