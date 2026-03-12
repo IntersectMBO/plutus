@@ -137,8 +137,8 @@ benchReadBit =
    updates to 1024-byte bytestrings, always writing the highest-indexed bit to
    take account of this.  We use a fresh bytestring for each set of updates.
 -}
-benchWriteBits :: Benchmark
-benchWriteBits =
+benchWriteBits1 :: Benchmark
+benchWriteBits1 =
   let size = 128 -- This is equal to length 1024.
       xs = makeSizedByteStrings seedA $ replicate numSamples size
       updateCounts = [1 .. numSamples]
@@ -147,6 +147,17 @@ benchWriteBits =
       -- times.  Here k will range from 1 to numSamples, which is 150.
       inputs = zip3 xs positions (replicate numSamples True)
    in createThreeTermBuiltinBenchElementwise WriteBits [] inputs
+
+benchWriteBits :: Benchmark
+benchWriteBits =
+  let num = 16
+      sizes = fmap (512 *) [1 .. num] -- Up to 64K
+      xs = makeSizedByteStrings seedA sizes
+      updateCounts = fmap (20 *) [1 .. num]
+      positions = zipWith (\x n -> replicate (1 * n) (topBitIndex x)) xs updateCounts
+   in bgroup (show WriteBits) [bgroup (showMemoryUsage x) [mkBM x y | y <- positions] | x <- xs]
+  where
+    mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 WriteBits [] x y
 
 {- For small inputs `replicateByte` looks constant-time.  For larger inputs it's
    linear.  We're limiting the output to 8192 bytes (size 1024), so we may as
