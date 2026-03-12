@@ -137,6 +137,7 @@ benchReadBit =
    updates to 1024-byte bytestrings, always writing the highest-indexed bit to
    take account of this.  We use a fresh bytestring for each set of updates.
 -}
+{-
 benchWriteBits1 :: Benchmark
 benchWriteBits1 =
   let size = 128 -- This is equal to length 1024.
@@ -147,6 +148,7 @@ benchWriteBits1 =
       -- times.  Here k will range from 1 to numSamples, which is 150.
       inputs = zip3 xs positions (replicate numSamples True)
    in createThreeTermBuiltinBenchElementwise WriteBits [] inputs
+-}
 
 benchWriteBits :: Benchmark
 benchWriteBits =
