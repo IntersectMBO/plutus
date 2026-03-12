@@ -155,9 +155,13 @@ benchWriteBits =
   let num = 16
       sizes = fmap (64 *) [1 .. num]
       xs = makeSizedByteStrings seedA sizes
-      updateCounts = fmap (4 *) [1 .. num]
-      positions s = fmap (\n -> replicate n (topBitIndex s)) updateCounts
-   in bgroup (show WriteBits) [bgroup (showMemoryUsage x) [mkBM x y | y <- positions x] | x <- xs]
+      factor = 20 -- previously 4
+      updateCounts = fmap (factor *) [1 .. num]
+      indexFor s k = abs (topBitIndex s - 11 * k)
+      positions s = fmap (\n -> fmap (indexFor s) [0 .. (fromIntegral n - 1)]) updateCounts
+   in --      positions s = fmap (\n -> replicate n (topBitIndex s)) updateCounts
+
+      bgroup (show WriteBits) [bgroup (showMemoryUsage x) [mkBM x y | y <- positions x] | x <- xs]
   where
     mkBM x y = benchDefault (showMemoryUsage y) $ mkApp3 WriteBits [] x y True
 
