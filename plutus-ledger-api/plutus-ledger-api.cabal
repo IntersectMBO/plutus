@@ -206,6 +206,7 @@ test-suite plutus-ledger-api-test
   hs-source-dirs: test
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
+    Spec.BudgetConsistency
     Spec.CBOR.DeserialiseFailureInfo
     Spec.ContextDecoding
     Spec.CostModelParams

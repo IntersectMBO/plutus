@@ -9,6 +9,7 @@ import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
 import PlutusLedgerApi.V1 as V1
 import PlutusLedgerApi.V3 as V3
 import PlutusPrelude
+import Spec.BudgetConsistency qualified
 import Spec.CBOR.DeserialiseFailureInfo qualified
 import Spec.ContextDecoding qualified
 import Spec.CostModelParams qualified
@@ -227,4 +228,5 @@ tests =
         ]
     , Spec.Eq.Golden.eqGoldenTests
     , Spec.Ord.Golden.ordGoldenTests
+    , Spec.BudgetConsistency.tests
     ]
