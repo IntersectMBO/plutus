@@ -11,7 +11,7 @@ import GHC.Plugins qualified as GHC
 plugin :: GHC.Plugin
 plugin =
   GHC.defaultPlugin
-    { GHC.typeCheckResultAction = const . const $ injectUnsupportedMarkers
+    { GHC.typeCheckResultAction = \_cliOpts _modSummary -> injectUnsupportedMarkers
     , GHC.pluginRecompile = GHC.flagRecompile
     , GHC.installCoreToDos = installCorePlugin 'plc
     }
