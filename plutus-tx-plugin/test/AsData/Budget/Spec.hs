@@ -107,15 +107,17 @@ destructSum :: CompiledCode (PlutusTx.BuiltinData -> Ints)
 destructSum =
   plinthc
     ( \d ->
-        case PlutusTx.unsafeFromBuiltinData d of
-          ThisD is -> is
-          ThatD is -> is
-          TheseD (Ints x1 y1 z1 w1) (Ints x2 y2 z2 w2) ->
-            Ints
-              (x1 `PlutusTx.addInteger` x2)
-              (y1 `PlutusTx.addInteger` y2)
-              (z1 `PlutusTx.addInteger` z2)
-              (w1 `PlutusTx.addInteger` w2)
+        matchTheseD
+          (PlutusTx.unsafeFromBuiltinData d)
+          (\is -> is)
+          (\is -> is)
+          ( \(Ints x1 y1 z1 w1) (Ints x2 y2 z2 w2) ->
+              Ints
+                (x1 `PlutusTx.addInteger` x2)
+                (y1 `PlutusTx.addInteger` y2)
+                (z1 `PlutusTx.addInteger` z2)
+                (w1 `PlutusTx.addInteger` w2)
+          )
     )
 
 destructSumManual :: CompiledCode (PlutusTx.BuiltinData -> Ints)

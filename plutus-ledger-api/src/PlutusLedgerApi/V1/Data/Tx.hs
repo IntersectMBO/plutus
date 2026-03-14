@@ -23,11 +23,13 @@ module PlutusLedgerApi.V1.Data.Tx
     -- * Transaction outputs
   , TxOut
   , pattern TxOut
+  , matchTxOut
   , txOutAddress
   , txOutValue
   , txOutDatumHash
   , TxOutRef
   , pattern TxOutRef
+  , matchTxOutRef
   , txOutRefId
   , txOutRefIdx
   , isPubKeyOut

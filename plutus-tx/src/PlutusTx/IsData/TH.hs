@@ -13,6 +13,7 @@ module PlutusTx.IsData.TH
   , mkUnsafeConstrMatchPattern
   , mkConstrPartsMatchPattern
   , mkUnsafeConstrPartsMatchPattern
+  , mkDestructor
   , AsDataProdType (..)
   , fromDataClause
   ) where
@@ -24,8 +25,9 @@ import Data.Traversable (for)
 
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
+import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
-import PlutusTx.AsData.Internal (wrapUnsafeDataAsConstr, wrapUnsafeUncons)
+import PlutusTx.AsData.Internal qualified as AI
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Eq qualified as PlutusTx
@@ -97,7 +99,7 @@ mkUnsafeConstrMatchPattern isProduct conIx extractFieldNames =
   case isProduct of
     IsAsDataProdType ->
       [p|
-        ( wrapUnsafeDataAsConstr ->
+        ( AI.wrapUnsafeDataAsConstr ->
             ( BI.snd ->
                 $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
               )
@@ -105,7 +107,7 @@ mkUnsafeConstrMatchPattern isProduct conIx extractFieldNames =
         |]
     IsNotAsDataProdType ->
       [p|
-        ( wrapUnsafeDataAsConstr ->
+        ( AI.wrapUnsafeDataAsConstr ->
             ( Builtins.pairToPair ->
                 $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
               )
@@ -129,7 +131,7 @@ mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames =
       where
         go [] = [p|_|]
         go [x] = [p|(BI.head -> $x)|]
-        go (x : xs) = [p|(wrapUnsafeUncons -> ($x, $(go xs)))|]
+        go (x : xs) = [p|(AI.wrapUnsafeUncons -> ($x, $(go xs)))|]
     pat =
       -- We can safely omit the index match if we know that the type is a product type
       case isProduct of
@@ -444,6 +446,115 @@ makeIsDataAsList dataTypeName = do
       tyvarbndrName (TH.PlainTV n)      = n
       tyvarbndrName (TH.KindedTV n _)   = n
 #endif
+
+mkDestructorBranch
+  :: TH.Name
+  -- ^ Continuation
+  -> TH.Name
+  -- ^ Constr args
+  -> Int
+  -> TH.ExpQ
+mkDestructorBranch kName argsName n
+  | n == 0 = TH.varE kName
+  | otherwise = go 0 argsName []
+  where
+    go i curList acc
+      | i == n - 1 =
+          -- Last field: use BI.head, then apply `k` to all fields
+          let arg = [|unsafeFromBuiltinData (BI.head $(TH.varE curList))|]
+              args = reverse acc ++ [arg]
+           in Foldable.foldl' (\f a -> [|$f $a|]) (TH.varE kName) args
+      | otherwise = do
+          hd <- TH.newName ("hd" ++ show i)
+          tl <- TH.newName ("tl" ++ show i)
+          let arg = [|unsafeFromBuiltinData $(TH.varE hd)|]
+          [|
+            BI.unsafeCaseList
+              ( \ $(TH.varP hd) $(TH.varP tl) ->
+                  $(go (i + 1) tl (arg : acc))
+              )
+              $(TH.varE curList)
+            |]
+
+mkDestructor
+  :: TH.DatatypeInfo
+  -> TH.Name
+  -> [TH.ConstructorInfo]
+  -> TH.Q [TH.Dec]
+mkDestructor _ _ [] = pure []
+mkDestructor di cname cons = do
+  destructorName <- TH.newName ("match" ++ TH.nameBase (TH.datatypeName di))
+
+  dName <- TH.newName "d"
+  idxName <- TH.newName "idx"
+  argsName <- TH.newName "args"
+  rName <- TH.newName "r"
+
+  let
+    rTy = TH.VarT rName
+    -- field1 -> field2 -> ... -> r
+    mkContTy ci =
+      foldr
+        (\ty acc -> TH.ArrowT `TH.AppT` ty `TH.AppT` acc)
+        rTy
+        (TH.constructorFields ci)
+
+    contTys = mkContTy <$> cons
+    -- Newtype -> k0Type -> k1Type -> ... -> r
+    destructorTy =
+      foldr
+        (\a b -> TH.ArrowT `TH.AppT` a `TH.AppT` b)
+        rTy
+        (TH.datatypeType di : contTys)
+
+    allFieldTys = concatMap TH.constructorFields cons
+    fieldTyVars = TH.freeVariablesWellScoped allFieldTys
+    constraints =
+      [ TH.ConT ''UnsafeFromData `TH.AppT` TH.VarT (TH.tvName v)
+      | v <- fieldTyVars
+      ]
+
+    allFreeVars = TH.freeVariablesWellScoped [destructorTy]
+    tyVarBndrs = TH.changeTVFlags TH.SpecifiedSpec allFreeVars
+    sigTy = TH.ForallT tyVarBndrs constraints destructorTy
+    sigDec = TH.SigD destructorName sigTy
+    noConHasField = all (Li.null . TH.constructorFields) cons
+    argsPat = if noConHasField then TH.wildP else TH.varP argsName
+  (body, kNames) <- case cons of
+    [con] -> do
+      -- product type
+      kName <- TH.newName "k"
+      (,)
+        <$> [|
+          BI.casePair (AI.wrapUnsafeDataAsConstr $(TH.varE dName)) $
+            \ $TH.wildP $argsPat ->
+              $(mkDestructorBranch kName argsName (length (TH.constructorFields con)))
+          |]
+        <*> pure [kName]
+    _ -> do
+      kNames <- for (cons `zip` [0 ..]) $ \(_, i) ->
+        TH.newName ("k" ++ show (i :: Int))
+      let branches =
+            TH.listE
+              [ mkDestructorBranch kN argsName (length (TH.constructorFields con))
+              | (kN, con) <- zip kNames cons
+              ]
+
+      (,)
+        <$> [|
+          BI.casePair (AI.wrapUnsafeDataAsConstr $(TH.varE dName)) $
+            \ $(TH.varP idxName) $argsPat ->
+              caseInteger $(TH.varE idxName) $branches
+          |]
+        <*> pure kNames
+
+  -- matchFoo (Cname d) k0 k1 ... = body
+  let pats = TH.conP cname [TH.varP dName] : fmap TH.varP kNames
+  funDec <- TH.funD destructorName [TH.clause pats (TH.normalB (pure body)) []]
+
+  inlPrag <- TH.pragInlD destructorName TH.Inline TH.FunLike TH.AllPhases
+
+  pure [sigDec, inlPrag, funDec]
 
 {- Note [indexMatchCase and fallthrough]
 `indexMatchCase` and `fallthrough` need to be non-strict, because (1) at most one of them

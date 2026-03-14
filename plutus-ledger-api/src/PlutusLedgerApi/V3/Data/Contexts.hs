@@ -20,14 +20,17 @@ module PlutusLedgerApi.V3.Data.Contexts
   , HotCommitteeCredential (..)
   , DRepCredential (..)
   , DRep
+  , matchDRep
   , pattern DRep
   , pattern DRepAlwaysAbstain
   , pattern DRepAlwaysNoConfidence
   , Delegatee
+  , matchDelegatee
   , pattern DelegStake
   , pattern DelegVote
   , pattern DelegStakeVote
   , TxCert
+  , matchTxCert
   , pattern TxCertRegStaking
   , pattern TxCertUnRegStaking
   , pattern TxCertDelegStaking
@@ -40,28 +43,34 @@ module PlutusLedgerApi.V3.Data.Contexts
   , pattern TxCertAuthHotCommittee
   , pattern TxCertResignColdCommittee
   , Voter
+  , matchVoter
   , pattern CommitteeVoter
   , pattern DRepVoter
   , pattern StakePoolVoter
   , Vote
+  , matchVote
   , pattern VoteNo
   , pattern VoteYes
   , pattern Abstain
   , GovernanceActionId
   , pattern GovernanceActionId
+  , matchGovernanceActionId
   , gaidTxId
   , gaidGovActionIx
   , Committee
   , pattern Committee
+  , matchCommittee
   , committeeMembers
   , committeeQuorum
   , Constitution (..)
   , ProtocolVersion
   , pattern ProtocolVersion
+  , matchProtocolVersion
   , pvMajor
   , pvMinor
   , ChangedParameters (..)
   , GovernanceAction
+  , matchGovernanceAction
   , pattern ParameterChange
   , pattern HardForkInitiation
   , pattern TreasuryWithdrawals
@@ -71,10 +80,12 @@ module PlutusLedgerApi.V3.Data.Contexts
   , pattern InfoAction
   , ProposalProcedure
   , pattern ProposalProcedure
+  , matchProposalProcedure
   , ppDeposit
   , ppReturnAddr
   , ppGovernanceAction
   , ScriptPurpose
+  , matchScriptPurpose
   , pattern Minting
   , pattern Spending
   , pattern Rewarding
@@ -82,6 +93,7 @@ module PlutusLedgerApi.V3.Data.Contexts
   , pattern Voting
   , pattern Proposing
   , ScriptInfo
+  , matchScriptInfo
   , pattern MintingScript
   , pattern SpendingScript
   , pattern RewardingScript
@@ -90,10 +102,12 @@ module PlutusLedgerApi.V3.Data.Contexts
   , pattern ProposingScript
   , TxInInfo
   , pattern TxInInfo
+  , matchTxInInfo
   , txInInfoOutRef
   , txInInfoResolved
   , TxInfo
   , pattern TxInfo
+  , matchTxInfo
   , txInfoInputs
   , txInfoReferenceInputs
   , txInfoOutputs
@@ -112,6 +126,7 @@ module PlutusLedgerApi.V3.Data.Contexts
   , txInfoTreasuryDonation
   , ScriptContext
   , pattern ScriptContext
+  , matchScriptContext
   , scriptContextTxInfo
   , scriptContextRedeemer
   , scriptContextScriptInfo

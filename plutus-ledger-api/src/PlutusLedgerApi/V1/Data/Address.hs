@@ -14,6 +14,7 @@
 module PlutusLedgerApi.V1.Data.Address
   ( Address
   , pattern Address
+  , matchAddress
   , addressCredential
   , addressStakingCredential
   , pubKeyHashAddress

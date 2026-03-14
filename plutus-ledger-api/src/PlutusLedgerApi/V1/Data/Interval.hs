@@ -9,6 +9,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -17,13 +18,17 @@
 module PlutusLedgerApi.V1.Data.Interval
   ( Interval
   , pattern Interval
+  , matchInterval
   , ivFrom
   , ivTo
   , UpperBound
   , pattern UpperBound
+  , matchUpperBound
   , LowerBound
   , pattern LowerBound
+  , matchLowerBound
   , Extended
+  , matchExtended
   , pattern NegInf
   , pattern Finite
   , pattern PosInf
