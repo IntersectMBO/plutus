@@ -188,7 +188,7 @@ toString :: TokenName -> Haskell.String
 toString = Text.unpack . fromTokenName asBase16 id
 
 instance Haskell.Show TokenName where
-  show = Text.unpack . encodeByteString . PlutusTx.fromBuiltin . unTokenName
+  show = Text.unpack . asBase16 . PlutusTx.fromBuiltin . unTokenName
 
 -- | The 'CurrencySymbol' of the 'Ada' currency.
 adaSymbol :: CurrencySymbol

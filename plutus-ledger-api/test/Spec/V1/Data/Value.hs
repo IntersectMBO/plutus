@@ -140,23 +140,23 @@ test_showTokenName =
     "showTokenName"
     [ -- Valid UTF-8: one codepoint per encoding length
       testCase "1-byte codepoint (ASCII 'hello')" $
-        show (tokenName (BS.pack [0x68, 0x65, 0x6c, 0x6c, 0x6f])) @?= "68656c6c6f"
+        show (tokenName (BS.pack [0x68, 0x65, 0x6c, 0x6c, 0x6f])) @?= "0x68656c6c6f"
     , testCase "2-byte codepoint (U+00F1 'ñ')" $
-        show (tokenName (BS.pack [0xC3, 0xB1])) @?= "c3b1"
+        show (tokenName (BS.pack [0xC3, 0xB1])) @?= "0xc3b1"
     , testCase "3-byte codepoint (U+20AC '€')" $
-        show (tokenName (BS.pack [0xE2, 0x82, 0xAC])) @?= "e282ac"
+        show (tokenName (BS.pack [0xE2, 0x82, 0xAC])) @?= "0xe282ac"
     , testCase "4-byte codepoint (U+1D11E '𝄞')" $
-        show (tokenName (BS.pack [0xF0, 0x9D, 0x84, 0x9E])) @?= "f09d849e"
+        show (tokenName (BS.pack [0xF0, 0x9D, 0x84, 0x9E])) @?= "0xf09d849e"
     , -- Invalid UTF-8
       testCase "invalid UTF-8 (overlong encoding)" $
-        show (tokenName (BS.pack [0xC0, 0x80])) @?= "c080"
+        show (tokenName (BS.pack [0xC0, 0x80])) @?= "0xc080"
     , testCase "control characters" $
-        show (tokenName (BS.pack [0, 2])) @?= "0002"
+        show (tokenName (BS.pack [0, 2])) @?= "0x0002"
     , testCase "null byte embedded in ASCII" $
-        show (tokenName (BS.pack [0x41, 0x00, 0x42])) @?= "410042"
+        show (tokenName (BS.pack [0x41, 0x00, 0x42])) @?= "0x410042"
     , -- Edge case
       testCase "empty token name" $
-        show (tokenName BS.empty) @?= ""
+        show (tokenName BS.empty) @?= "0x"
     ]
 
 test_Value :: TestTree
