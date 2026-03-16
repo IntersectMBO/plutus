@@ -143,7 +143,7 @@ currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
 {-# INLINEABLE currencySymbol #-}
 
 {-| ByteString of a name of a token.
-Shown as UTF-8 string when possible.
+Shown as hex-encoded bytes.
 Should be no longer than 32 bytes, empty for Ada.
 Forms an `AssetClass` along with a `CurrencySymbol`.
 
@@ -183,18 +183,12 @@ fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleB
 asBase16 :: BS.ByteString -> Text
 asBase16 bs = Text.concat ["0x", encodeByteString bs]
 
--- | Wrap the input `Text` in double quotes.
-quoted :: Text -> Text
-quoted s = Text.concat ["\"", s, "\""]
-
-{-| Turn a TokenName to a hex-encoded 'String'
-
-Compared to `show` , it will not surround the string with double-quotes. -}
+-- | Turn a TokenName to a UTF-8 string when possible, or a hex @0x@-prefixed string otherwise.
 toString :: TokenName -> Haskell.String
 toString = Text.unpack . fromTokenName asBase16 id
 
 instance Haskell.Show TokenName where
-  show = Text.unpack . fromTokenName asBase16 quoted
+  show = Text.unpack . encodeByteString . PlutusTx.fromBuiltin . unTokenName
 
 -- | The 'CurrencySymbol' of the 'Ada' currency.
 adaSymbol :: CurrencySymbol

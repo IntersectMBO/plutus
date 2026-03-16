@@ -7,8 +7,10 @@ import PlutusLedgerApi.V1.Data.Value
 import PlutusTx.Numeric qualified as Numeric
 
 import Control.Lens
+import Data.ByteString qualified as BS
 import Data.List (sort)
 import Test.Tasty
+import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.QuickCheck
 
 infix 4 <=>, </>
@@ -131,6 +133,32 @@ test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
   let (valueL, valueR) = split value
    in Numeric.negate valueL <> valueR <=> value
 
+-- | Test that the Show instance for TokenName always displays hex-encoded bytes.
+test_showTokenName :: TestTree
+test_showTokenName =
+  testGroup
+    "showTokenName"
+    [ -- Valid UTF-8: one codepoint per encoding length
+      testCase "1-byte codepoint (ASCII 'hello')" $
+        show (tokenName (BS.pack [0x68, 0x65, 0x6c, 0x6c, 0x6f])) @?= "68656c6c6f"
+    , testCase "2-byte codepoint (U+00F1 'ñ')" $
+        show (tokenName (BS.pack [0xC3, 0xB1])) @?= "c3b1"
+    , testCase "3-byte codepoint (U+20AC '€')" $
+        show (tokenName (BS.pack [0xE2, 0x82, 0xAC])) @?= "e282ac"
+    , testCase "4-byte codepoint (U+1D11E '𝄞')" $
+        show (tokenName (BS.pack [0xF0, 0x9D, 0x84, 0x9E])) @?= "f09d849e"
+    , -- Invalid UTF-8
+      testCase "invalid UTF-8 (overlong encoding)" $
+        show (tokenName (BS.pack [0xC0, 0x80])) @?= "c080"
+    , testCase "control characters" $
+        show (tokenName (BS.pack [0, 2])) @?= "0002"
+    , testCase "null byte embedded in ASCII" $
+        show (tokenName (BS.pack [0x41, 0x00, 0x42])) @?= "410042"
+    , -- Edge case
+      testCase "empty token name" $
+        show (tokenName BS.empty) @?= ""
+    ]
+
 test_Value :: TestTree
 test_Value =
   testGroup
@@ -140,4 +168,5 @@ test_Value =
     , test_updateSomeTokenNames
     , test_shuffle
     , test_split
+    , test_showTokenName
     ]
