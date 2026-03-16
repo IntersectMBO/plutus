@@ -153,7 +153,7 @@ reportPasses _ (done _) _ = ""
 reportPasses n (step tag _ x trace) (p , proofs) =
   hl ++
   "Pass " ++ showℕ n ++ ": " ++ showTag tag
-    ++ (if hasRelation tag then "  ✅" else "  ❓ (certifier unavailable)") ++
+    ++ (if hasRelation tag then "  ✅" else "  ⚠ (certifier unavailable)") ++
   hl ++
   (⇉ "Program Size Before: ") ++ showℕ (termSize x) ++
   nl ++
