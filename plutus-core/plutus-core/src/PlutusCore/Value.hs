@@ -201,6 +201,8 @@ instance Flat.Flat Value where
   {-# INLINE encode #-}
   decode = pack <$> Flat.decode
   {-# INLINE decode #-}
+  size (Value v _ _ _) = Flat.size v
+  {-# INLINE size #-}
 
 {-| Unpack a `Value` into a map from (currency symbol, token name) to quantity.
 
