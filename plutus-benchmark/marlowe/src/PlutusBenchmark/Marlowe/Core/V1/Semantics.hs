@@ -41,6 +41,7 @@
 module PlutusBenchmark.Marlowe.Core.V1.Semantics
   ( -- * Semantics
     MarloweData (MarloweData, marloweParams, marloweState, marloweContract)
+  , matchMarloweData
   , MarloweParams (..)
   , Payment (..)
   , TransactionInput (..)

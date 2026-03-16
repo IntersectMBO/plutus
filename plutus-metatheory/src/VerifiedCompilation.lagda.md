@@ -21,9 +21,9 @@ The project is divided into several Agda modules, each of which is based on an o
 They each contain the respective Agda formalisation of the program transformation and a decision procedure which takes
 two programs as input and decides whether the transformation is applicable.
 
-This module is at the top of the project hierarchy and contains the main decision procedure which verifies the entire optimisation
+This module is at the top of the project hierarchy and contains the main functions that certify the UPLC optimisation
 process. The final certification function receives a list of intermediate program ASTs produced by the compiler and outputs a file
-containing the generated proof object, a.k.a. the _certificate_. The certificate can then be verified by third parties by loading
+containing the generated proof object, a.k.a. the _certificate_. The certificate can then be checked by third parties by loading
 it into Agda and checking that it is correctly typed.
 
 ```
@@ -33,166 +33,122 @@ module VerifiedCompilation where
 ## Imports
 
 ```
-open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Function using (_∘_)
+open import Data.Bool.Base
+open import Data.Maybe using (is-just ; fromMaybe)
+open import Agda.Builtin.Sigma using (Σ; _,_)
+open import Agda.Builtin.Unit using (⊤; tt)
 
 open import Untyped
-open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;List;[];_∷_;_×_;_,_)
+open import Utils
 open import RawU using (Untyped)
-open import Data.String using (String)
-open import Agda.Builtin.IO using (IO)
-open import Agda.Builtin.Unit using (⊤)
 import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
 import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
-open import Data.Nat using (ℕ; suc; zero)
-open import Data.Fin using (Fin; suc; zero)
-open import Data.Empty using (⊥)
-open import Untyped.Equality using (DecEq)
-open import Untyped.RenamingSubstitution using (Sub)
-open import VerifiedCompilation.UntypedTranslation using (Relation)
-import Relation.Unary as Unary using (Decidable)
-import Agda.Builtin.Int
-import Relation.Nary as Nary using (Decidable)
-open import VerifiedCompilation.Certificate using (CertResult; Hints; inline; none; ce; proof; abort; pcePointwise; MatchOrCE; SimplifierTag)
-open import Agda.Builtin.Sigma using (Σ; _,_)
+open import VerifiedCompilation.NotImplemented
+open import VerifiedCompilation.Trace
+open import VerifiedCompilation.Certificate hiding (_>>=_)
+
+
+-- | The failure modes of the certifier
+data Error : Set where
+  emptyDump : Error
+  illScoped : Error
+  counterExample : SimplifierTag → Error
+  abort : SimplifierTag → Error
 ```
 
-## Compiler optimisation traces
+## Translation Relations and Certifiers
 
-A `Trace` represents a sequence of optimisation transformations applied to a program. It is a list of pairs of ASTs
-and a tag (`SimplifierTag`), where each pair represents the before and after of a transformation application and the
-tag indicates which transformation was applied.
-The `Transformation` type is a sum type that represents the possible transformations which are implemented in their
-respective modules.
-
-The `isTrace?` decision procedure is at the core of the certification process. It produces the proof that the given
-list of ASTs are in relation with one another according to the transformations implemented in the project.
-
-The `isTransformation?` procedure just dispatches to the decision or checking procedure indicated by the tag.
-
-**TODO**: The `Trace` type or decision procedure should also enforce that the second element of a pair is the first
-element of the next pair in the list. This might not be necessary if we decide that we can assume that the function
-which produces a `Trace` always produces a correct one, although it might be useful to make this explicit in the type.
-```
-
-data Transformation : SimplifierTag → Relation where
-  isFD : {X : ℕ} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
-  isFlD : {X : ℕ} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation SimplifierTag.floatDelayT ast ast'
-  isCSE : {X : ℕ} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
-  isInline : {ast ast' : 0 ⊢} → UInline.Inline (λ()) UInline.□ ast ast' → Transformation SimplifierTag.inlineT ast ast'
-  isCaseReduce : {X : ℕ} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
-  forceCaseDelayNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
-  cocNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.caseOfCaseT ast ast'
-  applyToCaseNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.applyToCaseT ast ast'
-
-data Trace : { X : ℕ }  → List (SimplifierTag × Hints × (X ⊢) × (X ⊢)) → Set where
-  empty : {X : ℕ} → Trace {X} []
-  cons
-    : {X : ℕ}
-    {tag : SimplifierTag} {hints : Hints} {x x' : X ⊢}
-    {xs : List (SimplifierTag × Hints × (X ⊢) × (X ⊢))}
-    → Transformation tag x x'
-    → Trace xs
-    → Trace ((tag , hints , x , x') ∷ xs)
-
-isTransformation? : {X : ℕ}  → (tag : SimplifierTag) → (hints : Hints) → (a : X ⊢) → (b : X ⊢) → CertResult (Transformation tag a b)
-isTransformation? tag hints ast ast' with tag
-isTransformation? tag hints ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDelay? ast ast'
-... | ce ¬p t b a = ce (λ { (isFlD x) → ¬p x}) t b a
-... | proof p = proof (isFlD p)
-isTransformation? tag hints ast ast' | SimplifierTag.forceDelayT with UFD.isForceDelay? ast ast'
-... | ce ¬p t b a = ce (λ { (isFD x) → ¬p x}) t b a
-... | proof p = proof (isFD p)
-isTransformation? tag hints ast ast' | SimplifierTag.forceCaseDelayT = proof forceCaseDelayNotImplemented
-isTransformation? tag hints ast ast' | SimplifierTag.caseOfCaseT = proof cocNotImplemented
-isTransformation? tag hints ast ast' | SimplifierTag.caseReduceT with UCR.isCaseReduce? ast ast'
-... | ce ¬p t b a = ce (λ { (isCaseReduce x) → ¬p x}) t b a
-... | proof p = proof (isCaseReduce p)
-isTransformation? {X} tag hints ast ast' | SimplifierTag.inlineT with hints | X
-... | inline h | 0 with UInline.top-check h ast ast'
-...                     | proof p = proof (isInline p)
-...                     | abort t b a = abort t b a
-isTransformation? tag hints ast ast' | SimplifierTag.inlineT
-    | _ | _ = abort tag ast ast'
-isTransformation? tag hints ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast ast'
-... | ce ¬p t b a = ce (λ { (isCSE x) → ¬p x}) t b a
-... | proof p = proof (isCSE p)
-isTransformation? tag hints ast ast' | SimplifierTag.applyToCaseT = proof applyToCaseNotImplemented
-
-isTrace? : {X : ℕ}  → (t : List (SimplifierTag × Hints × (X ⊢) × (X ⊢))) → CertResult (Trace {X} t)
-isTrace? [] = proof empty
-isTrace? {X} ((tag , hints , x₁ , x₂) ∷ xs) with isTrace? xs
-... | ce ¬p t b a = ce (λ { (cons x xx) → ¬p xx}) t b a
-... | abort t b a = abort t b a
-... | proof pₜ with isTransformation? {X} tag hints x₁ x₂
-...                 | ce ¬p t b a = ce (λ { (cons x xx) → ¬p x}) t b a
-...                 | abort t b a = abort t b a
-...                 | proof pₑ = proof (cons pₑ pₜ)
-
+We map a `SimplifierTag` to the corresponding translation relation, or `nothing`
+if we don't have a translation relation.
 
 ```
-
-
-## The certification function
-
-The `runCertifier` function is the top-level function which can be called by the compiler.
-
+mRelationOf : SimplifierTag → Maybe (0 ⊢ → 0 ⊢ → Set)
+mRelationOf floatDelayT     = just UFlD.FloatDelay
+mRelationOf forceDelayT     = just UFD.ForceDelay
+mRelationOf caseReduceT     = just UCR.UCaseReduce
+mRelationOf cseT            = just UCSE.UntypedCSE
+mRelationOf inlineT         = just (UInline.Inline (λ()) UInline.□)
+mRelationOf unknown         = nothing
+mRelationOf caseOfCaseT     = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
+mRelationOf forceCaseDelayT = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2053
+mRelationOf applyToCaseT    = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/1988
 ```
 
-{-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
-{-# FOREIGN GHC import qualified System.IO as IO #-}
-{-# FOREIGN GHC import qualified Data.Text as Text #-}
-{-# FOREIGN GHC import PlutusCore.Compiler.Types #-}
+We default to the `NotImplemented` relation to give each `SimplifierTag` a relation:
 
-postulate FileHandle : Set
-{-# COMPILE GHC FileHandle = type IO.Handle #-}
+```
+RelationOf : SimplifierTag → (0 ⊢ → 0 ⊢ → Set)
+RelationOf = fromMaybe (NotImplemented accept) ∘ mRelationOf
 
-postulate
-  writeFile : String → String → IO ⊤
-  stderr : FileHandle
-  hPutStrLn : FileHandle → String → IO ⊤
-  putStrLn : String → IO ⊤
+hasRelation : SimplifierTag → Bool
+hasRelation = is-just ∘ mRelationOf
+```
 
-{-# COMPILE GHC writeFile = \f -> TextIO.writeFile (Text.unpack f) #-}
-{-# COMPILE GHC stderr = IO.stderr #-}
-{-# COMPILE GHC hPutStrLn = TextIO.hPutStr #-}
-{-# COMPILE GHC putStrLn = TextIO.putStrLn #-}
+The corresponding certifier can then be called for a given pass:
 
-buildPairs : {X : ℕ} → List (suc X ⊢) -> List ((suc X ⊢) × (suc X ⊢))
-buildPairs [] = []
-buildPairs (x ∷ []) = (x , x) ∷ []
-buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
+```
+certifyPass : (pass : SimplifierTag) → Hints → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
+certifyPass floatDelayT _       = decider UFlD.isFloatDelay?
+certifyPass forceDelayT _       = decider UFD.isForceDelay?
+certifyPass caseReduceT _       = decider UCR.isCaseReduce?
+certifyPass cseT _              = decider UCSE.isUntypedCSE?
+certifyPass caseOfCaseT _       = certNotImplemented
+certifyPass forceCaseDelayT _   = certNotImplemented
+certifyPass applyToCaseT _      = certNotImplemented
+certifyPass inlineT (inline hs) = checker (UInline.top-check hs)
+certifyPass inlineT none        = λ M M' → abort inlineT M M'
+certifyPass unknown _           = certNotImplemented
+```
 
-traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × Hints × A × A) → Either E (List (SimplifierTag × Hints × B × B))
-traverseEitherList _ [] = inj₂ []
-traverseEitherList f ((tag , hints , before , after) ∷ xs) with f before
-... | inj₁ e = inj₁ e
-... | inj₂ b with f after
-... | inj₁ e = inj₁ e
-... | inj₂ a with traverseEitherList f xs
-... | inj₁ e = inj₁ e
-... | inj₂ xs' = inj₂ (((tag , hints , b , a)) ∷ xs')
+A `Certificate t` states the main theorem of a trace `t`: a sequence (product)
+of translation relations, instantiated to their corresponding terms from the
+trace. `certify` then attempts to certify this property by running the
+corresponding certifiers of each pass.
 
-data Cert : Set₂ where
-  cert
-    : {X : ℕ} {result : List (SimplifierTag × Hints × (X ⊢) × (X ⊢))}
-    → CertResult (Trace {X} result)
-    → Cert
+```
+Certificate : Trace (0 ⊢) → Set
+Certificate (done _) = ⊤
+Certificate (step pass hints t ts) = RelationOf pass t (head ts) × Certificate ts
 
-getCE : {A B : Set} → Maybe Cert → Maybe (Σ _ \A → (Σ _ \B → (SimplifierTag × A × B)))
-getCE nothing = nothing
-getCE (just (cert (proof _))) = nothing
-getCE (just (cert (abort _ _ _))) = nothing
-getCE (just (cert (ce _ {X} {X'} t b a))) = just (X , X' , t , b , a)
+certify : (trace : Trace (0 ⊢)) → Either Error (Certificate trace)
+certify (done _) = inj₂ tt
+certify (step pass hints x xs) with certifyPass pass hints x (head xs)
+... | ce _ tag _ _ = inj₁ (counterExample tag)
+... | abort tag _ _ = inj₁ (abort tag)
+... | proof p =
+  do
+    ps ← certify xs
+    return (p , ps)
+```
 
-open import Data.Bool.Base using (Bool; false; true)
-open import Agda.Builtin.Equality using (_≡_; refl)
+If the certifier succeeds, we can produce the certificate:
 
-passed? : Maybe Cert → Bool
-passed? (just (cert (ce _ _ _ _))) = false
-passed? (just (cert (abort _ _ _))) = false
-passed? (just (cert (proof _))) = true
-passed? nothing = false
+```
+cert : (trace : Trace (0 ⊢)) → (e : Either Error (Certificate trace)) → T (is-inj₂ e) → Certificate trace
+cert _ (inj₂ cert) tt = cert
+```
+
+## Scope Checking
+
+Translation relations are defined for scoped terms only, so we need to scope
+check all terms in the trace.
+
+```
+checkScope : Untyped → Maybe (0 ⊢)
+checkScope = eitherToMaybe ∘ scopeCheckU0
+
+-- Scope-check all terms in a trace
+checkScopeᵗ : Trace Untyped → Maybe (Trace (0 ⊢))
+checkScopeᵗ (done x) = do
+  x' ← checkScope x
+  return (done x')
+checkScopeᵗ (step pass hints t ts) = do
+  t' ← checkScope t
+  ts' ← checkScopeᵗ ts
+  return (step pass hints t' ts')
+```

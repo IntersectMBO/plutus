@@ -13,8 +13,10 @@ open import VerifiedCompilation.UntypedTranslation
 open import VerifiedCompilation.UInline
 open import Untyped
 open import Untyped.RenamingSubstitution using (Sub)
-open import Utils as U using (List; _×_)
+open import Utils as U using (List; _×_; _,_; Either; either)
 
+open import Agda.Builtin.Sigma using (Σ; _,_; snd)
+open import Data.Bool using (if_then_else_)
 open import Data.List as L using (List)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Data.Maybe
@@ -42,12 +44,13 @@ showTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
 showTag inlineT = "Inlining"
 showTag cseT = "Common Subexpression Elimination"
 showTag applyToCaseT = "Transform multi-argument applications into case-constr form"
+showTag unknown = "Unknown Pass"
 ```
 
 Number of times an optimization is applied on the given term in one compiler pass:
 
 ```
-numSites′ : {R : Relation} {X : ℕ} {M N : X ⊢} → Translation R M N → ℕ
+numSites′ : {R : Relation} {M N : 0 ⊢} → Translation R M N → ℕ
 numSites′ = go 0
   where
   go : {R : Relation} {X : ℕ} {M N : X ⊢} →  ℕ → Translation R M N → ℕ
@@ -104,18 +107,19 @@ numSitesInline (case r rs) = numSitesInline r + numSitesInlineᵖʷ rs
 numSitesInlineᵖʷ Pointwise.[] = 0
 numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖʷ xs
 
-numSites : {X : ℕ} {tag : SimplifierTag} {M N : X ⊢} → Transformation tag M N → Maybe ℕ
-numSites (isFD p) = just (numSites′ p)
-numSites (isFlD p) = just (numSites′ p)
-numSites (isCSE p) = just (numSites′ p)
-numSites (isCaseReduce p) = just (numSites′ p)
-numSites (isInline p) = just (numSitesInline p)
-numSites forceCaseDelayNotImplemented = nothing
-numSites cocNotImplemented = nothing
-numSites applyToCaseNotImplemented = nothing
+numSites : {M N : 0 ⊢} (tag : SimplifierTag) → RelationOf tag M N → Maybe ℕ
+numSites forceDelayT p = just (numSites′ p)
+numSites floatDelayT p = just (numSites′ p)
+numSites cseT p = just (numSites′ p)
+numSites caseReduceT p = just (numSites′ p)
+numSites inlineT p = just (numSitesInline p)
+numSites forceCaseDelayT _ = nothing
+numSites caseOfCaseT _ = nothing
+numSites applyToCaseT _ = nothing
+numSites unknown _ = nothing
 
-showSites : {X : ℕ} {tag : SimplifierTag} {M N : X ⊢} → Transformation tag M N → String
-showSites t with numSites t
+showSites : {M N : 0 ⊢} → (tag : SimplifierTag) → RelationOf tag M N → String
+showSites t p with numSites t p
 ... | just n = ⇉ "Optimization sites: " ++ showℕ n
 ... | nothing = ""
 
@@ -141,39 +145,47 @@ Functions for producing the certifier report:
 
 ```
 reportPasses :
-  {X : ℕ}
-  {t : U.List (SimplifierTag × Hints × (X ⊢) × (X ⊢))}
   (n : ℕ)
-  (r : CertResult (Trace {X} t))
+  (t : Trace (0 ⊢))
+  (r : Certificate t)
   → String
-reportPasses _ (proof empty) = ""
-reportPasses n (proof (cons {tag = tag} {x = x} {x' = x'} y ys)) =
+reportPasses _ (done _) _ = ""
+reportPasses n (step tag _ x trace) (p , proofs) =
   hl ++
-  -- FIXME: if the certifier for a pass hasn't been implemented,
-  -- it should print something like "certifier unavailable" rather than "✅".
-  "Pass " ++ showℕ n ++ ": " ++ showTag tag ++ "  ✅" ++
+  "Pass " ++ showℕ n ++ ": " ++ showTag tag
+    ++ (if hasRelation tag then "  ✅" else "  ⚠ (certifier unavailable)") ++
   hl ++
   (⇉ "Program Size Before: ") ++ showℕ (termSize x) ++
   nl ++
-  (⇉ "Program Size After: ") ++ showℕ (termSize x') ++
+  (⇉ "Program Size After: ") ++ showℕ (termSize (head trace)) ++
   nl ++
-  showSites y ++
+  showSites tag p ++
   nl ++
-  reportPasses (suc n) (proof ys)
-reportPasses n (ce _ tag _ _) =
+  reportPasses (suc n) trace proofs
+
+reportFailure : Error → String
+reportFailure (counterExample tag) =
   hl ++
-  "Pass " ++ showℕ n ++ ": " ++ showTag tag ++ "  ❌ FAILED" ++
+  "Pass " ++ showTag tag ++ "  ❌ FAILED" ++
   hl
-reportPasses n (abort tag _ _) =
+reportFailure (abort tag) =
   hl ++
-  "Pass " ++ showℕ n ++ ": " ++ showTag tag ++ "  ❌ FAILED" ++
+  "Pass " ++ showTag tag ++ "  ❌ FAILED" ++
+  hl
+reportFailure emptyDump =
+  hl ++
+  "Empty trace from the compiler  ❌ FAILED" ++
+  hl
+reportFailure illScoped =
+  hl ++
+  "Trace from compiler contained ill-scoped terms  ❌ FAILED" ++
   hl
 
 makeReport :
-  {X : ℕ}
-  {t : U.List (SimplifierTag × Hints × (X ⊢) × (X ⊢))}
-  (r : CertResult (Trace {X} t))
+  Either Error (Σ (Trace (0 ⊢)) Certificate)
   → String
 makeReport r =
-  "UPLC OPTIMIZATION: CERTIFIER REPORT" ++ nl ++ reportPasses 1 r
+  "UPLC OPTIMIZATION: CERTIFIER REPORT"
+    ++ nl
+    ++ either r reportFailure (λ { (t , r) → reportPasses 1 t r})
 ```

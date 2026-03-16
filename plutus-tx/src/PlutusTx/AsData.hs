@@ -18,7 +18,12 @@ import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.IsData.Class (ToData, UnsafeFromData)
-import PlutusTx.IsData.TH (AsDataProdType (..), mkConstrCreateExpr, mkUnsafeConstrMatchPattern)
+import PlutusTx.IsData.TH
+  ( AsDataProdType (..)
+  , mkConstrCreateExpr
+  , mkDestructor
+  , mkUnsafeConstrMatchPattern
+  )
 
 import Prelude
 
@@ -151,5 +156,7 @@ asDataFor dec = do
     sequence [patSynSigD, patSynD]
   -- A complete pragma, to top it off
   let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
-  pure $ ntD : compl : concat pats
+
+  destructor <- mkDestructor di cname cons
+  pure $ ntD : compl : concat pats ++ destructor
 {- FOURMOLU_ENABLE -}

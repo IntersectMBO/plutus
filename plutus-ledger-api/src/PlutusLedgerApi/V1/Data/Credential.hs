@@ -18,6 +18,8 @@ module PlutusLedgerApi.V1.Data.Credential
   , Credential
   , pattern PubKeyCredential
   , pattern ScriptCredential
+  , matchCredential
+  , matchStakingCredential
   ) where
 
 import Control.DeepSeq (NFData)

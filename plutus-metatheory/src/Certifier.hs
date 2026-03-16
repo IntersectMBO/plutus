@@ -208,6 +208,7 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
        \\n\
        \\nopen import VerifiedCompilation\
        \\nopen import VerifiedCompilation.Certificate\
+       \\nopen import VerifiedCompilation.Trace\
        \\nopen import Untyped\
        \\nopen import RawU\
        \\nopen import Builtin\
@@ -267,14 +268,17 @@ mkCertificateModule certModule agdaTrace imports =
        \\n\
        \\nopen import Certifier\
        \\nopen import VerifiedCompilation\
-       \\nopen import VerifiedCompilation.Certificate\
+       \\nopen import VerifiedCompilation.Certificate hiding (_>>=_)\
+       \\nopen import VerifiedCompilation.Trace\
        \\nopen import Untyped\
        \\nopen import RawU\
        \\nopen import Builtin\
        \\nopen import Data.Unit\
        \\nopen import Data.Nat\
        \\nopen import Data.Integer\
-       \\nopen import Utils\
+       \\nopen import Data.Maybe\
+       \\nopen import Data.List\
+       \\nopen import Utils hiding (List; _>>=_)\
        \\nimport Agda.Builtin.Bool\
        \\nimport Relation.Nullary\
        \\nimport VerifiedCompilation.UntypedTranslation\
@@ -291,8 +295,11 @@ mkCertificateModule certModule agdaTrace imports =
        \\nasts = "
     <> agdaTrace
     <> "\n\
-       \\ncertificate : passed? (runCertifier asts) ≡ true\
-       \\ncertificate = refl\
+       \\nasts_trace : Trace (0 ⊢)\
+       \\nasts_trace = to-witness-T (toTrace asts >>= checkScopeᵗ) tt\
+       \\n\
+       \\ncertificate : Certificate asts_trace\
+       \\ncertificate = cert asts_trace (certify asts_trace) tt\
        \\n"
 
 data AgdaCertificateProject = AgdaCertificateProject

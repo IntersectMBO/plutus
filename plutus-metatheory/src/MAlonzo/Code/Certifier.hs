@@ -18,119 +18,115 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
 import qualified MAlonzo.RTE
 import qualified Data.Text
 import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.List
 import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
 import qualified MAlonzo.Code.Agda.Builtin.String
 import qualified MAlonzo.Code.CertifierReport
 import qualified MAlonzo.Code.RawU
-import qualified MAlonzo.Code.Untyped
 import qualified MAlonzo.Code.Utils
 import qualified MAlonzo.Code.VerifiedCompilation
-import qualified MAlonzo.Code.VerifiedCompilation.Certificate
+import qualified MAlonzo.Code.VerifiedCompilation.Trace
 
 -- Certifier.runCertifier
 d_runCertifier_2 ::
-  MAlonzo.Code.Utils.T_List_414
-    (MAlonzo.Code.Utils.T__'215'__396
-       MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4
-       (MAlonzo.Code.Utils.T__'215'__396
-          MAlonzo.Code.VerifiedCompilation.Certificate.T_Hints_50
-          (MAlonzo.Code.Utils.T__'215'__396
-             MAlonzo.Code.RawU.T_Untyped_208
-             MAlonzo.Code.RawU.T_Untyped_208))) ->
-  Maybe MAlonzo.Code.VerifiedCompilation.T_Cert_672
+  [MAlonzo.Code.Utils.T__'215'__426
+     MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4
+     (MAlonzo.Code.Utils.T__'215'__426
+        MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_52
+        (MAlonzo.Code.Utils.T__'215'__426
+           MAlonzo.Code.RawU.T_Untyped_208
+           MAlonzo.Code.RawU.T_Untyped_208))] ->
+  MAlonzo.Code.Utils.T_Either_6
+    MAlonzo.Code.VerifiedCompilation.T_Error_2
+    MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 d_runCertifier_2 v0
-  = let v1
-          = coe
-              MAlonzo.Code.VerifiedCompilation.du_traverseEitherList_550
-              (coe MAlonzo.Code.Untyped.d_scopeCheckU0_276) (coe v0) in
-    coe
-      (case coe v1 of
-         MAlonzo.Code.Utils.C_inj'8321'_12 v2
-           -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
-         MAlonzo.Code.Utils.C_inj'8322'_14 v2
-           -> coe
-                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                (coe
-                   MAlonzo.Code.VerifiedCompilation.C_cert_678 (coe (0 :: Integer))
-                   (coe v2)
-                   (coe
-                      MAlonzo.Code.VerifiedCompilation.d_isTrace'63'_378
-                      (coe (0 :: Integer)) (coe v2)))
-         _ -> MAlonzo.RTE.mazUnreachableError)
+  = coe
+      MAlonzo.Code.Utils.du_eitherBind_54
+      (coe
+         MAlonzo.Code.Utils.du_try_94
+         (coe MAlonzo.Code.VerifiedCompilation.Trace.d_toTrace_78 (coe v0))
+         (coe MAlonzo.Code.VerifiedCompilation.C_emptyDump_4))
+      (coe
+         (\ v1 ->
+            coe
+              MAlonzo.Code.Utils.du_eitherBind_54
+              (coe
+                 MAlonzo.Code.Utils.du_try_94
+                 (coe
+                    MAlonzo.Code.VerifiedCompilation.d_checkScope'7511'_100 (coe v1))
+                 (coe MAlonzo.Code.VerifiedCompilation.C_illScoped_6))
+              (coe
+                 (\ v2 ->
+                    coe
+                      MAlonzo.Code.Utils.du_eitherBind_54
+                      (coe MAlonzo.Code.VerifiedCompilation.d_certify_44 (coe v2))
+                      (coe
+                         (\ v3 ->
+                            coe
+                              MAlonzo.Code.Utils.C_inj'8322'_14
+                              (coe
+                                 MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 (coe v2)
+                                 (coe v3))))))))
 -- Certifier.runCertifierMain
 runCertifierMain ::
-  MAlonzo.Code.Utils.T_List_414
-    (MAlonzo.Code.Utils.T__'215'__396
-       MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4
-       (MAlonzo.Code.Utils.T__'215'__396
-          MAlonzo.Code.VerifiedCompilation.Certificate.T_Hints_50
-          (MAlonzo.Code.Utils.T__'215'__396
+  MAlonzo.Code.Agda.Builtin.List.T_List_10
+    ()
+    (MAlonzo.Code.Utils.T__'215'__426
+       MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4
+       (MAlonzo.Code.Utils.T__'215'__426
+          MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_52
+          (MAlonzo.Code.Utils.T__'215'__426
              MAlonzo.Code.RawU.T_Untyped_208
              MAlonzo.Code.RawU.T_Untyped_208))) ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     ()
-    (MAlonzo.Code.Utils.T__'215'__396
+    (MAlonzo.Code.Utils.T__'215'__426
        Bool MAlonzo.Code.Agda.Builtin.String.T_String_6)
-runCertifierMain = coe d_runCertifierMain_16
-d_runCertifierMain_16 ::
-  MAlonzo.Code.Utils.T_List_414
-    (MAlonzo.Code.Utils.T__'215'__396
-       MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4
-       (MAlonzo.Code.Utils.T__'215'__396
-          MAlonzo.Code.VerifiedCompilation.Certificate.T_Hints_50
-          (MAlonzo.Code.Utils.T__'215'__396
-             MAlonzo.Code.RawU.T_Untyped_208
-             MAlonzo.Code.RawU.T_Untyped_208))) ->
+runCertifierMain = coe d_runCertifierMain_12
+d_runCertifierMain_12 ::
+  [MAlonzo.Code.Utils.T__'215'__426
+     MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4
+     (MAlonzo.Code.Utils.T__'215'__426
+        MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_52
+        (MAlonzo.Code.Utils.T__'215'__426
+           MAlonzo.Code.RawU.T_Untyped_208
+           MAlonzo.Code.RawU.T_Untyped_208))] ->
   Maybe
-    (MAlonzo.Code.Utils.T__'215'__396
+    (MAlonzo.Code.Utils.T__'215'__426
        Bool MAlonzo.Code.Agda.Builtin.String.T_String_6)
-d_runCertifierMain_16 v0
-  = let v1
-          = coe
-              MAlonzo.Code.VerifiedCompilation.du_traverseEitherList_550
-              (coe MAlonzo.Code.Untyped.d_scopeCheckU0_276) (coe v0) in
+d_runCertifierMain_12 v0
+  = let v1 = d_runCertifier_2 (coe v0) in
     coe
       (case coe v1 of
          MAlonzo.Code.Utils.C_inj'8321'_12 v2
-           -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
+           -> case coe v2 of
+                MAlonzo.Code.VerifiedCompilation.C_emptyDump_4
+                  -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
+                MAlonzo.Code.VerifiedCompilation.C_illScoped_6
+                  -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
+                MAlonzo.Code.VerifiedCompilation.C_counterExample_8 v3
+                  -> coe
+                       MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                       (coe
+                          MAlonzo.Code.Utils.C__'44'__440
+                          (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                          (coe MAlonzo.Code.CertifierReport.d_makeReport_262 (coe v1)))
+                MAlonzo.Code.VerifiedCompilation.C_abort_10 v3
+                  -> coe
+                       MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                       (coe
+                          MAlonzo.Code.Utils.C__'44'__440
+                          (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                          (coe MAlonzo.Code.CertifierReport.d_makeReport_262 (coe v1)))
+                _ -> MAlonzo.RTE.mazUnreachableError
          MAlonzo.Code.Utils.C_inj'8322'_14 v2
-           -> let v3 = 0 :: Integer in
-              coe
-                (let v4
-                       = MAlonzo.Code.VerifiedCompilation.d_isTrace'63'_378
-                           (coe (0 :: Integer)) (coe v2) in
-                 coe
-                   (case coe v4 of
-                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_70 v5
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                MAlonzo.Code.Utils.C__'44'__410
-                                (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
-                                (coe
-                                   MAlonzo.Code.CertifierReport.d_makeReport_272 (coe v3) (coe v2)
-                                   (coe v4)))
-                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_78 v8 v9 v10
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                MAlonzo.Code.Utils.C__'44'__410
-                                (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
-                                (coe
-                                   MAlonzo.Code.CertifierReport.d_makeReport_272 (coe v3) (coe v2)
-                                   (coe
-                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_78 v8 v9
-                                      v10)))
-                      MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_84 v7 v8 v9
-                        -> coe
-                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe
-                                MAlonzo.Code.Utils.C__'44'__410
-                                (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
-                                (coe
-                                   MAlonzo.Code.CertifierReport.d_makeReport_272 (coe v3) (coe v2)
-                                   (coe
-                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_84 v7 v8
-                                      v9)))
-                      _ -> MAlonzo.RTE.mazUnreachableError))
+           -> coe
+                seq (coe v2)
+                (coe
+                   MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                   (coe
+                      MAlonzo.Code.Utils.C__'44'__440
+                      (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
+                      (coe MAlonzo.Code.CertifierReport.d_makeReport_262 (coe v1))))
          _ -> MAlonzo.RTE.mazUnreachableError)

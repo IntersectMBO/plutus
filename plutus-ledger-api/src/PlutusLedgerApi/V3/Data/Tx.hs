@@ -17,6 +17,7 @@ module PlutusLedgerApi.V3.Data.Tx
   ( TxId (..)
   , TxOutRef
   , pattern TxOutRef
+  , matchTxOutRef
   , txOutRefId
   , txOutRefIdx
   ) where

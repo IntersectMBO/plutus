@@ -23,6 +23,7 @@ module PlutusLedgerApi.V2.Data.Tx
     -- * Transaction outputs
   , TxOut
   , pattern TxOut
+  , matchTxOut
   , txOutAddress
   , txOutValue
   , txOutDatum
@@ -32,6 +33,7 @@ module PlutusLedgerApi.V2.Data.Tx
   , txOutRefId
   , txOutRefIdx
   , OutputDatum
+  , matchOutputDatum
   , pattern NoOutputDatum
   , pattern OutputDatumHash
   , pattern OutputDatum
@@ -61,6 +63,7 @@ import PlutusLedgerApi.V1.Data.Tx hiding
   ( TxOut
   , isPayToScriptOut
   , isPubKeyOut
+  , matchTxOut
   , outAddress
   , outValue
   , pubKeyHashTxOut

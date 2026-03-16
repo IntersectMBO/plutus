@@ -23,6 +23,7 @@ import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped
 import qualified MAlonzo.Code.Untyped.RenamingSubstitution
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
+import qualified MAlonzo.Code.VerifiedCompilation.Trace
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
 
@@ -41,19 +42,18 @@ d_isUntypedCSE'63'_26 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_90
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isUntypedCSE'63'_26 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
-      (coe v0)
-      (coe MAlonzo.Code.VerifiedCompilation.Certificate.C_cseT_18)
+      (coe v0) (coe MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_18)
       (coe d_isUCSE'63'_30)
 -- VerifiedCompilation.UCSE.isUCSE?
 d_isUCSE'63'_30 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_90
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isUCSE'63'_30 v0 v1 v2
   = let v3
           = coe
@@ -97,13 +97,13 @@ d_isUCSE'63'_30 v0 v1 v2
                                                                            (coe v12)) in
                                                               coe
                                                                 (case coe v16 of
-                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_96 v17
+                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v17
                                                                      -> coe
-                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_96
+                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
                                                                           (coe C_cse_14 v17)
-                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_104 v20 v21 v22
+                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v20 v21 v22
                                                                      -> coe
-                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_104
+                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
                                                                           v20 v21 v22
                                                                    _ -> MAlonzo.RTE.mazUnreachableError)))
                                                    _ -> MAlonzo.RTE.mazUnreachableError
@@ -114,8 +114,8 @@ d_isUCSE'63'_30 v0 v1 v2
                 else coe
                        seq (coe v5)
                        (coe
-                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_104
-                          (coe MAlonzo.Code.VerifiedCompilation.Certificate.C_cseT_18) v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                          (coe MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_18) v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UCSE..extendedlambda0
 d_'46'extendedlambda0_46 ::
@@ -136,7 +136,7 @@ d_'46'extendedlambda1_78 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
   AgdaAny ->
   AgdaAny -> T_UCSE_4 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda1_78 = erased
