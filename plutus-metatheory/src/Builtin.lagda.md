@@ -684,8 +684,22 @@ The following function is used for testing, when
 comparing expected with actual results.
 
 ```
+open import Tactic.Derive.DecEqFast using (derive-DecEq)
+open import Tactic.ClauseBuilder
+open import Data.List renaming ([_] to singleton)
+open import Data.Product using (_,_)
+open import Class.DecEq.Core using (DecEq; _≟_)
+
+open import Class.MonadTC.Instances
+open import Tactic.Defaults
+
+private
+  instance _ = ContextMonad-MonadTC
+unquoteDecl DecEqBuiltin = derive-DecEq (singleton (quote Builtin , DecEqBuiltin) )
+
 decBuiltin : DecidableEquality Builtin
-unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
+decBuiltin = _≟_
+
 ```
 
 We define a show function for Builtins

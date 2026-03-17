@@ -6,13 +6,13 @@ let
   # Used in: `nix/metatheory.nix` (as a build input) and `nix/shell.nix` (via agda-with-stdlib).
   agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
-    version = "2.1.1";
+    version = "2.3";
 
     src = pkgs.fetchFromGitHub {
       repo = "agda-stdlib";
       owner = "agda";
       rev = "v${version}";
-      sha256 = "sha256-4HfwNAkIhk1yC/oSxZ30xilzUM5/22nzbUSqTjcW5Ng=";
+      sha256 = "sha256-JOeoek6OfyIk9vwTj5QUJU6LnRzwfiG0e0ysW6zbhZ8=";
     };
 
     # This is preConfigure is copied from more recent nixpkgs that also
@@ -27,6 +27,38 @@ let
       rm EverythingSafe.agda
     '';
   });
+
+  agda-stdlib-classes = agda-packages.mkDerivation rec {
+    version = "2.3";
+    pname = "agda-stdlib-classes";
+    src = pkgs.fetchFromGitHub {
+      owner = "agda";
+      repo = "agda-stdlib-classes";
+      rev = "v2.3";
+      sha256 = "sha256-NaxK37VVO1Jrc4F9B5v+/yo0Pjnp4CwpH1us4Oxgby0=";
+    };
+    buildInputs = [ agda-stdlib ];
+    libraryName = "standard-library-classes";
+    libraryFile = "agda-stdlib-classes.agda-lib";
+    everythingFile = "standard-library-classes.agda";
+    meta = { };
+  };
+
+  agda-stdlib-meta = agda-packages.mkDerivation rec {
+    version = "2.3";
+    pname = "agda-stdlib-meta";
+    src = pkgs.fetchFromGitHub {
+      owner = "agda";
+      repo = "agda-stdlib-meta";
+      rev = "v2.3";
+      sha256 = "sha256-ir4BxJ+XjYhB0RdBKVPd+YBaIMWzjRCq+188qKZjgdg=";
+    };
+    buildInputs = [ agda-stdlib agda-stdlib-classes ];
+    libraryName = "standard-library-meta";
+    libraryFile = "agda-stdlib-meta.agda-lib";
+    everythingFile = "standard-library-meta.agda";
+    meta = { };
+  };
 
   # Compose a tailored Agda toolchain and expose it via agdaPackages.
   # Used in: `nix/metatheory.nix` (to build agda-with-stdlib-and-metatheory) and `nix/shell.nix`.
@@ -126,7 +158,7 @@ let
   agda-with-stdlib = pkgs.stdenv.mkDerivation {
     name = "agda-with-stdlib";
     phases = "installPhase";
-    OLD_AGDA = agda-packages.agda.withPackages [ agda-stdlib ];
+    OLD_AGDA = agda-packages.agda.withPackages [ agda-stdlib agda-stdlib-classes agda-stdlib-meta ];
     installPhase = ''
       mkdir -p $out/bin
       cp $OLD_AGDA/bin/agda $out/bin/agda-with-stdlib
@@ -152,6 +184,8 @@ in
     agda-mode
     agda-packages
     agda-stdlib
+    agda-stdlib-classes
+    agda-stdlib-meta
     agda-with-stdlib
     agda-project
     NIX_AGDA_STDLIB;

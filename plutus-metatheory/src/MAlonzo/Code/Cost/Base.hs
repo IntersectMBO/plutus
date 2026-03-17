@@ -93,7 +93,7 @@ data T_MachineParameters_46
   = C_MachineParameters'46'constructor_359 (T_ExBudgetCategory_34 ->
                                             AgdaAny)
                                            AgdaAny (AgdaAny -> AgdaAny -> AgdaAny)
-                                           MAlonzo.Code.Algebra.Structures.T_IsMonoid_686
+                                           MAlonzo.Code.Algebra.Structures.T_IsMonoid_684
 -- Cost.Base.MachineParameters.cekMachineCost
 d_cekMachineCost_58 ::
   T_MachineParameters_46 -> T_ExBudgetCategory_34 -> AgdaAny
@@ -117,7 +117,7 @@ d__'8729'__62 v0
 -- Cost.Base.MachineParameters.costMonoid
 d_costMonoid_64 ::
   T_MachineParameters_46 ->
-  MAlonzo.Code.Algebra.Structures.T_IsMonoid_686
+  MAlonzo.Code.Algebra.Structures.T_IsMonoid_684
 d_costMonoid_64 v0
   = case coe v0 of
       C_MachineParameters'46'constructor_359 v1 v2 v3 v4 -> coe v4

@@ -163,15 +163,15 @@ d_natToFin_110 ::
 d_natToFin_110 v0 v1
   = let v2
           = coe
-              MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+              MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
               (\ v2 ->
                  coe
-                   MAlonzo.Code.Data.Nat.Properties.du_'8804''7495''8658''8804'_2746
+                   MAlonzo.Code.Data.Nat.Properties.du_'8804''7495''8658''8804'_2768
                    (coe addInt (coe (1 :: Integer)) (coe v1)))
               (coe
-                 MAlonzo.Code.Data.Nat.Properties.du_'8804''8658''8804''7495'_2758)
+                 MAlonzo.Code.Data.Nat.Properties.du_'8804''8658''8804''7495'_2780)
               (coe
-                 MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_66
+                 MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_72
                  (coe
                     MAlonzo.Code.Data.Nat.Base.d__'8804''7495'__14
                     (coe addInt (coe (1 :: Integer)) (coe v1)) (coe v0))) in

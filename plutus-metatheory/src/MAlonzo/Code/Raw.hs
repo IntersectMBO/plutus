@@ -228,7 +228,7 @@ d_decRTy_102 v0 v1
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
                        (coe
-                          MAlonzo.Code.Data.Nat.Properties.d__'8799'__2688 (coe v3) (coe v4))
+                          MAlonzo.Code.Data.Nat.Properties.d__'8799'__2710 (coe v3) (coe v4))
                 _ -> coe v2
          C__'8658'__8 v3 v4
            -> case coe v1 of
@@ -338,7 +338,7 @@ d_decRTm_188 v0 v1
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
                        (coe
-                          MAlonzo.Code.Data.Nat.Properties.d__'8799'__2688 (coe v3) (coe v4))
+                          MAlonzo.Code.Data.Nat.Properties.d__'8799'__2710 (coe v3) (coe v4))
                 _ -> coe v2
          C_Λ_36 v3 v4
            -> case coe v1 of
@@ -386,7 +386,7 @@ d_decRTm_188 v0 v1
                 C_builtin_48 v4
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
-                       (coe MAlonzo.Code.Builtin.d_decBuiltin_426 (coe v3) (coe v4))
+                       (coe MAlonzo.Code.Builtin.d_decBuiltin_430 v3 v4)
                 _ -> coe v2
          C_wrap_50 v3 v4 v5
            -> case coe v1 of
@@ -414,7 +414,7 @@ d_decRTm_188 v0 v1
                           (coe
                              MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
                              (coe
-                                MAlonzo.Code.Data.Nat.Properties.d__'8799'__2688 (coe v4)
+                                MAlonzo.Code.Data.Nat.Properties.d__'8799'__2710 (coe v4)
                                 (coe v7)))
                           (coe d_decRTmList_194 (coe v5) (coe v8)))
                 _ -> coe v2

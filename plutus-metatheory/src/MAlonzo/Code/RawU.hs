@@ -352,7 +352,7 @@ du_decTagCon''_124 v0 v1 v2 v3
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
                        (coe
-                          MAlonzo.Code.Data.Integer.Properties.d__'8799'__2692 (coe v1)
+                          MAlonzo.Code.Data.Integer.Properties.d__'8799'__2714 (coe v1)
                           (coe v3))
                 _ -> coe v4
          C_bytestring_32
@@ -374,7 +374,7 @@ du_decTagCon''_124 v0 v1 v2 v3
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
                        (coe
-                          MAlonzo.Code.Data.Bool.Properties.d__'8799'__3082 (coe v1)
+                          MAlonzo.Code.Data.Bool.Properties.d__'8799'__3104 (coe v1)
                           (coe v3))
                 _ -> coe v4
          C_unit_38

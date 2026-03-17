@@ -7,7 +7,11 @@ let
     name = "plutus-metatheory";
     pname = "plutus-metatheory";
     src = lib.cleanSource (self + /plutus-metatheory);
-    buildInputs = [ agda-tools.agda-stdlib ];
+    buildInputs = [
+      agda-tools.agda-stdlib
+      agda-tools.agda-stdlib-classes
+      agda-tools.agda-stdlib-meta
+    ];
     # The everythingFile is the compilation target for Agda, and is assumed
     # to transitively reference all other .agda files in the project.
     everythingFile = "./src/index.lagda.md";
