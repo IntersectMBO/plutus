@@ -172,7 +172,8 @@ pirTypecheck
   -> PIR.Program PLC.TyName PLC.Name DefaultUni DefaultFun (FromAnn a)
   -> m ()
 pirTypecheck sngA p = PLC.runQuoteT $ do
-  tcConfig <- withA @Monoid sngA $ modifyError (PIR.PLCError . PLC.TypeErrorE) $ PIR.getDefTypeCheckConfig mempty
+  tcConfig <-
+    withA @Monoid sngA $ modifyError (PIR.PLCError . PLC.TypeErrorE) $ PIR.getDefTypeCheckConfig mempty
   void $ PIR.inferTypeOfProgram tcConfig p
 
 plcToUplcViaName
@@ -237,7 +238,8 @@ plcTypecheck sngN sngA p = PLC.runQuoteT $ do
     withA @Monoid sngA $
       modifyError (PIR.PLCError . PLC.TypeErrorE) $
         PLC.getDefTypeCheckConfig mempty
-  void $ plcToName sngN (modifyError (PIR.PLCError . PLC.TypeErrorE) . PLC.inferTypeOfProgram tcConfig) p
+  void $
+    plcToName sngN (modifyError (PIR.PLCError . PLC.TypeErrorE) . PLC.inferTypeOfProgram tcConfig) p
 
 uplcOptimise
   :: ( ?opts :: Opts

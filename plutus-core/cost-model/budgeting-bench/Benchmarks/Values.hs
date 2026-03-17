@@ -20,7 +20,9 @@ import Data.List (find, sort)
 import Data.Map.Strict qualified as Map
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
-import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
+import PlutusCore
+  ( DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData)
+  )
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 
 import PlutusCore.Evaluation.Machine.ExMemoryUsage

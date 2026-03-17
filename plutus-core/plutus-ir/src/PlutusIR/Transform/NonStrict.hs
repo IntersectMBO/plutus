@@ -67,7 +67,8 @@ compileNonStrictBindingsPass tcConfig useUnit =
 
 {-| Compile all the non-strict bindings in a term into strict bindings. Note: requires globally
 unique names. -}
-compileNonStrictBindings :: MonadQuote m => Bool -> Term TyName Name uni fun a -> m (Term TyName Name uni fun a)
+compileNonStrictBindings
+  :: MonadQuote m => Bool -> Term TyName Name uni fun a -> m (Term TyName Name uni fun a)
 compileNonStrictBindings useUnit t = do
   (t', substs) <- liftQuote $ flip runStateT mempty $ strictifyTerm useUnit t
   -- See Note [Compiling non-strict bindings]
@@ -93,7 +94,8 @@ strictifyBinding = \case
     -- See Note [Compiling non-strict bindings]
     modify $ Map.insert name $ TyInst ann (Var ann name) (TyForall ann a (Type ann) (TyVar ann a))
 
-    pure $ TermBind x Strict (VarDecl x' name (TyForall ann a (Type ann) ty)) (TyAbs ann a (Type ann) rhs)
+    pure $
+      TermBind x Strict (VarDecl x' name (TyForall ann a (Type ann) ty)) (TyAbs ann a (Type ann) rhs)
   x -> pure x
 
 strictifyBindingWithUnit

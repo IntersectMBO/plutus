@@ -101,11 +101,20 @@ processTerm
   -> Quote (Term tyname Name uni fun a)
 processTerm binfo vinfo conservative newAnn t
   -- We have a saturated datatype matcher application
-  | Just (smcO@(SplitMatchContext _ (outerScrut, _, _) _ _), reconstructOuter, _) <- splitMatch binfo vinfo t
+  | Just (smcO@(SplitMatchContext _ (outerScrut, _, _) _ _), reconstructOuter, _) <-
+      splitMatch binfo vinfo t
   , -- The scrutinee is itself an application
     Just (smcI, reconstructInner, innerBranchArities) <- splitMatch binfo vinfo outerScrut =
       do
-        nt <- runMaybeT $ tryDoCaseOfCase vinfo conservative newAnn (smcO, reconstructOuter) (smcI, reconstructInner) innerBranchArities
+        nt <-
+          runMaybeT $
+            tryDoCaseOfCase
+              vinfo
+              conservative
+              newAnn
+              (smcO, reconstructOuter)
+              (smcI, reconstructInner)
+              innerBranchArities
         case nt of
           Just newTerm -> pure newTerm
           Nothing -> pure t
@@ -115,17 +124,29 @@ tryDoCaseOfCase
   :: VarsInfo tyname Name uni a
   -> Bool
   -> a
-  -> (SplitMatchContext tyname Name uni fun a, SplitMatchContext tyname Name uni fun a -> Term tyname Name uni fun a)
-  -> (SplitMatchContext tyname Name uni fun a, SplitMatchContext tyname Name uni fun a -> Term tyname Name uni fun a)
+  -> ( SplitMatchContext tyname Name uni fun a
+     , SplitMatchContext tyname Name uni fun a -> Term tyname Name uni fun a
+     )
+  -> ( SplitMatchContext tyname Name uni fun a
+     , SplitMatchContext tyname Name uni fun a -> Term tyname Name uni fun a
+     )
   -> [Arity]
   -> MaybeT Quote (Term tyname Name uni fun a)
 tryDoCaseOfCase
   vinfo
   conservative
   newAnn
-  (SplitMatchContext outerVars (_, outerScrutTy, outerScrutAnn) (outerResTy, outerResTyAnn) outerBranches, reconstructOuter)
+  ( SplitMatchContext
+      outerVars
+      (_, outerScrutTy, outerScrutAnn)
+      (outerResTy, outerResTyAnn)
+      outerBranches
+    , reconstructOuter
+    )
   -- Note: we don't use the inner result type, we're going to replace it
-  (SplitMatchContext innerVars (innerScrut, innerScrutTy, innerScrutAnn) _ innerBranches, reconstructInner)
+  ( SplitMatchContext innerVars (innerScrut, innerScrutTy, innerScrutAnn) _ innerBranches
+    , reconstructInner
+    )
   innerBranchArities =
     do
       kName <- lift $ freshName "k_caseOfCase"
@@ -151,12 +172,21 @@ tryDoCaseOfCase
 
       let
         mkNewOuterMatch newScrut =
-          reconstructOuter $ SplitMatchContext outerVars (newScrut, outerScrutTy, outerScrutAnn) (outerResTy, outerResTyAnn) outerBranches
+          reconstructOuter $
+            SplitMatchContext
+              outerVars
+              (newScrut, outerScrutTy, outerScrutAnn)
+              (outerResTy, outerResTyAnn)
+              outerBranches
         -- \(x :: scrutTy) -> case x of ...
         newOuterMatchFn = LamAbs newAnn sName (newAnn <$ outerScrutTy) $ mkNewOuterMatch (Var newAnn sName)
         -- k_caseOfCase :: scrutTy -> outerResTy = ...
         newOuterMatchFnBinding =
-          TermBind newAnn Strict (VarDecl newAnn kName (TyFun newAnn (newAnn <$ outerScrutTy) outerResTy)) newOuterMatchFn
+          TermBind
+            newAnn
+            Strict
+            (VarDecl newAnn kName (TyFun newAnn (newAnn <$ outerScrutTy) outerResTy))
+            newOuterMatchFn
         mkNewInnerBranchBody scrut =
           if bindOuterCase
             -- k_caseOfCase scrut
@@ -164,11 +194,17 @@ tryDoCaseOfCase
             -- case scrut of ...
             else mkNewOuterMatch scrut
 
-      newInnerBranches <- MaybeT $ pure $ mapBranches mkNewInnerBranchBody innerBranches innerBranchArities
+      newInnerBranches <-
+        MaybeT $ pure $ mapBranches mkNewInnerBranchBody innerBranches innerBranchArities
 
       let
         newInnerMatch =
-          reconstructInner $ SplitMatchContext innerVars (innerScrut, innerScrutTy, innerScrutAnn) (outerResTy, outerResTyAnn) newInnerBranches
+          reconstructInner $
+            SplitMatchContext
+              innerVars
+              (innerScrut, innerScrutTy, innerScrutAnn)
+              (outerResTy, outerResTyAnn)
+              newInnerBranches
 
       pure $
         if bindOuterCase
@@ -195,7 +231,8 @@ mapBranches f = go
     go _ _ = Nothing
 
 -- | Traverses under the branches in the application context.
-underBranches :: [Arity] -> Traversal' (AppContext tyname name uni fun a) (Term tyname name uni fun a)
+underBranches
+  :: [Arity] -> Traversal' (AppContext tyname name uni fun a) (Term tyname name uni fun a)
 underBranches as f = go as
   where
     go [] AppContextEnd = pure AppContextEnd
@@ -210,7 +247,11 @@ splitMatch
   => BuiltinsInfo uni fun
   -> VarsInfo tyname name uni a
   -> Term tyname name uni fun a
-  -> Maybe (SplitMatchContext tyname name uni fun a, SplitMatchContext tyname name uni fun a -> Term tyname name uni fun a, [Arity])
+  -> Maybe
+       ( SplitMatchContext tyname name uni fun a
+       , SplitMatchContext tyname name uni fun a -> Term tyname name uni fun a
+       , [Arity]
+       )
 splitMatch binfo vinfo t = do
   let (hd, args) = splitApplication t
   (p, arities) <- case hd of

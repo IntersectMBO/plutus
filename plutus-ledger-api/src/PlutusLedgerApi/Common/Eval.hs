@@ -207,7 +207,8 @@ mkDynEvaluationContext ll toCaser semVars toSemVar newCMP = do
   pure $ EvaluationContext ll toCaser toSemVar machPars
 
 -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1726): remove this function
-assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
+assertWellFormedCostModelParams
+  :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
 assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModelForTesting
 
 {-| Evaluate a fully-applied term using the CEK machine. Useful for mimicking the behaviour of the

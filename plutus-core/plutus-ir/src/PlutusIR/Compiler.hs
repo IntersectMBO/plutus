@@ -98,7 +98,9 @@ logVerbose = whenM (orM [isVerbose, isDebug]) . traceM
 logDebug :: Compiling m uni fun a => String -> m ()
 logDebug = whenM isDebug . traceM
 
-runCompilerPass :: (Compiling m uni fun a, b ~ Provenance a) => m (P.Pass m tyname name uni fun b) -> Term tyname name uni fun b -> m (Term tyname name uni fun b)
+runCompilerPass
+  :: (Compiling m uni fun a, b ~ Provenance a)
+  => m (P.Pass m tyname name uni fun b) -> Term tyname name uni fun b -> m (Term tyname name uni fun b)
 runCompilerPass mpasses t = do
   passes <- mpasses
   pedantic <- view (ccOpts . coPedantic)
@@ -133,7 +135,8 @@ floatInPasses = do
           , LetMerge.letMergePass tcconfig
           ]
 
-simplifierIteration :: Compiling m uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
+simplifierIteration
+  :: Compiling m uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
 simplifierIteration suffix = do
   opts <- view ccOpts
   tcconfig <- view ccTypeCheckConfig
@@ -152,8 +155,10 @@ simplifierIteration suffix = do
         , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseReduce.caseReducePass tcconfig
         , mwhen (opts ^. coDoSimplifierKnownCon) $ KnownCon.knownConPassSC tcconfig
         , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
-        , mwhen (opts ^. coDoSimplifierStrictifyBindings) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo
-        , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $ EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
+        , mwhen (opts ^. coDoSimplifierStrictifyBindings) $
+            StrictifyBindings.strictifyBindingsPass tcconfig binfo
+        , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $
+            EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
         , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC thresh ic tcconfig hints binfo
         , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
         ]
@@ -198,7 +203,10 @@ compileToReadable (Program a v t) = do
 {-| The 2nd half of the PIR compiler pipeline.
 Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language constructs to PLC.
 Note: the result *does* have globally unique names. -}
-compileReadableToPlc :: forall m uni fun a b. (Compiling m uni fun a, b ~ Provenance a) => Program TyName Name uni fun b -> m (PLCProgram uni fun a)
+compileReadableToPlc
+  :: forall m uni fun a b
+   . (Compiling m uni fun a, b ~ Provenance a)
+  => Program TyName Name uni fun b -> m (PLCProgram uni fun a)
 compileReadableToPlc (Program a v t) = do
   let
     pipeline :: m (P.Pass m TyName Name uni fun b)

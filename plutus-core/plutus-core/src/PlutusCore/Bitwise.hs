@@ -149,7 +149,8 @@ endiannessArgToByteOrder b = if b then BigEndian else LittleEndian
 -- For performance and clarity, the endianness argument uses
 -- 'ByteOrder', and the length argument is an 'Int'.
 -- This may not actually be unsafe, but it shouldn't be used outside this module.
-unsafeIntegerToByteString :: ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
+unsafeIntegerToByteString
+  :: ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
 unsafeIntegerToByteString requestedByteOrder requestedLength input = case input of
   IS i# ->
     if

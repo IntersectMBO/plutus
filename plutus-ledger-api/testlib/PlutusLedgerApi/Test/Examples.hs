@@ -40,7 +40,11 @@ alwaysFailingNAryFunction n = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 
 summingFunction :: SerialisedScript
 summingFunction = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 body
   where
-    body = UPLC.Apply () (UPLC.Apply () (UPLC.Builtin () PLC.AddInteger) (PLC.mkConstant @Integer () 1)) (PLC.mkConstant @Integer () 2)
+    body =
+      UPLC.Apply
+        ()
+        (UPLC.Apply () (UPLC.Builtin () PLC.AddInteger) (PLC.mkConstant @Integer () 1))
+        (PLC.mkConstant @Integer () 2)
 
 -- | Wrap a script with lambda/app so that, for instance, it has a different hash but the same behavior.
 saltFunction :: Integer -> SerialisedScript -> SerialisedScript

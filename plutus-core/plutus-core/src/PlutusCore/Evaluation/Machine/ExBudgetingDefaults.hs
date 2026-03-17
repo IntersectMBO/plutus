@@ -148,7 +148,8 @@ cekCostModelVariantE = CostModel cekMachineCostsVariantE builtinCostModelVariant
 
 {-| Return the 'CostModel' corresponding to the given semantics variant. The dependency on the
 semantics variant is what makes cost models configurable. -}
-cekCostModelForVariant :: BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel
+cekCostModelForVariant
+  :: BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel
 cekCostModelForVariant DefaultFunSemanticsVariantA = cekCostModelVariantA
 cekCostModelForVariant DefaultFunSemanticsVariantB = cekCostModelVariantB
 cekCostModelForVariant DefaultFunSemanticsVariantC = cekCostModelVariantC
@@ -184,31 +185,36 @@ defaultCostModelParamsForVariant = \case
 We don't want this to get inlined in order for this definition not to appear
 faster than the used in production. Also see Note [noinline for saving on
 ticks]. -}
-defaultCekParametersA :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersA
+  :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersA =
   MachineParameters def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantA cekCostModelVariantA
 
 -- See Note [No inlining for MachineParameters]
-defaultCekParametersB :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersB
+  :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersB =
   MachineParameters def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantB cekCostModelVariantB
 
 -- See Note [No inlining for MachineParameters]
-defaultCekParametersC :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersC
+  :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersC =
   MachineParameters def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantC cekCostModelVariantC
 
 -- See Note [No inlining for MachineParameters]
-defaultCekParametersD :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersD
+  :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersD =
   MachineParameters def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantD cekCostModelVariantD
 
 -- See Note [No inlining for MachineParameters]
-defaultCekParametersE :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersE
+  :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersE =
   MachineParameters def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantE cekCostModelVariantE
@@ -262,7 +268,8 @@ defaultBuiltinsRuntimeForTesting
 -- See Note [noinline for saving on ticks].
 defaultBuiltinsRuntimeForTesting = defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantE
 
-defaultCekParametersForTesting :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersForTesting
+  :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersForTesting = defaultCekParametersE
 
 defaultCekMachineCostsForTesting :: CekMachineCosts
@@ -422,7 +429,8 @@ unitCostBuiltinCostModel =
     , paramScaleValue = unitCostTwoArguments
     }
 
-unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+unitCekParameters
+  :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 unitCekParameters =
   -- See Note [noinline for saving on ticks].
   MachineParameters def $

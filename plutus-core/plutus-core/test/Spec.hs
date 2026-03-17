@@ -221,7 +221,8 @@ format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 testsGolden :: [FilePath] -> TestTree
 testsGolden =
   testGroup "golden tests"
-    . fmap (asGolden (modifyError ParseErrorE . format (prettyConfigPlcClassicSimple prettyConfigPlcOptions)))
+    . fmap
+      (asGolden (modifyError ParseErrorE . format (prettyConfigPlcClassicSimple prettyConfigPlcOptions)))
 
 testsRewrite :: [FilePath] -> TestTree
 testsRewrite =

@@ -62,7 +62,10 @@ data MachineParameters machineCosts fun val
 
 -- For some reason the generic instance gives incorrect nothunk errors,
 -- see https://github.com/input-output-hk/nothunks/issues/24
-instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineVariantParameters machinecosts fun val) where
+instance
+  (NoThunks machinecosts, Bounded fun, Enum fun)
+  => NoThunks (MachineVariantParameters machinecosts fun val)
+  where
   wNoThunks ctx (MachineVariantParameters costs runtime) =
     allNoThunks [noThunks ctx costs, noThunks ctx runtime]
 

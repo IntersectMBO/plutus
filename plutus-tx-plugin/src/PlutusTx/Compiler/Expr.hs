@@ -893,7 +893,8 @@ traceExprMsg = \case
   Nothing -> "Compiling code:"
   Just loc -> "Compiling code at" GHC.<+> GHC.ppr loc GHC.<> ":"
 
-compileExpr :: CompilingDefault uni fun m ann => Maybe GHC.RealSrcSpan -> GHC.CoreExpr -> m (PIRTerm uni fun)
+compileExpr
+  :: CompilingDefault uni fun m ann => Maybe GHC.RealSrcSpan -> GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr mloc e = do
   -- See Note [Scopes]
   CompileContext

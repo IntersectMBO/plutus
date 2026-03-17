@@ -97,7 +97,9 @@ scriptContextToValidGovAction =
     scriptInfoToProposalProcedure (BI.unsafeDataAsConstr -> si) =
       if BI.fst si `B.equalsInteger` 5 -- Constructor Index of `ProposingScript`
         then BI.head (BI.tail (BI.snd si))
-        else traceError "Not a ProposalProcedure. This should not ever happen, because ledger should guard before, against it."
+        else
+          traceError
+            "Not a ProposalProcedure. This should not ever happen, because ledger should guard before, against it."
 
     proposalProcedureToGovernanceAction :: BuiltinData -> BuiltinData
     proposalProcedureToGovernanceAction =
@@ -110,8 +112,11 @@ scriptContextToValidGovAction =
     governanceActionToValidGovAction :: BuiltinData -> Maybe ChangedParams
     governanceActionToValidGovAction (BI.unsafeDataAsConstr -> govAction@(BI.fst -> govActionConstr))
       -- Constructor Index of `ChangedParams` is 0
-      | govActionConstr `B.equalsInteger` 0 = Just (B.unsafeDataAsMap (BI.head (BI.tail (BI.snd govAction))))
+      | govActionConstr `B.equalsInteger` 0 =
+          Just (B.unsafeDataAsMap (BI.head (BI.tail (BI.snd govAction))))
       -- Constructor Index of `TreasuryWithdrawals` is 2
       | govActionConstr `B.equalsInteger` 2 = Nothing -- means treasurywithdrawal
-      | otherwise = traceError "Not a ChangedParams or TreasuryWithdrawals. This should not ever happen, because ledger should guard before, against it."
+      | otherwise =
+          traceError
+            "Not a ChangedParams or TreasuryWithdrawals. This should not ever happen, because ledger should guard before, against it."
 {-# INLINEABLE scriptContextToValidGovAction #-}

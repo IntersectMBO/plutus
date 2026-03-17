@@ -123,7 +123,18 @@ toEnumBadArgumentError :: Builtins.BuiltinString
 toEnumBadArgumentError = "PT28"
 {-# INLINEABLE toEnumBadArgumentError #-}
 
-{-# DEPRECATED succVoidBadArgumentError, predVoidBadArgumentError, toEnumVoidBadArgumentError, succBoolBadArgumentError, predBoolBadArgumentError, toEnumBoolBadArgumentError, succOrderingBadArgumentError, predOrderingBadArgumentError, toEnumOrderingBadArgumentError "Use [succ|pred|toEnum]BadArgumentError instead." #-}
+{-# DEPRECATED
+  succVoidBadArgumentError
+  , predVoidBadArgumentError
+  , toEnumVoidBadArgumentError
+  , succBoolBadArgumentError
+  , predBoolBadArgumentError
+  , toEnumBoolBadArgumentError
+  , succOrderingBadArgumentError
+  , predOrderingBadArgumentError
+  , toEnumOrderingBadArgumentError
+  "Use [succ|pred|toEnum]BadArgumentError instead."
+  #-}
 
 -- | PlutusTx.Enum.().succ: bad argument
 succVoidBadArgumentError :: Builtins.BuiltinString

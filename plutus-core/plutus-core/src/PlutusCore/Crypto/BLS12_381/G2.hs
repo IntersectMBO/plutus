@@ -60,11 +60,15 @@ instance PrettyBy ConstConfig Element
    flat-encoded in the usual way. -}
 instance Flat Element where
   -- This might happen on the chain, so `fail` rather than `error`.
-  decode = fail "Flat decoding is not supported for objects of type bls12_381_G2_element: use bls12_381_G2_uncompress on a bytestring instead."
+  decode =
+    fail
+      "Flat decoding is not supported for objects of type bls12_381_G2_element: use bls12_381_G2_uncompress on a bytestring instead."
 
   -- This will be a Haskell runtime error, but encoding doesn't happen on chain,
   -- so it's not too bad.
-  encode = error "Flat encoding is not supported for objects of type bls12_381_G2_element: use bls12_381_G2_compress to obtain a bytestring instead."
+  encode =
+    error
+      "Flat encoding is not supported for objects of type bls12_381_G2_element: use bls12_381_G2_compress to obtain a bytestring instead."
   size _ = id
 
 instance NFData Element where

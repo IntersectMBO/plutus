@@ -34,7 +34,16 @@ import PlutusLedgerApi.V2
   , TokenName (TokenName)
   , TxId (getTxId)
   , TxInInfo (TxInInfo)
-  , TxInfo (TxInfo, txInfoData, txInfoInputs, txInfoMint, txInfoOutputs, txInfoReferenceInputs, txInfoSignatories, txInfoValidRange)
+  , TxInfo
+    ( TxInfo
+    , txInfoData
+    , txInfoInputs
+    , txInfoMint
+    , txInfoOutputs
+    , txInfoReferenceInputs
+    , txInfoSignatories
+    , txInfoValidRange
+    )
   , TxOut (TxOut, txOutAddress, txOutDatum, txOutValue)
   , TxOutRef (TxOutRef, txOutRefId, txOutRefIdx)
   , UpperBound (UpperBound)

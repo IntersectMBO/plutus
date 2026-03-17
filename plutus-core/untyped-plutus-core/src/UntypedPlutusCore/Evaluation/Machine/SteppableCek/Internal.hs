@@ -103,7 +103,13 @@ data Context uni fun ann
   | FrameAwaitFunValueN ann !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
   | -- | @(force _)@
     FrameForce ann !(Context uni fun ann)
-  | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
+  | FrameConstr
+      ann
+      !(CekValEnv uni fun ann)
+      {-# UNPACK #-} !Word64
+      ![NTerm uni fun ann]
+      !(ArgStack uni fun ann)
+      !(Context uni fun ann)
   | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
   | NoFrame
 
@@ -361,7 +367,8 @@ mkCekTrans
   (ExBudgetMode getExBudgetInfo)
   (EmitterMode getEmitterMode)
   slippage = do
-    exBudgetInfo@ExBudgetInfo {_exBudgetModeSpender, _exBudgetModeGetCumulative} <- liftPrim getExBudgetInfo
+    exBudgetInfo@ExBudgetInfo {_exBudgetModeSpender, _exBudgetModeGetCumulative} <-
+      liftPrim getExBudgetInfo
     CekEmitterInfo {_cekEmitterInfoEmit} <- liftPrim $ getEmitterMode _exBudgetModeGetCumulative
     ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime

@@ -725,7 +725,11 @@ test_ExpModInteger = testNestedM "ExpMod" $ do
 test_String :: TestNested
 test_String = testNestedM "String" $ do
   -- bytestrings
-  evals @ByteString "hello world" AppendByteString [] [cons @ByteString "hello", cons @ByteString " world"]
+  evals @ByteString
+    "hello world"
+    AppendByteString
+    []
+    [cons @ByteString "hello", cons @ByteString " world"]
   evals @ByteString "mpla" AppendByteString [] [cons @ByteString "", cons @ByteString "mpla"]
   evals False EqualsByteString [] [cons @ByteString "", cons @ByteString "mpla"]
   evals True EqualsByteString [] [cons @ByteString "mpla", cons @ByteString "mpla"]
@@ -746,21 +750,49 @@ test_String = testNestedM "String" $ do
   -- cannot decode back, because bytestring only works on Char8 subset of utf8
   evals @Text "hellο wοrld" DecodeUtf8 [] [cons @ByteString "hell\206\191 w\206\191rld"]
 
-  evals @ByteString "\NULhello world" ConsByteString [] [cons @Integer 0, cons @ByteString "hello world"]
+  evals @ByteString
+    "\NULhello world"
+    ConsByteString
+    []
+    [cons @Integer 0, cons @ByteString "hello world"]
   -- cannot overflow back to 0
   fails
     "consByteString-out-of-range"
     ConsByteString
     []
     [cons @Integer 256, cons @ByteString "hello world"]
-  evals @ByteString "\240hello world" ConsByteString [] [cons @Integer 240, cons @ByteString "hello world"]
+  evals @ByteString
+    "\240hello world"
+    ConsByteString
+    []
+    [cons @Integer 240, cons @ByteString "hello world"]
   -- 65 is ASCII A
-  evals @ByteString "Ahello world" ConsByteString [] [cons @Integer 65, cons @ByteString "hello world"]
+  evals @ByteString
+    "Ahello world"
+    ConsByteString
+    []
+    [cons @Integer 65, cons @ByteString "hello world"]
 
-  evals @ByteString "h" SliceByteString [] [cons @Integer 0, cons @Integer 1, cons @ByteString "hello world"]
-  evals @ByteString "he" SliceByteString [] [cons @Integer 0, cons @Integer 2, cons @ByteString "hello world"]
-  evals @ByteString "el" SliceByteString [] [cons @Integer 1, cons @Integer 2, cons @ByteString "hello world"]
-  evals @ByteString "world" SliceByteString [] [cons @Integer 6, cons @Integer 5, cons @ByteString "hello world"]
+  evals @ByteString
+    "h"
+    SliceByteString
+    []
+    [cons @Integer 0, cons @Integer 1, cons @ByteString "hello world"]
+  evals @ByteString
+    "he"
+    SliceByteString
+    []
+    [cons @Integer 0, cons @Integer 2, cons @ByteString "hello world"]
+  evals @ByteString
+    "el"
+    SliceByteString
+    []
+    [cons @Integer 1, cons @Integer 2, cons @ByteString "hello world"]
+  evals @ByteString
+    "world"
+    SliceByteString
+    []
+    [cons @Integer 6, cons @Integer 5, cons @ByteString "hello world"]
 
   evals @Integer 11 LengthOfByteString [] [cons @ByteString "hello world"]
   evals @Integer 0 LengthOfByteString [] [cons @ByteString ""]
@@ -914,7 +946,11 @@ test_Data = testNestedM "Data" $ do
   evals @[(Data, Data)] [(B "", I 3)] UnMapData [] [cons $ Map [(B "", I 3)]]
   evals @[Data] [] UnListData [] [cons $ List []]
   evals @[Data] [I 3, I 4, B ""] UnListData [] [cons $ List [I 3, I 4, B ""]]
-  evals @ByteString "\162\ETX@Ehello8c" SerialiseData [] [cons $ Map [(I 3, B ""), (B "hello", I $ -100)]]
+  evals @ByteString
+    "\162\ETX@Ehello8c"
+    SerialiseData
+    []
+    [cons $ Map [(I 3, B ""), (B "hello", I $ -100)]]
 
   test_MatchData
 
@@ -926,11 +962,13 @@ test_Crypto = testNestedM "Crypto" $ do
     VerifyEd25519Signature
     []
     [ -- pubkey
-      cons @ByteString "Y\218\215\204>\STX\233\152\251\243\158'm\130\&0\197\DEL\STXd\214`\147\243y(\234\167=kTj\164"
+      cons @ByteString
+        "Y\218\215\204>\STX\233\152\251\243\158'm\130\&0\197\DEL\STXd\214`\147\243y(\234\167=kTj\164"
     , -- message
       cons @ByteString "hello world"
     , -- signature
-      cons @ByteString "\a'\198\r\226\SYN;\bX\254\228\129n\131\177\193\DC3-k\249RriY\221wIL\240\144\r\145\195\191\196]\227\169U(\ETX\171\SI\199\163\138\160\128R\DC4\246n\142[g\SI\169\SUB\178\245\166\&0\243\b"
+      cons @ByteString
+        "\a'\198\r\226\SYN;\bX\254\228\129n\131\177\193\DC3-k\249RriY\221wIL\240\144\r\145\195\191\196]\227\169U(\ETX\171\SI\199\163\138\160\128R\DC4\246n\142[g\SI\169\SUB\178\245\166\&0\243\b"
     ]
 
   evals
@@ -938,11 +976,13 @@ test_Crypto = testNestedM "Crypto" $ do
     VerifyEd25519Signature
     []
     [ -- pubkey
-      cons @ByteString "Y\218\215\204>\STX\233\152\251\243\158'm\130\&0\197\DEL\STXd\214`\147\243y(\234\167=kTj\164"
+      cons @ByteString
+        "Y\218\215\204>\STX\233\152\251\243\158'm\130\&0\197\DEL\STXd\214`\147\243y(\234\167=kTj\164"
     , -- message
       cons @ByteString "HELLO WORLD"
     , -- signature
-      cons @ByteString "\a'\198\r\226\SYN;\bX\254\228\129n\131\177\193\DC3-k\249RriY\221wIL\240\144\r\145\195\191\196]\227\169U(\ETX\171\SI\199\163\138\160\128R\DC4\246n\142[g\SI\169\SUB\178\245\166\&0\243\b"
+      cons @ByteString
+        "\a'\198\r\226\SYN;\bX\254\228\129n\131\177\193\DC3-k\249RriY\221wIL\240\144\r\145\195\191\196]\227\169U(\ETX\171\SI\199\163\138\160\128R\DC4\246n\142[g\SI\169\SUB\178\245\166\&0\243\b"
     ]
   -- independently verified by `/usr/bin/sha256sum` with the hex output converted to ascii text
   -- sha256sum hex output: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
@@ -1670,7 +1710,8 @@ test_HashSize hashFun expectedNumBits =
                       (builtin () LengthOfByteString)
                       [mkIterAppNoAnn (builtin () hashFun) [cons @ByteString bs]]
                   ]
-          typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term === Right (EvaluationSuccess (cons @Integer expectedNumBits))
+          typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
+            === Right (EvaluationSuccess (cons @Integer expectedNumBits))
 
 -- | Check that all hash functions return hashes with the correct number of bits
 test_HashSizes :: TestTree
@@ -1689,13 +1730,17 @@ test_HashSizes =
 test_Other :: TestTree
 test_Other = testCase "Other" $ do
   let expr1 = mkIterAppNoAnn (tyInst () (builtin () ChooseUnit) bool) [unitval, true]
-  Right (EvaluationSuccess true) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting expr1
+  Right (EvaluationSuccess true)
+    @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting expr1
 
-  let expr2 = mkIterAppNoAnn (tyInst () (builtin () IfThenElse) integer) [true, cons @Integer 1, cons @Integer 0]
-  Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting expr2
+  let expr2 =
+        mkIterAppNoAnn (tyInst () (builtin () IfThenElse) integer) [true, cons @Integer 1, cons @Integer 0]
+  Right (EvaluationSuccess $ cons @Integer 1)
+    @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting expr2
 
   let expr3 = mkIterAppNoAnn (tyInst () (builtin () Trace) integer) [cons @Text "hello world", cons @Integer 1]
-  Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting expr3
+  Right (EvaluationSuccess $ cons @Integer 1)
+    @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting expr3
 
 {-| Check that 'ExtensionVersion' evaluates correctly.
 See Note [Builtin semantics variants] -}

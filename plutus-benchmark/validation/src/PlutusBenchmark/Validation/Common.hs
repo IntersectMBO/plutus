@@ -83,7 +83,8 @@ withAnyPrefixFrom :: [String] -> [String] -> [String]
 l `withAnyPrefixFrom` ps =
   concatMap (\p -> filter (isPrefixOf p) l) ps
 
-unsafeUnflat :: String -> BS.ByteString -> UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+unsafeUnflat
+  :: String -> BS.ByteString -> UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 unsafeUnflat file contents =
   case unflat contents of
     Left e -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e

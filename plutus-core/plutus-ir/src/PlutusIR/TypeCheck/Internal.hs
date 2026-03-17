@@ -316,7 +316,8 @@ inferTypeM (Let ann r@NonRec bs inTerm) = do
   checkStarInferred ann ty
   pure ty
   where
-    checkBindingThenScope :: Binding TyName Name uni fun ann -> PirTCEnv uni fun m a -> PirTCEnv uni fun m a
+    checkBindingThenScope
+      :: Binding TyName Name uni fun ann -> PirTCEnv uni fun m a -> PirTCEnv uni fun m a
     checkBindingThenScope b acc = do
       -- check that the kinds of the declared types are correct
       checkKindFromBinding b
@@ -468,7 +469,8 @@ withVarsOfBinding _ (TermBind _ _ vdecl _) k = do
 withVarsOfBinding r (DatatypeBind _ dt) k = do
   -- generate all the definitions
   -- options don't matter, we're just doing it for the types
-  (_tyconstrDef, constrDefs, destrDef) <- compileDatatypeDefs defaultDatatypeCompilationOpts r (original dt)
+  (_tyconstrDef, constrDefs, destrDef) <-
+    compileDatatypeDefs defaultDatatypeCompilationOpts r (original dt)
   -- ignore the generated rhs terms of constructors/destructor
   let structorDecls = PIR.defVar <$> destrDef : constrDefs
   foldr normRenameScope k structorDecls

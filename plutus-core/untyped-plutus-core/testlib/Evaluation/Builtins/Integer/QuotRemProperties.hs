@@ -54,7 +54,8 @@ prop_quot_rem_multiple (biginteger -> k) (NonZero (biginteger -> b)) =
 
 -- For fixed b, `remainderInteger _ b` is an additive homomorphism on non-negative integers
 -- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b
-prop_rem_additive_pos :: NonNegative BigInteger -> NonNegative BigInteger -> NonZero BigInteger -> Property
+prop_rem_additive_pos
+  :: NonNegative BigInteger -> NonNegative BigInteger -> NonZero BigInteger -> Property
 prop_rem_additive_pos (NonNegative (biginteger -> a)) (NonNegative (biginteger -> a')) (NonZero (biginteger -> b)) =
   let t1 = remainderInteger (addInteger a a') b
       t2 = remainderInteger (addInteger (remainderInteger a b) (remainderInteger a' b)) b
@@ -62,7 +63,8 @@ prop_rem_additive_pos (NonNegative (biginteger -> a)) (NonNegative (biginteger -
 
 -- For fixed b, `remainderInteger _ b` is an additive homomorphism on non-postive integers
 -- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b
-prop_rem_additive_neg :: NonPositive BigInteger -> NonPositive BigInteger -> NonZero BigInteger -> Property
+prop_rem_additive_neg
+  :: NonPositive BigInteger -> NonPositive BigInteger -> NonZero BigInteger -> Property
 prop_rem_additive_neg (NonPositive (biginteger -> a)) (NonPositive (biginteger -> a')) (NonZero (biginteger -> b)) =
   let t1 = remainderInteger (addInteger a a') b
       t2 = remainderInteger (addInteger (remainderInteger a b) (remainderInteger a' b)) b
@@ -132,7 +134,9 @@ test_integer_quot_rem_properties =
     [ testProp "quotientInteger _ 0 always fails" prop_quot_0_fails
     , testProp "remainderInteger _ 0 always fails" prop_rem_0_fails
     , testProp "quotientInteger and remainderInteger are compatible" prop_quot_rem_compatible
-    , testProp "quotientInteger and remainderInteger behave sensibly on multiples of the divisor" prop_quot_rem_multiple
+    , testProp
+        "quotientInteger and remainderInteger behave sensibly on multiples of the divisor"
+        prop_quot_rem_multiple
     , testProp "remainderInteger _ b is additive on non-negative inputs" prop_rem_additive_pos
     , testProp "remainderInteger _ b is additive on non-positive inputs" prop_rem_additive_neg
     , testProp "remainderInteger is a multiplicative homomorphism" prop_rem_multiplicative

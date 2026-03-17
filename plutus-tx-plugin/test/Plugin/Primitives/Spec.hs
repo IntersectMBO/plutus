@@ -186,7 +186,8 @@ bsEquals :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteStri
 bsEquals =
   plc
     (Proxy @"bs32Equals")
-    (\(x :: Builtins.BuiltinByteString) (y :: Builtins.BuiltinByteString) -> Builtins.equalsByteString x y)
+    ( \(x :: Builtins.BuiltinByteString) (y :: Builtins.BuiltinByteString) -> Builtins.equalsByteString x y
+    )
 
 bsLength :: CompiledCode (Builtins.BuiltinByteString -> Integer)
 bsLength = plc (Proxy @"bs32Length") (\(x :: Builtins.BuiltinByteString) -> Builtins.lengthOfByteString x)
@@ -207,7 +208,8 @@ bsLt :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString -
 bsLt =
   plc
     (Proxy @"bsLt")
-    (\(x :: Builtins.BuiltinByteString) (y :: Builtins.BuiltinByteString) -> Builtins.lessThanByteString x y)
+    ( \(x :: Builtins.BuiltinByteString) (y :: Builtins.BuiltinByteString) -> Builtins.lessThanByteString x y
+    )
 
 bsDecode :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinString)
 bsDecode = plc (Proxy @"bsDecode") (\(x :: Builtins.BuiltinByteString) -> Builtins.decodeUtf8 x)
@@ -218,7 +220,8 @@ verify
 verify =
   plc
     (Proxy @"verify")
-    (\(x :: Builtins.BuiltinByteString) (y :: Builtins.BuiltinByteString) (z :: Builtins.BuiltinByteString) -> Builtins.verifyEd25519Signature x y z)
+    ( \(x :: Builtins.BuiltinByteString) (y :: Builtins.BuiltinByteString) (z :: Builtins.BuiltinByteString) -> Builtins.verifyEd25519Signature x y z
+    )
 
 trace :: CompiledCode (Builtins.BuiltinString -> ())
 trace = plc (Proxy @"trace") (\(x :: Builtins.BuiltinString) -> Builtins.trace x ())
@@ -254,7 +257,8 @@ deconstructData2 :: CompiledCode (Builtins.BuiltinData -> (Integer, [Integer]))
 deconstructData2 =
   plc
     (Proxy @"deconstructData2")
-    (\(d :: Builtins.BuiltinData) -> (P.fmap . P.fmap) Builtins.unsafeDataAsI (Builtins.unsafeDataAsConstr d))
+    ( \(d :: Builtins.BuiltinData) -> (P.fmap . P.fmap) Builtins.unsafeDataAsI (Builtins.unsafeDataAsConstr d)
+    )
 
 constructData3 :: CompiledCode (Builtins.BuiltinData)
 constructData3 = plc (Proxy @"constructData2") (Builtins.mkList [Builtins.mkI 2, Builtins.mkI 3])
@@ -266,7 +270,8 @@ matchData1 :: CompiledCode (Builtins.BuiltinData -> Maybe Integer)
 matchData1 =
   plc
     (Proxy @"matchData1")
-    (\(d :: Builtins.BuiltinData) -> (Builtins.matchData d (\_ _ -> Nothing) (const Nothing) (const Nothing) (Just) (const Nothing)))
+    ( \(d :: Builtins.BuiltinData) -> (Builtins.matchData d (\_ _ -> Nothing) (const Nothing) (const Nothing) (Just) (const Nothing))
+    )
 
 writeBitsIntegerToByteString :: CompiledCode (P.BuiltinByteString)
 writeBitsIntegerToByteString =

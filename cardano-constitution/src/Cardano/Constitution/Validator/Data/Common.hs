@@ -87,12 +87,16 @@ scriptContextToValidGovAction =
     scriptInfoToProposalProcedure si =
       case si of
         (ProposingScript _ pp) -> pp
-        _ -> traceError "Not a ProposalProcedure. This should not ever happen, because ledger should guard before, against it."
+        _ ->
+          traceError
+            "Not a ProposalProcedure. This should not ever happen, because ledger should guard before, against it."
 
     governanceActionToValidGovAction :: GovernanceAction -> Maybe ChangedParams
     governanceActionToValidGovAction govAction =
       case govAction of
         (ParameterChange _ cparams _) -> Just . B.unsafeDataAsMap . toBuiltinData $ cparams
         (TreasuryWithdrawals _ _) -> Nothing
-        _ -> traceError "Not a ChangedParams. This should not ever happen, because ledger should guard before, against it."
+        _ ->
+          traceError
+            "Not a ChangedParams. This should not ever happen, because ledger should guard before, against it."
 {-# INLINEABLE scriptContextToValidGovAction #-}

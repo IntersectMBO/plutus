@@ -18,7 +18,9 @@ debruijnTermUnsafe
   :: UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ann
   -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ann
 debruijnTermUnsafe =
-  fromRight (Prelude.error "debruijnTermUnsafe") . runExcept @UPLC.FreeVariableError . UPLC.deBruijnTerm
+  fromRight (Prelude.error "debruijnTermUnsafe")
+    . runExcept @UPLC.FreeVariableError
+    . UPLC.deBruijnTerm
 
 conDeconI :: Integer -> Term
 conDeconI i =

@@ -620,7 +620,8 @@ instance Pretty CekUserError where
       , pretty res
       , "Negative numbers indicate the overspent budget; note that this only indicates the budget that was needed for the next step, not to run the program to completion."
       ]
-  pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
+  pretty CekEvaluationFailure =
+    "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
 argNonEmptyStackToList :: ArgStackNonEmpty uni fun ann -> [CekValue uni fun ann]
 argNonEmptyStackToList (LastStackNonEmpty val) = [val]
@@ -733,7 +734,12 @@ data Context uni fun ann
     See Note [Accumulators for terms] -}
     FrameForce !(Context uni fun ann)
   | -- | @(constr i V0 ... Vj-1 _ Nj ... Nn)@
-    FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
+    FrameConstr
+      !(CekValEnv uni fun ann)
+      {-# UNPACK #-} !Word64
+      ![NTerm uni fun ann]
+      !(ArgStack uni fun ann)
+      !(Context uni fun ann)
   | -- | @(case _ C0 .. Cn)@
     FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
   | NoFrame
@@ -779,8 +785,10 @@ runCekM
   (ExBudgetMode getExBudgetInfo)
   (EmitterMode getEmitterMode)
   a = runST $ do
-    ExBudgetInfo {_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
-    CekEmitterInfo {_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
+    ExBudgetInfo {_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <-
+      getExBudgetInfo
+    CekEmitterInfo {_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <-
+      getEmitterMode _exBudgetModeGetCumulative
     ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
         ?cekCaserBuiltin = caser

@@ -118,7 +118,9 @@ test_integer_div_mod_properties =
     [ testProp "divideInteger _ 0 always fails" prop_div_0_fails
     , testProp "modInteger _ 0 always fails" prop_mod_0_fails
     , testProp "divideInteger and modInteger are compatible" prop_div_mod_compatible
-    , testProp "divideInteger and modInteger behave sensibly on multiples of the divisor" prop_div_mod_multiple
+    , testProp
+        "divideInteger and modInteger behave sensibly on multiples of the divisor"
+        prop_div_mod_multiple
     , testProp "mod is an additive homomorphism" prop_mod_additive
     , testProp "mod is a multiplicative homomorphism" prop_mod_multiplicative
     , testProp "modInteger size is correct for positive modulus" prop_mod_size_pos
