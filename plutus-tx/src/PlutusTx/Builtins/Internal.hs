@@ -313,7 +313,7 @@ verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinBy
         Haskell.error "Ed25519 signature verification errored."
 {-# OPAQUE verifyEd25519Signature #-}
 
-{-| ECDSA signature verification on the SECP256k1 curve. The first bytestring is the public key (32 bytes),
+{-| ECDSA signature verification on the SECP256k1 curve. The first bytestring is the public key (33 bytes),
   followed by the message hash (32 bytes) and the signature (64 bytes). The sizes of the public key and signature
   are enforced, and it fails when given bytestrings of incorrect size. -}
 verifyEcdsaSecp256k1Signature
