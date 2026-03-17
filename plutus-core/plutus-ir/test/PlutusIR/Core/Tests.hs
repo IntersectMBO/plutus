@@ -84,3 +84,21 @@ flatRoundTripProperty = withMaxSuccess 200 $
           Right tm' ->
             let bs' = flat (tm' :: Term TyName Name PLC.DefaultUni PLC.DefaultFun ())
              in counterexample "Re-encoded bytes differ" (bs == bs')
+
+test_flatProgramRoundTrip :: TestTree
+test_flatProgramRoundTrip =
+  QC.testProperty "PIR Program Flat round-trip" $
+    withMaxSuccess 50 $
+      QC.forAll genTypeAndTerm_ $ \(_ty, tm) ->
+        ioProperty $ do
+          let prog = Program () PLC.latestVersion (void tm)
+          result <- try (evaluate (flat prog))
+          pure $ case result of
+            Left (ErrorCall msg)
+              | "Flat encoding is not supported" `isPrefixOf` msg -> discard
+            Left (ErrorCall msg) -> counterexample msg False
+            Right bs -> case unflat bs of
+              Left err -> counterexample (show err) False
+              Right prog' ->
+                let bs' = flat (prog' :: Program TyName Name PLC.DefaultUni PLC.DefaultFun ())
+                 in counterexample "Re-encoded bytes differ" (bs == bs')

@@ -39,12 +39,15 @@ import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.List (isPrefixOf)
 import Data.Proxy
+import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO (readFile)
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import PlutusCore.Annotation (SrcSpans (..))
+import PlutusCore.DeBruijn (Index (..))
 import PlutusCore.Flat qualified as Flat
 import System.FilePath
 import Test.Tasty
@@ -81,6 +84,22 @@ propFlat = property $ do
     forAllPretty . runAstGen $
       regenConstantsUntil isSerialisable =<< genProgram @DefaultFun
   Hedgehog.tripping prog Flat.flat Flat.unflat
+
+test_flatAnnotationRoundTrip :: TestTree
+test_flatAnnotationRoundTrip =
+  testGroup
+    "Flat annotation round-trip"
+    [ testCase "SrcSpan" $ do
+        let sp = SrcSpan "test.hs" 1 2 3 4
+        Flat.unflat (Flat.flat sp) @?= Right sp
+    , testCase "SrcSpans" $ do
+        let sp = SrcSpan "test.hs" 1 2 3 4
+        let sps = SrcSpans (Set.fromList [sp])
+        Flat.unflat (Flat.flat sps) @?= Right sps
+    , testCase "NamedDeBruijn" $ do
+        let ndb = NamedDeBruijn "x" (Index 42)
+        Flat.unflat (Flat.flat ndb) @?= Right ndb
+    ]
 
 {- The following tests check that (A) the parser can
   handle the output of the prettyprinter on constants from types in the default
@@ -268,4 +287,5 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , Parser.tests
     , Value.tests
     , test_utils
+    , test_flatAnnotationRoundTrip
     ]

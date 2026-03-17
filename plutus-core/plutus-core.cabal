@@ -1059,7 +1059,6 @@ library flat
     PlutusCore.Flat.Instances.ByteString
     PlutusCore.Flat.Instances.Containers
     PlutusCore.Flat.Instances.DList
-    PlutusCore.Flat.Instances.Extra
     PlutusCore.Flat.Instances.Mono
     PlutusCore.Flat.Instances.Test
     PlutusCore.Flat.Instances.Text

@@ -53,6 +53,8 @@ import Data.Map qualified as C
 import Data.Map.Lazy qualified as CL
 import Data.Map.Strict qualified as CS
 import Data.Ratio qualified as B
+import Data.Set qualified as DSet
+import Data.Tree qualified as DTree
 -- import           Data.List
 -- import           Data.Ord
 #if MIN_VERSION_base(4,9,0)
@@ -393,7 +395,10 @@ flatUnflatRT = testGroup
   , rt "B" (prop_Flat_roundtrip :: RT B)
     -- ,rt "Tree Bool" (prop_Flat_roundtrip:: RT (Tree Bool))
     -- ,rt "Tree N" (prop_Flat_roundtrip:: RT (Tree N))
-  , rt "List N" (prop_Flat_roundtrip :: RT (List N))]
+  , rt "List N" (prop_Flat_roundtrip :: RT (List N))
+  , rt "Data.Tree Word8" (prop_Flat_roundtrip :: RT (DTree.Tree Word8))
+  , rt "Set Word8" (prop_Flat_roundtrip :: RT (DSet.Set Word8))
+  ]
 
 rt n = QC.testProperty (unwords ["round trip", n])
 
@@ -624,6 +629,12 @@ flatTests = testGroup "flat/unflat Unit tests"
 #endif
     , [trip longBS, trip longLBS]
     , [trip longSBS]
+    , [ testCase "PreAligned roundtrip" $
+          case unflat (flat (preAligned (42 :: Word8))) of
+            Right (PreAligned _ v) -> v @?= (42 :: Word8)
+            Left err               -> assertFailure (show err)
+      ]
+    , [trip "hello world", trip ("" :: String)]
     ]
 --al = (1:) -- prealign
   where
