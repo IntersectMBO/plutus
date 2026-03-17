@@ -42,6 +42,7 @@ open import Agda.Builtin.Unit using (⊤; tt)
 open import Untyped
 open import Utils
 open import RawU using (Untyped)
+import VerifiedCompilation.UApplyToCase as UA2C
 import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
@@ -76,7 +77,7 @@ mRelationOf inlineT         = just (UInline.Inline (λ()) UInline.□)
 mRelationOf unknown         = nothing
 mRelationOf caseOfCaseT     = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
 mRelationOf forceCaseDelayT = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2053
-mRelationOf applyToCaseT    = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/1988
+mRelationOf applyToCaseT    = just UA2C.UApplyToCase
 ```
 
 We default to the `NotImplemented` relation to give each `SimplifierTag` a relation:
@@ -99,7 +100,7 @@ certifyPass caseReduceT _       = decider UCR.isCaseReduce?
 certifyPass cseT _              = decider UCSE.isUntypedCSE?
 certifyPass caseOfCaseT _       = certNotImplemented
 certifyPass forceCaseDelayT _   = certNotImplemented
-certifyPass applyToCaseT _      = certNotImplemented
+certifyPass applyToCaseT _      = decider UA2C.a2c?ᶜᶜ
 certifyPass inlineT (inline hs) = checker (UInline.top-check hs)
 certifyPass inlineT none        = λ M M' → abort inlineT M M'
 certifyPass unknown _           = certNotImplemented

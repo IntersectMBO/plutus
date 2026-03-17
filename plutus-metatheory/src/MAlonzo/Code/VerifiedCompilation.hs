@@ -26,6 +26,7 @@ import qualified MAlonzo.Code.Utils
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
 import qualified MAlonzo.Code.VerifiedCompilation.NotImplemented
 import qualified MAlonzo.Code.VerifiedCompilation.Trace
+import qualified MAlonzo.Code.VerifiedCompilation.UApplyToCase
 import qualified MAlonzo.Code.VerifiedCompilation.UCSE
 import qualified MAlonzo.Code.VerifiedCompilation.UCaseReduce
 import qualified MAlonzo.Code.VerifiedCompilation.UFloatDelay
@@ -61,7 +62,7 @@ d_mRelationOf_12 v0
       MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_18
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 erased
       MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_20
-        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
+        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 erased
       MAlonzo.Code.VerifiedCompilation.Trace.C_unknown_22
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -135,9 +136,10 @@ d_certifyPass_24 v0 v1
                 (coe (0 :: Integer)))
       MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_20
         -> coe
-             (\ v2 v3 ->
-                coe
-                  MAlonzo.Code.VerifiedCompilation.NotImplemented.du_certNotImplemented_22)
+             MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_184
+             (coe
+                MAlonzo.Code.VerifiedCompilation.UApplyToCase.d_a2c'63''7580''7580'_24
+                (coe (0 :: Integer)))
       MAlonzo.Code.VerifiedCompilation.Trace.C_unknown_22
         -> coe
              (\ v2 v3 ->
