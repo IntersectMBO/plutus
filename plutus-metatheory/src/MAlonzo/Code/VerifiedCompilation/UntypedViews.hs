@@ -1937,194 +1937,205 @@ du_'91''93''63'_1966 v0
              (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
              (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
       _ -> MAlonzo.RTE.mazUnreachableError
+-- VerifiedCompilation.UntypedViews.singleton?
+d_singleton'63'_1970 ::
+  () ->
+  [AgdaAny] -> MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+d_singleton'63'_1970 ~v0 = du_singleton'63'_1970
+du_singleton'63'_1970 ::
+  [AgdaAny] -> MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+du_singleton'63'_1970
+  = coe
+      du__'8759''63'__1910 (\ v0 -> coe du_'8943'_1880)
+      (coe du_'91''93''63'_1966)
 -- VerifiedCompilation.UntypedViews.Inhabited
-d_Inhabited_1976 a0 = ()
-newtype T_Inhabited_1976 = C_inh_1984 AgdaAny
+d_Inhabited_1980 a0 = ()
+newtype T_Inhabited_1980 = C_inh_1988 AgdaAny
 -- VerifiedCompilation.UntypedViews.Inhabited.inhabitant
-d_inhabitant_1982 :: T_Inhabited_1976 -> AgdaAny
-d_inhabitant_1982 v0
+d_inhabitant_1986 :: T_Inhabited_1980 -> AgdaAny
+d_inhabitant_1986 v0
   = case coe v0 of
-      C_inh_1984 v1 -> coe v1
+      C_inh_1988 v1 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.UntypedViews._.inhabitant
-d_inhabitant_1988 :: T_Inhabited_1976 -> AgdaAny
-d_inhabitant_1988 v0 = coe d_inhabitant_1982 (coe v0)
+d_inhabitant_1992 :: T_Inhabited_1980 -> AgdaAny
+d_inhabitant_1992 v0 = coe d_inhabitant_1986 (coe v0)
 -- VerifiedCompilation.UntypedViews.inh-var
-d_inh'45'var_1994 ::
+d_inh'45'var_1998 ::
   Integer ->
   MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
   (MAlonzo.Code.Data.Fin.Base.T_Fin_10 -> ()) ->
-  T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45'var_1994 ~v0 ~v1 ~v2 v3 = du_inh'45'var_1994 v3
-du_inh'45'var_1994 :: T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45'var_1994 v0
-  = coe C_inh_1984 (coe C_'96''33'_864 (d_inhabitant_1982 (coe v0)))
+  T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45'var_1998 ~v0 ~v1 ~v2 v3 = du_inh'45'var_1998 v3
+du_inh'45'var_1998 :: T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45'var_1998 v0
+  = coe C_inh_1988 (coe C_'96''33'_864 (d_inhabitant_1986 (coe v0)))
 -- VerifiedCompilation.UntypedViews.inh-lam
-d_inh'45'lam_2006 ::
+d_inh'45'lam_2010 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
-  T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45'lam_2006 ~v0 ~v1 ~v2 v3 = du_inh'45'lam_2006 v3
-du_inh'45'lam_2006 :: T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45'lam_2006 v0
-  = coe C_inh_1984 (coe C_ƛ'33'_876 (d_inhabitant_1982 (coe v0)))
+  T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45'lam_2010 ~v0 ~v1 ~v2 v3 = du_inh'45'lam_2010 v3
+du_inh'45'lam_2010 :: T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45'lam_2010 v0
+  = coe C_inh_1988 (coe C_ƛ'33'_876 (d_inhabitant_1986 (coe v0)))
 -- VerifiedCompilation.UntypedViews.inh-app
-d_inh'45'app_2018 ::
+d_inh'45'app_2022 ::
   Integer ->
   (MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   (MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45'app_2018 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6
-  = du_inh'45'app_2018 v5 v6
-du_inh'45'app_2018 ::
-  T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45'app_2018 v0 v1
+  T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45'app_2022 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6
+  = du_inh'45'app_2022 v5 v6
+du_inh'45'app_2022 ::
+  T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45'app_2022 v0 v1
   = coe
-      C_inh_1984
+      C_inh_1988
       (coe
-         C__'183''33'__894 (d_inhabitant_1982 (coe v0))
-         (d_inhabitant_1982 (coe v1)))
+         C__'183''33'__894 (d_inhabitant_1986 (coe v0))
+         (d_inhabitant_1986 (coe v1)))
 -- VerifiedCompilation.UntypedViews.inh-force
-d_inh'45'force_2026 ::
+d_inh'45'force_2030 ::
   Integer ->
   (MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45'force_2026 ~v0 ~v1 ~v2 v3 = du_inh'45'force_2026 v3
-du_inh'45'force_2026 :: T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45'force_2026 v0
-  = coe C_inh_1984 (coe C_force'33'_906 (d_inhabitant_1982 (coe v0)))
+  T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45'force_2030 ~v0 ~v1 ~v2 v3 = du_inh'45'force_2030 v3
+du_inh'45'force_2030 :: T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45'force_2030 v0
+  = coe C_inh_1988 (coe C_force'33'_906 (d_inhabitant_1986 (coe v0)))
 -- VerifiedCompilation.UntypedViews.inh-delay
-d_inh'45'delay_2034 ::
+d_inh'45'delay_2038 ::
   Integer ->
   (MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45'delay_2034 ~v0 ~v1 ~v2 v3 = du_inh'45'delay_2034 v3
-du_inh'45'delay_2034 :: T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45'delay_2034 v0
-  = coe C_inh_1984 (coe C_delay'33'_918 (d_inhabitant_1982 (coe v0)))
+  T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45'delay_2038 ~v0 ~v1 ~v2 v3 = du_inh'45'delay_2038 v3
+du_inh'45'delay_2038 :: T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45'delay_2038 v0
+  = coe C_inh_1988 (coe C_delay'33'_918 (d_inhabitant_1986 (coe v0)))
 -- VerifiedCompilation.UntypedViews.inh-case
-d_inh'45'case_2046 ::
+d_inh'45'case_2050 ::
   Integer ->
   (MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   ([MAlonzo.Code.Untyped.T__'8866'_14] -> ()) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45'case_2046 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6
-  = du_inh'45'case_2046 v5 v6
-du_inh'45'case_2046 ::
-  T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45'case_2046 v0 v1
+  T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45'case_2050 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6
+  = du_inh'45'case_2050 v5 v6
+du_inh'45'case_2050 ::
+  T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45'case_2050 v0 v1
   = coe
-      C_inh_1984
+      C_inh_1988
       (coe
-         C_case'33'_936 (d_inhabitant_1982 (coe v0))
-         (d_inhabitant_1982 (coe v1)))
+         C_case'33'_936 (d_inhabitant_1986 (coe v0))
+         (d_inhabitant_1986 (coe v1)))
 -- VerifiedCompilation.UntypedViews.inh-constr
-d_inh'45'constr_2058 ::
+d_inh'45'constr_2062 ::
   Integer ->
   (Integer -> ()) ->
   ([MAlonzo.Code.Untyped.T__'8866'_14] -> ()) ->
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45'constr_2058 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6
-  = du_inh'45'constr_2058 v5 v6
-du_inh'45'constr_2058 ::
-  T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45'constr_2058 v0 v1
+  T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45'constr_2062 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6
+  = du_inh'45'constr_2062 v5 v6
+du_inh'45'constr_2062 ::
+  T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45'constr_2062 v0 v1
   = coe
-      C_inh_1984
+      C_inh_1988
       (coe
-         C_constr'33'_954 (d_inhabitant_1982 (coe v0))
-         (d_inhabitant_1982 (coe v1)))
+         C_constr'33'_954 (d_inhabitant_1986 (coe v0))
+         (d_inhabitant_1986 (coe v1)))
 -- VerifiedCompilation.UntypedViews.inh-builtin
-d_inh'45'builtin_2066 ::
+d_inh'45'builtin_2070 ::
   Integer ->
   (MAlonzo.Code.Builtin.T_Builtin_2 -> ()) ->
   MAlonzo.Code.Builtin.T_Builtin_2 ->
-  T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45'builtin_2066 ~v0 ~v1 ~v2 v3 = du_inh'45'builtin_2066 v3
-du_inh'45'builtin_2066 :: T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45'builtin_2066 v0
+  T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45'builtin_2070 ~v0 ~v1 ~v2 v3 = du_inh'45'builtin_2070 v3
+du_inh'45'builtin_2070 :: T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45'builtin_2070 v0
   = coe
-      C_inh_1984 (coe C_builtin'33'_974 (d_inhabitant_1982 (coe v0)))
+      C_inh_1988 (coe C_builtin'33'_974 (d_inhabitant_1986 (coe v0)))
 -- VerifiedCompilation.UntypedViews.inh-con
-d_inh'45'con_2074 ::
+d_inh'45'con_2078 ::
   Integer ->
   (MAlonzo.Code.RawU.T_TmCon_202 -> ()) ->
   MAlonzo.Code.RawU.T_TmCon_202 ->
-  T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45'con_2074 ~v0 ~v1 ~v2 v3 = du_inh'45'con_2074 v3
-du_inh'45'con_2074 :: T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45'con_2074 v0
-  = coe C_inh_1984 (coe C_con'33'_964 (d_inhabitant_1982 (coe v0)))
+  T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45'con_2078 ~v0 ~v1 ~v2 v3 = du_inh'45'con_2078 v3
+du_inh'45'con_2078 :: T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45'con_2078 v0
+  = coe C_inh_1988 (coe C_con'33'_964 (d_inhabitant_1986 (coe v0)))
 -- VerifiedCompilation.UntypedViews.inh-error
-d_inh'45'error_2078 :: Integer -> T_Inhabited_1976
-d_inh'45'error_2078 ~v0 = du_inh'45'error_2078
-du_inh'45'error_2078 :: T_Inhabited_1976
-du_inh'45'error_2078 = coe C_inh_1984 (coe C_error'33'_978)
+d_inh'45'error_2082 :: Integer -> T_Inhabited_1980
+d_inh'45'error_2082 ~v0 = du_inh'45'error_2082
+du_inh'45'error_2082 :: T_Inhabited_1980
+du_inh'45'error_2082 = coe C_inh_1988 (coe C_error'33'_978)
 -- VerifiedCompilation.UntypedViews.inh-match
-d_inh'45'match_2084 :: () -> AgdaAny -> T_Inhabited_1976
-d_inh'45'match_2084 ~v0 ~v1 = du_inh'45'match_2084
-du_inh'45'match_2084 :: T_Inhabited_1976
-du_inh'45'match_2084 = coe C_inh_1984 (coe C_match'33'_1876)
+d_inh'45'match_2088 :: () -> AgdaAny -> T_Inhabited_1980
+d_inh'45'match_2088 ~v0 ~v1 = du_inh'45'match_2088
+du_inh'45'match_2088 :: T_Inhabited_1980
+du_inh'45'match_2088 = coe C_inh_1988 (coe C_match'33'_1876)
 -- VerifiedCompilation.UntypedViews.inh-×
-d_inh'45''215'_2090 ::
+d_inh'45''215'_2094 ::
   () ->
-  () -> T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45''215'_2090 ~v0 ~v1 v2 v3 = du_inh'45''215'_2090 v2 v3
-du_inh'45''215'_2090 ::
-  T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45''215'_2090 v0 v1
+  () -> T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45''215'_2094 ~v0 ~v1 v2 v3 = du_inh'45''215'_2094 v2 v3
+du_inh'45''215'_2094 ::
+  T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45''215'_2094 v0 v1
   = coe
-      C_inh_1984
+      C_inh_1988
       (coe
          MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
-         (coe d_inhabitant_1982 (coe v0)) (coe d_inhabitant_1982 (coe v1)))
+         (coe d_inhabitant_1986 (coe v0)) (coe d_inhabitant_1986 (coe v1)))
 -- VerifiedCompilation.UntypedViews.inh-≡
-d_inh'45''8801'_2096 :: () -> AgdaAny -> T_Inhabited_1976
-d_inh'45''8801'_2096 ~v0 ~v1 = du_inh'45''8801'_2096
-du_inh'45''8801'_2096 :: T_Inhabited_1976
-du_inh'45''8801'_2096 = coe C_inh_1984 erased
+d_inh'45''8801'_2100 :: () -> AgdaAny -> T_Inhabited_1980
+d_inh'45''8801'_2100 ~v0 ~v1 = du_inh'45''8801'_2100
+du_inh'45''8801'_2100 :: T_Inhabited_1980
+du_inh'45''8801'_2100 = coe C_inh_1988 erased
 -- VerifiedCompilation.UntypedViews.inh-∷ᵖ
-d_inh'45''8759''7510'_2108 ::
+d_inh'45''8759''7510'_2112 ::
   () ->
   AgdaAny ->
   [AgdaAny] ->
   (AgdaAny -> ()) ->
   ([AgdaAny] -> ()) ->
-  T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-d_inh'45''8759''7510'_2108 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6
-  = du_inh'45''8759''7510'_2108 v5 v6
-du_inh'45''8759''7510'_2108 ::
-  T_Inhabited_1976 -> T_Inhabited_1976 -> T_Inhabited_1976
-du_inh'45''8759''7510'_2108 v0 v1
+  T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+d_inh'45''8759''7510'_2112 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6
+  = du_inh'45''8759''7510'_2112 v5 v6
+du_inh'45''8759''7510'_2112 ::
+  T_Inhabited_1980 -> T_Inhabited_1980 -> T_Inhabited_1980
+du_inh'45''8759''7510'_2112 v0 v1
   = coe
-      C_inh_1984
+      C_inh_1988
       (coe
-         C__'8759''33'__1902 (d_inhabitant_1982 (coe v0))
-         (d_inhabitant_1982 (coe v1)))
+         C__'8759''33'__1902 (d_inhabitant_1986 (coe v0))
+         (d_inhabitant_1986 (coe v1)))
 -- VerifiedCompilation.UntypedViews.inh-[]ᵖ
-d_inh'45''91''93''7510'_2112 :: () -> T_Inhabited_1976
-d_inh'45''91''93''7510'_2112 ~v0 = du_inh'45''91''93''7510'_2112
-du_inh'45''91''93''7510'_2112 :: T_Inhabited_1976
-du_inh'45''91''93''7510'_2112 = coe C_inh_1984 erased
+d_inh'45''91''93''7510'_2116 :: () -> T_Inhabited_1980
+d_inh'45''91''93''7510'_2116 ~v0 = du_inh'45''91''93''7510'_2116
+du_inh'45''91''93''7510'_2116 :: T_Inhabited_1980
+du_inh'45''91''93''7510'_2116 = coe C_inh_1988 erased
 -- VerifiedCompilation.UntypedViews.AddComm
-d_AddComm_2114 a0 a1 a2 = ()
-data T_AddComm_2114 = C_addComm_2120
+d_AddComm_2118 a0 a1 a2 = ()
+data T_AddComm_2118 = C_addComm_2124
 -- VerifiedCompilation.UntypedViews.addComm?
-d_addComm'63'_2126 ::
+d_addComm'63'_2130 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_addComm'63'_2126 v0 v1 v2
+d_addComm'63'_2130 v0 v1 v2
   = let v3
           = coe
               du__'183''63'__1184
@@ -2247,7 +2258,7 @@ d_addComm'63'_2126 v0 v1 v2
                                                                                                                          (coe
                                                                                                                             MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
                                                                                                                             (coe
-                                                                                                                               C_addComm_2120)))
+                                                                                                                               C_addComm_2124)))
                                                                                                                _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                         _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                  _ -> MAlonzo.RTE.mazUnreachableError
@@ -2287,7 +2298,7 @@ d_addComm'63'_2126 v0 v1 v2
                                                                                                                                            (coe
                                                                                                                                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
                                                                                                                                               (coe
-                                                                                                                                                 C_addComm_2120)))
+                                                                                                                                                 C_addComm_2124)))
                                                                                                                                  _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                                           _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                                    _ -> MAlonzo.RTE.mazUnreachableError
@@ -2474,7 +2485,7 @@ d_addComm'63'_2126 v0 v1 v2
                                                                                                                                            (coe
                                                                                                                                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
                                                                                                                                               (coe
-                                                                                                                                                 C_addComm_2120)))
+                                                                                                                                                 C_addComm_2124)))
                                                                                                                                  _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                                           _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                                    _ -> MAlonzo.RTE.mazUnreachableError
@@ -2514,7 +2525,7 @@ d_addComm'63'_2126 v0 v1 v2
                                                                                                                                                              (coe
                                                                                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
                                                                                                                                                                 (coe
-                                                                                                                                                                   C_addComm_2120)))
+                                                                                                                                                                   C_addComm_2124)))
                                                                                                                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                                                             _ -> MAlonzo.RTE.mazUnreachableError
                                                                                                                                      _ -> MAlonzo.RTE.mazUnreachableError

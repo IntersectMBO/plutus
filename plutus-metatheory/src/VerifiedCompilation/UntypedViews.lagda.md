@@ -472,6 +472,13 @@ data []ᵖ {A : Set} : Pr (List A) where
 []? (_ ∷ _) = no λ()
 ```
 
+Shorthand for singleton lists:
+
+```
+singleton? : ∀ {A : Set} → Decidable (match {A} ∷ᵖ []ᵖ)
+singleton? = ⋯ ∷? []?
+```
+
 ## Inhabited types
 
 In decision procedures that use the above views, we often find ourselves writing
