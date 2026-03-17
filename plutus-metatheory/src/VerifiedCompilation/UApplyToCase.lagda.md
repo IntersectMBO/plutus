@@ -22,7 +22,7 @@ open import Untyped using (_⊢; case; constr)
 open import Untyped.Reduction using (iterApp)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; applyToCaseT)
 open import VerifiedCompilation.UCaseReduce using (justEq)
-open import VerifiedCompilation.UntypedViews using (isCase?; isConstr?; isTerm?; allTerms?; iscase; isconstr; isterm; allterms)
+open import VerifiedCompilation.UntypedViews
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
 
 open import Function using (case_of_)
@@ -30,7 +30,7 @@ open import Data.Empty using (⊥)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.List using (List; _∷_; []; [_])
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Nat using (ℕ; zero; suc; _≟_)
 open import Data.Product using (_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (trans; sym; subst)
@@ -59,22 +59,12 @@ which is not smaller than `N`.
 a2c?ᶜᶜ : {n : ℕ} → (M N : n ⊢) → ProofOrCE (Translation ApplyToCase M N)
 
 a2c? : {n : ℕ} → (M N : n ⊢) → ProofOrCE (ApplyToCase M N)
-a2c? M N with (isCase? (isConstr? allTerms?) allTerms?) N
-... | no ¬p =
-        ce (λ { (a2c _) → ¬p (iscase (isconstr _ (allterms _)) (allterms _))} )
-           applyToCaseT
-           M
-           N
-... | yes (iscase (isconstr i (allterms args)) (allterms alts)) with i
-...   | suc _ = ce (λ()) applyToCaseT M N
-...   | zero with args
-...     | [] = ce (λ()) applyToCaseT M N
-...     | x ∷ xs with alts
-...       | [] = ce (λ ()) applyToCaseT M N
-...       | _ ∷ _ ∷ _ = ce (λ ()) applyToCaseT M N
-...       | M′ ∷ [] with a2c?ᶜᶜ M (iterApp M′ (x ∷ xs))
-...         | proof p = proof (a2c p)
-...         | ce ¬p tag L L′ = ce (λ { (a2c p) → ¬p p }) tag L L′
+a2c? M N with (case? (constr? (_≟_ 0) (⋯ ∷? ⋯)) (⋯ ∷? []?)) N
+... | no ¬p = ce (λ { (a2c _) → ¬p inhabitant } ) applyToCaseT M N
+... | yes (case! (constr! refl (match! x ∷! match! xs)) (match! M' ∷! []!))
+  with a2c?ᶜᶜ M (iterApp M' (x ∷ xs))
+...   | proof p = proof (a2c p)
+...   | ce ¬p tag L L′ = ce (λ { (a2c p) → ¬p p }) tag L L′
 
 a2c?ᶜᶜ = translation? applyToCaseT a2c?
 
