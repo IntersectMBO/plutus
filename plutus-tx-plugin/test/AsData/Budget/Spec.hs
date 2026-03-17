@@ -32,6 +32,10 @@ tests =
           "destructSum-manual"
           destructSumManual
           (destructSumManual `unsafeApplyCode` inpSumM)
+      , goldenBundle
+          "richSumSingleField"
+          richSumSingleField
+          (richSumSingleField `unsafeApplyCode` inpRichSum)
       ]
 
 -- A function that only accesses the first field of `Ints`.
@@ -135,6 +139,18 @@ destructSumManual =
               (w1 `PlutusTx.addInteger` w2)
     )
 
+-- Only a small number of fields of a sum type are accessed.
+richSumSingleField :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richSumSingleField =
+  plinthc
+    ( \d ->
+        matchRichSum
+          (PlutusTx.unsafeFromBuiltinData d)
+          (\a _ _ _ _ _ -> a)
+          (\_ b _ _ _ _ _ -> b)
+          (\_ _ c _ _ _ _ _ -> c)
+    )
+
 inp :: CompiledCode PlutusTx.BuiltinData
 inp = liftCodeDef (PlutusTx.toBuiltinData (Ints 10 20 30 40))
 
@@ -143,3 +159,6 @@ inpSum = liftCodeDef (PlutusTx.toBuiltinData (TheseD (Ints 10 20 30 40) (Ints 10
 
 inpSumM :: CompiledCode PlutusTx.BuiltinData
 inpSumM = liftCodeDef (PlutusTx.toBuiltinData (TheseDManual (Ints 10 20 30 40) (Ints 10 20 30 40)))
+
+inpRichSum :: CompiledCode PlutusTx.BuiltinData
+inpRichSum = liftCodeDef (PlutusTx.toBuiltinData (RichC 10 20 30 40 50 60 70 80))
