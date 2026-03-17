@@ -59,7 +59,7 @@ which is not smaller than `N`.
 a2c?ᶜᶜ : {n : ℕ} → (M N : n ⊢) → ProofOrCE (Translation ApplyToCase M N)
 
 a2c? : {n : ℕ} → (M N : n ⊢) → ProofOrCE (ApplyToCase M N)
-a2c? M N with (case? (constr? (_≟_ 0) (⋯ ∷? ⋯)) (⋯ ∷? []?)) N
+a2c? M N with (case? (constr? (_≟_ 0) (⋯ ∷? ⋯)) singleton?) N
 ... | no ¬p = ce (λ { (a2c _) → ¬p inhabitant } ) applyToCaseT M N
 ... | yes (case! (constr! refl (match! x ∷! match! xs)) (match! M' ∷! []!))
   with a2c?ᶜᶜ M (iterApp M' (x ∷ xs))

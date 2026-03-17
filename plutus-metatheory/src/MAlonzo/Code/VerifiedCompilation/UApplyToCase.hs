@@ -68,11 +68,7 @@ d_a2c'63'_32 v0 v1 v2
     coe
       (let v4
              = coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'8759''63'__1910
-                 (\ v4 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_1880)
-                 (coe
-                    MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'91''93''63'_1966) in
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_singleton'63'_1970 in
        coe
          (case coe v2 of
             MAlonzo.Code.Untyped.C_'96'_18 v5
