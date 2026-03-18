@@ -1,4 +1,20 @@
 
+<a id='changelog-1.60.0.0'></a>
+# 1.60.0.0 — 2026-03-18
+
+## Added
+
+- Added `Plinth.Plugin`, which uses a `typeCheckResultAction` to preserve more
+  source locations, resulting in clearer error messages.
+
+## Changed
+
+- Improved compilation error messages by making them more concise and including
+  the relevant code snippet.
+
+- Improved error reporting in the Plinth compiler for certain unsupported Haskell features.
+  Requires compiling with `plinthc` or `plc` instead of `compile`.
+
 <a id='changelog-1.58.0.0'></a>
 # 1.58.0.0 — 2026-02-05
 

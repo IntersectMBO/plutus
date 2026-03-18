@@ -1,4 +1,13 @@
 
+<a id='changelog-1.60.0.0'></a>
+# 1.60.0.0 — 2026-03-18
+
+## Added
+
+- `asData` now generates a destructor function for the data type, in addition to the
+  pattern synonyms. For sum types, it is better to use the destructor function than the
+  pattern synonyms to match on them.
+
 <a id='changelog-1.59.0.0'></a>
 # 1.59.0.0 — 2026-03-02
 

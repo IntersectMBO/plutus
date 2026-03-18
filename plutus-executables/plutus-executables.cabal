@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-executables
-version:         1.59.0.0
+version:         1.60.0.0
 synopsis:        Tools for running plutus core programs
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
@@ -76,7 +76,7 @@ executable pir
     , megaparsec
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.59
+    , plutus-core                       ^>=1.60
     , plutus-core:plutus-ir
     , plutus-ledger-api:plutus-execlib
     , text
@@ -91,7 +91,7 @@ executable plc
     , bytestring
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.59
+    , plutus-core                       ^>=1.60
     , plutus-core:flat
     , plutus-ledger-api:plutus-execlib
 
@@ -108,10 +108,10 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.59
+    , plutus-core                       ^>=1.60
     , plutus-core:flat
     , plutus-ledger-api:plutus-execlib
-    , plutus-metatheory                 ^>=1.59
+    , plutus-metatheory                 ^>=1.60
     , prettyprinter
     , serialise
     , split
@@ -166,7 +166,7 @@ executable plutus
     , microlens-th           ^>=0.4
     , mono-traversable
     , mtl
-    , plutus-core            ^>=1.59
+    , plutus-core            ^>=1.60
     , plutus-core:flat
     , plutus-core:plutus-ir
     , prettyprinter
@@ -192,7 +192,7 @@ test-suite test-simple
   build-depends:
     , base
     , extra
-    , plutus-metatheory  ^>=1.59
+    , plutus-metatheory  ^>=1.60
     , process
 
   build-tool-depends:
@@ -211,8 +211,8 @@ test-suite test-detailed
     , directory
     , extra
     , filepath
-    , plutus-core        ^>=1.59
-    , plutus-metatheory  ^>=1.59
+    , plutus-core        ^>=1.60
+    , plutus-metatheory  ^>=1.60
     , process
     , tasty
     , tasty-hunit

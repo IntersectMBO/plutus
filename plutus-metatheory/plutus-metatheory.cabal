@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name:          plutus-metatheory
-version:       1.59.0.0
+version:       1.60.0.0
 synopsis:      Command line tool for running plutus core programs
 homepage:      https://github.com/IntersectMBO/plutus
 license:       Apache-2.0
@@ -86,7 +86,7 @@ library
     , memory
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.59
+    , plutus-core                       ^>=1.60
     , plutus-ledger-api:plutus-execlib
     , process
     , text
@@ -393,7 +393,7 @@ executable plc-agda
   main-is:        Main.hs
   build-depends:
     , base
-    , plutus-metatheory  ^>=1.59
+    , plutus-metatheory  ^>=1.60
 
 test-suite test-NEAT
   import:         lang, os-support, ghc-version-support
@@ -406,9 +406,9 @@ test-suite test-NEAT
     , data-default-class
     , lazy-search
     , mtl
-    , plutus-core                      ^>=1.59
+    , plutus-core                      ^>=1.60
     , plutus-core:plutus-core-testlib
-    , plutus-metatheory                ^>=1.59
+    , plutus-metatheory                ^>=1.60
     , size-based
     , Stream
     , tasty
@@ -430,7 +430,7 @@ test-suite test-certifier
     , plutus-core
     , plutus-core:plutus-core-testlib
     , plutus-core:untyped-plutus-core-testlib
-    , plutus-metatheory                        ^>=1.59
+    , plutus-metatheory                        ^>=1.60
     , process
     , tasty
     , tasty-hunit
