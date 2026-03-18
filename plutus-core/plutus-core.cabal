@@ -375,6 +375,7 @@ test-suite plutus-core-test
     CostModelSafety.Spec
     Evaluation.Machines
     Evaluation.Spec
+    Flat.Spec
     Generators.QuickCheck.Utils
     Names.Spec
     Normalization.Check
@@ -934,6 +935,26 @@ executable print-cost-model
     , base         >=4.9   && <5
     , bytestring
     , plutus-core  ^>=1.60
+
+-- | Reproducible encoding generator for Flat test coverage.
+-- Run: cabal run flat-encoding-generator
+-- Prints expected byte sequences for all Flat test values.
+executable flat-encoding-generator
+  import:         lang
+  main-is:        GenerateEncodings.hs
+  hs-source-dirs: tools
+  build-depends:
+    , base              >=4.9   && <5
+    , bytestring
+    , containers
+    , dlist
+    , plutus-core       ^>=1.59
+    , plutus-core:flat
+    , text
+
+  ghc-options:
+    -Wno-missing-signatures -Wno-missing-deriving-strategies
+    -Wno-unused-packages
 
 ----------------------------------------------
 -- satint

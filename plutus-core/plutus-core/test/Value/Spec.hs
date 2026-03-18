@@ -17,6 +17,7 @@ import Data.Maybe
 import Safe.Foldable (maximumMay)
 import Test.QuickCheck
 import Test.Tasty
+import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
 import PlutusCore.Builtin (BuiltinResult (..))
@@ -558,4 +559,10 @@ tests =
     , testProperty
         "cborDecodeZeroQuantity"
         prop_cborDecodeZeroQuantity
+    , testCase "K encodes as ByteString" $
+        let Just myK = V.k "abc"
+         in Flat.flat myK @?= Flat.flat ("abc" :: ByteString)
+    , testCase "Quantity encodes as Integer" $
+        let Just myQ = V.quantity 42
+         in Flat.flat myQ @?= Flat.flat (42 :: Integer)
     ]
