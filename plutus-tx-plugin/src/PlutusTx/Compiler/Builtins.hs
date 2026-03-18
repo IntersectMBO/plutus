@@ -218,6 +218,7 @@ builtinNames =
   , 'Builtins.ifThenElse
   , ''Builtins.BuiltinUnit
   , 'Builtins.unitval
+  , 'Builtins.anotherUnitval
   , 'Builtins.chooseUnit
   , ''Builtins.BuiltinPair
   , 'Builtins.fst
@@ -373,6 +374,8 @@ defineBuiltinTerms = do
 
   -- Unit constant
   defineBuiltinTerm annMayInline 'Builtins.unitval $ PIR.mkConstant annMayInline ()
+
+  defineBuiltinTerm annMayInline 'Builtins.anotherUnitval $ PIR.mkConstant annMayInline ()
 
   -- ByteString constant
   defineBuiltinTerm annMayInline 'Builtins.emptyByteString $ PIR.mkConstant annMayInline BS.empty
