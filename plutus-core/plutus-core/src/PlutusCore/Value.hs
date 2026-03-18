@@ -40,7 +40,7 @@ module PlutusCore.Value
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.Serialise qualified as CBOR
 import Control.DeepSeq (NFData)
-import Control.Monad.Extra (replicateM, unless, when, whenJust)
+import Control.Monad.Extra (replicateM, unless, when, whenJust, (>=>))
 import Data.Bifunctor
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
@@ -466,18 +466,16 @@ valueData v =
 {-| \(O(n)\). Decodes `Data` into `Value`.
 This is the denotation of @UnValueData@ in Plutus V1, V2 and V3. -}
 unValueData :: Data -> BuiltinResult Value
-unValueData = \case
-  Map cs -> do
-    buildValueWith
+unValueData =
+  unMap
+    >=> buildValueWith
       "unValueData"
       ( \(cData, tsData) ->
           (,)
             <$> unB cData
-            <*> case tsData of Map ts -> pure ts; _ -> fail "unValueData: non-Map constructor"
+            <*> unMap tsData
       )
       (\(tData, qData) -> (,) <$> unB tData <*> unQ qData)
-      cs
-  _ -> fail "unValueData: non-Map constructor"
   where
     unB :: Data -> BuiltinResult K
     unB = \case
@@ -492,6 +490,11 @@ unValueData = \case
         | otherwise -> fail "unValueData: invalid quantity"
       _ -> fail "unValueData: non-I constructor"
     {-# INLINEABLE unQ #-}
+
+    unMap :: Data -> BuiltinResult [(Data, Data)]
+    unMap = \case
+      Map xs -> pure xs
+      _ -> fail "unValueData: non-Map constructor"
 {-# INLINEABLE unValueData #-}
 
 -- | Decrement bucket @old@, and increment bucket @new@.
@@ -535,12 +538,19 @@ scaleValue c (Value outer sizes size neg)
               <> show (unQuantity x)
         Just q -> pure q
 
+{-| Build a `Value` from a list of entries. It fails unless the following
+conditions are met:
+
+  * currency symbols are strictly ascending
+  * token names are strictly ascending
+  * every quantity is within bounds
+  * no zero quantity -}
 buildValueWith
   :: forall m a b
    . MonadFail m
   => String
   -> (a -> m (K, [b]))
-  -- ^ Convert outer entry into (currency, inner entries)
+  -- ^ Convert an outer entry into (currency, inner entries)
   -> (b -> m (K, Quantity))
   -- ^ Convert an inner entry into (token, quantity)
   -> [a]
