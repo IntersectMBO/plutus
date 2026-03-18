@@ -179,12 +179,14 @@ validateOpts v = do
     throwError $
       OptionsError $
         T.pack $
-          "Cannot use sums-of-products to compile a program with version less than 1.10. Program version is:" ++ show v
+          "Cannot use sums-of-products to compile a program with version less than 1.10. Program version is:"
+            ++ show v
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
 
-withEnclosing :: MonadReader (CompilationCtx uni fun a) m => (Provenance a -> Provenance a) -> m b -> m b
+withEnclosing
+  :: MonadReader (CompilationCtx uni fun a) m => (Provenance a -> Provenance a) -> m b -> m b
 withEnclosing f = local (over ccEnclosing f)
 
 runIf
@@ -215,7 +217,8 @@ getType r = case r of
   RecursiveType Types.RecursiveType {Types._recursiveType = t} -> t
 
 -- | Wrap a term appropriately for a possibly recursive type.
-wrap :: Provenance a -> PLCRecType uni fun a -> [PLCType uni a] -> PIRTerm uni fun a -> PIRTerm uni fun a
+wrap
+  :: Provenance a -> PLCRecType uni fun a -> [PLCType uni a] -> PIRTerm uni fun a -> PIRTerm uni fun a
 wrap p r tvs t = case r of
   PlainType _ -> t
   RecursiveType Types.RecursiveType {Types._recursiveWrap = wrapper} -> setProvenance p $ wrapper tvs t
@@ -246,7 +249,8 @@ type Compiling m uni fun a =
   , PLC.Pretty a
   )
 
-type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni fun a)
+type TermDef tyname name uni fun a =
+  PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni fun a)
 
 {-| We generate some shared definitions compilation, this datatype
 defines the "keys" for those definitions. -}

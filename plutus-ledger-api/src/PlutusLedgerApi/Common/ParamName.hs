@@ -45,7 +45,10 @@ class (Enum a, Bounded a) => IsParamName a where
 newtype GenericParamName a = GenericParamName a
   deriving newtype (Enum, Bounded)
 
-instance (Enum (GenericParamName a), Bounded (GenericParamName a), Generic a, GIsParamName (Rep a)) => IsParamName (GenericParamName a) where
+instance
+  (Enum (GenericParamName a), Bounded (GenericParamName a), Generic a, GIsParamName (Rep a))
+  => IsParamName (GenericParamName a)
+  where
   showParamName (GenericParamName a) = gshowParamName $ from a
 
 -- | A datatype-generic class to prettyprint 'sums of nullary constructors' in lower-kebab syntax.

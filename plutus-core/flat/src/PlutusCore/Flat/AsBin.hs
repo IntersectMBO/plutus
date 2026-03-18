@@ -98,7 +98,10 @@ data AsBin a = AsBin
 
 instance Flat a => Pretty (AsBin a) where
   pPrint :: AsBin a -> Doc
-  pPrint r = let n = replicate (offsetBits r) in text $ n '_' ++ (drop (offsetBits r) . prettyShow . fromBools . (n False ++) . toBools . bits $ unbin r)
+  pPrint r =
+    let n = replicate (offsetBits r)
+     in text $
+          n '_' ++ (drop (offsetBits r) . prettyShow . fromBools . (n False ++) . toBools . bits $ unbin r)
 
 -- | Decode a value
 unbin :: Flat a => AsBin a -> a

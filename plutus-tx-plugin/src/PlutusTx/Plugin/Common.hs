@@ -821,7 +821,8 @@ runCompiler moduleName opts expr = do
           hPutStrLn stderr $ prettyCertifierError err
     Nothing -> pure ()
 
-  dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
+  dbP <-
+    liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
     dumpFlat
       (UPLC.UnrestrictedProgram $ void dbP)

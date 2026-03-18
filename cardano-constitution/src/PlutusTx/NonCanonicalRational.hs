@@ -33,6 +33,8 @@ instance UnsafeFromData NonCanonicalRational where
     let bl' = BI.tail bl
      in BI.ifThenElse
           (BI.null (BI.tail bl'))
-          (\() -> NonCanonicalRational (Tx.unsafeRatio (B.unsafeDataAsI (BI.head bl)) (B.unsafeDataAsI (BI.head bl'))))
+          ( \() ->
+              NonCanonicalRational (Tx.unsafeRatio (B.unsafeDataAsI (BI.head bl)) (B.unsafeDataAsI (BI.head bl')))
+          )
           (\() -> traceError "A Rational had too many list components")
           ()

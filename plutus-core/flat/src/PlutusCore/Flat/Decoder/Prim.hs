@@ -484,4 +484,9 @@ binOf :: Get a -> Get (B.ByteString, Int)
 binOf g =
   Get $ \end s -> do
     GetResult s' _ <- runGet g end s
-    return $ GetResult s' (peekByteString (currPtr s) (currPtr s' `minusPtr` currPtr s + if usedBits s' == 0 then 0 else 1), usedBits s)
+    return $
+      GetResult
+        s'
+        ( peekByteString (currPtr s) (currPtr s' `minusPtr` currPtr s + if usedBits s' == 0 then 0 else 1)
+        , usedBits s
+        )

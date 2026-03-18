@@ -44,7 +44,8 @@ import PlutusLedgerApi.V1.Interval (interval)
 import PlutusLedgerApi.V2 qualified as Value
 import PlutusTx.Prelude (Group (inv))
 
-mkScriptContext :: ScriptPurpose -> [TxInInfo] -> [TxInInfo] -> Value -> [TxOut] -> [PubKeyHash] -> ScriptContext
+mkScriptContext
+  :: ScriptPurpose -> [TxInInfo] -> [TxInInfo] -> Value -> [TxOut] -> [PubKeyHash] -> ScriptContext
 mkScriptContext purpose ins refs mints outs sigs =
   ScriptContext (mkTxInfo ins refs mints outs sigs) purpose
 
@@ -76,9 +77,13 @@ setValidity ctx validity =
 
 genAaInputs :: AssetClass -> Integer -> Gen [TxInInfo]
 genAaInputs aaAc aaQ = do
-  aaTokens <- choose (aaQ, aaQ + 10) >>= \n -> return $ replicate (fromInteger n) . assetClassValue aaAc $ 1
-  aaWallets <- choose (1, length aaTokens) >>= \n -> for [1 .. n] $ \ix -> return . pubKeyHashAddress . PubKeyHash . stringToBuiltinByteString $ "pubkeyhash " <> show ix
-  aaOrefs <- choose (1, length aaTokens) >>= \n -> for [1 .. n] $ \ix -> return $ TxOutRef (TxId $ "transaction " <> (stringToBuiltinByteString . show $ ix)) (toInteger ix)
+  aaTokens <-
+    choose (aaQ, aaQ + 10) >>= \n -> return $ replicate (fromInteger n) . assetClassValue aaAc $ 1
+  aaWallets <-
+    choose (1, length aaTokens) >>= \n -> for [1 .. n] $ \ix -> return . pubKeyHashAddress . PubKeyHash . stringToBuiltinByteString $ "pubkeyhash " <> show ix
+  aaOrefs <-
+    choose (1, length aaTokens) >>= \n -> for [1 .. n] $ \ix ->
+      return $ TxOutRef (TxId $ "transaction " <> (stringToBuiltinByteString . show $ ix)) (toInteger ix)
   aaOrefsWithTokens <- fmap fold <$> distribute aaTokens (Set.fromList aaOrefs)
   aaWalletsWithOrefs <- distribute aaOrefs (Set.fromList aaWallets)
   let aaOutsByAddr =
@@ -92,7 +97,11 @@ genAaInputs aaAc aaQ = do
           <$> aaWalletsWithOrefs
 
   for
-    [(addr, oref, val) | (addr, outs) <- Map.toList aaOutsByAddr, (oref, val) <- outs, assetClassValueOf val aaAc > 0]
+    [ (addr, oref, val)
+    | (addr, outs) <- Map.toList aaOutsByAddr
+    , (oref, val) <- outs
+    , assetClassValueOf val aaAc > 0
+    ]
     $ \(addr, oref, val) -> return $ TxInInfo oref (TxOut addr val NoOutputDatum Nothing)
 
 toOutputDatum :: ToData a => a -> OutputDatum
@@ -114,7 +123,8 @@ genCertRdmrInputs certRdmrAc = do
     | addr <- certRdmrAddrs
     ]
 
-genCertInput :: Address -> CurrencySymbol -> AssetClass -> Interval POSIXTime -> BuiltinByteString -> Gen TxInInfo
+genCertInput
+  :: Address -> CurrencySymbol -> AssetClass -> Interval POSIXTime -> BuiltinByteString -> Gen TxInInfo
 genCertInput certVAddr certCs certRdmrAc certValidity certId = do
   return $
     TxInInfo
@@ -165,7 +175,10 @@ genAuthInputs authCs = do
                   Nothing
               )
         )
-          <$> [(authWallet, authId, authQ) | (authWallet, idsAndQs) <- Map.toList authWalletsWithIdsAndQs, (authId, authQ) <- idsAndQs]
+          <$> [ (authWallet, authId, authQ)
+              | (authWallet, idsAndQs) <- Map.toList authWalletsWithIdsAndQs
+              , (authId, authQ) <- idsAndQs
+              ]
   return authInputs
 
 genCertRdmrAc :: Gen AssetClass
@@ -215,7 +228,8 @@ genCorruptCertMpMintingCtx certMpParams certCs = do
   return $ corrupt ctx
 
 genValidity :: Gen (Interval POSIXTime)
-genValidity = chooseInteger (0, 50) >>= \l -> chooseInteger (l, 100) >>= \u -> return $ interval (POSIXTime l) (POSIXTime u)
+genValidity =
+  chooseInteger (0, 50) >>= \l -> chooseInteger (l, 100) >>= \u -> return $ interval (POSIXTime l) (POSIXTime u)
 
 genCorrectCertMpBurningCtx :: CertMpParams -> CurrencySymbol -> AssetClass -> Gen ScriptContext
 genCorrectCertMpBurningCtx certMpParams certCs certRdmrAc = do
@@ -310,7 +324,8 @@ genCorruptAuthMpBurningCtx authCs = do
 genCorrectMustBurnOwnSingletonValueCtx :: Gen ScriptContext
 genCorrectMustBurnOwnSingletonValueCtx = snd <$> genCorrectMustBurnOwnSingletonValueCtx'
 
-genCorrectMustBurnOwnSingletonValueCtx' :: Gen ((TxOutRef, (CurrencySymbol, TokenName, Integer)), ScriptContext)
+genCorrectMustBurnOwnSingletonValueCtx'
+  :: Gen ((TxOutRef, (CurrencySymbol, TokenName, Integer)), ScriptContext)
 genCorrectMustBurnOwnSingletonValueCtx' = do
   spentIn <- genInput
   (otherIns, otherMint, otherOuts) <- genOthers 5
@@ -319,7 +334,10 @@ genCorrectMustBurnOwnSingletonValueCtx' = do
       ins = otherIns <> [spentIn]
       mint = otherMint <> tokensToBurn
       outs = otherOuts
-  return ((spentOref, head . flattenValue $ spentVal), mkScriptContext (Spending spentOref) ins [] mint outs [])
+  return
+    ( (spentOref, head . flattenValue $ spentVal)
+    , mkScriptContext (Spending spentOref) ins [] mint outs []
+    )
 
 genCorruptMustBurnOwnSingletonValueCtx :: Gen ScriptContext
 genCorruptMustBurnOwnSingletonValueCtx = do
@@ -426,7 +444,12 @@ genCorrectFsMpBurningCtx fsMpParams fsCs = do
 
   fsIns <- for fsVOuts (\fsOut -> TxInInfo <$> genTxOutRef <*> pure fsOut)
 
-  let fsDatums = [fsDat | out <- fsVOuts, OutputDatum (Datum dat) <- [txOutDatum out], fsDat <- maybe [] pure (fromBuiltinData @FsDatum dat)]
+  let fsDatums =
+        [ fsDat
+        | out <- fsVOuts
+        , OutputDatum (Datum dat) <- [txOutDatum out]
+        , fsDat <- maybe [] pure (fromBuiltinData @FsDatum dat)
+        ]
       gcAfter = maximum [fs'gcAfter fsDatum | fsDatum <- fsDatums]
       submitters = [fs'submitter fsDatum | fsDatum <- fsDatums]
       fsBurned = mconcat [inv $ txOutValue fsVOut | fsVOut <- fsVOuts]
@@ -510,7 +533,11 @@ genCorrectConsumerCtx fsCs fs = do
   return $ mkScriptContext (Spending (txInInfoOutRef spendingIn)) [spendingIn] [fsRefIn] mempty [] []
 
 genInput :: Gen TxInInfo
-genInput = (\outRef val addr -> TxInInfo outRef (TxOut addr val NoOutputDatum Nothing)) <$> genTxOutRef <*> genSingletonValue <*> genAddress
+genInput =
+  (\outRef val addr -> TxInInfo outRef (TxOut addr val NoOutputDatum Nothing))
+    <$> genTxOutRef
+    <*> genSingletonValue
+    <*> genAddress
 
 genInputs :: Int -> Gen [TxInInfo]
 genInputs n = replicateM n genInput
@@ -530,7 +557,9 @@ genOthers n = do
   let outVals = mints <> inToOutVals
       burnVals = Set.toList $ Set.difference (Set.fromList inVals) (Set.fromList inToOutVals)
   outAddrsWithVals <- distribute outVals (Set.fromList outAddrs)
-  let outs = [TxOut addr (valueFromList vals) NoOutputDatum Nothing | (addr, vals) <- Map.toList outAddrsWithVals]
+  let outs =
+        [ TxOut addr (valueFromList vals) NoOutputDatum Nothing | (addr, vals) <- Map.toList outAddrsWithVals
+        ]
       minted = valueFromList mints <> inv (valueFromList burnVals)
   return (ins, minted, outs)
 
@@ -616,8 +645,11 @@ doMintAndPayOtherTokenName cs ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoMint = txInfoMint txInfo <> assetClassValue otherAc (toInteger . length . txInfoOutputs $ txInfo)
-              , txInfoOutputs = txInfoOutputs txInfo <> [out {txOutValue = assetClassValue otherAc 1 <> txOutValue out} | out <- txInfoOutputs txInfo]
+              { txInfoMint =
+                  txInfoMint txInfo <> assetClassValue otherAc (toInteger . length . txInfoOutputs $ txInfo)
+              , txInfoOutputs =
+                  txInfoOutputs txInfo
+                    <> [out {txOutValue = assetClassValue otherAc 1 <> txOutValue out} | out <- txInfoOutputs txInfo]
               }
         }
 
@@ -630,7 +662,8 @@ doMintAndPayOtherTokenNameAddr cs addr ctx =
         { scriptContextTxInfo =
             txInfo
               { txInfoMint = txInfoMint txInfo <> assetClassValue otherAc 1
-              , txInfoOutputs = txInfoOutputs txInfo <> [TxOut addr (assetClassValue otherAc 1) NoOutputDatum Nothing]
+              , txInfoOutputs =
+                  txInfoOutputs txInfo <> [TxOut addr (assetClassValue otherAc 1) NoOutputDatum Nothing]
               }
         }
 
@@ -652,7 +685,8 @@ doPayToOtherAddress originalAddr otherAddr ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoOutputs = [out {txOutAddress = otherAddr} | out <- txInfoOutputs txInfo, txOutAddress out == originalAddr]
+              { txInfoOutputs =
+                  [out {txOutAddress = otherAddr} | out <- txInfoOutputs txInfo, txOutAddress out == originalAddr]
               }
         }
 
@@ -663,7 +697,8 @@ doRemoveInputsWithToken ac ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoInputs = [inp | inp@(TxInInfo _ inOut) <- txInfoInputs txInfo, assetClassValueOf (txOutValue inOut) ac > 0]
+              { txInfoInputs =
+                  [inp | inp@(TxInInfo _ inOut) <- txInfoInputs txInfo, assetClassValueOf (txOutValue inOut) ac > 0]
               }
         }
 
@@ -674,7 +709,11 @@ doRemoveRefInputsWithCurrency cs ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoReferenceInputs = [inp | inp@(TxInInfo _ inOut) <- txInfoReferenceInputs txInfo, not . AssocMap.member cs $ getValue (txOutValue inOut)]
+              { txInfoReferenceInputs =
+                  [ inp
+                  | inp@(TxInInfo _ inOut) <- txInfoReferenceInputs txInfo
+                  , not . AssocMap.member cs $ getValue (txOutValue inOut)
+                  ]
               }
         }
 
@@ -685,7 +724,11 @@ doRemoveInputsWithCurrency cs ctx =
    in ctx
         { scriptContextTxInfo =
             txInfo
-              { txInfoInputs = [inp | inp@(TxInInfo _ inOut) <- txInfoInputs txInfo, not . AssocMap.member cs $ getValue (txOutValue inOut)]
+              { txInfoInputs =
+                  [ inp
+                  | inp@(TxInInfo _ inOut) <- txInfoInputs txInfo
+                  , not . AssocMap.member cs $ getValue (txOutValue inOut)
+                  ]
               }
         }
 

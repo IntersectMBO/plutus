@@ -79,18 +79,28 @@ unitTests =
         v3 :: SomeLargeADT () BuiltinByteString () () Integer
         v3 = SomeLargeADT2
      in [ testCase "enum series is lt" $ zipWith Tx.compare l l' @?= (take (length l') [LT, LT ..])
-        , testCase "product1" $ SomeProduct 1 (encodeUtf8 "a") True (Right ()) Tx.> SomeProduct 0 (encodeUtf8 "a") True (Right ()) @? "product1 failed"
-        , testCase "product2" $ SomeProduct 1 (encodeUtf8 "a") True (Right ()) Tx.< SomeProduct 1 (encodeUtf8 "b") True (Left ()) @? "product2 failed"
-        , testCase "product3" $ SomeProduct 1 (encodeUtf8 "a") True (Right ()) Tx.> SomeProduct 1 (encodeUtf8 "a") False (Left ()) @? "product3 failed"
-        , testCase "product4" $ SomeProduct 1 (encodeUtf8 "a") True (Left ()) Tx.< SomeProduct 1 (encodeUtf8 "a") True (Right ()) @? "product4 failed"
+        , testCase "product1" $
+            SomeProduct 1 (encodeUtf8 "a") True (Right ()) Tx.> SomeProduct 0 (encodeUtf8 "a") True (Right ())
+              @? "product1 failed"
+        , testCase "product2" $
+            SomeProduct 1 (encodeUtf8 "a") True (Right ()) Tx.< SomeProduct 1 (encodeUtf8 "b") True (Left ())
+              @? "product2 failed"
+        , testCase "product3" $
+            SomeProduct 1 (encodeUtf8 "a") True (Right ()) Tx.> SomeProduct 1 (encodeUtf8 "a") False (Left ())
+              @? "product3 failed"
+        , testCase "product4" $
+            SomeProduct 1 (encodeUtf8 "a") True (Left ()) Tx.< SomeProduct 1 (encodeUtf8 "a") True (Right ())
+              @? "product4 failed"
         , testCase "newtype-lt" $ MyNewtype 1 Tx.< MyNewtype 2 @? "newtype-lt failed"
         , testCase "newtype-eq" $ Tx.compare (MyNewtype 42) (MyNewtype 42) @?= EQ
         , testCase "large-adt-same-con" $ Tx.compare v1 v2 @?= LT
         , testCase "large-adt-diff-con" $ Tx.compare v3 v1 @?= LT
         , testCase "tree-leaf-lt" $ Tx.compare (Leaf (1 :: Integer)) (Leaf 2) @?= LT
-        , testCase "tree-node" $ Tx.compare (Node (Leaf (1 :: Integer)) (Leaf 2)) (Node (Leaf 1) (Leaf 3)) @?= LT
+        , testCase "tree-node" $
+            Tx.compare (Node (Leaf (1 :: Integer)) (Leaf 2)) (Node (Leaf 1) (Leaf 3)) @?= LT
         , testCase "tree-leaf-vs-node" $ Tx.compare (Leaf (1 :: Integer)) (Node (Leaf 0) (Leaf 0)) @?= LT
-        , testCase "void" $ (undefined :: SomeVoid) `Tx.compare` undefined @=? (undefined :: SomeVoid) `HS.compare` undefined
+        , testCase "void" $
+            (undefined :: SomeVoid) `Tx.compare` undefined @=? (undefined :: SomeVoid) `HS.compare` undefined
         ]
 
 goldenTests :: TestTree

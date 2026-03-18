@@ -171,7 +171,8 @@ prop_Term tyG tmG = do
   -- erase it after the fact
   let tmU'' = eraseTerm tm''
   unless (tmU' == tmU'') $
-    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("erase;reduce", tmU'), ("reduce;erase", tmU'')])
+    throwCtrex
+      (CtrexUntypedTermEvaluationMismatch tyG tmG [("erase;reduce", tmU'), ("reduce;erase", tmU'')])
 
   -- 4. run prod untyped CEK against meta untyped CEK
   tmU''' <-

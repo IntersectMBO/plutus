@@ -7,7 +7,14 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase)
 import Transform.Simplify.Lib (testCse, testSimplify)
 import Transform.Simplify.Spec (testCseInputs, testSimplifyInputs)
-import UntypedPlutusCore (CseWhichSubterms (..), DefaultFun, DefaultUni, Name, SimplifierTrace, Term)
+import UntypedPlutusCore
+  ( CseWhichSubterms (..)
+  , DefaultFun
+  , DefaultUni
+  , Name
+  , SimplifierTrace
+  , Term
+  )
 
 type SimplifierFunc =
   Term Name PLC.DefaultUni PLC.DefaultFun ()

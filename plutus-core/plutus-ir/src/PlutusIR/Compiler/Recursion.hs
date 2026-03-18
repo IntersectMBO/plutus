@@ -90,7 +90,8 @@ mkFixpoint bs = do
   funs <- forM bs $ \(PIR.Def (PIR.VarDecl p name ty) term) ->
     case PIR.mkFunctionDef p name ty term of
       Just fun -> pure fun
-      Nothing -> lift $ throwError $ CompilationError (PLC.typeAnn ty) "Recursive values must be of function type"
+      Nothing ->
+        lift $ throwError $ CompilationError (PLC.typeAnn ty) "Recursive values must be of function type"
 
   inlineFix <- view (ccOpts . coInlineConstants)
 
@@ -104,7 +105,10 @@ mkFixpoint bs = do
   let mkFixByDef = do
         name <- liftQuote $ toProgramName fixByKey
         let (fixByTerm, fixByType) = Function.fixByAndType
-        pure (PLC.Def (PLC.VarDecl ann name (noProvenance <$ fixByType)) (noProvenance <$ fixByTerm, Strict), mempty)
+        pure
+          ( PLC.Def (PLC.VarDecl ann name (noProvenance <$ fixByType)) (noProvenance <$ fixByTerm, Strict)
+          , mempty
+          )
 
   let mkFixNDef = do
         name <- liftQuote $ toProgramName fixNKey
@@ -115,7 +119,10 @@ mkFixpoint bs = do
             else do
               fixBy <- lookupOrDefineTerm fixByKey mkFixByDef
               pure (Function.fixNAndType arity (void fixBy), Set.singleton fixByKey)
-        pure (PLC.Def (PLC.VarDecl ann name (noProvenance <$ fixNType)) (noProvenance <$ fixNTerm, Strict), fixNDeps)
+        pure
+          ( PLC.Def (PLC.VarDecl ann name (noProvenance <$ fixNType)) (noProvenance <$ fixNTerm, Strict)
+          , fixNDeps
+          )
   fixN <- lookupOrDefineTerm fixNKey mkFixNDef
 
   liftQuote $ case funs of

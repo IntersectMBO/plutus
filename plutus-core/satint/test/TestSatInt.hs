@@ -71,7 +71,9 @@ tests =
   , unitTest "0-min" (saturatesPos (0 - (minBound :: SatInt)))
   , unitTest "max+min" ((maxBound :: SatInt) + (minBound :: SatInt) == -1)
   , unitTest "max+*" (saturatesPos ((2 :: SatInt) ^ (wordSize `div` 2) * 2 ^ (wordSize `div` 2 - 1)))
-  , unitTest "min-*" (saturatesNeg (negate ((2 :: SatInt) ^ (wordSize `div` 2)) * 2 ^ (wordSize `div` 2 - 1)))
+  , unitTest
+      "min-*"
+      (saturatesNeg (negate ((2 :: SatInt) ^ (wordSize `div` 2)) * 2 ^ (wordSize `div` 2 - 1)))
   , unitTest "max/2" (saturatesPos ((maxBound :: SatInt) `dividedBy` 2))
   , unitTest "min/2" (saturatesNeg ((minBound :: SatInt) `dividedBy` 2))
   , testProperty "*" (propBinOp (*))

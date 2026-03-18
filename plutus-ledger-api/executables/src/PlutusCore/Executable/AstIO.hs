@@ -49,14 +49,16 @@ type UplcProgDB ann = UPLC.Program PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun an
 type UplcProgNDB ann = UPLC.Program PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 type PlcProgDB ann = PLC.Program PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
-type PlcProgNDB ann = PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
+type PlcProgNDB ann =
+  PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 -- For the plutus-metatheory tests
 type UplcTermDB ann = UPLC.Term PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
 type UplcTermNDB ann = UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 type PlcTermDB ann = PLC.Term PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
-type PlcTermNDB ann = PLC.Term PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
+type PlcTermNDB ann =
+  PLC.Term PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 type PlcType ann = PLC.Type PLC.TyName PLC.DefaultUni ann
 type PlcTypeDB ann = PLC.Type PLC.TyDeBruijn PLC.DefaultUni ann

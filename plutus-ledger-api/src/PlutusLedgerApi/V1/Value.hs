@@ -177,7 +177,9 @@ tokenName = TokenName . PlutusTx.toBuiltin
 {-# INLINEABLE tokenName #-}
 
 fromTokenName :: (BS.ByteString -> r) -> (Text -> r) -> TokenName -> r
-fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)
+fromTokenName handleBytestring handleText (TokenName bs) =
+  either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText
+    $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)
 
 -- | Encode a `ByteString` to a hex `Text`.
 asBase16 :: BS.ByteString -> Text

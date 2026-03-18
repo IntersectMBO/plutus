@@ -42,7 +42,13 @@ import PlutusBenchmark.Marlowe.Core.V1.Semantics as Semantics
   ( MarloweData (..)
   , MarloweParams (MarloweParams, rolesCurrency)
   , Payment (..)
-  , TransactionError (TEAmbiguousTimeIntervalError, TEApplyNoMatchError, TEHashMismatch, TEIntervalError, TEUselessTransaction)
+  , TransactionError
+    ( TEAmbiguousTimeIntervalError
+    , TEApplyNoMatchError
+    , TEHashMismatch
+    , TEIntervalError
+    , TEUselessTransaction
+    )
   , TransactionInput (TransactionInput, txInputs, txInterval)
   , TransactionOutput (Error, TransactionOutput, txOutContract, txOutPayments, txOutState)
   , computeTransaction
@@ -159,7 +165,11 @@ mkMarloweValidator
     -- let scriptInValue = PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txOutValue . Data.txInInfoResolved $ ownInput
     let interval =
           -- Marlowe semantics require a closed interval, so we might adjust by one millisecond.
-          case closeInterval . PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txInfoValidRange $ scriptContextTxInfo of
+          case closeInterval
+            . PlutusTx.unsafeFromBuiltinData
+            . PlutusTx.toBuiltinData
+            . Data.txInfoValidRange
+            $ scriptContextTxInfo of
             Just interval' -> interval'
             Nothing -> traceError "a"
 
@@ -253,7 +263,10 @@ mkMarloweValidator
 
       -- Find the input being spent by a script.
       findOwnInput :: Data.ScriptContext -> Maybe Data.TxInInfo
-      findOwnInput Data.ScriptContext {scriptContextTxInfo = Data.TxInfo {txInfoInputs}, scriptContextPurpose = Data.Spending txOutRef} =
+      findOwnInput Data.ScriptContext
+                     { scriptContextTxInfo = Data.TxInfo {txInfoInputs}
+                     , scriptContextPurpose = Data.Spending txOutRef
+                     } =
         Data.List.find (\Data.TxInInfo {txInInfoOutRef} -> txInInfoOutRef == txOutRef) txInfoInputs
       findOwnInput _ = Nothing
 
@@ -290,7 +303,9 @@ mkMarloweValidator
                     _ ->
                       let hd' = unsafeFromBuiltinData hd
                        in case hd' of
-                            Data.TxInInfo {txInInfoResolved = Data.TxOut {txOutAddress = Data.Address (Data.ScriptCredential vh) _}} ->
+                            Data.TxInInfo
+                              { txInInfoResolved = Data.TxOut {txOutAddress = Data.Address (Data.ScriptCredential vh) _}
+                              } ->
                               if f vh
                                 then case mSelf of
                                   Nothing -> go f (Just hd') noOthers tl
@@ -301,7 +316,9 @@ mkMarloweValidator
 
       -- Check if inputs are being spent from the same script.
       sameValidatorHash :: Data.TxInInfo -> ScriptHash -> Bool
-      sameValidatorHash Data.TxInInfo {txInInfoResolved = Data.TxOut {txOutAddress = Data.Address (Data.ScriptCredential vh1) _}} vh2 = vh1 == vh2
+      sameValidatorHash Data.TxInInfo
+                          { txInInfoResolved = Data.TxOut {txOutAddress = Data.Address (Data.ScriptCredential vh1) _}
+                          } vh2 = vh1 == vh2
       sameValidatorHash _ _ = False
 
       -- Check a state for the correct value, positive accounts, and no duplicates.
@@ -340,7 +357,12 @@ mkMarloweValidator
       checkOwnOutputConstraint ocDatum ocValue =
         let hsh = findDatumHash' ocDatum
          in traceIfFalse "d" -- "Output constraint"
-              $ checkScriptOutput (==) (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData $ ownAddress) hsh ocValue getContinuingOutput
+              $ checkScriptOutput
+                (==)
+                (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData $ ownAddress)
+                hsh
+                ocValue
+                getContinuingOutput
 
       getContinuingOutput :: Data.TxOut
       ~getContinuingOutput =
@@ -360,14 +382,28 @@ mkMarloweValidator
               result
 
       -- Check that address, value, and datum match the specified.
-      checkScriptOutput :: (Val.Value -> Val.Value -> Bool) -> Ledger.Address -> Maybe DatumHash -> Val.Value -> Data.TxOut -> Bool
+      checkScriptOutput
+        :: (Val.Value -> Val.Value -> Bool)
+        -> Ledger.Address
+        -> Maybe DatumHash
+        -> Val.Value
+        -> Data.TxOut
+        -> Bool
       checkScriptOutput comparison addr hsh value Data.TxOut {txOutAddress, txOutValue, txOutDatum = Data.OutputDatumHash svh} =
-        (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData $ txOutValue) `comparison` value && hsh == Just svh && (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData $ txOutAddress) == addr
+        (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData $ txOutValue)
+          `comparison` value
+          && hsh
+          == Just svh
+          && (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData $ txOutAddress)
+          == addr
       checkScriptOutput _ _ _ _ _ = False
 
       -- Check for any output to the script address.
       hasNoOutputToOwnScript :: Bool
-      hasNoOutputToOwnScript = Data.List.all ((/= ownAddress) . PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txOutAddress) allOutputs
+      hasNoOutputToOwnScript =
+        Data.List.all
+          ((/= ownAddress) . PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txOutAddress)
+          allOutputs
 
       -- All of the script outputs.
       allOutputs :: Data.List Data.TxOut
@@ -397,7 +433,9 @@ mkMarloweValidator
               INotify -> True -- No witness is needed for a notify.
             where
               validatePartyWitness :: Party -> Bool
-              validatePartyWitness (Address _ address) = traceIfFalse "s" $ txSignedByAddress (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData $ address) -- The key must have signed.
+              validatePartyWitness (Address _ address) =
+                traceIfFalse "s"
+                  $ txSignedByAddress (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData $ address) -- The key must have signed.
               validatePartyWitness (Role role) =
                 traceIfFalse "t" -- The role token must be present.
                   $ Val.singleton rolesCurrency role 1
@@ -446,7 +484,11 @@ mkMarloweValidator
 
       -- Tally the value paid to an address.
       valuePaidToAddress :: Ledger.Address -> Val.Value
-      valuePaidToAddress address = Data.List.foldMap (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txOutValue) $ Data.List.filter ((== address) . PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txOutAddress) allOutputs
+      valuePaidToAddress address =
+        Data.List.foldMap (PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txOutValue)
+          $ Data.List.filter
+            ((== address) . PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txOutAddress)
+            allOutputs
 {-# INLINEABLE mkMarloweValidator #-}
 
 -- | Convert semantics input to transaction input.

@@ -16,7 +16,8 @@ import Test.Tasty.QuickCheck as TSQ
 -- NOTE: if you want to use rationals the test name won't
 -- be guaranteed to be the same, since the show instance of
 -- rationals is simplified
-intervalTest :: (Num a, Ord a, Show a) => (a, a) -> [RangeConstraint a] -> [(Boundary a, Boundary a)] -> TestTree
+intervalTest
+  :: (Num a, Ord a, Show a) => (a, a) -> [RangeConstraint a] -> [(Boundary a, Boundary a)] -> TestTree
 intervalTest domain' constraints expected =
   testCase testStr $
     gapsWithinRange domain' constraints
@@ -69,14 +70,16 @@ internalTests =
             [(Closed 1, Open 2), (Open 2, Open 4), (Open 4, Open 8), (Open 8, Closed 10)]
         , intervalTest @Integer (-10000, 10000) [NL 10, NG 9] []
         , testCase "not: (< 1 % 10) && (> 10 % 10) => [1 % 10, 1 % 1]" $
-            gapsWithinRange @Rational (-1, 3) [NL (1 % 10), NG (10 % 10)] @?= [(Closed (1 % 10), Closed (1 % 1))]
+            gapsWithinRange @Rational (-1, 3) [NL (1 % 10), NG (10 % 10)]
+              @?= [(Closed (1 % 10), Closed (1 % 1))]
         , TSQ.testProperty "[NL (1 % 10), NG (10 % 10) ] should generate within the boundaries" $
             TSQ.forAll (rationalGenerator [NL (1 % 10), NG (10 % 10)]) $
               \x -> x >= 1 % 10 && x <= 1
         , testCase "[NL (50 % 100), NG (100 % 100), NL (65 % 100) , NG (90 % 100) ]  => [65 % 100, 90 % 100]" $
             gapsWithinRange @Rational (-1, 1) [NL (50 % 100), NG (100 % 100), NL (65 % 100), NG (90 % 100)]
               @?= [(Closed (65 % 100), Closed (90 % 100))]
-        , TSQ.testProperty "[NL (50 % 100), NG (100 % 100), NL (65 % 100) , NG (90 % 100) ] should generate within the boundaries" $
+        , TSQ.testProperty
+            "[NL (50 % 100), NG (100 % 100), NL (65 % 100) , NG (90 % 100) ] should generate within the boundaries" $
             TSQ.forAll (rationalGenerator [NL (50 % 100), NG (100 % 100), NL (65 % 100), NG (90 % 100)]) $
               \x -> x >= 65 % 100 && x <= 90 % 100
         , TSQ.testProperty "rationals should be generated within the boundaries" $

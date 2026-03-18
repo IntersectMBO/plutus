@@ -1,4 +1,16 @@
 
+<a id='changelog-1.60.0.0'></a>
+# 1.60.0.0 — 2026-03-18
+
+## Added
+
+- A new UPLC optimization pass, turning multi-argument applications into case-constr form.
+
+## Changed
+
+- The `uplc` executable now accepts serialised scripts (in addition to textual
+  and flat-encoded). Use `--input-format serialised`.
+
 <a id='changelog-1.59.0.0'></a>
 # 1.59.0.0 — 2026-03-02
 

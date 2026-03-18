@@ -122,7 +122,20 @@ PlutusTx.Eq for it. This affects V2 onwards where assoc lists were changed to Ma
 -- No PlutusTx.Eq instance, see Note [No PlutusTx.Eq for types with AssocMap]
 
 instance Pretty TxInfo where
-  pretty TxInfo {txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
+  pretty TxInfo
+           { txInfoInputs
+           , txInfoReferenceInputs
+           , txInfoOutputs
+           , txInfoFee
+           , txInfoMint
+           , txInfoDCert
+           , txInfoWdrl
+           , txInfoValidRange
+           , txInfoSignatories
+           , txInfoRedeemers
+           , txInfoData
+           , txInfoId
+           } =
     vsep
       [ "TxId:" <+> pretty txInfoId
       , "Inputs:" <+> pretty txInfoInputs
@@ -158,7 +171,10 @@ instance Pretty ScriptContext where
 
 -- | Find the input currently being validated.
 findOwnInput :: ScriptContext -> Maybe TxInInfo
-findOwnInput ScriptContext {scriptContextTxInfo = TxInfo {txInfoInputs}, scriptContextPurpose = Spending txOutRef} =
+findOwnInput ScriptContext
+               { scriptContextTxInfo = TxInfo {txInfoInputs}
+               , scriptContextPurpose = Spending txOutRef
+               } =
   find (\TxInInfo {txInInfoOutRef} -> txInInfoOutRef == txOutRef) txInfoInputs
 findOwnInput _ = Nothing
 {-# INLINEABLE findOwnInput #-}
@@ -185,7 +201,9 @@ findTxInByTxOutRef outRef TxInfo {txInfoInputs} =
 
 -- | Find the indices of all the outputs that pay to the same script address we are currently spending from, if any.
 findContinuingOutputs :: ScriptContext -> [Integer]
-findContinuingOutputs ctx | Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx = findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
+findContinuingOutputs ctx
+  | Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
+      findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
   where
     f addr TxOut {txOutAddress = otherAddress} = addr == otherAddress
 findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
@@ -193,7 +211,9 @@ findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
 
 -- | Get all the outputs that pay to the same script address we are currently spending from, if any.
 getContinuingOutputs :: ScriptContext -> [TxOut]
-getContinuingOutputs ctx | Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx = filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
+getContinuingOutputs ctx
+  | Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
+      filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
   where
     f addr TxOut {txOutAddress = otherAddress} = addr == otherAddress
 getContinuingOutputs _ = traceError "Lf" -- "Can't get any continuing outputs"

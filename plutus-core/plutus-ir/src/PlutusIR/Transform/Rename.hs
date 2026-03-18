@@ -231,7 +231,8 @@ renameConstrTypeM (Restorer restoreAfterData) = renameSpineM
     renameResultM (TyApp ann fun arg) = TyApp ann <$> renameResultM fun <*> PLC.renameTypeM arg
     renameResultM (TyVar ann name) = TyVar ann <$> restoreAfterData (PLC.renameNameM name)
     renameResultM _ =
-      error "Panic: a constructor returns something that is not an iterated application of a type variable"
+      error
+        "Panic: a constructor returns something that is not an iterated application of a type variable"
 
 {-| Rename the name of a constructor immediately and defer renaming of its type until the second
 stage where all mutually recursive data types (if any) are bound. -}

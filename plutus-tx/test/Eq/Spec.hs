@@ -68,7 +68,8 @@ unitTests =
         , -- polymorphic phantom types, no type annotation is needed
           testCase "phantom" $ (PhantomADT () Tx.== PhantomADT ()) @?= (PhantomADT () HS.== PhantomADT ())
         , testCase "shortcircuit" $ (v3 Tx.== v3Error1) @?= (v3 Tx.== v3Error1) -- should not throw an error
-        , testCase "throws" $ try @SomeException (evaluate $ v3 Tx.== v3Error2) >>= assertBool "did not throw error" . isLeft -- should throw error
+        , testCase "throws" $
+            try @SomeException (evaluate $ v3 Tx.== v3Error2) >>= assertBool "did not throw error" . isLeft -- should throw error
         , testCase "void" $ (v4 Tx.== v4) @?= (v4 HS.== v4)
         , testCase "newtype-eq" $ (v5 Tx.== v5) @?= (v5 HS.== v5)
         , testCase "newtype-neq" $ (v5 Tx.== v6) @?= (v5 HS.== v6)

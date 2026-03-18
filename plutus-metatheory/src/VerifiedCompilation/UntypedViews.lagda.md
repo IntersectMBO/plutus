@@ -452,6 +452,33 @@ data match {A : Set} : Pr A where
 
 ```
 
+Views for lists:
+
+```
+data _∷ᵖ_ {A : Set} ( P : Pr A ) (Q : Pr (List A)) : Pr (List A) where
+  _∷!_ : ∀ {x xs} → P x → Q xs → (P ∷ᵖ Q) (x ∷ xs)
+
+_∷?_ : ∀ {A : Set} {P : Pr A} {Q} → Decidable P → Decidable Q → Decidable (P ∷ᵖ Q)
+(P? ∷? Q?) [] = no λ()
+(P? ∷? Q?) (x ∷ xs) with P? x ×-dec Q? xs
+... | yes (Px , Qxs) = yes (Px ∷! Qxs)
+... | no  ¬PQ = no λ {(P ∷! Q) → ¬PQ (P , Q)}
+
+data []ᵖ {A : Set} : Pr (List A) where
+  []! : []ᵖ []
+
+[]? : ∀ {A : Set} → Decidable ([]ᵖ {A})
+[]? [] = yes []!
+[]? (_ ∷ _) = no λ()
+```
+
+Shorthand for singleton lists:
+
+```
+singleton? : ∀ {A : Set} → Decidable (match {A} ∷ᵖ []ᵖ)
+singleton? = ⋯ ∷? []?
+```
+
 ## Inhabited types
 
 In decision procedures that use the above views, we often find ourselves writing
@@ -540,6 +567,17 @@ instance
 
   inh-≡ : ∀ {A : Set} {x : A} → Inhabited (x ≡ x)
   inh-≡ = record {inhabitant = refl}
+
+  inh-∷ᵖ : ∀ {A : Set} {x : A} {xs} {P Q} →
+    {{Inhabited (P x)}} →
+    {{Inhabited (Q xs)}} →
+    Inhabited ((P ∷ᵖ Q) (x ∷ xs))
+  inh-∷ᵖ = record {inhabitant = inhabitant ∷! inhabitant}
+
+  inh-[]ᵖ : ∀ {A : Set} →
+    Inhabited ([]ᵖ ([] {A = A}))
+  inh-[]ᵖ = record {inhabitant = []!}
+
 ```
 
 ### Examples

@@ -56,9 +56,11 @@ main = do
                   multiParamProp 1 (allValid allParams) expectTrue
               , testProperty' "Proposals with one parameter missing, and all the other ones within their ranges" $
                   multiParamProp 2 (allValidAndOneMissing allParams) expectTrue
-              , testProperty' "Proposals with one parameter lower than its lower bound, and all the other ones within their ranges" $
+              , testProperty'
+                  "Proposals with one parameter lower than its lower bound, and all the other ones within their ranges" $
                   multiParamProp 3 (allValidAndOneLessThanLower allParams) expectFalse
-              , testProperty' "Proposals with one parameter greater than its upper bound, and all the other ones within their ranges" $
+              , testProperty'
+                  "Proposals with one parameter greater than its upper bound, and all the other ones within their ranges" $
                   multiParamProp 4 (allValidAndOneGreaterThanUpper allParams) expectFalse
               , testProperty' "Proposals with one parameter unknown and all the other ones within their ranges" $
                   multiParamProp 5 (allValidAndOneUnknown allParams) expectFalse
@@ -74,8 +76,13 @@ main = do
                   multiParamProp 10 (someInvalidAndSomeValidParams allParams) expectFalse
               , testProperty' "Proposals with a selection of parameters within their ranges + costModels" $
                   multiParamProp' 11 (someValidParams allParams) ((: []) <$> costModelsParamGen) expectTrue
-              , testProperty' "Proposals with a selection of parameters, some within their ranges, some outside + costModels" $
-                  multiParamProp' 12 (someInvalidAndSomeValidParams allParams) ((: []) <$> costModelsParamGen) expectFalse
+              , testProperty'
+                  "Proposals with a selection of parameters, some within their ranges, some outside + costModels" $
+                  multiParamProp'
+                    12
+                    (someInvalidAndSomeValidParams allParams)
+                    ((: []) <$> costModelsParamGen)
+                    expectFalse
               ]
           , testGroup'
               "Internal Tests"

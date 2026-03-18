@@ -57,7 +57,8 @@ memoryUsageAsNumBytes = (8 *) . fromSatInt . sumCostStream . flattenCostRose . m
    gives a good fit and extrapolates well to larger inputs. -}
 benchByteStringToInteger :: Benchmark
 benchByteStringToInteger =
-  createTwoTermBuiltinBenchElementwise ByteStringToInteger [] $ fmap (\x -> (True, x)) (makeSample seedA)
+  createTwoTermBuiltinBenchElementwise ByteStringToInteger [] $
+    fmap (\x -> (True, x)) (makeSample seedA)
 
 {- We have four possibilities for integer to bytestring conversions: they can be
  big- or little-endian, and they can also be of bounded or unbounded width.

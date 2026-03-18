@@ -44,7 +44,9 @@ the caller can choose whether to use the 'caseBuiltin' method or the always fail
 latter is required for earlier protocol versions when we didn't support casing on builtins). -}
 data CaserBuiltin uni = CaserBuiltin
   { unCaserBuiltin
-      :: !(forall term. UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> HeadSpine Text term (Some (ValueOf uni)))
+      :: !( forall term
+             . UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> HeadSpine Text term (Some (ValueOf uni))
+          )
   }
 
 instance NFData (CaserBuiltin uni) where

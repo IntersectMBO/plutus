@@ -43,7 +43,10 @@ We can't just test against our own 'defaultCostModelParams', since in the case o
 {-| A checked-in of the default cost model params, frozen by calling 'CostModelInterface.extractCostModelParams'
 See Note [Testing the expected ledger cost model parameters] -}
 ledgerParamsBS :: BSL.ByteString
-ledgerParamsBS = $(TH.lift =<< qReadFileLBS ("plutus-core" </> "test" </> "CostModelInterface" </> "defaultCostModelParams.json"))
+ledgerParamsBS =
+  $( TH.lift
+       =<< qReadFileLBS ("plutus-core" </> "test" </> "CostModelInterface" </> "defaultCostModelParams.json")
+   )
 
 type CekCostModel = CostModel CekMachineCosts BuiltinCostModel
 
@@ -123,7 +126,9 @@ testSelfUpdateWithMissingEntry :: CekCostModel -> IO ()
 testSelfUpdateWithMissingEntry model =
   do
     params <- extractParams model
-    assertBool (Text.unpack cekVarCostCpuKey ++ " not found in params") (Map.member cekVarCostCpuKey params)
+    assertBool
+      (Text.unpack cekVarCostCpuKey ++ " not found in params")
+      (Map.member cekVarCostCpuKey params)
     let params' = Map.delete cekVarCostCpuKey params
     model' <- applyParams model params'
     model' @?= model
@@ -134,9 +139,13 @@ testOtherUpdateWithMissingEntry :: CekCostModel -> CekCostModel -> IO ()
 testOtherUpdateWithMissingEntry model1 model2 =
   do
     params2 <- extractParams model2
-    assertBool (Text.unpack cekVarCostCpuKey ++ " not found in params") (Map.member cekVarCostCpuKey params2)
+    assertBool
+      (Text.unpack cekVarCostCpuKey ++ " not found in params")
+      (Map.member cekVarCostCpuKey params2)
     let params2' = Map.delete cekVarCostCpuKey params2
-    assertBool (Text.unpack cekVarCostCpuKey ++ " still in params") (not (Map.member cekVarCostCpuKey params2'))
+    assertBool
+      (Text.unpack cekVarCostCpuKey ++ " still in params")
+      (not (Map.member cekVarCostCpuKey params2'))
     assertBool "params are the same" (params2 /= params2')
     model1' <- applyParams model1 params2'
     assertBool "The updated model is the same as the other model" (model1' /= model2)
@@ -197,13 +206,16 @@ test_costModelInterface =
         ]
     , testGroup
         "update-empty is identity"
-        [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testUpdateEmpty defaultCekCostModelForTesting
+        [ testCase "defaultCekCostModel <- defaultCekCostModel" $
+            testUpdateEmpty defaultCekCostModelForTesting
         , testCase "randomCekCostModel  <- randomCekCostModel" $ testUpdateEmpty randomCekCostModel
         ]
     , testGroup
         "overwriting works"
-        [ testCase "defaultCekCostModel <- randomCekCostModel" $ testOverwrite defaultCekCostModelForTesting randomCekCostModel
-        , testCase "randomCekCostModel  <- defaultCekCostModel" $ testOverwrite randomCekCostModel defaultCekCostModelForTesting
+        [ testCase "defaultCekCostModel <- randomCekCostModel" $
+            testOverwrite defaultCekCostModelForTesting randomCekCostModel
+        , testCase "randomCekCostModel  <- defaultCekCostModel" $
+            testOverwrite randomCekCostModel defaultCekCostModelForTesting
         ]
     , testGroup
         "superfluous entry in params is NOT OK in self-update"
@@ -217,8 +229,10 @@ test_costModelInterface =
         ]
     , testGroup
         "missing entry in update of different model"
-        [ testCase "defaultCekCostModel" $ testOtherUpdateWithMissingEntry defaultCekCostModelForTesting randomCekCostModel
-        , testCase "randomCekCostModel" $ testOtherUpdateWithMissingEntry randomCekCostModel defaultCekCostModelForTesting
+        [ testCase "defaultCekCostModel" $
+            testOtherUpdateWithMissingEntry defaultCekCostModelForTesting randomCekCostModel
+        , testCase "randomCekCostModel" $
+            testOtherUpdateWithMissingEntry randomCekCostModel defaultCekCostModelForTesting
         ]
     , testGroup
         "extract after apply is identity"

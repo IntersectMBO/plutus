@@ -313,7 +313,7 @@ verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinBy
         Haskell.error "Ed25519 signature verification errored."
 {-# OPAQUE verifyEd25519Signature #-}
 
-{-| ECDSA signature verification on the SECP256k1 curve. The first bytestring is the public key (32 bytes),
+{-| ECDSA signature verification on the SECP256k1 curve. The first bytestring is the public key (33 bytes),
   followed by the message hash (32 bytes) and the signature (64 bytes). The sizes of the public key and signature
   are enforced, and it fails when given bytestrings of incorrect size. -}
 verifyEcdsaSecp256k1Signature
@@ -729,7 +729,8 @@ bls12_381_G1_scalarMul
 bls12_381_G1_scalarMul n (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.scalarMul n a)
 {-# OPAQUE bls12_381_G1_scalarMul #-}
 
-bls12_381_G1_multiScalarMul :: BuiltinList BuiltinInteger -> BuiltinList BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_multiScalarMul
+  :: BuiltinList BuiltinInteger -> BuiltinList BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_multiScalarMul (BuiltinList ns) (BuiltinList ps) =
   case BLS12_381.G1.multiScalarMul ns (fmap (\(BuiltinBLS12_381_G1_Element p) -> p) ps) of
     BuiltinSuccess p -> BuiltinBLS12_381_G1_Element p
@@ -804,7 +805,8 @@ bls12_381_G2_scalarMul
 bls12_381_G2_scalarMul n (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.scalarMul n a)
 {-# OPAQUE bls12_381_G2_scalarMul #-}
 
-bls12_381_G2_multiScalarMul :: BuiltinList BuiltinInteger -> BuiltinList BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_multiScalarMul
+  :: BuiltinList BuiltinInteger -> BuiltinList BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_multiScalarMul (BuiltinList ns) (BuiltinList ps) =
   case BLS12_381.G2.multiScalarMul ns (fmap (\(BuiltinBLS12_381_G2_Element p) -> p) ps) of
     BuiltinSuccess p -> BuiltinBLS12_381_G2_Element p

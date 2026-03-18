@@ -263,15 +263,25 @@ instance Pretty CostModelApplyError where
     (preamble <+>) . \case
       CMUnknownParamError k -> "No such parameter in target cost model:" <+> pretty k
       CMInternalReadError -> "Internal problem occurred upon reading the given cost model parameters"
-      CMInternalWriteError str -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
+      CMInternalWriteError str ->
+        "Internal problem occurred upon generating the applied cost model parameters with JSON error:"
+          <+> pretty str
     where
       preamble = "applyParams error:"
 
 instance Pretty CostModelApplyWarn where
   pretty =
     (preamble <+>) . \case
-      CMTooManyParamsWarn {..} -> "Too many cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
-      CMTooFewParamsWarn {..} -> "Too few cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
+      CMTooManyParamsWarn {..} ->
+        "Too many cost model parameters passed, expected"
+          <+> pretty cmExpected
+          <+> "but got"
+          <+> pretty cmActual
+      CMTooFewParamsWarn {..} ->
+        "Too few cost model parameters passed, expected"
+          <+> pretty cmExpected
+          <+> "but got"
+          <+> pretty cmActual
     where
       preamble = "applyParams warn:"
 
@@ -291,7 +301,8 @@ applyParams cm params = case toJSON cm of
       do
         -- this is where the overwriting happens
         -- fail when key is in params (left) but not in the model (right)
-        merged <- Map.mergeA failMissing Map.preserveMissing (Map.zipWithMatched leftBiased) usingScientific flattened
+        merged <-
+          Map.mergeA failMissing Map.preserveMissing (Map.zipWithMatched leftBiased) usingScientific flattened
         let unflattened = unflattenObject "-" $ hmToObj $ toHash merged
         case fromJSON (Object unflattened) of
           Success a -> pure a
@@ -339,7 +350,12 @@ some prefix and use those parts to update the components of a cost model. -}
    other languages) seem to vary in how unknown fields are handled), so let's be
    explicit. -}
 applySplitCostModelParams
-  :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
+  :: ( FromJSON evaluatorcosts
+     , FromJSON builtincosts
+     , ToJSON evaluatorcosts
+     , ToJSON builtincosts
+     , MonadError CostModelApplyError m
+     )
   => Text.Text
   -> CostModel evaluatorcosts builtincosts
   -> CostModelParams
@@ -354,7 +370,12 @@ applySplitCostModelParams prefix model params =
 Note that this is costly. See [here](https://github.com/IntersectMBO/plutus/issues/4962).
 Callers are recommended to call this once and cache the results. -}
 applyCostModelParams
-  :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
+  :: ( FromJSON evaluatorcosts
+     , FromJSON builtincosts
+     , ToJSON evaluatorcosts
+     , ToJSON builtincosts
+     , MonadError CostModelApplyError m
+     )
   => CostModel evaluatorcosts builtincosts
   -> CostModelParams
   -> m (CostModel evaluatorcosts builtincosts)

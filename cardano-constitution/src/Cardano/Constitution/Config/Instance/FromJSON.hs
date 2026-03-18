@@ -106,7 +106,8 @@ fromRaw (RawConstitutionConfig rc) = ConstitutionConfig . M.toAscList <$> traver
 parseParamKey :: Aeson.Key -> Aeson.Parser (Integer, Maybe Integer)
 parseParamKey (Aeson.toString -> s) = do
   -- MAYBE: fetch the regex pattern from the schema itself, it is easy
-  [[_, indexS, _, subIndexS]] :: [[String]] <- s Rx.=~~ ("^(0|[1-9][0-9]*)(\\[(0|[1-9][0-9]*)\\])?$" :: String)
+  [[_, indexS, _, subIndexS]] :: [[String]] <-
+    s Rx.=~~ ("^(0|[1-9][0-9]*)(\\[(0|[1-9][0-9]*)\\])?$" :: String)
   indexI <- either fail pure $ readEitherSafe indexS
   mSubIndexI <-
     if null subIndexS

@@ -115,7 +115,7 @@ numSites caseReduceT p = just (numSites′ p)
 numSites inlineT p = just (numSitesInline p)
 numSites forceCaseDelayT _ = nothing
 numSites caseOfCaseT _ = nothing
-numSites applyToCaseT _ = nothing
+numSites applyToCaseT p = just (numSites′ p)
 numSites unknown _ = nothing
 
 showSites : {M N : 0 ⊢} → (tag : SimplifierTag) → RelationOf tag M N → String

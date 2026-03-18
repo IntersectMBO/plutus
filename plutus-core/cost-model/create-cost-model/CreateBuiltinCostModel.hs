@@ -343,7 +343,8 @@ getConstant :: MonadR m => SomeSEXP (Region m) -> m CostingInteger
 getConstant = getCoeff "(Intercept)"
 
 -- | A costing function of the form a+sx.
-readOneVariableLinearFunction :: MonadR m => String -> SomeSEXP (Region m) -> m OneVariableLinearFunction
+readOneVariableLinearFunction
+  :: MonadR m => String -> SomeSEXP (Region m) -> m OneVariableLinearFunction
 readOneVariableLinearFunction var e = do
   intercept <- Intercept <$> getCoeff "(Intercept)" e
   slope <- Slope <$> getCoeff var e
@@ -358,14 +359,16 @@ readOneVariableFunConstOr e = do
   nonConstantPart <- readCF1AtType subtype e
   pure $ ModelConstantOrOneArgument constantPart nonConstantPart
 
-readOneVariableQuadraticFunction :: MonadR m => String -> SomeSEXP (Region m) -> m OneVariableQuadraticFunction
+readOneVariableQuadraticFunction
+  :: MonadR m => String -> SomeSEXP (Region m) -> m OneVariableQuadraticFunction
 readOneVariableQuadraticFunction var e = do
   c0 <- Coefficient0 <$> getCoeff "(Intercept)" e
   c1 <- Coefficient1 <$> getCoeff (printf "I(%s)" var) e
   c2 <- Coefficient2 <$> getCoeff (printf "I(%s^2)" var) e
   pure $ OneVariableQuadraticFunction c0 c1 c2
 
-readTwoVariableFunLinearOnDiagonal :: MonadR m => String -> SomeSEXP (Region m) -> m ModelConstantOrLinear
+readTwoVariableFunLinearOnDiagonal
+  :: MonadR m => String -> SomeSEXP (Region m) -> m ModelConstantOrLinear
 readTwoVariableFunLinearOnDiagonal var e = do
   constantPart <- getExtraParam "constant" e
   intercept <- Intercept <$> getCoeff "(Intercept)" e
@@ -373,14 +376,16 @@ readTwoVariableFunLinearOnDiagonal var e = do
   pure $ ModelConstantOrLinear constantPart intercept slope
 
 -- | A costing function of the form a+sx+ty
-readTwoVariableLinearFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableLinearFunction
+readTwoVariableLinearFunction
+  :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableLinearFunction
 readTwoVariableLinearFunction var1 var2 e = do
   intercept <- Intercept <$> getCoeff "(Intercept)" e
   slopeX <- Slope <$> getCoeff var1 e
   slopeY <- Slope <$> getCoeff var2 e
   pure $ TwoVariableLinearFunction intercept slopeX slopeY
 
-readTwoVariableWithInteractionFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableWithInteractionFunction
+readTwoVariableWithInteractionFunction
+  :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableWithInteractionFunction
 readTwoVariableWithInteractionFunction var1 var2 e = do
   c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
   c10 <- Coefficient10 <$> getCoeff var1 e
@@ -388,7 +393,8 @@ readTwoVariableWithInteractionFunction var1 var2 e = do
   c11 <- Coefficient11 <$> getCoeff (printf "%s:%s" var1 var2) e
   pure $ TwoVariableWithInteractionFunction c00 c10 c01 c11
 
-readTwoVariableQuadraticFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
+readTwoVariableQuadraticFunction
+  :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
 readTwoVariableQuadraticFunction var1 var2 e = do
   minVal <- getExtraParam "minimum" e
   c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
@@ -400,7 +406,8 @@ readTwoVariableQuadraticFunction var1 var2 e = do
   pure $ TwoVariableQuadraticFunction minVal c00 c10 c01 c20 c11 c02
 
 -- Specialised version of readTwoVariableQuadraticFunction for a*YZ^2 + b*YZ
-readExpModCostingFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m ExpModCostingFunction
+readExpModCostingFunction
+  :: MonadR m => String -> String -> SomeSEXP (Region m) -> m ExpModCostingFunction
 readExpModCostingFunction var1 var2 e = do
   c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
   c11 <- Coefficient11 <$> getCoeff (printf "I(%s * %s)" var1 var2) e
@@ -454,7 +461,8 @@ readCF2AtType ty e = do
     "const_off_diagonal" -> ModelTwoArgumentsConstOffDiagonal <$> readOneVariableFunConstOr e
     "quadratic_in_y" -> ModelTwoArgumentsQuadraticInY <$> readOneVariableQuadraticFunction "y_mem" e
     "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXAndY <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
-    "with_interaction_in_x_and_y" -> ModelTwoArgumentsWithInteractionInXAndY <$> readTwoVariableWithInteractionFunction "x_mem" "y_mem" e
+    "with_interaction_in_x_and_y" ->
+      ModelTwoArgumentsWithInteractionInXAndY <$> readTwoVariableWithInteractionFunction "x_mem" "y_mem" e
     _ -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments

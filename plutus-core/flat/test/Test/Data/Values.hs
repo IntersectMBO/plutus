@@ -67,10 +67,121 @@ infList = C True infList
 
 hl1 = [1, 3 .. 111 :: Word]
 hl2 = [1, 3 .. 111 :: Int]
-hl3 = [False, True, True, False, True, True, True, True, False, True, True, True, True, False, True, False]
+hl3 =
+  [ False
+  , True
+  , True
+  , False
+  , True
+  , True
+  , True
+  , True
+  , False
+  , True
+  , True
+  , True
+  , True
+  , False
+  , True
+  , False
+  ]
 
-b1 = B.pack [99, 173, 186, 44, 187, 124, 87, 186, 104, 99, 138, 202, 53, 137, 22, 5, 44, 244, 234, 7, 159, 119, 22, 234]
-b2 = B.pack . concat . replicate 100 $ [235, 7, 135, 117, 255, 69, 100, 113, 113, 82, 128, 181, 200, 146, 155, 228, 144, 65, 83, 162, 130, 236, 235, 7, 135, 117, 255, 69, 100, 113, 113, 82, 128, 181, 200, 146, 155, 228, 144, 65, 83, 162, 130, 236, 235, 7, 135, 117, 255, 69, 100, 113, 113, 82, 128, 181, 200, 146, 155, 228, 144, 65, 83, 162, 130, 236]
+b1 =
+  B.pack
+    [ 99
+    , 173
+    , 186
+    , 44
+    , 187
+    , 124
+    , 87
+    , 186
+    , 104
+    , 99
+    , 138
+    , 202
+    , 53
+    , 137
+    , 22
+    , 5
+    , 44
+    , 244
+    , 234
+    , 7
+    , 159
+    , 119
+    , 22
+    , 234
+    ]
+b2 =
+  B.pack . concat . replicate 100 $
+    [ 235
+    , 7
+    , 135
+    , 117
+    , 255
+    , 69
+    , 100
+    , 113
+    , 113
+    , 82
+    , 128
+    , 181
+    , 200
+    , 146
+    , 155
+    , 228
+    , 144
+    , 65
+    , 83
+    , 162
+    , 130
+    , 236
+    , 235
+    , 7
+    , 135
+    , 117
+    , 255
+    , 69
+    , 100
+    , 113
+    , 113
+    , 82
+    , 128
+    , 181
+    , 200
+    , 146
+    , 155
+    , 228
+    , 144
+    , 65
+    , 83
+    , 162
+    , 130
+    , 236
+    , 235
+    , 7
+    , 135
+    , 117
+    , 255
+    , 69
+    , 100
+    , 113
+    , 113
+    , 82
+    , 128
+    , 181
+    , 200
+    , 146
+    , 155
+    , 228
+    , 144
+    , 65
+    , 83
+    , 162
+    , 130
+    , 236
+    ]
 
 lb1 = L.pack . B.unpack $ b1
 lb2 = L.fromChunks $ replicate 100 $ B.replicate 400 33
@@ -103,11 +214,77 @@ lBool = l2L $ map odd [1 :: Int .. 99]
 lBool2 :: List Bool
 lBool2 = l2L $ map odd [1 :: Int .. 1000]
 
-lBool0 = C False (C True (C True (C False (C False (C False (C True (C False (C True (C False (C True (C True (C False (C False (C False N))))))))))))))
+lBool0 =
+  C
+    False
+    ( C
+        True
+        ( C
+            True
+            ( C
+                False
+                ( C
+                    False
+                    (C False (C True (C False (C True (C False (C True (C True (C False (C False (C False N))))))))))
+                )
+            )
+        )
+    )
 
 lN0 = C Three (C One N)
 
-lN = C Three (C Three (C One (C One (C Three (C Four (C One (C Five (C Two (C Three (C Four (C Two (C Five (C Five (C Two (C Four (C Three (C One (C Four (C Five (C Two (C Five (C One (C Five (C Two (C One (C One (C Two (C Four N))))))))))))))))))))))))))))
+lN =
+  C
+    Three
+    ( C
+        Three
+        ( C
+            One
+            ( C
+                One
+                ( C
+                    Three
+                    ( C
+                        Four
+                        ( C
+                            One
+                            ( C
+                                Five
+                                ( C
+                                    Two
+                                    ( C
+                                        Three
+                                        ( C
+                                            Four
+                                            ( C
+                                                Two
+                                                ( C
+                                                    Five
+                                                    ( C
+                                                        Five
+                                                        ( C
+                                                            Two
+                                                            ( C
+                                                                Four
+                                                                ( C
+                                                                    Three
+                                                                    (C One (C Four (C Five (C Two (C Five (C One (C Five (C Two (C One (C One (C Two (C Four N))))))))))))
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
 
 largeSize = 1000000
 
@@ -183,7 +360,20 @@ tree2 = Node (Leaf 17) (Node (Leaf 23) (Leaf 45))
 
 -- stream1 = Stream True stream1
 
-car1 = Car 2343 1965 True ModelB [18, 234] "1234" [SunRoof, CruiseControl] (Engine 1200 3 9000 "Fiat" "Petrol") [Consumption 40 18, Consumption 60 23, Consumption 80 25] [(90, [Acceleration 40 12]), (110, [Acceleration 50 11])] "Fiat" "500"
+car1 =
+  Car
+    2343
+    1965
+    True
+    ModelB
+    [18, 234]
+    "1234"
+    [SunRoof, CruiseControl]
+    (Engine 1200 3 9000 "Fiat" "Petrol")
+    [Consumption 40 18, Consumption 60 23, Consumption 80 25]
+    [(90, [Acceleration 40 12]), (110, [Acceleration 50 11])]
+    "Fiat"
+    "500"
 
 treeN = mkTree asN3 1
 
@@ -217,8 +407,10 @@ special = "&forall;\&"
 -- Crashes eta
 -- emoji = "\x1F600"
 
-english = "To hike, or not to hike? US Federal Reserve chair Janet Yellen faces a tricky decision at today's FOMC meeting. Photograph: Action Press/Rex. Theme park operator Merlin Entertainments suffered a significant drop in visitor numbers to its Alton Towers attraction after a serious rollercoaster accident in June."
-latin = "I promessi sposi è un celebre romanzo storico di Alessandro Manzoni, ritenuto il più famoso e il più letto tra quelli scritti in lingua italiana[1]."
+english =
+  "To hike, or not to hike? US Federal Reserve chair Janet Yellen faces a tricky decision at today's FOMC meeting. Photograph: Action Press/Rex. Theme park operator Merlin Entertainments suffered a significant drop in visitor numbers to its Alton Towers attraction after a serious rollercoaster accident in June."
+latin =
+  "I promessi sposi è un celebre romanzo storico di Alessandro Manzoni, ritenuto il più famoso e il più letto tra quelli scritti in lingua italiana[1]."
 chinese = "维护和平正义 开创美好未来——习近平主席在纪念中国人民抗日战争暨世界反法西斯战争胜利70周年大会上重要讲话在国际社会引起热烈反响"
 
 longS = take 1000000 . concat . repeat

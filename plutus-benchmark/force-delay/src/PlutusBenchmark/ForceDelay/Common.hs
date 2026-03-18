@@ -25,7 +25,8 @@ getScriptDirectory = do
   root <- getDataDir
   return $ root </> "force-delay" </> "data"
 
-unsafeUnflat :: String -> BS.ByteString -> UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+unsafeUnflat
+  :: String -> BS.ByteString -> UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 unsafeUnflat file contents =
   case unflat contents of
     Left e -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e

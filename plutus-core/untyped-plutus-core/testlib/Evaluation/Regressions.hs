@@ -46,7 +46,9 @@ schnorrVerifyRegressions =
 -- Unfortunately, ByteString literals are a weird pseudo-ASCII thing
 -- Thus, this manual reconstruction
 signature :: ByteString
-signature = fromListN 64 . fmap go . chunksOf 2 $ "4d83cfb975c5f8b9ba656edb205466bf2c5548f01fc3277427d4ff555df4a996383e171127e82e56fd9bfd0e22df12a004fdac73c67793d97199cc5b223dbe84"
+signature =
+  fromListN 64 . fmap go . chunksOf 2 $
+    "4d83cfb975c5f8b9ba656edb205466bf2c5548f01fc3277427d4ff555df4a996383e171127e82e56fd9bfd0e22df12a004fdac73c67793d97199cc5b223dbe84"
   where
     go :: [Char] -> Word8
     go = fromMaybe zeroBits . readMaybe

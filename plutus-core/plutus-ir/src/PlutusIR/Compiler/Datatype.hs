@@ -70,7 +70,9 @@ constructorArgTypes :: VarDecl tyname name uni a -> [Type tyname uni a]
 constructorArgTypes = PLC.funTyArgs . _varDeclType
 
 -- | "Unveil" a datatype definition in a type, by replacing uses of the name as a type variable with the concrete definition.
-unveilDatatype :: Eq tyname => Type tyname uni a -> Datatype tyname name uni a -> Type tyname uni a -> Type tyname uni a
+unveilDatatype
+  :: Eq tyname
+  => Type tyname uni a -> Datatype tyname name uni a -> Type tyname uni a -> Type tyname uni a
 unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == _tyVarDeclName tn then Just dty else Nothing)
 
 resultTypeName :: MonadQuote m => Datatype TyName Name uni a -> m TyName
@@ -341,7 +343,9 @@ but with the type variable for the type itself free and its type variables free.
 
 Scott: @mkPatternFunctorBody List = forall (out_List :: *) . out_List -> (a -> List a -> out_List) -> out_List@
 SOPs: @mkPatternFunctorBody List = sop [] [a, List a]@ -}
-mkPatternFunctorBody :: MonadQuote m => DatatypeCompilationOpts -> ann -> Datatype TyName Name uni ann -> m (Type TyName uni ann)
+mkPatternFunctorBody
+  :: MonadQuote m
+  => DatatypeCompilationOpts -> ann -> Datatype TyName Name uni ann -> m (Type TyName uni ann)
 mkPatternFunctorBody opts ann d = case _dcoStyle opts of
   ScottEncoding -> mkScottTy ann d
   SumsOfProducts -> pure $ mkDatatypeSOPTy ann d
@@ -362,7 +366,13 @@ SOPs:
         = fix (\(List :: * -> *) (a :: *) -> <pattern functor body of List>)
         = fix (\(List :: * -> *) (a :: *) -> \(a :: *) -> sop [] [a, List a])
 @ -}
-mkDatatypeType :: forall m uni fun a. MonadQuote m => DatatypeCompilationOpts -> Recursivity -> Datatype TyName Name uni (Provenance a) -> m (PLCRecType uni fun a)
+mkDatatypeType
+  :: forall m uni fun a
+   . MonadQuote m
+  => DatatypeCompilationOpts
+  -> Recursivity
+  -> Datatype TyName Name uni (Provenance a)
+  -> m (PLCRecType uni fun a)
 mkDatatypeType opts r d@(Datatype ann tn tvs _ _) = do
   pf <- mkPatternFunctorBody opts ann d
   case r of
@@ -371,7 +381,8 @@ mkDatatypeType opts r d@(Datatype ann tn tvs _ _) = do
     -- We are reusing the same type name for the fixpoint variable. This is fine
     -- so long as we do renaming later, since we only reuse the name inside an inner binder
     Rec -> do
-      RecursiveType <$> (liftQuote $ Types.makeRecursiveType @uni @(Provenance a) ann (_tyVarDeclName tn) tvs pf)
+      RecursiveType
+        <$> (liftQuote $ Types.makeRecursiveType @uni @(Provenance a) ann (_tyVarDeclName tn) tvs pf)
 
 -- | The type of a datatype-value is of the form `[TyCon tyarg1 tyarg2 ... tyargn]`
 mkDatatypeValueType :: a -> Datatype TyName Name uni a -> Type TyName uni a
@@ -384,7 +395,8 @@ type variables free.
 @
     mkConstructorType List Cons = forall (a :: *) . a -> List a -> List a
 @ -}
-mkConstructorType :: Datatype TyName Name uni (Provenance a) -> VarDecl TyName Name uni (Provenance a) -> PIRType uni a
+mkConstructorType
+  :: Datatype TyName Name uni (Provenance a) -> VarDecl TyName Name uni (Provenance a) -> PIRType uni a
 -- this type appears *inside* the scope of the abstraction for the datatype so we can just reference the name and
 -- we don't need to do anything to the declared type
 -- see Note [Abstract data types]
@@ -410,7 +422,13 @@ SOPs:
             wrap <pattern functor of List>
                 constr ((\(List :: * -> *) . <pattern functor of List>) <definition of List>) arg1 arg2
 @ -}
-mkConstructor :: MonadQuote m => DatatypeCompilationOpts -> PLCRecType uni fun a -> Datatype TyName Name uni (Provenance a) -> Word64 -> m (PIRTerm uni fun a)
+mkConstructor
+  :: MonadQuote m
+  => DatatypeCompilationOpts
+  -> PLCRecType uni fun a
+  -> Datatype TyName Name uni (Provenance a)
+  -> Word64
+  -> m (PIRTerm uni fun a)
 mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
   -- This is inelegant, but it should never fail
   let thisConstr = constrs !! fromIntegral index
@@ -487,7 +505,12 @@ SOPs:
          /\(r :: *) ->
          \(case_Nil :: r) (case_Cons :: a -> (<definition of List> a) -> r) -> case r (unwrap x) case_Nil case_Cons
 @ -}
-mkDestructor :: MonadQuote m => DatatypeCompilationOpts -> PLCRecType uni fun a -> Datatype TyName Name uni (Provenance a) -> m (PIRTerm uni fun a)
+mkDestructor
+  :: MonadQuote m
+  => DatatypeCompilationOpts
+  -> PLCRecType uni fun a
+  -> Datatype TyName Name uni (Provenance a)
+  -> m (PIRTerm uni fun a)
 mkDestructor opts dty d@(Datatype ann _ tvs _ constrs) = do
   -- This term appears *outside* the scope of the abstraction for the datatype, so we need to put in the Scott-encoded type here
   -- see Note [Abstract data types]

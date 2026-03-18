@@ -36,7 +36,7 @@
     "nanoid": "3.3.8",
     "path-to-regexp": "3.3.0",
     "katex": "0.16.21",
-    "dompurify": "3.2.4",
+    "dompurify": "3.3.3",
     "prismjs": "1.30.0",
     "@babel/runtime-corejs3": "7.26.10",
     "@babel/runtime": "7.26.10",
@@ -58,7 +58,8 @@
     "minimatch": "3.1.4",
     "ajv": "8.18.0",
     "schema-utils": "4.3.3",
-    "webpack": "5.104.1"
+    "webpack": "5.104.1",
+    "svgo": "3.3.3"
   },
   "browserslist": {
     "production": [

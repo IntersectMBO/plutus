@@ -1,4 +1,17 @@
 
+<a id='changelog-1.60.0.0'></a>
+# 1.60.0.0 — 2026-03-18
+
+## Added
+
+- Added `ScriptContextBuilder` test utility (`PlutusLedgerApi.Test.ScriptContextBuilder`) to `plutus-ledger-api-testlib` for constructing realistic `ScriptContext` values in tests using a composable builder pattern.
+
+## Fixed
+
+- Fixed `Show` instance for `TokenName` displaying non-printable token names as
+  seemingly empty strings. Token names are now always shown as hex-encoded bytes,
+  matching `CurrencySymbol` (#7638).
+
 <a id='changelog-1.59.0.0'></a>
 # 1.59.0.0 — 2026-03-02
 

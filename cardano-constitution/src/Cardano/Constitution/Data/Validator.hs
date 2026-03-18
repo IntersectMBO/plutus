@@ -16,7 +16,8 @@ import Cardano.Constitution.Validator.Data.Unsorted qualified as U
 import Data.Map.Strict qualified as M
 import PlutusTx.Code
 
-defaultValidatorsWithCodes :: M.Map String (ConstitutionValidator, CompiledCode ConstitutionValidator)
+defaultValidatorsWithCodes
+  :: M.Map String (ConstitutionValidator, CompiledCode ConstitutionValidator)
 defaultValidatorsWithCodes =
   [ ("sorted", (S.defaultConstitutionValidator, S.defaultConstitutionCode))
   , ("unsorted", (U.defaultConstitutionValidator, U.defaultConstitutionCode))

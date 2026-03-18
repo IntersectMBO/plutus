@@ -192,7 +192,8 @@ fixAndType = runQuote $ do
 {-| A type that looks like a transformation.
 
 > trans F G Q : F Q -> G Q -}
-trans :: Type tyname uni () -> Type tyname uni () -> Type tyname uni () -> Quote (Type tyname uni ())
+trans
+  :: Type tyname uni () -> Type tyname uni () -> Type tyname uni () -> Quote (Type tyname uni ())
 trans f g q = pure $ TyFun () (TyApp () f q) (TyApp () g q)
 
 {-| A type that looks like a natural transformation, sometimes written 'F ~> G'.
@@ -298,7 +299,8 @@ fixByAndType = runQuote $ do
 fixN :: TermLike term TyName Name uni fun => Integer -> term () -> term ()
 fixN n fixByTerm = fst (fixNAndType n fixByTerm)
 
-fixNAndType :: TermLike term TyName Name uni fun => Integer -> term () -> (term (), Type TyName uni ())
+fixNAndType
+  :: TermLike term TyName Name uni fun => Integer -> term () -> (term (), Type TyName uni ())
 fixNAndType n fixByTerm = runQuote $ do
   -- the list of pairs of A and B types
   asbs <- replicateM (fromIntegral n) $ do
