@@ -1,1 +1,1 @@
-1
+ifThenElse {integer} True 1 (divideInteger 1 0)
