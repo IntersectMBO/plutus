@@ -39,13 +39,13 @@ $(makeLenses ''SimplifyOpts)
 defaultSimplifyOpts :: SimplifyOpts name a
 defaultSimplifyOpts =
   SimplifyOpts
-    { _soMaxSimplifierIterations = 12
-    , _soMaxCseIterations = 4
+    { _soMaxSimplifierIterations = 20
+    , _soMaxCseIterations = 10
     , _soCseWhichSubterms = ExcludeWorkFree
     , _soConservativeOpts = False
     , _soInlineHints = def
     , _soInlineConstants = True
-    , _soInlineCallsiteGrowth = 5
+    , _soInlineCallsiteGrowth = 10
     , _soPreserveLogging = True
     , _soApplyToCase = True
     }
