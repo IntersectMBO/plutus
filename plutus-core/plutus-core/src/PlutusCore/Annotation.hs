@@ -8,6 +8,8 @@ module PlutusCore.Annotation
   , InlineHints (..)
   , Inline (..)
   , AnnInline (..)
+  , Case (..)
+  , AnnCase (..)
   , Megaparsec.SourcePos (..)
   , Megaparsec.Pos
   , addSrcSpan
@@ -37,6 +39,7 @@ instance Default (InlineHints name a) where
 -- | An annotation type used during the compilation.
 data Ann = Ann
   { annInline :: Inline
+  , annCase :: Case
   , annSrcSpans :: SrcSpans
   , annIsAsDataMatcher :: Bool
   }
@@ -47,6 +50,7 @@ instance Default Ann where
   def =
     Ann
       { annInline = MayInline
+      , annCase = NotSafeToDrop
       , annSrcSpans = mempty
       , annIsAsDataMatcher = False
       }
@@ -92,6 +96,34 @@ instance AnnInline Ann where
   annAlwaysInline = def {annInline = AlwaysInline}
   annSafeToInline = def {annInline = SafeToInline}
   annMayInline = def {annInline = MayInline}
+
+data Case
+  = {-| Signaling to the compiler that a @case@ expression is safe to drop,
+    so long as its binders are unused. -}
+    SafeToDrop
+  | NotSafeToDrop
+  deriving stock (Eq, Ord, Generic, Show)
+  deriving anyclass (Hashable)
+
+-- | Methods used to guide optimization of @case@ expressions.
+class AnnCase a where
+  {-| An annotation signaling that the @case@ expression is safe to drop,
+  so long as its binders are unused. -}
+  annSafeToDrop :: a
+
+  annNotSafeToDrop :: a
+
+  annIsSafeToDrop :: a -> Bool
+
+instance AnnCase () where
+  annSafeToDrop = ()
+  annNotSafeToDrop = ()
+  annIsSafeToDrop = const False
+
+instance AnnCase Ann where
+  annSafeToDrop = def {annCase = SafeToDrop}
+  annNotSafeToDrop = def {annCase = NotSafeToDrop}
+  annIsSafeToDrop = (== SafeToDrop) . annCase
 
 {-| The span between two source locations.
 
@@ -149,7 +181,7 @@ instance Pretty SrcSpans where
 
 -- | Add an extra SrcSpan to existing 'SrcSpans' of 'Ann'
 addSrcSpan :: SrcSpan -> Ann -> Ann
-addSrcSpan s (Ann i (SrcSpans ss) b) = Ann i (SrcSpans $ Set.insert s ss) b
+addSrcSpan s (Ann i c (SrcSpans ss) b) = Ann i c (SrcSpans $ Set.insert s ss) b
 
 -- | Tells if a line (positive integer) falls inside a SrcSpan.
 lineInSrcSpan :: Pos -> SrcSpan -> Bool

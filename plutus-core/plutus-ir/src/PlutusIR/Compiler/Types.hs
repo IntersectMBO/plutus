@@ -241,6 +241,7 @@ type Compiling m uni fun a =
   , MonadQuote m
   , Ord a
   , AnnInline a
+  , AnnCase a
   , PLC.Typecheckable uni fun
   , PLC.GEq uni
   , -- Pretty printing instances

@@ -1246,7 +1246,7 @@ compileExpr mloc e = do
             ( -- Ignore applications to types of 'RuntimeRep' kind, see Note [Runtime reps]
               if GHC.isRuntimeRepKindedTy t
                 then pure l'
-                else PIR.TyInst annMayInline <$> pure l' <*> compileTypeNorm t
+                else PIR.TyInst annMayInline l' <$> compileTypeNorm t
             )
         -- otherwise it's a normal application
         l `GHC.App` arg -> do
@@ -1263,7 +1263,7 @@ compileExpr mloc e = do
             ( -- If the head of the application is an `AsData` matcher, set `safeToInline`
               -- to True and continue.
               (if isAsDataMatcher then local (\c -> c {ccSafeToInline = True}) else id)
-                (PIR.Apply annMayInline <$> pure l' <*> compileExpr Nothing arg)
+                (PIR.Apply annMayInline l' <$> compileExpr Nothing arg)
             )
         -- if we're biding a type variable it's a type abstraction
         GHC.Lam b@(GHC.isTyVar -> True) body ->

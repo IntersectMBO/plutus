@@ -3,79 +3,15 @@
    (\d ->
       case
         (unConstrData d)
-        [ (\idx
-            args ->
+        [ (\idx args ->
              case
                idx
-               [ (case
+               [ (case args [(\hd tl -> unIData hd)])
+               , (case args [(\hd tl -> case tl [(\hd tl -> unIData hd)])])
+               , (case
                     args
                     [ (\hd tl ->
                          case
                            tl
                            [ (\hd tl ->
-                                case
-                                  tl
-                                  [ (\hd tl ->
-                                       case
-                                         tl
-                                         [ (\hd tl ->
-                                              case
-                                                tl
-                                                [ (\hd tl ->
-                                                     unIData hd) ]) ]) ]) ]) ])
-               , (case
-                    args
-                    [ (\hd
-                        tl ->
-                         case
-                           tl
-                           [ (\hd
-                               tl ->
-                                case
-                                  tl
-                                  [ (\hd
-                                      tl ->
-                                       case
-                                         tl
-                                         [ (\hd
-                                             tl ->
-                                              case
-                                                tl
-                                                [ (\hd
-                                                    tl ->
-                                                     case
-                                                       tl
-                                                       [ (\hd
-                                                           tl ->
-                                                            unIData
-                                                              hd) ]) ]) ]) ]) ]) ])
-               , (case
-                    args
-                    [ (\hd
-                        tl ->
-                         case
-                           tl
-                           [ (\hd
-                               tl ->
-                                case
-                                  tl
-                                  [ (\hd
-                                      tl ->
-                                       case
-                                         tl
-                                         [ (\hd
-                                             tl ->
-                                              case
-                                                tl
-                                                [ (\hd
-                                                    tl ->
-                                                     case
-                                                       tl
-                                                       [ (\hd
-                                                           tl ->
-                                                            case
-                                                              tl
-                                                              [ (\hd
-                                                                  tl ->
-                                                                   unIData
-                                                                     hd) ]) ]) ]) ]) ]) ]) ]) ]) ]))
+                                case tl [(\hd tl -> unIData hd)]) ]) ]) ]) ]))

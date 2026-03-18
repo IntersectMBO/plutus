@@ -5,32 +5,19 @@
     /\r -> \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
     {integer}
     (unConstrData d)
-    (\(idx : integer)
-      (args : list data) ->
+    (\(idx : integer) (args : list data) ->
        case
          integer
          idx
-         [ (case
+         [ (case integer args [(\(hd : data) (tl : list data) -> unIData hd)])
+         , (case
               integer
               args
               [ (\(hd : data) (tl : list data) ->
                    case
                      integer
                      tl
-                     [ (\(hd : data) (tl : list data) ->
-                          case
-                            integer
-                            tl
-                            [ (\(hd : data) (tl : list data) ->
-                                 case
-                                   integer
-                                   tl
-                                   [ (\(hd : data) (tl : list data) ->
-                                        case
-                                          integer
-                                          tl
-                                          [ (\(hd : data) (tl : list data) ->
-                                               unIData hd) ]) ]) ]) ]) ])
+                     [(\(hd : data) (tl : list data) -> unIData hd)]) ])
          , (case
               integer
               args
@@ -43,55 +30,4 @@
                             integer
                             tl
                             [ (\(hd : data) (tl : list data) ->
-                                 case
-                                   integer
-                                   tl
-                                   [ (\(hd : data) (tl : list data) ->
-                                        case
-                                          integer
-                                          tl
-                                          [ (\(hd : data) (tl : list data) ->
-                                               case
-                                                 integer
-                                                 tl
-                                                 [ (\(hd : data)
-                                                     (tl : list data) ->
-                                                      unIData
-                                                        hd) ]) ]) ]) ]) ]) ])
-         , (case
-              integer
-              args
-              [ (\(hd : data)
-                  (tl : list data) ->
-                   case
-                     integer
-                     tl
-                     [ (\(hd : data)
-                         (tl : list data) ->
-                          case
-                            integer
-                            tl
-                            [ (\(hd : data)
-                                (tl : list data) ->
-                                 case
-                                   integer
-                                   tl
-                                   [ (\(hd : data)
-                                       (tl : list data) ->
-                                        case
-                                          integer
-                                          tl
-                                          [ (\(hd : data)
-                                              (tl : list data) ->
-                                               case
-                                                 integer
-                                                 tl
-                                                 [ (\(hd : data)
-                                                     (tl : list data) ->
-                                                      case
-                                                        integer
-                                                        tl
-                                                        [ (\(hd : data)
-                                                            (tl : list data) ->
-                                                             unIData
-                                                               hd) ]) ]) ]) ]) ]) ]) ]) ])
+                                 unIData hd) ]) ]) ]) ])
