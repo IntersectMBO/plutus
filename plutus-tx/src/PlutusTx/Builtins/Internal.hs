@@ -130,6 +130,10 @@ unitval :: BuiltinUnit
 unitval = BuiltinUnit ()
 {-# OPAQUE unitval #-}
 
+anotherUnitval :: BuiltinUnit
+anotherUnitval = BuiltinUnit ()
+{-# OPAQUE anotherUnitval #-}
+
 chooseUnit :: BuiltinUnit -> a -> a
 chooseUnit (BuiltinUnit ()) a = a
 {-# OPAQUE chooseUnit #-}
