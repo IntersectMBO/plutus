@@ -721,10 +721,10 @@ benchmark marlowe-agda-cek
     , agda-internal
     , base                     >=4.9   && <5
     , criterion
+    , filepath
     , marlowe-internal
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.60
-    , plutus-tx                ^>=1.60
 
 -------------------- bitwise -----------------------
 
