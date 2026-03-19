@@ -604,11 +604,11 @@ library marlowe-internal
     , newtype-generics
     , plutus-benchmark-common
     , plutus-core                       ^>=1.60
+    , plutus-core:flat
     , plutus-ledger-api                 ^>=1.60
     , plutus-ledger-api:plutus-execlib
     , plutus-tx                         ^>=1.60
     , plutus-tx-plugin                  ^>=1.60
-    , plutus-core:flat
     , serialise
 
 executable marlowe-validators
@@ -646,7 +646,6 @@ benchmark marlowe
     , marlowe-internal
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.60
-    , plutus-tx                ^>=1.60
 
 test-suite plutus-benchmark-marlowe-tests
   import:         lang, ghc-version-support, os-support
