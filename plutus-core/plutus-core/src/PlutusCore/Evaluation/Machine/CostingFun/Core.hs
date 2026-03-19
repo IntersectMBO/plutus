@@ -733,6 +733,7 @@ data ModelThreeArguments
   | ModelThreeArgumentsQuadraticInZ OneVariableQuadraticFunction
   | ModelThreeArgumentsLiteralInYOrLinearInZ OneVariableLinearFunction
   | ModelThreeArgumentsLinearInMaxYZ OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInXAndY TwoVariableLinearFunction
   | ModelThreeArgumentsLinearInYAndZ TwoVariableLinearFunction
   | ModelThreeArgumentsQuadraticInYAndZ TwoVariableQuadraticFunction
   | ModelThreeArgumentsExpModCost ExpModCostingFunction
@@ -793,6 +794,10 @@ runThreeArgumentModel
   (ModelThreeArgumentsLinearInYAndZ (TwoVariableLinearFunction intercept slope2 slope3)) =
     lazy $ \_costs1 costs2 costs3 ->
       scaleLinearlyTwoVariables intercept slope2 costs2 slope3 costs3
+runThreeArgumentModel
+  (ModelThreeArgumentsLinearInXAndY (TwoVariableLinearFunction intercept slope1 slope2)) =
+    lazy $ \costs1 costs2 _costs3 ->
+      scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
 runThreeArgumentModel
   (ModelThreeArgumentsQuadraticInYAndZ f) =
     lazy $ \_ costs2 costs3 ->
