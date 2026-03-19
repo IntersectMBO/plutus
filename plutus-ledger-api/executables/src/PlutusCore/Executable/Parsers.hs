@@ -1,11 +1,17 @@
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
 
 -- | Common option parsers for executables
 module PlutusCore.Executable.Parsers where
 
+import PlutusCore.AstSize (AstSize (..))
 import PlutusCore.Default (BuiltinSemanticsVariant (..), DefaultFun)
 import PlutusCore.Executable.Types
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Transform.Cse (CseWhichSubterms (..))
 
+import Control.Lens ((^.))
 import Options.Applicative
 
 {-| Parser for an input stream. If none is specified,
@@ -188,7 +194,81 @@ certifierOutputMode =
         )
     ]
 
-optimiseOpts :: Parser OptimiseOptions
+simplifyOpts :: Parser (UPLC.SimplifyOpts name a)
+simplifyOpts = do
+  _soMaxSimplifierIterations <-
+    option
+      auto
+      ( long "opt-simplifier-iterations"
+          <> metavar "INT"
+          <> value (UPLC.defaultSimplifyOpts ^. UPLC.soMaxSimplifierIterations)
+          <> showDefault
+          <> help "Number of simplifier iterations"
+      )
+  _soMaxCseIterations <-
+    option
+      auto
+      ( long "opt-cse-iterations"
+          <> metavar "INT"
+          <> value (UPLC.defaultSimplifyOpts ^. UPLC.soMaxCseIterations)
+          <> showDefault
+          <> help "Number of CSE iterations"
+      )
+  _soCseWhichSubterms <-
+    option
+      ( maybeReader
+          ( \case
+              "all" -> Just AllSubterms
+              "exclude-work-free" -> Just ExcludeWorkFree
+              _ -> Nothing
+          )
+      )
+      ( long "opt-cse-which-subterms"
+          <> metavar "MODE"
+          <> value ExcludeWorkFree
+          <> showDefaultWith (\case AllSubterms -> "all"; ExcludeWorkFree -> "exclude-work-free")
+          <> help "CSE subterm selection: all | exclude-work-free"
+      )
+  _soConservativeOpts <-
+    switch
+      ( long "opt-conservative"
+          <> help "Use conservative optimisation options. May result in less optimized code."
+      )
+  let _soInlineHints = UPLC.defaultSimplifyOpts ^. UPLC.soInlineHints
+  _soInlineConstants <-
+    flag
+      True
+      False
+      ( long "opt-no-inline-constants"
+          <> help "Disable constant inlining"
+      )
+  _soInlineCallsiteGrowth <-
+    option
+      (AstSize <$> auto)
+      ( long "opt-inline-callsite-growth"
+          <> metavar "INT"
+          <> value (UPLC.defaultSimplifyOpts ^. UPLC.soInlineCallsiteGrowth)
+          <> showDefault
+          <> help "Maximum allowed AST growth at call sites for inlining"
+      )
+  _soPreserveLogging <-
+    switch
+      ( long "opt-preserve-logging"
+          <> help
+            ( "Prevent optimizations from removing or reordering log messages."
+                <> " May result in less optimized code."
+            )
+      )
+  _soApplyToCase <-
+    flag
+      True
+      False
+      ( long "opt-no-apply-to-case"
+          <> help "Disable apply-to-case optimization"
+      )
+  pure UPLC.SimplifyOpts {..}
+
+optimiseOpts :: Parser (OptimiseOptions name a)
 optimiseOpts =
   OptimiseOptions
     <$> input
@@ -198,6 +278,7 @@ optimiseOpts =
     <*> printmode
     <*> certifier
     <*> certifierOutputMode
+    <*> simplifyOpts
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle

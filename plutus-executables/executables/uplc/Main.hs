@@ -1,4 +1,3 @@
--- editorconfig-checker-disable
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main (main) where
@@ -99,7 +98,7 @@ data Command
   | ApplyToCborData ApplyOptions
   | Benchmark BenchmarkOptions
   | Convert ConvertOptions
-  | Optimise OptimiseOptions
+  | Optimise (OptimiseOptions UPLC.Name SrcSpan)
   | Print PrintOptions
   | Example ExampleOptions
   | Eval EvalOptions
@@ -331,14 +330,14 @@ plutusOpts =
 ---------------- Optimisation ----------------
 
 -- | Run the UPLC optimisations
-runOptimisations :: OptimiseOptions -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput) = do
+runOptimisations :: OptimiseOptions UPLC.Name SrcSpan -> IO ()
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput simplOpts) = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
   (simplified, simplificationTrace) <- PLC.runQuoteT $ do
     renamed <- PLC.rename prog
     let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
         defaultBuiltinSemanticsVariant = def
-    UPLC.simplifyProgramWithTrace UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
+    UPLC.simplifyProgramWithTrace simplOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
   case mcert of
     Nothing -> pure ()
