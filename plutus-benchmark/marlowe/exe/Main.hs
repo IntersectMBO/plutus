@@ -19,8 +19,8 @@ import PlutusBenchmark.Marlowe.BenchUtil
 import PlutusBenchmark.Marlowe.RolePayout qualified as RolePayout
 import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as DataRolePayout (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Data.Semantics qualified as DataSemantics (marloweValidator)
-import PlutusBenchmark.Marlowe.Scripts.RolePayout qualified as RolePayout (rolePayoutValidator)
-import PlutusBenchmark.Marlowe.Scripts.Semantics qualified as Semantics (marloweValidator)
+import PlutusBenchmark.Marlowe.Scripts.RolePayout qualified as SOPRolePayout (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Semantics qualified as SOPSemantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Semantics qualified as Semantics
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
 import PlutusTx.Code (getPlc)
@@ -49,9 +49,9 @@ main = do
   -- Write .flat files for validators
   let
     vs =
-      [ (semanticsUplcDir </> "validator/sop.flat", Semantics.marloweValidator)
+      [ (semanticsUplcDir </> "validator/sop.flat", SOPSemantics.marloweValidator)
       , (semanticsUplcDir </> "validator/data.flat", DataSemantics.marloweValidator)
-      , (rolePayoutUplcDir </> "validator/sop.flat", RolePayout.rolePayoutValidator)
+      , (rolePayoutUplcDir </> "validator/sop.flat", SOPRolePayout.rolePayoutValidator)
       , (rolePayoutUplcDir </> "validator/data.flat", DataRolePayout.rolePayoutValidator)
       ]
 
