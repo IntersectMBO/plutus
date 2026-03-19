@@ -85,13 +85,14 @@ compileProgram = curry $ \case
     withA @Ord a1 $
       withA @Pretty a1 $
         withA @AnnInline a1 $
-          -- Note: PIR.compileProgram subsumes pir typechecking
-          (PLC.runQuoteT . flip runReaderT compCtx . PIR.compileProgram)
-            >=> modifyError (fmap PIR.Original . PIR.PLCError . PLC.FreeVariableErrorE)
-            . plcToOutName n1 n2
-            -- completely drop annotations for now
-            >=> pure
-            . void
+          withA @AnnCase a1 $
+            -- Note: PIR.compileProgram subsumes pir typechecking
+            (PLC.runQuoteT . flip runReaderT compCtx . PIR.compileProgram)
+              >=> modifyError (fmap PIR.Original . PIR.PLCError . PLC.FreeVariableErrorE)
+              . plcToOutName n1 n2
+              -- completely drop annotations for now
+              >=> pure
+              . void
     where
       compCtx =
         PIR.toDefaultCompilationCtx $
@@ -360,3 +361,8 @@ instance AnnInline SrcSpans where
   annAlwaysInline = mempty
   annSafeToInline = mempty
   annMayInline = mempty
+
+instance AnnCase SrcSpans where
+  annSafeToDrop = mempty
+  annNotSafeToDrop = mempty
+  annIsSafeToDrop = const False
