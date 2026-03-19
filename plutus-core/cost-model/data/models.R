@@ -798,7 +798,15 @@ modelFun <- function(path) {
 
     complementByteStringModel <- linearInX ("ComplementByteString")
     readBitModel              <- constantModel ("ReadBit")
-    writeBitsModel            <- linearInY ("WriteBits")
+    writeBitsModel            <- {
+        fname <- "WriteBits"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem > 0 & y_mem > 0)    %>%
+            discard.overhead ()
+        m <- lm(t ~ x_mem + y_mem, filtered)  ## Both strings are copied in full
+        mk.result(m, "linear_in_x_and_y")
+    }
     ## ^ The Y value here is the length of the list of positions because we use ListCostedByLength
     ## in the relevant costing benchmark.
     replicateByteModel        <- linearInX ("ReplicateByte")
