@@ -35,9 +35,9 @@ wrapUnsafeUncons l = (BI.head l, wrapTail l)
 {-# INLINE wrapUnsafeUncons #-}
 
 -- See Note [Dropping redundant unsafeCaseList calls produced by AsData]
-wrapUnsafeCaseList :: forall a r. (a -> BuiltinList a -> r) -> BuiltinList a -> r
-wrapUnsafeCaseList = BI.unsafeCaseList
-{-# OPAQUE wrapUnsafeCaseList #-}
+droppableUnsafeCaseList :: forall a r. (a -> BuiltinList a -> r) -> BuiltinList a -> r
+droppableUnsafeCaseList = BI.unsafeCaseList
+{-# OPAQUE droppableUnsafeCaseList #-}
 
 {- Note [Compiling AsData Matchers and Their Invocations]
 

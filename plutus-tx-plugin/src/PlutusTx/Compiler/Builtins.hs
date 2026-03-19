@@ -516,7 +516,7 @@ defineBuiltinTerms = do
       unsafeCaseListCasing annMayInline annMayInline
 
   -- See Note [Dropping redundant unsafeCaseList calls produced by AsData].
-  defineBuiltinTerm annMayInline 'AI.wrapUnsafeCaseList $ case datatypeStyle of
+  defineBuiltinTerm annMayInline 'AI.droppableUnsafeCaseList $ case datatypeStyle of
     style
       | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
           unsafeCaseListNoCasing

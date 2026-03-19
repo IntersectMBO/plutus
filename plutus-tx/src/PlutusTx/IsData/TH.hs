@@ -469,7 +469,7 @@ mkDestructorBranch kName argsName n
           tl <- TH.newName ("tl" ++ show i)
           let arg = [|unsafeFromBuiltinData $(TH.varE hd)|]
           [|
-            AI.wrapUnsafeCaseList
+            AI.droppableUnsafeCaseList
               ( \ $(TH.varP hd) $(TH.varP tl) ->
                   $(go (i + 1) tl (arg : acc))
               )
