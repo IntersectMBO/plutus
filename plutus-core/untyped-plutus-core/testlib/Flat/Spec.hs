@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -12,7 +13,6 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char (ord)
 import Data.Word
-import PlutusCore.Core (Version (..))
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
 import PlutusCore.Default (DefaultFun (..), DefaultUni (..))
@@ -24,9 +24,10 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 import Universe (Some (..), ValueOf (..))
-import UntypedPlutusCore (Program (..))
-import UntypedPlutusCore.Core (UnrestrictedProgram (..))
 import UntypedPlutusCore.Core.Type
+
+-- Also brings the Flat (Strict.Vector a) orphan instance into scope:
+import UntypedPlutusCore (UnrestrictedProgram (..))
 
 test_deBruijnIso :: TestTree
 test_deBruijnIso = testProperty "deBruijnIso" $ \d ->
@@ -341,11 +342,12 @@ test_nonCanonicalByteStringDecoding =
    in testGroup
         "Non-canonical bytestring encodings decode succesfully"
         [ testProperty "Data via lazy bytestrings" $
-            withMaxSuccess 5000 $
-              forAll (arbitrary @Data) (\d -> Right d === unflat (flat $ (serialise d :: BSL.ByteString)))
+            withMaxSuccess 5000 $ forAll (arbitrary @Data) \d ->
+              Right d === unflat (flat (serialise d :: BSL.ByteString))
         , testProperty "Arbitrary lazy bytestrings" $
             withMaxSuccess 10000 $
-              forAll (arbitrary @BSL.ByteString) (\bs -> Right (BSL.toStrict bs) === unflat (flat bs))
+              forAll (arbitrary @BSL.ByteString) \bs ->
+                Right (BSL.toStrict bs) === unflat (flat bs)
         , testCase "Explicit input 1" $ mkTest input1
         , testCase "Explicit input 2" $ mkTest input2
         , testCase "Explicit input 3" $ mkTest input3
@@ -399,7 +401,8 @@ test_binderNewtypeRoundtrip =
          in unflat (flat v) @?= Right v
     ]
 
--- | Roundtrip and stable byte test for a minimal UPLC program: (program 1.1.0 (con integer 0))
+{-| Roundtrip and stable byte test for a minimal UPLC program:
+  (program 1.1.0 (con integer 0)) -}
 test_uplcProgramFlat :: TestTree
 test_uplcProgramFlat =
   testGroup
@@ -411,7 +414,11 @@ test_uplcProgramFlat =
         flatBytes (UnrestrictedProgram prog) @?= [1, 1, 0, 72, 0, 0]
     ]
   where
-    prog = Program () (Version 1 1 0) (Constant () (Some (ValueOf DefaultUniInteger (0 :: Integer))))
+    prog :: Program DeBruijn DefaultUni DefaultFun () =
+      Program
+        ()
+        (Version 1 1 0)
+        (Constant () (Some (ValueOf DefaultUniInteger (0 :: Integer))))
 
 test_flat :: TestTree
 test_flat =

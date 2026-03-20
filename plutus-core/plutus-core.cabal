@@ -936,9 +936,19 @@ executable print-cost-model
     , bytestring
     , plutus-core  ^>=1.60
 
--- | Reproducible encoding generator for Flat test coverage.
--- Run: cabal run flat-encoding-generator
--- Prints expected byte sequences for all Flat test values.
+-- Golden file generator for Flat encoding stability tests.
+--
+-- The encoding stability tests compare encoded values against expected
+-- byte sequences captured as test fixtures. This tool regenerates those
+-- fixtures from source, so they don't remain opaque blobs of bits.
+--
+-- Example: if a bug in a Flat instance is found and the encoding must
+-- change in a backward-incompatible way, the stability tests will fail.
+-- Run this tool to see the new wire format, update the test fixtures,
+-- and confirm the encoding change was intentional.
+--
+-- See: https://en.wikipedia.org/wiki/Characterization_test
+-- Usage: cabal run flat-encoding-generator
 executable flat-encoding-generator
   import:         lang
   main-is:        GenerateEncodings.hs
@@ -948,13 +958,8 @@ executable flat-encoding-generator
     , bytestring
     , containers
     , dlist
-    , plutus-core       ^>=1.59
+    , plutus-core       ^>=1.60
     , plutus-core:flat
-    , text
-
-  ghc-options:
-    -Wno-missing-signatures -Wno-missing-deriving-strategies
-    -Wno-unused-packages
 
 ----------------------------------------------
 -- satint

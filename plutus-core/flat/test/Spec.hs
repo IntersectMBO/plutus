@@ -114,7 +114,13 @@ testEncDec = testGroup
 
 testFlat = testGroup
   "flat/unflat"
-  [testSize, testLargeEnum, testContainers, flatUnflatRT, flatTests, testNewEncodings]
+  [ testSize
+  , testLargeEnum
+  , testContainers
+  , flatUnflatRT
+  , flatTests
+  , testEncodingStability
+  ]
 
 -- Flat.Endian tests (to run, need to modify imports and cabal file)
 testEndian = testGroup
@@ -395,7 +401,7 @@ testContainers =
 -- | Stable byte encoding tests for flat library container/composite types.
 -- Wrapper types (Identity, All, Any, Dual, etc.) only have roundtrip tests
 -- since their encoding stability is not critical (they are never on-chain).
-testNewEncodings = testGroup "stable byte encodings"
+testEncodingStability = testGroup "stable byte encodings"
   $ concat
     [ -- Maybe Bool
       encRaw (Nothing :: Maybe Bool) [0]

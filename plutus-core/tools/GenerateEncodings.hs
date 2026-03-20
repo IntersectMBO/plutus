@@ -139,9 +139,10 @@ main = do
   putStrLn ""
   putStrLn "=== Section E: Value types ==="
   putStrLn ""
-  let Just myK = V.k "abc"
-      Just myQ = V.quantity 42
-  p "K \"abc\"" (serRaw myK)
-  p "Quantity 42" (serRaw myQ)
+  case (V.k "abc", V.quantity 42) of
+    (Just myK, Just myQ) -> do
+      p "K \"abc\"" (serRaw myK)
+      p "Quantity 42" (serRaw myQ)
+    _ -> error "V.k or V.quantity returned Nothing for known-good inputs"
   p "ByteString \"abc\" (for K reference)" (serRaw ("abc" :: B.ByteString))
   p "Integer 42 (for Quantity reference)" (serRaw (42 :: Integer))
