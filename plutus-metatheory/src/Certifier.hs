@@ -4,6 +4,7 @@ module Certifier
   ( runCertifier
   , mkCertifier
   , prettyCertifierError
+  , CertName
   , CertifierError (..)
   , CertifierOutput (..)
   ) where

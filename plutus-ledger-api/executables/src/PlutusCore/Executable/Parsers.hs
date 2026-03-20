@@ -71,10 +71,12 @@ noOutput =
 
 formatHelp :: String
 formatHelp =
-  "textual, flat-named (names), flat (de Bruijn indices), "
+  "textual, "
     <> "serialised (cbor + flat, with de Bruijn indices), "
     <> "hex (hex + cbor + flat), "
-    <> "or flat-namedDeBruijn (names and de Bruijn indices)"
+    <> "flat-named (names), flat (de Bruijn indices), "
+    <> "flat-namedDeBruijn (names and de Bruijn indices), "
+    <> "or blueprint."
 
 formatReader :: String -> Maybe Format
 formatReader =
@@ -86,6 +88,7 @@ formatReader =
     "flat" -> Just (Flat DeBruijn)
     "flat-deBruijn" -> Just (Flat DeBruijn)
     "flat-namedDeBruijn" -> Just (Flat NamedDeBruijn)
+    "blueprint" -> Just Blueprint
     _ -> Nothing
 
 inputformat :: Parser Format

@@ -269,6 +269,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
     Flat flatMode -> writeFlat outp flatMode untypedProg
     Serialised -> fail "Serialised format unsupported for TPLC"
     Hex -> fail "Hex format unsupported for TPLC"
+    Blueprint -> fail "Blueprint format unsupported for TPLC"
 
 ---------------- Version ----------------
 

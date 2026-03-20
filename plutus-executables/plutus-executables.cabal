@@ -105,6 +105,8 @@ executable uplc
     , bytestring
     , criterion
     , deepseq
+    , extra
+    , filepath
     , haskeline
     , mtl
     , optparse-applicative

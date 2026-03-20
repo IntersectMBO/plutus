@@ -18,6 +18,8 @@ module PlutusCore.Executable.AstIO
   , toDeBruijnUPLC
   , toDeBruijnTypePLC
   , toNamedDeBruijnUPLC
+  , decodeUplcHex
+  , encodeUplcHex
   )
 where
 
@@ -42,6 +44,9 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as SBS
+import Data.Text (Text)
+import Data.Text.Encoding qualified as T
+import Data.Text.IO qualified as T
 import PlutusCore.Flat (Flat, flat, unflat)
 import System.FilePath (takeExtension)
 
@@ -195,15 +200,6 @@ getBinaryInput (FileInput file)
         Right bs -> pure $ BSL.fromStrict bs
   | otherwise = BSL.readFile file
 
-getHexInput :: Input -> IO BSL.ByteString
-getHexInput inp = do
-  contents <- case inp of
-    StdInput -> BS.getContents
-    FileInput file -> BS.readFile file
-  case decodeHex contents of
-    Left err -> error $ "Hex decode failure : " ++ err
-    Right bs -> pure $ BSL.fromStrict bs
-
 decodeHex :: BS.ByteString -> Either String BS.ByteString
 decodeHex = Base16.decode . BS.filter (not . isHexWhitespace)
 
@@ -257,7 +253,11 @@ loadUplcASTfromSerialised :: Input -> IO (UplcProg ())
 loadUplcASTfromSerialised = fmap deserialiseUplcProg . getBinaryInput
 
 loadUplcASTfromHex :: Input -> IO (UplcProg ())
-loadUplcASTfromHex = fmap deserialiseUplcProg . getHexInput
+loadUplcASTfromHex inp = do
+  contents <- case inp of
+    StdInput -> T.getContents
+    FileInput file -> T.readFile file
+  pure $ decodeUplcHex contents
 
 deserialiseUplcProg :: BSL.ByteString -> UplcProg ()
 deserialiseUplcProg =
@@ -266,3 +266,13 @@ deserialiseUplcProg =
     . uncheckedDeserialiseUPLC
     . SBS.toShort
     . BSL.toStrict
+
+decodeUplcHex :: Text -> UplcProg ()
+decodeUplcHex hex =
+  case decodeHex (T.encodeUtf8 hex) of
+    Left err -> error $ "Hex decode failure: " ++ err
+    Right bs -> deserialiseUplcProg (BSL.fromStrict bs)
+
+encodeUplcHex :: UplcProg ann -> Text
+encodeUplcHex =
+  T.decodeUtf8 . Base16.encode . SBS.fromShort . serialiseUPLC . toDeBruijnUPLC . void

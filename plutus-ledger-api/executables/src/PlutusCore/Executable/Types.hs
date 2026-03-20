@@ -42,7 +42,7 @@ data AstNameType
   = Named
   | DeBruijn
   | NamedDeBruijn
-  deriving stock (Show)
+  deriving stock (Eq, Show)
 
 data Input = FileInput FilePath | StdInput
 instance Show Input where
@@ -75,6 +75,8 @@ data Format
     most other places. -}
     Hex
   | Flat AstNameType
+  | Blueprint
+  deriving stock (Eq)
 
 instance Show Format where
   show Textual = "textual"
@@ -83,6 +85,7 @@ instance Show Format where
   show (Flat Named) = "flat-named"
   show (Flat DeBruijn) = "flat-deBruijn"
   show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
+  show Blueprint = "blueprint"
 
 type Certifier = Maybe String
 

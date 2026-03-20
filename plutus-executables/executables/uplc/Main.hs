@@ -10,22 +10,23 @@ import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudge
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Executable.AstIO (toDeBruijnTermUPLC)
+import PlutusCore.Executable.Blueprint
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
-
-import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
-import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
-
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn (FreeVariableError)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
 import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
 import Control.DeepSeq (force)
 import Control.Monad.Except
+import Control.Monad.Extra (whenJust)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.ST (RealWorld)
 import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
@@ -37,12 +38,11 @@ import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
 import Options.Applicative
 import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
-import System.Exit (ExitCode (..), exitFailure, exitSuccess, exitWith)
+import System.Console.Haskeline qualified as Repl
+import System.Exit (ExitCode (..), exitFailure, exitWith)
+import System.FilePath
 import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
-
-import Control.Monad.ST (RealWorld)
-import System.Console.Haskeline qualified as Repl
 
 import Data.Version.Extras (gitAwareVersionInfo)
 import Paths_plutus_executables qualified as Paths
@@ -331,37 +331,97 @@ plutusOpts =
 
 -- | Run the UPLC optimisations
 runOptimisations :: OptimiseOptions UPLC.Name SrcSpan -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput simplOpts) = do
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput simplOpts) =
+  case ifmt of
+    Blueprint -> runOptimiseBlueprint inp outp ofmt mcert certifierOutput simplOpts
+    _ -> runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput simplOpts
+
+runOptimiseSingle
+  :: Input
+  -> Format
+  -> Output
+  -> Format
+  -> PrintMode
+  -> Certifier
+  -> CertifierOutputMode
+  -> UPLC.SimplifyOpts UPLC.Name SrcSpan
+  -> IO ()
+runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput opts = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
-  (simplified, simplificationTrace) <- PLC.runQuoteT $ do
-    renamed <- PLC.rename prog
-    let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
-        defaultBuiltinSemanticsVariant = def
-    UPLC.simplifyProgramWithTrace simplOpts defaultBuiltinSemanticsVariant renamed
+  (simplified, simplificationTrace) <- optimiseProgram opts prog
   writeProgram outp ofmt mode simplified
-  case mcert of
-    Nothing -> pure ()
-    Just cert -> do
-      time <- systemNanoseconds <$> getSystemTime
-      let
-        certDir = cert <> "-" <> show time
-        certOutput = case certifierOutput of
-          CertBasic -> BasicOutput
-          CertReport file -> ReportOutput file
-          CertProject -> ProjectOutput certDir
-      execCertifier simplificationTrace cert certOutput
-  where
-    execCertifier simplificationTrace cert out = do
-      result <- runCertifier $ mkCertifier simplificationTrace cert out
-      case result of
-        Left err -> do
-          putStrLn $ prettyCertifierError err
-          case err of
-            InvalidCertificate _ -> exitWith $ ExitFailure 1
-            InvalidCompilerOutput -> exitWith $ ExitFailure 2
-            ValidationError _ -> exitWith $ ExitFailure 3
-        -- TODO: Only Right True is success
-        Right _ -> exitSuccess
+  whenJust mcert $ \cert -> do
+    time <- systemNanoseconds <$> getSystemTime
+    let
+      certDir = cert <> "-" <> show time
+      certOutput = case certifierOutput of
+        CertBasic -> BasicOutput
+        CertReport file -> ReportOutput file
+        CertProject -> ProjectOutput certDir
+    execCertifier simplificationTrace cert certOutput
+
+runOptimiseBlueprint
+  :: Input
+  -> Output
+  -> Format
+  -> Certifier
+  -> CertifierOutputMode
+  -> UPLC.SimplifyOpts UPLC.Name SrcSpan
+  -> IO ()
+runOptimiseBlueprint inp outp ofmt mcert certifierOutput simplOpts
+  | ofmt /= Blueprint = fail "When input format is blueprint, output format must also be blueprint."
+  | otherwise = do
+      (validators, blueprint) <- readBlueprint inp
+      optimisedWithTrace <-
+        traverse
+          (optimiseProgram simplOpts . (topSrcSpan <$) . bvCode)
+          validators
+      let optimised = map (void . fst) optimisedWithTrace
+      writeBlueprint outp blueprint optimised
+      whenJust mcert $ \cert -> do
+        time <- systemNanoseconds <$> getSystemTime
+        for_ (zip validators (snd <$> optimisedWithTrace)) $ \(validator, simplTrace) -> do
+          let validatorName = T.unpack (bvTitle validator)
+              certDir = cert <> "-" <> validatorName <> "-" <> show time
+              certOutput = case certifierOutput of
+                CertBasic -> BasicOutput
+                CertReport file ->
+                  let (fileBase, fileExt) = splitExtension file
+                   in ReportOutput (fileBase <> "-" <> validatorName <.> fileExt)
+                CertProject -> ProjectOutput certDir
+          execCertifier simplTrace cert certOutput
+
+optimiseProgram
+  :: forall m name a
+   . (UPLC.HasUnique name UPLC.TermUnique, Monad m, Ord name, Typeable name)
+  => UPLC.SimplifyOpts name a
+  -> UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
+  -> m
+       ( UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
+       , UPLC.SimplifierTrace name UPLC.DefaultUni UPLC.DefaultFun a
+       )
+optimiseProgram opts prog = PLC.runQuoteT $ do
+  renamed <- PLC.rename prog
+  let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
+      defaultBuiltinSemanticsVariant = def
+  UPLC.simplifyProgramWithTrace opts defaultBuiltinSemanticsVariant renamed
+
+execCertifier
+  :: UPLC.SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  -> CertName
+  -> CertifierOutput
+  -> IO ()
+execCertifier simplificationTrace cert out = do
+  result <- runCertifier $ mkCertifier simplificationTrace cert out
+  case result of
+    Left err -> do
+      putStrLn $ prettyCertifierError err
+      case err of
+        InvalidCertificate _ -> exitWith $ ExitFailure 1
+        InvalidCompilerOutput -> exitWith $ ExitFailure 2
+        ValidationError _ -> exitWith $ ExitFailure 3
+    -- TODO: Only Right True is success
+    Right _ -> pure ()
 
 ---------------- Script application ----------------
 

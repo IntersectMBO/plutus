@@ -100,6 +100,7 @@ library
 
   other-modules:
     PlutusLedgerApi.Common.Eval
+    PlutusLedgerApi.Common.Hash
     PlutusLedgerApi.Common.ParamName
     PlutusLedgerApi.Common.ProtocolVersions
     PlutusLedgerApi.Common.SerialisedScript
@@ -130,12 +131,14 @@ library plutus-execlib
   hs-source-dirs:  executables/src
   exposed-modules:
     PlutusCore.Executable.AstIO
+    PlutusCore.Executable.Blueprint
     PlutusCore.Executable.Common
     PlutusCore.Executable.Parsers
     PlutusCore.Executable.Types
 
   build-depends:
     , aeson
+    , aeson-pretty
     , base                             >=4.9   && <5
     , base16-bytestring                ^>=1.0
     , bytestring
@@ -152,6 +155,7 @@ library plutus-execlib
     , plutus-ledger-api
     , prettyprinter
     , text
+    , vector
 
 library plutus-ledger-api-testlib
   import:          lang
