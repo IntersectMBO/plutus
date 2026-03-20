@@ -348,6 +348,21 @@ testLargeEnum = testGroup "test enum with more than 256 constructors"
       -- , encRaw (E258_256,E258_257,E258_258) [0b11111110,0b11111111,0b01111111,0b11000000]
     , map trip [E258_1, E258_256, E258_257, E258_258]
     , map trip [E256_1, E256_134, E256_256]
+      -- Issue #7542: consClose only advances currPtr by 1 byte, so when
+      -- (constructor_bits + usedBits >= 16) the decoder state is corrupted
+      -- (usedBits overflows to 8+). This makes the Filler decoder loop
+      -- forever, building infinite FillerBit chains and consuming all memory.
+      --
+      -- The bug requires: (a) a constructor needing 9 bits (depth-9 in the
+      -- Generic tree), AND (b) 7 prior consumed bits so usedBits=7 before
+      -- consOpen. We use 7 nested Bool fields to set up condition (b).
+      --
+      -- Control: E258_256 needs only 8 bits, so 8+7=15 < 16 - no overflow.
+    , [trip (False, (False, (False, (False, (False, (False, (False, E258_256)))))))]
+      -- Bug: E258_258 needs 9 bits, so 9+7=16 - consClose overflows usedBits.
+      -- Without fix: unflat hangs forever (Filler decoder infinite loop).
+    , [localOption (mkTimeout 5000000) $
+        trip (False, (False, (False, (False, (False, (False, (False, E258_258)))))))]
 #endif
     ]
 

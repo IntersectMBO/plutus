@@ -107,13 +107,11 @@ consOpen = Get $ \endPtr s -> do
  {\-# NOINLINE consClose  #-\} -}
 consClose :: Int -> Get ()
 consClose n = Get $ \endPtr s -> do
-  let u' = n + usedBits s
-  if u' < 8
-    then return $ GetResult (s {usedBits = u'}) ()
-    else
-      if currPtr s >= endPtr
-        then notEnoughSpace endPtr s
-        else return $ GetResult (s {currPtr = currPtr s `plusPtr` 1, usedBits = u' - 8}) ()
+  let (bytes, bits) = (n + usedBits s) `divMod` 8
+      s' = s {currPtr = currPtr s `plusPtr` bytes, usedBits = bits}
+  if currPtr s' > endPtr
+    then notEnoughSpace endPtr s
+    else return $ GetResult s' ()
 
 {- ensureBits endPtr s n = when ((endPtr `minusPtr` currPtr s) * 8 - usedBits s < n) $ notEnoughSpace endPtr s
 dropBits8 s n =
