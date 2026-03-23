@@ -45,6 +45,7 @@ import PlutusTx.Optimize.Inline qualified
 import PlutusTx.Options
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
+import PlutusTx.Plugin.Boilerplate (removeBoilerplateOpts)
 import PlutusTx.Plugin.Utils qualified
 import PlutusTx.Trace
 import UntypedPlutusCore qualified as UPLC
@@ -140,7 +141,7 @@ installCorePlugin markerTHName args rest = do
   simplPass <- mkSimplPass <$> GHC.getDynFlags
   -- instantiate our plugin pass
   pluginPass <-
-    mkPluginPass markerTHName <$> case parsePluginOptions args of
+    mkPluginPass markerTHName <$> case parsePluginOptions (removeBoilerplateOpts args) of
       Success opts -> pure opts
       Failure errs -> liftIO $ throwIO errs
   -- return the pipeline
