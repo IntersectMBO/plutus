@@ -25,6 +25,7 @@ import Plugin.Lib
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
+import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Plugin
 import PlutusTx.Test
 
@@ -47,8 +48,20 @@ recursiveFunctions =
     , goldenPirReadable "sum" sumDirect
     , goldenUEval "sumList" [toUPlc sumDirect, toUPlc listConstruct3]
     , goldenPirReadable "even" evenMutual
+    , goldenUPlcReadable "even" evenMutual
     , goldenUEval "even3" [toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3 :: Integer)]
     , goldenUEval "even4" [toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4 :: Integer)]
+    , goldenEvalCekCatchBudget "even200" $ evenMutual `unsafeApplyCode` liftCodeDef (200 :: Integer)
+    , goldenPirReadable "divisibleByThree" divisibleByThreeLocal
+    , goldenUPlcReadable "divisibleByThree" divisibleByThreeLocal
+    , goldenUEval
+        "divisibleByThree9"
+        [toUPlc divisibleByThreeLocal, toUPlc $ plc (Proxy @"9") (9 :: Integer)]
+    , goldenUEval
+        "divisibleByThree10"
+        [toUPlc divisibleByThreeLocal, toUPlc $ plc (Proxy @"10") (10 :: Integer)]
+    , goldenEvalCekCatchBudget "divisibleByThree300" $
+        divisibleByThreeLocal `unsafeApplyCode` liftCodeDef (300 :: Integer)
     , goldenPirReadable "strictLength" strictLength
     , goldenPirReadable "lazyLength" lazyLength
     ]
@@ -90,6 +103,26 @@ evenMutual =
        in even
     )
 
+divisibleByThreeLocal :: CompiledCode (Integer -> Bool)
+divisibleByThreeLocal =
+  plc
+    (Proxy @"divisibleByThreeLocal")
+    ( let divisibleByThree :: Integer -> Bool
+          divisibleByThree n =
+            if Builtins.equalsInteger n 0
+              then True
+              else
+                let n1 = Builtins.subtractInteger n 1
+                 in if Builtins.equalsInteger n1 0
+                      then False
+                      else
+                        let n2 = Builtins.subtractInteger n1 1
+                         in if Builtins.equalsInteger n2 0
+                              then False
+                              else divisibleByThree (Builtins.subtractInteger n2 1)
+       in divisibleByThree
+    )
+
 lengthStrict :: [a] -> Integer
 lengthStrict l = go 0 l
   where
@@ -116,6 +149,22 @@ unfoldings =
     , goldenPirReadable "andDirect" andPlcDirect
     , goldenPirReadable "andExternal" andPlcExternal
     , goldenPirReadable "allDirect" allPlcDirect
+    , goldenPirReadable "evenExternalMutual" evenExternalMutual
+    , goldenUPlcReadable "evenExternalMutual" evenExternalMutual
+    , goldenUEval "evenExternal3" [toUPlc evenExternalMutual, toUPlc $ plc (Proxy @"3") (3 :: Integer)]
+    , goldenUEval "evenExternal4" [toUPlc evenExternalMutual, toUPlc $ plc (Proxy @"4") (4 :: Integer)]
+    , goldenEvalCekCatchBudget "evenExternal200" $
+        evenExternalMutual `unsafeApplyCode` liftCodeDef (200 :: Integer)
+    , goldenPirReadable "divisibleByThreeExternalMutual" divisibleByThreeExternalMutual
+    , goldenUPlcReadable "divisibleByThreeExternalMutual" divisibleByThreeExternalMutual
+    , goldenUEval
+        "divisibleByThreeExternal9"
+        [toUPlc divisibleByThreeExternalMutual, toUPlc $ plc (Proxy @"9") (9 :: Integer)]
+    , goldenUEval
+        "divisibleByThreeExternal10"
+        [toUPlc divisibleByThreeExternalMutual, toUPlc $ plc (Proxy @"10") (10 :: Integer)]
+    , goldenEvalCekCatchBudget "divisibleByThreeExternal300" $
+        divisibleByThreeExternalMutual `unsafeApplyCode` liftCodeDef (300 :: Integer)
     , goldenPirReadable "mutualRecursionUnfoldings" mutualRecursionUnfoldings
     , goldenPirReadable "recordSelector" recordSelector
     , goldenPirReadable "recordSelectorExternal" recordSelectorExternal
@@ -155,6 +204,12 @@ allDirect p l = case l of
 
 allPlcDirect :: CompiledCode Bool
 allPlcDirect = plc (Proxy @"andPlcDirect") (allDirect (\(x :: Integer) -> Builtins.lessThanInteger x 5) [7, 6])
+
+evenExternalMutual :: CompiledCode (Integer -> Bool)
+evenExternalMutual = plc (Proxy @"evenExternalMutual") evenDirect
+
+divisibleByThreeExternalMutual :: CompiledCode (Integer -> Bool)
+divisibleByThreeExternalMutual = plc (Proxy @"divisibleByThreeExternalMutual") divisibleByThreeDirect
 
 mutualRecursionUnfoldings :: CompiledCode Bool
 mutualRecursionUnfoldings = plc (Proxy @"mutualRecursionUnfoldings") (evenDirect 4)

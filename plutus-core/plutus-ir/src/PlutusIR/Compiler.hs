@@ -79,6 +79,7 @@ import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.NonStrict qualified as NonStrict
+import PlutusIR.Transform.RecInline qualified as RecInline
 import PlutusIR.Transform.RecSplit qualified as RecSplit
 import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.RewriteRules qualified as RewriteRules
@@ -113,12 +114,13 @@ floatOutPasses = do
   optimize <- view (ccOpts . coOptimize)
   tcconfig <- view ccTypeCheckConfig
   binfo <- view ccBuiltinsInfo
+  recursiveInlinePasses <- recInlinePasses
   pure $
     mwhen optimize $
       P.NamedPass "float-out" $
         fold
           [ LetFloatOut.floatTermPassSC tcconfig binfo
-          , RecSplit.recSplitPass tcconfig
+          , recursiveInlinePasses
           , LetMerge.letMergePass tcconfig
           ]
 
@@ -172,6 +174,19 @@ simplifier = do
   passes <- for [1 .. maxIterations] $ \i -> simplifierIteration (" (pass " ++ show i ++ ")")
   pure $ mwhen optimize $ P.NamedPass "simplifier" (fold passes)
 
+recInlinePasses :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
+recInlinePasses = do
+  optimize <- view (ccOpts . coOptimize)
+  tcconfig <- view ccTypeCheckConfig
+  pure $
+    mwhen optimize $
+      P.NamedPass "recursive inline" $
+        fold
+          [ RecSplit.recSplitPass tcconfig
+          , RecInline.recInlinePassSC tcconfig
+          , RecSplit.recSplitPass tcconfig
+          ]
+
 -- | Typecheck a PIR Term iff the context demands it.
 typeCheckTerm :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 typeCheckTerm = do
@@ -217,6 +232,7 @@ compileReadableToPlc (Program a v t) = do
         Ap
         foldMap
         [ floatInPasses
+        , recInlinePasses
         , NonStrict.compileNonStrictBindingsPassSC <$> view ccTypeCheckConfig <*> pure False
         , ThunkRec.thunkRecursionsPass <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
         , -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces

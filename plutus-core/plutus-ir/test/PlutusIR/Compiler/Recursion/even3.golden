@@ -10,69 +10,28 @@ program
             (Suc : Nat -> Nat)
             (match_Nat :
                Nat -> (all out_Nat. out_Nat -> (Nat -> out_Nat) -> out_Nat)) ->
-             (\(tup : all r. ((Nat -> Bool) -> (Nat -> Bool) -> r) -> r) ->
-                (\(even : Nat -> Bool) ->
-                   (\(odd : Nat -> Bool) -> even (Suc (Suc (Suc Zero))))
-                     (tup
-                        {Nat -> Bool}
-                        (\(arg_0 : Nat -> Bool) (arg_1 : Nat -> Bool) ->
-                           arg_1)))
-                  (tup
-                     {Nat -> Bool}
-                     (\(arg_0 : Nat -> Bool) (arg_1 : Nat -> Bool) -> arg_0)))
-               ((/\(F :: * -> *) ->
-                   \(by : (all Q. F Q -> Q) -> (all Q. F Q -> Q)) ->
-                     (/\a b ->
-                        \(f : (a -> b) -> a -> b) ->
-                          (\(s :
-                               (\a ->
-                                  ifix (\(self :: * -> *) a -> self a -> a) a)
-                                 (a -> b)) ->
-                             unwrap s s)
-                            (iwrap
-                               (\(self :: * -> *) a -> self a -> a)
-                               (a -> b)
-                               (\(s :
-                                    (\a ->
-                                       ifix
-                                         (\(self :: * -> *) a -> self a -> a)
-                                         a)
-                                      (a -> b)) ->
-                                  f (\(x : a) -> unwrap s s x))))
-                       {all Q. F Q -> F Q}
-                       {all Q. F Q -> Q}
-                       (\(rec : (all Q. F Q -> F Q) -> (all Q. F Q -> Q))
-                         (h : all Q. F Q -> F Q) ->
-                          /\R ->
-                            \(fr : F R) ->
-                              by
-                                (/\Q -> \(fq : F Q) -> rec h {Q} (h {Q} fq))
-                                {R}
-                                fr))
-                  {\X -> (Nat -> Bool) -> (Nat -> Bool) -> X}
-                  (\(k : all Q. ((Nat -> Bool) -> (Nat -> Bool) -> Q) -> Q) ->
-                     /\S ->
-                       \(h : (Nat -> Bool) -> (Nat -> Bool) -> S) ->
-                         h
-                           (\(x : Nat) ->
-                              k
-                                {Bool}
-                                (\(f_0 : Nat -> Bool) (f_1 : Nat -> Bool) ->
-                                   f_0 x))
-                           (\(x : Nat) ->
-                              k
-                                {Bool}
-                                (\(f_0 : Nat -> Bool) (f_1 : Nat -> Bool) ->
-                                   f_1 x)))
-                  (/\Q ->
-                     \(choose : (Nat -> Bool) -> (Nat -> Bool) -> Q)
-                      (even : Nat -> Bool)
-                      (odd : Nat -> Bool) ->
-                       choose
-                         (\(n : Nat) ->
-                            match_Nat n {Bool} True (\(p : Nat) -> odd p))
-                         (\(n : Nat) ->
-                            match_Nat n {Bool} False (\(p : Nat) -> even p)))))
+             (\(s :
+                  (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                    (Nat -> Bool)) ->
+                unwrap s s)
+               (iwrap
+                  (\(self :: * -> *) a -> self a -> a)
+                  (Nat -> Bool)
+                  (\(s :
+                       (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                         (Nat -> Bool))
+                    (n : Nat) ->
+                     match_Nat
+                       n
+                       {Bool}
+                       True
+                       (\(p : Nat) ->
+                          match_Nat
+                            p
+                            {Bool}
+                            False
+                            (\(p : Nat) -> unwrap s s p))))
+               (Suc (Suc (Suc Zero))))
           {ifix
              (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
              (\Nat -> sop [] [Nat])}
