@@ -57,7 +57,7 @@ HADDOCK_PACKAGES=(
 cabal update
 cabal freeze
 cabal build   "${CABAL_OPTS[@]}" all
-cabal haddock "${CABAL_OPTS[@]}" all "${HADDOCK_OPTS[@]}"
+cabal haddock "${CABAL_OPTS[@]}" -j2 "${HADDOCK_OPTS[@]}" "${HADDOCK_PACKAGES[@]}"
 
 
 if [[ "$?" != "0" ]]; then 
