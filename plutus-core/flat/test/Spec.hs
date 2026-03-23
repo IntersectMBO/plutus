@@ -363,6 +363,19 @@ testLargeEnum = testGroup "test enum with more than 256 constructors"
       -- Without fix: unflat hangs forever (Filler decoder infinite loop).
     , [localOption (mkTimeout 5000000) $
         trip (False, (False, (False, (False, (False, (False, (False, E258_258)))))))]
+      -- consClose must reject when constructor bits exceed the remaining buffer,
+      -- not silently leave the decoder in an invalid state for strictDecoder to
+      -- catch later. E258_258 needs 9 bits but a 1-byte buffer only has 8.
+      -- With correct bounds checking (ensureBits), consClose throws NotEnoughSpace.
+      -- Without it, consClose "succeeds" and strictDecoder catches TooMuchSpace.
+    , [testCase "consClose rejects 9-bit tag in 1-byte buffer" $
+        case unflatRaw (B.pack [0xFF]) :: Decoded E258 of
+          Left (NotEnoughSpace _) -> return ()
+          Left (TooMuchSpace _)   -> assertFailure
+            "consClose let overrun through (caught by strictDecoder as TooMuchSpace)"
+          Left other               -> assertFailure $ "Unexpected error: " ++ show other
+          Right _                  -> assertFailure "Should not decode: only 8 bits for a 9-bit tag"
+      ]
 #endif
     ]
 

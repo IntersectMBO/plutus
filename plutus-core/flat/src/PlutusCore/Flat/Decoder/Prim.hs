@@ -106,12 +106,12 @@ consOpen = Get $ \endPtr s -> do
 {-| Switch back to normal decoding
  {\-# NOINLINE consClose  #-\} -}
 consClose :: Int -> Get ()
-consClose n = Get $ \endPtr s -> do
-  let (bytes, bits) = (n + usedBits s) `divMod` 8
-      s' = s {currPtr = currPtr s `plusPtr` bytes, usedBits = bits}
-  if currPtr s' > endPtr
-    then notEnoughSpace endPtr s
-    else return $ GetResult s' ()
+consClose n
+  | n > 0 = Get $ \endPtr s -> do
+      ensureBits endPtr s n
+      return $ GetResult (dropBits_ s n) ()
+  | n == 0 = return ()
+  | otherwise = error $ unwords ["consClose", show n]
 
 {- ensureBits endPtr s n = when ((endPtr `minusPtr` currPtr s) * 8 - usedBits s < n) $ notEnoughSpace endPtr s
 dropBits8 s n =
