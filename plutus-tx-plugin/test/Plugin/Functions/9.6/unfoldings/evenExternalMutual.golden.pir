@@ -26,4 +26,4 @@ letrec
           , (/\dead -> True) ]
           {all dead. dead}
 in
-evenDirect 4
+evenDirect

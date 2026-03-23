@@ -1,0 +1,22 @@
+letrec
+  !even : integer -> bool
+    = \(n : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger n 0)
+          (\(u : unit) -> True)
+          (\(u : unit) -> odd (subtractInteger n 1))
+          ()
+  !odd : integer -> bool
+    = \(m : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger m 0)
+          (\(u : unit) -> False)
+          (\(u : unit) -> even (subtractInteger m 1))
+          ()
+in
+let
+  !x : integer -> bool = even
+in
+odd

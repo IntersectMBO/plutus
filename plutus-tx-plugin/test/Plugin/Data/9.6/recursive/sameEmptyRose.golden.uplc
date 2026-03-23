@@ -1,7 +1,7 @@
 program
   1.1.0
   ((\fixBy ->
-      (\fix3 ->
+      (\fix2 ->
          (\fix1 ->
             case
               (constr 0
@@ -29,85 +29,56 @@ program
                                                 (\tup ->
                                                    (\go ->
                                                       (\g ->
-                                                         (\f ->
-                                                            (\go ->
-                                                               (\g ->
-                                                                  (\f ->
-                                                                     force go)
-                                                                    (f
-                                                                       (delay
-                                                                          (\x ->
-                                                                             x))))
-                                                                 (g
-                                                                    (delay
-                                                                       (\x ->
-                                                                          x))))
-                                                              (go
+                                                         (\go ->
+                                                            (\g -> force go)
+                                                              (g
                                                                  (delay
                                                                     (\x -> x))))
-                                                           (force tup
-                                                              (\arg_0
-                                                                arg_1
-                                                                arg_2 ->
-                                                                 arg_2)))
+                                                           (go
+                                                              (delay
+                                                                 (\x -> x))))
                                                         (force tup
-                                                           (\arg_0
-                                                             arg_1
-                                                             arg_2 ->
+                                                           (\arg_0 arg_1 ->
                                                               arg_1)))
                                                      (force tup
-                                                        (\arg_0 arg_1 arg_2 ->
+                                                        (\arg_0 arg_1 ->
                                                            arg_0)))
                                                   (force
                                                      (force
-                                                        (force
-                                                           (force
-                                                              (force
-                                                                 (force
-                                                                    fix3)))))
+                                                        (force (force fix2)))
                                                      (delay
                                                         (\choose
                                                           go
-                                                          g
-                                                          f ->
-                                                           case
-                                                             (constr 0
-                                                                [ (\arg ->
-                                                                     delay
-                                                                       (\x ->
-                                                                          (\x ->
-                                                                             force
-                                                                               g
-                                                                               (force
-                                                                                  (f
-                                                                                     (delay
-                                                                                        (\x ->
-                                                                                           x)))
-                                                                                  x))
-                                                                            x))
-                                                                , (\arg ->
-                                                                     delay
-                                                                       (force
-                                                                          map
-                                                                          (force
-                                                                             (go
-                                                                                (delay
-                                                                                   (\x ->
-                                                                                      x))))))
-                                                                , (\arg ->
-                                                                     delay
-                                                                       (\x ->
-                                                                          (\x ->
-                                                                             force
-                                                                               (g
-                                                                                  (delay
-                                                                                     (\x ->
-                                                                                        x)))
-                                                                               (force
-                                                                                  f
-                                                                                  x))
-                                                                            x)) ])
-                                                             [choose]))))
+                                                          g ->
+                                                           choose
+                                                             (\arg ->
+                                                                delay
+                                                                  (\x ->
+                                                                     (\x ->
+                                                                        force
+                                                                          g
+                                                                          ((\x ->
+                                                                              (\x ->
+                                                                                 force
+                                                                                   (g
+                                                                                      (delay
+                                                                                         (\x ->
+                                                                                            x)))
+                                                                                   (force
+                                                                                      f
+                                                                                      x))
+                                                                                x)
+                                                                             x))
+                                                                       x))
+                                                             (\arg ->
+                                                                delay
+                                                                  (force
+                                                                     map
+                                                                     (force
+                                                                        (go
+                                                                           (delay
+                                                                              (\x ->
+                                                                                 x))))))))))
                                                (map (delay (\x -> x))))
                                             (force tup (\arg_0 -> arg_0)))
                                          (delay
@@ -170,26 +141,15 @@ program
            (delay
               (delay
                  (delay
-                    (delay
-                       (delay
-                          (\f ->
-                             force fixBy
-                               (\k ->
-                                  delay
-                                    (\h ->
-                                       case
-                                         (constr 0
-                                            [ (\x ->
-                                                 force k
-                                                   (\f_0 f_1 f_2 -> f_0 x))
-                                            , (\x ->
-                                                 force k
-                                                   (\f_0 f_1 f_2 -> f_1 x))
-                                            , (\x ->
-                                                 force k
-                                                   (\f_0 f_1 f_2 -> f_2 x)) ])
-                                         [h]))
-                               f))))))))
+                    (\f ->
+                       force fixBy
+                         (\k ->
+                            delay
+                              (\h ->
+                                 h
+                                   (\x -> force k (\f_0 f_1 -> f_0 x))
+                                   (\x -> force k (\f_0 f_1 -> f_1 x))))
+                         f))))))
      (delay
         (\by ->
            force

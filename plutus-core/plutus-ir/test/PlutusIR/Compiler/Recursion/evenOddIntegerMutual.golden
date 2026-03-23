@@ -1,0 +1,20 @@
+program
+  1.1.0
+  ((\s -> s s)
+     (\s n ->
+        case
+          (constr 0
+             [ (equalsInteger 0 n)
+             , (\u -> True)
+             , (\u ->
+                  (\n ->
+                     case
+                       (constr 0
+                          [ (equalsInteger 0 n)
+                          , (\u -> False)
+                          , (\u -> (\x -> s s x) (subtractInteger n 1))
+                          , () ])
+                       [(force ifThenElse)])
+                    (subtractInteger n 1))
+             , () ])
+          [(force ifThenElse)]))

@@ -1,0 +1,29 @@
+(let (rec)
+  (termbind (strict) (vardecl div3 (fun (con integer) (con bool)))
+    (lam n (con integer)
+      [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+          [(builtin equalsInteger) n (con integer 0)]
+          (lam u (con unit) (con bool True))
+          (lam u (con unit)
+            [step1 [(builtin subtractInteger) n (con integer 1)]])
+          (con unit ())
+      ]))
+  (termbind (strict) (vardecl step1 (fun (con integer) (con bool)))
+    (lam n1 (con integer)
+      [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+          [(builtin equalsInteger) n1 (con integer 0)]
+          (lam u (con unit) (con bool False))
+          (lam u (con unit)
+            [step2 [(builtin subtractInteger) n1 (con integer 1)]])
+          (con unit ())
+      ]))
+  (termbind (strict) (vardecl step2 (fun (con integer) (con bool)))
+    (lam n2 (con integer)
+      [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+          [(builtin equalsInteger) n2 (con integer 0)]
+          (lam u (con unit) (con bool False))
+          (lam u (con unit)
+            [div3 [(builtin subtractInteger) n2 (con integer 1)]])
+          (con unit ())
+      ]))
+  div3)

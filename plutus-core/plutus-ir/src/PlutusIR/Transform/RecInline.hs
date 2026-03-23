@@ -109,48 +109,66 @@ rewriteRecGroup
 rewriteRecGroup ann bs body =
   case mkRecGroup bs body of
     Nothing -> pure original
-    Just group -> do
+    Just (group, passthrough) -> do
       collapsed <- collapseRecGroup group
-      pure $ fromMaybe original (extractResult group collapsed)
+      pure $ fromMaybe original (extractResult group collapsed passthrough)
   where
     original = Let ann Rec bs body
-    extractResult orig col = do
+    extractResult orig col passthrough = do
+      -- At least one helper was inlined away.
       guard (length (rgOrder col) < length (rgOrder orig))
-      bs' <-
-        NE.nonEmpty
-          [ TermBind (rbAnn b) (rbStrictness b) (rbDecl b) (rbRhs b)
-          | key <- rgOrder col
-          , Just b <- [Map.lookup key (rgBindings col)]
-          ]
+      let collapsed =
+            [ TermBind (rbAnn b) (rbStrictness b) (rbDecl b) (rbRhs b)
+            | key <- rgOrder col
+            , Just b <- [Map.lookup key (rgBindings col)]
+            ]
+      bs' <- NE.nonEmpty (collapsed ++ passthrough)
       pure $ Let ann Rec bs' body
 
-{-| Build a 'RecGroup' from the raw bindings, or 'Nothing' if the group is
-not eligible (non-term bindings, fewer than 2 members, or non-function
-bindings). -}
+{-| Extract eligible function bindings from a @let rec@ group. Returns
+the 'RecGroup' and any passthrough bindings (type bindings, datatype bindings,
+value bindings) that are left untouched. Returns 'Nothing' if fewer than 2
+function bindings are found. -}
 mkRecGroup
   :: NE.NonEmpty (Binding TyName Name uni fun a)
   -> Term TyName Name uni fun a
-  -> Maybe (RecGroup uni fun a)
+  -> Maybe (RecGroup uni fun a, [Binding TyName Name uni fun a])
 mkRecGroup bs body = do
-  bindings <- traverse asRecBinding (NE.toList bs)
-  guard (length bindings > 1)
-  guard (all (not . null . rbArity) bindings)
+  let paired = [(b, asRecBinding b) | b <- NE.toList bs]
+      -- Function term bindings (non-empty arity) that we can try to collapse.
+      eligible = [rb | (_, Just rb) <- paired]
+      -- Everything else: type bindings, datatype bindings, value bindings.
+      passthrough = [b | (b, Nothing) <- paired]
+  -- Need at least 2 function bindings to have anything to collapse.
+  guard (length eligible > 1)
   let key b = rbName b ^. Unique.theUnique
-      bindingMap = Map.fromList [(key b, b) | b <- bindings]
-      roots = Map.keysSet bindingMap `Set.intersection` Usages.allUsed (Usages.termUsages body)
-  pure $ buildGraph (fmap key bindings) bindingMap roots
+      bindingMap = Map.fromList [(key b, b) | b <- eligible]
+      -- Bindings used by the let body or by passthrough bindings are roots —
+      -- inlining them away would break references from outside the group.
+      bodyUsed = Usages.allUsed (Usages.termUsages body)
+      passthroughUsed =
+        Set.unions
+          [ Usages.allUsed (Usages.termUsages rhs)
+          | TermBind _ _ _ rhs <- passthrough
+          ]
+      roots =
+        Map.keysSet bindingMap
+          `Set.intersection` (bodyUsed `Set.union` passthroughUsed)
+  pure (buildGraph (fmap key eligible) bindingMap roots, passthrough)
   where
     asRecBinding = \case
-      TermBind bindAnn strictness decl rhs ->
-        Just
-          RecBinding
-            { rbAnn = bindAnn
-            , rbStrictness = strictness
-            , rbDecl = decl
-            , rbRhs = rhs
-            , rbUsages = Usages.termUsages rhs
-            , rbArity = rhsArity rhs
-            }
+      TermBind bindAnn strictness decl rhs
+        | let arity = rhsArity rhs
+        , not (null arity) ->
+            Just
+              RecBinding
+                { rbAnn = bindAnn
+                , rbStrictness = strictness
+                , rbDecl = decl
+                , rbRhs = rhs
+                , rbUsages = Usages.termUsages rhs
+                , rbArity = arity
+                }
       _ -> Nothing
 
 {-| Construct a 'RecGroup' by computing the intra-group call graph from the
@@ -190,13 +208,18 @@ findCandidate :: RecGroup uni fun a -> Maybe (Unique.Unique, Unique.Unique)
 findCandidate group = listToMaybe $ mapMaybe check (rgOrder group)
   where
     check helper = do
+      -- Roots are used by the let body — removing them would change semantics.
       guard (helper `Set.notMember` rgRoots group)
+      -- Self-recursive helpers can't be fully eliminated by inlining.
       guard (helper `Set.notMember` Graph.postSet helper (rgGraph group))
+      -- The helper must have exactly one caller (the host) within the group;
+      -- if multiple siblings call it, inlining would duplicate its body.
       host <- case Set.toList (Set.delete helper $ Graph.preSet helper (rgGraph group)) of
         [h] -> Just h
         _ -> Nothing
       helperBinding <- Map.lookup helper (rgBindings group)
       hostBinding <- Map.lookup host (rgBindings group)
+      -- Must appear exactly once in the host so inlining doesn't duplicate work.
       guard (Usages.getUsageCount (rbName helperBinding) (rbUsages hostBinding) == 1)
       pure (host, helper)
 
@@ -213,6 +236,9 @@ tryInline group hostKey helperKey =
     (Just host, Just helper) -> do
       hostRhs' <- inlineCallsOf (rbName helper) (rbRhs helper) (rbRhs host)
       pure $ do
+        -- Verify all references were eliminated. A saturated-only policy means
+        -- unsaturated or partial calls are left untouched, so if any remain
+        -- we can't safely remove the helper binding.
         guard (Usages.getUsageCount (rbName helper) (Usages.termUsages hostRhs') == 0)
         let updated = host {rbRhs = hostRhs', rbUsages = Usages.termUsages hostRhs', rbArity = rhsArity hostRhs'}
             bindings = Map.delete helperKey $ Map.insert hostKey updated (rgBindings group)

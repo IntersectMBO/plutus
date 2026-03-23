@@ -22,6 +22,10 @@ test_recInline =
       , "helperUsedTwice"
       , "helperSelfRecursive"
       , "sharedHelper"
+      , "twoIndependentCycles"
+      , "twoIndependentCyclesPartial"
+      , "mixedValueBinding"
+      , "valueBindingPreventsInlining"
       ]
 
 prop_recInline :: Property
