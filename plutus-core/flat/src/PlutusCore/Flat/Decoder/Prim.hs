@@ -103,15 +103,10 @@ consOpen = Get $ \endPtr s -> do
           else notEnoughSpace endPtr s
   return $ GetResult s (ConsState w 0)
 
-{-| Switch back to normal decoding
- {\-# NOINLINE consClose  #-\} -}
+{-| Switch back to normal decoding by advancing the main stream
+past the constructor tag bits that were decoded via 'ConsState'. -}
 consClose :: Int -> Get ()
-consClose n
-  | n > 0 = Get $ \endPtr s -> do
-      ensureBits endPtr s n
-      return $ GetResult (dropBits_ s n) ()
-  | n == 0 = return ()
-  | otherwise = error $ unwords ["consClose", show n]
+consClose = dropBits
 
 {- ensureBits endPtr s n = when ((endPtr `minusPtr` currPtr s) * 8 - usedBits s < n) $ notEnoughSpace endPtr s
 dropBits8 s n =
