@@ -37,11 +37,10 @@ import PlutusTx.Trace (traceError)
 import Prelude
 
 mkListCreateExpr :: [TH.Name] -> TH.ExpQ
-mkListCreateExpr createFieldNames =
+mkListCreateExpr =
   foldr
     (\v e -> [|BI.mkCons (toBuiltinData $(TH.varE v)) $e|])
     [|BI.mkNilData BI.unitval|]
-    createFieldNames
 
 mkConstrCreateExpr :: Integer -> [TH.Name] -> TH.ExpQ
 mkConstrCreateExpr conIx createFieldNames =
@@ -288,7 +287,7 @@ unsafeFromDataClause indexedCons = do
           [|
             BI.casePair (BI.unsafeDataAsConstr $(TH.varE dName)) $
               \($(TH.varP indexName)) ($(TH.varP argsName)) ->
-                (caseInteger $(TH.varE indexName) $kases) $(TH.varE argsName)
+                caseInteger $(TH.varE indexName) $kases $(TH.varE argsName)
             |]
 
       TH.clause [TH.varP dName] (TH.normalB body) []
