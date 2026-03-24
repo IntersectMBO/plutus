@@ -525,12 +525,14 @@ readBit bs ix
 
 -- | Bulk bit write, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 writeBits :: ByteString -> [Integer] -> Bool -> BuiltinResult ByteString
-writeBits bs ixs bit = case unsafeDupablePerformIO . try $ go of
-  Left (WriteBitsException i) -> do
-    emit "writeBits: index out of bounds"
-    emit $ "Index: " <> (pack . show $ i)
-    builtinResultFailure
-  Right result -> pure result
+writeBits bs ixs bit
+  | null ixs = pure bs
+  | otherwise = case unsafeDupablePerformIO . try $ go of
+      Left (WriteBitsException i) -> do
+        emit "writeBits: index out of bounds"
+        emit $ "Index: " <> (pack . show $ i)
+        builtinResultFailure
+      Right result -> pure result
   where
     -- This is written in a somewhat strange way. See Note [writeBits and
     -- exceptions], which covers why we did this.
@@ -539,7 +541,7 @@ writeBits bs ixs bit = case unsafeDupablePerformIO . try $ go of
       BSI.create len $
         \dstPtr ->
           let go2 (i : is) = setOrClearAtIx dstPtr i *> go2 is
-              go2 _ = pure ()
+              go2 [] = pure ()
            in do
                 copyBytes dstPtr (castPtr srcPtr) len
                 go2 ixs
