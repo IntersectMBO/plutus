@@ -272,11 +272,10 @@ unsafeFromDataClause indexedCons = do
     indexedConsSorted =
       Li.sortBy (\(_, x) (_, y) -> compare x y) indexedCons
 
-    intCasingEligible =
-      let idxs = snd <$> indexedConsSorted
-       in [0 .. (length idxs - 1)] == idxs
+    constructorIndexesAreSequential =
+      [0 .. pred (length indexedConsSorted)] == map snd indexedConsSorted
 
-  if intCasingEligible
+  if constructorIndexesAreSequential
     then do
       let
         kases =
@@ -293,19 +292,17 @@ unsafeFromDataClause indexedCons = do
       TH.clause [TH.varP dName] (TH.normalB body) []
     else do
       let
-        conCases :: [TH.MatchQ]
-        conCases = (fmap (\ixCon -> unsafeReconstructCase ixCon) indexedCons)
-        cases = conCases ++ [finalCase]
-        kase :: TH.ExpQ
-        kase = TH.caseE [|($(TH.varE indexName), $(TH.varE argsName))|] cases
-      let body =
-            [|
-              -- See Note [Bang patterns in TH quotes]
-              let $(TH.bangP $ TH.varP tupName) = BI.unsafeDataAsConstr $(TH.varE dName)
-                  $(TH.bangP $ TH.varP indexName) = BI.fst $(TH.varE tupName)
-                  $(TH.bangP $ TH.varP argsName) = BI.snd $(TH.varE tupName)
-               in $kase
-              |]
+        conCases :: [TH.MatchQ] = map unsafeReconstructCase indexedCons
+        -- kase must be bound outside the TH bracket to avoid nested brackets
+        kase = TH.caseE [|($(TH.varE indexName), $(TH.varE argsName))|] (conCases ++ [finalCase])
+        body =
+          [|
+            -- See Note [Bang patterns in TH quotes]
+            let $(TH.bangP $ TH.varP tupName) = BI.unsafeDataAsConstr $(TH.varE dName)
+                $(TH.bangP $ TH.varP indexName) = BI.fst $(TH.varE tupName)
+                $(TH.bangP $ TH.varP argsName) = BI.snd $(TH.varE tupName)
+             in $kase
+            |]
       TH.clause [TH.varP dName] (TH.normalB body) []
 
 unsafeFromDataListClause :: TH.ConstructorInfo -> TH.Q TH.Clause
@@ -317,15 +314,15 @@ unsafeFromDataListClause cons = do
   let
     finalCase :: TH.MatchQ
     finalCase = TH.match TH.wildP (TH.normalB [|traceError reconstructCaseError|]) []
-    cases = [unsafeReconstructListCase cons, finalCase]
-    kase :: TH.ExpQ
-    kase = TH.caseE [|$(TH.varE argsName)|] cases
-  let body =
-        [|
-          -- See Note [Bang patterns in TH quotes]
-          let $(TH.bangP $ TH.varP argsName) = BI.unsafeDataAsList $(TH.varE dName)
-           in $kase
-          |]
+
+    -- kase must be bound outside the TH bracket to avoid nested brackets
+    kase = TH.caseE [|$(TH.varE argsName)|] [unsafeReconstructListCase cons, finalCase]
+    body =
+      [|
+        -- See Note [Bang patterns in TH quotes]
+        let $(TH.bangP $ TH.varP argsName) = BI.unsafeDataAsList $(TH.varE dName)
+         in $kase
+        |]
   TH.clause [TH.varP dName] (TH.normalB body) []
 
 defaultIndex :: TH.Name -> TH.Q [(TH.Name, Int)]
