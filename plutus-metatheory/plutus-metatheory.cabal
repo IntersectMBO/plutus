@@ -16,6 +16,7 @@ data-files:
   plutus-metatheory.agda-lib
   README.md
   src/**/*.lagda.md
+  test/certifier-report/scripts/*.uplc
 
 common lang
   default-language:   Haskell2010

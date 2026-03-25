@@ -123,7 +123,7 @@ testNQueens = withTempFile $ \actual -> pure $ goldenVsFile name golden actual $
   void . runCertifier $ mkCertifier trace name (ReportOutput actual) costs
   where
     name = "n-queens"
-    golden = "test" </> "certifier-report" </> "scripts" </> name <.> "golden.report"
+    golden = "test" </> "certifier-report" </> "golden" </> name <.> "golden.report"
 
 tests :: IO TestTree
 tests = testNQueens
