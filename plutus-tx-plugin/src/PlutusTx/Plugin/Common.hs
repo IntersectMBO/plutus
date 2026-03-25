@@ -816,7 +816,7 @@ runCompiler moduleName opts expr = do
   liftIO $ case optCertify of
     Just certName -> do
       -- FIXME: add a plugin option to choose from BasicOutput vs. other options
-      result <- runCertifier $ mkCertifier simplTrace certName BasicOutput
+      result <- runCertifier $ mkCertifier simplTrace certName BasicOutput []
       case result of
         Right _ -> pure ()
         Left err ->

@@ -133,6 +133,7 @@ library plutus-execlib
     PlutusCore.Executable.AstIO
     PlutusCore.Executable.Blueprint
     PlutusCore.Executable.Common
+    PlutusCore.Executable.Eval
     PlutusCore.Executable.Parsers
     PlutusCore.Executable.Types
 

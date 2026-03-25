@@ -33,7 +33,7 @@ mkUPLCTest simplifierFunc name input =
     let rawAgdaTrace = PLC.runQuote $ do
           simplifierTrace <- snd <$> simplifierFunc input
           return $ mkFfiSimplifierTrace simplifierTrace
-     in case runCertifierMain rawAgdaTrace of
+     in case runCertifierMain rawAgdaTrace [] of
           Just (result, _report) ->
             assertBool "The certifier returned false." result
           Nothing ->

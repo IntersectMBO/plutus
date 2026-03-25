@@ -412,7 +412,7 @@ execCertifier
   -> CertifierOutput
   -> IO ()
 execCertifier simplificationTrace cert out = do
-  result <- runCertifier $ mkCertifier simplificationTrace cert out
+  result <- runCertifier $ mkCertifier simplificationTrace cert out []
   case result of
     Left err -> do
       putStrLn $ prettyCertifierError err

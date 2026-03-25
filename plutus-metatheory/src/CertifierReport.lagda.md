@@ -13,11 +13,11 @@ open import VerifiedCompilation.UntypedTranslation
 open import VerifiedCompilation.UInline
 open import Untyped
 open import Untyped.RenamingSubstitution using (Sub)
-open import Utils as U using (List; _×_; _,_; Either; either)
+open import Utils as U using (_×_; _,_; Either; either)
 
 open import Agda.Builtin.Sigma using (Σ; _,_; snd)
 open import Data.Bool using (if_then_else_)
-open import Data.List as L using (List)
+open import Data.List using (List; []; _∷_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Data.Maybe
 open import Data.Nat
@@ -55,7 +55,7 @@ numSites′ = go 0
   where
   go : {R : Relation} {X : ℕ} {M N : X ⊢} →  ℕ → Translation R M N → ℕ
   goᵐ : {R : Relation} {X : ℕ} {M N : X ⊢} →  ℕ → TransMatch R M N → ℕ
-  goᵖʷ : {R : Relation} {X : ℕ} {Ms Ns : L.List (X ⊢)} → ℕ → Pointwise (Translation R) Ms Ns → ℕ
+  goᵖʷ : {R : Relation} {X : ℕ} {Ms Ns : List (X ⊢)} → ℕ → Pointwise (Translation R) Ms Ns → ℕ
 
   go n (istranslation _) = suc n
   go n (match m) = goᵐ n m
@@ -77,7 +77,7 @@ numSites′ = go 0
 numSitesInlineᵖʷ :
   {X : ℕ}
   {σ : Sub X X}
-  {Ms Ns : L.List (X ⊢)}
+  {Ms Ns : List (X ⊢)}
   (p : Pointwise (Inline σ □) Ms Ns)
   → ℕ
 
@@ -124,7 +124,7 @@ showSites t p with numSites t p
 ... | nothing = ""
 
 termSize : {X : ℕ} → X ⊢ → ℕ
-termSizeᵖʷ : {X : ℕ} → L.List (X ⊢) → ℕ
+termSizeᵖʷ : {X : ℕ} → List (X ⊢) → ℕ
 
 termSize (` _) = 1
 termSize (ƛ M) = 1 + termSize M
@@ -137,31 +137,53 @@ termSize error = 1
 termSize (constr _ Ms) = 1 + termSizeᵖʷ Ms
 termSize (case M Ms) = 1 + termSize M + termSizeᵖʷ Ms
 
-termSizeᵖʷ L.[] = 0
-termSizeᵖʷ (x L.∷ xs) = termSize x + termSizeᵖʷ xs
+termSizeᵖʷ [] = 0
+termSizeᵖʷ (x ∷ xs) = termSize x + termSizeᵖʷ xs
 ```
 
 Functions for producing the certifier report:
 
 ```
+showEvalResult : EvalResult → String
+showEvalResult (success cpu mem) =
+  (⇉ "Execution Cost: CPU = ") ++ showℕ cpu ++ ", MEM = " ++ showℕ mem
+showEvalResult (failure err cpu mem) =
+  (⇉ "Evaluation FAILED: ") ++ err ++
+  nl ++
+  (⇉ "Execution Cost: CPU = ") ++ showℕ cpu ++ ", MEM = " ++ showℕ mem
+
+showCostPair : List EvalResult → String
+showCostPair (x ∷ y ∷ _) =
+  showEvalResult x ++ " (before)" ++
+  nl ++
+  showEvalResult y ++ " (after)"
+showCostPair _ = ""
+
+tail : {A : Set} → List A → List A
+tail (_ ∷ rest) = rest
+tail [] = []
+
 reportPasses :
   (n : ℕ)
   (t : Trace (0 ⊢))
   (r : Certificate t)
+  → List EvalResult
   → String
-reportPasses _ (done _) _ = ""
-reportPasses n (step tag _ x trace) (p , proofs) =
+reportPasses _ (done _) _ _ = ""
+reportPasses n (step tag _ x trace) (p , proofs) costs =
   hl ++
   "Pass " ++ showℕ n ++ ": " ++ showTag tag
     ++ (if hasRelation tag then "  ✅" else "  ⚠ (certifier unavailable)") ++
   hl ++
-  (⇉ "Program Size Before: ") ++ showℕ (termSize x) ++
+  (⇉ "Program Size: ") ++ showℕ (termSize x) ++ " (before)" ++
   nl ++
-  (⇉ "Program Size After: ") ++ showℕ (termSize (head trace)) ++
+  (⇉ "Program Size: ") ++ showℕ (termSize (head trace)) ++ " (after)" ++
+  nl ++
+  showCostPair costs ++
   nl ++
   showSites tag p ++
   nl ++
-  reportPasses (suc n) trace proofs
+  reportPasses (suc n) trace proofs (tail costs)
 
 reportFailure : Error → String
 reportFailure (counterExample tag) =
@@ -183,9 +205,10 @@ reportFailure illScoped =
 
 makeReport :
   Either Error (Σ (Trace (0 ⊢)) Certificate)
+  → List EvalResult
   → String
-makeReport r =
+makeReport r costs =
   "UPLC OPTIMIZATION: CERTIFIER REPORT"
     ++ nl
-    ++ either r reportFailure (λ { (t , r) → reportPasses 1 t r})
+    ++ either r reportFailure (λ { (t , r) → reportPasses 1 t r costs})
 ```

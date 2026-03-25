@@ -47,6 +47,7 @@ module PlutusLedgerApi.Common
   , Protocol.changPV
   , Protocol.plominPV
   , Protocol.vanRossemPV
+  , Protocol.newestPV
   , Protocol.knownPVs
 
     -- * Costing-related types

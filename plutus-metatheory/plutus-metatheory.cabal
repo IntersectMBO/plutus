@@ -45,6 +45,7 @@ common lang
 
   ghc-options:
     -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
+    -Wunused-packages
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
@@ -72,7 +73,6 @@ library
 
   hs-source-dirs:  src
   build-depends:
-    , aeson
     , base
     , bytestring
     , composition-prelude
@@ -80,23 +80,19 @@ library
     , directory
     , extra
     , filepath
-    , ghc-prim
-    , ieee754
-    , megaparsec
-    , memory
     , mtl
     , optparse-applicative
     , plutus-core                       ^>=1.60
+    , plutus-ledger-api
     , plutus-ledger-api:plutus-execlib
-    , process
     , text
-    , time
     , transformers
     , vector                            ^>=0.13.2
 
   exposed-modules: Paths_plutus_metatheory
   exposed-modules:
     Certifier
+    Certifier.CostInfo
     FFI.AgdaUnparse
     FFI.Opts
     FFI.SimplifierTrace
@@ -409,8 +405,6 @@ test-suite test-NEAT
     , plutus-core                      ^>=1.60
     , plutus-core:plutus-core-testlib
     , plutus-metatheory                ^>=1.60
-    , size-based
-    , Stream
     , tasty
     , tasty-hunit
 
@@ -426,12 +420,35 @@ test-suite test-certifier
 
   build-depends:
     , base
-    , filepath
     , plutus-core
-    , plutus-core:plutus-core-testlib
     , plutus-core:untyped-plutus-core-testlib
     , plutus-metatheory                        ^>=1.60
-    , process
     , tasty
     , tasty-hunit
     , text
+
+test-suite test-certifier-report
+  import:         lang, os-support, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/certifier-report
+  other-modules:
+    Paths_plutus_metatheory
+    Test.Certifier.Report
+
+  build-depends:
+    , base
+    , bytestring
+    , extra
+    , filepath
+    , lens
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-ledger-api:plutus-execlib
+    , plutus-metatheory                 ^>=1.60
+    , plutus-tx
+    , tasty
+    , tasty-golden
+    , transformers
+
+  ghc-options:    -Wall

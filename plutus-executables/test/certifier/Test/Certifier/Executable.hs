@@ -43,7 +43,7 @@ makeCert name term = do
   time <- systemNanoseconds <$> getSystemTime
   let certDir = name <> "-" <> show time
       certOutput = ProjectOutput certDir
-  runCertifier (mkCertifier (simplify term) name certOutput) >>= \case
+  runCertifier (mkCertifier (simplify term) name certOutput []) >>= \case
     Right True -> pure certDir
     _ -> assertFailure $ "Certifier failed on " <> name
 

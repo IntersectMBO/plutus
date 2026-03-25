@@ -34,7 +34,7 @@ runCertifierWithMockTrace
   -> IO Bool
 runCertifierWithMockTrace trace = do
   let rawAgdaTrace = mkFfiSimplifierTrace trace
-  case runCertifierMain rawAgdaTrace of
+  case runCertifierMain rawAgdaTrace [] of
     Just (result, _report) -> pure result
     Nothing ->
       assertFailure "The certifier exited with an error."

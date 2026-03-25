@@ -19,12 +19,14 @@ import qualified MAlonzo.RTE
 import qualified Data.Text
 import qualified MAlonzo.Code.Agda.Builtin.List
 import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.String
 import qualified MAlonzo.Code.RawU
 import qualified MAlonzo.Code.Utils
 
 import UntypedPlutusCore.Transform.Simplifier
 import UntypedPlutusCore.Transform.Certify.Trace
 import qualified UntypedPlutusCore.Transform.Certify.Hints as Hints
+import Certifier.CostInfo
 -- VerifiedCompilation.Trace.SimplifierTag
 d_SimplifierTag_4 = ()
 type T_SimplifierTag_4 = SimplifierStage
@@ -265,3 +267,19 @@ du_go_88 v0 v1
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
+-- VerifiedCompilation.Trace.EvalResult
+d_EvalResult_114 = ()
+type T_EvalResult_114 = EvalResult
+pattern C_success_116 a0 a1 = EvalSuccess a0 a1
+pattern C_failure_118 a0 a1 a2 = EvalFailure a0 a1 a2
+check_success_116 :: Integer -> Integer -> T_EvalResult_114
+check_success_116 = EvalSuccess
+check_failure_118 ::
+  MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
+  Integer -> Integer -> T_EvalResult_114
+check_failure_118 = EvalFailure
+cover_EvalResult_114 :: EvalResult -> ()
+cover_EvalResult_114 x
+  = case x of
+      EvalSuccess _ _ -> ()
+      EvalFailure _ _ _ -> ()

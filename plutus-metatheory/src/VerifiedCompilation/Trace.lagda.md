@@ -12,6 +12,8 @@ module VerifiedCompilation.Trace where
 
 open import RawU using (Untyped)
 open import Data.List using (List ; _∷_ ; [])
+open import Data.Nat using (ℕ)
+open import Data.String using (String)
 open import Utils using (_×_ ; Maybe ; _,_)
 open Maybe
 
@@ -109,3 +111,15 @@ toTrace (x ∷ xs) = just (go x xs)
     go : SimplifierTag × Hints × Untyped × Untyped → Dump → Trace Untyped
     go (pass , hints , x , y) [] = step pass hints x (done y)
     go (pass , hints , x , y) ((pass' , hints' , _ , z) ∷ xs) = step pass hints x (go (pass' , hints' , y , z) xs)
+```
+
+`EvalResult` is used to report script execution costs, before and after an optimisation (or optimisations).
+
+```
+data EvalResult : Set where
+  success : ℕ → ℕ → EvalResult
+  failure : String → ℕ → ℕ → EvalResult
+
+{-# FOREIGN GHC import Certifier.CostInfo #-}
+{-# COMPILE GHC EvalResult = data EvalResult (EvalSuccess | EvalFailure) #-}
+```
