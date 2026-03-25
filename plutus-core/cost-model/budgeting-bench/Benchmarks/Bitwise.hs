@@ -158,7 +158,7 @@ benchWriteBits =
       factor = 20 -- previously 4
       updateCounts = fmap (factor *) [1 .. num]
       indexFor s k = abs (topBitIndex s - 11 * k)
-      positions s = fmap (\n -> fmap (indexFor s) [0 .. (fromIntegral n - 1)]) updateCounts
+      positions s = fmap (\n -> fmap (indexFor s) [0 .. (n - 1)]) updateCounts
    in --      positions s = fmap (\n -> replicate n (topBitIndex s)) updateCounts
 
       bgroup (show WriteBits) [bgroup (showMemoryUsage x) [mkBM x y | y <- positions x] | x <- xs]
