@@ -153,7 +153,7 @@ benchWriteBits1 =
 benchWriteBits :: Benchmark
 benchWriteBits =
   let num = 16
-      sizes = fmap (64 *) [1 .. num]
+      sizes = fmap (const 512) [1 .. num]
       xs = makeSizedByteStrings seedA sizes
       factor = 20 -- previously 4
       updateCounts = fmap (factor *) [1 .. num]
