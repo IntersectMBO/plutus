@@ -149,7 +149,7 @@ du_go_76 v0
 d_FCD_84 a0 a1 a2 = ()
 data T_FCD_84
   = C_isFCD_86 MAlonzo.Code.Data.List.Relation.Unary.All.T_All_44
-               MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12
+               MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8
                MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48
 -- VerifiedCompilation.UForceCaseDelay.ForceCaseDelay
 d_ForceCaseDelay_92 ::
@@ -165,7 +165,7 @@ d_isForceCaseDelay'63'_94 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isForceCaseDelay'63'_94 v0
   = coe
-      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
+      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0)
       (coe MAlonzo.Code.VerifiedCompilation.Trace.d_ForceCaseDelayT_32)
       (coe d_isFCD'63'_96)
@@ -376,13 +376,13 @@ d_'46'extendedlambda4_228 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
@@ -401,12 +401,12 @@ d_'46'extendedlambda5_280 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
   MAlonzo.Code.Data.List.Relation.Unary.All.T_All_44 ->
   T_FCD_84 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda5_280 = erased

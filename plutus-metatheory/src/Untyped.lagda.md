@@ -29,14 +29,24 @@ open import Data.Integer.Show using (show)
 open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
 open import Utils using (_×_;_,_)
-open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon;⟦_⟧tag)
-open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
-open _⊢♯
-open import Builtin.Constant.AtomicType using (AtomicTyCon)
-open AtomicTyCon
+open import RawU using (TagCon;Tag;decTagCon;Untyped;tmCon2TagCon;tagCon2TmCon)
+open Untyped
+```
+
+## Re-exports
+
+Relevant types and functions that are used in the below abstract syntax.
+
+```
+open import RawU using (TmCon; tmCon; TyTag; ⟦_⟧tag) public
+open import Builtin.Constant.AtomicType using (AtomicTyCon) public
+open AtomicTyCon public
+open import Builtin.Signature
+  using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
+  public
+open _⊢♯ public
 
 open import Builtin.Constant.Type
-open Untyped
 ```
 
 ## Well-scoped Syntax

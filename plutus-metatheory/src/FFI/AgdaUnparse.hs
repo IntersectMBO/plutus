@@ -57,11 +57,11 @@ instance AgdaUnparse CertifiedOptStage where
   agdaUnparse Inline = "inlineT"
   agdaUnparse CSE = "cseT"
   agdaUnparse ApplyToCase = "applyToCaseT"
+  agdaUnparse CaseReduce = "caseReduceT"
 
 instance AgdaUnparse UncertifiedOptStage where
   agdaUnparse CaseOfCase = "caseOfCaseT"
   agdaUnparse LetFloatOut = "letFloatOutT"
-  agdaUnparse CaseReduce = "caseReduceT"
 
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case

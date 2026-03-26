@@ -42,11 +42,11 @@ showCertifiedOptTag forceCaseDelayT = "Float Force into Case Branches"
 showCertifiedOptTag inlineT = "Inlining"
 showCertifiedOptTag cseT = "Common Subexpression Elimination"
 showCertifiedOptTag applyToCaseT = "Transform multi-argument applications into case-constr form"
+showCertifiedOptTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
 
 showUncertifiedOptTag : UncertifiedOptTag → String
 showUncertifiedOptTag caseOfCaseT = "Case-of-Case"
 showUncertifiedOptTag letFloatOutT = "Float bindings outwards"
-showUncertifiedOptTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
 
 showTag : OptTag → String
 showTag (inj₁ tag) = showUncertifiedOptTag tag ++ "  ⚠ (certifier unavailable)"
@@ -120,6 +120,7 @@ numSites cseT p = numSites′ p
 numSites inlineT p = numSitesInline p
 numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
+numSites caseReduceT p = 0 -- TODO
 
 showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
 showSites (inj₁ _) _ = ""

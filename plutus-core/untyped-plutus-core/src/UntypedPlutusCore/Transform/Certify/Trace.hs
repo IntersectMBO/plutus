@@ -23,6 +23,7 @@ data CertifiedOptStage
   | Inline
   | CSE
   | ApplyToCase
+  | CaseReduce
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -36,7 +37,6 @@ at https://github.com/IntersectMBO/plutus/issues. -}
 data UncertifiedOptStage
   = CaseOfCase
   | LetFloatOut
-  | CaseReduce
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -52,7 +52,7 @@ pattern ForceCaseDelayStage :: OptStage
 pattern ForceCaseDelayStage = Right ForceCaseDelay
 
 pattern CaseReduceStage :: OptStage
-pattern CaseReduceStage = Left CaseReduce
+pattern CaseReduceStage = Right CaseReduce
 
 pattern InlineStage :: OptStage
 pattern InlineStage = Right Inline

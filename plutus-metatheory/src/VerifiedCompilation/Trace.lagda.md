@@ -28,7 +28,6 @@ We enumerate the known passes and partition them into two categories:
 data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
   letFloatOutT : UncertifiedOptTag
-  caseReduceT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
@@ -37,6 +36,7 @@ data CertifiedOptTag : Set where
   inlineT : CertifiedOptTag
   cseT : CertifiedOptTag
   applyToCaseT : CertifiedOptTag
+  caseReduceT : CertifiedOptTag
 
 OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
 
@@ -58,10 +58,10 @@ CaseOfCaseT = Utils.inj₁ caseOfCaseT
 LetFloatOutT : OptTag
 LetFloatOutT = Utils.inj₁ letFloatOutT
 CaseReduceT : OptTag
-CaseReduceT = Utils.inj₁ caseReduceT
+CaseReduceT = Utils.inj₂ caseReduceT
 
-{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | Inline | CSE | ApplyToCase) #-}
-{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut | CaseReduce) #-}
+{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | Inline | CSE | ApplyToCase | CaseReduce ) #-}
+{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut) #-}
 ```
 
 ## Hints

@@ -558,7 +558,7 @@ d_isCaseOfCase'63'_256 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isCaseOfCase'63'_256 v0
   = coe
-      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
+      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0)
       (coe MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_40)
       (coe d_isCoC'63'_264)
@@ -867,7 +867,7 @@ d_'46'extendedlambda6_444 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -890,7 +890,7 @@ d_'46'extendedlambda7_524 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
@@ -914,7 +914,7 @@ d_'46'extendedlambda8_608 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
