@@ -50,6 +50,7 @@ import VerifiedCompilation.UForceCaseDelay as UFCD
 import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
+import VerifiedCompilation.UCaseReduce.Equivalence as UCR
 open import VerifiedCompilation.NotImplemented
 open import VerifiedCompilation.Trace
 open import VerifiedCompilation.Certificate hiding (_>>=_)
@@ -72,11 +73,11 @@ if we don't have a translation relation.
 mRelationOf : SimplifierTag → Maybe (0 ⊢ → 0 ⊢ → Set)
 mRelationOf floatDelayT     = just UFlD.FloatDelay
 mRelationOf forceDelayT     = just UFD.ForceDelay
-mRelationOf caseReduceT     = just UCR.UCaseReduce
+mRelationOf caseReduceT     = just (UCR._≡-c'_)
 mRelationOf cseT            = just UCSE.UntypedCSE
 mRelationOf inlineT         = just (UInline.Inline (λ()) UInline.□)
 mRelationOf unknown         = nothing
-mRelationOf caseOfCaseT     = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
+mRelationOf caseOfCaseT     = just (UCC._≡-cc_) -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
 mRelationOf forceCaseDelayT = just UFCD.ForceCaseDelay
 mRelationOf applyToCaseT    = just UA2C.UApplyToCase
 ```
@@ -97,10 +98,10 @@ The corresponding certifier can then be called for a given pass:
 certifyPass : (pass : SimplifierTag) → Hints → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
 certifyPass floatDelayT _       = decider UFlD.isFloatDelay?
 certifyPass forceDelayT _       = decider UFD.isForceDelay?
-certifyPass caseReduceT _       = decider UCR.isCaseReduce?
 certifyPass cseT _              = decider UCSE.isUntypedCSE?
-certifyPass caseOfCaseT _       = certNotImplemented
+certifyPass caseOfCaseT _       = decider UCC.decide
 certifyPass forceCaseDelayT _   = decider UFCD.isForceCaseDelay?
+certifyPass caseReduceT _       = decider UCR.decide'
 certifyPass applyToCaseT _      = decider UA2C.a2c?ᶜᶜ
 certifyPass inlineT (inline hs) = checker (UInline.top-check hs)
 certifyPass inlineT none        = λ M M' → abort inlineT M M'

@@ -366,18 +366,23 @@ library
     MAlonzo.Code.Untyped.Equality
     MAlonzo.Code.Untyped.Purity
     MAlonzo.Code.Untyped.Reduction
+    MAlonzo.Code.Untyped.Relation
     MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.Transform
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Certificate
+    MAlonzo.Code.VerifiedCompilation.Compatibility
     MAlonzo.Code.VerifiedCompilation.NotImplemented
     MAlonzo.Code.VerifiedCompilation.Trace
     MAlonzo.Code.VerifiedCompilation.UApplyToCase
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
+    MAlonzo.Code.VerifiedCompilation.UCaseReduce.Equivalence
+    MAlonzo.Code.VerifiedCompilation.UCaseReduce.Inductive
     MAlonzo.Code.VerifiedCompilation.UCSE
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
     MAlonzo.Code.VerifiedCompilation.UForceCaseDelay

@@ -521,8 +521,8 @@ du_subs'45'delay_404 v0 v1
 -- VerifiedCompilation.UFloatDelay.FlD
 d_FlD_464 a0 a1 a2 = ()
 data T_FlD_464
-  = C_floatdelay_476 MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12
-                     MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12
+  = C_floatdelay_476 MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8
+                     MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8
                      MAlonzo.Code.Untyped.Purity.T_Pure_6
 -- VerifiedCompilation.UFloatDelay.FloatDelay
 d_FloatDelay_484 ::
@@ -538,7 +538,7 @@ d_isFloatDelay'63'_488 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isFloatDelay'63'_488 v0
   = coe
-      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
+      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0)
       (coe MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6)
       (coe d_isFlD'63'_492)
@@ -768,7 +768,7 @@ d_'46'extendedlambda10_582 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
@@ -784,7 +784,7 @@ d_'46'extendedlambda11_630 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
@@ -793,7 +793,7 @@ d_'46'extendedlambda11_630 ::
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
   T_FlD_464 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda11_630 = erased
 -- VerifiedCompilation.UFloatDelay..extendedlambda12
@@ -803,9 +803,9 @@ d_'46'extendedlambda12_676 ::
   (MAlonzo.Code.Untyped.Purity.T_Pure_6 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
   T_FlD_464 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda12_676 = erased

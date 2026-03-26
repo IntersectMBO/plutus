@@ -32,7 +32,7 @@ import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
 -- VerifiedCompilation.UApplyToCase.ApplyToCase
 d_ApplyToCase_4 a0 a1 a2 = ()
 newtype T_ApplyToCase_4
-  = C_a2c_16 MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12
+  = C_a2c_16 MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8
 -- VerifiedCompilation.UApplyToCase.a2c?ᶜᶜ
 d_a2c'63''7580''7580'_24 ::
   Integer ->
@@ -41,7 +41,7 @@ d_a2c'63''7580''7580'_24 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_a2c'63''7580''7580'_24 v0
   = coe
-      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
+      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0)
       (coe MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_20)
       (coe d_a2c'63'_32)
@@ -54,21 +54,21 @@ d_a2c'63'_32 ::
 d_a2c'63'_32 v0 v1 v2
   = let v3
           = coe
-              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_constr'63'_1572
+              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_constr'63'_1618
               (coe
                  MAlonzo.Code.Data.Nat.Properties.d__'8799'__2796
                  (coe (0 :: Integer)))
               (coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'8759''63'__1910
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'8759''63'__2188
                  (\ v3 ->
-                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_1880)
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2158)
                  (\ v3 ->
                     coe
-                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_1880)) in
+                      MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2158)) in
     coe
       (let v4
              = coe
-                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_singleton'63'_1970 in
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_singleton'63'_2332 in
        coe
          (case coe v2 of
             MAlonzo.Code.Untyped.C_'96'_18 v5
@@ -124,13 +124,13 @@ d_a2c'63'_32 v0 v1 v2
                                                     -> case coe v5 of
                                                          MAlonzo.Code.Untyped.C_constr_34 v17 v18
                                                            -> case coe v16 of
-                                                                MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'8759''33'__1902 v21 v22
+                                                                MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'8759''33'__2180 v21 v22
                                                                   -> coe
                                                                        seq (coe v21)
                                                                        (coe
                                                                           seq (coe v22)
                                                                           (case coe v12 of
-                                                                             MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'8759''33'__1902 v25 v26
+                                                                             MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'8759''33'__2180 v25 v26
                                                                                -> case coe v6 of
                                                                                     (:) v27 v28
                                                                                       -> coe
@@ -191,7 +191,7 @@ d_a2c'63'_32 v0 v1 v2
                                                                       -> case coe v5 of
                                                                            MAlonzo.Code.Untyped.C_constr_34 v22 v23
                                                                              -> case coe v21 of
-                                                                                  MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'8759''33'__1902 v26 v27
+                                                                                  MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'8759''33'__2180 v26 v27
                                                                                     -> coe
                                                                                          seq
                                                                                          (coe v26)
@@ -201,7 +201,7 @@ d_a2c'63'_32 v0 v1 v2
                                                                                                v27)
                                                                                             (case coe
                                                                                                     v17 of
-                                                                                               MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'8759''33'__1902 v30 v31
+                                                                                               MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'8759''33'__2180 v30 v31
                                                                                                  -> case coe
                                                                                                            v6 of
                                                                                                       (:) v32 v33
@@ -279,7 +279,7 @@ d_'46'extendedlambda1_94 ::
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->

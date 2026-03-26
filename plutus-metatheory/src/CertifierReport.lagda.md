@@ -111,7 +111,7 @@ numSites : {M N : 0 ⊢} (tag : SimplifierTag) → RelationOf tag M N → Maybe 
 numSites forceDelayT p = just (numSites′ p)
 numSites floatDelayT p = just (numSites′ p)
 numSites cseT p = just (numSites′ p)
-numSites caseReduceT p = just (numSites′ p)
+numSites caseReduceT p = nothing
 numSites inlineT p = just (numSitesInline p)
 numSites forceCaseDelayT _ = nothing
 numSites caseOfCaseT _ = nothing
