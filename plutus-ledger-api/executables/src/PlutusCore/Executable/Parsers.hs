@@ -12,6 +12,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Cse (CseWhichSubterms (..))
 
 import Control.Lens ((^.))
+import Data.Maybe
 import Options.Applicative
 
 {-| Parser for an input stream. If none is specified,
@@ -271,6 +272,76 @@ simplifyOpts = do
       )
   pure UPLC.SimplifyOpts {..}
 
+optimiseEvalOpts :: Parser OptimiseEvalOpts
+optimiseEvalOpts =
+  mkOpts
+    <$> switch
+      ( long "eval"
+          <> help
+            "Evaluate the program (using the CEK machine) to measure execution \
+            \cost. With --certify, costs are included in the report for every \
+            \optimisation pass.  Without --certify, the initial and final costs \
+            \are printed. Use --eval-apply to supply arguments; if none are \
+            \given, the program is evaluated as-is."
+      )
+    <*> many
+      ( strOption
+          ( long "eval-apply"
+              <> metavar "FILE"
+              <> help
+                "Apply program to this argument file before evaluating \
+                \(repeatable).  Implies --eval."
+          )
+      )
+    <*> option
+      ( maybeReader
+          ( \case
+              "prog" -> Just ArgProg
+              "data" -> Just ArgData
+              _ -> Nothing
+          )
+      )
+      ( long "eval-arg-kind"
+          <> metavar "prog|data"
+          <> value ArgProg
+          <> showDefaultWith (\case ArgProg -> "prog"; ArgData -> "data")
+          <> help
+            "Whether --eval-apply arguments are UPLC programs or Data objects"
+      )
+    <*> option
+      (maybeReader formatReader)
+      ( long "eval-arg-format"
+          <> metavar "FORMAT"
+          <> value Hex
+          <> showDefault
+          <> help ("Format for --eval-apply argument files. " <> formatHelp)
+      )
+    <*> optional
+      ( strOption
+          ( long "eval-args-dir"
+              <> metavar "DIR"
+              <> help
+                "Directory with per-validator argument files for blueprint \
+                \optimisation.  For each validator titled T, the tool looks for \
+                \files DIR/T/0, DIR/T/1, ... containing arguments to apply. \
+                \Implies --eval."
+          )
+      )
+  where
+    -- If the user supplied any --eval-apply or --eval-args-dir,
+    -- treat --eval as implied even if they didn't pass it explicitly.
+    mkOpts eval argFiles argKind argFormat argsDir =
+      OptimiseEvalOpts
+        { oeEval =
+            eval
+              || not (null argFiles)
+              || isJust argsDir
+        , oeArgFiles = argFiles
+        , oeArgKind = argKind
+        , oeArgFormat = argFormat
+        , oeBlueprintArgsDir = argsDir
+        }
+
 optimiseOpts :: Parser (OptimiseOptions name a)
 optimiseOpts =
   OptimiseOptions
@@ -282,6 +353,7 @@ optimiseOpts =
     <*> certifier
     <*> certifierOutputMode
     <*> simplifyOpts
+    <*> optimiseEvalOpts
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle

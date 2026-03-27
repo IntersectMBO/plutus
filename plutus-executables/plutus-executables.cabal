@@ -102,6 +102,7 @@ executable uplc
   hs-source-dirs: executables
   build-depends:
     , base                              >=4.9   && <5
+    , base16-bytestring
     , bytestring
     , criterion
     , deepseq
