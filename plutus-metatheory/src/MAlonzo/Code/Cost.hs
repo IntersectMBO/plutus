@@ -104,19 +104,19 @@ d_isMonoidExBudget_80
 -- Cost.builtinCost
 d_builtinCost_96 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
-  MAlonzo.Code.Cost.Model.T_BuiltinModel_62 ->
+  MAlonzo.Code.Cost.Model.T_BuiltinModel_66 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 -> T_ExBudget_52
 d_builtinCost_96 v0 v1 v2
   = coe
       C_mkExBudget_62
       (coe
-         MAlonzo.Code.Cost.Model.d_runModel_96
+         MAlonzo.Code.Cost.Model.d_runModel_100
          (coe MAlonzo.Code.Builtin.d_arity_304 (coe v0))
-         (coe MAlonzo.Code.Cost.Model.d_costingCPU_70 (coe v1)) (coe v2))
+         (coe MAlonzo.Code.Cost.Model.d_costingCPU_74 (coe v1)) (coe v2))
       (coe
-         MAlonzo.Code.Cost.Model.d_runModel_96
+         MAlonzo.Code.Cost.Model.d_runModel_100
          (coe MAlonzo.Code.Builtin.d_arity_304 (coe v0))
-         (coe MAlonzo.Code.Cost.Model.d_costingMem_72 (coe v1)) (coe v2))
+         (coe MAlonzo.Code.Cost.Model.d_costingMem_76 (coe v1)) (coe v2))
 -- Cost.CostModel
 d_CostModel_104 :: ()
 d_CostModel_104 = erased
@@ -168,7 +168,7 @@ d_exBudgetCategoryCost_126 ::
   MAlonzo.Code.Utils.T__'215'__426
     MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
     (MAlonzo.Code.Builtin.T_Builtin_2 ->
-     MAlonzo.Code.Cost.Model.T_BuiltinModel_62) ->
+     MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
   MAlonzo.Code.Cost.Base.T_ExBudgetCategory_34 -> T_ExBudget_52
 d_exBudgetCategoryCost_126 v0 v1
   = case coe v0 of
@@ -189,7 +189,7 @@ d_machineParameters_140 ::
   MAlonzo.Code.Utils.T__'215'__426
     MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
     (MAlonzo.Code.Builtin.T_Builtin_2 ->
-     MAlonzo.Code.Cost.Model.T_BuiltinModel_62) ->
+     MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
   MAlonzo.Code.Cost.Base.T_MachineParameters_46
 d_machineParameters_140 v0
   = coe
@@ -325,7 +325,7 @@ d_tallyingCekMachineCost_212 ::
   MAlonzo.Code.Utils.T__'215'__426
     MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
     (MAlonzo.Code.Builtin.T_Builtin_2 ->
-     MAlonzo.Code.Cost.Model.T_BuiltinModel_62) ->
+     MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
   MAlonzo.Code.Cost.Base.T_ExBudgetCategory_34 ->
   MAlonzo.Code.Utils.T__'215'__426
     MAlonzo.Code.Data.Tree.AVL.T_Tree_254 T_ExBudget_52
@@ -342,7 +342,7 @@ d_tallyingMachineParameters_220 ::
   MAlonzo.Code.Utils.T__'215'__426
     MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
     (MAlonzo.Code.Builtin.T_Builtin_2 ->
-     MAlonzo.Code.Cost.Model.T_BuiltinModel_62) ->
+     MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
   MAlonzo.Code.Cost.Base.T_MachineParameters_46
 d_tallyingMachineParameters_220 v0
   = coe
