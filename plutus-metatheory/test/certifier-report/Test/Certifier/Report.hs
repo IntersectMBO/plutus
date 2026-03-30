@@ -5,14 +5,12 @@ module Test.Certifier.Report where
 import Certifier
 import Paths_plutus_metatheory (getDataDir)
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default.Builtins
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Executable.Eval (evalCounting)
+import PlutusCore.Executable.Eval (evalCounting, evalSimplifierTrace, mkDefaultEvalCtx)
 import PlutusCore.Quote
 import PlutusLedgerApi.Common
-import PlutusPrelude (unsafeFromRight)
+import PlutusPrelude (def, unsafeFromRight)
 import PlutusTx qualified as Tx
 import PlutusTx.Lift (lift)
 import UntypedPlutusCore as UPLC
@@ -65,22 +63,11 @@ simplify =
       ( defaultSimplifyOpts
           & soPreserveLogging .~ False
       )
-      semvar
-
-semvar :: BuiltinSemanticsVariant DefaultFun
-semvar = DefaultFunSemanticsVariantE
+      def
 
 evalCtx :: EvaluationContext
-evalCtx = case PLC.defaultCostModelParamsForVariant semvar of
-  Just p ->
-    either (error . show) id $
-      mkDynEvaluationContext
-        PlutusV3
-        (\_ -> PLC.CaserBuiltin PLC.caseBuiltin)
-        [semvar]
-        (const semvar)
-        p
-  Nothing -> error $ "Couldn't get cost model params for " <> show semvar
+evalCtx = mkDefaultEvalCtx def
+{-# OPAQUE evalCtx #-}
 
 evalTrace
   :: SimplifierTrace Name DefaultUni DefaultFun ()
@@ -115,7 +102,8 @@ testNQueens :: IO TestTree
 testNQueens = withTempFile $ \actual -> pure $ goldenVsFile name golden actual $ do
   trace <- loadFrom $ name <.> "uplc"
   let costs =
-        evalTrace
+        evalSimplifierTrace
+          evalCtx
           trace
           [ snd $ lift PLC.latestVersion (5 :: Integer)
           , snd $ lift PLC.latestVersion Fc

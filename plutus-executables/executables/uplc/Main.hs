@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main (main) where
@@ -9,9 +10,10 @@ import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Executable.AstIO (toDeBruijnTermUPLC)
+import PlutusCore.Executable.AstIO (UplcTermNDB, toDeBruijnTermUPLC)
 import PlutusCore.Executable.Blueprint
 import PlutusCore.Executable.Common
+import PlutusCore.Executable.Eval
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
@@ -23,22 +25,25 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
 import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
 import Control.DeepSeq (force)
-import Control.Monad.Except
+import Control.Monad.Except (runExcept, tryError)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.ST (RealWorld)
 import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
-import Data.ByteString.Lazy as BSL (readFile)
-import Data.Foldable
+import Data.ByteString.Base16 qualified as Base16
+import Data.ByteString.Lazy qualified as BSL
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
+import Data.Text.IO qualified as T
 import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
 import Options.Applicative
 import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
 import System.Console.Haskeline qualified as Repl
+import System.Directory.Extra (doesFileExist)
 import System.Exit (ExitCode (..), exitFailure, exitWith)
 import System.FilePath
 import System.IO (hPrint, stderr)
@@ -331,10 +336,10 @@ plutusOpts =
 
 -- | Run the UPLC optimisations
 runOptimisations :: OptimiseOptions UPLC.Name SrcSpan -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput simplOpts) =
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput sopts eopts) =
   case ifmt of
-    Blueprint -> runOptimiseBlueprint inp outp ofmt mcert certifierOutput simplOpts
-    _ -> runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput simplOpts
+    Blueprint -> runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
+    _ -> runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts
 
 runOptimiseSingle
   :: Input
@@ -345,20 +350,26 @@ runOptimiseSingle
   -> Certifier
   -> CertifierOutputMode
   -> UPLC.SimplifyOpts UPLC.Name SrcSpan
+  -> OptimiseEvalOpts
   -> IO ()
-runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput opts = do
+runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
-  (simplified, simplificationTrace) <- optimiseProgram opts prog
+  (simplified, simplificationTrace) <- optimiseProgram sopts prog
   writeProgram outp ofmt mode simplified
+  margs <- loadArgsIfEval eopts
   whenJust mcert $ \cert -> do
     time <- systemNanoseconds <$> getSystemTime
-    let
-      certDir = cert <> "-" <> show time
-      certOutput = case certifierOutput of
-        CertBasic -> BasicOutput
-        CertReport file -> ReportOutput file
-        CertProject -> ProjectOutput certDir
-    execCertifier simplificationTrace cert certOutput
+    let costs = case margs of
+          Nothing -> []
+          Just args ->
+            let evalCtx = mkDefaultEvalCtx def
+             in evalSimplifierTrace evalCtx simplificationTrace args
+        certDir = cert <> "-" <> show time
+        certOutput = case certifierOutput of
+          CertBasic -> BasicOutput
+          CertReport file -> ReportOutput file
+          CertProject -> ProjectOutput certDir
+    execCertifier simplificationTrace cert certOutput costs
 
 runOptimiseBlueprint
   :: Input
@@ -367,21 +378,27 @@ runOptimiseBlueprint
   -> Certifier
   -> CertifierOutputMode
   -> UPLC.SimplifyOpts UPLC.Name SrcSpan
+  -> OptimiseEvalOpts
   -> IO ()
-runOptimiseBlueprint inp outp ofmt mcert certifierOutput simplOpts
+runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
   | ofmt /= Blueprint = fail "When input format is blueprint, output format must also be blueprint."
   | otherwise = do
       (validators, blueprint) <- readBlueprint inp
       optimisedWithTrace <-
         traverse
-          (optimiseProgram simplOpts . (topSrcSpan <$) . bvCode)
+          (optimiseProgram sopts . (topSrcSpan <$) . bvCode)
           validators
       let optimised = map (void . fst) optimisedWithTrace
+          evalCtx = mkDefaultEvalCtx def
       writeBlueprint outp blueprint optimised
       whenJust mcert $ \cert -> do
         time <- systemNanoseconds <$> getSystemTime
         for_ (zip validators (snd <$> optimisedWithTrace)) $ \(validator, simplTrace) -> do
           let validatorName = T.unpack (bvTitle validator)
+          margs <- loadBlueprintArgs eopts validatorName
+          let costs = case margs of
+                Nothing -> []
+                Just args -> evalSimplifierTrace evalCtx simplTrace args
               certDir = cert <> "-" <> validatorName <> "-" <> show time
               certOutput = case certifierOutput of
                 CertBasic -> BasicOutput
@@ -389,7 +406,7 @@ runOptimiseBlueprint inp outp ofmt mcert certifierOutput simplOpts
                   let (fileBase, fileExt) = splitExtension file
                    in ReportOutput (fileBase <> "-" <> validatorName <.> fileExt)
                 CertProject -> ProjectOutput certDir
-          execCertifier simplTrace cert certOutput
+          execCertifier simplTrace cert certOutput costs
 
 optimiseProgram
   :: forall m name a
@@ -410,9 +427,14 @@ execCertifier
   :: UPLC.SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -> CertName
   -> CertifierOutput
+  -> [ ( Maybe
+           (Cek.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+       , ExBudget
+       )
+     ]
   -> IO ()
-execCertifier simplificationTrace cert out = do
-  result <- runCertifier $ mkCertifier simplificationTrace cert out []
+execCertifier simplificationTrace cert out costs = do
+  result <- runCertifier $ mkCertifier simplificationTrace cert out costs
   case result of
     Left err -> do
       putStrLn $ prettyCertifierError err
@@ -422,6 +444,91 @@ execCertifier simplificationTrace cert out = do
         ValidationError _ -> exitWith $ ExitFailure 3
     -- TODO: Only Right True is success
     Right _ -> pure ()
+
+---------------- Load script arguments for evaluation ----------------
+
+-- | Load hex-encoded args as @Program@s, one per `FilePath`.
+loadProgramArgs :: [FilePath] -> IO [UplcTermNDB ()]
+loadProgramArgs = traverse loadArg
+  where
+    loadArg path = do
+      -- TODO: create a `readProgram` variant that returns `UplcProgDB` instead of `UplcProg`.
+      prog <- readProgram Hex (FileInput path) :: IO (UplcProg SrcSpan)
+      let term = void $ prog ^. UPLC.progTerm
+      case runExcept @FreeVariableError $ UPLC.deBruijnTerm term of
+        Left err -> fail $ "Error converting argument " <> path <> ": " <> show err
+        Right t -> pure (void t)
+
+-- | Load hex-encoded args as @Data@ objects, one per `FilePath`.
+loadDataArgs :: [FilePath] -> IO [UplcTermNDB ()]
+loadDataArgs = traverse loadArg
+  where
+    loadArg path = do
+      hex <- T.readFile path
+      case Base16.decode (T.encodeUtf8 (T.strip hex)) of
+        Left err -> fail $ "Cannot hex-decode data argument " <> path <> ": " <> err
+        Right bs ->
+          case deserialiseOrFail @Data (BSL.fromStrict bs) of
+            Left err -> fail $ "Cannot CBOR-decode data argument " <> path <> ": " <> show err
+            Right d -> pure $ mkConstant () d
+
+{-| Load hex-encoded args, which can be either @Program@s or @Data@ objects,
+depending on `EvalArgKind`. One arg per `FilePath`. -}
+loadArgs :: EvalArgKind -> [FilePath] -> IO [UplcTermNDB ()]
+loadArgs kind = case kind of
+  ArgProg -> loadProgramArgs
+  ArgData -> loadDataArgs
+
+{-| Load args from a dir.
+
+It tries to load the first arg from the file named "1", second from "2", and so on,
+until the file doesn't exist.
+
+The args can be either @Program@s or @Data@ objects, depending on `EvalArgKind`. -}
+loadArgsFromDir
+  :: FilePath
+  -> String
+  -- ^ Validator title
+  -> EvalArgKind
+  -> IO (Maybe [UplcTermNDB ()])
+loadArgsFromDir baseDir title argKind = do
+  let dir = baseDir </> title
+  paths <- collectArgFiles dir 1
+  if null paths
+    then pure Nothing
+    else Just <$> loadArgs argKind paths
+  where
+    collectArgFiles dir n = do
+      let path = dir </> show (n :: Int)
+      exists <- doesFileExist path
+      if exists
+        then (path :) <$> collectArgFiles dir (n + 1)
+        else pure []
+
+-- | Returns `Nothing` if evaluation is not requested, otherwise `Just args`.
+loadBlueprintArgs
+  :: OptimiseEvalOpts
+  -> String
+  -> IO (Maybe [UplcTermNDB ()])
+loadBlueprintArgs opts validatorName =
+  case oeBlueprintArgsDir opts of
+    Just dir -> do
+      margs <- loadArgsFromDir dir validatorName (oeArgKind opts)
+      case margs of
+        Just args -> pure (Just args)
+        Nothing | oeEval opts -> pure (Just [])
+        Nothing -> pure Nothing
+    Nothing ->
+      -- Blueprint args dir not specified. Try loading args from files, and
+      -- apply the same args to all validators in the blueprint.
+      loadArgsIfEval opts
+
+-- | Returns `Nothing` if evaluation is not requested, otherwise `Just args`.
+loadArgsIfEval :: OptimiseEvalOpts -> IO (Maybe [UplcTermNDB ()])
+loadArgsIfEval opts
+  | not (oeEval opts) = pure Nothing
+  | null (oeArgFiles opts) = pure (Just [])
+  | otherwise = Just <$> loadArgs (oeArgKind opts) (oeArgFiles opts)
 
 ---------------- Script application ----------------
 

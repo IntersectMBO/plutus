@@ -12,6 +12,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Cse (CseWhichSubterms (..))
 
 import Control.Lens ((^.))
+import Data.Maybe
 import Options.Applicative
 
 {-| Parser for an input stream. If none is specified,
@@ -271,6 +272,65 @@ simplifyOpts = do
       )
   pure UPLC.SimplifyOpts {..}
 
+optimiseEvalOpts :: Parser OptimiseEvalOpts
+optimiseEvalOpts =
+  mkOpts
+    <$> switch
+      ( long "eval"
+          <> help
+            "Evaluate the program (using the CEK machine) to measure execution \
+            \cost. With --certify, costs are included in the report for every \
+            \optimisation pass. Use --eval-apply or --eval-args-dir to supply arguments, if any."
+      )
+    <*> many
+      ( strOption
+          ( long "eval-apply"
+              <> metavar "FILE"
+              <> help
+                "Apply program to this argument file before evaluating \
+                \(repeatable).  Implies --eval."
+          )
+      )
+    <*> option
+      ( maybeReader
+          ( \case
+              "prog" -> Just ArgProg
+              "data" -> Just ArgData
+              _ -> Nothing
+          )
+      )
+      ( long "eval-arg-kind"
+          <> metavar "prog|data"
+          <> value ArgData
+          <> showDefaultWith (\case ArgProg -> "prog"; ArgData -> "data")
+          <> help
+            "Whether --eval-apply arguments are UPLC programs or Data objects"
+      )
+    <*> optional
+      ( strOption
+          ( long "eval-args-dir"
+              <> metavar "DIR"
+              <> help
+                "Directory with per-validator argument files for blueprint \
+                \optimisation.  For each validator titled T, it looks for \
+                \files DIR/T/1, DIR/T/2, ... containing arguments to apply. \
+                \Implies --eval."
+          )
+      )
+  where
+    -- If the user supplied any --eval-apply or --eval-args-dir,
+    -- treat --eval as implied even if they didn't pass it explicitly.
+    mkOpts eval argFiles argKind argsDir =
+      OptimiseEvalOpts
+        { oeEval =
+            eval
+              || not (null argFiles)
+              || isJust argsDir
+        , oeArgFiles = argFiles
+        , oeArgKind = argKind
+        , oeBlueprintArgsDir = argsDir
+        }
+
 optimiseOpts :: Parser (OptimiseOptions name a)
 optimiseOpts =
   OptimiseOptions
@@ -282,6 +342,7 @@ optimiseOpts =
     <*> certifier
     <*> certifierOutputMode
     <*> simplifyOpts
+    <*> optimiseEvalOpts
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle

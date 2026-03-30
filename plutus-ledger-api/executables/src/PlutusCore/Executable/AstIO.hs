@@ -4,7 +4,17 @@
 
 -- | Reading and writing ASTs with various name types in flat format.
 module PlutusCore.Executable.AstIO
-  ( serialisePirProgramFlat
+  ( UplcProgDB
+  , UplcProgNDB
+  , PlcProgDB
+  , PlcProgNDB
+  , UplcTermDB
+  , UplcTermNDB
+  , PlcTermDB
+  , PlcTermNDB
+  , PlcTypeDB
+  , PlcTypeNDB
+  , serialisePirProgramFlat
   , serialisePlcProgramFlat
   , serialiseUplcProgramFlat
   , loadPirASTfromFlat
@@ -45,6 +55,7 @@ import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as SBS
 import Data.Text (Text)
+import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Data.Text.IO qualified as T
 import PlutusCore.Flat (Flat, flat, unflat)
@@ -257,13 +268,17 @@ loadUplcASTfromHex inp = do
   contents <- case inp of
     StdInput -> T.getContents
     FileInput file -> T.readFile file
-  pure $ decodeUplcHex contents
+  pure $ decodeUplcHex (T.strip contents)
 
 deserialiseUplcProg :: BSL.ByteString -> UplcProg ()
-deserialiseUplcProg =
-  fromNamedDeBruijnUPLC
-    . UPLC.programMapNames fakeNameDeBruijn
-    . uncheckedDeserialiseUPLC
+deserialiseUplcProg = fromNamedDeBruijnUPLC . deserialiseUplcProgNdb
+
+deserialiseUplcProgNdb :: BSL.ByteString -> UplcProgNDB ()
+deserialiseUplcProgNdb = UPLC.programMapNames fakeNameDeBruijn . deserialiseUplcProgDb
+
+deserialiseUplcProgDb :: BSL.ByteString -> UplcProgDB ()
+deserialiseUplcProgDb =
+  uncheckedDeserialiseUPLC
     . SBS.toShort
     . BSL.toStrict
 

@@ -102,9 +102,26 @@ data OptimiseOptions name a
       Certifier
       CertifierOutputMode
       (UPLC.SimplifyOpts name a)
+      OptimiseEvalOpts
 data PrintOptions = PrintOptions Input Output PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
 data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
+
+data EvalArgKind
+  = -- | Each argument is a program
+    ArgProg
+  | -- | Each argment is a Data object
+    ArgData
+
+data OptimiseEvalOpts = OptimiseEvalOpts
+  { oeEval :: Bool
+  -- ^ Whether or not to evaluate the program before/after optimisation.
+  , oeArgFiles :: [FilePath]
+  {-^ Argument files, when optimising a single program (i.e., the input-format
+  is anything other than blueprint). -}
+  , oeArgKind :: EvalArgKind
+  , oeBlueprintArgsDir :: Maybe FilePath
+  }
 
 {-| Specialised types for PIR, which doesn't support deBruijn names in ASTs
 | A specialised format type for PIR. We don't support deBruijn or named deBruijn for PIR. -}
