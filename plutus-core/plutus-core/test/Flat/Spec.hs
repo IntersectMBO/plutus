@@ -44,7 +44,7 @@ test_flatStaticEncoding =
   goldenVsStringDiff
     "Flat stable encoding"
     (\expected actual -> ["diff", "-u", expected, actual])
-    "plutus-core/test/Flat/golden/stable-encoding.golden"
+    "plutus-core/test/Flat/golden/encoding-stability.golden"
     ( pure . LBS.pack $
         unlines
           [ "-- Core types"
