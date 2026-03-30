@@ -43,6 +43,7 @@ import Test.E
 import Test.E.Arbitrary ()
 import Test.E.Flat
 import Test.Tasty
+import Test.Tasty.Golden (goldenVsStringDiff)
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck as QC hiding (getSize)
 -- import Test.QuickCheck.Arbitrary
@@ -401,32 +402,27 @@ testContainers =
 -- | Stable byte encoding tests for flat library container/composite types.
 -- Wrapper types (Identity, All, Any, Dual, etc.) only have roundtrip tests
 -- since their encoding stability is not critical (they are never on-chain).
-testEncodingStability = testGroup "stable byte encodings"
-  $ concat
-    [ -- Maybe Bool
-      encRaw (Nothing :: Maybe Bool) [0]
-    , encRaw (Just True :: Maybe Bool) [192]
-      -- Either Bool ()
-    , encRaw (Right () :: Either Bool ()) [128]
-      -- NonEmpty Bool
-    , encRaw (True BI.:| [False]) [192]
-      -- Complex Word8
-    , encRaw (4 B.:+ 2 :: B.Complex Word8) [4, 2]
-      -- Ratio Word8
-    , encRaw (3 B.% 4 :: B.Ratio Word8) [3, 4]
-      -- Set Word8
-    , encRaw (DSet.fromList [1, 2, 3] :: DSet.Set Word8) [128, 192, 160, 96]
-      -- Tree Word8
-    , encRaw (DTree.Node 1 [DTree.Node 2 []] :: DTree.Tree Word8) [1, 129, 0]
-      -- Map Int Bool
-    , encRaw (C.fromList [(1 :: Int, True)]) [129, 64]
-      -- Seq Word8
-    , encRaw (Seq.fromList [1, 2] :: Seq.Seq Word8) [128, 192, 128]
-      -- Filler
-    , encRaw FillerEnd [1]
-      -- PreAligned Word8
-    , encRaw (preAligned (42 :: Word8)) [1, 42]
-    ]
+-- Use @cabal test flat-test --test-options --accept@ to update golden files.
+testEncodingStability =
+  goldenVsStringDiff "stable byte encodings"
+    (\expected actual -> ["diff", "-u", expected, actual])
+    "flat/test/golden/encoding-stability.golden"
+    (pure . L.pack . map (fromIntegral . ord) $ unlines
+      [ enc "Nothing :: Maybe Bool" (Nothing :: Maybe Bool)
+      , enc "Just True :: Maybe Bool" (Just True :: Maybe Bool)
+      , enc "Right () :: Either Bool ()" (Right () :: Either Bool ())
+      , enc "True :| [False]" (True BI.:| [False])
+      , enc "4 :+ 2 :: Complex Word8" (4 B.:+ 2 :: B.Complex Word8)
+      , enc "3 % 4 :: Ratio Word8" (3 B.% 4 :: B.Ratio Word8)
+      , enc "Set.fromList [1,2,3] :: Set Word8" (DSet.fromList [1, 2, 3] :: DSet.Set Word8)
+      , enc "Node 1 [Node 2 []] :: Tree Word8" (DTree.Node 1 [DTree.Node 2 []] :: DTree.Tree Word8)
+      , enc "fromList [(1,True)] :: Map Int Bool" (C.fromList [(1 :: Int, True)])
+      , enc "Seq.fromList [1,2] :: Seq Word8" (Seq.fromList [1, 2] :: Seq.Seq Word8)
+      , enc "FillerEnd" FillerEnd
+      , enc "preAligned 42 :: PreAligned Word8" (preAligned (42 :: Word8))
+      ])
+  where
+    enc label v = label ++ " = " ++ show (serRaw v)
 flatUnflatRT = testGroup
   "unflat (flat v) == v"
   [ rt "()" (prop_Flat_roundtrip :: RT ())

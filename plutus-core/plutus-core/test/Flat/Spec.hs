@@ -2,6 +2,7 @@
 
 module Flat.Spec (tests) where
 
+import Data.ByteString.Lazy.Char8 qualified as LBS
 import Data.Set qualified as Set
 import Data.Word (Word8)
 import PlutusCore
@@ -25,51 +26,46 @@ import PlutusCore.Default (DefaultFun (..), DefaultUni (..))
 import PlutusCore.Flat qualified as Flat
 import PlutusCore.Flat.Bits (asBytes, bits)
 import Test.Tasty
+import Test.Tasty.Golden (goldenVsStringDiff)
 import Test.Tasty.HUnit
 import Universe (SomeTypeIn (..))
 
 flatBytes :: Flat.Flat a => a -> [Word8]
 flatBytes = asBytes . bits
 
+enc :: Flat.Flat a => String -> a -> String
+enc label v = label ++ " = " ++ show (flatBytes v)
+
 {-| Stable byte encoding tests for TPLC types.
-These capture the exact byte representation to detect encoding changes. -}
+These capture the exact byte representation to detect encoding changes.
+Use @cabal test plutus-core-test --test-options --accept@ to update golden files. -}
 test_flatStaticEncoding :: TestTree
 test_flatStaticEncoding =
-  testGroup
+  goldenVsStringDiff
     "Flat stable encoding"
-    [ testGroup
-        "Core types"
-        [ testCase "Version 1 1 0" $
-            flatBytes (Version 1 1 0) @?= [1, 1, 0]
-        , testCase "Name \"x\" (Unique 0)" $
-            flatBytes (Name "x" (Unique 0)) @?= [1, 1, 120, 0, 0]
-        , testCase "Kind: Type ()" $
-            flatBytes (Type () :: Kind ()) @?= [0]
-        , testCase "DeBruijn (Index 1)" $
-            flatBytes (DeBruijn (Index 1)) @?= [1]
-        , testCase "NamedDeBruijn \"x\" (Index 42)" $
-            flatBytes (NamedDeBruijn "x" (Index 42)) @?= [1, 1, 120, 0, 42]
-        , testCase "Index 1" $
-            flatBytes (Index 1) @?= [1]
-        , testCase "SrcSpan" $
-            flatBytes (SrcSpan "f" 1 2 3 4) @?= [179, 0, 129, 1, 130, 0]
-        , testCase "SrcSpans" $
-            let sp = SrcSpan "f" 1 2 3 4
-             in flatBytes (SrcSpans (Set.fromList [sp])) @?= [217, 128, 64, 128, 193, 0]
-        ]
-    , testGroup
-        "DefaultFun"
-        [ testCase "AddInteger" $
-            flatBytes AddInteger @?= [0]
-        , testCase "SubtractInteger" $
-            flatBytes SubtractInteger @?= [2]
-        ]
-    , testGroup
-        "DefaultUni"
-        [ testCase "SomeTypeIn DefaultUniInteger" $
-            flatBytes (SomeTypeIn DefaultUniInteger) @?= [128]
-        ]
-    ]
+    (\expected actual -> ["diff", "-u", expected, actual])
+    "plutus-core/test/Flat/golden/stable-encoding.golden"
+    ( pure . LBS.pack $
+        unlines
+          [ "-- Core types"
+          , enc "Version 1 1 0" (Version 1 1 0)
+          , enc "Name \"x\" (Unique 0)" (Name "x" (Unique 0))
+          , enc "Kind: Type ()" (Type () :: Kind ())
+          , enc "DeBruijn (Index 1)" (DeBruijn (Index 1))
+          , enc "NamedDeBruijn \"x\" (Index 42)" (NamedDeBruijn "x" (Index 42))
+          , enc "Index 1" (Index 1)
+          , enc "SrcSpan \"f\" 1 2 3 4" (SrcSpan "f" 1 2 3 4)
+          , let sp = SrcSpan "f" 1 2 3 4
+             in enc "SrcSpans (Set.fromList [sp])" (SrcSpans (Set.fromList [sp]))
+          , ""
+          , "-- DefaultFun"
+          , enc "AddInteger" AddInteger
+          , enc "SubtractInteger" SubtractInteger
+          , ""
+          , "-- DefaultUni"
+          , enc "SomeTypeIn DefaultUniInteger" (SomeTypeIn DefaultUniInteger)
+          ]
+    )
 
 -- | Roundtrip tests for TPLC types.
 test_flatRoundtrip :: TestTree

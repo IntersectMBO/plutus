@@ -937,30 +937,6 @@ executable print-cost-model
     , plutus-core  ^>=1.60
 
 -- Golden file generator for Flat encoding stability tests.
---
--- The encoding stability tests compare encoded values against expected
--- byte sequences captured as test fixtures. This tool regenerates those
--- fixtures from source, so they don't remain opaque blobs of bits.
---
--- Example: if a bug in a Flat instance is found and the encoding must
--- change in a backward-incompatible way, the stability tests will fail.
--- Run this tool to see the new wire format, update the test fixtures,
--- and confirm the encoding change was intentional.
---
--- See: https://en.wikipedia.org/wiki/Characterization_test
--- Usage: cabal run flat-encoding-generator
-executable flat-encoding-generator
-  import:         lang
-  main-is:        GenerateEncodings.hs
-  hs-source-dirs: tools
-  build-depends:
-    , base              >=4.9   && <5
-    , bytestring
-    , containers
-    , dlist
-    , plutus-core       ^>=1.60
-    , plutus-core:flat
-
 ----------------------------------------------
 -- satint
 ----------------------------------------------
@@ -1155,6 +1131,7 @@ test-suite flat-test
     , QuickCheck
     , quickcheck-text
     , tasty
+    , tasty-golden
     , tasty-hunit
     , tasty-quickcheck
     , text
