@@ -29,7 +29,8 @@ open import Utils using (List;_×_;[];_∷_;_,_;length)
 open import Data.Vec using (Vec;[];_∷_;sum;foldr;lookup;map)
 open import Cost.Base
 open import Cost.Raw renaming (mkLinearFunction to mkLF; mkTwoVariableLinearFunction to mkLF2;
-  mkOneVariableQuadraticFunction to mkQF1; mkTwoVariableQuadraticFunction to mkQF2)
+  mkOneVariableQuadraticFunction to mkQF1; mkTwoVariableQuadraticFunction to mkQF2;
+  mkTwoVariableWithInteractionFunction to mkWI)
 open import Cost.Size using () renaming (defaultValueMeasure to sizeOf)
 open import Builtin using (Builtin;arity;builtinList;showBuiltin;decBuiltin)
 open import Builtin.Signature using (_⊢♯)
@@ -66,6 +67,8 @@ data CostingModel : ℕ → Set where
   quadraticCostIn1   : ∀{n} → Fin n → CostingNat → CostingNat → CostingNat → CostingModel n
   quadraticCostIn2   : ∀{n} → Fin n → Fin n → CostingNat → CostingNat → CostingNat → CostingNat
                             → CostingNat → CostingNat → CostingNat → CostingModel n
+  withInteractionIn  : ∀{n} → Fin n → Fin n → CostingNat → CostingNat → CostingNat
+                            → CostingNat → CostingModel n
    -- take the cost literally if it is a positive integer, or else, use the provided model.
   literalCostIn      : ∀{n} → Fin n → CostingModel n → CostingModel n
   addedSizes         : ∀{n} → Intercept → Slope → CostingModel n
@@ -119,6 +122,10 @@ runModel (quadraticCostIn2 m n min c00 c10 c01 c20 c11 c02) xs =
       y = sizeOf (lookup xs n)
       r = c00 + c10 * x + c01 * y + c20 * x * x + c11 * x * y + c02 * y * y
   in min ⊔ r
+runModel (withInteractionIn m n c00 c10 c01 c11) xs =
+  let x = sizeOf (lookup xs m)
+      y = sizeOf (lookup xs n)
+  in c00 + c10 * x + c01 * y + c11 * x * y
 runModel (addedSizes i s) xs = i + s * (sum (map sizeOf xs))
 runModel (multipliedSizes i s) xs = i + s * (prod (map sizeOf xs))
 runModel (minSize i s) xs = i + s * minimum (map sizeOf xs)
@@ -189,6 +196,7 @@ convertRawModel {3} (LinearInMaxYZ (mkLF intercept slope)) = just (twoArgumentsL
 convertRawModel {suc (suc n)} (QuadraticInX (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 zero c0 c1 c2)
 convertRawModel {suc (suc n)} (QuadraticInY (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc zero) c0 c1 c2)
 convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
+convertRawModel {suc (suc (suc (suc n)))} (LinearInU (mkLF intercept slope)) = just (linearCostIn (suc (suc (suc zero))) intercept slope)
 convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc (suc zero)) c0 c1 c2)
 convertRawModel {suc (suc n)} (QuadraticInXAndY (mkQF2 minVal c00 c10 c01 c20 c11 c02)) =
     just (quadraticCostIn2 zero (suc zero) minVal c00 c10 c01 c20 c11 c02)
@@ -199,6 +207,7 @@ convertRawModel {2} (ConstAboveDiagonal c m) = mapMaybe (twoArgumentsConstAboveD
 convertRawModel {2} (ConstBelowDiagonal c m) = mapMaybe (twoArgumentsConstBelowDiagonal c) (convertRawModel m)
 convertRawModel {2} (ConstOffDiagonal c m) = mapMaybe (twoArgumentsConstOffDiagonal c) (convertRawModel m)
 convertRawModel {3} (ExpModCost (mkExpModCostingFunction c00 c11 c12)) = just (threeArgumentsExpModCost c00 c11 c12)
+convertRawModel {suc (suc n)} (WithInteractionInXAndY (mkWI c00 c10 c01 c11)) = just (withInteractionIn zero (suc zero) c00 c10 c01 c11)
 convertRawModel _ = nothing
 
 convertCpuAndMemoryModel : ∀{n} → CpuAndMemoryModel → Maybe (BuiltinModel n)
