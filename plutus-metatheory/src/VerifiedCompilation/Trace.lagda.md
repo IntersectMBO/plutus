@@ -120,6 +120,6 @@ data EvalResult : Set where
   success : ℕ → ℕ → EvalResult
   failure : String → ℕ → ℕ → EvalResult
 
-{-# FOREIGN GHC import Certifier.CostInfo #-}
+{-# FOREIGN GHC import FFI.CostInfo #-}
 {-# COMPILE GHC EvalResult = data EvalResult (EvalSuccess | EvalFailure) #-}
 ```

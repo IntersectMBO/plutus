@@ -1,4 +1,4 @@
-module Certifier.CostInfo where
+module FFI.CostInfo where
 
 import Data.Text (Text)
 

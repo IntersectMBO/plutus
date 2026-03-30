@@ -26,7 +26,7 @@ import qualified MAlonzo.Code.Utils
 import UntypedPlutusCore.Transform.Simplifier
 import UntypedPlutusCore.Transform.Certify.Trace
 import qualified UntypedPlutusCore.Transform.Certify.Hints as Hints
-import Certifier.CostInfo
+import FFI.CostInfo
 -- VerifiedCompilation.Trace.SimplifierTag
 d_SimplifierTag_4 = ()
 type T_SimplifierTag_4 = SimplifierStage

@@ -93,8 +93,8 @@ library
   exposed-modules: Paths_plutus_metatheory
   exposed-modules:
     Certifier
-    Certifier.CostInfo
     FFI.AgdaUnparse
+    FFI.CostInfo
     FFI.Opts
     FFI.SimplifierTrace
     FFI.Untyped

@@ -7,7 +7,7 @@ module FFI.SimplifierTrace
   , toEvalResult
   ) where
 
-import Certifier.CostInfo
+import FFI.CostInfo
 import FFI.Untyped qualified as FFI
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory

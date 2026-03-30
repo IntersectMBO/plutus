@@ -20,8 +20,8 @@ import Data.Text.IO qualified as T
 import System.Directory (createDirectory)
 import System.FilePath ((</>))
 
-import Certifier.CostInfo
 import FFI.AgdaUnparse (AgdaUnparse (..))
+import FFI.CostInfo
 import FFI.SimplifierTrace (Trace, mkFfiSimplifierTrace, toEvalResult)
 import FFI.Untyped (UTerm)
 import MAlonzo.Code.Certifier (runCertifierMain)
