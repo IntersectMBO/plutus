@@ -10,7 +10,7 @@ Pass 1: Float Delay  ✅
   Optimization sites: 1
 
 ──────────────────────────────────────────────────────
-Pass 2: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 2: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 3573 (before)
   Program Size: 3504 (after)
@@ -64,7 +64,7 @@ Pass 7: Float Delay  ✅
   Optimization sites: 1
 
 ──────────────────────────────────────────────────────
-Pass 8: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 8: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 3176 (before)
   Program Size: 3176 (after)
@@ -118,7 +118,7 @@ Pass 13: Float Delay  ✅
   Optimization sites: 1
 
 ──────────────────────────────────────────────────────
-Pass 14: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 14: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 2494 (before)
   Program Size: 2467 (after)
@@ -172,7 +172,7 @@ Pass 19: Float Delay  ✅
   Optimization sites: 1
 
 ──────────────────────────────────────────────────────
-Pass 20: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 20: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 2305 (before)
   Program Size: 2305 (after)
@@ -226,7 +226,7 @@ Pass 25: Float Delay  ✅
   Optimization sites: 1
 
 ──────────────────────────────────────────────────────
-Pass 26: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 26: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 2405 (before)
   Program Size: 2405 (after)
@@ -280,7 +280,7 @@ Pass 31: Float Delay  ✅
   Optimization sites: 1
 
 ──────────────────────────────────────────────────────
-Pass 32: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 32: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1954 (before)
   Program Size: 1852 (after)
@@ -334,7 +334,7 @@ Pass 37: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 38: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 38: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1841 (before)
   Program Size: 1838 (after)
@@ -388,7 +388,7 @@ Pass 43: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 44: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 44: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1770 (before)
   Program Size: 1770 (after)
@@ -442,7 +442,7 @@ Pass 49: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 50: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 50: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1770 (before)
   Program Size: 1770 (after)
@@ -496,7 +496,7 @@ Pass 55: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 56: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 56: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1770 (before)
   Program Size: 1770 (after)
@@ -550,7 +550,7 @@ Pass 61: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 62: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 62: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1770 (before)
   Program Size: 1770 (after)
@@ -604,7 +604,7 @@ Pass 67: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 68: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 68: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1770 (before)
   Program Size: 1770 (after)
@@ -667,7 +667,7 @@ Pass 74: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 75: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 75: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1779 (before)
   Program Size: 1779 (after)
@@ -730,7 +730,7 @@ Pass 81: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 82: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 82: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1780 (before)
   Program Size: 1780 (after)
@@ -793,7 +793,7 @@ Pass 88: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 89: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 89: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1762 (before)
   Program Size: 1762 (after)
@@ -856,7 +856,7 @@ Pass 95: Float Delay  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 96: Float Force into Case Branches  ⚠ (certifier unavailable)
+Pass 96: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1762 (before)
   Program Size: 1762 (after)

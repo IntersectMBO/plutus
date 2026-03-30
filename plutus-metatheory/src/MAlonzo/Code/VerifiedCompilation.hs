@@ -30,6 +30,7 @@ import qualified MAlonzo.Code.VerifiedCompilation.UApplyToCase
 import qualified MAlonzo.Code.VerifiedCompilation.UCSE
 import qualified MAlonzo.Code.VerifiedCompilation.UCaseReduce
 import qualified MAlonzo.Code.VerifiedCompilation.UFloatDelay
+import qualified MAlonzo.Code.VerifiedCompilation.UForceCaseDelay
 import qualified MAlonzo.Code.VerifiedCompilation.UForceDelay
 import qualified MAlonzo.Code.VerifiedCompilation.UInline
 
@@ -52,7 +53,7 @@ d_mRelationOf_12 v0
       MAlonzo.Code.VerifiedCompilation.Trace.C_forceDelayT_8
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 erased
       MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10
-        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
+        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 erased
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_12
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_14
@@ -102,9 +103,10 @@ d_certifyPass_24 v0 v1
                 (coe (0 :: Integer)))
       MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10
         -> coe
-             (\ v2 v3 ->
-                coe
-                  MAlonzo.Code.VerifiedCompilation.NotImplemented.du_certNotImplemented_22)
+             MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
+             (coe
+                MAlonzo.Code.VerifiedCompilation.UForceCaseDelay.d_isForceCaseDelay'63'_94
+                (coe (0 :: Integer)))
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_12
         -> coe
              (\ v2 v3 ->
