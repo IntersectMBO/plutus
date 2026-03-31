@@ -5,8 +5,6 @@
 Please only report an issue here if it relates specifically to the Plutus Core language or compiler.
 This is also an appropriate place to report issues that stem from the EUTXO ledger model.
 
-Note that many security issues will instead appear in specific applications or in the [libraries that support them](https://github.com/input-output-hk/plutus-apps). 
-
 ## Weaknesses
 
 If you have found a _weakness_ (in the sense of the [CWE](https://cwe.mitre.org/); a source of potential vulnerabilities) that affects users of this library, please open a "Security report" issue and describe it as a weakness.
