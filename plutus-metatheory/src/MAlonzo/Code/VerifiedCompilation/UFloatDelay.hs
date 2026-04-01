@@ -219,7 +219,7 @@ d_isAllForced'63'_84 v0 v1 v2
                                seq (coe v5)
                                (let v8
                                       = coe
-                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                           (coe d_isAllForced'63'_84 (coe v0) (coe v1) (coe v6))
                                           (coe d_isAllForced'63'_84 (coe v0) (coe v1) (coe v7)) in
                                 coe
@@ -292,7 +292,7 @@ d_isAllForced'63'_84 v0 v1 v2
                                seq (coe v5)
                                (let v8
                                       = coe
-                                          MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_506
+                                          MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_510
                                           (coe d_isAllForced'63'_84 (coe v0) (coe v1)) (coe v7) in
                                 coe
                                   (case coe v8 of
@@ -320,10 +320,10 @@ d_isAllForced'63'_84 v0 v1 v2
                                seq (coe v5)
                                (let v8
                                       = coe
-                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                           (coe d_isAllForced'63'_84 (coe v0) (coe v1) (coe v6))
                                           (coe
-                                             MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_506
+                                             MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_510
                                              (coe d_isAllForced'63'_84 (coe v0) (coe v1))
                                              (coe v7)) in
                                 coe

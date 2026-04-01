@@ -384,7 +384,7 @@ d_isCoCForce'63'_162 v0 v1
                                                                                                                                                                                                    v49)
                                                                                                                                                                                                 (let v55
                                                                                                                                                                                                        = coe
-                                                                                                                                                                                                           MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                                                                                                                                                                                                           MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                                                                                                                            (coe
                                                                                                                                                                                                               MAlonzo.Code.Builtin.d_decBuiltin_426
                                                                                                                                                                                                               (coe
@@ -394,9 +394,9 @@ d_isCoCForce'63'_162 v0 v1
                                                                                                                                                                                                            (coe
                                                                                                                                                                                                               MAlonzo.Code.Untyped.Equality.d__'8799'__12
                                                                                                                                                                                                               (coe
-                                                                                                                                                                                                                 MAlonzo.Code.Untyped.Equality.du_DecEq'45'List_152
+                                                                                                                                                                                                                 MAlonzo.Code.Untyped.Equality.du_DecEq'45'List_156
                                                                                                                                                                                                                  (coe
-                                                                                                                                                                                                                    MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_146
+                                                                                                                                                                                                                    MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
                                                                                                                                                                                                                     (coe
                                                                                                                                                                                                                        v0)))
                                                                                                                                                                                                               v39
@@ -484,7 +484,7 @@ d_isCoC'63'_264 ::
 d_isCoC'63'_264 v0 v1 v2
   = let v3
           = coe
-              MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+              MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
               (coe d_isCoCCase'63'_58 (coe v0) (coe v1))
               (coe d_isCoCForce'63'_162 (coe v0) (coe v2)) in
     coe
@@ -542,24 +542,24 @@ d_isCoC'63'_264 v0 v1 v2
                                                                                                                                                     MAlonzo.Code.Untyped.C_constr_34 v36 v37
                                                                                                                                                       -> let v38
                                                                                                                                                                = coe
-                                                                                                                                                                   MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                                                                                                                                                                   MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                                                                                    (coe
                                                                                                                                                                       MAlonzo.Code.Untyped.Equality.d__'8799'__12
-                                                                                                                                                                      (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_146
+                                                                                                                                                                      (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
                                                                                                                                                                          (coe
                                                                                                                                                                             v0))
                                                                                                                                                                       v16
                                                                                                                                                                       v27)
                                                                                                                                                                    (coe
-                                                                                                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                                                                                                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                                                                                       (coe
-                                                                                                                                                                         MAlonzo.Code.Data.Nat.Properties.d__'8799'__2688
+                                                                                                                                                                         MAlonzo.Code.Data.Nat.Properties.d__'8799'__2796
                                                                                                                                                                          (coe
                                                                                                                                                                             v17)
                                                                                                                                                                          (coe
                                                                                                                                                                             v31))
                                                                                                                                                                       (coe
-                                                                                                                                                                         MAlonzo.Code.Data.Nat.Properties.d__'8799'__2688
+                                                                                                                                                                         MAlonzo.Code.Data.Nat.Properties.d__'8799'__2796
                                                                                                                                                                          (coe
                                                                                                                                                                             v19)
                                                                                                                                                                          (coe

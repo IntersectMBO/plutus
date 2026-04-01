@@ -56,7 +56,7 @@ d_a2c'63'_32 v0 v1 v2
           = coe
               MAlonzo.Code.VerifiedCompilation.UntypedViews.du_constr'63'_1572
               (coe
-                 MAlonzo.Code.Data.Nat.Properties.d__'8799'__2688
+                 MAlonzo.Code.Data.Nat.Properties.d__'8799'__2796
                  (coe (0 :: Integer)))
               (coe
                  MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'8759''63'__1910
@@ -109,7 +109,7 @@ d_a2c'63'_32 v0 v1 v2
             MAlonzo.Code.Untyped.C_case_40 v5 v6
               -> let v7
                        = coe
-                           MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                           MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                            (coe v3 v5) (coe v4 v6) in
                  coe
                    (case coe v7 of
