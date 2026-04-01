@@ -51,7 +51,6 @@ import PlutusCore.Crypto.Secp256k1
   )
 
 import Codec.Serialise (serialise)
-import Control.Monad (unless)
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
@@ -1216,13 +1215,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . paramLengthOfByteString)
   toBuiltinMeaning _semvar IndexByteString =
     let indexByteStringDenotation :: BS.ByteString -> Int -> BuiltinResult Word8
-        indexByteStringDenotation xs n = do
-          unless (n >= 0 && n < BS.length xs) $
-            -- See Note [Structural vs operational errors within builtins].
-            -- The arguments are going to be printed in the "cause" part of the error
-            -- message, so we don't need to repeat them here.
-            fail "Index out of bounds"
-          pure $ BS.index xs n
+        -- See Note [Structural vs operational errors within builtins].
+        -- The arguments are going to be printed in the "cause" part of the error
+        -- message, so we don't need to repeat them here.
+        indexByteStringDenotation xs n =
+          maybe (fail "Index out of bounds") pure $ BS.indexMaybe xs n
         {-# INLINE indexByteStringDenotation #-}
      in makeBuiltinMeaning
           indexByteStringDenotation
