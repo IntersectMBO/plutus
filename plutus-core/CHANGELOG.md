@@ -1,4 +1,18 @@
 
+<a id='changelog-1.61.0.0'></a>
+# 1.61.0.0 — 2026-04-02
+
+## Added
+
+- Roundtrip and stable byte encoding tests for all Flat instances across
+  flat, plutus-core, plutus-ir, and untyped-plutus-core packages.
+- Standalone encoding generator executable (`cabal run flat-encoding-generator`)
+  for reproducing expected byte constants.
+
+## Fixed
+
+- Fixed `consClose` in the Flat decoder failing to advance the stream pointer past 1 byte, which corrupted decoder state for Generic-derived Flat instances of large enums (>256 constructors) and caused infinite memory consumption during deserialization.
+
 <a id='changelog-1.60.0.0'></a>
 # 1.60.0.0 — 2026-03-18
 
