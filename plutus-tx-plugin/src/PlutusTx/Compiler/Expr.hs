@@ -52,7 +52,6 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
-import PlutusTx.List qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
@@ -65,7 +64,7 @@ import PlutusTx.Trace
 import PlutusIR qualified as PIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Definitions qualified as PIR
-import PlutusIR.Compiler.Names (safeFreshName)
+import PlutusIR.Compiler.Names (safeFreshName, safeFreshTyName)
 import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Core.Type (Term (..))
 import PlutusIR.MkPir qualified as PIR
@@ -867,13 +866,22 @@ compileHaskellList = buildList . strip
       throwPlain $
         CompilationError "Unexpected expression where a list constructor was expected"
 
-    -- This is when the list is a single element and GHC will specialize list builder directly.
-    -- GHC will generate core that looks like below:
-    -- (:) @resTy e ([] @resTy)
-    buildList (GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty) e) _) = traverse (compileExpr Nothing) [e]
-    -- This is when the list has more than one elements. GHC will generate core that looks like below:
-    -- build @resTy (\con nil -> con e1 (con e2 (... nil)))
-    -- 'build' is some special function that abstracts the list type.
+    -- GHC may represent lists in two forms:
+    --   1. Cons chain: (:) @ty e1 ((:) @ty e2 (... ([] @ty)))
+    --   2. Build form: build @ty (\con nil -> con e1 (con e2 (... nil)))
+    -- Form 1 is used when GHC inlines 'build' (e.g. for recursive types with
+    -- many constructors).  Form 2 is used when build/foldr fusion is possible.
+
+    -- Form 1: explicit (:) chain.  Walk the spine, collecting elements.
+    buildList expr@(GHC.App (GHC.App (GHC.App (GHC.Var con) _ty) _e) _rest)
+      | GHC.isDataConWorkId con =
+          let consumeCons = \case
+                GHC.App (GHC.App (GHC.App (GHC.Var _con) _ty') e) rest ->
+                  (e :) <$> consumeCons (strip rest)
+                GHC.App (GHC.Var _nil) _ty' -> pure [] -- [] @ty
+                _ -> err
+           in consumeCons expr >>= traverse (compileExpr Nothing)
+    -- Form 2: build-based list.
     buildList (GHC.App (GHC.App _build _ty) (GHC.Lam _tyArg (GHC.Lam con (GHC.Lam nil li)))) =
       let
         consume :: GHC.CoreExpr -> m [GHC.CoreExpr]
@@ -935,7 +943,6 @@ compileExpr mloc e = do
   unsupportedName <- lookupGhcName 'PlutusTx.Plugin.Utils.unsupported
 
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
-  listIndexId <- lookupGhcId '(PlutusTx.List.!!)
 
   let
     compileMkNil
@@ -993,21 +1000,44 @@ compileExpr mloc e = do
         anns
     _ -> traceCompilationL 2 (traceExprMsg mloc GHC.$$ GHC.ppr e) mloc $ do
       case e of
-        -- case integer
+        -- caseInteger: dispatch on an integer index to select a branch.
         GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
+          -- BuiltinCasing: compile to native UPLC case on the integer.
           | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do
               resTy' <- compileTypeNorm resTy
               scrut' <- compileExpr Nothing scrut
               branches <- compileHaskellList li
               pure $ PIR.kase annAlwaysInline resTy' scrut' branches
-          | GHC.getName var == caseIntegerName ->
-              -- This is when we don't have bultin casing. We have to use something
-              -- else. Currently, it will use PlutusTx.List.!!, but this will be quite a bit
-              -- less efficient since it will also build the list and than index on the built
-              -- list.  Ideally, It is possible to have some custom PIR here that will generate
-              -- chain of if-statements so that can skip the list construction work if we want
-              -- to optimize more here.
-              compileExpr Nothing $ GHC.App (GHC.App (GHC.App (GHC.Var listIndexId) (GHC.Type resTy)) li) scrut
+          -- SumsOfProducts/Scott: compile to a lazy equalsInteger/ifThenElse chain.
+          | GHC.getName var == caseIntegerName -> do
+              resTy' <- compileTypeNorm resTy
+              scrut' <- compileExpr Nothing scrut
+              branches <- compileHaskellList li
+              dead <- safeFreshTyName "dead"
+              let thunkTy = PLC.TyForall annMayInline dead (PLC.Type annMayInline) resTy'
+                  thunk = PIR.TyAbs annMayInline dead (PLC.Type annMayInline)
+                  unthunk t = PIR.TyInst annMayInline t resTy'
+                  -- Uses the (all dead. resTy) / (/\dead -> branch) encoding to avoid
+                  -- evaluating non-matching branches.
+                  -- e.g. ifThenElse {all dead. resTy} (equalsInteger scrut 0)
+                  --        (/\dead -> b0) (/\dead -> ifThenElse ...) {resTy}
+                  mkChain _ [] = PIR.Error annMayInline resTy'
+                  mkChain idx (b : bs) =
+                    unthunk $
+                      PIR.mkIterApp
+                        (PIR.tyInst annMayInline (PIR.builtin annMayInline PLC.IfThenElse) thunkTy)
+                        [
+                          ( annMayInline
+                          , PIR.mkIterApp
+                              (PIR.builtin annMayInline PLC.EqualsInteger)
+                              [ (annMayInline, PIR.mkConstant @Integer annMayInline idx)
+                              , (annMayInline, scrut')
+                              ]
+                          )
+                        , (annMayInline, thunk b)
+                        , (annMayInline, thunk (mkChain (idx + 1) bs))
+                        ]
+              pure $ mkChain (0 :: Integer) branches
         {- Note [Lazy boolean operators]
           (||) and (&&) have a special treatment: we want them lazy in the second argument,
           as this is the behavior in Haskell and other PLs.
