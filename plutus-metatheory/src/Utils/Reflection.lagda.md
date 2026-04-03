@@ -109,6 +109,29 @@ defShow T defName = do
 
 ```
 
+The function `defEnum` helps to define a transformation to ℕ for datatypes which are simple enumerations.
+
+```
+mk-Enum : List Name → List Clause
+mk-Enum = go 0
+  where
+    go : ℕ → List Name → List Clause
+    go _ [] = [] 
+    go acc (c ∷ cs) =
+      clause
+        []
+        (vArg (con c []) ∷ [])
+        ((lit (nat acc)))
+      ∷ go (suc acc) cs
+
+defEnum : Name → Name → TC ⊤
+defEnum T defName = do
+       d ← getDefinition T
+       let cls = mk-Enum (constructors d)
+       defineFun defName cls
+
+```
+
 Produce a list with all constructors
 
 ```

@@ -35,9 +35,11 @@ import qualified MAlonzo.Code.Data.List.NonEmpty.Base
 import qualified MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
 import qualified MAlonzo.Code.Data.Maybe.Base
 import qualified MAlonzo.Code.Data.Nat.Base
+import qualified MAlonzo.Code.Data.Nat.Properties
 import qualified MAlonzo.Code.Data.String.Properties
 import qualified MAlonzo.Code.Data.Vec.Base
 import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped.CEK
 import qualified MAlonzo.Code.Utils
 
@@ -908,13 +910,13 @@ d_getModel_480 v0 v1
                                (\ v6 ->
                                   coe
                                     MAlonzo.Code.Data.String.Properties.du_'8776''45'reflexive_8
-                                    (coe MAlonzo.Code.Builtin.d_showBuiltin_428 (coe v0)))
+                                    (coe MAlonzo.Code.Builtin.d_showBuiltin_464 (coe v0)))
                                (coe
                                   MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.du_decidable_112
                                   (coe MAlonzo.Code.Data.Char.Properties.d__'8799'__14)
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12
-                                     (MAlonzo.Code.Builtin.d_showBuiltin_428 (coe v0)))
+                                     (MAlonzo.Code.Builtin.d_showBuiltin_464 (coe v0)))
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12 v4))) in
                   coe
@@ -958,13 +960,58 @@ d_lookupModel_522 v0 v1
         -> case coe v2 of
              MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v4 v5
                -> let v6
-                        = MAlonzo.Code.Builtin.d_decBuiltin_426 (coe v4) (coe v1) in
+                        = coe
+                            MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
+                            erased
+                            (\ v6 ->
+                               coe
+                                 MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
+                                 (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v4)))
+                            (coe
+                               MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                               (coe
+                                  eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v4))
+                                  (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v1)))
+                               (coe
+                                  MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
+                                  (coe
+                                     eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v4))
+                                     (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v1))))) in
                   coe
                     (case coe v6 of
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v7 v8
                          -> if coe v7
-                              then coe seq (coe v8) (coe v5)
-                              else coe d_lookupModel_522 (coe v3) (coe v1)
+                              then let v9
+                                         = seq
+                                             (coe v8)
+                                             (coe
+                                                MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                (coe v7)
+                                                (coe
+                                                   MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                   erased)) in
+                                   coe
+                                     (case coe v9 of
+                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v10 v11
+                                          -> if coe v10
+                                               then coe seq (coe v11) (coe v5)
+                                               else coe d_lookupModel_522 (coe v3) (coe v1)
+                                        _ -> MAlonzo.RTE.mazUnreachableError)
+                              else (let v9
+                                          = seq
+                                              (coe v8)
+                                              (coe
+                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                 (coe v7)
+                                                 (coe
+                                                    MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)) in
+                                    coe
+                                      (case coe v9 of
+                                         MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v10 v11
+                                           -> if coe v10
+                                                then coe seq (coe v11) (coe v5)
+                                                else coe d_lookupModel_522 (coe v3) (coe v1)
+                                         _ -> MAlonzo.RTE.mazUnreachableError))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -1009,4 +1056,4 @@ d_createMap_584 v0
          (coe
             MAlonzo.Code.Data.List.Base.du_map_22
             (coe (\ v1 -> d_getModel_480 (coe v1) (coe v0)))
-            (coe MAlonzo.Code.Builtin.d_builtinList_430)))
+            (coe MAlonzo.Code.Builtin.d_builtinList_466)))
