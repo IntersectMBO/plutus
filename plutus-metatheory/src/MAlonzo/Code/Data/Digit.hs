@@ -1,37 +1,37 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.Digit where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Char qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Nat qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Builtin.Unit qualified
-import MAlonzo.Code.Data.Fin.Base qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Data.Nat.Base qualified
-import MAlonzo.Code.Data.Nat.DivMod qualified
-import MAlonzo.Code.Data.Nat.Properties qualified
-import MAlonzo.Code.Data.Vec.Base qualified
-import MAlonzo.Code.Induction.WellFounded qualified
-import MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple qualified
-import MAlonzo.Code.Relation.Binary.Reasoning.Syntax qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Char
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Nat
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Data.Fin.Base
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Data.Nat.Base
+import qualified MAlonzo.Code.Data.Nat.DivMod
+import qualified MAlonzo.Code.Data.Nat.Properties
+import qualified MAlonzo.Code.Data.Vec.Base
+import qualified MAlonzo.Code.Induction.WellFounded
+import qualified MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple
+import qualified MAlonzo.Code.Relation.Binary.Reasoning.Syntax
 
 -- Data.Digit.Digit
 d_Digit_4 :: Integer -> ()
@@ -58,7 +58,7 @@ du_toNatDigits_20 :: Integer -> Integer -> [Integer]
 du_toNatDigits_20 v0 v1
   = case coe v0 of
       1 -> coe
-             MAlonzo.Code.Data.List.Base.du_replicate_294 (coe v1)
+             MAlonzo.Code.Data.List.Base.du_replicate_278 (coe v1)
              (coe (1 :: Integer))
       _ -> let v2 = subInt (coe v0) (coe (2 :: Integer)) in
            coe
@@ -98,13 +98,13 @@ du_aux_36 v0 v1 v2
                           (coe
                              MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                              (coe
-                                MAlonzo.Code.Data.Nat.Base.du__'37'__326 (coe v1)
+                                MAlonzo.Code.Data.Nat.Base.du__'37'__330 (coe v1)
                                 (coe addInt (coe (2 :: Integer)) (coe v0)))
                              (coe v2))
                    else coe
                           MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                           (coe
-                             MAlonzo.Code.Data.Nat.Base.du__'37'__326 (coe v1)
+                             MAlonzo.Code.Data.Nat.Base.du__'37'__330 (coe v1)
                              (coe addInt (coe (2 :: Integer)) (coe v0)))
                           (coe v2)))
 -- Data.Digit.Expansion
@@ -178,15 +178,15 @@ d_lem_144 ::
   Integer ->
   Integer ->
   Integer ->
-  Integer -> MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338
+  Integer -> MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342
 d_lem_144 ~v0 ~v1 ~v2 v3 v4 v5 = du_lem_144 v3 v4 v5
 du_lem_144 ::
   Integer ->
   Integer ->
-  Integer -> MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338
+  Integer -> MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342
 du_lem_144 v0 v1 v2
   = coe
-      MAlonzo.Code.Data.Nat.Properties.du_'8804''8658''8804''8242'_6128
+      MAlonzo.Code.Data.Nat.Properties.du_'8804''8658''8804''8242'_6238
       (coe
          addInt
          (coe
@@ -197,9 +197,9 @@ du_lem_144 v0 v1 v2
          MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46
          (coe
             MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple.du_start_96
-            (coe MAlonzo.Code.Data.Nat.Properties.d_'8804''45'isPreorder_2810)
+            (coe MAlonzo.Code.Data.Nat.Properties.d_'8804''45'isPreorder_2950)
             (\ v3 v4 v5 ->
-               coe MAlonzo.Code.Data.Nat.Properties.du_'60''8658''8804'_2854 v5))
+               coe MAlonzo.Code.Data.Nat.Properties.du_'60''8658''8804'_2998 v5))
          (addInt (coe (2 :: Integer)) (coe v0))
          (addInt
             (coe
@@ -207,13 +207,13 @@ du_lem_144 v0 v1 v2
                (coe addInt (coe (2 :: Integer)) (coe v1)))
             (coe v2))
          (coe
-            MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8804'_308
+            MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8804'_310
             (coe
                MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple.du_'8804''45'go_138
-               (coe MAlonzo.Code.Data.Nat.Properties.d_'8804''45'isPreorder_2810)
+               (coe MAlonzo.Code.Data.Nat.Properties.d_'8804''45'isPreorder_2950)
                (\ v3 v4 v5 v6 v7 ->
                   coe
-                    MAlonzo.Code.Data.Nat.Properties.du_'8804''45''60''45'trans_2986 v6
+                    MAlonzo.Code.Data.Nat.Properties.du_'8804''45''60''45'trans_3128 v6
                     v7))
             (addInt (coe (2 :: Integer)) (coe v0))
             (addInt
@@ -233,7 +233,7 @@ du_lem_144 v0 v1 v2
                   (coe addInt (coe (2 :: Integer)) (coe v1)))
                (coe v2))
             (coe
-               MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436
+               MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_438
                (\ v3 v4 v5 v6 v7 -> v7)
                (addInt
                   (coe
@@ -263,7 +263,7 @@ du_lem_144 v0 v1 v2
                      (coe addInt (coe (2 :: Integer)) (coe v1)))
                   (coe v2))
                (coe
-                  MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10216'_448
+                  MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10216'_450
                   (\ v3 v4 v5 v6 v7 -> v7)
                   (addInt
                      (coe
@@ -293,7 +293,7 @@ du_lem_144 v0 v1 v2
                         (coe addInt (coe (2 :: Integer)) (coe v1)))
                      (coe v2))
                   (coe
-                     MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436
+                     MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_438
                      (\ v3 v4 v5 v6 v7 -> v7)
                      (addInt
                         (coe
@@ -323,7 +323,7 @@ du_lem_144 v0 v1 v2
                            (coe addInt (coe (2 :: Integer)) (coe v1)))
                         (coe v2))
                      (coe
-                        MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436
+                        MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_438
                         (\ v3 v4 v5 v6 v7 -> v7)
                         (addInt
                            (coe
@@ -355,7 +355,7 @@ du_lem_144 v0 v1 v2
                               (coe addInt (coe (2 :: Integer)) (coe v1)))
                            (coe v2))
                         (coe
-                           MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10216'_448
+                           MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10216'_450
                            (\ v3 v4 v5 v6 v7 -> v7)
                            (addInt
                               (coe
@@ -389,7 +389,7 @@ du_lem_144 v0 v1 v2
                                  (coe addInt (coe (2 :: Integer)) (coe v1)))
                               (coe v2))
                            (coe
-                              MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436
+                              MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_438
                               (\ v3 v4 v5 v6 v7 -> v7)
                               (addInt
                                  (coe
@@ -420,11 +420,11 @@ du_lem_144 v0 v1 v2
                                     (coe addInt (coe (2 :: Integer)) (coe v1)))
                                  (coe v2))
                               (coe
-                                 MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492
+                                 MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_494
                                  (coe
                                     MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple.du_stop_166
                                     (coe
-                                       MAlonzo.Code.Data.Nat.Properties.d_'8804''45'isPreorder_2810))
+                                       MAlonzo.Code.Data.Nat.Properties.d_'8804''45'isPreorder_2950))
                                  (coe
                                     addInt
                                     (coe
@@ -438,7 +438,7 @@ du_lem_144 v0 v1 v2
                   erased)
                erased)
             (coe
-               MAlonzo.Code.Data.Nat.Properties.du_m'8804'm'43'n_3482
+               MAlonzo.Code.Data.Nat.Properties.du_m'8804'm'43'n_3624
                (coe addInt (coe (2 :: Integer)) (coe v0)))))
 -- Data.Digit._.helper
 d_helper_166 ::
@@ -447,7 +447,7 @@ d_helper_166 ::
   Integer ->
   Integer ->
   (Integer ->
-   MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 ->
+   MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342 ->
    MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 d_helper_166 v0 ~v1 ~v2 v3 v4 = du_helper_166 v0 v3 v4
@@ -455,13 +455,13 @@ du_helper_166 ::
   Integer ->
   Integer ->
   (Integer ->
-   MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 ->
+   MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342 ->
    MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_helper_166 v0 v1 v2
   = let v3
           = coe
-              MAlonzo.Code.Data.Nat.Base.du__'47'__314 (coe v1)
+              MAlonzo.Code.Data.Nat.Base.du__'47'__318 (coe v1)
               (coe addInt (coe (2 :: Integer)) (coe v0)) in
     coe
       (let v4
@@ -472,7 +472,7 @@ du_helper_166 v0 v1 v2
          (case coe v3 of
             0 -> coe
                    MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
-                   (coe MAlonzo.Code.Data.List.Base.du_'91'_'93'_286 (coe v4)) erased
+                   (coe MAlonzo.Code.Data.List.Base.du_'91'_'93'_270 (coe v4)) erased
             _ -> let v5 = subInt (coe v3) (coe (1 :: Integer)) in
                  coe
                    (coe

@@ -1,38 +1,38 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Text.Printf.Generic where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Char qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Data.Product.Nary.NonDependent qualified
-import MAlonzo.Code.Data.Sum.Base qualified
-import MAlonzo.Code.Function.Nary.NonDependent.Base qualified
-import MAlonzo.Code.Text.Format.Generic qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Char
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Data.Product.Nary.NonDependent
+import qualified MAlonzo.Code.Data.Sum.Base
+import qualified MAlonzo.Code.Function.Nary.NonDependent.Base
+import qualified MAlonzo.Code.Text.Format.Generic
 
 -- Text.Printf.Generic.PrintfSpec
 d_PrintfSpec_18 a0 a1 a2 = ()
 data T_PrintfSpec_18
-  = C_PrintfSpec'46'constructor_113 (AgdaAny -> AgdaAny -> AgdaAny)
-                                    (MAlonzo.Code.Agda.Builtin.String.T_String_6 -> AgdaAny)
+  = C_constructor_54 (AgdaAny -> AgdaAny -> AgdaAny)
+                     (MAlonzo.Code.Agda.Builtin.String.T_String_6 -> AgdaAny)
 -- Text.Printf.Generic._.ArgType
 d_ArgType_30 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -68,45 +68,45 @@ du_lexArg_46 v0
 d_renderArg_50 :: T_PrintfSpec_18 -> AgdaAny -> AgdaAny -> AgdaAny
 d_renderArg_50 v0
   = case coe v0 of
-      C_PrintfSpec'46'constructor_113 v1 v2 -> coe v1
-      _                                     -> MAlonzo.RTE.mazUnreachableError
+      C_constructor_54 v1 v2 -> coe v1
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Text.Printf.Generic.PrintfSpec.renderStr
 d_renderStr_52 ::
   T_PrintfSpec_18 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> AgdaAny
 d_renderStr_52 v0
   = case coe v0 of
-      C_PrintfSpec'46'constructor_113 v1 v2 -> coe v2
-      _                                     -> MAlonzo.RTE.mazUnreachableError
+      C_constructor_54 v1 v2 -> coe v2
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Text.Printf.Generic.Type._.Format
-d_Format_64 ::
+d_Format_66 ::
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 -> ()
-d_Format_64 = erased
+d_Format_66 = erased
 -- Text.Printf.Generic.Type._.Error
-d_Error_66 a0 = ()
+d_Error_68 a0 = ()
 -- Text.Printf.Generic.Type.Error
-d_Error_96 a0 a1 a2 = ()
-data T_Error_96 = C_Error'46'constructor_421
+d_Error_98 a0 a1 a2 = ()
+data T_Error_98 = C_constructor_102
 -- Text.Printf.Generic.Type.Size
-d_Size_100 ::
+d_Size_104 ::
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -> Integer
-d_Size_100 ~v0 v1 = du_Size_100 v1
-du_Size_100 :: MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -> Integer
-du_Size_100 v0
+d_Size_104 ~v0 v1 = du_Size_104 v1
+du_Size_104 :: MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -> Integer
+du_Size_104 v0
   = case coe v0 of
       MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v1 -> coe (0 :: Integer)
       MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v1
-        -> coe MAlonzo.Code.Text.Format.Generic.du_size_68 v1
+        -> coe MAlonzo.Code.Text.Format.Generic.du_size_70 v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Text.Printf.Generic.Type.Printf
-d_Printf_108 ::
+d_Printf_112 ::
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -> () -> ()
-d_Printf_108 = erased
+d_Printf_112 = erased
 -- Text.Printf.Generic.Type.map
-d_map_118 ::
+d_map_122 ::
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
@@ -114,16 +114,16 @@ d_map_118 ::
   () ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30 ->
   (AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny
-d_map_118 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6 v7 = du_map_118 v5 v6 v7
-du_map_118 ::
+d_map_122 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6 v7 = du_map_122 v5 v6 v7
+du_map_122 ::
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30 ->
   (AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny
-du_map_118 v0 v1 v2
+du_map_122 v0 v1 v2
   = case coe v0 of
       MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v3 -> erased
       MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v3
         -> coe
-             MAlonzo.Code.Function.Nary.NonDependent.Base.du_map'8345'_140
+             MAlonzo.Code.Function.Nary.NonDependent.Base.du_map'8345'_198
              (coe
                 MAlonzo.Code.Data.List.Base.du_foldr_216 (coe addInt)
                 (coe (0 :: Integer))
@@ -134,59 +134,59 @@ du_map_118 v0 v1 v2
                          let v5 = 1 :: Integer in
                          coe
                            (case coe v4 of
-                              MAlonzo.Code.Text.Format.Generic.C_Raw_64 v6 -> coe (0 :: Integer)
-                              _                                            -> coe v5)))
+                              MAlonzo.Code.Text.Format.Generic.C_Raw_66 v6 -> coe (0 :: Integer)
+                              _ -> coe v5)))
                    (coe v3)))
              (coe v1) (coe v2)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Text.Printf.Generic.Render._.ArgChunk
-d_ArgChunk_142 ::
+d_ArgChunk_146 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 -> ()
-d_ArgChunk_142 = erased
+d_ArgChunk_146 = erased
 -- Text.Printf.Generic.Render._.ArgType
-d_ArgType_144 ::
+d_ArgType_148 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 -> AgdaAny -> ()
-d_ArgType_144 = erased
+d_ArgType_148 = erased
 -- Text.Printf.Generic.Render._.lexArg
-d_lexArg_146 ::
+d_lexArg_150 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 ->
   MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -> Maybe AgdaAny
-d_lexArg_146 ~v0 ~v1 v2 ~v3 = du_lexArg_146 v2
-du_lexArg_146 ::
+d_lexArg_150 ~v0 ~v1 v2 ~v3 = du_lexArg_150 v2
+du_lexArg_150 ::
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -> Maybe AgdaAny
-du_lexArg_146 v0
+du_lexArg_150 v0
   = coe MAlonzo.Code.Text.Format.Generic.d_lexArg_18 (coe v0)
 -- Text.Printf.Generic.Render._.renderArg
-d_renderArg_148 :: T_PrintfSpec_18 -> AgdaAny -> AgdaAny -> AgdaAny
-d_renderArg_148 v0 = coe d_renderArg_50 (coe v0)
+d_renderArg_152 :: T_PrintfSpec_18 -> AgdaAny -> AgdaAny -> AgdaAny
+d_renderArg_152 v0 = coe d_renderArg_50 (coe v0)
 -- Text.Printf.Generic.Render._.renderStr
-d_renderStr_150 ::
+d_renderStr_154 ::
   T_PrintfSpec_18 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> AgdaAny
-d_renderStr_150 v0 = coe d_renderStr_52 (coe v0)
+d_renderStr_154 v0 = coe d_renderStr_52 (coe v0)
 -- Text.Printf.Generic.Render._.Error
-d_Error_154 a0 a1 a2 a3 a4 a5 = ()
+d_Error_158 a0 a1 a2 a3 a4 a5 = ()
 -- Text.Printf.Generic.Render._.Printf
-d_Printf_156 ::
+d_Printf_162 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -> () -> ()
-d_Printf_156 = erased
+d_Printf_162 = erased
 -- Text.Printf.Generic.Render._.map
-d_map_158 ::
+d_map_164 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
@@ -197,92 +197,92 @@ d_map_158 ::
   () ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30 ->
   (AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny
-d_map_158 ~v0 ~v1 ~v2 ~v3 = du_map_158
-du_map_158 ::
+d_map_164 ~v0 ~v1 ~v2 ~v3 = du_map_164
+du_map_164 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30 ->
   (AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny
-du_map_158 v0 v1 v2 v3 v4 v5 v6 = coe du_map_118 v4 v5 v6
+du_map_164 v0 v1 v2 v3 v4 v5 v6 = coe du_map_122 v4 v5 v6
 -- Text.Printf.Generic.Render._.lexer
-d_lexer_178 ::
+d_lexer_184 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30
-d_lexer_178 ~v0 ~v1 v2 ~v3 = du_lexer_178 v2
-du_lexer_178 ::
+d_lexer_184 ~v0 ~v1 v2 ~v3 = du_lexer_184 v2
+du_lexer_184 ::
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30
-du_lexer_178 v0
-  = coe MAlonzo.Code.Text.Format.Generic.d_lexer_88 (coe v0)
+du_lexer_184 v0
+  = coe MAlonzo.Code.Text.Format.Generic.d_lexer_90 (coe v0)
 -- Text.Printf.Generic.Render._.⟦_⟧
-d_'10214'_'10215'_182 ::
+d_'10214'_'10215'_188 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 ->
-  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -> AgdaAny
-d_'10214'_'10215'_182 ~v0 ~v1 ~v2 ~v3 = du_'10214'_'10215'_182
-du_'10214'_'10215'_182 ::
-  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -> AgdaAny
-du_'10214'_'10215'_182
-  = coe MAlonzo.Code.Text.Format.Generic.du_'10214'_'10215'_74
+  [MAlonzo.Code.Text.Format.Generic.T_Chunk_62] -> AgdaAny
+d_'10214'_'10215'_188 ~v0 ~v1 ~v2 ~v3 = du_'10214'_'10215'_188
+du_'10214'_'10215'_188 ::
+  [MAlonzo.Code.Text.Format.Generic.T_Chunk_62] -> AgdaAny
+du_'10214'_'10215'_188
+  = coe MAlonzo.Code.Text.Format.Generic.du_'10214'_'10215'_76
 -- Text.Printf.Generic.Render.assemble
-d_assemble_198 ::
+d_assemble_204 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 ->
-  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] ->
+  [MAlonzo.Code.Text.Format.Generic.T_Chunk_62] ->
   AgdaAny -> [AgdaAny]
-d_assemble_198 ~v0 ~v1 ~v2 v3 v4 v5 = du_assemble_198 v3 v4 v5
-du_assemble_198 ::
+d_assemble_204 ~v0 ~v1 ~v2 v3 v4 v5 = du_assemble_204 v3 v4 v5
+du_assemble_204 ::
   T_PrintfSpec_18 ->
-  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] ->
+  [MAlonzo.Code.Text.Format.Generic.T_Chunk_62] ->
   AgdaAny -> [AgdaAny]
-du_assemble_198 v0 v1 v2
+du_assemble_204 v0 v1 v2
   = case coe v1 of
       [] -> coe v1
       (:) v3 v4
         -> case coe v3 of
-             MAlonzo.Code.Text.Format.Generic.C_Arg_62 v5
+             MAlonzo.Code.Text.Format.Generic.C_Arg_64 v5
                -> case coe v2 of
                     MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v6 v7
                       -> coe
                            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                            (coe d_renderArg_50 v0 v5 v6)
-                           (coe du_assemble_198 (coe v0) (coe v4) (coe v7))
+                           (coe du_assemble_204 (coe v0) (coe v4) (coe v7))
                     _ -> MAlonzo.RTE.mazUnreachableError
-             MAlonzo.Code.Text.Format.Generic.C_Raw_64 v5
+             MAlonzo.Code.Text.Format.Generic.C_Raw_66 v5
                -> coe
                     MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                     (coe d_renderStr_52 v0 v5)
-                    (coe du_assemble_198 (coe v0) (coe v4) (coe v2))
+                    (coe du_assemble_204 (coe v0) (coe v4) (coe v2))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Text.Printf.Generic.Render.printf′
-d_printf'8242'_218 ::
+d_printf'8242'_224 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -> AgdaAny
-d_printf'8242'_218 ~v0 ~v1 ~v2 v3 v4 = du_printf'8242'_218 v3 v4
-du_printf'8242'_218 ::
+d_printf'8242'_224 ~v0 ~v1 ~v2 v3 v4 = du_printf'8242'_224 v3 v4
+du_printf'8242'_224 ::
   T_PrintfSpec_18 ->
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -> AgdaAny
-du_printf'8242'_218 v0 v1
+du_printf'8242'_224 v0 v1
   = case coe v1 of
       MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v2 -> erased
       MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v2
         -> coe
-             MAlonzo.Code.Data.Product.Nary.NonDependent.du_curry'8868''8345'_170
+             MAlonzo.Code.Data.Product.Nary.NonDependent.du_curry'8868''8345'_190
              (coe
                 MAlonzo.Code.Data.List.Base.du_foldr_216 (coe addInt)
                 (coe (0 :: Integer))
@@ -293,24 +293,24 @@ du_printf'8242'_218 v0 v1
                          let v4 = 1 :: Integer in
                          coe
                            (case coe v3 of
-                              MAlonzo.Code.Text.Format.Generic.C_Raw_64 v5 -> coe (0 :: Integer)
-                              _                                            -> coe v4)))
+                              MAlonzo.Code.Text.Format.Generic.C_Raw_66 v5 -> coe (0 :: Integer)
+                              _ -> coe v4)))
                    (coe v2)))
-             (coe du_assemble_198 (coe v0) (coe v2))
+             (coe du_assemble_204 (coe v0) (coe v2))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Text.Printf.Generic.Render.printf
-d_printf_226 ::
+d_printf_232 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> AgdaAny
-d_printf_226 ~v0 ~v1 v2 v3 v4 = du_printf_226 v2 v3 v4
-du_printf_226 ::
+d_printf_232 ~v0 ~v1 v2 v3 v4 = du_printf_232 v2 v3 v4
+du_printf_232 ::
   MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6 ->
   T_PrintfSpec_18 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> AgdaAny
-du_printf_226 v0 v1 v2
+du_printf_232 v0 v1 v2
   = coe
-      du_printf'8242'_218 (coe v1)
-      (coe MAlonzo.Code.Text.Format.Generic.d_lexer_88 (coe v0) (coe v2))
+      du_printf'8242'_224 (coe v1)
+      (coe MAlonzo.Code.Text.Format.Generic.d_lexer_90 (coe v0) (coe v2))

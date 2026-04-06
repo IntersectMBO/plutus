@@ -1,30 +1,30 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Bundles where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures
 
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedSetoid
 d_IndexedSetoid_18 a0 a1 a2 a3 = ()
 newtype T_IndexedSetoid_18
-  = C_IndexedSetoid'46'constructor_445 MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.T_IsIndexedEquivalence_22
+  = C_constructor_50 MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.T_IsIndexedEquivalence_22
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedSetoid.Carrier
 d_Carrier_34 :: T_IndexedSetoid_18 -> AgdaAny -> ()
 d_Carrier_34 = erased
@@ -39,8 +39,8 @@ d_isEquivalence_38 ::
   MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.T_IsIndexedEquivalence_22
 d_isEquivalence_38 v0
   = case coe v0 of
-      C_IndexedSetoid'46'constructor_445 v3 -> coe v3
-      _                                     -> MAlonzo.RTE.mazUnreachableError
+      C_constructor_50 v3 -> coe v3
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedSetoid._.refl
 d_refl_42 :: T_IndexedSetoid_18 -> AgdaAny -> AgdaAny -> AgdaAny
 d_refl_42 v0
@@ -89,138 +89,138 @@ d_trans_48 v0
       MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_trans_34
       (coe d_isEquivalence_38 (coe v0))
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder
-d_IndexedPreorder_60 a0 a1 a2 a3 a4 = ()
-newtype T_IndexedPreorder_60
-  = C_IndexedPreorder'46'constructor_1987 MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.T_IsIndexedPreorder_44
+d_IndexedPreorder_62 a0 a1 a2 a3 a4 = ()
+newtype T_IndexedPreorder_62
+  = C_constructor_112 MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.T_IsIndexedPreorder_46
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder.Carrier
-d_Carrier_80 :: T_IndexedPreorder_60 -> AgdaAny -> ()
-d_Carrier_80 = erased
+d_Carrier_82 :: T_IndexedPreorder_62 -> AgdaAny -> ()
+d_Carrier_82 = erased
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._≈_
-d__'8776'__82 ::
-  T_IndexedPreorder_60 ->
+d__'8776'__84 ::
+  T_IndexedPreorder_62 ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> ()
-d__'8776'__82 = erased
+d__'8776'__84 = erased
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._≲_
-d__'8818'__84 ::
-  T_IndexedPreorder_60 ->
+d__'8818'__86 ::
+  T_IndexedPreorder_62 ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> ()
-d__'8818'__84 = erased
+d__'8818'__86 = erased
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder.isPreorder
-d_isPreorder_86 ::
-  T_IndexedPreorder_60 ->
-  MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.T_IsIndexedPreorder_44
-d_isPreorder_86 v0
+d_isPreorder_88 ::
+  T_IndexedPreorder_62 ->
+  MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.T_IsIndexedPreorder_46
+d_isPreorder_88 v0
   = case coe v0 of
-      C_IndexedPreorder'46'constructor_1987 v4 -> coe v4
-      _                                        -> MAlonzo.RTE.mazUnreachableError
+      C_constructor_112 v4 -> coe v4
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._.isEquivalence
-d_isEquivalence_90 ::
-  T_IndexedPreorder_60 ->
+d_isEquivalence_92 ::
+  T_IndexedPreorder_62 ->
   MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.T_IsIndexedEquivalence_22
-d_isEquivalence_90 v0
+d_isEquivalence_92 v0
   = coe
-      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_60
-      (coe d_isPreorder_86 (coe v0))
+      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_62
+      (coe d_isPreorder_88 (coe v0))
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._.refl
-d_refl_92 ::
+d_refl_94 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  T_IndexedPreorder_60 -> AgdaAny -> AgdaAny -> AgdaAny
-d_refl_92 ~v0 ~v1 ~v2 ~v3 ~v4 v5 = du_refl_92 v5
-du_refl_92 :: T_IndexedPreorder_60 -> AgdaAny -> AgdaAny -> AgdaAny
-du_refl_92 v0
+  T_IndexedPreorder_62 -> AgdaAny -> AgdaAny -> AgdaAny
+d_refl_94 ~v0 ~v1 ~v2 ~v3 ~v4 v5 = du_refl_94 v5
+du_refl_94 :: T_IndexedPreorder_62 -> AgdaAny -> AgdaAny -> AgdaAny
+du_refl_94 v0
   = coe
-      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.du_refl_80
-      (coe d_isPreorder_86 (coe v0))
+      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.du_refl_82
+      (coe d_isPreorder_88 (coe v0))
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._.reflexive
-d_reflexive_94 ::
-  T_IndexedPreorder_60 ->
+d_reflexive_96 ::
+  T_IndexedPreorder_62 ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny
-d_reflexive_94 v0
+d_reflexive_96 v0
   = coe
-      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_reflexive_66
-      (coe d_isPreorder_86 (coe v0))
+      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_reflexive_68
+      (coe d_isPreorder_88 (coe v0))
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._.trans
-d_trans_96 ::
-  T_IndexedPreorder_60 ->
+d_trans_98 ::
+  T_IndexedPreorder_62 ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny
-d_trans_96 v0
+d_trans_98 v0
   = coe
-      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_trans_68
-      (coe d_isPreorder_86 (coe v0))
+      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_trans_70
+      (coe d_isPreorder_88 (coe v0))
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._.Eq.refl
-d_refl_100 :: T_IndexedPreorder_60 -> AgdaAny -> AgdaAny -> AgdaAny
-d_refl_100 v0
+d_refl_102 :: T_IndexedPreorder_62 -> AgdaAny -> AgdaAny -> AgdaAny
+d_refl_102 v0
   = coe
       MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_refl_30
       (coe
-         MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_60
-         (coe d_isPreorder_86 (coe v0)))
+         MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_62
+         (coe d_isPreorder_88 (coe v0)))
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._.Eq.reflexive
-d_reflexive_102 ::
+d_reflexive_104 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  T_IndexedPreorder_60 ->
+  T_IndexedPreorder_62 ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -> AgdaAny
-d_reflexive_102 ~v0 ~v1 ~v2 ~v3 ~v4 v5 = du_reflexive_102 v5
-du_reflexive_102 ::
-  T_IndexedPreorder_60 ->
+d_reflexive_104 ~v0 ~v1 ~v2 ~v3 ~v4 v5 = du_reflexive_104 v5
+du_reflexive_104 ::
+  T_IndexedPreorder_62 ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -> AgdaAny
-du_reflexive_102 v0
-  = let v1 = d_isPreorder_86 (coe v0) in
+du_reflexive_104 v0
+  = let v1 = d_isPreorder_88 (coe v0) in
     coe
       (\ v2 v3 v4 v5 ->
          coe
            MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.du_reflexive_38
            (coe
-              MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_60
+              MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_62
               (coe v1))
            v2 v3)
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._.Eq.sym
-d_sym_104 ::
-  T_IndexedPreorder_60 ->
+d_sym_106 ::
+  T_IndexedPreorder_62 ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny
-d_sym_104 v0
+d_sym_106 v0
   = coe
       MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_sym_32
       (coe
-         MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_60
-         (coe d_isPreorder_86 (coe v0)))
+         MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_62
+         (coe d_isPreorder_88 (coe v0)))
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._.Eq.trans
-d_trans_106 ::
-  T_IndexedPreorder_60 ->
+d_trans_108 ::
+  T_IndexedPreorder_62 ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny
-d_trans_106 v0
+d_trans_108 v0
   = coe
       MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_trans_34
       (coe
-         MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_60
-         (coe d_isPreorder_86 (coe v0)))
+         MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.d_isEquivalence_62
+         (coe d_isPreorder_88 (coe v0)))
 -- Relation.Binary.Indexed.Heterogeneous.Bundles.IndexedPreorder._∼_
-d__'8764'__108 ::
+d__'8764'__110 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  T_IndexedPreorder_60 ->
+  T_IndexedPreorder_62 ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> ()
-d__'8764'__108 = erased
+d__'8764'__110 = erased

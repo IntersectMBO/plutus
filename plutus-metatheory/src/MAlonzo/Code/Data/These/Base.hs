@@ -1,24 +1,24 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.These.Base where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Sum.Base qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Sum.Base
 
 -- Data.These.Base.These
 d_These_38 a0 a1 a2 a3 = ()
@@ -57,10 +57,10 @@ du_map_60 ::
   (AgdaAny -> AgdaAny) -> T_These_38 -> T_These_38
 du_map_60 v0 v1 v2
   = case coe v2 of
-      C_this_48 v3     -> coe C_this_48 (coe v0 v3)
-      C_that_50 v3     -> coe C_that_50 (coe v1 v3)
+      C_this_48 v3 -> coe C_this_48 (coe v0 v3)
+      C_that_50 v3 -> coe C_that_50 (coe v1 v3)
       C_these_52 v3 v4 -> coe C_these_52 (coe v0 v3) (coe v1 v4)
-      _                -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.These.Base.map₁
 d_map'8321'_84 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -102,10 +102,10 @@ du_fold_92 ::
   (AgdaAny -> AgdaAny -> AgdaAny) -> T_These_38 -> AgdaAny
 du_fold_92 v0 v1 v2 v3
   = case coe v3 of
-      C_this_48 v4     -> coe v0 v4
-      C_that_50 v4     -> coe v1 v4
+      C_this_48 v4 -> coe v0 v4
+      C_that_50 v4 -> coe v1 v4
       C_these_52 v4 v5 -> coe v2 v4 v5
-      _                -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.These.Base.foldWithDefaults
 d_foldWithDefaults_120 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->

@@ -1,29 +1,29 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.Nat.Induction where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Builtin.Unit qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Nat.Base qualified
-import MAlonzo.Code.Induction qualified
-import MAlonzo.Code.Induction.WellFounded qualified
-import MAlonzo.Code.Level qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Nat.Base
+import qualified MAlonzo.Code.Induction
+import qualified MAlonzo.Code.Induction.WellFounded
+import qualified MAlonzo.Code.Level
 
 -- Data.Nat.Induction.Rec
 d_Rec_10 ::
@@ -116,7 +116,7 @@ d_'60''8242''45'wellFounded_72 = erased
 d_'60''8242''45'wellFounded'8242'_76 ::
   Integer ->
   Integer ->
-  MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 ->
+  MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342 ->
   MAlonzo.Code.Induction.WellFounded.T_Acc_42
 d_'60''8242''45'wellFounded'8242'_76 = erased
 -- Data.Nat.Induction._._.wfRec
@@ -125,7 +125,7 @@ d_wfRec_94 ::
   (Integer -> ()) ->
   (Integer ->
    (Integer ->
-    MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 -> AgdaAny) ->
+    MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342 -> AgdaAny) ->
    AgdaAny) ->
   Integer -> AgdaAny
 d_wfRec_94 ~v0 = du_wfRec_94
@@ -133,7 +133,7 @@ du_wfRec_94 ::
   (Integer -> ()) ->
   (Integer ->
    (Integer ->
-    MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 -> AgdaAny) ->
+    MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342 -> AgdaAny) ->
    AgdaAny) ->
   Integer -> AgdaAny
 du_wfRec_94 = coe MAlonzo.Code.Induction.WellFounded.du_wfRec_168
@@ -143,21 +143,21 @@ d_wfRecBuilder_96 ::
   (Integer -> ()) ->
   (Integer ->
    (Integer ->
-    MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 -> AgdaAny) ->
+    MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342 -> AgdaAny) ->
    AgdaAny) ->
   Integer ->
   Integer ->
-  MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 -> AgdaAny
+  MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342 -> AgdaAny
 d_wfRecBuilder_96 ~v0 = du_wfRecBuilder_96
 du_wfRecBuilder_96 ::
   (Integer -> ()) ->
   (Integer ->
    (Integer ->
-    MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 -> AgdaAny) ->
+    MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342 -> AgdaAny) ->
    AgdaAny) ->
   Integer ->
   Integer ->
-  MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__338 -> AgdaAny
+  MAlonzo.Code.Data.Nat.Base.T__'8804''8242'__342 -> AgdaAny
 du_wfRecBuilder_96 v0 v1 v2 v3
   = coe MAlonzo.Code.Induction.WellFounded.du_wfRecBuilder_160 v1 v3
 -- Data.Nat.Induction.<-Rec
