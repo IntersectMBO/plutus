@@ -234,6 +234,7 @@ library
     UntypedPlutusCore.Transform.ForceCaseDelay
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
+    UntypedPlutusCore.Transform.LetFloatOut
     UntypedPlutusCore.Transform.Simplifier
 
   other-modules:

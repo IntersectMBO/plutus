@@ -27,6 +27,7 @@ import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
 import UntypedPlutusCore.Transform.ForceCaseDelay (forceCaseDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
+import UntypedPlutusCore.Transform.LetFloatOut (letFloatOut)
 import UntypedPlutusCore.Transform.Simplifier
 
 import Control.Monad
@@ -102,6 +103,7 @@ termSimplifier opts builtinSemanticsVariant =
     simplifyStep _ =
       floatDelay
         >=> forceCaseDelay
+        >=> letFloatOut
         >=> case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
           (Just Refl, Just Refl) -> forceDelay builtinSemanticsVariant
           _ -> pure

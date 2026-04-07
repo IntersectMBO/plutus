@@ -31,10 +31,11 @@ data SimplifierTag : Set where
   inlineT : SimplifierTag
   cseT : SimplifierTag
   applyToCaseT : SimplifierTag
+  letFloatOutT : SimplifierTag
   unknown : SimplifierTag -- a placeholder for passes that we don't yet know of, so the certifier doesn't break if a pass was added
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
-{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE | ApplyToCase | Unknown) #-}
+{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE | ApplyToCase | LetFloatOut | Unknown) #-}
 ```
 
 ## Hints

@@ -44,6 +44,7 @@ showTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
 showTag inlineT = "Inlining"
 showTag cseT = "Common Subexpression Elimination"
 showTag applyToCaseT = "Transform multi-argument applications into case-constr form"
+showTag letFloatOutT = "Float bindings outwards"
 showTag unknown = "Unknown Pass"
 ```
 
@@ -116,6 +117,7 @@ numSites inlineT p = just (numSitesInline p)
 numSites forceCaseDelayT _ = nothing
 numSites caseOfCaseT _ = nothing
 numSites applyToCaseT p = just (numSites′ p)
+numSites letFloatOutT _ = nothing
 numSites unknown _ = nothing
 
 showSites : {M N : 0 ⊢} → (tag : SimplifierTag) → RelationOf tag M N → String

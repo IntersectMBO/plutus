@@ -79,6 +79,7 @@ mRelationOf unknown         = nothing
 mRelationOf caseOfCaseT     = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
 mRelationOf forceCaseDelayT = just UFCD.ForceCaseDelay
 mRelationOf applyToCaseT    = just UA2C.UApplyToCase
+mRelationOf letFloatOutT    = nothing
 ```
 
 We default to the `NotImplemented` relation to give each `SimplifierTag` a relation:
@@ -104,6 +105,7 @@ certifyPass forceCaseDelayT _   = decider UFCD.isForceCaseDelay?
 certifyPass applyToCaseT _      = decider UA2C.a2c?ᶜᶜ
 certifyPass inlineT (inline hs) = checker (UInline.top-check hs)
 certifyPass inlineT none        = λ M M' → abort inlineT M M'
+certifyPass letFloatOutT _      = certNotImplemented
 certifyPass unknown _           = certNotImplemented
 ```
 

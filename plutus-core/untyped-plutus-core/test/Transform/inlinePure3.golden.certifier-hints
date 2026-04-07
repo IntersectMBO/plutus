@@ -4,16 +4,19 @@ NoHints
 -- Certifier hints #2 (ForceCaseDelay) --
 NoHints
 
--- Certifier hints #3 (ForceDelay) --
+-- Certifier hints #3 (LetFloatOut) --
 NoHints
 
--- Certifier hints #4 (CaseOfCase) --
+-- Certifier hints #4 (ForceDelay) --
 NoHints
 
--- Certifier hints #5 (CaseReduce) --
+-- Certifier hints #5 (CaseOfCase) --
 NoHints
 
--- Certifier hints #6 (Inline) --
+-- Certifier hints #6 (CaseReduce) --
+NoHints
+
+-- Certifier hints #7 (Inline) --
 InlDrop
   InlLamDrop
     InlLam
@@ -28,6 +31,6 @@ InlDrop
                   InlCon
 
 
--- Certifier hints #7 (ApplyToCase) --
+-- Certifier hints #8 (ApplyToCase) --
 NoHints
 
