@@ -14,9 +14,13 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2026-02-17T00:47:24Z
+  , hackage.haskell.org 2026-04-07T21:56:38Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2026-02-13T00:00:04Z
+  , cardano-haskell-packages 2026-04-07T23:59:00Z
+
+active-repositories:
+  , :rest
+  , cardano-haskell-packages:override
 
 packages: cardano-constitution
           plutus-benchmark
@@ -66,7 +70,7 @@ package bitvec
   flags: -simd
 
 -- plutus-tx-plugin cannot be built with profiling enabled
-package plutus-tx-plugin 
+package plutus-tx-plugin
   profiling: False
 
 -- See the note on nix/agda-packages.nix for why this is here.
