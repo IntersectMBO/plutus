@@ -1,4 +1,11 @@
 
+<a id='changelog-1.56.0.1'></a>
+# 1.56.0.1 — 2026-04-07
+
+## Added
+
+- Brought back Ratio.from/toGHC as deprecated.
+
 <a id='changelog-1.56.0.0'></a>
 # 1.56.0.0 — 2025-11-27
 
