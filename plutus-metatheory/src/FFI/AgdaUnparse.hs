@@ -59,6 +59,7 @@ instance AgdaUnparse SimplifierStage where
   agdaUnparse Inline = "inlineT"
   agdaUnparse CSE = "cseT"
   agdaUnparse ApplyToCase = "applyToCaseT"
+  agdaUnparse LetFloatOut = "letFloatOutT"
   agdaUnparse Unknown = "unknown"
 
 instance AgdaUnparse Hints.Hints where
