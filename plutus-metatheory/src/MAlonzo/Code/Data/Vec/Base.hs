@@ -1,33 +1,33 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.Vec.Base where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Bool.Base qualified
-import MAlonzo.Code.Data.Fin.Base qualified
-import MAlonzo.Code.Data.Nat.Base qualified
-import MAlonzo.Code.Data.Product.Base qualified
-import MAlonzo.Code.Data.These.Base qualified
-import MAlonzo.Code.Function.Base qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Bool.Base
+import qualified MAlonzo.Code.Data.Fin.Base
+import qualified MAlonzo.Code.Data.Nat.Base
+import qualified MAlonzo.Code.Data.Product.Base
+import qualified MAlonzo.Code.Data.These.Base
+import qualified MAlonzo.Code.Function.Base
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 
 -- Data.Vec.Base.Vec
 d_Vec_28 a0 a1 a2 = ()
@@ -52,7 +52,7 @@ du_head_70 :: T_Vec_28 -> AgdaAny
 du_head_70 v0
   = case coe v0 of
       C__'8759'__38 v2 v3 -> coe v2
-      _                   -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Vec.Base.tail
 d_tail_76 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -62,7 +62,7 @@ du_tail_76 :: T_Vec_28 -> T_Vec_28
 du_tail_76 v0
   = case coe v0 of
       C__'8759'__38 v2 v3 -> coe v3
-      _                   -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Vec.Base.lookup
 d_lookup_82 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -673,7 +673,7 @@ du_count'7495'_434 v0
       du_count_424
       (coe
          (\ v1 ->
-            MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_66
+            MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_72
               (coe v0 v1)))
 -- Data.Vec.Base.[_]
 d_'91'_'93'_438 ::
@@ -915,9 +915,9 @@ d_fromList_600 ~v0 ~v1 v2 = du_fromList_600 v2
 du_fromList_600 :: [AgdaAny] -> T_Vec_28
 du_fromList_600 v0
   = case coe v0 of
-      []        -> coe C_'91''93'_32
+      [] -> coe C_'91''93'_32
       (:) v1 v2 -> coe C__'8759'__38 v1 (coe du_fromList_600 (coe v2))
-      _         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Vec.Base._∷ʳ_
 d__'8759''691'__606 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->

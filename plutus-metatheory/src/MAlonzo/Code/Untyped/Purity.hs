@@ -83,7 +83,7 @@ d_isPure'63'_72 v0 v1
                                                    seq (coe v9)
                                                    (let v11
                                                           = coe
-                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                               (coe
                                                                  d_isPure'63'_72
                                                                  (coe
@@ -152,7 +152,7 @@ d_isPure'63'_72 v0 v1
                                                        coe
                                                          (let v11
                                                                 = coe
-                                                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                                                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                     (coe
                                                                        d_isPure'63'_72 (coe v0)
                                                                        (coe v2))
@@ -393,7 +393,7 @@ d_allPure'63'_78 v0 v1
       (:) v2 v3
         -> let v4
                  = coe
-                     MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                     MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                      (coe d_isPure'63'_72 (coe v0) (coe v2))
                      (coe d_allPure'63'_78 (coe v0) (coe v3)) in
            coe

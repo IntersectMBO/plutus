@@ -1,35 +1,35 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Reflection where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Reflection qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Reflection.AST.Abstraction qualified
-import MAlonzo.Code.Reflection.AST.Argument qualified
-import MAlonzo.Code.Reflection.AST.Argument.Information qualified
-import MAlonzo.Code.Reflection.AST.Argument.Modality qualified
-import MAlonzo.Code.Reflection.AST.Argument.Relevance qualified
-import MAlonzo.Code.Reflection.AST.Argument.Visibility qualified
-import MAlonzo.Code.Reflection.AST.Literal qualified
-import MAlonzo.Code.Reflection.AST.Meta qualified
-import MAlonzo.Code.Reflection.AST.Name qualified
-import MAlonzo.Code.Reflection.AST.Term qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Reflection
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Reflection.AST.Abstraction
+import qualified MAlonzo.Code.Reflection.AST.Argument
+import qualified MAlonzo.Code.Reflection.AST.Argument.Information
+import qualified MAlonzo.Code.Reflection.AST.Argument.Modality
+import qualified MAlonzo.Code.Reflection.AST.Argument.Relevance
+import qualified MAlonzo.Code.Reflection.AST.Argument.Visibility
+import qualified MAlonzo.Code.Reflection.AST.Literal
+import qualified MAlonzo.Code.Reflection.AST.Meta
+import qualified MAlonzo.Code.Reflection.AST.Name
+import qualified MAlonzo.Code.Reflection.AST.Term
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 
 -- Reflection.Arg-info
 d_Arg'45'info_2 :: ()

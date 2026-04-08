@@ -2,21 +2,21 @@
 
 let
 
-  # Agda standard library pinned to v2.1.1.
+  # Agda standard library pinned to v2.3.
   # Used in: `nix/metatheory.nix` (as a build input) and `nix/shell.nix` (via agda-with-stdlib).
   agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
-    version = "2.1.1";
+    version = "2.3";
 
     src = pkgs.fetchFromGitHub {
       repo = "agda-stdlib";
       owner = "agda";
       rev = "v${version}";
-      sha256 = "sha256-4HfwNAkIhk1yC/oSxZ30xilzUM5/22nzbUSqTjcW5Ng=";
+      sha256 = "sha256-JOeoek6OfyIk9vwTj5QUJU6LnRzwfiG0e0ysW6zbhZ8=";
     };
 
     # This is preConfigure is copied from more recent nixpkgs that also
-    # uses version 2.1.1 of standard-library. Old nixpkgs (that used 1.4)
+    # uses version 2.3 of standard-library. Old nixpkgs (that used 1.4)
     # had a preConfigure step that worked with 1.7. Less old nixpkgs
     # (that used 1.6) had a preConfigure step that attempts to `rm`
     # files that are now in the .gitignore list for 1.
@@ -103,7 +103,7 @@ let
       for f in "''${files[@]}" ; do
         echo "Compiling $f"
         # This is what the custom setup calls in the end
-        ./agda --no-libraries --local-interfaces $f
+        ./agda --no-libraries $f
       done
     '';
   };
@@ -136,7 +136,7 @@ let
   # The Agda hackage project used to produce the tools above.
   agda-project = pkgs.haskell-nix.hackage-project {
     name = "Agda";
-    version = "2.7.0";
+    version = "2.8.0";
     compiler-nix-name = "ghc96";
     cabalProjectLocal = "extra-packages: ieee754, filemanip";
     modules = [ agda-project-module-patch-default ];

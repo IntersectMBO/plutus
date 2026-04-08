@@ -47,7 +47,7 @@ d_names_10
       MAlonzo.Code.Data.String.Base.du_wordsBy_106
       (coe
          (\ v0 ->
-            MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_66
+            MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_72
               (coe
                  MAlonzo.Code.Data.Char.Base.d__'8776''7495'__14 (coe v0)
                  (coe '.'))))
@@ -57,7 +57,7 @@ d_lastName_14 ::
   [MAlonzo.Code.Agda.Builtin.String.T_String_6] ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_lastName_14 v0 v1
-  = let v2 = coe MAlonzo.Code.Data.List.Base.du_last_540 (coe v1) in
+  = let v2 = coe MAlonzo.Code.Data.List.Base.du_last_524 (coe v1) in
     coe
       (case coe v2 of
          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3 -> coe v3
@@ -317,7 +317,7 @@ d_mk'45'DecCls_82 v0 v1
                                      (MAlonzo.RTE.Fixity
                                         MAlonzo.RTE.NonAssoc MAlonzo.RTE.Unrelated)))
                                (coe
-                                  MAlonzo.Code.Data.List.Base.du_'91'_'93'_286
+                                  MAlonzo.Code.Data.List.Base.du_'91'_'93'_270
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.Reflection.C_arg_98
                                      (coe
@@ -417,7 +417,7 @@ d_mk'45'DecCls_82 v0 v1
                                      (MAlonzo.RTE.Fixity
                                         MAlonzo.RTE.NonAssoc MAlonzo.RTE.Unrelated)))
                                (coe
-                                  MAlonzo.Code.Data.List.Base.du_'91'_'93'_286
+                                  MAlonzo.Code.Data.List.Base.du_'91'_'93'_270
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.Reflection.C_arg_98
                                      (coe

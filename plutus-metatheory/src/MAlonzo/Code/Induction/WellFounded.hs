@@ -1,27 +1,27 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Induction.WellFounded where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Irrelevant qualified
-import MAlonzo.Code.Induction qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Irrelevant
+import qualified MAlonzo.Code.Induction
 
 -- Induction.WellFounded.WfRec
 d_WfRec_22 ::
@@ -582,46 +582,46 @@ d_wellFounded_546 ::
   (AgdaAny -> T_Acc_42) -> AgdaAny -> T_Acc_42
 d_wellFounded_546 = erased
 -- Induction.WellFounded..generalizedField-A.a
-d_'46'generalizedField'45'A'46'a_6161 ::
-  T_GeneralizeTel_6167 -> MAlonzo.Code.Agda.Primitive.T_Level_18
-d_'46'generalizedField'45'A'46'a_6161 v0
+d_'46'generalizedField'45'A'46'a_6265 ::
+  T_GeneralizeTel_6271 -> MAlonzo.Code.Agda.Primitive.T_Level_18
+d_'46'generalizedField'45'A'46'a_6265 v0
   = case coe v0 of
-      C_mkGeneralizeTel_6169 v1 v3 -> coe v1
-      _                            -> MAlonzo.RTE.mazUnreachableError
+      C_mkGeneralizeTel_6273 v1 v3 -> coe v1
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Induction.WellFounded..generalizedField-A
-d_'46'generalizedField'45'A_6163 :: T_GeneralizeTel_6167 -> ()
-d_'46'generalizedField'45'A_6163 = erased
+d_'46'generalizedField'45'A_6267 :: T_GeneralizeTel_6271 -> ()
+d_'46'generalizedField'45'A_6267 = erased
 -- Induction.WellFounded..generalizedField-r
-d_'46'generalizedField'45'r_6165 ::
-  T_GeneralizeTel_6167 -> MAlonzo.Code.Agda.Primitive.T_Level_18
-d_'46'generalizedField'45'r_6165 v0
+d_'46'generalizedField'45'r_6269 ::
+  T_GeneralizeTel_6271 -> MAlonzo.Code.Agda.Primitive.T_Level_18
+d_'46'generalizedField'45'r_6269 v0
   = case coe v0 of
-      C_mkGeneralizeTel_6169 v1 v3 -> coe v3
-      _                            -> MAlonzo.RTE.mazUnreachableError
+      C_mkGeneralizeTel_6273 v1 v3 -> coe v3
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Induction.WellFounded.GeneralizeTel
-d_GeneralizeTel_6167 = ()
-data T_GeneralizeTel_6167
-  = C_mkGeneralizeTel_6169 MAlonzo.Code.Agda.Primitive.T_Level_18
+d_GeneralizeTel_6271 = ()
+data T_GeneralizeTel_6271
+  = C_mkGeneralizeTel_6273 MAlonzo.Code.Agda.Primitive.T_Level_18
                            MAlonzo.Code.Agda.Primitive.T_Level_18
 -- Induction.WellFounded..generalizedField-A.a
-d_'46'generalizedField'45'A'46'a_10101 ::
-  T_GeneralizeTel_10107 -> MAlonzo.Code.Agda.Primitive.T_Level_18
-d_'46'generalizedField'45'A'46'a_10101 v0
+d_'46'generalizedField'45'A'46'a_10331 ::
+  T_GeneralizeTel_10337 -> MAlonzo.Code.Agda.Primitive.T_Level_18
+d_'46'generalizedField'45'A'46'a_10331 v0
   = case coe v0 of
-      C_mkGeneralizeTel_10109 v1 v3 -> coe v1
-      _                             -> MAlonzo.RTE.mazUnreachableError
+      C_mkGeneralizeTel_10339 v1 v3 -> coe v1
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Induction.WellFounded..generalizedField-A
-d_'46'generalizedField'45'A_10103 :: T_GeneralizeTel_10107 -> ()
-d_'46'generalizedField'45'A_10103 = erased
+d_'46'generalizedField'45'A_10333 :: T_GeneralizeTel_10337 -> ()
+d_'46'generalizedField'45'A_10333 = erased
 -- Induction.WellFounded..generalizedField-r
-d_'46'generalizedField'45'r_10105 ::
-  T_GeneralizeTel_10107 -> MAlonzo.Code.Agda.Primitive.T_Level_18
-d_'46'generalizedField'45'r_10105 v0
+d_'46'generalizedField'45'r_10335 ::
+  T_GeneralizeTel_10337 -> MAlonzo.Code.Agda.Primitive.T_Level_18
+d_'46'generalizedField'45'r_10335 v0
   = case coe v0 of
-      C_mkGeneralizeTel_10109 v1 v3 -> coe v3
-      _                             -> MAlonzo.RTE.mazUnreachableError
+      C_mkGeneralizeTel_10339 v1 v3 -> coe v3
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Induction.WellFounded.GeneralizeTel
-d_GeneralizeTel_10107 = ()
-data T_GeneralizeTel_10107
-  = C_mkGeneralizeTel_10109 MAlonzo.Code.Agda.Primitive.T_Level_18
+d_GeneralizeTel_10337 = ()
+data T_GeneralizeTel_10337
+  = C_mkGeneralizeTel_10339 MAlonzo.Code.Agda.Primitive.T_Level_18
                             MAlonzo.Code.Agda.Primitive.T_Level_18

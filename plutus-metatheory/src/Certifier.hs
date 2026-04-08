@@ -323,7 +323,7 @@ mkAgdaLib name =
         "name: "
           <> name
           <> "\ndepend:\
-             \\n  standard-library-2.1.1\
+             \\n  standard-library-2.3\
              \\n  plutus-metatheory\
              \\ninclude: src"
    in (name <> ".agda-lib", contents)

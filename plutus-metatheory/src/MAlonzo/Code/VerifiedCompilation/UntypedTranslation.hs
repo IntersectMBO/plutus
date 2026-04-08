@@ -107,14 +107,14 @@ du_translation'63'_164 ::
 du_translation'63'_164 v0 v1 v2 v3 v4
   = let v5
           = coe
-              MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+              MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
               erased
               (\ v5 ->
                  coe
-                   MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2678
+                   MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
                    (coe du_untypedIx_102 (coe v3)))
               (coe
-                 MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_66
+                 MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_72
                  (coe
                     eqInt (coe du_untypedIx_102 (coe v3))
                     (coe du_untypedIx_102 (coe v4)))) in
@@ -1608,7 +1608,7 @@ du_translation'63'_164 v0 v1 v2 v3 v4
                                       -> case coe v11 of
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v12
                                              -> let v13
-                                                      = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_44
+                                                      = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_48
                                                           (coe v7) (coe v9) in
                                                 coe
                                                   (case coe v13 of
@@ -1898,17 +1898,17 @@ du_translation'63'_164 v0 v1 v2 v3 v4
                                                           MAlonzo.Code.VerifiedCompilation.Certificate.du_decToPCE_234
                                                           (coe v1)
                                                           (coe
-                                                             MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                                                             MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                                                              erased
                                                              (\ v15 ->
                                                                 coe
-                                                                  MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2678
+                                                                  MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
                                                                   (coe v7))
                                                              (coe
                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                                                                 (coe eqInt (coe v7) (coe v10))
                                                                 (coe
-                                                                   MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_66
+                                                                   MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
                                                                    (coe eqInt (coe v7) (coe v10)))))
                                                           (coe v3) (coe v4) in
                                                 coe

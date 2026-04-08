@@ -1,28 +1,28 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.Product.Properties where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Function.Bundles qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Function.Bundles
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 -- Data.Product.Properties._.,-injectiveˡ
 d_'44''45'injective'737'_42 ::
@@ -115,7 +115,7 @@ du_'8801''45'dec_78 v0 v1 v2 v3
                               then coe
                                      seq (coe v10)
                                      (coe
-                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                                         erased erased (coe v1 v4 v5 v7))
                               else coe
                                      seq (coe v10)
@@ -241,14 +241,14 @@ d_Σ'45''8801''44''8801''8596''8801'_208 ::
   (AgdaAny -> ()) ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122
 d_Σ'45''8801''44''8801''8596''8801'_208 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5
   = du_Σ'45''8801''44''8801''8596''8801'_208
 du_Σ'45''8801''44''8801''8596''8801'_208 ::
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122
 du_Σ'45''8801''44''8801''8596''8801'_208
   = coe
-      MAlonzo.Code.Function.Bundles.du_mk'8596''8347''8242'_2366 erased
+      MAlonzo.Code.Function.Bundles.du_mk'8596''8347''8242'_2542 erased
       (\ v0 -> coe du_Σ'45''8801''44''8801''8592''8801'_194)
 -- Data.Product.Properties._.×-≡,≡→≡
 d_'215''45''8801''44''8801''8594''8801'_230 ::
@@ -286,14 +286,14 @@ d_'215''45''8801''44''8801''8596''8801'_234 ::
   () ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122
 d_'215''45''8801''44''8801''8596''8801'_234 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5
   = du_'215''45''8801''44''8801''8596''8801'_234
 du_'215''45''8801''44''8801''8596''8801'_234 ::
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122
 du_'215''45''8801''44''8801''8596''8801'_234
   = coe
-      MAlonzo.Code.Function.Bundles.du_mk'8596''8347''8242'_2366 erased
+      MAlonzo.Code.Function.Bundles.du_mk'8596''8347''8242'_2542 erased
       (\ v0 -> coe du_'215''45''8801''44''8801''8592''8801'_232)
 -- Data.Product.Properties._..extendedlambda0
 d_'46'extendedlambda0_236 ::
@@ -325,14 +325,14 @@ d_'8707''8707''8596''8707''8707'_250 ::
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   (AgdaAny -> AgdaAny -> ()) ->
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122
 d_'8707''8707''8596''8707''8707'_250 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5
   = du_'8707''8707''8596''8707''8707'_250
 du_'8707''8707''8596''8707''8707'_250 ::
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122
 du_'8707''8707''8596''8707''8707'_250
   = coe
-      MAlonzo.Code.Function.Bundles.du_mk'8596''8347''8242'_2366
+      MAlonzo.Code.Function.Bundles.du_mk'8596''8347''8242'_2542
       (coe du_to_266) (coe du_from_282)
 -- Data.Product.Properties._.to
 d_to_266 ::

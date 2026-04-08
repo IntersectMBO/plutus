@@ -1,30 +1,30 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.List.Membership.DecPropositional where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.List.Membership.DecSetoid qualified
-import MAlonzo.Code.Data.List.Membership.Propositional qualified
-import MAlonzo.Code.Data.List.Membership.Setoid qualified
-import MAlonzo.Code.Data.List.Relation.Unary.Any qualified
-import MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.List.Membership.DecSetoid
+import qualified MAlonzo.Code.Data.List.Membership.Propositional
+import qualified MAlonzo.Code.Data.List.Membership.Setoid
+import qualified MAlonzo.Code.Data.List.Relation.Unary.Any
+import qualified MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 
 -- Data.List.Membership.DecPropositional._._∈_
 d__'8712'__16 ::
@@ -64,7 +64,7 @@ du__'8759''61'__20 ::
   MAlonzo.Code.Data.List.Relation.Unary.Any.T_Any_34 ->
   AgdaAny -> [AgdaAny]
 du__'8759''61'__20
-  = coe MAlonzo.Code.Data.List.Membership.Setoid.du__'8759''61'__50
+  = coe MAlonzo.Code.Data.List.Membership.Setoid.du__'8759''61'__52
 -- Data.List.Membership.DecPropositional._._≢∈_
 d__'8802''8712'__22 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -96,7 +96,7 @@ du__'9472'__24 ::
   [AgdaAny] ->
   MAlonzo.Code.Data.List.Relation.Unary.Any.T_Any_34 -> [AgdaAny]
 du__'9472'__24
-  = coe MAlonzo.Code.Data.List.Membership.Setoid.du__'9472'__52
+  = coe MAlonzo.Code.Data.List.Membership.Setoid.du__'9472'__54
 -- Data.List.Membership.DecPropositional._.find
 d_find_26 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -118,7 +118,7 @@ du_find_26 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_find_26 v0 v1 v2 v3
   = coe
-      MAlonzo.Code.Data.List.Membership.Setoid.du_find_84
+      MAlonzo.Code.Data.List.Membership.Setoid.du_find_86
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
       v2 v3
@@ -169,7 +169,7 @@ du_mapWith'8712'_30 ::
   [AgdaAny]
 du_mapWith'8712'_30 v0 v1 v2 v3
   = coe
-      MAlonzo.Code.Data.List.Membership.Setoid.du_mapWith'8712'_62
+      MAlonzo.Code.Data.List.Membership.Setoid.du_mapWith'8712'_64
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
       v2 v3
@@ -191,7 +191,7 @@ du__'8712''63'__34 ::
   [AgdaAny] -> MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
 du__'8712''63'__34 v0
   = coe
-      MAlonzo.Code.Data.List.Membership.DecSetoid.du__'8712''63'__58
+      MAlonzo.Code.Data.List.Membership.DecSetoid.du__'8712''63'__60
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_decSetoid_406
          (coe v0))
@@ -213,7 +213,7 @@ du__'8713''63'__36 ::
   [AgdaAny] -> MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
 du__'8713''63'__36 v0
   = coe
-      MAlonzo.Code.Data.List.Membership.DecSetoid.du__'8713''63'__66
+      MAlonzo.Code.Data.List.Membership.DecSetoid.du__'8713''63'__68
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_decSetoid_406
          (coe v0))
