@@ -89,6 +89,7 @@ RelationOf = fromMaybe (NotImplemented accept) ∘ mRelationOf
 
 hasRelation : SimplifierTag → Bool
 hasRelation = is-just ∘ mRelationOf
+{-# COMPILE GHC hasRelation as certifierImplements #-}
 ```
 
 The corresponding certifier can then be called for a given pass:

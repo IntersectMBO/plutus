@@ -31,6 +31,7 @@ data SimplifyOpts name a = SimplifyOpts
   , _soInlineCallsiteGrowth :: AstSize
   , _soPreserveLogging :: Bool
   , _soApplyToCase :: Bool
+  , _soSafeOpts :: Bool
   }
   deriving stock (Show)
 
@@ -48,4 +49,5 @@ defaultSimplifyOpts =
     , _soInlineCallsiteGrowth = 5
     , _soPreserveLogging = True
     , _soApplyToCase = True
+    , _soSafeOpts = False
     }

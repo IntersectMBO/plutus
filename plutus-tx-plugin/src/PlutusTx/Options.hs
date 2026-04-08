@@ -85,6 +85,7 @@ data PluginOptions = PluginOptions
     _posRemoveTrace :: Bool
   , _posDumpCompilationTrace :: Bool
   , _posCertify :: Maybe String
+  , _posSafeOpts :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -339,6 +340,11 @@ pluginOptions =
               rest <- many (alphaNumChar <|> char '_' <|> char '\\')
               pure (firstC : rest)
        in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
+    , let k = "safe-optimisation"
+          desc =
+            "Run only those optimisation passes which are certified to preserve the functional "
+              <> "behavior of the original program."
+       in (k, PluginOption typeRep (setTrue k) posSafeOpts desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -414,6 +420,7 @@ defaultPluginOptions =
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
     , _posCertify = Nothing
+    , _posSafeOpts = False
     }
 
 processOne
