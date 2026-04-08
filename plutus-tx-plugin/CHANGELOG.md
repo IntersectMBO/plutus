@@ -1,4 +1,11 @@
 
+<a id='changelog-1.56.0.1'></a>
+# 1.56.0.1 — 2026-04-07
+
+## Fixed
+
+- Backport: replaced `caseInteger` SoP fallback (runtime list-indexing via `PlutusTx.List.!!`) with a compile-time `equalsInteger`/`ifThenElse` chain, fixing a 3-5x cost regression in `unsafeFromBuiltinData` for multi-constructor types. Also fixed a latent bug in `compileHaskellList` that silently dropped list elements when GHC used `(:)`-chain representation.
+
 <a id='changelog-1.55.0.0'></a>
 # 1.55.0.0 — 2025-11-11
 

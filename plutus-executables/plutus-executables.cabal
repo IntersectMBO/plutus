@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-executables
-version:         1.56.0.0
+version:         1.56.0.1
 synopsis:        Tools for running plutus core programs
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
