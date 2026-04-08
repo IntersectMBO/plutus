@@ -1,40 +1,40 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Effect.Functor where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Unit qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Level qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Level
 
 -- Effect.Functor.RawFunctor
 d_RawFunctor_24 a0 a1 a2 = ()
 newtype T_RawFunctor_24
-  = C_RawFunctor'46'constructor_241 (() ->
-                                     () -> (AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny)
+  = C_constructor_44 (() ->
+                      () -> (AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny)
 -- Effect.Functor.RawFunctor._<$>_
 d__'60''36''62'__30 ::
   T_RawFunctor_24 ->
   () -> () -> (AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny
 d__'60''36''62'__30 v0
   = case coe v0 of
-      C_RawFunctor'46'constructor_241 v1 -> coe v1
-      _                                  -> MAlonzo.RTE.mazUnreachableError
+      C_constructor_44 v1 -> coe v1
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Effect.Functor.RawFunctor._<$_
 d__'60''36'__32 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -74,20 +74,19 @@ du_ignore_40 v0
          MAlonzo.Code.Level.C_lift_20
          (coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))
 -- Effect.Functor.Morphism
-d_Morphism_58 a0 a1 a2 a3 a4 a5 a6 = ()
-newtype T_Morphism_58
-  = C_Morphism'46'constructor_3741 (() -> AgdaAny -> AgdaAny)
+d_Morphism_60 a0 a1 a2 a3 a4 a5 a6 = ()
+newtype T_Morphism_60 = C_constructor_86 (() -> AgdaAny -> AgdaAny)
 -- Effect.Functor.Morphism.op
-d_op_76 :: T_Morphism_58 -> () -> AgdaAny -> AgdaAny
-d_op_76 v0
+d_op_78 :: T_Morphism_60 -> () -> AgdaAny -> AgdaAny
+d_op_78 v0
   = case coe v0 of
-      C_Morphism'46'constructor_3741 v1 -> coe v1
-      _                                 -> MAlonzo.RTE.mazUnreachableError
+      C_constructor_86 v1 -> coe v1
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Effect.Functor.Morphism.op-<$>
-d_op'45''60''36''62'_82 ::
-  T_Morphism_58 ->
+d_op'45''60''36''62'_84 ::
+  T_Morphism_60 ->
   () ->
   () ->
   (AgdaAny -> AgdaAny) ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_op'45''60''36''62'_82 = erased
+d_op'45''60''36''62'_84 = erased

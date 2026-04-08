@@ -1,30 +1,31 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base qualified
-import MAlonzo.Code.Data.Product.Base qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Fin.Base
+import qualified MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base
+import qualified MAlonzo.Code.Data.Product.Base
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 -- Data.List.Relation.Binary.Pointwise.Properties.reflexive
 d_reflexive_28 ::
@@ -393,7 +394,7 @@ du_decidable_112 v0 v1 v2
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              (:) v5 v6
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     (coe
                        MAlonzo.Code.Data.Product.Base.du_uncurry_244
                        (coe
@@ -401,7 +402,7 @@ du_decidable_112 v0 v1 v2
                     (coe
                        MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.du_uncons_76)
                     (coe
-                       MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                       MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                        (coe v0 v3 v5) (coe du_decidable_112 (coe v0) (coe v4) (coe v6)))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -423,3 +424,51 @@ d_irrelevant_132 ::
   MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_irrelevant_132 = erased
+-- Data.List.Relation.Binary.Pointwise.Properties.Pointwise-length
+d_Pointwise'45'length_150 ::
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  (AgdaAny -> AgdaAny -> ()) ->
+  [AgdaAny] ->
+  [AgdaAny] ->
+  MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
+  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+d_Pointwise'45'length_150 = erased
+-- Data.List.Relation.Binary.Pointwise.Properties.lookup-cast
+d_lookup'45'cast_164 ::
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  (AgdaAny -> AgdaAny -> ()) ->
+  [AgdaAny] ->
+  [AgdaAny] ->
+  MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
+  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -> AgdaAny
+d_lookup'45'cast_164 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 v7 v8 ~v9 v10
+  = du_lookup'45'cast_164 v6 v7 v8 v10
+du_lookup'45'cast_164 ::
+  [AgdaAny] ->
+  [AgdaAny] ->
+  MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
+  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -> AgdaAny
+du_lookup'45'cast_164 v0 v1 v2 v3
+  = case coe v2 of
+      MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.C__'8759'__62 v8 v9
+        -> case coe v0 of
+             (:) v10 v11
+               -> case coe v1 of
+                    (:) v12 v13
+                      -> case coe v3 of
+                           MAlonzo.Code.Data.Fin.Base.C_zero_12 -> coe v8
+                           MAlonzo.Code.Data.Fin.Base.C_suc_16 v15
+                             -> coe du_lookup'45'cast_164 (coe v11) (coe v13) (coe v9) (coe v15)
+                           _ -> MAlonzo.RTE.mazUnreachableError
+                    _ -> MAlonzo.RTE.mazUnreachableError
+             _ -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError

@@ -118,3 +118,4 @@ release-*
 TestCert.*
 worktrees
 .local
+.claude

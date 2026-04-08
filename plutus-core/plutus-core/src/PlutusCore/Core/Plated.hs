@@ -184,7 +184,8 @@ termVars f term0 = case term0 of
   Case {} -> pure term0
 
 -- | Get all the direct child 'Unique's of the given 'Term' (including the type-level ones).
-termUniques :: HasUniques (Term tyname name uni fun ann) => Traversal' (Term tyname name uni fun ann) Unique
+termUniques
+  :: HasUniques (Term tyname name uni fun ann) => Traversal' (Term tyname name uni fun ann) Unique
 termUniques f term0 = case term0 of
   TyAbs ann tn k t -> theUnique f tn <&> \tn' -> TyAbs ann tn' k t
   LamAbs ann n ty t -> theUnique f n <&> \n' -> LamAbs ann n' ty t
@@ -267,5 +268,6 @@ typeUniquesDeep :: HasUniques (Type tyname uni ann) => Fold (Type tyname uni ann
 typeUniquesDeep = typeSubtypesDeep . typeUniques
 
 -- | Get all the transitive child 'Unique's of the given 'Term' (including the type-level ones).
-termUniquesDeep :: HasUniques (Term tyname name uni fun ann) => Fold (Term tyname name uni fun ann) Unique
+termUniquesDeep
+  :: HasUniques (Term tyname name uni fun ann) => Fold (Term tyname name uni fun ann) Unique
 termUniquesDeep = termSubtermsDeep . (termSubtypes . typeUniquesDeep <^> termUniques)

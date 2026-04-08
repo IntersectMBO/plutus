@@ -123,7 +123,11 @@ prop_multiplicative = do
   a <- arbitraryBigInteger `suchThat` (\a -> powerExists a e m)
   b <- arbitraryBigInteger `suchThat` (\b -> powerExists b e m)
   let t1 = expModInteger (a * b) e m
-      t2 = mkApp2 PLC.ModInteger (mkApp2 PLC.MultiplyInteger (expModInteger a e m) (expModInteger b e m)) (integer m)
+      t2 =
+        mkApp2
+          PLC.ModInteger
+          (mkApp2 PLC.MultiplyInteger (expModInteger a e m) (expModInteger b e m))
+          (integer m)
   pure $ evalOkEq t1 t2
 
 -- a^(e+e') = a^e*a^e' whenever both powers exist
@@ -134,7 +138,11 @@ prop_exponent_additive = do
   m <- arbitraryBigInteger `suchThat` (> 1)
   a <- arbitraryBigInteger `suchThat` (\a -> powerExists a e m && powerExists a f m)
   let t1 = expModInteger a (e + f) m
-      t2 = mkApp2 PLC.ModInteger (mkApp2 PLC.MultiplyInteger (expModInteger a e m) (expModInteger a f m)) (integer m)
+      t2 =
+        mkApp2
+          PLC.ModInteger
+          (mkApp2 PLC.MultiplyInteger (expModInteger a e m) (expModInteger a f m))
+          (integer m)
   pure $ evalOkEq t1 t2
 
 -- a^e mod m is the same for all members of a particular congruence class.
@@ -180,7 +188,9 @@ test_integer_exp_mod_properties =
     , testProp "e >= 0  => a^e mod m exists" prop_positive_exponent
     , testProp "e < 0 && gcd a m == 1 => a^e mod m exists" prop_negative_exponent_good
     , testProp "e < 0 && gcd a m > 1 => a^e mod m does not exist" prop_negative_exponent_bad
-    , testProp "e < 0 && gcd a m == 1 => (a^e mod m) * (a^(-e) mod m) = 1 mod m" prop_negated_exponent_inverse
+    , testProp
+        "e < 0 && gcd a m == 1 => (a^e mod m) * (a^(-e) mod m) = 1 mod m"
+        prop_negated_exponent_inverse
     , testProp "(ab)^e mod m == (a^e * b^e) mod m" prop_multiplicative
     , testProp "a^(e+e') mod m == (a^e * a^e') mod m" prop_exponent_additive
     , testProp "(a+k*m)^e mod m == a^e mod m for all k" prop_periodic

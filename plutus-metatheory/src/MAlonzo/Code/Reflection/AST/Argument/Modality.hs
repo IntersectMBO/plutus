@@ -1,29 +1,29 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Reflection.AST.Argument.Modality where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Reflection qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Data.Product.Base qualified
-import MAlonzo.Code.Reflection.AST.Argument.QQuantity qualified
-import MAlonzo.Code.Reflection.AST.Argument.Relevance qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Reflection
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Data.Product.Base
+import qualified MAlonzo.Code.Reflection.AST.Argument.QQuantity
+import qualified MAlonzo.Code.Reflection.AST.Argument.Relevance
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 
 -- Reflection.AST.Argument.Modality.relevance
 d_relevance_16 ::
@@ -32,7 +32,7 @@ d_relevance_16 ::
 d_relevance_16 v0
   = case coe v0 of
       MAlonzo.Code.Agda.Builtin.Reflection.C_modality_74 v1 v2 -> coe v1
-      _                                                        -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Reflection.AST.Argument.Modality.quantity
 d_quantity_20 ::
   MAlonzo.Code.Agda.Builtin.Reflection.T_Modality_68 ->
@@ -40,7 +40,7 @@ d_quantity_20 ::
 d_quantity_20 v0
   = case coe v0 of
       MAlonzo.Code.Agda.Builtin.Reflection.C_modality_74 v1 v2 -> coe v2
-      _                                                        -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Reflection.AST.Argument.Modality.modality-injective₁
 d_modality'45'injective'8321'_24 ::
   MAlonzo.Code.Agda.Builtin.Reflection.T_Relevance_56 ->
@@ -86,11 +86,11 @@ d__'8799'__30 v0 v1
         -> case coe v1 of
              MAlonzo.Code.Agda.Builtin.Reflection.C_modality_74 v4 v5
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     (coe MAlonzo.Code.Data.Product.Base.du_uncurry_244 erased)
                     (coe du_modality'45'injective_28)
                     (coe
-                       MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                       MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                        (coe
                           MAlonzo.Code.Reflection.AST.Argument.Relevance.d__'8799'__8
                           (coe v2) (coe v4))

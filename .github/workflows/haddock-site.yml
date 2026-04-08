@@ -15,6 +15,10 @@
 
 name: "📜 Haddock Site"
 
+concurrency:
+  group: haddock-site
+  cancel-in-progress: true
+
 on:
   push: 
     branches:
@@ -62,6 +66,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: [self-hosted, plutus-runner]
+    timeout-minutes: 120
     permissions:
       contents: write
     environment:

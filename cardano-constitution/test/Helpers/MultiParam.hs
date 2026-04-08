@@ -277,7 +277,8 @@ lessThanLowerParamValue spectrum (ParamList _ _ xs) =
 
 {-| choose a random value greater than the upper bound of the range
 NOTE: if the range is unbounded Nothing is returned -}
-greaterThanUpperParamValue :: forall a. GeneratorSpectrum -> Guardrail (Param a) -> Maybe (Gen Printable)
+greaterThanUpperParamValue
+  :: forall a. GeneratorSpectrum -> Guardrail (Param a) -> Maybe (Gen Printable)
 greaterThanUpperParamValue _ gr@(Param {}) = greaterThanUpperParamValue All $ G.WithinDomain gr $ getDomain gr
 greaterThanUpperParamValue _ gr@(G.WithinDomain _ _) = greaterThanUpperParamValue' range
   where

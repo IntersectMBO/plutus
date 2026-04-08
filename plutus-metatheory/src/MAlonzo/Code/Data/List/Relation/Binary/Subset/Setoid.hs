@@ -1,50 +1,50 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.List.Relation.Binary.Subset.Setoid where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Relation.Binary.Bundles qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Relation.Binary.Bundles
 
 -- Data.List.Relation.Binary.Subset.Setoid._⊆_
-d__'8838'__44 ::
+d__'8838'__46 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_46 ->
   [AgdaAny] -> [AgdaAny] -> ()
-d__'8838'__44 = erased
+d__'8838'__46 = erased
 -- Data.List.Relation.Binary.Subset.Setoid._⊇_
-d__'8839'__52 ::
+d__'8839'__54 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_46 ->
   [AgdaAny] -> [AgdaAny] -> ()
-d__'8839'__52 = erased
+d__'8839'__54 = erased
 -- Data.List.Relation.Binary.Subset.Setoid._⊈_
-d__'8840'__54 ::
+d__'8840'__56 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_46 ->
   [AgdaAny] -> [AgdaAny] -> ()
-d__'8840'__54 = erased
+d__'8840'__56 = erased
 -- Data.List.Relation.Binary.Subset.Setoid._⊉_
-d__'8841'__60 ::
+d__'8841'__62 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_46 ->
   [AgdaAny] -> [AgdaAny] -> ()
-d__'8841'__60 = erased
+d__'8841'__62 = erased

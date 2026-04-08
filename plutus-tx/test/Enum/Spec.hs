@@ -55,7 +55,9 @@ enumTests =
    in testGroup
         "PlutusTx.Enum tests"
         [ testProperty "no dups" prop_nodups
-        , testCase "full length" $ Tx.length (Tx.enumFromTo @SomeVeryLargeEnum HS.minBound HS.maxBound) @?= Tx.fromEnum @SomeVeryLargeEnum HS.maxBound + 1
+        , testCase "full length" $
+            Tx.length (Tx.enumFromTo @SomeVeryLargeEnum HS.minBound HS.maxBound)
+              @?= Tx.fromEnum @SomeVeryLargeEnum HS.maxBound + 1
         , runTestNested
             ["test", "Enum", "Golden"]
             [ testNestedGhc

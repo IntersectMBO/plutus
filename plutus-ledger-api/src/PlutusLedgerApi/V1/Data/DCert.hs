@@ -21,6 +21,7 @@ module PlutusLedgerApi.V1.Data.DCert
   , pattern DCertPoolRetire
   , pattern DCertGenesis
   , pattern DCertMir
+  , matchDCert
   ) where
 
 import Control.DeepSeq (NFData)

@@ -18,15 +18,17 @@ open import Data.Nat.Properties
 open import Relation.Binary using (Decidable)
 import Data.Integer as I
 import Data.List as L
+import Data.Bool.ListAction as ListAction
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Empty using (⊥;⊥-elim)
 open import Data.Integer using (ℤ; +_)
 open import Data.String using (String)
-open import Data.Bool using (Bool)
+open import Data.Bool using (Bool; true; false)
 open import Data.Maybe using (Maybe; just; nothing; maybe)
                            renaming (_>>=_ to mbind) public
 open import Data.Unit using (⊤)
+open import Level using (_⊔_)
 
 {-# FOREIGN GHC import Raw #-}
 
@@ -48,6 +50,14 @@ either : {A B C : Set} → Either A B → (A → C) → (B → C) → C
 either (inj₁ a) f g = f a
 either (inj₂ b) f g = g b
 
+is-inj₁ : ∀ {A B} → Either A B → Bool
+is-inj₁ (inj₁ _) = false
+is-inj₁ (inj₂ _) = true
+
+is-inj₂ : ∀ {A B} → Either A B → Bool
+is-inj₂ (inj₂ _) = true
+is-inj₂ (inj₁ _) = false
+
 eitherBind : ∀{A B E} → Either E A → (A → Either E B) → Either E B
 eitherBind (inj₁ e) f = inj₁ e
 eitherBind (inj₂ a) f = f a
@@ -58,6 +68,14 @@ decIf (no ¬p) t f = f
 
 maybeToEither : {A B : Set} → A → Maybe B → Either A B
 maybeToEither x = maybe inj₂ (inj₁ x)
+
+-- try = flip maybeToEither
+try : {A B : Set} → Maybe B → A → Either A B
+try m x = maybe inj₂ (inj₁ x) m
+
+eitherToMaybe : ∀ {A B} → Either A B → Maybe B
+eitherToMaybe (inj₁ _) = nothing
+eitherToMaybe (inj₂ x) = just x
 
 natToFin : {n : ℕ} → ℕ → Maybe (Fin n)
 natToFin {n} m with m <? n
@@ -217,6 +235,10 @@ data List (A : Set) : Set where
   []  : List A
   _∷_ : A → List A → List A
 
+data All {l}  {A : Set} (P : A → Set l) : List A → Set l where
+  []  : All P []
+  _∷_ : ∀ {x xs} (px : P x) (pxs : All P xs) → All P (x ∷ xs)
+
 length : ∀ {A} → List A → ℕ
 length [] = 0
 length (x ∷ xs) = suc (length xs)
@@ -249,6 +271,16 @@ map-cong {xs = L.[]} p = refl
 map-cong {xs = x L.∷ xs} p = cong₂ L._∷_ (p x) (map-cong p)
 
 infixr 5 _∷_
+
+sequence : ∀ {A M} {{_ : Monad M}} → List (M A) → M (List A)
+sequence [] = return []
+sequence (mx ∷ mxs) =
+    mx >>= λ x →
+    sequence mxs >>= λ xs →
+    return (x ∷ xs)
+
+mapM : ∀ {A B M} {{_ : Monad M}} → (A → M B) → List A → M (List B)
+mapM f = sequence ∘ map f
 
 {-# COMPILE GHC List = data [] ([] | (:)) #-}
 
@@ -298,14 +330,14 @@ eqDATA : DATA → DATA → Bool
 eqDATA (ConstrDATA i₁ l₁) (ConstrDATA i₂ l₂) =
     (Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂))
   Data.Bool.∧
-    L.and (L.zipWith eqDATA (toList l₁) (toList l₂))
+    ListAction.and (L.zipWith eqDATA (toList l₁) (toList l₂))
 eqDATA (ConstrDATA x x₁) (MapDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (ListDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (iDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (bDATA x₂) = Bool.false
 eqDATA (MapDATA x) (ConstrDATA x₁ x₂) = Bool.false
 eqDATA (MapDATA m₁) (MapDATA m₂) =
-  L.and
+  ListAction.and
     (L.zipWith
       (λ (x₁ , y₁) (x₂ , y₂) → eqDATA x₁ x₂ Data.Bool.∧ eqDATA y₁ y₂)
       (toList m₁)
@@ -316,7 +348,7 @@ eqDATA (MapDATA x) (iDATA x₁) = Bool.false
 eqDATA (MapDATA x) (bDATA x₁) = Bool.false
 eqDATA (ListDATA x) (ConstrDATA x₁ x₂) = Bool.false
 eqDATA (ListDATA x) (MapDATA x₁) = Bool.false
-eqDATA (ListDATA x) (ListDATA x₁) = L.and (L.zipWith eqDATA (toList x) (toList x₁))
+eqDATA (ListDATA x) (ListDATA x₁) = ListAction.and (L.zipWith eqDATA (toList x) (toList x₁))
 eqDATA (ListDATA x) (iDATA x₁) = Bool.false
 eqDATA (ListDATA x) (bDATA x₁) = Bool.false
 eqDATA (iDATA x) (ConstrDATA x₁ x₂) = Bool.false

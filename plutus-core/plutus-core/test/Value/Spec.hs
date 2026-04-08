@@ -6,6 +6,7 @@
 
 module Value.Spec (tests) where
 
+import Codec.Serialise qualified as CBOR
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
 import Data.Either
@@ -16,6 +17,7 @@ import Data.Maybe
 import Safe.Foldable (maximumMay)
 import Test.QuickCheck
 import Test.Tasty
+import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
 import PlutusCore.Builtin (BuiltinResult (..))
@@ -257,6 +259,9 @@ prop_dataRoundtrip v =
 prop_flatRoundtrip :: Value -> Property
 prop_flatRoundtrip v = Flat.unflat (Flat.flat v) === Right v
 
+prop_cborRoundtrip :: Value -> Property
+prop_cborRoundtrip v = CBOR.deserialiseOrFail (CBOR.serialise v) === Right v
+
 gen32BytesOrFewer :: Gen ByteString
 gen32BytesOrFewer = do
   len <- chooseInt (0, 32)
@@ -410,6 +415,20 @@ prop_flatDecodeInvalidQuantityMax =
         let flat = Flat.flat $ Map.singleton c (Map.singleton t quantity)
          in property . isLeft $ Flat.unflat @Value flat
 
+prop_flatDecodeZeroQuantity :: Property
+prop_flatDecodeZeroQuantity =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let flat = Flat.flat $ Map.singleton c (Map.singleton t (0 :: Integer))
+       in property . isLeft $ Flat.unflat @Value flat
+
+prop_cborDecodeZeroQuantity :: Property
+prop_cborDecodeZeroQuantity =
+  forAll gen32BytesOrFewer $ \c ->
+    forAll gen32BytesOrFewer $ \t ->
+      let bs = CBOR.serialise $ Map.singleton c (Map.singleton t (0 :: Integer))
+       in property . isLeft $ CBOR.deserialiseOrFail @Value bs
+
 tests :: TestTree
 tests =
   testGroup
@@ -517,6 +536,9 @@ tests =
         "flatRoundtrip"
         prop_flatRoundtrip
     , testProperty
+        "cborRoundtrip"
+        prop_cborRoundtrip
+    , testProperty
         "flatDecodeSuccess"
         prop_flatDecodeSuccess
     , testProperty
@@ -531,4 +553,16 @@ tests =
     , testProperty
         "flatDecodeInvalidQuantityMax"
         prop_flatDecodeInvalidQuantityMax
+    , testProperty
+        "flatDecodeZeroQuantity"
+        prop_flatDecodeZeroQuantity
+    , testProperty
+        "cborDecodeZeroQuantity"
+        prop_cborDecodeZeroQuantity
+    , testCase "K encodes as ByteString" $
+        let Just myK = V.k "abc"
+         in Flat.flat myK @?= Flat.flat ("abc" :: ByteString)
+    , testCase "Quantity encodes as Integer" $
+        let Just myQ = V.quantity 42
+         in Flat.flat myQ @?= Flat.flat (42 :: Integer)
     ]

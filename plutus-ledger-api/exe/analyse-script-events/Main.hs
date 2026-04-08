@@ -224,7 +224,8 @@ memU = fromSatInt . sumCostStream . flattenCostRose . memoryUsage
 -- Header (useful for R)
 printDataHeader :: IO ()
 printDataHeader =
-  printf "memUsage numNodes depth numI maxIsize totalIsize numB maxBsize totalBsize numL maxL numC maxC numM maxM\n"
+  printf
+    "memUsage numNodes depth numI maxIsize totalIsize numB maxBsize totalBsize numL maxL numC maxC numM maxM\n"
 
 printDataInfo :: DataInfo -> IO ()
 printDataInfo DataInfo {..} =
@@ -422,7 +423,13 @@ analyseCosts ctx _ ev =
        in case result of
             OK cost ->
               let (actualCPU, actualMem) = costAsInts cost
-               in printf "%15d   %15d   %15d   %15d      %2s\n" actualCPU claimedCPU actualMem claimedMem (toRString result)
+               in printf
+                    "%15d   %15d   %15d   %15d      %2s\n"
+                    actualCPU
+                    claimedCPU
+                    actualMem
+                    claimedMem
+                    (toRString result)
             -- Something went wrong; print the cost as "NA" ("Not Available" in R) so that R can
             -- still process it.
             _ ->

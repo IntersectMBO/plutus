@@ -17,7 +17,9 @@ debruijnTermUnsafe
   :: UPLC.Term UPLC.Name uni fun ann
   -> UPLC.Term UPLC.NamedDeBruijn uni fun ann
 debruijnTermUnsafe =
-  fromRight (Prelude.error "debruijnTermUnsafe") . runExcept @UPLC.FreeVariableError . UPLC.deBruijnTerm
+  fromRight (Prelude.error "debruijnTermUnsafe")
+    . runExcept @UPLC.FreeVariableError
+    . UPLC.deBruijnTerm
 
 nonMatchingBranch :: TermLike term tyname name UPLC.DefaultUni UPLC.DefaultFun => term ()
 nonMatchingBranch = mkConstant @Integer () (-1)

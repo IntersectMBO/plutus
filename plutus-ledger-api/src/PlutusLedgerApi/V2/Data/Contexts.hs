@@ -17,6 +17,7 @@ module PlutusLedgerApi.V2.Data.Contexts
   ( -- * Pending transactions and related types
     TxInfo
   , pattern TxInfo
+  , matchTxInfo
   , txInfoInputs
   , txInfoReferenceInputs
   , txInfoOutputs
@@ -31,6 +32,7 @@ module PlutusLedgerApi.V2.Data.Contexts
   , txInfoId
   , ScriptContext
   , pattern ScriptContext
+  , matchScriptContext
   , scriptContextTxInfo
   , scriptContextPurpose
   , ScriptPurpose
@@ -51,6 +53,7 @@ module PlutusLedgerApi.V2.Data.Contexts
   , txOutRefIdx
   , TxInInfo
   , pattern TxInInfo
+  , matchTxInInfo
   , txInInfoOutRef
   , txInInfoResolved
   , findOwnInput

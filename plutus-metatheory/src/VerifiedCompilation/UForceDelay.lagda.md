@@ -27,7 +27,7 @@ open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Untyped.RenamingSubstitution using (weaken)
 open import Data.List using (List; _∷_; [])
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; forceDelayT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; DecidableCE; forceDelayT)
 open import Untyped.Purity using (Pure; isPure?)
 open import Builtin using (ifThenElse)
 ```
@@ -201,10 +201,10 @@ the forces and applications back on to the current term and have a valid
 ## Decision Procedure
 
 ```
-isForceDelay? : {X : ℕ} → MatchOrCE (Translation (FD □) {X})
+isForceDelay? : {X : ℕ} → DecidableCE (Translation (FD □) {X})
 
 {-# TERMINATING #-}
-isFD? : {X : ℕ} → (z : Zipper X) → MatchOrCE (FD {X} z)
+isFD? : {X : ℕ} → (z : Zipper X) → DecidableCE (FD {X} z)
 
 -- Helper function for the recursion search
 ForceFDNeverITE : {X : ℕ} {z : Zipper X} {b b' x x' y' : X ⊢} → ¬ FD (force z · y') ((force (builtin ifThenElse) · b) · x) ((force (builtin ifThenElse) · b') · x')

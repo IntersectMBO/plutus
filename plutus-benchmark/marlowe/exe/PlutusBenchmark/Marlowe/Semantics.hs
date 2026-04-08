@@ -35,7 +35,21 @@ import PlutusLedgerApi.V2
   , ScriptHash
   , ScriptPurpose (Spending)
   , SerialisedScript
-  , TxInfo (TxInfo, txInfoDCert, txInfoData, txInfoFee, txInfoId, txInfoInputs, txInfoMint, txInfoOutputs, txInfoRedeemers, txInfoReferenceInputs, txInfoSignatories, txInfoValidRange, txInfoWdrl)
+  , TxInfo
+    ( TxInfo
+    , txInfoDCert
+    , txInfoData
+    , txInfoFee
+    , txInfoId
+    , txInfoInputs
+    , txInfoMint
+    , txInfoOutputs
+    , txInfoRedeemers
+    , txInfoReferenceInputs
+    , txInfoSignatories
+    , txInfoValidRange
+    , txInfoWdrl
+    )
   , TxOutRef (TxOutRef)
   , UpperBound (UpperBound)
   , singleton

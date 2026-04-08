@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE LambdaCase #-}
 
 module UntypedPlutusCore.Transform.Certify.Trace where
 
@@ -17,6 +18,7 @@ data SimplifierStage
   | Inline
   | CSE
   | ApplyToCase
+  | Unknown
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -38,3 +40,10 @@ newtype SimplifierTrace name uni fun a
 
 initSimplifierTrace :: SimplifierTrace name uni fun a
 initSimplifierTrace = SimplifierTrace []
+
+allASTs :: SimplifierTrace name uni fun a -> [Term name uni fun a]
+allASTs = \case
+  SimplifierTrace [] -> []
+  SimplifierTrace xs@(x : _) ->
+    -- `SimplifierTrace` is in reverse order: the first item is the last pass run.
+    afterAST x : map beforeAST xs

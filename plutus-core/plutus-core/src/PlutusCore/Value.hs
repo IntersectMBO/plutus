@@ -37,9 +37,10 @@ module PlutusCore.Value
   , unValueData
   ) where
 
+import Codec.CBOR.Decoding qualified as CBOR
 import Codec.Serialise qualified as CBOR
 import Control.DeepSeq (NFData)
-import Control.Monad.Extra (unless, when, whenJust)
+import Control.Monad.Extra (replicateM, unless, when, whenJust, (>=>))
 import Data.Bifunctor
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
@@ -62,6 +63,7 @@ import GHC.Stack
 import PlutusCore.Builtin.Result
 import PlutusCore.Data (Data (..))
 import PlutusCore.Flat qualified as Flat
+import PlutusCore.Flat.Decoder qualified as Flat
 import PlutusPrelude (Pretty (..))
 
 -- Max length (in bytes) for currency symbols and token names in `Value`,
@@ -193,14 +195,28 @@ instance Hashable Value where
 instance CBOR.Serialise Value where
   encode (Value v _ _ _) = CBOR.encode v
   {-# INLINE encode #-}
-  decode = pack <$> CBOR.decode
+  decode = do
+    outerLen <- CBOR.decodeMapLen
+    outer <- replicateM outerLen $ do
+      currency <- CBOR.decode
+      innerLen <- CBOR.decodeMapLen
+      inner <- replicateM innerLen ((,) <$> CBOR.decode <*> CBOR.decode)
+      pure (currency, inner)
+    buildValueWith "Value CBOR decoder" pure pure outer
   {-# INLINE decode #-}
 
 instance Flat.Flat Value where
   encode (Value v _ _ _) = Flat.encode v
   {-# INLINE encode #-}
-  decode = pack <$> Flat.decode
+  decode = do
+    outer <- Flat.decodeListWith $ do
+      currency <- Flat.decode
+      inner <- Flat.decodeListWith ((,) <$> Flat.decode <*> Flat.decode)
+      pure (currency, inner)
+    buildValueWith "Value Flat decoder" pure pure outer
   {-# INLINE decode #-}
+  size (Value v _ _ _) = Flat.size v
+  {-# INLINE size #-}
 
 {-| Unpack a `Value` into a map from (currency symbol, token name) to quantity.
 
@@ -450,11 +466,16 @@ valueData v =
 {-| \(O(n)\). Decodes `Data` into `Value`.
 This is the denotation of @UnValueData@ in Plutus V1, V2 and V3. -}
 unValueData :: Data -> BuiltinResult Value
-unValueData = \case
-  Map cs -> do
-    (outerList, sizes, total, neg) <- goCurrencies cs
-    pure $ Value (Map.fromDistinctDescList outerList) sizes total neg
-  _ -> fail "unValueData: non-Map constructor"
+unValueData =
+  unMap
+    >=> buildValueWith
+      "unValueData"
+      ( \(cData, tsData) ->
+          (,)
+            <$> unB cData
+            <*> unMap tsData
+      )
+      (\(tData, qData) -> (,) <$> unB tData <*> unQ qData)
   where
     unB :: Data -> BuiltinResult K
     unB = \case
@@ -465,67 +486,15 @@ unValueData = \case
     unQ :: Data -> BuiltinResult Quantity
     unQ = \case
       I i
-        | i == 0 || i < unQuantity minBound || i > unQuantity maxBound ->
-            fail "unValueData: invalid quantity"
-        | otherwise -> pure (UnsafeQuantity i)
+        | Just q <- quantity i -> pure q
+        | otherwise -> fail "unValueData: invalid quantity"
       _ -> fail "unValueData: non-I constructor"
     {-# INLINEABLE unQ #-}
 
-    -- Returns the inner map and the number of negative quantities in it.
-    unTokens :: Data -> BuiltinResult (Map K Quantity, Int)
-    unTokens = \case
-      Map ts -> do
-        when (null ts) $ fail "unValueData: empty inner map"
-        (innerList, neg) <- goTokens ts
-        pure (Map.fromDistinctDescList innerList, neg)
+    unMap :: Data -> BuiltinResult [(Data, Data)]
+    unMap = \case
+      Map xs -> pure xs
       _ -> fail "unValueData: non-Map constructor"
-    {-# INLINEABLE unTokens #-}
-
-    -- Returns outer map's list, plus stats (sizes, total, neg).
-    goCurrencies
-      :: [(Data, Data)]
-      -> BuiltinResult ([(K, Map K Quantity)], IntMap Int, Int, Int)
-    goCurrencies = go Nothing mempty mempty 0 0
-      where
-        go !prev !acc !sizes !total !neg = \case
-          [] -> pure (acc, sizes, total, neg)
-          (cData, tsData) : rest -> do
-            !c <- unB cData
-            -- Verify that currencies are strictly ascending
-            whenJust
-              prev
-              ( \p ->
-                  unless
-                    (p < c)
-                    (fail "unValueData: currency symbols not strictly ascending")
-              )
-            (!inner, !innerNeg) <- unTokens tsData
-            let sizes' = IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) sizes
-                total' = total + Map.size inner
-                neg' = neg + innerNeg
-                acc' = (c, inner) : acc
-            go (Just c) acc' sizes' total' neg' rest
-
-    -- Returns inner map's list, plus the number of negative quantities in the inner map.
-    goTokens :: [(Data, Data)] -> BuiltinResult ([(K, Quantity)], Int)
-    goTokens = go Nothing mempty 0
-      where
-        go !prev !acc !neg = \case
-          [] -> pure (acc, neg)
-          (tData, qData) : rest -> do
-            !t <- unB tData
-            -- Verify that token names within an inner map are strictly ascending
-            whenJust
-              prev
-              ( \p ->
-                  unless
-                    (p < t)
-                    (fail "unValueData: token names not strictly ascending")
-              )
-            !q <- unQ qData
-            let neg' = if q < zeroQuantity then neg + 1 else neg
-                acc' = (t, q) : acc
-            go (Just t) acc' neg' rest
 {-# INLINEABLE unValueData #-}
 
 -- | Decrement bucket @old@, and increment bucket @new@.
@@ -557,7 +526,7 @@ scaleValue c (Value outer sizes size neg)
   | otherwise = BuiltinSuccess empty
   where
     go :: NestedMap -> BuiltinResult NestedMap
-    go x = traverse (traverse goScale) x
+    go = traverse (traverse goScale)
     goScale :: Quantity -> BuiltinResult Quantity
     goScale x =
       case scaleQuantity c x of
@@ -568,3 +537,69 @@ scaleValue c (Value outer sizes size neg)
               <> " * "
               <> show (unQuantity x)
         Just q -> pure q
+
+{-| Build a `Value` from a list of entries. It fails unless the following
+conditions are met:
+
+  * currency symbols are strictly ascending
+  * token names are strictly ascending
+  * every quantity is within bounds
+  * no zero quantity -}
+buildValueWith
+  :: forall m a b
+   . MonadFail m
+  => String
+  -> (a -> m (K, [b]))
+  -- ^ Convert an outer entry into (currency, inner entries)
+  -> (b -> m (K, Quantity))
+  -- ^ Convert an inner entry into (token, quantity)
+  -> [a]
+  -> m Value
+buildValueWith ctx fouter finner cs = do
+  (outerDescList, sizes, total, neg) <- goOuter Nothing mempty mempty 0 0 cs
+  pure $ Value (Map.fromDistinctDescList outerDescList) sizes total neg
+  where
+    goOuter
+      :: Maybe K
+      -> [(K, Map K Quantity)]
+      -> IntMap Int
+      -> Int
+      -> Int
+      -> [a]
+      -> m ([(K, Map K Quantity)], IntMap Int, Int, Int)
+    goOuter !prev !acc !sizes !total !neg = \case
+      [] -> pure (acc, sizes, total, neg)
+      x : xs -> do
+        (!c, !innerEntries) <- fouter x
+        whenJust
+          prev
+          ( \p ->
+              unless
+                (p < c)
+                (fail $ ctx <> ": currency symbols not strictly ascending")
+          )
+        (innerDescList, innerNeg) <- goInner Nothing mempty 0 innerEntries
+        when (null innerDescList) . fail $ ctx <> ": empty inner map"
+        let !inner = Map.fromDistinctDescList innerDescList
+            !innerSize = Map.size inner
+            !sizes' = IntMap.alter (maybe (Just 1) (Just . (+ 1))) innerSize sizes
+        goOuter (Just c) ((c, inner) : acc) sizes' (total + innerSize) (neg + innerNeg) xs
+
+    goInner :: Maybe K -> [(K, Quantity)] -> Int -> [b] -> m ([(K, Quantity)], Int)
+    goInner !prev !acc !neg = \case
+      [] -> pure (acc, neg)
+      x : xs -> do
+        (!t, !q) <- finner x
+        whenJust
+          prev
+          ( \p ->
+              unless
+                (p < t)
+                (fail $ ctx <> ": token names not strictly ascending")
+          )
+        -- minBound and maxBound are checked in `quantity`. We just need to
+        -- guard against zero here.
+        when (q == zeroQuantity) . fail $ ctx <> ": zero quantity"
+        let neg' = if q < zeroQuantity then neg + 1 else neg
+        goInner (Just t) ((t, q) : acc) neg' xs
+{-# INLINEABLE buildValueWith #-}

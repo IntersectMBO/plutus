@@ -1,25 +1,25 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.List.Scans.Base where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.List.NonEmpty.Base qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.List.NonEmpty.Base
 
 -- Data.List.Scans.Base._.scanr⁺
 d_scanr'8314'_28 ::
@@ -72,8 +72,13 @@ du_scanr_44 ::
   AgdaAny -> [AgdaAny] -> [AgdaAny]
 du_scanr_44 v0 v1 v2
   = coe
-      MAlonzo.Code.Data.List.NonEmpty.Base.du_toList_60
-      (coe du_scanr'8314'_28 (coe v0) (coe v1) (coe v2))
+      MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+      (coe
+         MAlonzo.Code.Data.List.NonEmpty.Base.d_head_30
+         (coe du_scanr'8314'_28 (coe v0) (coe v1) (coe v2)))
+      (coe
+         MAlonzo.Code.Data.List.NonEmpty.Base.d_tail_32
+         (coe du_scanr'8314'_28 (coe v0) (coe v1) (coe v2)))
 -- Data.List.Scans.Base._.scanl⁺
 d_scanl'8314'_58 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -127,5 +132,10 @@ du_scanl_78 ::
   AgdaAny -> [AgdaAny] -> [AgdaAny]
 du_scanl_78 v0 v1 v2
   = coe
-      MAlonzo.Code.Data.List.NonEmpty.Base.du_toList_60
-      (coe du_scanl'8314'_58 (coe v0) (coe v1) (coe v2))
+      MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+      (coe
+         MAlonzo.Code.Data.List.NonEmpty.Base.d_head_30
+         (coe du_scanl'8314'_58 (coe v0) (coe v1) (coe v2)))
+      (coe
+         MAlonzo.Code.Data.List.NonEmpty.Base.d_tail_32
+         (coe du_scanl'8314'_58 (coe v0) (coe v1) (coe v2)))

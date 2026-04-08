@@ -102,10 +102,22 @@ guardrailsNotChecked =
     999
     "guardrailsNotChecked"
     0
-    [ ("PARAM-01", "Any protocol parameter that is not explicitly named in this document must not be changed by a parameter update governance action") `MustNotBe` NL 0
-    , ("PARAM-02", "Where a parameter is explicitly listed in this document but no guardrails are specified, the script must not impose any constraints on changes to the parameter") `MustNotBe` NL 0
-    , ("PARAM-03", "Critical protocol parameters require an SPO vote in addition to a DRep vote: SPOs must say \"yes\" with a collective support of more than 60% of all active block production stake. This is enforced by the guardrails on the `ppSecurityParam` voting threshold") `MustNotBe` NL 0
-    , ("PARAM-05", "DReps must vote \"yes\" with a collective support of more than 50% of all active voting stake. This is enforced by the guardrails on the DRep voting thresholds") `MustNotBe` NL 0
+    [ ( "PARAM-01"
+      , "Any protocol parameter that is not explicitly named in this document must not be changed by a parameter update governance action"
+      )
+        `MustNotBe` NL 0
+    , ( "PARAM-02"
+      , "Where a parameter is explicitly listed in this document but no guardrails are specified, the script must not impose any constraints on changes to the parameter"
+      )
+        `MustNotBe` NL 0
+    , ( "PARAM-03"
+      , "Critical protocol parameters require an SPO vote in addition to a DRep vote: SPOs must say \"yes\" with a collective support of more than 60% of all active block production stake. This is enforced by the guardrails on the `ppSecurityParam` voting threshold"
+      )
+        `MustNotBe` NL 0
+    , ( "PARAM-05"
+      , "DReps must vote \"yes\" with a collective support of more than 50% of all active voting stake. This is enforced by the guardrails on the DRep voting thresholds"
+      )
+        `MustNotBe` NL 0
     ]
 
 txFeePerByte :: Guardrail (Param (Scalar Integer))
@@ -163,7 +175,8 @@ stakePoolDeposit =
     6
     "stakePoolDeposit"
     500_000_000
-    [ ("SPD-01", "stakePoolDeposit must not be lower than 250,000,000 (250 ada)") `MustNotBe` NL 250_000_000
+    [ ("SPD-01", "stakePoolDeposit must not be lower than 250,000,000 (250 ada)")
+        `MustNotBe` NL 250_000_000
     , ("SPD-02", "stakePoolDeposit must not exceed 500,000,000 (500 ada)") `MustNotBe` NG 500_000_000
     , ("SDP-03", "stakePoolDeposit must not be negative") `MustNotBe` NL 0
     ]
@@ -214,16 +227,20 @@ executionUnitPrices =
         0
         "priceMemory"
         (577 % 10_000)
-        [ ("EIUP-PM-01", "executionUnitPrices[priceMemory] must not exceed 2_000 / 10_000") `MustNotBe` NG (2_000 % 10_000)
-        , ("EIUP-PM-02", "executionUnitPrices[priceMemory] must not be lower than 400 / 10_000") `MustNotBe` NL (400 % 10_000)
+        [ ("EIUP-PM-01", "executionUnitPrices[priceMemory] must not exceed 2_000 / 10_000")
+            `MustNotBe` NG (2_000 % 10_000)
+        , ("EIUP-PM-02", "executionUnitPrices[priceMemory] must not be lower than 400 / 10_000")
+            `MustNotBe` NL (400 % 10_000)
         ]
         `WithinDomain` (0.0, 1.0)
     , Param
         1
         "priceSteps"
         (721 % 10_000_000)
-        [ ("EIUP-PS-01", "executionUnitPrices[priceSteps] must not exceed 2,000 / 10,000,000") `MustNotBe` NG (2_000 % 10_000_000)
-        , ("EIUP-PS-02", "executionUnitPrices[priceSteps] must not be lower than 500 / 10,000,000") `MustNotBe` NL (500 % 10_000_000)
+        [ ("EIUP-PS-01", "executionUnitPrices[priceSteps] must not exceed 2,000 / 10,000,000")
+            `MustNotBe` NG (2_000 % 10_000_000)
+        , ("EIUP-PS-02", "executionUnitPrices[priceSteps] must not be lower than 500 / 10,000,000")
+            `MustNotBe` NL (500 % 10_000_000)
         ]
         `WithinDomain` (0.0, 1.0)
     ]
@@ -234,7 +251,8 @@ minFeeRefScriptCoinsPerByte =
     33
     "minFeeRefScriptCoinsPerByte"
     1
-    [ ("MFRS-01", "minFeeRefScriptCoinsPerByte must not exceed 1,000 (0.001 ada)") `MustNotBe` NG (1_000 % 1)
+    [ ("MFRS-01", "minFeeRefScriptCoinsPerByte must not exceed 1,000 (0.001 ada)")
+        `MustNotBe` NG (1_000 % 1)
     , ("MFRS-02", "minFeeRefScriptCoinsPerByte must not be negative") `MustNotBe` NL (0 % 1)
     ]
     `WithinDomain` (-5_000, 10_000)
@@ -270,7 +288,8 @@ maxBlockExecutionUnits =
         0
         "memory"
         62_000_000
-        [ ("MBEU-M-01", "maxBlockExecutionUnits[memory] must not exceed 120,000,000 units") `MustNotBe` NG 120_000_000
+        [ ("MBEU-M-01", "maxBlockExecutionUnits[memory] must not exceed 120,000,000 units")
+            `MustNotBe` NG 120_000_000
         , ("MBEU-M-02", "maxBlockExecutionUnits[memory] must not be negative") `MustNotBe` NL 0
         ]
         `WithinDomain` (-100, 200_000_000)
@@ -278,7 +297,8 @@ maxBlockExecutionUnits =
         1
         "steps"
         20_000_000_000
-        [ ("MBEU-S-01", "maxBlockExecutionUnits[steps] must not exceed 40,000,000,000 (40Bn) units") `MustNotBe` NG 40_000_000_000
+        [ ("MBEU-S-01", "maxBlockExecutionUnits[steps] must not exceed 40,000,000,000 (40Bn) units")
+            `MustNotBe` NG 40_000_000_000
         , ("MBEU-S-02", "maxBlockExecutionUnits[steps] must not be negative") `MustNotBe` NL 0
         ]
         `WithinDomain` (-100, 50_000_000_000)
@@ -293,7 +313,8 @@ maxTxExecutionUnits =
         0
         "mem"
         20_000_000
-        [ ("MTEU-M-01", "maxTxExecutionUnits[memory] must not exceed 40,000,000 units") `MustNotBe` NG 40_000_000
+        [ ("MTEU-M-01", "maxTxExecutionUnits[memory] must not exceed 40,000,000 units")
+            `MustNotBe` NG 40_000_000
         , ("MTEU-M-02", "maxTxExecutionUnits[memory] must not be negative") `MustNotBe` NL 0
         ]
         `WithinDomain` (-100, 50_000_000)
@@ -301,7 +322,8 @@ maxTxExecutionUnits =
         1
         "steps"
         10_000_000_000
-        [ ("MTEU-S-01", "maxTxExecutionUnits[steps] must not exceed 15,000,000,000 (15Bn) units") `MustNotBe` NG 15_000_000_000
+        [ ("MTEU-S-01", "maxTxExecutionUnits[steps] must not exceed 15,000,000,000 (15Bn) units")
+            `MustNotBe` NG 15_000_000_000
         , ("MTEU-S-02", "maxTxExecutionUnits[steps] must not be negative") `MustNotBe` NL 0
         ]
         `WithinDomain` (-100, 16_000_000_000)
@@ -395,7 +417,8 @@ govDeposit =
     1_000_000
     [ ("GD-01", "govDeposit must not be negative") `MustNotBe` NL 0
     , ("GD-02", "govDeposit must not be lower than 1,000,000 (1 ada)") `MustNotBe` NL 1_000_000
-    , ("GD-03", "govDeposit must not exceed 10,000,000,000,000 (10 Million ada)") `MustNotBe` NG 10_000_000_000_000
+    , ("GD-03", "govDeposit must not exceed 10,000,000,000,000 (10 Million ada)")
+        `MustNotBe` NG 10_000_000_000_000
     ]
     `WithinDomain` (-5_000, 11_000_000_000_000)
 
@@ -407,7 +430,8 @@ dRepDeposit =
     1_000_000
     [ ("DRD-01", "dRepDeposit must not be negative") `MustNotBe` NL 0
     , ("DRD-02", "dRepDeposit must not be lower than 1,000,000 (1 ada)") `MustNotBe` NL 1_000_000
-    , ("DRD-03", "dRepDeposit must be no more than 100,000,000,000 (100,000 ada)") `MustNotBe` NG 100_000_000_000
+    , ("DRD-03", "dRepDeposit must be no more than 100,000,000,000 (100,000 ada)")
+        `MustNotBe` NG 100_000_000_000
     ]
     `WithinDomain` (-5_000, 110_000_000_000)
 
@@ -436,7 +460,8 @@ poolVotingThresholds =
         , ("VT-GEN-01b", "All thresholds must be in the range 50%-100%") `MustNotBe` NG (1 % 1)
         , ("VT-NC-01", "No confidence action thresholds must be in the range 51%-75%")
             `MustNotBe` NL (51 % 100)
-        , ("VT-NC-01b", "No confidence action thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100)
+        , ("VT-NC-01b", "No confidence action thresholds must be in the range 51%-75%")
+            `MustNotBe` NG (75 % 100)
         ]
         `WithinDomain` (0, 1.5)
     , Param
@@ -496,8 +521,10 @@ dRepVotingThresholds =
         (2 % 3)
         [ ("VT-GEN-01", "All thresholds must be in the range 50%-100%") `MustNotBe` NL (1 % 2)
         , ("VT-GEN-01b", "All thresholds must be in the range 50%-100%") `MustNotBe` NG (1 % 1)
-        , ("VT-NC-01", "No confidence action thresholds must be in the range 51%-75%") `MustNotBe` NL (51 % 100)
-        , ("VT-NC-01b", "No confidence action thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100)
+        , ("VT-NC-01", "No confidence action thresholds must be in the range 51%-75%")
+            `MustNotBe` NL (51 % 100)
+        , ("VT-NC-01b", "No confidence action thresholds must be in the range 51%-75%")
+            `MustNotBe` NG (75 % 100)
         ]
         `WithinDomain` (0, 1.5)
     , Param
@@ -506,8 +533,10 @@ dRepVotingThresholds =
         (2 % 3)
         [ ("VT-GEN-01", "All thresholds must be in the range 50%-100%") `MustNotBe` NL (1 % 2)
         , ("VT-GEN-01b", "All thresholds must be in the range 50%-100%") `MustNotBe` NG (1 % 1)
-        , ("VT-CC-01", "Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NL (51 % 100)
-        , ("VT-CC-01b", "Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NG (90 % 100)
+        , ("VT-CC-01", "Update Constitutional Committee action thresholds must be in the range 51%-90%")
+            `MustNotBe` NL (51 % 100)
+        , ("VT-CC-01b", "Update Constitutional Committee action thresholds must be in the range 51%-90%")
+            `MustNotBe` NG (90 % 100)
         ]
         `WithinDomain` (0, 1.5)
     , Param
@@ -516,8 +545,10 @@ dRepVotingThresholds =
         (2 % 3)
         [ ("VT-GEN-01", "All thresholds must be in the range 50%-100%") `MustNotBe` NL (1 % 2)
         , ("VT-GEN-01b", "All thresholds must be in the range 50%-100%") `MustNotBe` NG (1 % 1)
-        , ("VT-CC-01", "Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NL (51 % 100)
-        , ("VT-CC-01b", "Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NG (90 % 100)
+        , ("VT-CC-01", "Update Constitutional Committee action thresholds must be in the range 51%-90%")
+            `MustNotBe` NL (51 % 100)
+        , ("VT-CC-01b", "Update Constitutional Committee action thresholds must be in the range 51%-90%")
+            `MustNotBe` NG (90 % 100)
         ]
         `WithinDomain` (0, 1.5)
     , Param
@@ -526,8 +557,14 @@ dRepVotingThresholds =
         (2 % 3)
         [ ("VT-GEN-01", "All thresholds must be in the range 50%-100%") `MustNotBe` NL (1 % 2)
         , ("VT-GEN-01b", "All thresholds must be in the range 50%-100%") `MustNotBe` NG (1 % 1)
-        , ("VT-CON-01", "New Constitution or guardrails script action thresholds must be in the range 65%-90%") `MustNotBe` NL (65 % 100)
-        , ("VT-CON-01b", "New Constitution or guardrails script action thresholds must be in the range 65%-90%") `MustNotBe` NG (90 % 100)
+        , ( "VT-CON-01"
+          , "New Constitution or guardrails script action thresholds must be in the range 65%-90%"
+          )
+            `MustNotBe` NL (65 % 100)
+        , ( "VT-CON-01b"
+          , "New Constitution or guardrails script action thresholds must be in the range 65%-90%"
+          )
+            `MustNotBe` NG (90 % 100)
         ]
         `WithinDomain` (0, 1.5)
     , Param
@@ -546,8 +583,12 @@ dRepVotingThresholds =
         (2 % 3)
         [ ("VT-GEN-01", "All thresholds must be in the range 50%-100%") `MustNotBe` NL (1 % 2)
         , ("VT-GEN-01b", "All thresholds must be in the range 50%-100%") `MustNotBe` NG (1 % 1)
-        , ("VT-GEN-02", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NL (51 % 100)
-        , ("VT-GEN-02b", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100)
+        , ("VT-GEN-02", "Economic, network, and technical parameters thresholds must be in the range 51%-75%")
+            `MustNotBe` NL (51 % 100)
+        , ( "VT-GEN-02b"
+          , "Economic, network, and technical parameters thresholds must be in the range 51%-75%"
+          )
+            `MustNotBe` NG (75 % 100)
         ]
         `WithinDomain` (0, 1.5)
     , Param
@@ -556,8 +597,12 @@ dRepVotingThresholds =
         (2 % 3)
         [ ("VT-GEN-01", "All thresholds must be in the range 50%-100%") `MustNotBe` NL (1 % 2)
         , ("VT-GEN-01b", "All thresholds must be in the range 50%-100%") `MustNotBe` NG (1 % 1)
-        , ("VT-GEN-02", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NL (51 % 100)
-        , ("VT-GEN-02b", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100)
+        , ("VT-GEN-02", "Economic, network, and technical parameters thresholds must be in the range 51%-75%")
+            `MustNotBe` NL (51 % 100)
+        , ( "VT-GEN-02b"
+          , "Economic, network, and technical parameters thresholds must be in the range 51%-75%"
+          )
+            `MustNotBe` NG (75 % 100)
         ]
         `WithinDomain` (0, 1.5)
     , Param
@@ -566,8 +611,12 @@ dRepVotingThresholds =
         (2 % 3)
         [ ("VT-GEN-01", "All thresholds must be in the range 50%-100%") `MustNotBe` NL (1 % 2)
         , ("VT-GEN-01b", "All thresholds must be in the range 50%-100%") `MustNotBe` NG (1 % 1)
-        , ("VT-GEN-02", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NL (51 % 100)
-        , ("VT-GEN-02b", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100)
+        , ("VT-GEN-02", "Economic, network, and technical parameters thresholds must be in the range 51%-75%")
+            `MustNotBe` NL (51 % 100)
+        , ( "VT-GEN-02b"
+          , "Economic, network, and technical parameters thresholds must be in the range 51%-75%"
+          )
+            `MustNotBe` NG (75 % 100)
         ]
         `WithinDomain` (0, 1.5)
     , Param
@@ -576,8 +625,10 @@ dRepVotingThresholds =
         (4 % 5)
         [ ("VT-GEN-01", "All thresholds must be in the range 50%-100%") `MustNotBe` NL (1 % 2)
         , ("VT-GEN-01b", "All thresholds must be in the range 50%-100%") `MustNotBe` NG (1 % 1)
-        , ("VT-GOV-01", "Governance parameter thresholds must be in the range 75%-90%") `MustNotBe` NL (75 % 100)
-        , ("VT-GOV-01b", "Governance parameter thresholds must be in the range 75%-90%") `MustNotBe` NG (90 % 100)
+        , ("VT-GOV-01", "Governance parameter thresholds must be in the range 75%-90%")
+            `MustNotBe` NL (75 % 100)
+        , ("VT-GOV-01b", "Governance parameter thresholds must be in the range 75%-90%")
+            `MustNotBe` NG (90 % 100)
         ]
         `WithinDomain` (0, 1.5)
     , Param
@@ -609,8 +660,12 @@ committeeMaxTermLimit =
     50
     [ ("CMTL-01", "committeeMaxTermLimit must not be zero") `MustNotBe` NEQ 0
     , ("CMTL-02", "committeeMaxTermLimit must not be negative") `MustNotBe` NL 0
-    , ("CMTL-03", "committeeMaxTermLimit must not be lower than 18 epochs (90 days, or approximately 3 months)") `MustNotBe` NL 18
-    , ("CMTL-04", "committeeMaxTermLimit must not exceed 293 epochs (approximately 4 years)") `MustNotBe` NG 293
+    , ( "CMTL-03"
+      , "committeeMaxTermLimit must not be lower than 18 epochs (90 days, or approximately 3 months)"
+      )
+        `MustNotBe` NL 18
+    , ("CMTL-04", "committeeMaxTermLimit must not exceed 293 epochs (approximately 4 years)")
+        `MustNotBe` NG 293
     ]
     `WithinDomain` (-10, 400)
 
@@ -943,9 +998,12 @@ testSet' toData' getParamId guardRail =
     paramName
     [ testGroup'
         "In range tests"
-        [ testCase' ("At upper bound (" ++ show upper ++ ")") $ unitTestTemplatePositive' paramId toData' upper
-        , testCase' ("At lower bound (" ++ show lower ++ ")") $ unitTestTemplatePositive' paramId toData' lower
-        , testCase' ("Current (" ++ show defaultValue ++ ")") $ unitTestTemplatePositive' paramId toData' defaultValue
+        [ testCase' ("At upper bound (" ++ show upper ++ ")") $
+            unitTestTemplatePositive' paramId toData' upper
+        , testCase' ("At lower bound (" ++ show lower ++ ")") $
+            unitTestTemplatePositive' paramId toData' lower
+        , testCase' ("Current (" ++ show defaultValue ++ ")") $
+            unitTestTemplatePositive' paramId toData' defaultValue
         ]
     , testGroup'
         "Outside bounds"

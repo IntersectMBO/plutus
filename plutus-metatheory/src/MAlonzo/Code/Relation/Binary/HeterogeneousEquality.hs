@@ -1,34 +1,34 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Relation.Binary.HeterogeneousEquality where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Function.Bundles qualified
-import MAlonzo.Code.Relation.Binary.Bundles qualified
-import MAlonzo.Code.Relation.Binary.Consequences qualified
-import MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core qualified
-import MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Bundles qualified
-import MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures qualified
-import MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties qualified
-import MAlonzo.Code.Relation.Binary.Structures qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Function.Bundles
+import qualified MAlonzo.Code.Relation.Binary.Bundles
+import qualified MAlonzo.Code.Relation.Binary.Consequences
+import qualified MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core
+import qualified MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Bundles
+import qualified MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures
+import qualified MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties
+import qualified MAlonzo.Code.Relation.Binary.Structures
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 
 -- Relation.Binary.HeterogeneousEquality._≇_
 d__'8775'__28 ::
@@ -217,7 +217,7 @@ d_resp'8322'_224 ~v0 ~v1 ~v2 ~v3 = du_resp'8322'_224
 du_resp'8322'_224 :: MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_resp'8322'_224
   = coe
-      MAlonzo.Code.Relation.Binary.Consequences.du_subst'8658'resp'8322'_58
+      MAlonzo.Code.Relation.Binary.Consequences.du_subst'8658'resp'8322'_60
       (coe (\ v0 v1 v2 v3 v4 -> v4))
 -- Relation.Binary.HeterogeneousEquality._.icong
 d_icong_260 ::
@@ -353,23 +353,23 @@ d_'8773''45'heterogeneous'45'irrelevant'691'_372 = erased
 -- Relation.Binary.HeterogeneousEquality.isEquivalence
 d_isEquivalence_378 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26
+  () -> MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28
 d_isEquivalence_378 ~v0 ~v1 = du_isEquivalence_378
 du_isEquivalence_378 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28
 du_isEquivalence_378
   = coe
-      MAlonzo.Code.Relation.Binary.Structures.C_IsEquivalence'46'constructor_745
-      erased erased erased
+      MAlonzo.Code.Relation.Binary.Structures.C_constructor_46 erased
+      erased erased
 -- Relation.Binary.HeterogeneousEquality.setoid
 d_setoid_380 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44
+  () -> MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_46
 d_setoid_380 ~v0 ~v1 = du_setoid_380
-du_setoid_380 :: MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44
+du_setoid_380 :: MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_46
 du_setoid_380
   = coe
-      MAlonzo.Code.Relation.Binary.Bundles.C_Setoid'46'constructor_733
+      MAlonzo.Code.Relation.Binary.Bundles.C_constructor_84
       (coe du_isEquivalence_378)
 -- Relation.Binary.HeterogeneousEquality.indexedSetoid
 d_indexedSetoid_388 ::
@@ -383,9 +383,9 @@ du_indexedSetoid_388 ::
   MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Bundles.T_IndexedSetoid_18
 du_indexedSetoid_388
   = coe
-      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Bundles.C_IndexedSetoid'46'constructor_445
+      MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Bundles.C_constructor_50
       (coe
-         MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.C_IsIndexedEquivalence'46'constructor_1089
+         MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures.C_constructor_40
          erased erased erased)
 -- Relation.Binary.HeterogeneousEquality.≡↔≅
 d_'8801''8596''8773'_402 ::
@@ -393,15 +393,15 @@ d_'8801''8596''8773'_402 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> ()) ->
-  AgdaAny -> MAlonzo.Code.Function.Bundles.T_Inverse_1960
+  AgdaAny -> MAlonzo.Code.Function.Bundles.T_Inverse_2122
 d_'8801''8596''8773'_402 ~v0 ~v1 ~v2 ~v3 ~v4
   = du_'8801''8596''8773'_402
 du_'8801''8596''8773'_402 ::
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122
 du_'8801''8596''8773'_402
   = coe
-      MAlonzo.Code.Function.Bundles.C_Inverse'46'constructor_38621
-      (coe (\ v0 -> v0)) (coe (\ v0 -> v0)) erased erased
+      MAlonzo.Code.Function.Bundles.C_constructor_2220 (coe (\ v0 -> v0))
+      (coe (\ v0 -> v0)) erased erased
       (coe MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased erased)
 -- Relation.Binary.HeterogeneousEquality.decSetoid
 d_decSetoid_414 ::
@@ -410,191 +410,211 @@ d_decSetoid_414 ::
   (AgdaAny ->
    AgdaAny ->
    MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_DecSetoid_84
+  MAlonzo.Code.Relation.Binary.Bundles.T_DecSetoid_90
 d_decSetoid_414 ~v0 ~v1 v2 = du_decSetoid_414 v2
 du_decSetoid_414 ::
   (AgdaAny ->
    AgdaAny ->
    MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_DecSetoid_84
+  MAlonzo.Code.Relation.Binary.Bundles.T_DecSetoid_90
 du_decSetoid_414 v0
   = coe
-      MAlonzo.Code.Relation.Binary.Bundles.C_DecSetoid'46'constructor_1389
+      MAlonzo.Code.Relation.Binary.Bundles.C_constructor_134
       (coe
-         MAlonzo.Code.Relation.Binary.Structures.C_IsDecEquivalence'46'constructor_3083
+         MAlonzo.Code.Relation.Binary.Structures.C_constructor_70
          (coe du_isEquivalence_378) (coe v0))
 -- Relation.Binary.HeterogeneousEquality.isPreorder
 d_isPreorder_430 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_70
+  () -> MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_76
 d_isPreorder_430 ~v0 ~v1 = du_isPreorder_430
 du_isPreorder_430 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_70
+  MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_76
 du_isPreorder_430
   = coe
-      MAlonzo.Code.Relation.Binary.Structures.C_IsPreorder'46'constructor_4003
+      MAlonzo.Code.Relation.Binary.Structures.C_constructor_126
       (coe du_isEquivalence_378) (coe (\ v0 v1 v2 -> v2)) erased
 -- Relation.Binary.HeterogeneousEquality.isPreorder-≡
 d_isPreorder'45''8801'_436 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_70
+  () -> MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_76
 d_isPreorder'45''8801'_436 ~v0 ~v1 = du_isPreorder'45''8801'_436
 du_isPreorder'45''8801'_436 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_70
+  MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_76
 du_isPreorder'45''8801'_436
   = coe
-      MAlonzo.Code.Relation.Binary.Structures.C_IsPreorder'46'constructor_4003
+      MAlonzo.Code.Relation.Binary.Structures.C_constructor_126
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_isEquivalence_396)
       erased erased
 -- Relation.Binary.HeterogeneousEquality.preorder
 d_preorder_438 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> MAlonzo.Code.Relation.Binary.Bundles.T_Preorder_132
+  () -> MAlonzo.Code.Relation.Binary.Bundles.T_Preorder_142
 d_preorder_438 ~v0 ~v1 = du_preorder_438
 du_preorder_438 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_Preorder_132
+  MAlonzo.Code.Relation.Binary.Bundles.T_Preorder_142
 du_preorder_438
   = coe
-      MAlonzo.Code.Relation.Binary.Bundles.C_Preorder'46'constructor_2267
+      MAlonzo.Code.Relation.Binary.Bundles.C_constructor_232
       (coe du_isPreorder'45''8801'_436)
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._IsRelatedTo_
-d__IsRelatedTo__458 a0 a1 a2 a3 a4 = ()
-data T__IsRelatedTo__458 = C_relTo_470
+d__IsRelatedTo__460 a0 a1 a2 a3 a4 a5 = ()
+data T__IsRelatedTo__460 = C_relTo_472
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning.start
-d_start_476 ::
+d_start_478 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   AgdaAny ->
   AgdaAny ->
-  T__IsRelatedTo__458 ->
+  T__IsRelatedTo__460 ->
   MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core.T__'8773'__22
-d_start_476 = erased
+d_start_478 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning.≡-go
-d_'8801''45'go_482 ::
+d_'8801''45'go_486 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
   () ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  T__IsRelatedTo__458 -> T__IsRelatedTo__458
-d_'8801''45'go_482 = erased
+  T__IsRelatedTo__460 -> T__IsRelatedTo__460
+d_'8801''45'go_486 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._._.begin_
-d_begin__500 ::
+d_begin__506 ::
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   () ->
   AgdaAny ->
   AgdaAny ->
-  T__IsRelatedTo__458 ->
+  T__IsRelatedTo__460 ->
   MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core.T__'8773'__22
-d_begin__500 = erased
+d_begin__506 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._._.step-≡
-d_step'45''8801'_512 ::
+d_step'45''8801'_510 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
   () ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
-  T__IsRelatedTo__458 ->
+  T__IsRelatedTo__460 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  T__IsRelatedTo__458
-d_step'45''8801'_512 = erased
+  T__IsRelatedTo__460
+d_step'45''8801'_510 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._._.step-≡-∣
-d_step'45''8801''45''8739'_514 ::
+d_step'45''8801''45''8739'_512 ::
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
-  AgdaAny -> AgdaAny -> T__IsRelatedTo__458 -> T__IsRelatedTo__458
-d_step'45''8801''45''8739'_514 = erased
+  () ->
+  AgdaAny -> AgdaAny -> T__IsRelatedTo__460 -> T__IsRelatedTo__460
+d_step'45''8801''45''8739'_512 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._._.step-≡-⟨
-d_step'45''8801''45''10216'_516 ::
+d_step'45''8801''45''10216'_514 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
   () ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
-  T__IsRelatedTo__458 ->
+  T__IsRelatedTo__460 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  T__IsRelatedTo__458
-d_step'45''8801''45''10216'_516 = erased
+  T__IsRelatedTo__460
+d_step'45''8801''45''10216'_514 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._._.step-≡-⟩
-d_step'45''8801''45''10217'_518 ::
+d_step'45''8801''45''10217'_516 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
   () ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
-  T__IsRelatedTo__458 ->
+  T__IsRelatedTo__460 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  T__IsRelatedTo__458
-d_step'45''8801''45''10217'_518 = erased
+  T__IsRelatedTo__460
+d_step'45''8801''45''10217'_516 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._._.step-≡˘
-d_step'45''8801''728'_520 ::
+d_step'45''8801''728'_518 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
   () ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
-  T__IsRelatedTo__458 ->
+  T__IsRelatedTo__460 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  T__IsRelatedTo__458
-d_step'45''8801''728'_520 = erased
+  T__IsRelatedTo__460
+d_step'45''8801''728'_518 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._._._∎
-d__'8718'_524 ::
+d__'8718'_530 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> AgdaAny -> T__IsRelatedTo__458
-d__'8718'_524 = erased
+  () -> AgdaAny -> T__IsRelatedTo__460
+d__'8718'_530 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._≅⟨_⟩_
-d__'8773''10216'_'10217'__532 ::
+d__'8773''10216'_'10217'__538 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core.T__'8773'__22 ->
-  T__IsRelatedTo__458 -> T__IsRelatedTo__458
-d__'8773''10216'_'10217'__532 = erased
+  T__IsRelatedTo__460 -> T__IsRelatedTo__460
+d__'8773''10216'_'10217'__538 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._≅⟨_⟨_
-d__'8773''10216'_'10216'__544 ::
+d__'8773''10216'_'10216'__550 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core.T__'8773'__22 ->
-  T__IsRelatedTo__458 -> T__IsRelatedTo__458
-d__'8773''10216'_'10216'__544 = erased
+  T__IsRelatedTo__460 -> T__IsRelatedTo__460
+d__'8773''10216'_'10216'__550 = erased
 -- Relation.Binary.HeterogeneousEquality.≅-Reasoning._≅˘⟨_⟩_
-d__'8773''728''10216'_'10217'__550 ::
+d__'8773''728''10216'_'10217'__556 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   AgdaAny ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core.T__'8773'__22 ->
-  T__IsRelatedTo__458 -> T__IsRelatedTo__458
-d__'8773''728''10216'_'10217'__550 = erased
+  T__IsRelatedTo__460 -> T__IsRelatedTo__460
+d__'8773''728''10216'_'10217'__556 = erased
 -- Relation.Binary.HeterogeneousEquality.Reveal_·_is_
-d_Reveal_'183'_is__568 a0 a1 a2 a3 a4 a5 a6 = ()
-data T_Reveal_'183'_is__568 = C_'91'_'93'_584
+d_Reveal_'183'_is__574 a0 a1 a2 a3 a4 a5 a6 = ()
+data T_Reveal_'183'_is__574 = C_'91'_'93'_590
 -- Relation.Binary.HeterogeneousEquality.Reveal_·_is_.eq
-d_eq_582 ::
-  T_Reveal_'183'_is__568 ->
+d_eq_588 ::
+  T_Reveal_'183'_is__574 ->
   MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core.T__'8773'__22
-d_eq_582 = erased
+d_eq_588 = erased
 -- Relation.Binary.HeterogeneousEquality.inspect
-d_inspect_596 ::
+d_inspect_602 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> ()) ->
-  (AgdaAny -> AgdaAny) -> AgdaAny -> T_Reveal_'183'_is__568
-d_inspect_596 = erased
+  (AgdaAny -> AgdaAny) -> AgdaAny -> T_Reveal_'183'_is__574
+d_inspect_602 = erased

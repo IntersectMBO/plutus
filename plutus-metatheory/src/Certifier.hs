@@ -4,6 +4,7 @@ module Certifier
   ( runCertifier
   , mkCertifier
   , prettyCertifierError
+  , CertName
   , CertifierError (..)
   , CertifierOutput (..)
   ) where
@@ -21,13 +22,14 @@ import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
-import FFI.SimplifierTrace (Trace, mkFfiSimplifierTrace)
+import FFI.CostInfo
+import FFI.SimplifierTrace (Trace, mkFfiSimplifierTrace, toEvalResult)
 import FFI.Untyped (UTerm)
-
-import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Transform.Simplifier
-
 import MAlonzo.Code.Certifier (runCertifierMain)
+import PlutusLedgerApi.Common
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek
+import UntypedPlutusCore.Transform.Simplifier
 
 type CertName = String
 type CertDir = FilePath
@@ -81,10 +83,17 @@ mkCertifier
   -> CertName
   -- ^ The name of the certificate to be produced
   -> CertifierOutput
+  -> [ ( Maybe
+           (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+       , ExBudget
+       )
+     ]
   -> Certifier Bool
-mkCertifier simplTrace certName certOutput = do
+mkCertifier simplTrace certName certOutput costs = do
   let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
-  case runCertifierMain rawAgdaTrace of
+      costs' :: [EvalResult]
+      costs' = uncurry toEvalResult <$> reverse costs
+  case runCertifierMain rawAgdaTrace costs' of
     Just (passed, report) -> do
       case certOutput of
         BasicOutput -> pure ()
@@ -207,6 +216,7 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
        \\n\
        \\nopen import VerifiedCompilation\
        \\nopen import VerifiedCompilation.Certificate\
+       \\nopen import VerifiedCompilation.Trace\
        \\nopen import Untyped\
        \\nopen import RawU\
        \\nopen import Builtin\
@@ -266,14 +276,17 @@ mkCertificateModule certModule agdaTrace imports =
        \\n\
        \\nopen import Certifier\
        \\nopen import VerifiedCompilation\
-       \\nopen import VerifiedCompilation.Certificate\
+       \\nopen import VerifiedCompilation.Certificate hiding (_>>=_)\
+       \\nopen import VerifiedCompilation.Trace\
        \\nopen import Untyped\
        \\nopen import RawU\
        \\nopen import Builtin\
        \\nopen import Data.Unit\
        \\nopen import Data.Nat\
        \\nopen import Data.Integer\
-       \\nopen import Utils\
+       \\nopen import Data.Maybe\
+       \\nopen import Data.List\
+       \\nopen import Utils hiding (List; _>>=_)\
        \\nimport Agda.Builtin.Bool\
        \\nimport Relation.Nullary\
        \\nimport VerifiedCompilation.UntypedTranslation\
@@ -290,8 +303,11 @@ mkCertificateModule certModule agdaTrace imports =
        \\nasts = "
     <> agdaTrace
     <> "\n\
-       \\ncertificate : passed? (runCertifier asts) ≡ true\
-       \\ncertificate = refl\
+       \\nasts_trace : Trace (0 ⊢)\
+       \\nasts_trace = to-witness-T (toTrace asts >>= checkScopeᵗ) tt\
+       \\n\
+       \\ncertificate : Certificate asts_trace\
+       \\ncertificate = cert asts_trace (certify asts_trace) tt\
        \\n"
 
 data AgdaCertificateProject = AgdaCertificateProject
@@ -306,7 +322,7 @@ mkAgdaLib name =
         "name: "
           <> name
           <> "\ndepend:\
-             \\n  standard-library-2.1.1\
+             \\n  standard-library-2.3\
              \\n  plutus-metatheory\
              \\ninclude: src"
    in (name <> ".agda-lib", contents)

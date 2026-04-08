@@ -9,10 +9,13 @@ import PlutusTx.Builtins.Internal as BI
 
 -- See Note [Compiling AsData Matchers and Their Invocations]
 
+-- This may no longer be needed post the van Rossem HF. It needs to be examined and verified.
 wrapUnsafeDataAsConstr :: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
 wrapUnsafeDataAsConstr = BI.unsafeDataAsConstr
 {-# OPAQUE wrapUnsafeDataAsConstr #-}
 
+-- This will no longer be needed post the van Rossem HF, since we will be using
+-- `case` to unpack builtin lists.
 wrapTail :: BuiltinList a -> BuiltinList a
 wrapTail = BI.tail
 {-# OPAQUE wrapTail #-}
@@ -24,9 +27,17 @@ wrapTail = BI.tail
 -- We don't need a `wrapHead`, because there are no strict dead bindings of the form
 -- `let !y = head xs`. The dead bindings are only in the form of `let !ys = tail xs`
 -- and `let !y = unsafeFromBuiltinData (head xs)`.
+--
+-- This will no longer be needed post the van Rossem HF, since we will be using
+-- `case` to unpack builtin lists.
 wrapUnsafeUncons :: BuiltinList a -> (a, BuiltinList a)
 wrapUnsafeUncons l = (BI.head l, wrapTail l)
 {-# INLINE wrapUnsafeUncons #-}
+
+-- See Note [Dropping redundant unsafeCaseList calls produced by AsData]
+droppableUnsafeCaseList :: forall a r. (a -> BuiltinList a -> r) -> BuiltinList a -> r
+droppableUnsafeCaseList = BI.unsafeCaseList
+{-# OPAQUE droppableUnsafeCaseList #-}
 
 {- Note [Compiling AsData Matchers and Their Invocations]
 
@@ -58,5 +69,27 @@ are intermediate artifacts in generating the field accessors. This is what `wrap
 `wrapTail` appears in `case` scrutinees, as in `case wrapTail @BuiltinData l of l' -> ...`.
 So the compiler detects such `case` expressions, and mark the binder, `l'`, as
 safe to inline.
+
+`wrapUnsafeUncons` and `wrapTail` will no longer be needed post the van Rossem HF, since
+we will be using `case` to unpack builtin lists. We may no longer need `wrapUnsafeDataAsConstr`
+either, but this needs to be examined and verified.
+
+-}
+
+{- Note [Dropping redundant unsafeCaseList calls produced by AsData]
+
+AsData generates `unsafeCaseList` calls to unpack lists in the Data. It unpacks a list
+completely, obtaining all fields, then calls the continuation with the fields. This
+can lead to unnecessary `unsafeCaseList` calls, if the continuation does not access
+all fields.
+
+In general, we cannot drop the unnecessary `unsafeCaseList` calls, because doing so may
+change the semantics: `unsafeCaseList` throws an error if the list is empty, and dropping
+it would eliminate the error.
+
+However, we know that the `unsafeCaseList` calls generated from AsData are never applied
+to empty lists, so redundant ones can be dropped safely. To do so, we annotate the
+`case` expressions with `SafeToDrop`, and use a PIR simplifier pass, DeadCase, to drop the
+redundant ones.
 
 -}

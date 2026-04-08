@@ -28,7 +28,8 @@ data PredKey
   = MinValue
   | MaxValue
   | NotEqual
-  deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Haskell.Enum, Haskell.Bounded, Generic, TH.Lift)
+  deriving stock
+    (Haskell.Eq, Haskell.Ord, Haskell.Show, Haskell.Enum, Haskell.Bounded, Generic, TH.Lift)
 
 instance Tx.Eq PredKey where
   {-# INLINEABLE (==) #-}

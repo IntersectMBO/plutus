@@ -1,24 +1,24 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Primitive
 
 -- Relation.Binary.Construct.Closure.Reflexive.ReflClosure
 d_ReflClosure_30 a0 a1 a2 a3 a4 a5 = ()
@@ -43,9 +43,9 @@ du_map_52 ::
   AgdaAny -> AgdaAny -> T_ReflClosure_30 -> T_ReflClosure_30
 du_map_52 v0 v1 v2 v3
   = case coe v3 of
-      C_refl_36         -> coe C_refl_36
+      C_refl_36 -> coe C_refl_36
       C_'91'_'93'_44 v6 -> coe C_'91'_'93'_44 (coe v0 v1 v2 v6)
-      _                 -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Relation.Binary.Construct.Closure.Reflexive.drop-refl
 d_drop'45'refl_62 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -60,9 +60,9 @@ du_drop'45'refl_62 ::
   (AgdaAny -> AgdaAny) -> AgdaAny -> T_ReflClosure_30 -> AgdaAny
 du_drop'45'refl_62 v0 v1 v2
   = case coe v2 of
-      C_refl_36         -> coe v0 v1
+      C_refl_36 -> coe v0 v1
       C_'91'_'93'_44 v5 -> coe v5
-      _                 -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Relation.Binary.Construct.Closure.Reflexive.reflexive
 d_reflexive_72 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->

@@ -1,4 +1,37 @@
 
+<a id='changelog-1.61.0.0'></a>
+# 1.61.0.0 — 2026-04-02
+
+## Changed
+
+- The plugin now automatically sets the `Strict` extension and the GHC flags mentioned
+  in https://plutus.cardano.intersectmbo.org/docs/using-plinth/extensions-flags-pragmas.
+  The `Strict` extension can be turned off using plugin flag `no-strict`.
+  Requires compiling with `plinthc` or `plc` instead of `compile`.
+
+## Fixed
+
+- Fixed a 3-5x execution cost regression for `unsafeFromBuiltinData` on multi-constructor
+  types when compiling in SumsOfProducts mode (the default). The `caseInteger` fallback
+  now generates `equalsInteger`/`ifThenElse` chains instead of building a linked list at
+  runtime.
+
+<a id='changelog-1.60.0.0'></a>
+# 1.60.0.0 — 2026-03-18
+
+## Added
+
+- Added `Plinth.Plugin`, which uses a `typeCheckResultAction` to preserve more
+  source locations, resulting in clearer error messages.
+
+## Changed
+
+- Improved compilation error messages by making them more concise and including
+  the relevant code snippet.
+
+- Improved error reporting in the Plinth compiler for certain unsupported Haskell features.
+  Requires compiling with `plinthc` or `plc` instead of `compile`.
+
 <a id='changelog-1.58.0.0'></a>
 # 1.58.0.0 — 2026-02-05
 

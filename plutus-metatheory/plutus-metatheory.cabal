@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name:          plutus-metatheory
-version:       1.59.0.0
+version:       1.61.0.0
 synopsis:      Command line tool for running plutus core programs
 homepage:      https://github.com/IntersectMBO/plutus
 license:       Apache-2.0
@@ -16,6 +16,7 @@ data-files:
   plutus-metatheory.agda-lib
   README.md
   src/**/*.lagda.md
+  test/certifier-report/scripts/*.uplc
 
 common lang
   default-language:   Haskell2010
@@ -45,6 +46,7 @@ common lang
 
   ghc-options:
     -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
+    -Wunused-packages
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
@@ -72,7 +74,6 @@ library
 
   hs-source-dirs:  src
   build-depends:
-    , aeson
     , base
     , bytestring
     , composition-prelude
@@ -80,17 +81,12 @@ library
     , directory
     , extra
     , filepath
-    , ghc-prim
-    , ieee754
-    , megaparsec
-    , memory
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.59
+    , plutus-core                       ^>=1.61
+    , plutus-ledger-api
     , plutus-ledger-api:plutus-execlib
-    , process
     , text
-    , time
     , transformers
     , vector                            ^>=0.13.2
 
@@ -98,6 +94,7 @@ library
   exposed-modules:
     Certifier
     FFI.AgdaUnparse
+    FFI.CostInfo
     FFI.Opts
     FFI.SimplifierTrace
     FFI.Untyped
@@ -205,6 +202,7 @@ library
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
+    MAlonzo.Code.Data.List.Relation.Unary.All.Properties.Core
     MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
@@ -218,6 +216,7 @@ library
     MAlonzo.Code.Data.Nat.Divisibility.Core
     MAlonzo.Code.Data.Nat.DivMod
     MAlonzo.Code.Data.Nat.DivMod.Core
+    MAlonzo.Code.Data.Nat.ListAction
     MAlonzo.Code.Data.Nat.Properties
     MAlonzo.Code.Data.Nat.Show
     MAlonzo.Code.Data.Parity.Base
@@ -301,6 +300,7 @@ library
     MAlonzo.Code.Reflection.AST.Show
     MAlonzo.Code.Reflection.AST.Term
     MAlonzo.Code.Relation.Binary.Bundles
+    MAlonzo.Code.Relation.Binary.Bundles.Raw
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Strict
@@ -373,10 +373,14 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Certificate
+    MAlonzo.Code.VerifiedCompilation.NotImplemented
+    MAlonzo.Code.VerifiedCompilation.Trace
+    MAlonzo.Code.VerifiedCompilation.UApplyToCase
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
     MAlonzo.Code.VerifiedCompilation.UCSE
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
+    MAlonzo.Code.VerifiedCompilation.UForceCaseDelay
     MAlonzo.Code.VerifiedCompilation.UForceDelay
     MAlonzo.Code.VerifiedCompilation.UInline
     MAlonzo.Code.VerifiedCompilation.UntypedTranslation
@@ -390,7 +394,7 @@ executable plc-agda
   main-is:        Main.hs
   build-depends:
     , base
-    , plutus-metatheory  ^>=1.59
+    , plutus-metatheory  ^>=1.61
 
 test-suite test-NEAT
   import:         lang, os-support, ghc-version-support
@@ -403,11 +407,9 @@ test-suite test-NEAT
     , data-default-class
     , lazy-search
     , mtl
-    , plutus-core                      ^>=1.59
+    , plutus-core                      ^>=1.61
     , plutus-core:plutus-core-testlib
-    , plutus-metatheory                ^>=1.59
-    , size-based
-    , Stream
+    , plutus-metatheory                ^>=1.61
     , tasty
     , tasty-hunit
 
@@ -423,12 +425,35 @@ test-suite test-certifier
 
   build-depends:
     , base
-    , filepath
     , plutus-core
-    , plutus-core:plutus-core-testlib
     , plutus-core:untyped-plutus-core-testlib
-    , plutus-metatheory                        ^>=1.59
-    , process
+    , plutus-metatheory                        ^>=1.61
     , tasty
     , tasty-hunit
     , text
+
+test-suite test-certifier-report
+  import:         lang, os-support, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/certifier-report
+  other-modules:
+    Paths_plutus_metatheory
+    Test.Certifier.Report
+
+  build-depends:
+    , base
+    , bytestring
+    , extra
+    , filepath
+    , lens
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-ledger-api:plutus-execlib
+    , plutus-metatheory                 ^>=1.61
+    , plutus-tx
+    , tasty
+    , tasty-golden
+    , transformers
+
+  ghc-options:    -Wall

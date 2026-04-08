@@ -85,13 +85,14 @@ compileProgram = curry $ \case
     withA @Ord a1 $
       withA @Pretty a1 $
         withA @AnnInline a1 $
-          -- Note: PIR.compileProgram subsumes pir typechecking
-          (PLC.runQuoteT . flip runReaderT compCtx . PIR.compileProgram)
-            >=> modifyError (fmap PIR.Original . PIR.PLCError . PLC.FreeVariableErrorE)
-            . plcToOutName n1 n2
-            -- completely drop annotations for now
-            >=> pure
-            . void
+          withA @AnnCase a1 $
+            -- Note: PIR.compileProgram subsumes pir typechecking
+            (PLC.runQuoteT . flip runReaderT compCtx . PIR.compileProgram)
+              >=> modifyError (fmap PIR.Original . PIR.PLCError . PLC.FreeVariableErrorE)
+              . plcToOutName n1 n2
+              -- completely drop annotations for now
+              >=> pure
+              . void
     where
       compCtx =
         PIR.toDefaultCompilationCtx $
@@ -172,7 +173,8 @@ pirTypecheck
   -> PIR.Program PLC.TyName PLC.Name DefaultUni DefaultFun (FromAnn a)
   -> m ()
 pirTypecheck sngA p = PLC.runQuoteT $ do
-  tcConfig <- withA @Monoid sngA $ modifyError (PIR.PLCError . PLC.TypeErrorE) $ PIR.getDefTypeCheckConfig mempty
+  tcConfig <-
+    withA @Monoid sngA $ modifyError (PIR.PLCError . PLC.TypeErrorE) $ PIR.getDefTypeCheckConfig mempty
   void $ PIR.inferTypeOfProgram tcConfig p
 
 plcToUplcViaName
@@ -237,7 +239,8 @@ plcTypecheck sngN sngA p = PLC.runQuoteT $ do
     withA @Monoid sngA $
       modifyError (PIR.PLCError . PLC.TypeErrorE) $
         PLC.getDefTypeCheckConfig mempty
-  void $ plcToName sngN (modifyError (PIR.PLCError . PLC.TypeErrorE) . PLC.inferTypeOfProgram tcConfig) p
+  void $
+    plcToName sngN (modifyError (PIR.PLCError . PLC.TypeErrorE) . PLC.inferTypeOfProgram tcConfig) p
 
 uplcOptimise
   :: ( ?opts :: Opts
@@ -358,3 +361,8 @@ instance AnnInline SrcSpans where
   annAlwaysInline = mempty
   annSafeToInline = mempty
   annMayInline = mempty
+
+instance AnnCase SrcSpans where
+  annSafeToDrop = mempty
+  annNotSafeToDrop = mempty
+  annIsSafeToDrop = const False

@@ -8,6 +8,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 
 module AsData.Budget.Types where
@@ -135,3 +136,13 @@ unpack2 args =
    in (x, y)
 
 {-# COMPLETE ThisDManual, ThatDManual, TheseDManual #-}
+
+-- A sum type that has many fields per constructor
+AsData.asData
+  [d|
+    data RichSum
+      = RichA Integer Integer Integer Integer Integer Integer
+      | RichB Integer Integer Integer Integer Integer Integer Integer
+      | RichC Integer Integer Integer Integer Integer Integer Integer Integer
+      deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]

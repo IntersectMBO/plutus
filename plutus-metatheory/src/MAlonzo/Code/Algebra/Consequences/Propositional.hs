@@ -1,30 +1,30 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Algebra.Consequences.Propositional where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Algebra.Consequences.Base qualified
-import MAlonzo.Code.Algebra.Consequences.Setoid qualified
-import MAlonzo.Code.Data.Irrelevant qualified
-import MAlonzo.Code.Data.Sum.Base qualified
-import MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Algebra.Consequences.Base
+import qualified MAlonzo.Code.Algebra.Consequences.Setoid
+import qualified MAlonzo.Code.Data.Irrelevant
+import qualified MAlonzo.Code.Data.Sum.Base
+import qualified MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties
 
 -- Algebra.Consequences.Propositional._._DistributesOverʳ_
 d__DistributesOver'691'__16 ::
@@ -228,7 +228,7 @@ du_comm'43'inv'691''8658'inv_176 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'43'inv'691''8658'inv_176
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'43'inv'691''8658'inv_682
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'43'inv'691''8658'inv_732
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm+invʳ⇒invˡ
@@ -266,7 +266,7 @@ du_comm'43'inv'737''8658'inv_180 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'43'inv'737''8658'inv_180
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'43'inv'737''8658'inv_680
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'43'inv'737''8658'inv_730
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm+invˡ⇒invʳ
@@ -424,7 +424,7 @@ du_comm'8743'distr'691''8658'distr_200 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'8743'distr'691''8658'distr_200
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'distr'691''8658'distr_528
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'distr'691''8658'distr_560
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm∧distrˡ⇒distr
@@ -466,7 +466,7 @@ du_comm'8743'distr'737''8658'distr_204 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'8743'distr'737''8658'distr_204
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'distr'737''8658'distr_524
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'distr'737''8658'distr_556
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm∧idʳ⇒id
@@ -490,7 +490,7 @@ du_comm'8743'id'691''8658'id_208 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'8743'id'691''8658'id_208
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'id'691''8658'id_356
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'id'691''8658'id_376
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm∧idʳ⇒idˡ
@@ -525,7 +525,7 @@ du_comm'8743'id'737''8658'id_212 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'8743'id'737''8658'id_212
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'id'737''8658'id_352
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'id'737''8658'id_372
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm∧idˡ⇒idʳ
@@ -562,7 +562,7 @@ du_comm'8743'inv'691''8658'inv_216 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'8743'inv'691''8658'inv_216
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'inv'691''8658'inv_436
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'inv'691''8658'inv_456
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm∧invʳ⇒invˡ
@@ -600,7 +600,7 @@ du_comm'8743'inv'737''8658'inv_220 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'8743'inv'737''8658'inv_220
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'inv'737''8658'inv_426
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'inv'737''8658'inv_446
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm∧invˡ⇒invʳ
@@ -636,7 +636,7 @@ du_comm'8743'ze'691''8658'ze_224 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'8743'ze'691''8658'ze_224
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'ze'691''8658'ze_376
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'ze'691''8658'ze_396
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm∧zeʳ⇒zeˡ
@@ -671,7 +671,7 @@ du_comm'8743'ze'737''8658'ze_228 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_comm'8743'ze'737''8658'ze_228
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'ze'737''8658'ze_372
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_comm'8743'ze'737''8658'ze_392
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.comm∧zeˡ⇒zeʳ
@@ -733,7 +733,7 @@ du_selfInverse'8658'bijective_242 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_selfInverse'8658'bijective_242
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_selfInverse'8658'bijective_296
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_selfInverse'8658'bijective_316
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.selfInverse⇒congruent
@@ -785,7 +785,7 @@ du_selfInverse'8658'inverse'7495'_248 ::
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_selfInverse'8658'inverse'7495'_248
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_selfInverse'8658'inverse'7495'_282
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_selfInverse'8658'inverse'7495'_302
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
 -- Algebra.Consequences.Propositional.Base.selfInverse⇒involutive
@@ -820,11 +820,47 @@ du_selfInverse'8658'surjective_252 ::
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_selfInverse'8658'surjective_252
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_selfInverse'8658'surjective_284
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_selfInverse'8658'surjective_304
       (coe
          MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)
+-- Algebra.Consequences.Propositional.Base.Congruence.∙-congʳ
+d_'8729''45'cong'691'_262 ::
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
+  (AgdaAny -> AgdaAny -> AgdaAny) ->
+  (AgdaAny ->
+   AgdaAny ->
+   AgdaAny ->
+   AgdaAny ->
+   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
+  AgdaAny ->
+  AgdaAny ->
+  AgdaAny ->
+  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+d_'8729''45'cong'691'_262 = erased
+-- Algebra.Consequences.Propositional.Base.Congruence.∙-congˡ
+d_'8729''45'cong'737'_264 ::
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
+  (AgdaAny -> AgdaAny -> AgdaAny) ->
+  (AgdaAny ->
+   AgdaAny ->
+   AgdaAny ->
+   AgdaAny ->
+   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
+  AgdaAny ->
+  AgdaAny ->
+  AgdaAny ->
+  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+d_'8729''45'cong'737'_264 = erased
 -- Algebra.Consequences.Propositional.Base.Base.reflexive+selfInverse⇒involutive
-d_reflexive'43'selfInverse'8658'involutive_262 ::
+d_reflexive'43'selfInverse'8658'involutive_268 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -834,9 +870,9 @@ d_reflexive'43'selfInverse'8658'involutive_262 ::
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny) ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny
-d_reflexive'43'selfInverse'8658'involutive_262 ~v0 ~v1
-  = du_reflexive'43'selfInverse'8658'involutive_262
-du_reflexive'43'selfInverse'8658'involutive_262 ::
+d_reflexive'43'selfInverse'8658'involutive_268 ~v0 ~v1
+  = du_reflexive'43'selfInverse'8658'involutive_268
+du_reflexive'43'selfInverse'8658'involutive_268 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -844,11 +880,11 @@ du_reflexive'43'selfInverse'8658'involutive_262 ::
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny) ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny
-du_reflexive'43'selfInverse'8658'involutive_262 v0 v1
+du_reflexive'43'selfInverse'8658'involutive_268 v0 v1
   = coe
-      MAlonzo.Code.Algebra.Consequences.Base.du_reflexive'43'selfInverse'8658'involutive_42
+      MAlonzo.Code.Algebra.Consequences.Base.du_reflexive'43'selfInverse'8658'involutive_122
 -- Algebra.Consequences.Propositional.Base._.reflexive∧selfInverse⇒involutive
-d_reflexive'8743'selfInverse'8658'involutive_266 ::
+d_reflexive'8743'selfInverse'8658'involutive_272 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -858,9 +894,9 @@ d_reflexive'8743'selfInverse'8658'involutive_266 ::
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny) ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny
-d_reflexive'8743'selfInverse'8658'involutive_266 ~v0 ~v1
-  = du_reflexive'8743'selfInverse'8658'involutive_266
-du_reflexive'8743'selfInverse'8658'involutive_266 ::
+d_reflexive'8743'selfInverse'8658'involutive_272 ~v0 ~v1
+  = du_reflexive'8743'selfInverse'8658'involutive_272
+du_reflexive'8743'selfInverse'8658'involutive_272 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -868,13 +904,13 @@ du_reflexive'8743'selfInverse'8658'involutive_266 ::
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny) ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) -> AgdaAny -> AgdaAny
-du_reflexive'8743'selfInverse'8658'involutive_266 v0 v1 v2 v3 v4 v5
+du_reflexive'8743'selfInverse'8658'involutive_272 v0 v1 v2 v3 v4 v5
                                                   v6 v7
   = coe
-      MAlonzo.Code.Algebra.Consequences.Base.du_reflexive'8743'selfInverse'8658'involutive_36
+      MAlonzo.Code.Algebra.Consequences.Base.du_reflexive'8743'selfInverse'8658'involutive_116
       v3 v5 v6 v7
 -- Algebra.Consequences.Propositional._.assoc∧id∧invʳ⇒invˡ-unique
-d_assoc'8743'id'8743'inv'691''8658'inv'737''45'unique_286 ::
+d_assoc'8743'id'8743'inv'691''8658'inv'737''45'unique_292 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -889,9 +925,9 @@ d_assoc'8743'id'8743'inv'691''8658'inv'737''45'unique_286 ::
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_assoc'8743'id'8743'inv'691''8658'inv'737''45'unique_286 = erased
+d_assoc'8743'id'8743'inv'691''8658'inv'737''45'unique_292 = erased
 -- Algebra.Consequences.Propositional._.assoc∧id∧invˡ⇒invʳ-unique
-d_assoc'8743'id'8743'inv'737''8658'inv'691''45'unique_292 ::
+d_assoc'8743'id'8743'inv'737''8658'inv'691''45'unique_298 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -906,9 +942,9 @@ d_assoc'8743'id'8743'inv'737''8658'inv'691''45'unique_292 ::
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_assoc'8743'id'8743'inv'737''8658'inv'691''45'unique_292 = erased
+d_assoc'8743'id'8743'inv'737''8658'inv'691''45'unique_298 = erased
 -- Algebra.Consequences.Propositional._.assoc∧distribʳ∧idʳ∧invʳ⇒zeˡ
-d_assoc'8743'distrib'691''8743'id'691''8743'inv'691''8658'ze'737'_306 ::
+d_assoc'8743'distrib'691''8743'id'691''8743'inv'691''8658'ze'737'_312 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -924,10 +960,10 @@ d_assoc'8743'distrib'691''8743'id'691''8743'inv'691''8658'ze'737'_306 ::
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_assoc'8743'distrib'691''8743'id'691''8743'inv'691''8658'ze'737'_306
+d_assoc'8743'distrib'691''8743'id'691''8743'inv'691''8658'ze'737'_312
   = erased
 -- Algebra.Consequences.Propositional._.assoc∧distribˡ∧idʳ∧invʳ⇒zeʳ
-d_assoc'8743'distrib'737''8743'id'691''8743'inv'691''8658'ze'691'_308 ::
+d_assoc'8743'distrib'737''8743'id'691''8743'inv'691''8658'ze'691'_314 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -943,10 +979,10 @@ d_assoc'8743'distrib'737''8743'id'691''8743'inv'691''8658'ze'691'_308 ::
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_assoc'8743'distrib'737''8743'id'691''8743'inv'691''8658'ze'691'_308
+d_assoc'8743'distrib'737''8743'id'691''8743'inv'691''8658'ze'691'_314
   = erased
 -- Algebra.Consequences.Propositional._.comm∧distrˡ⇒distrʳ
-d_comm'8743'distr'737''8658'distr'691'_320 ::
+d_comm'8743'distr'737''8658'distr'691'_326 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -959,9 +995,9 @@ d_comm'8743'distr'737''8658'distr'691'_320 ::
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_comm'8743'distr'737''8658'distr'691'_320 = erased
+d_comm'8743'distr'737''8658'distr'691'_326 = erased
 -- Algebra.Consequences.Propositional._.comm∧distrʳ⇒distrˡ
-d_comm'8743'distr'691''8658'distr'737'_322 ::
+d_comm'8743'distr'691''8658'distr'737'_328 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -974,9 +1010,9 @@ d_comm'8743'distr'691''8658'distr'737'_322 ::
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_comm'8743'distr'691''8658'distr'737'_322 = erased
+d_comm'8743'distr'691''8658'distr'737'_328 = erased
 -- Algebra.Consequences.Propositional._.comm⇒sym[distribˡ]
-d_comm'8658'sym'91'distrib'737''93'_330 ::
+d_comm'8658'sym'91'distrib'737''93'_336 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -988,17 +1024,17 @@ d_comm'8658'sym'91'distrib'737''93'_330 ::
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_comm'8658'sym'91'distrib'737''93'_330 = erased
+d_comm'8658'sym'91'distrib'737''93'_336 = erased
 -- Algebra.Consequences.Propositional._.sel⇒idem
-d_sel'8658'idem_338 ::
+d_sel'8658'idem_344 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
   (AgdaAny -> AgdaAny -> MAlonzo.Code.Data.Sum.Base.T__'8846'__30) ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_sel'8658'idem_338 = erased
+d_sel'8658'idem_344 = erased
 -- Algebra.Consequences.Propositional._.comm∧assoc⇒middleFour
-d_comm'8743'assoc'8658'middleFour_346 ::
+d_comm'8743'assoc'8658'middleFour_352 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1011,9 +1047,9 @@ d_comm'8743'assoc'8658'middleFour_346 ::
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_comm'8743'assoc'8658'middleFour_346 = erased
+d_comm'8743'assoc'8658'middleFour_352 = erased
 -- Algebra.Consequences.Propositional._.identity∧middleFour⇒assoc
-d_identity'8743'middleFour'8658'assoc_350 ::
+d_identity'8743'middleFour'8658'assoc_356 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1026,9 +1062,9 @@ d_identity'8743'middleFour'8658'assoc_350 ::
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_identity'8743'middleFour'8658'assoc_350 = erased
+d_identity'8743'middleFour'8658'assoc_356 = erased
 -- Algebra.Consequences.Propositional._.identity∧middleFour⇒comm
-d_identity'8743'middleFour'8658'comm_356 ::
+d_identity'8743'middleFour'8658'comm_362 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1041,9 +1077,9 @@ d_identity'8743'middleFour'8658'comm_356 ::
    AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_identity'8743'middleFour'8658'comm_356 = erased
+d_identity'8743'middleFour'8658'comm_362 = erased
 -- Algebra.Consequences.Propositional._.subst∧comm⇒sym
-d_subst'8743'comm'8658'sym_374 ::
+d_subst'8743'comm'8658'sym_380 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -1052,12 +1088,12 @@ d_subst'8743'comm'8658'sym_374 ::
   (AgdaAny ->
    AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny
-d_subst'8743'comm'8658'sym_374 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8
-  = du_subst'8743'comm'8658'sym_374 v8
-du_subst'8743'comm'8658'sym_374 :: AgdaAny -> AgdaAny
-du_subst'8743'comm'8658'sym_374 v0 = coe v0
+d_subst'8743'comm'8658'sym_380 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8
+  = du_subst'8743'comm'8658'sym_380 v8
+du_subst'8743'comm'8658'sym_380 :: AgdaAny -> AgdaAny
+du_subst'8743'comm'8658'sym_380 v0 = coe v0
 -- Algebra.Consequences.Propositional._.wlog
-d_wlog_392 ::
+d_wlog_398 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -1070,8 +1106,8 @@ d_wlog_392 ::
   (AgdaAny -> AgdaAny -> MAlonzo.Code.Data.Sum.Base.T__'8846'__30) ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   AgdaAny -> AgdaAny -> AgdaAny
-d_wlog_392 ~v0 ~v1 ~v2 ~v3 v4 = du_wlog_392 v4
-du_wlog_392 ::
+d_wlog_398 ~v0 ~v1 ~v2 ~v3 v4 = du_wlog_398 v4
+du_wlog_398 ::
   (AgdaAny -> AgdaAny -> AgdaAny) ->
   (AgdaAny ->
    AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
@@ -1080,12 +1116,12 @@ du_wlog_392 ::
   (AgdaAny -> AgdaAny -> MAlonzo.Code.Data.Sum.Base.T__'8846'__30) ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   AgdaAny -> AgdaAny -> AgdaAny
-du_wlog_392 v0 v1 v2 v3 v4
+du_wlog_398 v0 v1 v2 v3 v4
   = coe
-      MAlonzo.Code.Algebra.Consequences.Setoid.du_wlog_650 (coe v0)
+      MAlonzo.Code.Algebra.Consequences.Setoid.du_wlog_700 (coe v0)
       erased (coe (\ v5 v6 v7 v8 v9 -> v9)) v1 v4
 -- Algebra.Consequences.Propositional.comm+assoc⇒middleFour
-d_comm'43'assoc'8658'middleFour_394 ::
+d_comm'43'assoc'8658'middleFour_400 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1098,9 +1134,9 @@ d_comm'43'assoc'8658'middleFour_394 ::
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_comm'43'assoc'8658'middleFour_394 = erased
+d_comm'43'assoc'8658'middleFour_400 = erased
 -- Algebra.Consequences.Propositional.identity+middleFour⇒assoc
-d_identity'43'middleFour'8658'assoc_396 ::
+d_identity'43'middleFour'8658'assoc_402 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1113,9 +1149,9 @@ d_identity'43'middleFour'8658'assoc_396 ::
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_identity'43'middleFour'8658'assoc_396 = erased
+d_identity'43'middleFour'8658'assoc_402 = erased
 -- Algebra.Consequences.Propositional.identity+middleFour⇒comm
-d_identity'43'middleFour'8658'comm_398 ::
+d_identity'43'middleFour'8658'comm_404 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1128,9 +1164,9 @@ d_identity'43'middleFour'8658'comm_398 ::
    AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_identity'43'middleFour'8658'comm_398 = erased
+d_identity'43'middleFour'8658'comm_404 = erased
 -- Algebra.Consequences.Propositional.comm+distrˡ⇒distrʳ
-d_comm'43'distr'737''8658'distr'691'_400 ::
+d_comm'43'distr'737''8658'distr'691'_406 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1143,9 +1179,9 @@ d_comm'43'distr'737''8658'distr'691'_400 ::
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_comm'43'distr'737''8658'distr'691'_400 = erased
+d_comm'43'distr'737''8658'distr'691'_406 = erased
 -- Algebra.Consequences.Propositional.comm+distrʳ⇒distrˡ
-d_comm'43'distr'691''8658'distr'737'_402 ::
+d_comm'43'distr'691''8658'distr'737'_408 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1158,9 +1194,9 @@ d_comm'43'distr'691''8658'distr'737'_402 ::
   AgdaAny ->
   AgdaAny ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_comm'43'distr'691''8658'distr'737'_402 = erased
+d_comm'43'distr'691''8658'distr'737'_408 = erased
 -- Algebra.Consequences.Propositional.assoc+distribʳ+idʳ+invʳ⇒zeˡ
-d_assoc'43'distrib'691''43'id'691''43'inv'691''8658'ze'737'_404 ::
+d_assoc'43'distrib'691''43'id'691''43'inv'691''8658'ze'737'_410 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1176,10 +1212,10 @@ d_assoc'43'distrib'691''43'id'691''43'inv'691''8658'ze'737'_404 ::
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_assoc'43'distrib'691''43'id'691''43'inv'691''8658'ze'737'_404
+d_assoc'43'distrib'691''43'id'691''43'inv'691''8658'ze'737'_410
   = erased
 -- Algebra.Consequences.Propositional.assoc+distribˡ+idʳ+invʳ⇒zeʳ
-d_assoc'43'distrib'737''43'id'691''43'inv'691''8658'ze'691'_406 ::
+d_assoc'43'distrib'737''43'id'691''43'inv'691''8658'ze'691'_412 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1195,10 +1231,10 @@ d_assoc'43'distrib'737''43'id'691''43'inv'691''8658'ze'691'_406 ::
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_assoc'43'distrib'737''43'id'691''43'inv'691''8658'ze'691'_406
+d_assoc'43'distrib'737''43'id'691''43'inv'691''8658'ze'691'_412
   = erased
 -- Algebra.Consequences.Propositional.assoc+id+invʳ⇒invˡ-unique
-d_assoc'43'id'43'inv'691''8658'inv'737''45'unique_408 ::
+d_assoc'43'id'43'inv'691''8658'inv'737''45'unique_414 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1213,9 +1249,9 @@ d_assoc'43'id'43'inv'691''8658'inv'737''45'unique_408 ::
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_assoc'43'id'43'inv'691''8658'inv'737''45'unique_408 = erased
+d_assoc'43'id'43'inv'691''8658'inv'737''45'unique_414 = erased
 -- Algebra.Consequences.Propositional.assoc+id+invˡ⇒invʳ-unique
-d_assoc'43'id'43'inv'737''8658'inv'691''45'unique_410 ::
+d_assoc'43'id'43'inv'737''8658'inv'691''45'unique_416 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny) ->
@@ -1230,9 +1266,9 @@ d_assoc'43'id'43'inv'737''8658'inv'691''45'unique_410 ::
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_assoc'43'id'43'inv'737''8658'inv'691''45'unique_410 = erased
+d_assoc'43'id'43'inv'737''8658'inv'691''45'unique_416 = erased
 -- Algebra.Consequences.Propositional.subst+comm⇒sym
-d_subst'43'comm'8658'sym_412 ::
+d_subst'43'comm'8658'sym_418 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -1241,7 +1277,7 @@ d_subst'43'comm'8658'sym_412 ::
   (AgdaAny ->
    AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny
-d_subst'43'comm'8658'sym_412 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8
-  = du_subst'43'comm'8658'sym_412 v8
-du_subst'43'comm'8658'sym_412 :: AgdaAny -> AgdaAny
-du_subst'43'comm'8658'sym_412 v0 = coe v0
+d_subst'43'comm'8658'sym_418 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8
+  = du_subst'43'comm'8658'sym_418 v8
+du_subst'43'comm'8658'sym_418 :: AgdaAny -> AgdaAny
+du_subst'43'comm'8658'sym_418 v0 = coe v0

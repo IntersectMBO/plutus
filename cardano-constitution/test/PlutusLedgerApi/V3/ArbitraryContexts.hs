@@ -298,7 +298,13 @@ mkChangedParamsFromMinValues = Haskell.fmap (Haskell.second getLargestMinValue) 
     getLargestMinValue :: ParamValue -> BuiltinData
     getLargestMinValue = \case
       ParamInteger preds -> toBuiltinData $ maximum $ fromMaybe [0] $ List.lookup MinValue $ unPredicates preds
-      ParamRational preds -> toBuiltinData $ NonCanonicalRational $ maximum $ fromMaybe [Tx.unsafeRatio 0 1] $ List.lookup MinValue $ unPredicates preds
+      ParamRational preds ->
+        toBuiltinData
+          $ NonCanonicalRational
+          $ maximum
+          $ fromMaybe [Tx.unsafeRatio 0 1]
+          $ List.lookup MinValue
+          $ unPredicates preds
       ParamList values -> toBuiltinData $ Haskell.fmap getLargestMinValue values
       -- Currently we only have param 18 as "any". So this generation applies only for 18.
       -- Here we try to generate an 1000-integer-list for the 18 parameter.

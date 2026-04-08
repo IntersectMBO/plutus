@@ -1,37 +1,37 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.Maybe.Relation.Unary.All where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Maybe.Relation.Unary.Any qualified
-import MAlonzo.Code.Data.Product.Base qualified
-import MAlonzo.Code.Effect.Applicative qualified
-import MAlonzo.Code.Effect.Functor qualified
-import MAlonzo.Code.Effect.Monad qualified
-import MAlonzo.Code.Function.Base qualified
-import MAlonzo.Code.Function.Bundles qualified
-import MAlonzo.Code.Relation.Nullary.Decidable qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Maybe.Relation.Unary.Any
+import qualified MAlonzo.Code.Data.Product.Base
+import qualified MAlonzo.Code.Effect.Applicative
+import qualified MAlonzo.Code.Effect.Functor
+import qualified MAlonzo.Code.Effect.Monad
+import qualified MAlonzo.Code.Function.Base
+import qualified MAlonzo.Code.Function.Bundles
+import qualified MAlonzo.Code.Relation.Nullary.Decidable
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 -- Data.Maybe.Relation.Unary.All.All
 d_All_18 a0 a1 a2 a3 a4 = ()
@@ -46,21 +46,21 @@ du_drop'45'just_48 :: T_All_18 -> AgdaAny
 du_drop'45'just_48 v0
   = case coe v0 of
       C_just_30 v2 -> coe v2
-      _            -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Maybe.Relation.Unary.All._.just-equivalence
 d_just'45'equivalence_54 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> ()) ->
-  AgdaAny -> MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+  AgdaAny -> MAlonzo.Code.Function.Bundles.T_Equivalence_1858
 d_just'45'equivalence_54 ~v0 ~v1 ~v2 ~v3 ~v4
   = du_just'45'equivalence_54
 du_just'45'equivalence_54 ::
-  MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+  MAlonzo.Code.Function.Bundles.T_Equivalence_1858
 du_just'45'equivalence_54
   = coe
-      MAlonzo.Code.Function.Bundles.du_mk'8660'_2298 (coe C_just_30)
+      MAlonzo.Code.Function.Bundles.du_mk'8660'_2474 (coe C_just_30)
       (coe du_drop'45'just_48)
 -- Data.Maybe.Relation.Unary.All._.map
 d_map_60 ::

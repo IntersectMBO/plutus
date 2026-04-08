@@ -1,31 +1,31 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Relation.Nullary.Negation where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Irrelevant qualified
-import MAlonzo.Code.Data.Product.Base qualified
-import MAlonzo.Code.Data.Sum.Base qualified
-import MAlonzo.Code.Effect.Monad qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Negation.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Irrelevant
+import qualified MAlonzo.Code.Data.Product.Base
+import qualified MAlonzo.Code.Data.Sum.Base
+import qualified MAlonzo.Code.Effect.Monad
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Negation.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 -- Relation.Nullary.Negation.∃⟶¬∀¬
 d_'8707''10230''172''8704''172'_32 ::
@@ -88,7 +88,7 @@ du_'172''172''45'Monad_64 ::
   MAlonzo.Code.Effect.Monad.T_RawMonad_24
 du_'172''172''45'Monad_64
   = coe
-      MAlonzo.Code.Effect.Monad.du_mkRawMonad_178
+      MAlonzo.Code.Effect.Monad.du_mkRawMonad_180
       (coe
          (\ v0 v1 ->
             coe

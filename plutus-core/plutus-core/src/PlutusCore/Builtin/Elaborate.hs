@@ -241,7 +241,8 @@ type family UnknownTypeError val x where
 
 -- | Get the holes of @x@ and recurse into them.
 type HandleHoles
-  :: forall a. (GHC.Type -> GHC.Type) -> Nat -> Nat -> GHC.Type -> (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
+  :: forall a
+   . (GHC.Type -> GHC.Type) -> Nat -> Nat -> GHC.Type -> (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
 type HandleHoles uni i j val hole x =
   -- Here we detect a stuck application of 'ToHoles' and throw 'UnknownTypeError' on it.
   -- See https://blog.csongor.co.uk/report-stuck-families for a detailed description of how

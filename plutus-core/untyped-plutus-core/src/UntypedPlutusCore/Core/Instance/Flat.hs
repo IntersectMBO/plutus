@@ -156,10 +156,15 @@ decodeTerm version builtinPred = go
         Nothing -> pure t
         Just e -> fail e
     handleTerm 8 = do
-      unless (version >= PLC.plcVersion110) $ fail $ "'constr' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
+      unless (version >= PLC.plcVersion110) $
+        fail $
+          "'constr' is not allowed before version 1.1.0, this program has version: "
+            ++ (show $ pretty version)
       Constr <$> decode <*> decode <*> decodeListWith go
     handleTerm 9 = do
-      unless (version >= PLC.plcVersion110) $ fail $ "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
+      unless (version >= PLC.plcVersion110) $
+        fail $
+          "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
       Case <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
     handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 

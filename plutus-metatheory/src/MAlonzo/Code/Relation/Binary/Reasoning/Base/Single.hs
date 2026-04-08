@@ -1,25 +1,25 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Relation.Binary.Reasoning.Base.Single where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Relation.Binary.Reasoning.Syntax qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Relation.Binary.Reasoning.Syntax
 
 -- Relation.Binary.Reasoning.Base.Single._IsRelatedTo_
 d__IsRelatedTo__26 a0 a1 a2 a3 a4 a5 a6 a7 = ()
@@ -38,7 +38,7 @@ du_start_36 :: T__IsRelatedTo__26 -> AgdaAny
 du_start_36 v0
   = case coe v0 of
       C_relTo_34 v1 -> coe v1
-      _             -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Relation.Binary.Reasoning.Base.Single.∼-go
 d_'8764''45'go_40 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -60,7 +60,7 @@ du_'8764''45'go_40 ::
 du_'8764''45'go_40 v0 v1 v2 v3 v4 v5
   = case coe v5 of
       C_relTo_34 v6 -> coe C_relTo_34 (coe v0 v1 v2 v3 v4 v6)
-      _             -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Relation.Binary.Reasoning.Base.Single.≡-go
 d_'8801''45'go_46 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -148,7 +148,7 @@ du_step'45''8801'_62 ::
   T__IsRelatedTo__26
 du_step'45''8801'_62
   = coe
-      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801'_450
+      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801'_452
       (coe (\ v0 v1 v2 v3 v4 -> v4))
 -- Relation.Binary.Reasoning.Base.Single._.step-≡-∣
 d_step'45''8801''45''8739'_64 ::
@@ -189,7 +189,7 @@ du_step'45''8801''45''10216'_66 ::
   T__IsRelatedTo__26
 du_step'45''8801''45''10216'_66
   = coe
-      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10216'_448
+      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10216'_450
       (coe (\ v0 v1 v2 v3 v4 -> v4))
 -- Relation.Binary.Reasoning.Base.Single._.step-≡-⟩
 d_step'45''8801''45''10217'_68 ::
@@ -216,7 +216,7 @@ du_step'45''8801''45''10217'_68 ::
   T__IsRelatedTo__26
 du_step'45''8801''45''10217'_68
   = coe
-      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_436
+      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''45''10217'_438
       (coe (\ v0 v1 v2 v3 v4 -> v4))
 -- Relation.Binary.Reasoning.Base.Single._.step-≡˘
 d_step'45''8801''728'_70 ::
@@ -243,7 +243,7 @@ du_step'45''8801''728'_70 ::
   T__IsRelatedTo__26
 du_step'45''8801''728'_70
   = coe
-      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''728'_452
+      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8801''728'_454
       (coe (\ v0 v1 v2 v3 v4 -> v4))
 -- Relation.Binary.Reasoning.Base.Single._.step-∼
 d_step'45''8764'_74 ::
@@ -265,7 +265,7 @@ du_step'45''8764'_74 ::
   AgdaAny -> T__IsRelatedTo__26 -> AgdaAny -> T__IsRelatedTo__26
 du_step'45''8764'_74 v0
   = coe
-      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8764'_300
+      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8764'_302
       (coe du_'8764''45'go_40 (coe v0))
 -- Relation.Binary.Reasoning.Base.Single._._∎
 d__'8718'_78 ::
@@ -281,5 +281,5 @@ du__'8718'_78 ::
   (AgdaAny -> AgdaAny) -> AgdaAny -> T__IsRelatedTo__26
 du__'8718'_78 v0
   = coe
-      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492
+      MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_494
       (coe du_stop_54 (coe v0))

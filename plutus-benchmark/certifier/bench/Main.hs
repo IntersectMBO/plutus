@@ -10,7 +10,7 @@ import FFI.Untyped (UTerm)
 import MAlonzo.Code.Certifier (runCertifierMain)
 
 certify :: Trace UTerm -> ()
-certify trace = case runCertifierMain trace of
+certify trace = case runCertifierMain trace [] of
   Just (True, _) -> ()
   _ -> error "Certification failed"
 

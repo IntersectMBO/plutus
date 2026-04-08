@@ -61,6 +61,7 @@ instance
   , Typeable a
   , Ord a
   , PLC.AnnInline a
+  , PLC.AnnCase a
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
@@ -81,6 +82,7 @@ instance
   , Typeable a
   , Ord a
   , PLC.AnnInline a
+  , PLC.AnnCase a
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
@@ -94,10 +96,20 @@ instance PLC.AnnInline PLC.SrcSpan where
   annSafeToInline = PLC.SrcSpan mempty 0 0 0 0
   annMayInline = PLC.SrcSpan mempty 0 0 0 0
 
+instance PLC.AnnCase PLC.SrcSpan where
+  annSafeToDrop = PLC.SrcSpan mempty 0 0 0 0
+  annNotSafeToDrop = PLC.SrcSpan mempty 0 0 0 0
+  annIsSafeToDrop = const False
+
 instance PLC.AnnInline PLC.SrcSpans where
   annAlwaysInline = mempty
   annSafeToInline = mempty
   annMayInline = mempty
+
+instance PLC.AnnCase PLC.SrcSpans where
+  annSafeToDrop = mempty
+  annNotSafeToDrop = mempty
+  annIsSafeToDrop = const False
 
 pTermAsProg :: Parser (PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
 pTermAsProg = fmap (PIR.Program mempty PLC.latestVersion) pTerm
@@ -116,6 +128,7 @@ compileWithOpts
      , PLC.CaseBuiltin uni
      , Ord a
      , PLC.AnnInline a
+     , PLC.AnnCase a
      , PLC.PrettyUni uni
      , PLC.Pretty fun
      , PLC.Pretty a
@@ -205,6 +218,7 @@ goldenPlcFromPirScott
      , Typeable a
      , Pretty a
      , PLC.AnnInline a
+     , PLC.AnnCase a
      , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a
      )
   => Parser prog

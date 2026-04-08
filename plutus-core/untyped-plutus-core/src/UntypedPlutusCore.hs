@@ -3,6 +3,7 @@ module UntypedPlutusCore
   , Term (..)
   , Program (..)
   , applyProgram
+  , applyTerm
   , parseScoped
   , PLC.DefaultUni
   , PLC.DefaultFun
@@ -31,6 +32,13 @@ applyProgram
   -> m (Program name uni fun a)
 applyProgram (Program a1 v1 t1) (Program a2 v2 t2)
   | v1 == v2 =
-      pure $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
+      pure $ Program (a1 <> a2) v1 (applyTerm t1 t2)
 applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
   throwError $ MkApplyProgramError v1 v2
+
+applyTerm
+  :: Semigroup a
+  => Term name uni fun a
+  -> Term name uni fun a
+  -> Term name uni fun a
+applyTerm t1 t2 = Apply (termAnn t1 <> termAnn t2) t1 t2

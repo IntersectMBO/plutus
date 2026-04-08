@@ -149,7 +149,8 @@ representativeBindingUnique =
   first1Of bindingIds . representativeBinding
   where
     --  Arbitrary: a binding to be used as representative binding in MARKING the group of bindings.
-    representativeBinding :: NE.NonEmpty (Binding tyname name uni fun a) -> Binding tyname name uni fun a
+    representativeBinding
+      :: NE.NonEmpty (Binding tyname name uni fun a) -> Binding tyname name uni fun a
     representativeBinding = NE.head
 
 {-| Every term and type variable in current scope
@@ -199,12 +200,16 @@ bindingGrpToLet
 bindingGrpToLet r (BindingGrp a r' bs) = Let a (r <> r') bs
 
 -- | A store of lets to be floated at their new position
-type FloatTable tyname name uni fun a = MM.MonoidalMap Pos (NE.NonEmpty (BindingGrp tyname name uni fun a))
+type FloatTable tyname name uni fun a =
+  MM.MonoidalMap Pos (NE.NonEmpty (BindingGrp tyname name uni fun a))
 
 -- | The 1st pass of marking floatable lets
 mark
   :: forall tyname name uni fun a
-   . (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, PLC.ToBuiltinMeaning uni fun)
+   . ( PLC.HasUnique tyname PLC.TypeUnique
+     , PLC.HasUnique name PLC.TermUnique
+     , PLC.ToBuiltinMeaning uni fun
+     )
   => BuiltinsInfo uni fun
   -> Term tyname name uni fun a
   -> Marks
@@ -495,7 +500,11 @@ withAbs (view PLC.theUnique -> u) = local $ \(MarkCtx d scope binfo vinfo) ->
    in MarkCtx d' (UMap.insertByUnique u pos' scope) binfo vinfo
 
 withBs
-  :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
+  :: ( r ~ MarkCtx tyname name uni fun a2
+     , MonadReader r m
+     , PLC.HasUnique name PLC.TermUnique
+     , PLC.HasUnique tyname PLC.TypeUnique
+     )
   => NE.NonEmpty (Binding tyname name uni fun a3)
   -> Pos
   -> m a
@@ -510,7 +519,10 @@ ifRec r f a = case r of
   NonRec -> a
 
 floatable
-  :: (MonadReader (MarkCtx tyname name uni fun a) m, PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
+  :: ( MonadReader (MarkCtx tyname name uni fun a) m
+     , PLC.ToBuiltinMeaning uni fun
+     , PLC.HasUnique name PLC.TermUnique
+     )
   => BindingGrp tyname name uni fun a
   -> m Bool
 floatable (BindingGrp _ _ bs) = do

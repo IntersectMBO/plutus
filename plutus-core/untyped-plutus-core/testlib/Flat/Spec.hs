@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -14,13 +15,19 @@ import Data.Char (ord)
 import Data.Word
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
+import PlutusCore.Default (DefaultFun (..), DefaultUni (..))
 import PlutusCore.Flat
+import PlutusCore.Flat.Bits (asBytes, bits)
 import PlutusCore.Generators.QuickCheck.Builtin ()
+import PlutusCore.Name.Unique (Name (..), TyName (..), Unique (..))
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
-import UntypedPlutusCore ()
+import Universe (Some (..), ValueOf (..))
 import UntypedPlutusCore.Core.Type
+
+-- Also brings the Flat (Strict.Vector a) orphan instance into scope:
+import UntypedPlutusCore (UnrestrictedProgram (..))
 
 test_deBruijnIso :: TestTree
 test_deBruijnIso = testProperty "deBruijnIso" $ \d ->
@@ -335,11 +342,12 @@ test_nonCanonicalByteStringDecoding =
    in testGroup
         "Non-canonical bytestring encodings decode succesfully"
         [ testProperty "Data via lazy bytestrings" $
-            withMaxSuccess 5000 $
-              forAll (arbitrary @Data) (\d -> Right d === unflat (flat $ (serialise d :: BSL.ByteString)))
+            withMaxSuccess 5000 $ forAll (arbitrary @Data) \d ->
+              Right d === unflat (flat (serialise d :: BSL.ByteString))
         , testProperty "Arbitrary lazy bytestrings" $
             withMaxSuccess 10000 $
-              forAll (arbitrary @BSL.ByteString) (\bs -> Right (BSL.toStrict bs) === unflat (flat bs))
+              forAll (arbitrary @BSL.ByteString) \bs ->
+                Right (BSL.toStrict bs) === unflat (flat bs)
         , testCase "Explicit input 1" $ mkTest input1
         , testCase "Explicit input 2" $ mkTest input2
         , testCase "Explicit input 3" $ mkTest input3
@@ -349,6 +357,68 @@ test_nonCanonicalByteStringDecoding =
         , testCase "Explicit input 7" $ mkTest input7
         , testCase "Explicit input 8" $ mkTest input8
         ]
+
+{-| Stable byte encoding tests for Binder types.
+These pin the exact byte representation to detect encoding changes. -}
+test_binderStaticEncoding :: TestTree
+test_binderStaticEncoding =
+  testGroup
+    "Binder stable encoding"
+    [ testCase "Binder DeBruijn encodes as empty (zero-cost)" $
+        flatBytes (Binder (DeBruijn deBruijnInitIndex) :: Binder DeBruijn) @?= []
+    , testCase "Binder FakeNamedDeBruijn encodes as empty (zero-cost)" $
+        flatBytes (Binder (toFake (DeBruijn deBruijnInitIndex)) :: Binder FakeNamedDeBruijn) @?= []
+    , testCase "Binder Name encodes same as Name" $
+        flatBytes (Binder (Name "x" (Unique 0)) :: Binder Name)
+          @?= flatBytes (Name "x" (Unique 0))
+    , testCase "Binder TyName encodes same as TyName" $
+        flatBytes (Binder (TyName (Name "x" (Unique 0))) :: Binder TyName)
+          @?= flatBytes (TyName (Name "x" (Unique 0)))
+    , testCase "Binder NamedDeBruijn encodes same as NamedDeBruijn" $
+        flatBytes (Binder (NamedDeBruijn "x" (Index 42)) :: Binder NamedDeBruijn)
+          @?= flatBytes (NamedDeBruijn "x" (Index 42))
+    , testCase "Binder NamedTyDeBruijn encodes same as NamedTyDeBruijn" $
+        flatBytes (Binder (NamedTyDeBruijn (NamedDeBruijn "x" (Index 42))) :: Binder NamedTyDeBruijn)
+          @?= flatBytes (NamedTyDeBruijn (NamedDeBruijn "x" (Index 42)))
+    ]
+
+-- | Roundtrip tests for newtype Binder wrappers (Name, TyName, NamedDeBruijn, NamedTyDeBruijn).
+test_binderNewtypeRoundtrip :: TestTree
+test_binderNewtypeRoundtrip =
+  testGroup
+    "Binder newtype roundtrip"
+    [ testCase "Binder Name" $
+        let v = Binder (Name "x" (Unique 0)) :: Binder Name
+         in unflat (flat v) @?= Right v
+    , testCase "Binder TyName" $
+        let v = Binder (TyName (Name "x" (Unique 0))) :: Binder TyName
+         in unflat (flat v) @?= Right v
+    , testCase "Binder NamedDeBruijn" $
+        let v = Binder (NamedDeBruijn "x" (Index 42)) :: Binder NamedDeBruijn
+         in unflat (flat v) @?= Right v
+    , testCase "Binder NamedTyDeBruijn" $
+        let v = Binder (NamedTyDeBruijn (NamedDeBruijn "x" (Index 42))) :: Binder NamedTyDeBruijn
+         in unflat (flat v) @?= Right v
+    ]
+
+{-| Roundtrip and stable byte test for a minimal UPLC program:
+  (program 1.1.0 (con integer 0)) -}
+test_uplcProgramFlat :: TestTree
+test_uplcProgramFlat =
+  testGroup
+    "UPLC Program"
+    [ testCase "minimal program roundtrip" $
+        let encoded = flat (UnrestrictedProgram prog)
+         in fmap unUnrestrictedProgram (unflat encoded) @?= Right prog
+    , testCase "minimal program stable encoding" $
+        flatBytes (UnrestrictedProgram prog) @?= [1, 1, 0, 72, 0, 0]
+    ]
+  where
+    prog :: Program DeBruijn DefaultUni DefaultFun () =
+      Program
+        ()
+        (Version 1 1 0)
+        (Constant () (Some (ValueOf DefaultUniInteger (0 :: Integer))))
 
 test_flat :: TestTree
 test_flat =
@@ -360,12 +430,18 @@ test_flat =
     , test_fakeTripping
     , test_binderDeBruijn
     , test_binderFake
+    , test_binderStaticEncoding
+    , test_binderNewtypeRoundtrip
+    , test_uplcProgramFlat
     , test_canonicalData
     , test_canonicalByteString
     , test_nonCanonicalByteStringDecoding
     ]
 
 -- Helpers
+
+flatBytes :: Flat a => a -> [Word8]
+flatBytes = asBytes . bits
 
 initB :: Binder DeBruijn
 initB = Binder $ DeBruijn deBruijnInitIndex

@@ -21,22 +21,6 @@ module PlutusTx.Compiler.Builtins
   , errorFunc
   ) where
 
-import PlutusTx.Builtins.HasOpaque qualified as Builtins
-import PlutusTx.Builtins.Internal qualified as Builtins
-
-import PlutusTx.Compiler.Error
-import PlutusTx.Compiler.Names
-import PlutusTx.Compiler.Types
-import PlutusTx.Compiler.Utils
-import PlutusTx.PIRTypes
-
-import PlutusIR qualified as PIR
-import PlutusIR.Compiler.Definitions qualified as PIR
-import PlutusIR.Compiler.Names
-import PlutusIR.Compiler.Types qualified as PIR
-import PlutusIR.MkPir qualified as PIR
-import PlutusIR.Purity qualified as PIR
-
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -45,18 +29,29 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.Value (Value)
-
-import GHC.Plugins qualified as GHC
-
-import Language.Haskell.TH.Syntax qualified as TH
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler.Definitions qualified as PIR
+import PlutusIR.Compiler.Names
+import PlutusIR.Compiler.Types qualified as PIR
+import PlutusIR.MkPir qualified as PIR
+import PlutusIR.Purity qualified as PIR
+import PlutusTx.AsData.Internal qualified as AI
+import PlutusTx.Builtins.HasOpaque qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as Builtins
+import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Names
+import PlutusTx.Compiler.Types
+import PlutusTx.Compiler.Utils
+import PlutusTx.PIRTypes
 
 import Control.Monad.Reader (asks)
-
 import Data.ByteString qualified as BS
 import Data.Functor
 import Data.Proxy
 import Data.Set qualified as Set
 import Data.Text (Text)
+import GHC.Plugins qualified as GHC
+import Language.Haskell.TH.Syntax qualified as TH
 import PlutusPrelude (enumerate, for_)
 
 {- Note [Mapping builtins]
@@ -466,53 +461,67 @@ defineBuiltinTerms = do
                   PIR.lamAbs () f contTy $
                     PIR.kase () (PLC.TyVar () r) (PIR.Var () p) [PIR.Var () f]
 
-  defineBuiltinTerm annMayInline 'Builtins.unsafeCaseList $ case datatypeStyle of
-    style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
-      -- > /\a r ->
-      -- >   \(f : a -> list a -> r) (xs : list a) ->
-      -- >     f (headList {a} xs) (tailList {a} xs)
-      fmap (const annMayInline) . runQuote $ do
-        a <- freshTyName "a"
+  let unsafeCaseListNoCasing =
+        -- > /\a r ->
+        -- >   \(f : a -> list a -> r) (xs : list a) ->
+        -- >     f (headList {a} xs) (tailList {a} xs)
+        fmap (const annMayInline) . runQuote $ do
+          a <- freshTyName "a"
+          r <- freshTyName "r"
+          xs <- freshName "xs"
+          f <- freshName "f"
+          let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
+              funAtXs headOrTail =
+                PIR.apply
+                  ()
+                  (PIR.tyInst () (PIR.builtin () headOrTail) $ PLC.TyVar () a)
+                  (PIR.var () xs)
+          return
+            . PIR.tyAbs () a (PLC.Type ())
+            . PIR.tyAbs () r (PLC.Type ())
+            . PIR.lamAbs
+              ()
+              f
+              (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r)
+            . PIR.lamAbs () xs listA
+            $ PIR.mkIterAppNoAnn
+              (PIR.var () f)
+              [funAtXs PLC.HeadList, funAtXs PLC.TailList]
+      -- `a'` annotates `case`, and `a` annotates everything else.
+      unsafeCaseListCasing a a' = runQuote $ do
+        -- > /\b r ->
+        -- >   \(f : b -> list b -> r) (xs : list b) ->
+        -- >     (case r xs f)
+        b <- freshTyName "a"
         r <- freshTyName "r"
         xs <- freshName "xs"
         f <- freshName "f"
-        let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
-            funAtXs headOrTail =
-              PIR.apply
-                ()
-                (PIR.tyInst () (PIR.builtin () headOrTail) $ PLC.TyVar () a)
-                (PIR.var () xs)
-        return
-          . PIR.tyAbs () a (PLC.Type ())
-          . PIR.tyAbs () r (PLC.Type ())
-          . PIR.lamAbs
-            ()
-            f
-            (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r)
-          . PIR.lamAbs () xs listA
-          $ PIR.mkIterAppNoAnn
-            (PIR.var () f)
-            [funAtXs PLC.HeadList, funAtXs PLC.TailList]
-    _BuiltinCasing ->
-      -- > /\a r ->
-      -- >   \(f : a -> list a -> r) (xs : list a) ->
-      -- >     (case r xs f)
-      fmap (const annMayInline) . runQuote $ do
-        a <- freshTyName "a"
-        r <- freshTyName "r"
-        xs <- freshName "xs"
-        f <- freshName "f"
-        let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
+        let listA = PLC.TyApp a (PLC.mkTyBuiltin @_ @[] a) $ PLC.TyVar a b
         return $
-          PIR.tyAbs () a (PLC.Type ()) $
-            PIR.tyAbs () r (PLC.Type ()) $
-              PIR.lamAbs () f (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r) $
-                PIR.lamAbs () xs listA $
+          PIR.tyAbs a b (PLC.Type a) $
+            PIR.tyAbs a r (PLC.Type a) $
+              PIR.lamAbs a f (PLC.TyFun a (PLC.TyVar a b) . PLC.TyFun a listA $ PLC.TyVar a r) $
+                PIR.lamAbs a xs listA $
                   PIR.kase
-                    ()
-                    (PLC.TyVar () r)
-                    (PIR.var () xs)
-                    [PIR.var () f]
+                    a'
+                    (PLC.TyVar a r)
+                    (PIR.var a xs)
+                    [PIR.var a f]
+
+  defineBuiltinTerm annMayInline 'Builtins.unsafeCaseList $ case datatypeStyle of
+    style
+      | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+          unsafeCaseListNoCasing
+    _BuiltinCasing ->
+      unsafeCaseListCasing annMayInline annMayInline
+
+  -- See Note [Dropping redundant unsafeCaseList calls produced by AsData].
+  defineBuiltinTerm annMayInline 'AI.droppableUnsafeCaseList $ case datatypeStyle of
+    style
+      | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+          unsafeCaseListNoCasing
+    _BuiltinCasing ->
+      unsafeCaseListCasing annMayInline annSafeToDrop
 
   defineBuiltinTerm annMayInline 'Builtins.caseList' $ case datatypeStyle of
     style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->

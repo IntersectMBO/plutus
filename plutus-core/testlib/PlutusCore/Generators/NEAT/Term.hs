@@ -272,7 +272,8 @@ convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) =
     <*> convertTerm tns ns (normalizeTypeG ty') tm
   where
     -- Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
-    ty' = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
+    ty' =
+      TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
 convertTerm tns ns _ (UnWrapG ty1 k ty2 tm) = Unwrap () <$> convertTerm tns ns (TyIFixG ty1 k ty2) tm
 convertTerm tns _ns _ (ErrorG ty) = Error () <$> convertType tns (Type ()) ty
 convertTerm _ _ ty tm = throwError $ BadTermG ty tm
@@ -384,7 +385,15 @@ defaultFunTypes =
   Map.fromList
     [
       ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      , [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger]
+      ,
+        [ AddInteger
+        , SubtractInteger
+        , MultiplyInteger
+        , DivideInteger
+        , QuotientInteger
+        , RemainderInteger
+        , ModInteger
+        ]
       )
     ,
       ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))
@@ -399,7 +408,9 @@ defaultFunTypes =
       , [ConsByteString]
       )
     ,
-      ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)))
+      ( TyFunG
+          (TyBuiltinG TyIntegerG)
+          (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)))
       , [SliceByteString]
       )
     ,
@@ -415,7 +426,9 @@ defaultFunTypes =
       , [Sha2_256, Sha3_256, Blake2b_224, Blake2b_256, Keccak_256, Ripemd_160]
       )
     ,
-      ( TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))
+      ( TyFunG
+          (TyBuiltinG TyByteStringG)
+          (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))
       , [VerifyEd25519Signature]
       )
     ,
@@ -423,7 +436,9 @@ defaultFunTypes =
       , [EqualsByteString, LessThanByteString, LessThanEqualsByteString]
       )
     ,
-      ( TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
+      ( TyForallG
+          (Type ())
+          (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
       , [IfThenElse]
       )
     ,
@@ -507,14 +522,18 @@ checkTypeG kcs tcs (TyIFixG ty1 k ty2) (WrapG tm) = ty1Ok &&& ty2Ok &&& tmOk
   where
     ty1Ok = checkKindG kcs (toPatFuncKind k) ty1
     ty2Ok = checkKindG kcs k ty2
-    tmTy = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
+    tmTy =
+      TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
     tmOk = checkTypeG kcs tcs (normalizeTypeG tmTy) tm
 checkTypeG kcs tcs vTy (UnWrapG ty1 k ty2 tm) = ty1Ok &&& ty2Ok &&& tmOk &&& vTyOk
   where
     ty1Ok = checkKindG kcs (toPatFuncKind k) ty1
     ty2Ok = checkKindG kcs k ty2
     tmOk = checkTypeG kcs tcs (TyIFixG ty1 k ty2) tm
-    vTyOk = vTy == normalizeTypeG (TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k)
+    vTyOk =
+      vTy
+        == normalizeTypeG
+          (TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k)
 checkTypeG kcs _tcs vTy (ErrorG ty) = tyKindOk &&& tyOk
   where
     tyKindOk = checkKindG kcs (Type ()) ty

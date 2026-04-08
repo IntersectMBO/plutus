@@ -114,7 +114,17 @@ tests =
 -- HELPERS
 
 mkPath :: String -> [String] -> FilePath
-mkPath vName exts = foldl1 (</>) ["test", "Cardano", "Constitution", "Validator", "Data", "GoldenTests", foldl (<.>) vName ("golden" : exts)]
+mkPath vName exts =
+  foldl1
+    (</>)
+    [ "test"
+    , "Cardano"
+    , "Constitution"
+    , "Validator"
+    , "Data"
+    , "GoldenTests"
+    , foldl (<.>) vName ("golden" : exts)
+    ]
 
 runForBudget
   :: ToData ctx
@@ -130,5 +140,8 @@ runForBudget v ctx =
    in case UPLC.runCekDeBruijn defaultCekParametersForTesting counting noEmitter vPs of
         -- Here, we guard against the case that a ConstitutionValidator **FAILS EARLY** (for some reason),
         -- resulting in misleading low budget costs.
-        UPLC.CekReport (UPLC.CekSuccessConstant (UPLC.Some (UPLC.ValueOf UPLC.DefaultUniUnit ()))) (UPLC.CountingSt budget) _ -> budget
+        UPLC.CekReport
+          (UPLC.CekSuccessConstant (UPLC.Some (UPLC.ValueOf UPLC.DefaultUniUnit ())))
+          (UPLC.CountingSt budget)
+          _ -> budget
         _ -> error "For safety, we only compare budgets of successful executions."

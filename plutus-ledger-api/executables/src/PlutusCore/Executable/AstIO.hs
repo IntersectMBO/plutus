@@ -4,7 +4,17 @@
 
 -- | Reading and writing ASTs with various name types in flat format.
 module PlutusCore.Executable.AstIO
-  ( serialisePirProgramFlat
+  ( UplcProgDB
+  , UplcProgNDB
+  , PlcProgDB
+  , PlcProgNDB
+  , UplcTermDB
+  , UplcTermNDB
+  , PlcTermDB
+  , PlcTermNDB
+  , PlcTypeDB
+  , PlcTypeNDB
+  , serialisePirProgramFlat
   , serialisePlcProgramFlat
   , serialiseUplcProgramFlat
   , loadPirASTfromFlat
@@ -18,6 +28,8 @@ module PlutusCore.Executable.AstIO
   , toDeBruijnUPLC
   , toDeBruijnTypePLC
   , toNamedDeBruijnUPLC
+  , decodeUplcHex
+  , encodeUplcHex
   )
 where
 
@@ -42,6 +54,10 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as SBS
+import Data.Text (Text)
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
+import Data.Text.IO qualified as T
 import PlutusCore.Flat (Flat, flat, unflat)
 import System.FilePath (takeExtension)
 
@@ -49,14 +65,16 @@ type UplcProgDB ann = UPLC.Program PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun an
 type UplcProgNDB ann = UPLC.Program PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 type PlcProgDB ann = PLC.Program PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
-type PlcProgNDB ann = PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
+type PlcProgNDB ann =
+  PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 -- For the plutus-metatheory tests
 type UplcTermDB ann = UPLC.Term PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
 type UplcTermNDB ann = UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 type PlcTermDB ann = PLC.Term PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
-type PlcTermNDB ann = PLC.Term PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
+type PlcTermNDB ann =
+  PLC.Term PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 type PlcType ann = PLC.Type PLC.TyName PLC.DefaultUni ann
 type PlcTypeDB ann = PLC.Type PLC.TyDeBruijn PLC.DefaultUni ann
@@ -193,15 +211,6 @@ getBinaryInput (FileInput file)
         Right bs -> pure $ BSL.fromStrict bs
   | otherwise = BSL.readFile file
 
-getHexInput :: Input -> IO BSL.ByteString
-getHexInput inp = do
-  contents <- case inp of
-    StdInput -> BS.getContents
-    FileInput file -> BS.readFile file
-  case decodeHex contents of
-    Left err -> error $ "Hex decode failure : " ++ err
-    Right bs -> pure $ BSL.fromStrict bs
-
 decodeHex :: BS.ByteString -> Either String BS.ByteString
 decodeHex = Base16.decode . BS.filter (not . isHexWhitespace)
 
@@ -255,12 +264,30 @@ loadUplcASTfromSerialised :: Input -> IO (UplcProg ())
 loadUplcASTfromSerialised = fmap deserialiseUplcProg . getBinaryInput
 
 loadUplcASTfromHex :: Input -> IO (UplcProg ())
-loadUplcASTfromHex = fmap deserialiseUplcProg . getHexInput
+loadUplcASTfromHex inp = do
+  contents <- case inp of
+    StdInput -> T.getContents
+    FileInput file -> T.readFile file
+  pure $ decodeUplcHex (T.strip contents)
 
 deserialiseUplcProg :: BSL.ByteString -> UplcProg ()
-deserialiseUplcProg =
-  fromNamedDeBruijnUPLC
-    . UPLC.programMapNames fakeNameDeBruijn
-    . uncheckedDeserialiseUPLC
+deserialiseUplcProg = fromNamedDeBruijnUPLC . deserialiseUplcProgNdb
+
+deserialiseUplcProgNdb :: BSL.ByteString -> UplcProgNDB ()
+deserialiseUplcProgNdb = UPLC.programMapNames fakeNameDeBruijn . deserialiseUplcProgDb
+
+deserialiseUplcProgDb :: BSL.ByteString -> UplcProgDB ()
+deserialiseUplcProgDb =
+  uncheckedDeserialiseUPLC
     . SBS.toShort
     . BSL.toStrict
+
+decodeUplcHex :: Text -> UplcProg ()
+decodeUplcHex hex =
+  case decodeHex (T.encodeUtf8 hex) of
+    Left err -> error $ "Hex decode failure: " ++ err
+    Right bs -> deserialiseUplcProg (BSL.fromStrict bs)
+
+encodeUplcHex :: UplcProg ann -> Text
+encodeUplcHex =
+  T.decodeUtf8 . Base16.encode . SBS.fromShort . serialiseUPLC . toDeBruijnUPLC . void

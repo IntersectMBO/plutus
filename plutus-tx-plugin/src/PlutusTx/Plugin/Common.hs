@@ -46,6 +46,7 @@ import PlutusTx.Optimize.Inline qualified
 import PlutusTx.Options
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
+import PlutusTx.Plugin.Boilerplate (removeBoilerplateOpts)
 import PlutusTx.Plugin.Utils qualified
 import PlutusTx.Trace
 import UntypedPlutusCore qualified as UPLC
@@ -85,7 +86,7 @@ import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Generics.Uniplate.Data
 import Data.Map qualified as Map
-import Data.Maybe (mapMaybe, maybeToList)
+import Data.Maybe (fromJust, mapMaybe, maybeToList)
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
 import Data.Text (Text)
@@ -145,7 +146,7 @@ installCorePlugin markerTHName args rest = do
   simplPass <- mkSimplPass <$> GHC.getDynFlags
   -- instantiate our plugin pass
   pluginPass <-
-    mkPluginPass markerTHName <$> case parsePluginOptions args of
+    mkPluginPass markerTHName <$> case parsePluginOptions (removeBoilerplateOpts args) of
       Success opts -> pure opts
       Failure errs -> liftIO $ throwIO errs
   -- return the pipeline
@@ -154,19 +155,15 @@ installCorePlugin markerTHName args rest = do
       : pluginPass
       : rest
 
-plinthcModName :: String
-plinthcModName = "PlutusTx.Plugin.Utils"
-
-anchorName :: String
-anchorName = "anchor"
+plinthcModName, anchorName :: String
+plinthcModName = fromJust $ TH.nameModule 'PlutusTx.Plugin.Utils.anchor
+anchorName = TH.nameBase 'PlutusTx.Plugin.Utils.anchor
 
 -- | Wrap certain @HsExpr@s in the typed checked module with @anchor@.
 injectAnchors
-  :: [GHC.CommandLineOption]
-  -> GHC.ModSummary
-  -> GHC.TcGblEnv
+  :: GHC.TcGblEnv
   -> GHC.TcM GHC.TcGblEnv
-injectAnchors _ _ env = do
+injectAnchors env = do
   hscEnv <- GHC.getTopEnv
   findResult <-
     liftIO $
@@ -442,7 +439,7 @@ formatSourceSnippet lineNum startCol0 endCol0 l0 = PP.vsep [preCode, numberedLin
     reduceIndent :: String -> (String, Int)
     reduceIndent s
       | ind >= 5 = (replicate 5 ' ' ++ rest, ind - 5)
-      | otherwise = (rest, 0)
+      | otherwise = (s, 0)
       where
         (spaces, rest) = span (== ' ') s
         ind = length spaces
@@ -588,6 +585,7 @@ compileMarkedExpr mLoc codeTy origE = do
            , '(PlutusTx.List.!!)
            , 'PlutusTx.AsData.Internal.wrapTail
            , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
+           , 'PlutusTx.AsData.Internal.droppableUnsafeCaseList
            , 'PlutusTx.Function.fix
            , 'PlutusTx.Optimize.Inline.inline
            , 'useToOpaque
@@ -596,6 +594,7 @@ compileMarkedExpr mLoc codeTy origE = do
            , 'mkNil
            , 'PlutusTx.Builtins.equalsInteger
            , 'PlutusTx.Plugin.Utils.anchor
+           , 'PlutusTx.Plugin.Utils.unsupported
            ]
   modBreaks <- asks pcModuleModBreaks
   let coverage =
@@ -837,7 +836,8 @@ runCompiler opts expr = do
       liftIO $
         generateCertificate packageName moduleName mLoc opts simplTrace certifyPath
 
-  dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
+  dbP <-
+    liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
     dumpFlat
       (UPLC.UnrestrictedProgram $ void dbP)

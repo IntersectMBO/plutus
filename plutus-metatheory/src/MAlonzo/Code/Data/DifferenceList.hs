@@ -1,26 +1,26 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.DifferenceList where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Function.Base qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Function.Base
 
 -- Data.DifferenceList.DiffList
 d_DiffList_12 :: MAlonzo.Code.Agda.Primitive.T_Level_18 -> () -> ()
@@ -156,7 +156,7 @@ du_take_82 ::
   Integer -> ([AgdaAny] -> [AgdaAny]) -> [AgdaAny] -> [AgdaAny]
 du_take_82 v0
   = coe
-      du_lift_16 (coe MAlonzo.Code.Data.List.Base.du_take_546 (coe v0))
+      du_lift_16 (coe MAlonzo.Code.Data.List.Base.du_take_530 (coe v0))
 -- Data.DifferenceList.drop
 d_drop_86 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -166,4 +166,4 @@ du_drop_86 ::
   Integer -> ([AgdaAny] -> [AgdaAny]) -> [AgdaAny] -> [AgdaAny]
 du_drop_86 v0
   = coe
-      du_lift_16 (coe MAlonzo.Code.Data.List.Base.du_drop_558 (coe v0))
+      du_lift_16 (coe MAlonzo.Code.Data.List.Base.du_drop_542 (coe v0))

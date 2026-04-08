@@ -243,7 +243,10 @@ optDescrs =
       []
       ["bench"]
       (OptArg (set mode . Compile . Bench . maybe defBenchSecs read) "SECS")
-      ("Compile then run repeatedly up to these number of seconds (default:" ++ show defBenchSecs ++ ") and print statistics")
+      ( "Compile then run repeatedly up to these number of seconds (default:"
+          ++ show defBenchSecs
+          ++ ") and print statistics"
+      )
   , Option
       []
       ["debug"]

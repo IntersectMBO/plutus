@@ -113,7 +113,8 @@ lastpieceOptions = Hs.pure LastPiece
 -- Primes options --
 
 knownPrimes :: Hs.String
-knownPrimes = "P05, P08, P10, P20, P30, P40, P50, P60, P100, P150, or P200 (a prime with the indicated number of digits)"
+knownPrimes =
+  "P05, P08, P10, P20, P30, P40, P50, P60, P100, P150, or P200 (a prime with the indicated number of digits)"
 
 primeIdReader :: Hs.String -> Either Hs.String Prime.PrimeID
 primeIdReader "P05" = Right Prime.P5
@@ -183,7 +184,9 @@ progAndArgs =
         <> command "knights" (info knightsOptions (progDesc "Run the Knights benchmark"))
         <> command "lastpiece" (info lastpieceOptions (progDesc "Run the Lastpiece benchmark"))
         <> command "prime" (info primeOptions (progDesc "Run the Prime benchmark on a known prime (see help)"))
-        <> command "primetest" (info primetestOptions (progDesc "Run the Prime benchmark on a positive integer N"))
+        <> command
+          "primetest"
+          (info primetestOptions (progDesc "Run the Prime benchmark on a positive integer N"))
     )
 
 options :: Parser Options
@@ -354,7 +357,12 @@ printSizesAndBudgets = do
         , ("queens5x5/bjbt2", Queens.mkQueensCode 5 Queens.Bjbt2)
         , ("queens5x5/fc", Queens.mkQueensCode 5 Queens.Fc)
         ]
-      statistics = map getInfo clausify ++ map getInfo knights ++ map getInfo primetest ++ map getInfo queens4x4 ++ map getInfo queens5x5
+      statistics =
+        map getInfo clausify
+          ++ map getInfo knights
+          ++ map getInfo primetest
+          ++ map getInfo queens4x4
+          ++ map getInfo queens5x5
       formatInfo (name, size, cpu, mem) = printf "%-20s %10d %15d %15d\n" name size cpu mem
 
   putStrLn "Script                     Size     CPU budget      Memory budget"
@@ -363,7 +371,8 @@ printSizesAndBudgets = do
 
 main :: IO ()
 main = do
-  execParser (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
+  execParser
+    (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
     RunPLC pa ->
       print . prettyPlc . fmap fromNamedDeBruijnUPLC . evaluateWithCek . getTerm $ pa
     RunHaskell pa ->

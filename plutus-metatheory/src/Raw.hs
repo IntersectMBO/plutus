@@ -131,7 +131,9 @@ unconvK _ = Type ()
 -- this should take a level and render levels as names
 unconvT :: Int -> RType -> Type NamedTyDeBruijn DefaultUni ()
 unconvT i (RTyVar x) =
-  TyVar () (NamedTyDeBruijn (NamedDeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (fromInteger x))))
+  TyVar
+    ()
+    (NamedTyDeBruijn (NamedDeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (fromInteger x))))
 unconvT i (RTyFun t u) = TyFun () (unconvT i t) (unconvT i u)
 unconvT i (RTyPi k t) =
   TyForall () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i + 1) t)

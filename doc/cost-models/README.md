@@ -24,6 +24,7 @@ Then open your browser to:
 - **UnValueData** - Converts Data back to Value (2D plot)
 - **ValueContains** - Checks if one Value contains another (3D plot)
 - **LookupCoin** - Looks up a coin in a Value (2D plot)
+- **IndexByteString** - Retrieves a byte at a given index from a ByteString (2D plot)
 
 ## Project Structure
 

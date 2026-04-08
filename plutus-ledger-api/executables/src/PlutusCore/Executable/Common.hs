@@ -306,7 +306,12 @@ parseInput inp = do
           error $ PP.render $ pretty err
         Right _ -> pure (contents, p)
 
--- Read UPLC/PLC/PIR code in either textual or Flat format, depending on 'fmt'
+blueprintFormatError :: String
+blueprintFormatError =
+  "The blueprint format is only supported in the optimise command. "
+    <> "For other commands, use the hex format to process a single validator in the blueprint."
+
+-- Read a single UPLC/PLC/PIR program.
 readProgram
   :: forall p
    . ( ProgramLike p
@@ -328,6 +333,7 @@ readProgram fmt inp =
     Flat flatMode -> do
       prog <- loadASTfromFlat @p @() flatMode inp
       pure $ topSrcSpan <$ prog
+    Blueprint -> fail blueprintFormatError
 
 -- | A made-up `SrcSpan` since there's no source locations in Flat.
 topSrcSpan :: PLC.SrcSpan
@@ -383,6 +389,7 @@ writeProgram outp Textual mode prog = writePrettyToOutput outp mode prog
 writeProgram outp Serialised _ prog = writeSerialised outp $ serialiseAST (void prog)
 writeProgram outp Hex _ prog = writeText outp . T.decodeUtf8 . Base16.encode $ serialiseAST (void prog)
 writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
+writeProgram _ Blueprint _ _ = fail blueprintFormatError
 
 writePrettyToOutput
   :: PP.PrettyBy PP.PrettyConfigPlc (p ann) => Output -> PrintMode -> p ann -> IO ()

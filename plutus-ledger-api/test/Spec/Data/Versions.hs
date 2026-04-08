@@ -450,7 +450,10 @@ testRmdr =
         assertBool "remdr2" $ isRight $ V2.deserialiseScript valentinePV $ errorScript <> "remdr2"
         assertBool "remdr1c" $ isRight $ V1.deserialiseScript changPV $ errorScript <> "remdr1"
         assertBool "remdr2c" $ isRight $ V2.deserialiseScript changPV $ errorScript <> "remdr2"
-        assertEqual "remdr3" (RemainderError "remdr3") $ fromLeft (Prelude.error "Expected Reft, got Right") $ V3.deserialiseScript changPV $ errorScript <> "remdr3"
+        assertEqual "remdr3" (RemainderError "remdr3") $
+          fromLeft (Prelude.error "Expected Reft, got Right") $
+            V3.deserialiseScript changPV $
+              errorScript <> "remdr3"
     , testProperty "remdr1gen" $ \remdr -> isRight $ V1.deserialiseScript valentinePV $ errorScript <> BSS.pack remdr
     , testProperty "remdr2gen" $ \remdr -> isRight $ V2.deserialiseScript valentinePV $ errorScript <> BSS.pack remdr
     , testProperty "remdr1genc" $ \remdr -> isRight $ V1.deserialiseScript changPV $ errorScript <> BSS.pack remdr

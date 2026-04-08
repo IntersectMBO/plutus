@@ -1,37 +1,37 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Reflection.AST.Literal where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Char qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Float qualified
-import MAlonzo.Code.Agda.Builtin.Reflection qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Data.Char.Properties qualified
-import MAlonzo.Code.Data.Float.Properties qualified
-import MAlonzo.Code.Data.Nat.Properties qualified
-import MAlonzo.Code.Data.String.Properties qualified
-import MAlonzo.Code.Data.Word64.Properties qualified
-import MAlonzo.Code.Reflection.AST.Meta qualified
-import MAlonzo.Code.Reflection.AST.Name qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Char
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Float
+import qualified MAlonzo.Code.Agda.Builtin.Reflection
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Data.Char.Properties
+import qualified MAlonzo.Code.Data.Float.Properties
+import qualified MAlonzo.Code.Data.Nat.Properties
+import qualified MAlonzo.Code.Data.String.Properties
+import qualified MAlonzo.Code.Data.Word64.Properties
+import qualified MAlonzo.Code.Reflection.AST.Meta
+import qualified MAlonzo.Code.Reflection.AST.Name
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 -- Reflection.AST.Literal.meta-injective
 d_meta'45'injective_10 ::
@@ -93,10 +93,10 @@ d__'8799'__48 v0 v1
         -> case coe v1 of
              MAlonzo.Code.Agda.Builtin.Reflection.C_nat_128 v3
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     erased erased
                     (coe
-                       MAlonzo.Code.Data.Nat.Properties.d__'8799'__2688 (coe v2) (coe v3))
+                       MAlonzo.Code.Data.Nat.Properties.d__'8799'__2796 (coe v2) (coe v3))
              MAlonzo.Code.Agda.Builtin.Reflection.C_word64_132 v3
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
@@ -137,7 +137,7 @@ d__'8799'__48 v0 v1
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              MAlonzo.Code.Agda.Builtin.Reflection.C_word64_132 v3
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     erased erased
                     (coe
                        MAlonzo.Code.Data.Word64.Properties.d__'8799'__52 (coe v2)
@@ -182,7 +182,7 @@ d__'8799'__48 v0 v1
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              MAlonzo.Code.Agda.Builtin.Reflection.C_float_136 v3
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     erased erased
                     (coe
                        MAlonzo.Code.Data.Float.Properties.d__'8799'__52 (coe v2) (coe v3))
@@ -226,7 +226,7 @@ d__'8799'__48 v0 v1
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              MAlonzo.Code.Agda.Builtin.Reflection.C_char_140 v3
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     erased erased
                     (coe
                        MAlonzo.Code.Data.Char.Properties.d__'8799'__14 (coe v2) (coe v3))
@@ -270,7 +270,7 @@ d__'8799'__48 v0 v1
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              MAlonzo.Code.Agda.Builtin.Reflection.C_string_144 v3
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     erased erased
                     (coe
                        MAlonzo.Code.Data.String.Properties.d__'8799'__54 (coe v2)
@@ -315,7 +315,7 @@ d__'8799'__48 v0 v1
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              MAlonzo.Code.Agda.Builtin.Reflection.C_name_148 v3
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     erased erased
                     (coe
                        MAlonzo.Code.Reflection.AST.Name.d__'8799'__12 (coe v2) (coe v3))
@@ -359,7 +359,7 @@ d__'8799'__48 v0 v1
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              MAlonzo.Code.Agda.Builtin.Reflection.C_meta_152 v3
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     erased erased
                     (coe
                        MAlonzo.Code.Reflection.AST.Meta.d__'8799'__10 (coe v2) (coe v3))
@@ -371,5 +371,5 @@ d__'8801''7495'__246 ::
   MAlonzo.Code.Agda.Builtin.Reflection.T_Literal_124 -> Bool
 d__'8801''7495'__246 v0 v1
   = coe
-      MAlonzo.Code.Relation.Nullary.Decidable.Core.du_isYes_122
+      MAlonzo.Code.Relation.Nullary.Decidable.Core.du_isYes_132
       (coe d__'8799'__48 (coe v0) (coe v1))

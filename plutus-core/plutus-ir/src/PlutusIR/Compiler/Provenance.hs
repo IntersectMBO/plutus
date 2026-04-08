@@ -56,6 +56,13 @@ instance AnnInline a => AnnInline (Provenance a) where
   annSafeToInline = Original annSafeToInline
   annMayInline = Original annMayInline
 
+instance AnnCase a => AnnCase (Provenance a) where
+  annSafeToDrop = Original annSafeToDrop
+  annNotSafeToDrop = Original annNotSafeToDrop
+  annIsSafeToDrop = \case
+    Original a -> annIsSafeToDrop a
+    _ -> False
+
 data DatatypeComponent
   = Constructor
   | ConstructorType

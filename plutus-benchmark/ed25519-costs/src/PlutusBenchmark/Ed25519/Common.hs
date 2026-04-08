@@ -145,7 +145,9 @@ verifyInputs hash d =
 verification script to that. -}
 mkSigCheckScript :: Integer -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkSigCheckScript n =
-  Tx.getPlcNoAnn $ $$(Tx.compile [||verifyInputs builtinHash||]) `Tx.unsafeApplyCode` Tx.liftCodeDef (mkInputsAsData n haskellHash)
+  Tx.getPlcNoAnn
+    $ $$(Tx.compile [||verifyInputs builtinHash||])
+    `Tx.unsafeApplyCode` Tx.liftCodeDef (mkInputsAsData n haskellHash)
 
 printSigCheckCosts :: Handle -> Integer -> IO ()
 printSigCheckCosts h n = printSizeStatistics h (TestSize n) (mkSigCheckScript n)

@@ -3,7 +3,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Main
   ( main
@@ -16,6 +15,7 @@ import Check.Spec qualified as Check
 import CostModelInterface.Spec
 import CostModelSafety.Spec
 import Evaluation.Spec (test_evaluation)
+import Flat.Spec qualified as FlatSpec
 import Generators.QuickCheck.Utils (test_utils)
 import Names.Spec
 import Normalization.Check
@@ -221,7 +221,8 @@ format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 testsGolden :: [FilePath] -> TestTree
 testsGolden =
   testGroup "golden tests"
-    . fmap (asGolden (modifyError ParseErrorE . format (prettyConfigPlcClassicSimple prettyConfigPlcOptions)))
+    . fmap
+      (asGolden (modifyError ParseErrorE . format (prettyConfigPlcClassicSimple prettyConfigPlcOptions)))
 
 testsRewrite :: [FilePath] -> TestTree
 testsRewrite =
@@ -268,4 +269,5 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , Parser.tests
     , Value.tests
     , test_utils
+    , FlatSpec.tests
     ]

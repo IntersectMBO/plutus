@@ -32,6 +32,10 @@ tests =
           "destructSum-manual"
           destructSumManual
           (destructSumManual `unsafeApplyCode` inpSumM)
+      , goldenBundle
+          "richSumSingleField"
+          richSumSingleField
+          (richSumSingleField `unsafeApplyCode` inpRichSum)
       ]
 
 -- A function that only accesses the first field of `Ints`.
@@ -107,15 +111,17 @@ destructSum :: CompiledCode (PlutusTx.BuiltinData -> Ints)
 destructSum =
   plinthc
     ( \d ->
-        case PlutusTx.unsafeFromBuiltinData d of
-          ThisD is -> is
-          ThatD is -> is
-          TheseD (Ints x1 y1 z1 w1) (Ints x2 y2 z2 w2) ->
-            Ints
-              (x1 `PlutusTx.addInteger` x2)
-              (y1 `PlutusTx.addInteger` y2)
-              (z1 `PlutusTx.addInteger` z2)
-              (w1 `PlutusTx.addInteger` w2)
+        matchTheseD
+          (PlutusTx.unsafeFromBuiltinData d)
+          (\is -> is)
+          (\is -> is)
+          ( \(Ints x1 y1 z1 w1) (Ints x2 y2 z2 w2) ->
+              Ints
+                (x1 `PlutusTx.addInteger` x2)
+                (y1 `PlutusTx.addInteger` y2)
+                (z1 `PlutusTx.addInteger` z2)
+                (w1 `PlutusTx.addInteger` w2)
+          )
     )
 
 destructSumManual :: CompiledCode (PlutusTx.BuiltinData -> Ints)
@@ -133,6 +139,18 @@ destructSumManual =
               (w1 `PlutusTx.addInteger` w2)
     )
 
+-- Only a small number of fields of a sum type are accessed.
+richSumSingleField :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richSumSingleField =
+  plinthc
+    ( \d ->
+        matchRichSum
+          (PlutusTx.unsafeFromBuiltinData d)
+          (\a _ _ _ _ _ -> a)
+          (\_ b _ _ _ _ _ -> b)
+          (\_ _ c _ _ _ _ _ -> c)
+    )
+
 inp :: CompiledCode PlutusTx.BuiltinData
 inp = liftCodeDef (PlutusTx.toBuiltinData (Ints 10 20 30 40))
 
@@ -141,3 +159,6 @@ inpSum = liftCodeDef (PlutusTx.toBuiltinData (TheseD (Ints 10 20 30 40) (Ints 10
 
 inpSumM :: CompiledCode PlutusTx.BuiltinData
 inpSumM = liftCodeDef (PlutusTx.toBuiltinData (TheseDManual (Ints 10 20 30 40) (Ints 10 20 30 40)))
+
+inpRichSum :: CompiledCode PlutusTx.BuiltinData
+inpRichSum = liftCodeDef (PlutusTx.toBuiltinData (RichC 10 20 30 40 50 60 70 80))

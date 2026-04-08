@@ -183,7 +183,8 @@ prop_agree_termEval tyG tmG = do
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
-    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("untyped CK", tmUCk), ("untyped CEK", tmUCek)])
+    throwCtrex
+      (CtrexUntypedTermEvaluationMismatch tyG tmG [("untyped CK", tmUCk), ("untyped CEK", tmUCek)])
 
 {-| Property: the following diagram commutes for well-kinded types...
 
