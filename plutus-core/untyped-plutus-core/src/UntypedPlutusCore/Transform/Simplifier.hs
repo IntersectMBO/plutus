@@ -57,18 +57,18 @@ execSimplifier :: Simplifier name uni fun ann a -> Trace.SimplifierTrace name un
 execSimplifier = runIdentity . execSimplifierT
 
 recordSimplification
-  :: Monad m
+  :: (Show isCertified, Monad m)
   => Term name uni fun a
-  -> Trace.SimplifierStage
+  -> Trace.SimplifierStage isCertified
   -> Term name uni fun a
   -> SimplifierT name uni fun a m ()
 recordSimplification = recordSimplificationWithHints Hints.NoHints
 
 recordSimplificationWithHints
-  :: Monad m
+  :: (Show isCertified, Monad m)
   => Hints.Hints
   -> Term name uni fun a
-  -> Trace.SimplifierStage
+  -> Trace.SimplifierStage isCertified
   -> Term name uni fun a
   -> SimplifierT name uni fun a m ()
 recordSimplificationWithHints hints before stage after =

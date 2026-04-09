@@ -9,6 +9,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+{-# LANGUAGE GADTs #-}
 
 module MAlonzo.Code.VerifiedCompilation where
 
@@ -34,6 +35,7 @@ import qualified MAlonzo.Code.VerifiedCompilation.UForceCaseDelay
 import qualified MAlonzo.Code.VerifiedCompilation.UForceDelay
 import qualified MAlonzo.Code.VerifiedCompilation.UInline
 
+import UntypedPlutusCore.Transform.Certify.Trace
 -- VerifiedCompilation.Error
 d_Error_2 = ()
 data T_Error_2
@@ -80,14 +82,87 @@ d_hasRelation_16 v0
   = coe
       MAlonzo.Code.Data.Maybe.Base.du_is'45'just_20
       (coe d_mRelationOf_12 (coe v0))
+-- VerifiedCompilation.Yes
+d_Yes_18 = ()
+type T_Yes_18 = Yes
+pattern C_yes_20 = Yes
+check_yes_20 :: T_Yes_18
+check_yes_20 = Yes
+cover_Yes_18 :: Yes -> ()
+cover_Yes_18 x
+  = case x of
+      Yes -> ()
+-- VerifiedCompilation.No
+d_No_22 = ()
+type T_No_22 = No
+pattern C_no_24 = No
+check_no_24 :: T_No_22
+check_no_24 = No
+cover_No_22 :: No -> ()
+cover_No_22 x
+  = case x of
+      No -> ()
+-- VerifiedCompilation.CertifierImplements
+d_CertifierImplements_26 a0 = ()
+type T_CertifierImplements_26 = CertifierImplements
+pattern C_certFloatDelay_28 = CertFloatDelay
+pattern C_certForceDelay_30 = CertForceDelay
+pattern C_certCaseOfCase_32 = CertCaseOfCase
+pattern C_certCaseReduce_34 = CertCaseReduce
+pattern C_certInline_36 = CertInline
+pattern C_certCSE_38 = CertCSE
+pattern C_certApplyToCase_40 = CertApplyToCase
+pattern C_certUnknown_42 = CertUnknown
+check_certFloatDelay_28 :: T_CertifierImplements_26 T_Yes_18
+check_certFloatDelay_28 = CertFloatDelay
+check_certForceDelay_30 :: T_CertifierImplements_26 T_Yes_18
+check_certForceDelay_30 = CertForceDelay
+check_certCaseOfCase_32 :: T_CertifierImplements_26 T_No_22
+check_certCaseOfCase_32 = CertCaseOfCase
+check_certCaseReduce_34 :: T_CertifierImplements_26 T_Yes_18
+check_certCaseReduce_34 = CertCaseReduce
+check_certInline_36 :: T_CertifierImplements_26 T_Yes_18
+check_certInline_36 = CertInline
+check_certCSE_38 :: T_CertifierImplements_26 T_Yes_18
+check_certCSE_38 = CertCSE
+check_certApplyToCase_40 :: T_CertifierImplements_26 T_Yes_18
+check_certApplyToCase_40 = CertApplyToCase
+check_certUnknown_42 :: T_CertifierImplements_26 T_No_22
+check_certUnknown_42 = CertUnknown
+cover_CertifierImplements_26 :: CertifierImplements a1 -> ()
+cover_CertifierImplements_26 x
+  = case x of
+      CertFloatDelay -> ()
+      CertForceDelay -> ()
+      CertCaseOfCase -> ()
+      CertCaseReduce -> ()
+      CertInline -> ()
+      CertCSE -> ()
+      CertApplyToCase -> ()
+      CertUnknown -> ()
+-- VerifiedCompilation.f
+d_f_46 :: () -> T_CertifierImplements_26 AgdaAny -> AgdaAny
+d_f_46 ~v0 v1 = du_f_46 v1
+du_f_46 :: T_CertifierImplements_26 AgdaAny -> AgdaAny
+du_f_46 v0
+  = case coe v0 of
+      C_certFloatDelay_28 -> coe C_yes_20
+      C_certForceDelay_30 -> coe C_yes_20
+      C_certCaseOfCase_32 -> coe C_no_24
+      C_certCaseReduce_34 -> coe C_yes_20
+      C_certInline_36 -> coe C_yes_20
+      C_certCSE_38 -> coe C_yes_20
+      C_certApplyToCase_40 -> coe C_yes_20
+      C_certUnknown_42 -> coe C_no_24
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.certifyPass
-d_certifyPass_24 ::
+d_certifyPass_54 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
   MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_52 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_CertResult_12
-d_certifyPass_24 v0 v1
+d_certifyPass_54 v0 v1
   = case coe v0 of
       MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6
         -> coe
@@ -149,25 +224,25 @@ d_certifyPass_24 v0 v1
                   MAlonzo.Code.VerifiedCompilation.NotImplemented.du_certNotImplemented_22)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Certificate
-d_Certificate_32 ::
+d_Certificate_62 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_Trace_60 -> ()
-d_Certificate_32 = erased
+d_Certificate_62 = erased
 -- VerifiedCompilation.certify
-d_certify_44 ::
+d_certify_74 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_Trace_60 ->
   MAlonzo.Code.Utils.T_Either_6 T_Error_2 AgdaAny
-d_certify_44 v0
+d_certify_74 v0
   = case coe v0 of
       MAlonzo.Code.VerifiedCompilation.Trace.C_step_64 v1 v2 v3 v4
         -> let v5
                  = coe
-                     d_certifyPass_24 v1 v2 v3
+                     d_certifyPass_54 v1 v2 v3
                      (MAlonzo.Code.VerifiedCompilation.Trace.d_head_70 (coe v4)) in
            coe
              (case coe v5 of
                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_18 v6
                   -> coe
-                       MAlonzo.Code.Utils.du_eitherBind_54 (coe d_certify_44 (coe v4))
+                       MAlonzo.Code.Utils.du_eitherBind_54 (coe d_certify_74 (coe v4))
                        (coe
                           (\ v7 ->
                              coe
@@ -185,41 +260,41 @@ d_certify_44 v0
              (coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.cert
-d_cert_94 ::
+d_cert_124 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_Trace_60 ->
   MAlonzo.Code.Utils.T_Either_6 T_Error_2 AgdaAny ->
   AgdaAny -> AgdaAny
-d_cert_94 ~v0 v1 v2 = du_cert_94 v1 v2
-du_cert_94 ::
+d_cert_124 ~v0 v1 v2 = du_cert_124 v1 v2
+du_cert_124 ::
   MAlonzo.Code.Utils.T_Either_6 T_Error_2 AgdaAny ->
   AgdaAny -> AgdaAny
-du_cert_94 v0 v1
+du_cert_124 v0 v1
   = case coe v0 of
       MAlonzo.Code.Utils.C_inj'8322'_14 v2 -> coe seq (coe v1) (coe v2)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.checkScope
-d_checkScope_98 ::
+d_checkScope_128 ::
   MAlonzo.Code.RawU.T_Untyped_208 ->
   Maybe MAlonzo.Code.Untyped.T__'8866'_14
-d_checkScope_98 v0
+d_checkScope_128 v0
   = coe
       MAlonzo.Code.Utils.du_eitherToMaybe_104
       (coe MAlonzo.Code.Untyped.d_scopeCheckU0_276 (coe v0))
 -- VerifiedCompilation.checkScopeᵗ
-d_checkScope'7511'_100 ::
+d_checkScope'7511'_130 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_Trace_60 ->
   Maybe MAlonzo.Code.VerifiedCompilation.Trace.T_Trace_60
-d_checkScope'7511'_100 v0
+d_checkScope'7511'_130 v0
   = case coe v0 of
       MAlonzo.Code.VerifiedCompilation.Trace.C_step_64 v1 v2 v3 v4
         -> coe
              MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72
-             (coe d_checkScope_98 (coe v3))
+             (coe d_checkScope_128 (coe v3))
              (coe
                 (\ v5 ->
                    coe
                      MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72
-                     (coe d_checkScope'7511'_100 (coe v4))
+                     (coe d_checkScope'7511'_130 (coe v4))
                      (coe
                         (\ v6 ->
                            coe
@@ -230,7 +305,7 @@ d_checkScope'7511'_100 v0
       MAlonzo.Code.VerifiedCompilation.Trace.C_done_66 v1
         -> coe
              MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72
-             (coe d_checkScope_98 (coe v1))
+             (coe d_checkScope_128 (coe v1))
              (coe
                 (\ v2 ->
                    coe

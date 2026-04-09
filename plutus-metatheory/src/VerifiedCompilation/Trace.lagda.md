@@ -8,6 +8,7 @@ operates on. It contains all the ASTs of the performed passes together with some
 information about that pass.
 
 ```
+{-# OPTIONS --allow-unsolved-metas #-}
 module VerifiedCompilation.Trace where
 
 open import RawU using (Untyped)
@@ -22,19 +23,39 @@ open Maybe
 We enumerate the known passes:
 
 ```
-data SimplifierTag : Set where
-  floatDelayT : SimplifierTag
-  forceDelayT : SimplifierTag
-  forceCaseDelayT : SimplifierTag
-  caseOfCaseT : SimplifierTag
-  caseReduceT : SimplifierTag
-  inlineT : SimplifierTag
-  cseT : SimplifierTag
-  applyToCaseT : SimplifierTag
-  unknown : SimplifierTag -- a placeholder for passes that we don't yet know of, so the certifier doesn't break if a pass was added
+
+data Certified : Set where
+  certified : Certified
+
+data NotCertified : Set where
+  notCertified : NotCertified
+
+data SimplifierTag : Set → Set where
+  floatDelayT : SimplifierTag Certified
+  forceDelayT : SimplifierTag Certified
+  forceCaseDelayT : SimplifierTag Certified
+  caseOfCaseT : SimplifierTag NotCertified
+  caseReduceT : SimplifierTag Certified
+  inlineT : SimplifierTag Certified
+  cseT : SimplifierTag Certified
+  applyToCaseT : SimplifierTag Certified
+  unknown : SimplifierTag NotCertified -- a placeholder for passes that we don't yet know of, so the certifier doesn't break if a pass was added
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
+{-# FOREIGN GHC {-# LANGUAGE GADTs #-} #-}
 {-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE | ApplyToCase | Unknown) #-}
+
+isCertified? : {isCertified : Set} → SimplifierTag isCertified → isCertified
+isCertified? floatDelayT = certified
+isCertified? forceDelayT = certified
+isCertified? forceCaseDelayT = certified
+isCertified? caseOfCaseT = notCertified
+isCertified? caseReduceT = certified
+isCertified? inlineT = certified
+isCertified? cseT = certified
+isCertified? applyToCaseT = certified
+isCertified? unknown = notCertified
+
 ```
 
 ## Hints
@@ -74,16 +95,29 @@ information about which pass was performed.
 
 ```
 
-data Trace (A : Set) : Set where
+-- record Step (A : Set) : Set₁ where
+--   constructor certifierStep
+--   field
+--     isCertified : Set
+--     tag : SimplifierTag isCertified
+--     hints : Hints
+--     inputTerm : A
+
+data Step (A : Set) : Set where
+  implementedStep : SimplifierTag Certified → Hints → A → Step A
+  notImplementedStep : SimplifierTag NotCertified → Hints → A → Step A
+
+data Trace (A : Set) : Set₁ where
   -- One step in the pipeline, with its pass and input term
-  step : SimplifierTag → Hints → A → Trace A → Trace A
+  step : Step A → Trace A → Trace A 
   -- Final AST in the trace
   done : A → Trace A
 
 -- Get the first term in the trace
 head : ∀{A} → Trace A → A
-head (done x) = x
-head (step _ _ x _) = x
+head (done term) = term
+head (step (implementedStep _ _ x) _) = x
+head (step (notImplementedStep _ _ x) _) = x
 
 ```
 
@@ -91,10 +125,17 @@ head (step _ _ x _) = x
 
 ```
 
+record DumpStep : Set₁ where
+  constructor dumpStep
+  field
+    isCertified : Set
+    tag : SimplifierTag isCertified
+    hints : Hints
+    inputTerm : Untyped
+    outputTerm : Untyped
 
 -- The current trace structure dumped from Haskell
-Dump : Set
-Dump = List (SimplifierTag × Hints × Untyped × Untyped)
+Dump = List DumpStep
 
 --
 -- Since there is duplication in the dump, i.e. it is of the form
@@ -108,9 +149,24 @@ toTrace : Dump → Maybe (Trace Untyped)
 toTrace [] = nothing
 toTrace (x ∷ xs) = just (go x xs)
   where
-    go : SimplifierTag × Hints × Untyped × Untyped → Dump → Trace Untyped
-    go (pass , hints , x , y) [] = step pass hints x (done y)
-    go (pass , hints , x , y) ((pass' , hints' , _ , z) ∷ xs) = step pass hints x (go (pass' , hints' , y , z) xs)
+    go : DumpStep → Dump → Trace Untyped
+    go bl fl = {!   !}
+    -- go (dumpStep _ floatDelayT hints x y) [] with isCertified? floatDelayT
+    -- ... | certified = {! UFlD.FloatDelay  !}
+    -- go (dumpStep _ forceDelayT hints x y) [] = {!   !}
+    -- go (dumpStep _ forceCaseDelayT hints x y) [] = {!   !}
+    -- go (dumpStep _ caseOfCaseT hints x y) [] = {!   !}
+    -- go (dumpStep _ caseReduceT hints x y) [] = {!   !}
+    -- go (dumpStep _ inlineT hints x y) [] = {!   !}
+    -- go (dumpStep _ cseT hints x y) [] = {!   !}
+    -- go (dumpStep _ applyToCaseT hints x y) [] = {!   !}
+    -- go (dumpStep _ unknown hints x y) [] = {!   !} -- with isCertified? pass
+    -- ... | certified =
+    --         step (implementedStep pass hints x) (done y)
+    -- ... | notCertified =
+    --         step (notImplementedStep pass hints x) (done y)
+    -- go (dumpStep ty pass hints x y) ((dumpStep ty' pass' hints' _  z) ∷ xs) =
+    --   step (certifierStep ty pass hints x) (go (dumpStep ty' pass' hints' y z) xs)
 ```
 
 `EvalResult` is used to report script execution costs, before and after an optimisation (or optimisations).
