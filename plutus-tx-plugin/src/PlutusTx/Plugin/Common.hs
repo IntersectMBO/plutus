@@ -174,7 +174,10 @@ injectAnchors env = do
         "Plinth.Plugin"
         (GHC.text $ "Could not find module " <> plinthcModName)
   let binds = GHC.tcg_binds env
-      bindsAnchored = Compat.modifyBinds (transformBi (anchorExpr anchorId)) binds
+      bindsAnchored =
+        Compat.modifyBinds
+          (transformBi (stripGuardAnchors anchorId) . transformBi (anchorExpr anchorId))
+          binds
   pure env {GHC.tcg_binds = bindsAnchored}
 
 -- | Wrap an @HsExpr@ with @anchor@.
@@ -223,6 +226,28 @@ isAnchorApp marker = (Just marker ==) . appHead
       GHC.XExpr (Compat.WrapExpr e) -> appHead e
       Compat.HsPar (GHC.L _ e) -> appHead e
       _ -> Nothing
+
+{-| Remove anchors in guards. We can't wrap `otherwise` with an anchor, since it would
+cause GHC to emit a "non-exhuastive" warning. In general, anchors in guards are
+probably not very useful, so we remove all anchors within guards. -}
+stripGuardAnchors
+  :: GHC.Id
+  -> GHC.GRHS GHC.GhcTc (GHC.LHsExpr GHC.GhcTc)
+  -> GHC.GRHS GHC.GhcTc (GHC.LHsExpr GHC.GhcTc)
+stripGuardAnchors anchorId (GHC.GRHS x guards body) =
+  GHC.GRHS x (transformBi (stripHsAnchor anchorId) guards) body
+
+stripHsAnchor :: GHC.Id -> GHC.LHsExpr GHC.GhcTc -> GHC.LHsExpr GHC.GhcTc
+stripHsAnchor anchorId le@(GHC.L _ e)
+  | GHC.HsApp _ (GHC.L _ f) arg <- e
+  , isAnchor f =
+      arg
+  | otherwise = le
+  where
+    isAnchor = \case
+      GHC.HsVar _ (GHC.L _ v) -> v == anchorId
+      GHC.XExpr (Compat.WrapExpr inner) -> isAnchor inner
+      _ -> False
 
 {- Note [GHC.sm_pre_inline]
 We run a GHC simplifier pass before the plugin, in which we turn on `sm_pre_inline`, which
@@ -496,8 +521,8 @@ compileMarkedExprs expr = do
         | markerName == GHC.idName fid -> compileMarkedExprOrDefer (show fs_locStr) codeTy inner
     GHC.App
       ( GHC.App
-          (stripAnchors anchorGhcName -> (GHC.Var fid))
-          (stripAnchors anchorGhcName -> GHC.Type codeTy)
+          (stripCoreAnchors anchorGhcName -> (GHC.Var fid))
+          (stripCoreAnchors anchorGhcName -> GHC.Type codeTy)
         )
       -- code to be compiled
       inner
@@ -893,11 +918,11 @@ stripTicks = \case
   GHC.Tick _ e -> stripTicks e
   e -> e
 
-stripAnchors :: GHC.Name -> GHC.CoreExpr -> GHC.CoreExpr
-stripAnchors marker = \case
-  GHC.Tick _ e -> stripAnchors marker e
+stripCoreAnchors :: GHC.Name -> GHC.CoreExpr -> GHC.CoreExpr
+stripCoreAnchors marker = \case
+  GHC.Tick _ e -> stripCoreAnchors marker e
   GHC.App (GHC.App (GHC.App (GHC.Var f) _locTy) _codeTy) code
-    | GHC.getName f == marker -> stripAnchors marker code
+    | GHC.getName f == marker -> stripCoreAnchors marker code
   other -> other
 
 -- | Helper to avoid doing too much construction of Core ourselves

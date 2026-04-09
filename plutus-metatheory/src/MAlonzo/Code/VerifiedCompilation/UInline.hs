@@ -654,23 +654,82 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_builtin_44 v10
                          -> let v11
-                                  = MAlonzo.Code.Builtin.d_decBuiltin_426 (coe v9) (coe v10) in
+                                  = coe
+                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
+                                      erased
+                                      (\ v11 ->
+                                         coe
+                                           MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
+                                           (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v9)))
+                                      (coe
+                                         MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                         (coe
+                                            eqInt
+                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v9))
+                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v10)))
+                                         (coe
+                                            MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
+                                            (coe
+                                               eqInt
+                                               (coe MAlonzo.Code.Builtin.d_enumBuiltin_426 (coe v9))
+                                               (coe
+                                                  MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                  (coe v10))))) in
                             coe
                               (case coe v11 of
                                  MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v12 v13
                                    -> if coe v12
-                                        then coe
-                                               seq (coe v13)
-                                               (coe
-                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_72
-                                                  (coe C_builtin_270))
-                                        else coe
-                                               seq (coe v13)
-                                               (coe
-                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
-                                                  (coe
-                                                     MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_16)
-                                                  v6 v7)
+                                        then let v14
+                                                   = seq
+                                                       (coe v13)
+                                                       (coe
+                                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                          (coe v12)
+                                                          (coe
+                                                             MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                             erased)) in
+                                             coe
+                                               (case coe v14 of
+                                                  MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v15 v16
+                                                    -> if coe v15
+                                                         then coe
+                                                                seq (coe v16)
+                                                                (coe
+                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_72
+                                                                   (coe C_builtin_270))
+                                                         else coe
+                                                                seq (coe v16)
+                                                                (coe
+                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
+                                                                   (coe
+                                                                      MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_16)
+                                                                   v6 v7)
+                                                  _ -> MAlonzo.RTE.mazUnreachableError)
+                                        else (let v14
+                                                    = seq
+                                                        (coe v13)
+                                                        (coe
+                                                           MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                           (coe v12)
+                                                           (coe
+                                                              MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)) in
+                                              coe
+                                                (case coe v14 of
+                                                   MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v15 v16
+                                                     -> if coe v15
+                                                          then coe
+                                                                 seq (coe v16)
+                                                                 (coe
+                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_72
+                                                                    (coe C_builtin_270))
+                                                          else coe
+                                                                 seq (coe v16)
+                                                                 (coe
+                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
+                                                                    (coe
+                                                                       MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_16)
+                                                                    v6 v7)
+                                                   _ -> MAlonzo.RTE.mazUnreachableError))
                                  _ -> MAlonzo.RTE.mazUnreachableError)
                        _ -> coe v8
                 _ -> coe v8

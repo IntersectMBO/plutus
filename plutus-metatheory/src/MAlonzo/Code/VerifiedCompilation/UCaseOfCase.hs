@@ -160,39 +160,125 @@ d_isCoCCase'63'_58 v0 v1
                                                                                                                                      (coe
                                                                                                                                         v9)
                                                                                                                                      (let v40
-                                                                                                                                            = MAlonzo.Code.Builtin.d_decBuiltin_426
+                                                                                                                                            = coe
+                                                                                                                                                MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
+                                                                                                                                                erased
+                                                                                                                                                (\ v40 ->
+                                                                                                                                                   coe
+                                                                                                                                                     MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
+                                                                                                                                                     (coe
+                                                                                                                                                        MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                        (coe
+                                                                                                                                                           v33)))
                                                                                                                                                 (coe
-                                                                                                                                                   v33)
-                                                                                                                                                (coe
-                                                                                                                                                   MAlonzo.Code.Builtin.C_ifThenElse_60) in
+                                                                                                                                                   MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                                                   (coe
+                                                                                                                                                      eqInt
+                                                                                                                                                      (coe
+                                                                                                                                                         MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                         (coe
+                                                                                                                                                            v33))
+                                                                                                                                                      (coe
+                                                                                                                                                         MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                         (coe
+                                                                                                                                                            MAlonzo.Code.Builtin.C_ifThenElse_60)))
+                                                                                                                                                   (coe
+                                                                                                                                                      MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
+                                                                                                                                                      (coe
+                                                                                                                                                         eqInt
+                                                                                                                                                         (coe
+                                                                                                                                                            MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                            (coe
+                                                                                                                                                               v33))
+                                                                                                                                                         (coe
+                                                                                                                                                            MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                                                                                                            (coe
+                                                                                                                                                               MAlonzo.Code.Builtin.C_ifThenElse_60))))) in
                                                                                                                                       coe
                                                                                                                                         (case coe
                                                                                                                                                 v40 of
                                                                                                                                            MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v41 v42
                                                                                                                                              -> if coe
                                                                                                                                                      v41
-                                                                                                                                                  then coe
-                                                                                                                                                         seq
-                                                                                                                                                         (coe
-                                                                                                                                                            v42)
-                                                                                                                                                         (coe
-                                                                                                                                                            MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
-                                                                                                                                                            (coe
-                                                                                                                                                               v41)
-                                                                                                                                                            (coe
-                                                                                                                                                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
-                                                                                                                                                               (coe
-                                                                                                                                                                  C_isCoCCase_54)))
-                                                                                                                                                  else coe
-                                                                                                                                                         seq
-                                                                                                                                                         (coe
-                                                                                                                                                            v42)
-                                                                                                                                                         (coe
-                                                                                                                                                            MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
-                                                                                                                                                            (coe
-                                                                                                                                                               v41)
-                                                                                                                                                            (coe
-                                                                                                                                                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                                                                                                                                  then let v43
+                                                                                                                                                             = seq
+                                                                                                                                                                 (coe
+                                                                                                                                                                    v42)
+                                                                                                                                                                 (coe
+                                                                                                                                                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                                                                    (coe
+                                                                                                                                                                       v41)
+                                                                                                                                                                    (coe
+                                                                                                                                                                       MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                                                                                                       erased)) in
+                                                                                                                                                       coe
+                                                                                                                                                         (case coe
+                                                                                                                                                                 v43 of
+                                                                                                                                                            MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v44 v45
+                                                                                                                                                              -> if coe
+                                                                                                                                                                      v44
+                                                                                                                                                                   then coe
+                                                                                                                                                                          seq
+                                                                                                                                                                          (coe
+                                                                                                                                                                             v45)
+                                                                                                                                                                          (coe
+                                                                                                                                                                             MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                                                                             (coe
+                                                                                                                                                                                v44)
+                                                                                                                                                                             (coe
+                                                                                                                                                                                MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                                                                                                                (coe
+                                                                                                                                                                                   C_isCoCCase_54)))
+                                                                                                                                                                   else coe
+                                                                                                                                                                          seq
+                                                                                                                                                                          (coe
+                                                                                                                                                                             v45)
+                                                                                                                                                                          (coe
+                                                                                                                                                                             MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                                                                             (coe
+                                                                                                                                                                                v44)
+                                                                                                                                                                             (coe
+                                                                                                                                                                                MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                                                                                                                                            _ -> MAlonzo.RTE.mazUnreachableError)
+                                                                                                                                                  else (let v43
+                                                                                                                                                              = seq
+                                                                                                                                                                  (coe
+                                                                                                                                                                     v42)
+                                                                                                                                                                  (coe
+                                                                                                                                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                                                                     (coe
+                                                                                                                                                                        v41)
+                                                                                                                                                                     (coe
+                                                                                                                                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)) in
+                                                                                                                                                        coe
+                                                                                                                                                          (case coe
+                                                                                                                                                                  v43 of
+                                                                                                                                                             MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v44 v45
+                                                                                                                                                               -> if coe
+                                                                                                                                                                       v44
+                                                                                                                                                                    then coe
+                                                                                                                                                                           seq
+                                                                                                                                                                           (coe
+                                                                                                                                                                              v45)
+                                                                                                                                                                           (coe
+                                                                                                                                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                                                                              (coe
+                                                                                                                                                                                 v44)
+                                                                                                                                                                              (coe
+                                                                                                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                                                                                                                 (coe
+                                                                                                                                                                                    C_isCoCCase_54)))
+                                                                                                                                                                    else coe
+                                                                                                                                                                           seq
+                                                                                                                                                                           (coe
+                                                                                                                                                                              v45)
+                                                                                                                                                                           (coe
+                                                                                                                                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                                                                              (coe
+                                                                                                                                                                                 v44)
+                                                                                                                                                                              (coe
+                                                                                                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                                                                                                                                             _ -> MAlonzo.RTE.mazUnreachableError))
                                                                                                                                            _ -> MAlonzo.RTE.mazUnreachableError)))
                                                                                                                            _ -> MAlonzo.RTE.mazUnreachableError)
                                                                                                                  _ -> MAlonzo.RTE.mazUnreachableError)
@@ -386,7 +472,7 @@ d_isCoCForce'63'_162 v0 v1
                                                                                                                                                                                                        = coe
                                                                                                                                                                                                            MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                                                                                                                            (coe
-                                                                                                                                                                                                              MAlonzo.Code.Builtin.d_decBuiltin_426
+                                                                                                                                                                                                              MAlonzo.Code.Builtin.d_decBuiltin_440
                                                                                                                                                                                                               (coe
                                                                                                                                                                                                                  v30)
                                                                                                                                                                                                               (coe

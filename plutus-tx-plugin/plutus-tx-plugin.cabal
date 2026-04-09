@@ -238,6 +238,8 @@ test-suite frontend-plugin-tests
   hs-source-dirs: test-frontend-plugin
   main-is:        Spec.hs
   other-modules:
+    Inlineable.Lib
+    Inlineable.Spec
     NoStrict.Spec
     Strict.Spec
 

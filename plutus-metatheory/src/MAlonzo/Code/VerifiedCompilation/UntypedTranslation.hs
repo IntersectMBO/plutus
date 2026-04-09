@@ -2526,35 +2526,129 @@ du_translation'63'_164 v0 v1 v2 v3 v4
                                       -> case coe v11 of
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v12
                                              -> let v13
-                                                      = MAlonzo.Code.Builtin.d_decBuiltin_426
-                                                          (coe v7) (coe v9) in
+                                                      = coe
+                                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
+                                                          erased
+                                                          (\ v13 ->
+                                                             coe
+                                                               MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
+                                                               (coe
+                                                                  MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                  (coe v7)))
+                                                          (coe
+                                                             MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                             (coe
+                                                                eqInt
+                                                                (coe
+                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                   (coe v7))
+                                                                (coe
+                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                   (coe v9)))
+                                                             (coe
+                                                                MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
+                                                                (coe
+                                                                   eqInt
+                                                                   (coe
+                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                      (coe v7))
+                                                                   (coe
+                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                      (coe v9))))) in
                                                 coe
                                                   (case coe v13 of
                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v14 v15
                                                        -> if coe v14
-                                                            then coe
-                                                                   seq (coe v15)
-                                                                   (coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
-                                                                      (coe
-                                                                         C_match_98
-                                                                         (coe C_builtin_80)))
-                                                            else coe
-                                                                   seq (coe v15)
-                                                                   (let v16 = coe v2 v0 v3 v4 in
-                                                                    coe
-                                                                      (case coe v16 of
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v17
-                                                                           -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
-                                                                                (coe
-                                                                                   C_istranslation_92
-                                                                                   v17)
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v20 v21 v22
-                                                                           -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                v20 v21 v22
-                                                                         _ -> MAlonzo.RTE.mazUnreachableError))
+                                                            then let v16
+                                                                       = seq
+                                                                           (coe v15)
+                                                                           (coe
+                                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                              (coe v14)
+                                                                              (coe
+                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                 erased)) in
+                                                                 coe
+                                                                   (case coe v16 of
+                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v17 v18
+                                                                        -> if coe v17
+                                                                             then coe
+                                                                                    seq (coe v18)
+                                                                                    (coe
+                                                                                       MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                       (coe
+                                                                                          C_match_98
+                                                                                          (coe
+                                                                                             C_builtin_80)))
+                                                                             else coe
+                                                                                    seq (coe v18)
+                                                                                    (let v19
+                                                                                           = coe
+                                                                                               v2 v0
+                                                                                               v3
+                                                                                               v4 in
+                                                                                     coe
+                                                                                       (case coe
+                                                                                               v19 of
+                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v20
+                                                                                            -> coe
+                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                                 (coe
+                                                                                                    C_istranslation_92
+                                                                                                    v20)
+                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v23 v24 v25
+                                                                                            -> coe
+                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                                 v23
+                                                                                                 v24
+                                                                                                 v25
+                                                                                          _ -> MAlonzo.RTE.mazUnreachableError))
+                                                                      _ -> MAlonzo.RTE.mazUnreachableError)
+                                                            else (let v16
+                                                                        = seq
+                                                                            (coe v15)
+                                                                            (coe
+                                                                               MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                               (coe v14)
+                                                                               (coe
+                                                                                  MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)) in
+                                                                  coe
+                                                                    (case coe v16 of
+                                                                       MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v17 v18
+                                                                         -> if coe v17
+                                                                              then coe
+                                                                                     seq (coe v18)
+                                                                                     (coe
+                                                                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                        (coe
+                                                                                           C_match_98
+                                                                                           (coe
+                                                                                              C_builtin_80)))
+                                                                              else coe
+                                                                                     seq (coe v18)
+                                                                                     (let v19
+                                                                                            = coe
+                                                                                                v2
+                                                                                                v0
+                                                                                                v3
+                                                                                                v4 in
+                                                                                      coe
+                                                                                        (case coe
+                                                                                                v19 of
+                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v20
+                                                                                             -> coe
+                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                                  (coe
+                                                                                                     C_istranslation_92
+                                                                                                     v20)
+                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v23 v24 v25
+                                                                                             -> coe
+                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                                  v23
+                                                                                                  v24
+                                                                                                  v25
+                                                                                           _ -> MAlonzo.RTE.mazUnreachableError))
+                                                                       _ -> MAlonzo.RTE.mazUnreachableError))
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
                                     _ -> coe v8
