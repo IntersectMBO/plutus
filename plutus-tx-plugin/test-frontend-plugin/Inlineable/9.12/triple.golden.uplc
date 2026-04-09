@@ -1,0 +1,2 @@
+Error: Reference to a name which is not a local, a builtin, or an external INLINABLE function: Variable Inlineable.Lib.total
+       No unfolding
