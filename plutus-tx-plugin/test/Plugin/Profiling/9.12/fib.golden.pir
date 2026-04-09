@@ -1,52 +1,7 @@
 let
   !addInteger : integer -> integer -> integer = addInteger
-  ~addInteger : integer -> integer -> integer
-    = \(x : integer) ->
-        let
-          !x : integer = x
-        in
-        \(y : integer) ->
-          let
-            !y : integer = y
-          in
-          trace
-            {unit -> integer}
-            "-> addInteger"
-            (\(thunk : unit) ->
-               trace {integer} "<- addInteger" (addInteger x y))
-            ()
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  ~equalsInteger : integer -> integer -> bool
-    = \(x : integer) ->
-        let
-          !x : integer = x
-        in
-        \(y : integer) ->
-          let
-            !y : integer = y
-          in
-          trace
-            {unit -> bool}
-            "-> equalsInteger"
-            (\(thunk : unit) ->
-               trace {bool} "<- equalsInteger" (equalsInteger x y))
-            ()
   !subtractInteger : integer -> integer -> integer = subtractInteger
-  ~subtractInteger : integer -> integer -> integer
-    = \(x : integer) ->
-        let
-          !x : integer = x
-        in
-        \(y : integer) ->
-          let
-            !y : integer = y
-          in
-          trace
-            {unit -> integer}
-            "-> subtractInteger"
-            (\(thunk : unit) ->
-               trace {integer} "<- subtractInteger" (subtractInteger x y))
-            ()
 in
 letrec
   ~fib : integer -> integer
@@ -69,9 +24,11 @@ letrec
                          (all dead. integer)
                          (equalsInteger n 1)
                          [ (/\dead ->
-                              addInteger
-                                (fib (subtractInteger n 1))
-                                (fib (subtractInteger n 2)))
+                              let
+                                !x : integer = fib (subtractInteger n 1)
+                                !y : integer = fib (subtractInteger n 2)
+                              in
+                              addInteger x y)
                          , (/\dead -> 1) ]
                          {all dead. dead})
                   , (/\dead -> 0) ]

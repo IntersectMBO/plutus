@@ -21,12 +21,28 @@ let
           {integer}
           ds
           {integer}
-          (\(i : integer)
-            (j : integer)
-            (k : integer)
-            (l : integer)
-            (m : integer) ->
-             addInteger (addInteger (addInteger (addInteger i j) k) l) m)
+          (\(i : integer) (j : integer) (k : integer) ->
+             let
+               !y : integer = k
+             in
+             \(l : integer) ->
+               let
+                 !y : integer = l
+               in
+               \(m : integer) ->
+                 let
+                   !y : integer = m
+                   !x : integer
+                     = let
+                       !x : integer
+                         = let
+                           !x : integer = addInteger i j
+                         in
+                         addInteger x y
+                     in
+                     addInteger x y
+                 in
+                 addInteger x y)
   ~unboxedTuples3Tuple :
      `Tuple3#`
        (`Tuple5#` integer integer integer integer integer)
@@ -47,9 +63,16 @@ let
           (\(i : `Tuple5#` integer integer integer integer integer)
             (j : `Tuple5#` integer integer integer integer integer)
             (k : `Tuple5#` integer integer integer integer integer) ->
-             addInteger
-               (addInteger (unboxedTuple i) (unboxedTuple j))
-               (unboxedTuple k))
+             let
+               !x : integer
+                 = let
+                   !x : integer = unboxedTuple i
+                   !y : integer = unboxedTuple j
+                 in
+                 addInteger x y
+               !y : integer = unboxedTuple k
+             in
+             addInteger x y)
 in
 \(x : integer) ->
   let
