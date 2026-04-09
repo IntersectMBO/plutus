@@ -881,7 +881,7 @@ compileHaskellList = buildList . strip
                   (e :) <$> consumeCons (strip rest)
                 GHC.App (GHC.Var _nil) _ty' -> pure [] -- [] @ty
                 _ -> err
-           in consumeCons expr >>= traverse (compileExpr Nothing)
+           in consumeCons expr >>= traverse compileExpr
     -- Form 2: build-based list.
     buildList (GHC.App (GHC.App _build _ty) (GHC.Lam _tyArg (GHC.Lam con (GHC.Lam nil li)))) =
       let
@@ -1014,7 +1014,7 @@ compileExpr e = do
           -- SumsOfProducts/Scott: compile to a lazy equalsInteger/ifThenElse chain.
           | GHC.getName var == caseIntegerName -> do
               resTy' <- compileTypeNorm resTy
-              scrut' <- compileExpr Nothing scrut
+              scrut' <- compileExpr scrut
               branches <- compileHaskellList li
               dead <- safeFreshTyName "dead"
               let thunkTy = PLC.TyForall annMayInline dead (PLC.Type annMayInline) resTy'

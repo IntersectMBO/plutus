@@ -536,7 +536,10 @@ if a compilation error happens and the 'defer-errors' option is turned on,
 the compilation error is suppressed and the original hs expression is replaced with a
 haskell runtime-error expression. -}
 compileMarkedExprOrDefer
-  :: Maybe GHC.RealSrcSpan -> GHC.Type -> GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
+  :: Maybe GHC.RealSrcSpan
+  -> GHC.Type
+  -> GHC.CoreExpr
+  -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
 compileMarkedExprOrDefer mLoc codeTy origE = do
   opts <- asks pcOpts
   let compileAct = compileMarkedExpr mLoc codeTy origE
@@ -562,7 +565,10 @@ emitRuntimeError codeTy e = do
 and return a core expression which evaluates to the compiled plc AST as a serialized bytestring,
 to be injected back to the Haskell program. -}
 compileMarkedExpr
-  :: Maybe GHC.RealSrcSpan -> GHC.Type -> GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
+  :: Maybe GHC.RealSrcSpan
+  -> GHC.Type
+  -> GHC.CoreExpr
+  -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
 compileMarkedExpr mLoc codeTy origE = do
   flags <- GHC.getDynFlags
   famEnvs <- asks pcFamEnvs
@@ -896,7 +902,7 @@ generateCertificate packageName moduleName mLoc opts simplTrace certifyPath = do
             -- Path given: place all certificates under that directory
             absCertifyPath </> certDirName
   let verbose = opts ^. posVerbosity Prelude./= Quiet
-  result <- runCertifier $ mkCertifier simplTrace certName (ProjectOutput certDir)
+  result <- runCertifier $ mkCertifier simplTrace certName (ProjectOutput certDir) []
   case result of
     Right _ -> do
       writeFile (certDir </> "plinth-certifier-PASS.txt") ""
