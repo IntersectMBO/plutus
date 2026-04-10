@@ -18,8 +18,8 @@ open import Builtin.Constant.AtomicType
 open import VerifiedCompilation.UntypedViews -- using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; caseOfCaseT)
-open import VerifiedCompilation.Compatibility
-
+-- open import VerifiedCompilation.Compatibility
+open import Data.Sum using (inj₁; inj₂; _⊎_)
 open import Untyped.CEK using (lookup?)
 open import Untyped.Reduction using (iterApp)
 open import Utils using (just; nothing) renaming (_,_ to _,,_; _∷_ to cons; [] to nil)
@@ -31,12 +31,12 @@ open import Evaluator.Base using (maxsteps)
 open import Builtin using (Builtin; ifThenElse)
 open import Data.Product using (_×_; proj₁; proj₂; _,_; ∃)
 open import Relation.Nullary using (Dec; yes; no; ¬_; _×-dec_; _because_)
-open import Relation.Nullary using () renaming (_×-dec_ to _<×>_ ; _⊎-dec_ to _<+>_)
+open import Relation.Nullary using () renaming (_×-dec_ to _<×>_ ; _⊎-dec_ to _⊎-dec_)
 open import Data.Nat using (ℕ; suc)
 open import Data.Maybe
 open import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; isEquivalence; cong; subst)
-open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise; _∷_; [])
+-- open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise; _∷_; [])
 open import Data.Product using (_,_)
 open import Data.Integer using (ℤ; +_)
 open import Data.List using (List; _∷_; [])
@@ -44,11 +44,14 @@ open import Data.Bool using (Bool; true; false; if_then_else_)
 open import Data.List.Relation.Unary.All using (All ; all?)
 open import RawU
 open import Data.Fin using (Fin)
-open import Data.Sum using (inj₁; inj₂) renaming (_⊎_ to _+_)
 open import Data.Unit using (⊤)
 open import Data.Empty using (⊥)
 open import Function using (_∘_; case_of_; _$_)
 open import Untyped.Transform
+
+open import Untyped.Relation
+open import Untyped.Relation.Composable
+import VerifiedCompilation.UCaseReduce as CR
 ```
 
 ## Translation Relation
@@ -86,65 +89,65 @@ variable
 Some of the rules in the translation relation will reduce `case` of a constant:
 
 ```
-data CR-constr (R : Rel X) : Rel X where
-  cr-constr : ∀ {args} →
-    lookup? i Ns ≡ just N →
-    R (iterApp N args) T' →
-    ------------------------------------
-    CR-constr R (case (constr i args) Ns) T'
-
-data CR-unit (R : Rel X) : Rel X where
-  cr-unit : ∀ {v} →
-    R N N' →
-    -------------------------------------------------------------------
-    CR-unit R (case (con (tmCon (atomic aUnit) v)) (N ∷ [])) N'
-
-data CR-false (R : Rel X) : Rel X where
-  cr-false :
-    R N N' →
-    -------------------------------------------------------------------
-    CR-false R (case (con (tmCon (atomic aBool) false)) (N ∷ [])) N'
-
-data CR-bool (R : Rel X) : Rel X where
-  cr-bool : ∀ {b Nfalse Ntrue} →
-    R (if b then Ntrue else Nfalse) N' →
-    ----------------------------------------------------------
-    CR-bool R (case (con (tmCon (atomic aBool) b)) (Nfalse ∷ Ntrue ∷ [])) N'
-
-data CR-integer (R : Rel X) : Rel X where
-  cr-integer :
-    lookup? i Ns ≡ just N →
-    R N N' →
-    ---------------------------------------------------------
-    CR-integer R (case (con (tmCon (atomic aInteger) (+ i))) Ns) N'
-
-data CR-cons-1 (R : Rel X) : Rel X where
-  cr-cons-1 : ∀ {A x xs} →
-    R (N · con (tmCon A x) · con (tmCon (list A) xs)) N' →
-    --------------------------------------------------------
-    CR-cons-1 R (case (con (tmCon (list A) (cons x xs))) (N ∷ [])) N'
-
-data CR-cons-2 (R : Rel X) : Rel X where
-  cr-cons-2 : ∀ {A x xs Ncons Nnil} →
-    R (Ncons · con (tmCon A x) · con (tmCon (list A) xs)) N' →
-    -----------------------------------------------------------------
-    CR-cons-2 R (case (con (tmCon (list A) (cons x xs))) (Ncons ∷ Nnil ∷ [])) N'
-
-data CR-nil (R : Rel X) : Rel X where
-  cr-nil : ∀ {A Ncons Nnil} →
-    R Nnil N' →
-    -----------------------------------------------------------------
-    CR-nil R (case (con (tmCon (list A) nil)) (Ncons ∷ Nnil ∷ [])) N'
-
-
-data CR-pair (R : Rel X) : Rel X where
-  cr-pair : ∀ {A B x y} →
-    R (N · (con (tmCon A x)) · (con (tmCon B y))) N' →
-    ---------------------------------------------------------------
-    CR-pair R (case (con (tmCon (pair A B) (x ,, y ))) (N ∷ [])) N'
-
-
-CaseReduce = CR-constr
+-- data CR-constr (R : Rel X) : Rel X where
+--   cr-constr : ∀ {args} →
+--     lookup? i Ns ≡ just N →
+--     R (iterApp N args) T' →
+--     ------------------------------------
+--     CR-constr R (case (constr i args) Ns) T'
+-- 
+-- data CR-unit (R : Rel X) : Rel X where
+--   cr-unit : ∀ {v} →
+--     R N N' →
+--     -------------------------------------------------------------------
+--     CR-unit R (case (con (tmCon (atomic aUnit) v)) (N ∷ [])) N'
+-- 
+-- data CR-false (R : Rel X) : Rel X where
+--   cr-false :
+--     R N N' →
+--     -------------------------------------------------------------------
+--     CR-false R (case (con (tmCon (atomic aBool) false)) (N ∷ [])) N'
+-- 
+-- data CR-bool (R : Rel X) : Rel X where
+--   cr-bool : ∀ {b Nfalse Ntrue} →
+--     R (if b then Ntrue else Nfalse) N' →
+--     ----------------------------------------------------------
+--     CR-bool R (case (con (tmCon (atomic aBool) b)) (Nfalse ∷ Ntrue ∷ [])) N'
+-- 
+-- data CR-integer (R : Rel X) : Rel X where
+--   cr-integer :
+--     lookup? i Ns ≡ just N →
+--     R N N' →
+--     ---------------------------------------------------------
+--     CR-integer R (case (con (tmCon (atomic aInteger) (+ i))) Ns) N'
+-- 
+-- data CR-cons-1 (R : Rel X) : Rel X where
+--   cr-cons-1 : ∀ {A x xs} →
+--     R (N · con (tmCon A x) · con (tmCon (list A) xs)) N' →
+--     --------------------------------------------------------
+--     CR-cons-1 R (case (con (tmCon (list A) (cons x xs))) (N ∷ [])) N'
+-- 
+-- data CR-cons-2 (R : Rel X) : Rel X where
+--   cr-cons-2 : ∀ {A x xs Ncons Nnil} →
+--     R (Ncons · con (tmCon A x) · con (tmCon (list A) xs)) N' →
+--     -----------------------------------------------------------------
+--     CR-cons-2 R (case (con (tmCon (list A) (cons x xs))) (Ncons ∷ Nnil ∷ [])) N'
+-- 
+-- data CR-nil (R : Rel X) : Rel X where
+--   cr-nil : ∀ {A Ncons Nnil} →
+--     R Nnil N' →
+--     -----------------------------------------------------------------
+--     CR-nil R (case (con (tmCon (list A) nil)) (Ncons ∷ Nnil ∷ [])) N'
+-- 
+-- 
+-- data CR-pair (R : Rel X) : Rel X where
+--   cr-pair : ∀ {A B x y} →
+--     R (N · (con (tmCon A x)) · (con (tmCon B y))) N' →
+--     ---------------------------------------------------------------
+--     CR-pair R (case (con (tmCon (pair A B) (x ,, y ))) (N ∷ [])) N'
+-- 
+-- 
+-- CaseReduce = CR-constr
 ```
 
 ### Rule: Case-Of-Case
@@ -162,28 +165,28 @@ data Scrutinizable : X ⊢ → Set where
     Scrutinizable (con {X} K)
 ```
 
-Each branch `M` in the inner `case` (which must be scrutinizable) is related to
-a branch `T` of the new outer `case`. Either through `CaseReduce` or directly through the relation R.
+Each branch `M` in the inner `case` must be scrutinizable, so that it can be
+used as scrutinee in a case. Each such branch is transformed to a case that
+scrutinizes `M` and then uses the original branches `Ns`.
 
 The `CaseCase` rule captures the transformation:
 
 ```
-data CaseCase (R : Rel X) : Rel X where
-  caseCase :
-    R L L' →
+data CaseCase (@++ R : Relation) : Relation where
+  caseCase : ∀ {X} {L : X ⊢} {Ms Ns Ts : List (X ⊢)} →
     All Scrutinizable Ms →
-    Pointwise (λ M T → CaseReduce R (case M Ns) T + R (case M Ns) T) Ms Ts →
+    Pointwise (λ M T → T ≡ case M Ns) Ms Ts →
     ----------------------
     CaseCase R
       (case (case L Ms) Ns)
-      (case L' Ts)
+      (case L Ts)
 ```
 
 
 ```
 scrutinizable? : (M : X ⊢) → Dec (Scrutinizable M)
 scrutinizable? M
-  with constr? ⋯ ⋯ M <+> con? ⋯ M
+  with constr? ⋯ ⋯ M ⊎-dec con? ⋯ M
 ... | no ¬p = no λ {scrut-constr → ¬p (inj₁ inhabitant) ; scrut-con → ¬p (inj₂ inhabitant)}
 ... | yes (inj₁ (constr! (match! i) (match! args))) = yes scrut-constr
 ... | yes (inj₂ (con! K)) = yes scrut-con
@@ -194,40 +197,40 @@ maybe-absurd ()
 just-inj : ∀ {A : Set} {x y : A} → just x ≡ just y → x ≡ y
 just-inj refl = refl
 
-module CR-Dec
-  {R : ∀ {X} → X ⊢ → X ⊢ → Set}
-  (R? : ∀ {X : ℕ} (N N' : X ⊢) → Dec (R N N'))
-  where
-
-  caseReduce-constr? : (M M' : X ⊢) → Dec (CR-constr R M M')
-  caseReduce-constr? M M'
-    with (case? (constr? ⋯ ⋯) ⋯) M
-  ... | no ¬case = no λ {(cr-constr _ _) → ¬case inhabitant}
-  ... | yes (case! (constr! (match! i) (match! args)) (match! Ns))
-    with lookup? i Ns in eq
-  ... | nothing = no λ {(cr-constr H _) → maybe-absurd (trans (sym H) eq)}
-  ... | just N
-    with R? (iterApp N args) M'
-  ... | yes RT = yes (cr-constr eq RT)
-  ... | no ¬iter = no λ { (cr-constr lookup iter) → ¬iter (subst (λ x → R (iterApp x args) M') (just-inj (trans (sym lookup) eq)) iter)}
-
-  cr-unit? : (M M' : X ⊢) → Dec (CR-unit R M M')
-  cr-unit? M M'
-    with case? (con? (_≟_ (tmCon (atomic aUnit) Data.Unit.tt))) (⋯ ∷? (_≟_ [])) M
-  ... | no ¬PM = no λ {(cr-unit _) → ¬PM inhabitant}
-  ... | yes (case! (con! refl) (match! N ∷! refl))
-    with R? N M'
-  ... | no ¬NM' = no λ {(cr-unit NM') → ¬NM' NM'}
-  ... | yes RMM' = yes (cr-unit RMM')
-
-  cr-false? : (M M' : X ⊢) → Dec (CR-false R M M')
-  cr-false? M M'
-    with case? (con? (_≟_ (tmCon (atomic aBool) false))) (⋯ ∷? (_≟_ [])) M
-  ... | no ¬PM = no λ {(cr-false _) → ¬PM inhabitant}
-  ... | yes (case! (con! refl) (match! N ∷! refl))
-    with R? N M'
-  ... | no ¬RN = no λ {(cr-false RN) → ¬RN RN}
-  ... | yes RN = yes (cr-false RN)
+-- module CR-Dec
+--   {R : ∀ {X} → X ⊢ → X ⊢ → Set}
+--   (R? : ∀ {X : ℕ} (N N' : X ⊢) → Dec (R N N'))
+--   where
+-- 
+--   caseReduce-constr? : (M M' : X ⊢) → Dec (CR-constr R M M')
+--   caseReduce-constr? M M'
+--     with (case? (constr? ⋯ ⋯) ⋯) M
+--   ... | no ¬case = no λ {(cr-constr _ _) → ¬case inhabitant}
+--   ... | yes (case! (constr! (match! i) (match! args)) (match! Ns))
+--     with lookup? i Ns in eq
+--   ... | nothing = no λ {(cr-constr H _) → maybe-absurd (trans (sym H) eq)}
+--   ... | just N
+--     with R? (iterApp N args) M'
+--   ... | yes RT = yes (cr-constr eq RT)
+--   ... | no ¬iter = no λ { (cr-constr lookup iter) → ¬iter (subst (λ x → R (iterApp x args) M') (just-inj (trans (sym lookup) eq)) iter)}
+-- 
+--   cr-unit? : (M M' : X ⊢) → Dec (CR-unit R M M')
+--   cr-unit? M M'
+--     with case? (con? (_≟_ (tmCon (atomic aUnit) Data.Unit.tt))) (⋯ ∷? (_≟_ [])) M
+--   ... | no ¬PM = no λ {(cr-unit _) → ¬PM inhabitant}
+--   ... | yes (case! (con! refl) (match! N ∷! refl))
+--     with R? N M'
+--   ... | no ¬NM' = no λ {(cr-unit NM') → ¬NM' NM'}
+--   ... | yes RMM' = yes (cr-unit RMM')
+-- 
+--   cr-false? : (M M' : X ⊢) → Dec (CR-false R M M')
+--   cr-false? M M'
+--     with case? (con? (_≟_ (tmCon (atomic aBool) false))) (⋯ ∷? (_≟_ [])) M
+--   ... | no ¬PM = no λ {(cr-false _) → ¬PM inhabitant}
+--   ... | yes (case! (con! refl) (match! N ∷! refl))
+--     with R? N M'
+--   ... | no ¬RN = no λ {(cr-false RN) → ¬RN RN}
+--   ... | yes RN = yes (cr-false RN)
 
 -- TODO: view for tmCon?
 
@@ -270,25 +273,25 @@ module CR-Dec
 --     CR-pair R (case (con (tmCon (pair A B) (x ,, y ))) (N ∷ [])) N'
 
 
-  caseCase? : (M M' : X ⊢) → Dec (CaseCase R M M')
-  caseCase? M M'
-    with (case? (case? ⋯ ⋯) ⋯) M <×> (case? ⋯ ⋯) M'
-  ... | no ¬M×M' = no λ {(caseCase _ _ _) → ¬M×M' (inhabitant , inhabitant) }
-  ... | yes ( case! (case! (match! M) (match! Ms)) (match! Ns)
-            , case! (match! M') (match! Ts))
-    with R? M M'
-  ... | no ¬RMM' = no λ {(caseCase RMM' _ _) → ¬RMM' RMM'}
-  ... | yes RLL'
-    with all? scrutinizable? Ms
-  ... | no ¬scrut = no λ {(caseCase _ scrut _) → ¬scrut scrut}
-  ... | yes PMs
-    with pointwise? (λ M T → caseReduce-constr? (case M Ns) T <+> R? (case M Ns) T) Ms Ts
-  ... | no ¬pw = no λ {(caseCase _ _ pw) → ¬pw pw}
-  ... | yes MsTs = yes (caseCase RLL' PMs MsTs)
-  
-  caseReduce? :
-    (M M' : X ⊢) → Dec (CaseReduce R M M')
-  caseReduce? = caseReduce-constr?
+--  caseCase? : (M M' : X ⊢) → Dec (CaseCase R M M')
+--  caseCase? M M'
+--    with (case? (case? ⋯ ⋯) ⋯) M <×> (case? ⋯ ⋯) M'
+--  ... | no ¬M×M' = no λ {(caseCase _ _ _) → ¬M×M' (inhabitant , inhabitant) }
+--  ... | yes ( case! (case! (match! M) (match! Ms)) (match! Ns)
+--            , case! (match! M') (match! Ts))
+--    with R? M M'
+--  ... | no ¬RMM' = no λ {(caseCase RMM' _ _) → ¬RMM' RMM'}
+--  ... | yes RLL'
+--    with all? scrutinizable? Ms
+--  ... | no ¬scrut = no λ {(caseCase _ scrut _) → ¬scrut scrut}
+--  ... | yes PMs
+--    with pointwise? (λ M T → caseReduce-constr? (case M Ns) T ⊎-dec R? (case M Ns) T) Ms Ts
+--  ... | no ¬pw = no λ {(caseCase _ _ pw) → ¬pw pw}
+--  ... | yes MsTs = yes (caseCase RLL' PMs MsTs)
+--  
+--  caseReduce? :
+--    (M M' : X ⊢) → Dec (CaseReduce R M M')
+--  caseReduce? = caseReduce-constr?
 ```
 
 ### Rule: Case-Of-If
@@ -299,12 +302,9 @@ inside-out. However, since `ifThenElse` is strict in its branches, they have to
 be delayed, requiring also an additional force outside the overall expression.
 
 ```
-data CaseIf (R : Rel X) : Rel X where
-  caseIf : ∀ {Ti Tj} →
-    R M M' →
-    R (case (constr i Ms) Ts) Ti + CaseReduce R (case (constr i Ms) Ts) Ti →
-    R (case (constr j Ns) Ts) Tj + CaseReduce R (case (constr j Ns) Ts) Tj →
-    ------------------
+data CaseIf (@++ R : Relation) : Relation where
+  caseIf : ∀ {X} {i j} {M : X ⊢} {Ms Ns Ts} →
+    ----------------------------------------
     CaseIf R
       (case
          (
@@ -318,9 +318,9 @@ data CaseIf (R : Rel X) : Rel X where
       (force
         (
            force (builtin ifThenElse)
-           · M'
-           · delay Ti
-           · delay Tj
+           · M
+           · delay (case (constr i Ms) Ts)
+           · delay (case (constr j Ns) Ts)
         )
       )
 ```
@@ -329,44 +329,44 @@ For each rule, we need a decision procedure
 
 ```
 
-open CR-Dec
-
-caseIf? : ∀ {R : ∀ {X} → X ⊢ → X ⊢ → Set} → (∀ {X} (N N' : X ⊢) → Dec (R N N')) → (M M' : X ⊢) → Dec (CaseIf R M M')
-caseIf? R? M M' with
-  (case?
-    (
-      (force? (builtin? (_≟_ ifThenElse)))
-      ·? ⋯
-      ·? (constr? ⋯ ⋯)
-      ·? (constr? ⋯ ⋯)
-    )
-    ⋯) M
-... | no ¬PM = no λ {(caseIf _ _ _) → ¬PM inhabitant}
-... | yes (case! (force! (builtin! refl) ·! match! M ·! constr! (match! i) (match! Ms) ·! constr! (match! j) (match! Ns)) (match! Ts)) with
-  (force?
-    (
-      force? (builtin? (_≟_ ifThenElse))
-      ·? ⋯
-      ·? delay? ⋯
-      ·? delay? ⋯
-    )
-  ) M'
-... | no ¬pre = no λ {(caseIf _ _ _) → ¬pre inhabitant}
-... | yes (force!
-            (force! (builtin! refl)
-            ·! match! M'
-            ·! delay! (match! Ti)
-            ·! delay! (match! Tj)
-            )
-          )
-   with
-    R? M M'
-      <×> (R? (case (constr i Ms) Ts) Ti
-          <+> caseReduce? R? (case (constr i Ms) Ts) Ti)
-      <×> (R? (case (constr j Ns) Ts) Tj
-          <+> caseReduce? R? (case (constr j Ns) Ts) Tj)
-... | no ¬×  = no λ {(caseIf MM' MsMs' NsNs') → ¬× (MM' , MsMs' , NsNs')}
-... | yes (MM' , MsMs' , NsNs') = yes (caseIf MM' MsMs' NsNs')
+-- open CR-Dec
+-- 
+-- caseIf? : ∀ {R : ∀ {X} → X ⊢ → X ⊢ → Set} → (∀ {X} (N N' : X ⊢) → Dec (R N N')) → (M M' : X ⊢) → Dec (CaseIf R M M')
+-- caseIf? R? M M' with
+--   (case?
+--     (
+--       (force? (builtin? (_≟_ ifThenElse)))
+--       ·? ⋯
+--       ·? (constr? ⋯ ⋯)
+--       ·? (constr? ⋯ ⋯)
+--     )
+--     ⋯) M
+-- ... | no ¬PM = no λ {(caseIf _ _ _) → ¬PM inhabitant}
+-- ... | yes (case! (force! (builtin! refl) ·! match! M ·! constr! (match! i) (match! Ms) ·! constr! (match! j) (match! Ns)) (match! Ts)) with
+--   (force?
+--     (
+--       force? (builtin? (_≟_ ifThenElse))
+--       ·? ⋯
+--       ·? delay? ⋯
+--       ·? delay? ⋯
+--     )
+--   ) M'
+-- ... | no ¬pre = no λ {(caseIf _ _ _) → ¬pre inhabitant}
+-- ... | yes (force!
+--             (force! (builtin! refl)
+--             ·! match! M'
+--             ·! delay! (match! Ti)
+--             ·! delay! (match! Tj)
+--             )
+--           )
+--    with
+--     R? M M'
+--       <×> (R? (case (constr i Ms) Ts) Ti
+--           ⊎-dec caseReduce? R? (case (constr i Ms) Ts) Ti)
+--       <×> (R? (case (constr j Ns) Ts) Tj
+--           ⊎-dec caseReduce? R? (case (constr j Ns) Ts) Tj)
+-- ... | no ¬×  = no λ {(caseIf MM' MsMs' NsNs') → ¬× (MM' , MsMs' , NsNs')}
+-- ... | yes (MM' , MsMs' , NsNs') = yes (caseIf MM' MsMs' NsNs')
 ```
 
 ## Overall decision procedure
@@ -387,8 +387,8 @@ DecidableT R S = Decidable R → Decidable S
 -- caseOfCase? : ∀ {X} → (M M' : X ⊢) → Dec (CaseOfCase M M')
 -- caseOfCase? M M'
 --   with (   caseIf? caseOfCase? M M'
---        <+> caseCase? caseOfCase? M M'
---        <+> compatTerm? caseOfCase? M M'
+--        ⊎-dec caseCase? caseOfCase? M M'
+--        ⊎-dec compatTerm? caseOfCase? M M'
 --        )
 -- ... | yes P = yes (CC P)
 -- ... | no ¬P = no λ {(CC P) → ¬P P}
@@ -531,24 +531,24 @@ recursive, so the `isUntypedCaseOfCase?` type declaration comes first, with the 
 
 ```
 
-isCaseOfCase? : {X : ℕ} (ast ast' : X ⊢) → ProofOrCE (Translation CoC {X} ast ast')
+-- isCaseOfCase? : {X : ℕ} (ast ast' : X ⊢) → ProofOrCE (Translation CoC {X} ast ast')
 
-{-# TERMINATING #-}
-isCoC? : {X : ℕ}  (ast ast' : X ⊢) → ProofOrCE (CoC {X} ast ast')
-isCoC? ast ast' with (isCaseIfPre? ast) ×-dec (isCaseIfPost? ast')
-... | no ¬cf = ce (λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
-                                                                           (isCaseIfPre , isCaseIfPost b tn fn tt' ft' alts') } ) caseOfCaseT ast ast'
-... | yes (isCaseIfPre {b} {tn} {fn} {tt} {ft} {alts} , isCaseIfPost b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁)
-... | no ¬p = ce (λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl)}) caseOfCaseT ast ast'
-... | yes (refl , refl , refl) with pcePointwise caseOfCaseT isCaseOfCase? tt tt'
-...   | ce ¬p t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p x₁}) t b a
-...   | proof tt=tt' with pcePointwise caseOfCaseT isCaseOfCase? ft ft'
-...      | ce ¬p t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p x₂}) t b a
-...      | proof ft=ft' with pcePointwise caseOfCaseT isCaseOfCase? alts alts'
-...        | ce ¬pp t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬pp x}) t b a
-...        | proof alts=alts' = proof (isCoC b tn fn tt tt' ft ft' alts alts' alts=alts' tt=tt' ft=ft')
-
-isCaseOfCase? {X} = translation? {X} caseOfCaseT isCoC?
+-- {-# TERMINATING #-}
+-- isCoC? : {X : ℕ}  (ast ast' : X ⊢) → ProofOrCE (CoC {X} ast ast')
+-- isCoC? ast ast' with (isCaseIfPre? ast) ×-dec (isCaseIfPost? ast')
+-- ... | no ¬cf = ce (λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
+--                                                                            (isCaseIfPre , isCaseIfPost b tn fn tt' ft' alts') } ) caseOfCaseT ast ast'
+-- ... | yes (isCaseIfPre {b} {tn} {fn} {tt} {ft} {alts} , isCaseIfPost b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁)
+-- ... | no ¬p = ce (λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl)}) caseOfCaseT ast ast'
+-- ... | yes (refl , refl , refl) with pcePointwise caseOfCaseT isCaseOfCase? tt tt'
+-- ...   | ce ¬p t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p x₁}) t b a
+-- ...   | proof tt=tt' with pcePointwise caseOfCaseT isCaseOfCase? ft ft'
+-- ...      | ce ¬p t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p x₂}) t b a
+-- ...      | proof ft=ft' with pcePointwise caseOfCaseT isCaseOfCase? alts alts'
+-- ...        | ce ¬pp t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬pp x}) t b a
+-- ...        | proof alts=alts' = proof (isCoC b tn fn tt tt' ft ft' alts alts' alts=alts' tt=tt' ft=ft')
+-- 
+-- isCaseOfCase? {X} = translation? {X} caseOfCaseT isCoC?
 ```
 
 Reduction step:

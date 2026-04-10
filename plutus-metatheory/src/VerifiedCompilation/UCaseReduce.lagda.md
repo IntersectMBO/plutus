@@ -190,6 +190,7 @@ pattern cr-refl        = fix (inr (inr (inr (inr reflF))))
 ≡-cr : ∀ {X}{M N : X ⊢} → M ≡ N → CaseReduce M N
 ≡-cr refl = cr-refl
 
+-- TODO
 postulate cr-refl* : ∀{X}{Ms : List (X ⊢)} → Pointwise CaseReduce Ms Ms
 postulate cr-termcompat : TermCompatible CaseReduce
 
