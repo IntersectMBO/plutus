@@ -26,7 +26,6 @@ import qualified MAlonzo.Code.Agda.Builtin.Unit
 import qualified MAlonzo.Code.Builtin
 import qualified MAlonzo.Code.Builtin.Constant.AtomicType
 import qualified MAlonzo.Code.Builtin.Signature
-import qualified MAlonzo.Code.Data.Fin.Base
 import qualified MAlonzo.Code.Data.Irrelevant
 import qualified MAlonzo.Code.Data.List.Properties
 import qualified MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base
@@ -2418,105 +2417,34 @@ d_DecidableT_826 ::
   () ->
   (AgdaAny -> AgdaAny -> ()) -> (AgdaAny -> AgdaAny -> ()) -> ()
 d_DecidableT_826 = erased
--- VerifiedCompilation.UCaseOfCase.CaseOfCase
-d_CaseOfCase_834 a0 a1 a2 = ()
-newtype T_CaseOfCase_834
-  = C_CC_838 MAlonzo.Code.Data.Sum.Base.T__'8846'__30
--- VerifiedCompilation.UCaseOfCase.caseOfCase?
-d_caseOfCase'63'_846 ::
-  Integer ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_caseOfCase'63'_846 v0 v1 v2
-  = let v3
-          = coe
-              MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'8846''45'dec__96
-              (coe
-                 du_caseIf'63'_666 (coe v0) (coe d_caseOfCase'63'_846) (coe v1)
-                 (coe v2))
-              (coe
-                 MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'8846''45'dec__96
-                 (coe
-                    du_caseCase'63'_464 (coe d_caseOfCase'63'_846) (coe v0) (coe v1)
-                    (coe v2))
-                 (coe
-                    MAlonzo.Code.VerifiedCompilation.Compatibility.du_compatTerm'63'_842
-                    (coe v0) (coe d_caseOfCase'63'_846) (coe v1) (coe v2))) in
-    coe
-      (case coe v3 of
-         MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v4 v5
-           -> if coe v4
-                then case coe v5 of
-                       MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v6
-                         -> coe
-                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
-                              (coe v4)
-                              (coe
-                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
-                                 (coe C_CC_838 v6))
-                       _ -> MAlonzo.RTE.mazUnreachableError
-                else coe
-                       seq (coe v5)
-                       (coe
-                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
-                          (coe v4)
-                          (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
-         _ -> MAlonzo.RTE.mazUnreachableError)
--- VerifiedCompilation.UCaseOfCase..extendedlambda4
-d_'46'extendedlambda4_868 ::
-  Integer ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.Data.Sum.Base.T__'8846'__30 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  T_CaseOfCase_834 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda4_868 = erased
--- VerifiedCompilation.UCaseOfCase.test
-d_test_872 :: Bool
-d_test_872
-  = coe
-      MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
-      (coe
-         d_caseOfCase'63'_846 (coe (1 :: Integer))
-         (coe
-            MAlonzo.Code.Untyped.C_ƛ_20
-            (coe
-               MAlonzo.Code.Untyped.C_'96'_18
-               (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))
-         (coe
-            MAlonzo.Code.Untyped.C_ƛ_20
-            (coe
-               MAlonzo.Code.Untyped.C_'96'_18
-               (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))
 -- VerifiedCompilation.UCaseOfCase.CaseIfPre
-d_CaseIfPre_876 a0 a1 = ()
-data T_CaseIfPre_876 = C_isCaseIfPre_892
+d_CaseIfPre_834 a0 a1 = ()
+data T_CaseIfPre_834 = C_isCaseIfPre_850
 -- VerifiedCompilation.UCaseOfCase.CaseIfPost
-d_CaseIfPost_896 a0 a1 = ()
-data T_CaseIfPost_896 = C_isCaseIfPost_912
+d_CaseIfPost_854 a0 a1 = ()
+data T_CaseIfPost_854 = C_isCaseIfPost_870
 -- VerifiedCompilation.UCaseOfCase.CoC
-d_CoC_914 a0 a1 a2 = ()
-data T_CoC_914
-  = C_isCoC_936 MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48
+d_CoC_872 a0 a1 a2 = ()
+data T_CoC_872
+  = C_isCoC_894 MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48
                 MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48
                 MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48
 -- VerifiedCompilation.UCaseOfCase.CaseOfCase'
-d_CaseOfCase''_944 ::
+d_CaseOfCase''_902 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
-d_CaseOfCase''_944 = erased
+d_CaseOfCase''_902 = erased
 -- VerifiedCompilation.UCaseOfCase.isCaseIfPre?
-d_isCaseIfPre'63'_948 ::
+d_isCaseIfPre'63'_906 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_isCaseIfPre'63'_948 ~v0 v1 = du_isCaseIfPre'63'_948 v1
-du_isCaseIfPre'63'_948 ::
+d_isCaseIfPre'63'_906 ~v0 v1 = du_isCaseIfPre'63'_906 v1
+du_isCaseIfPre'63'_906 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_isCaseIfPre'63'_948 v0
+du_isCaseIfPre'63'_906 v0
   = let v1
           = coe
               MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'183''63'__1230
@@ -2649,7 +2577,7 @@ du_isCaseIfPre'63'_948 v0
                                                                                                            (coe
                                                                                                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
                                                                                                               (coe
-                                                                                                                 C_isCaseIfPre_892))))
+                                                                                                                 C_isCaseIfPre_850))))
                                                                                               _ -> MAlonzo.RTE.mazUnreachableError)
                                                                                     _ -> MAlonzo.RTE.mazUnreachableError))
                                                                        _ -> MAlonzo.RTE.mazUnreachableError
@@ -2716,7 +2644,7 @@ du_isCaseIfPre'63'_948 v0
                                                                                                                              (coe
                                                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
                                                                                                                                 (coe
-                                                                                                                                   C_isCaseIfPre_892))))
+                                                                                                                                   C_isCaseIfPre_850))))
                                                                                                                 _ -> MAlonzo.RTE.mazUnreachableError)
                                                                                                       _ -> MAlonzo.RTE.mazUnreachableError))
                                                                                          _ -> MAlonzo.RTE.mazUnreachableError
@@ -2750,11 +2678,11 @@ du_isCaseIfPre'63'_948 v0
                       (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
             _ -> MAlonzo.RTE.mazUnreachableError))
 -- VerifiedCompilation.UCaseOfCase.isCaseIfPost?
-d_isCaseIfPost'63'_966 ::
+d_isCaseIfPost'63'_924 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_isCaseIfPost'63'_966 v0 v1
+d_isCaseIfPost'63'_924 v0 v1
   = let v2
           = coe
               MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'183''63'__1230
@@ -2928,7 +2856,7 @@ d_isCaseIfPost'63'_966 v0 v1
                                                                                                                                                                                                     (coe
                                                                                                                                                                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
                                                                                                                                                                                                        (coe
-                                                                                                                                                                                                          C_isCaseIfPost_912)))
+                                                                                                                                                                                                          C_isCaseIfPost_870)))
                                                                                                                                                                                           else coe
                                                                                                                                                                                                  seq
                                                                                                                                                                                                  (coe
@@ -3079,7 +3007,7 @@ d_isCaseIfPost'63'_966 v0 v1
                                                                                                                                                                                                                              (coe
                                                                                                                                                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
                                                                                                                                                                                                                                 (coe
-                                                                                                                                                                                                                                   C_isCaseIfPost_912)))
+                                                                                                                                                                                                                                   C_isCaseIfPost_870)))
                                                                                                                                                                                                                    else coe
                                                                                                                                                                                                                           seq
                                                                                                                                                                                                                           (coe
@@ -3162,29 +3090,29 @@ d_isCaseIfPost'63'_966 v0 v1
                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UCaseOfCase.isCaseOfCase?
-d_isCaseOfCase'63'_1042 ::
+d_isCaseOfCase'63'_1000 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
-d_isCaseOfCase'63'_1042 v0
+d_isCaseOfCase'63'_1000 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0)
       (coe MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_12)
-      (coe d_isCoC'63'_1050)
+      (coe d_isCoC'63'_1008)
 -- VerifiedCompilation.UCaseOfCase.isCoC?
-d_isCoC'63'_1050 ::
+d_isCoC'63'_1008 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
-d_isCoC'63'_1050 v0 v1 v2
+d_isCoC'63'_1008 v0 v1 v2
   = let v3
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
-              (coe du_isCaseIfPre'63'_948 (coe v1))
-              (coe d_isCaseIfPost'63'_966 (coe v0) (coe v2)) in
+              (coe du_isCaseIfPre'63'_906 (coe v1))
+              (coe d_isCaseIfPost'63'_924 (coe v0) (coe v2)) in
     coe
       (case coe v3 of
          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v4 v5
@@ -3284,7 +3212,7 @@ d_isCoC'63'_1050 v0 v1 v2
                                                                                                                                                                                                      (coe
                                                                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_12)
                                                                                                                                                                                                      (coe
-                                                                                                                                                                                                        d_isCaseOfCase'63'_1042
+                                                                                                                                                                                                        d_isCaseOfCase'63'_1000
                                                                                                                                                                                                         (coe
                                                                                                                                                                                                            v0))
                                                                                                                                                                                                      (coe
@@ -3301,7 +3229,7 @@ d_isCoC'63'_1050 v0 v1 v2
                                                                                                                                                                                                                (coe
                                                                                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_12)
                                                                                                                                                                                                                (coe
-                                                                                                                                                                                                                  d_isCaseOfCase'63'_1042
+                                                                                                                                                                                                                  d_isCaseOfCase'63'_1000
                                                                                                                                                                                                                   (coe
                                                                                                                                                                                                                      v0))
                                                                                                                                                                                                                (coe
@@ -3318,7 +3246,7 @@ d_isCoC'63'_1050 v0 v1 v2
                                                                                                                                                                                                                          (coe
                                                                                                                                                                                                                             MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_12)
                                                                                                                                                                                                                          (coe
-                                                                                                                                                                                                                            d_isCaseOfCase'63'_1042
+                                                                                                                                                                                                                            d_isCaseOfCase'63'_1000
                                                                                                                                                                                                                             (coe
                                                                                                                                                                                                                                v0))
                                                                                                                                                                                                                          (coe
@@ -3332,7 +3260,7 @@ d_isCoC'63'_1050 v0 v1 v2
                                                                                                                                                                                                                       -> coe
                                                                                                                                                                                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
                                                                                                                                                                                                                            (coe
-                                                                                                                                                                                                                              C_isCoC_936
+                                                                                                                                                                                                                              C_isCoC_894
                                                                                                                                                                                                                               v49
                                                                                                                                                                                                                               v45
                                                                                                                                                                                                                               v47)
@@ -3441,36 +3369,57 @@ d_isCoC'63'_1050 v0 v1 v2
                           (coe MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_12) v1
                           v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
+-- VerifiedCompilation.UCaseOfCase..extendedlambda7
+d_'46'extendedlambda7_1024 ::
+  Integer ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  T_CoC_872 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda7_1024 = erased
 -- VerifiedCompilation.UCaseOfCase..extendedlambda8
-d_'46'extendedlambda8_1066 ::
+d_'46'extendedlambda8_1112 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
+  Integer ->
+  Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
+  Integer ->
+  Integer ->
   (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  T_CoC_914 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda8_1066 = erased
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  T_CoC_872 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda8_1112 = erased
 -- VerifiedCompilation.UCaseOfCase..extendedlambda9
-d_'46'extendedlambda9_1154 ::
+d_'46'extendedlambda9_1188 ::
   Integer ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  Integer ->
-  Integer ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  Integer ->
-  Integer ->
-  (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  (MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  Integer ->
+  Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  T_CoC_914 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda9_1154 = erased
+  T_CoC_872 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda9_1188 = erased
 -- VerifiedCompilation.UCaseOfCase..extendedlambda10
-d_'46'extendedlambda10_1230 ::
+d_'46'extendedlambda10_1268 ::
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
@@ -3481,39 +3430,18 @@ d_'46'extendedlambda10_1230 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
   AgdaAny ->
   AgdaAny ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Integer ->
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  T_CoC_914 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda10_1230 = erased
+  T_CoC_872 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda10_1268 = erased
 -- VerifiedCompilation.UCaseOfCase..extendedlambda11
-d_'46'extendedlambda11_1310 ::
-  Integer ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  (MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  () ->
-  () ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
-  AgdaAny ->
-  AgdaAny ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  Integer ->
-  Integer ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  T_CoC_914 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda11_1310 = erased
--- VerifiedCompilation.UCaseOfCase..extendedlambda12
-d_'46'extendedlambda12_1394 ::
+d_'46'extendedlambda11_1352 ::
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
@@ -3533,16 +3461,16 @@ d_'46'extendedlambda12_1394 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Integer ->
   Integer ->
-  T_CoC_914 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda12_1394 = erased
+  T_CoC_872 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda11_1352 = erased
 -- VerifiedCompilation.UCaseOfCase.mapM
-d_mapM_1442 ::
+d_mapM_1400 ::
   () ->
   () -> (AgdaAny -> Maybe AgdaAny) -> [AgdaAny] -> Maybe [AgdaAny]
-d_mapM_1442 ~v0 ~v1 v2 v3 = du_mapM_1442 v2 v3
-du_mapM_1442 ::
+d_mapM_1400 ~v0 ~v1 v2 v3 = du_mapM_1400 v2 v3
+du_mapM_1400 ::
   (AgdaAny -> Maybe AgdaAny) -> [AgdaAny] -> Maybe [AgdaAny]
-du_mapM_1442 v0 v1
+du_mapM_1400 v0 v1
   = case coe v1 of
       [] -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe v1)
       (:) v2 v3
@@ -3550,7 +3478,7 @@ du_mapM_1442 v0 v1
            coe
              (case coe v4 of
                 MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v5
-                  -> let v6 = coe du_mapM_1442 (coe v0) (coe v3) in
+                  -> let v6 = coe du_mapM_1400 (coe v0) (coe v3) in
                      coe
                        (case coe v6 of
                           MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v7
@@ -3564,11 +3492,11 @@ du_mapM_1442 v0 v1
                 _ -> MAlonzo.RTE.mazUnreachableError)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.UCaseOfCase.reduce
-d_reduce_1494 ::
+d_reduce_1452 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Maybe MAlonzo.Code.Untyped.T__'8866'_14
-d_reduce_1494 v0 v1
+d_reduce_1452 v0 v1
   = let v2 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
     coe
       (case coe v1 of
@@ -3596,56 +3524,56 @@ d_reduce_1494 v0 v1
                                                                       coe
                                                                         (let v18
                                                                                = coe
-                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                    (\ v18 v19 ->
                                                                                       coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_538
+                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_406
                                                                                         v19)
                                                                                    (coe
-                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                       (\ v18 v19 ->
                                                                                          coe
-                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_558
+                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_426
                                                                                            v19)
                                                                                       (coe
-                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                          (\ v18
                                                                                             v19 ->
                                                                                             coe
-                                                                                              MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_576
+                                                                                              MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_444
                                                                                               v19)
                                                                                          (coe
-                                                                                            MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                            MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                             (\ v18
                                                                                                v19 ->
                                                                                                coe
-                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_598
+                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_466
                                                                                                  v19)
                                                                                             (coe
-                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                (\ v18
                                                                                                   v19 ->
                                                                                                   coe
-                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_642
+                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_510
                                                                                                     v19)
                                                                                                (coe
-                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                   (\ v18
                                                                                                      v19 ->
                                                                                                      coe
-                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_668
+                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_536
                                                                                                        v19)
                                                                                                   (coe
-                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                      (\ v18
                                                                                                         v19 ->
                                                                                                         coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_694
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_562
                                                                                                           v19)
                                                                                                      (\ v18
                                                                                                         v19 ->
                                                                                                         coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_716
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_584
                                                                                                           v19))))))) in
                                                                          coe
                                                                            (let v19
@@ -3674,58 +3602,58 @@ d_reduce_1494 v0 v1
                                                                                          coe
                                                                                            (let v23
                                                                                                   = coe
-                                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                       (\ v23
                                                                                                          v24 ->
                                                                                                          coe
-                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_538
+                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_406
                                                                                                            v24)
                                                                                                       (coe
-                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                          (\ v23
                                                                                                             v24 ->
                                                                                                             coe
-                                                                                                              MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_558
+                                                                                                              MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_426
                                                                                                               v24)
                                                                                                          (coe
-                                                                                                            MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                            MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                             (\ v23
                                                                                                                v24 ->
                                                                                                                coe
-                                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_576
+                                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_444
                                                                                                                  v24)
                                                                                                             (coe
-                                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                (\ v23
                                                                                                                   v24 ->
                                                                                                                   coe
-                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_598
+                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_466
                                                                                                                     v24)
                                                                                                                (coe
-                                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                   (\ v23
                                                                                                                      v24 ->
                                                                                                                      coe
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_642
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_510
                                                                                                                        v24)
                                                                                                                   (coe
-                                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                      (\ v23
                                                                                                                         v24 ->
                                                                                                                         coe
-                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_668
+                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_536
                                                                                                                           v24)
                                                                                                                      (coe
-                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                         (\ v23
                                                                                                                            v24 ->
                                                                                                                            coe
-                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_694
+                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_562
                                                                                                                              v24)
                                                                                                                         (\ v23
                                                                                                                            v24 ->
                                                                                                                            coe
-                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_716
+                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_584
                                                                                                                              v24))))))) in
                                                                                             coe
                                                                                               (let v24
@@ -3908,58 +3836,58 @@ d_reduce_1494 v0 v1
                                                                                                                      coe
                                                                                                                        (let v27
                                                                                                                               = coe
-                                                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                   (\ v27
                                                                                                                                      v28 ->
                                                                                                                                      coe
-                                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_538
+                                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_406
                                                                                                                                        v28)
                                                                                                                                   (coe
-                                                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                      (\ v27
                                                                                                                                         v28 ->
                                                                                                                                         coe
-                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_558
+                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_426
                                                                                                                                           v28)
                                                                                                                                      (coe
-                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                         (\ v27
                                                                                                                                            v28 ->
                                                                                                                                            coe
-                                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_576
+                                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_444
                                                                                                                                              v28)
                                                                                                                                         (coe
-                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                            (\ v27
                                                                                                                                               v28 ->
                                                                                                                                               coe
-                                                                                                                                                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_598
+                                                                                                                                                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_466
                                                                                                                                                 v28)
                                                                                                                                            (coe
-                                                                                                                                              MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                              MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                               (\ v27
                                                                                                                                                  v28 ->
                                                                                                                                                  coe
-                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_642
+                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_510
                                                                                                                                                    v28)
                                                                                                                                               (coe
-                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                  (\ v27
                                                                                                                                                     v28 ->
                                                                                                                                                     coe
-                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_668
+                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_536
                                                                                                                                                       v28)
                                                                                                                                                  (coe
-                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                     (\ v27
                                                                                                                                                        v28 ->
                                                                                                                                                        coe
-                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_694
+                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_562
                                                                                                                                                          v28)
                                                                                                                                                     (\ v27
                                                                                                                                                        v28 ->
                                                                                                                                                        coe
-                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_716
+                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_584
                                                                                                                                                          v28))))))) in
                                                                                                                         coe
                                                                                                                           (let v28
@@ -4148,58 +4076,58 @@ d_reduce_1494 v0 v1
                                                                                                                                        coe
                                                                                                                                          (let v30
                                                                                                                                                 = coe
-                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                     (\ v30
                                                                                                                                                        v31 ->
                                                                                                                                                        coe
-                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_538
+                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_406
                                                                                                                                                          v31)
                                                                                                                                                     (coe
-                                                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                        (\ v30
                                                                                                                                                           v31 ->
                                                                                                                                                           coe
-                                                                                                                                                            MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_558
+                                                                                                                                                            MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_426
                                                                                                                                                             v31)
                                                                                                                                                        (coe
-                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                           (\ v30
                                                                                                                                                              v31 ->
                                                                                                                                                              coe
-                                                                                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_576
+                                                                                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_444
                                                                                                                                                                v31)
                                                                                                                                                           (coe
-                                                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                              (\ v30
                                                                                                                                                                 v31 ->
                                                                                                                                                                 coe
-                                                                                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_598
+                                                                                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_466
                                                                                                                                                                   v31)
                                                                                                                                                              (coe
-                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                                 (\ v30
                                                                                                                                                                    v31 ->
                                                                                                                                                                    coe
-                                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_642
+                                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_510
                                                                                                                                                                      v31)
                                                                                                                                                                 (coe
-                                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                                    (\ v30
                                                                                                                                                                       v31 ->
                                                                                                                                                                       coe
-                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_668
+                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_536
                                                                                                                                                                         v31)
                                                                                                                                                                    (coe
-                                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                                       (\ v30
                                                                                                                                                                          v31 ->
                                                                                                                                                                          coe
-                                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_694
+                                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_562
                                                                                                                                                                            v31)
                                                                                                                                                                       (\ v30
                                                                                                                                                                          v31 ->
                                                                                                                                                                          coe
-                                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_716
+                                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_584
                                                                                                                                                                            v31))))))) in
                                                                                                                                           coe
                                                                                                                                             (let v31
@@ -4376,58 +4304,58 @@ d_reduce_1494 v0 v1
                                                                                                                                     coe
                                                                                                                                       (let v29
                                                                                                                                              = coe
-                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                  (\ v29
                                                                                                                                                     v30 ->
                                                                                                                                                     coe
-                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_538
+                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_406
                                                                                                                                                       v30)
                                                                                                                                                  (coe
-                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                     (\ v29
                                                                                                                                                        v30 ->
                                                                                                                                                        coe
-                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_558
+                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_426
                                                                                                                                                          v30)
                                                                                                                                                     (coe
-                                                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                        (\ v29
                                                                                                                                                           v30 ->
                                                                                                                                                           coe
-                                                                                                                                                            MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_576
+                                                                                                                                                            MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_444
                                                                                                                                                             v30)
                                                                                                                                                        (coe
-                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                           (\ v29
                                                                                                                                                              v30 ->
                                                                                                                                                              coe
-                                                                                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_598
+                                                                                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_466
                                                                                                                                                                v30)
                                                                                                                                                           (coe
-                                                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                              (\ v29
                                                                                                                                                                 v30 ->
                                                                                                                                                                 coe
-                                                                                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_642
+                                                                                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_510
                                                                                                                                                                   v30)
                                                                                                                                                              (coe
-                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                                 (\ v29
                                                                                                                                                                    v30 ->
                                                                                                                                                                    coe
-                                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_668
+                                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_536
                                                                                                                                                                      v30)
                                                                                                                                                                 (coe
-                                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__268
+                                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du__'60''124''62'__290
                                                                                                                                                                    (\ v29
                                                                                                                                                                       v30 ->
                                                                                                                                                                       coe
-                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_694
+                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'nil_562
                                                                                                                                                                         v30)
                                                                                                                                                                    (\ v29
                                                                                                                                                                       v30 ->
                                                                                                                                                                       coe
-                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_716
+                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'pair_584
                                                                                                                                                                         v30))))))) in
                                                                                                                                        coe
                                                                                                                                          (let v30
@@ -4607,11 +4535,11 @@ d_reduce_1494 v0 v1
                             -> if coe v8
                                  then let v10
                                             = coe
-                                                du_mapM_1442
+                                                du_mapM_1400
                                                 (coe
                                                    (\ v10 ->
                                                       coe
-                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_reduceM_858
+                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_reduceM_612
                                                         v0
                                                         (coe
                                                            MAlonzo.Code.Untyped.C_case_40 (coe v10)
@@ -4632,39 +4560,39 @@ d_reduce_1494 v0 v1
                 _ -> coe v2
          _ -> coe v2)
 -- VerifiedCompilation.UCaseOfCase.norm
-d_norm_1616 ::
+d_norm_1574 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14
-d_norm_1616
+d_norm_1574
   = coe
-      MAlonzo.Code.Untyped.Transform.d__'8657'__68 (coe d_reduce_1494)
+      MAlonzo.Code.Untyped.Transform.d__'8657'__68 (coe d_reduce_1452)
 -- VerifiedCompilation.UCaseOfCase._≡-cc_
-d__'8801''45'cc__1618 ::
+d__'8801''45'cc__1576 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
-d__'8801''45'cc__1618 = erased
+d__'8801''45'cc__1576 = erased
 -- VerifiedCompilation.UCaseOfCase.decide
-d_decide_1630 ::
+d_decide_1588 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
-d_decide_1630 v0 v1 v2
+d_decide_1588 v0 v1 v2
   = let v3
           = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
               (coe v0)
               (coe
                  MAlonzo.Code.Data.Maybe.Base.du_maybe_32 (coe (\ v3 -> v3))
                  (coe
-                    MAlonzo.Code.Untyped.Transform.d_sub_80 (coe d_reduce_1494)
+                    MAlonzo.Code.Untyped.Transform.d_sub_80 (coe d_reduce_1452)
                     (coe v0) (coe v1))
                  (coe
-                    d_reduce_1494 (coe v0)
+                    d_reduce_1452 (coe v0)
                     (coe
                        MAlonzo.Code.Untyped.Transform.du_'46'extendedlambda1_100
-                       (coe d_reduce_1494) (coe v0) (coe v1))))
+                       (coe d_reduce_1452) (coe v0) (coe v1))))
               (coe v2) in
     coe
       (case coe v3 of

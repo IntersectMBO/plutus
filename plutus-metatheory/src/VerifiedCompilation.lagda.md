@@ -50,10 +50,11 @@ import VerifiedCompilation.UForceCaseDelay as UFCD
 import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
-import VerifiedCompilation.UCaseReduce.Equivalence as UCR
+-- import VerifiedCompilation.UCaseReduce.Equivalence as UCR
 open import VerifiedCompilation.NotImplemented
 open import VerifiedCompilation.Trace
 open import VerifiedCompilation.Certificate hiding (_>>=_)
+open import Relation.Binary.PropositionalEquality
 
 
 -- | The failure modes of the certifier
@@ -73,11 +74,11 @@ if we don't have a translation relation.
 mRelationOf : SimplifierTag → Maybe (0 ⊢ → 0 ⊢ → Set)
 mRelationOf floatDelayT     = just UFlD.FloatDelay
 mRelationOf forceDelayT     = just UFD.ForceDelay
-mRelationOf caseReduceT     = just (UCR._≡-c'_)
+mRelationOf caseReduceT     = nothing -- just (λ M M' → UCR.norm M ≡ UCR.norm M')
 mRelationOf cseT            = just UCSE.UntypedCSE
 mRelationOf inlineT         = just (UInline.Inline (λ()) UInline.□)
 mRelationOf unknown         = nothing
-mRelationOf caseOfCaseT     = just (UCC._≡-cc_) -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
+mRelationOf caseOfCaseT     = nothing -- just (UCC._≡-cc_) -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
 mRelationOf forceCaseDelayT = just UFCD.ForceCaseDelay
 mRelationOf applyToCaseT    = just UA2C.UApplyToCase
 ```
@@ -99,9 +100,9 @@ certifyPass : (pass : SimplifierTag) → Hints → (M M' : 0 ⊢) → CertResult
 certifyPass floatDelayT _       = decider UFlD.isFloatDelay?
 certifyPass forceDelayT _       = decider UFD.isForceDelay?
 certifyPass cseT _              = decider UCSE.isUntypedCSE?
-certifyPass caseOfCaseT _       = decider UCC.decide
+certifyPass caseOfCaseT _       = certNotImplemented -- decider UCC.decide
 certifyPass forceCaseDelayT _   = decider UFCD.isForceCaseDelay?
-certifyPass caseReduceT _       = decider UCR.decide'
+certifyPass caseReduceT _       = certNotImplemented -- decider UCR.decide
 certifyPass applyToCaseT _      = decider UA2C.a2c?ᶜᶜ
 certifyPass inlineT (inline hs) = checker (UInline.top-check hs)
 certifyPass inlineT none        = λ M M' → abort inlineT M M'

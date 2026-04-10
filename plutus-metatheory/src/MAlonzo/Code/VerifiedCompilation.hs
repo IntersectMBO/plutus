@@ -28,8 +28,6 @@ import qualified MAlonzo.Code.VerifiedCompilation.NotImplemented
 import qualified MAlonzo.Code.VerifiedCompilation.Trace
 import qualified MAlonzo.Code.VerifiedCompilation.UApplyToCase
 import qualified MAlonzo.Code.VerifiedCompilation.UCSE
-import qualified MAlonzo.Code.VerifiedCompilation.UCaseOfCase
-import qualified MAlonzo.Code.VerifiedCompilation.UCaseReduce
 import qualified MAlonzo.Code.VerifiedCompilation.UFloatDelay
 import qualified MAlonzo.Code.VerifiedCompilation.UForceCaseDelay
 import qualified MAlonzo.Code.VerifiedCompilation.UForceDelay
@@ -56,9 +54,9 @@ d_mRelationOf_12 v0
       MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 erased
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_12
-        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 erased
+        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_14
-        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 erased
+        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
       MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_16
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 erased
       MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_18
@@ -110,16 +108,14 @@ d_certifyPass_24 v0 v1
                 (coe (0 :: Integer)))
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_12
         -> coe
-             MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
-             (coe
-                MAlonzo.Code.VerifiedCompilation.UCaseOfCase.d_decide_1630
-                (coe (0 :: Integer)))
+             (\ v2 v3 ->
+                coe
+                  MAlonzo.Code.VerifiedCompilation.NotImplemented.du_certNotImplemented_22)
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_14
         -> coe
-             MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
-             (coe
-                MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_decide''_1070
-                (coe (0 :: Integer)))
+             (\ v2 v3 ->
+                coe
+                  MAlonzo.Code.VerifiedCompilation.NotImplemented.du_certNotImplemented_22)
       MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_16
         -> case coe v1 of
              MAlonzo.Code.VerifiedCompilation.Trace.C_inline_54 v2

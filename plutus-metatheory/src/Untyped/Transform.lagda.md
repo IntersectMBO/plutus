@@ -17,6 +17,7 @@ open import Data.List.Relation.Binary.Pointwise
 open import Data.Nat
 open import Data.Maybe
 open import Data.Fin
+open import Relation.Binary.PropositionalEquality
 ```
 
 ## Bottom-up traversals
@@ -116,6 +117,39 @@ module Extensive
   ... | con _ = compat-con
   ... | constr i Ms = compat-constr ↑*-extensive
   ... | case M Ms = compat-case ↑-extensive ↑*-extensive
+  ... | builtin _ = compat-builtin
+  ... | error = compat-error
+
+module Extensive?
+  (_~_ : Relation)
+  (~-trans : Transitive _~_)
+  (~-compat : TermCompatible _~_)
+  (f : ∀ {X} → X ⊢ → Maybe (X ⊢))
+  (f-extensive? : Extensive? f _~_)
+  where
+
+  open TermCompatible ~-compat
+
+  ⇑-extensive : Extensive (f ⇑_) _~_
+  ⇑*-extensive : ∀ {X} {Ms : List (X ⊢)} →
+      Pointwise _~_ Ms (f ⇑* Ms)
+  sub-extensive : Extensive (sub f) _~_
+
+  ⇑-extensive {X} {M} with sub-extensive {_} {M}
+  ... | sub-ext with f (sub f M) in eq
+  ... | just M'' = ~-trans sub-ext (f-extensive? _ eq)
+  ... | nothing = sub-ext
+  ⇑*-extensive {Ms = []} = []
+  ⇑*-extensive {Ms = _ ∷ _} = ⇑-extensive ∷ ⇑*-extensive
+  sub-extensive {X} {M} with M
+  ... | ` _ = compat-var
+  ... | ƛ _ = compat-ƛ ⇑-extensive
+  ... | _ · _ = compat-· ⇑-extensive ⇑-extensive
+  ... | force _ = compat-force ⇑-extensive
+  ... | delay _ = compat-delay ⇑-extensive
+  ... | con _ = compat-con
+  ... | constr i Ms = compat-constr ⇑*-extensive
+  ... | case M Ms = compat-case ⇑-extensive ⇑*-extensive
   ... | builtin _ = compat-builtin
   ... | error = compat-error
 ```

@@ -367,6 +367,7 @@ library
     MAlonzo.Code.Untyped.Purity
     MAlonzo.Code.Untyped.Reduction
     MAlonzo.Code.Untyped.Relation
+    MAlonzo.Code.Untyped.Relation.Composable
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Untyped.Transform
     MAlonzo.Code.Utils
@@ -381,7 +382,6 @@ library
     MAlonzo.Code.VerifiedCompilation.UApplyToCase
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
-    MAlonzo.Code.VerifiedCompilation.UCaseReduce.Equivalence
     MAlonzo.Code.VerifiedCompilation.UCaseReduce.Inductive
     MAlonzo.Code.VerifiedCompilation.UCSE
     MAlonzo.Code.VerifiedCompilation.UFloatDelay

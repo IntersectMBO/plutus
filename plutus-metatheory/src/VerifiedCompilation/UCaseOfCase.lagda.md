@@ -375,28 +375,28 @@ caseIf? R? M M' with
 DecidableT : ∀ {A : Set} → (A → A → Set) → (A → A → Set) → Set
 DecidableT R S = Decidable R → Decidable S
 
-data CaseOfCase {X} : Rel X where
-  CC :
-      CaseIf CaseOfCase M M'
-    + CaseCase CaseOfCase M M'
-    + CompatTerm CaseOfCase M M'
-    → -------------------
-    CaseOfCase M M'
+--data CaseOfCase {X} : Rel X where
+--  CC :
+--      CaseIf CaseOfCase M M'
+--    + CaseCase CaseOfCase M M'
+--    + CompatTerm CaseOfCase M M'
+--    → -------------------
+--    CaseOfCase M M'
 
-{-# TERMINATING #-}
-caseOfCase? : ∀ {X} → (M M' : X ⊢) → Dec (CaseOfCase M M')
-caseOfCase? M M'
-  with (   caseIf? caseOfCase? M M'
-       <+> caseCase? caseOfCase? M M'
-       <+> compatTerm? caseOfCase? M M'
-       )
-... | yes P = yes (CC P)
-... | no ¬P = no λ {(CC P) → ¬P P}
+-- {-# TERMINATING #-}
+-- caseOfCase? : ∀ {X} → (M M' : X ⊢) → Dec (CaseOfCase M M')
+-- caseOfCase? M M'
+--   with (   caseIf? caseOfCase? M M'
+--        <+> caseCase? caseOfCase? M M'
+--        <+> compatTerm? caseOfCase? M M'
+--        )
+-- ... | yes P = yes (CC P)
+-- ... | no ¬P = no λ {(CC P) → ¬P P}
 
-open import Data.Fin using (zero; suc)
-
-test : Bool
-test = Dec.does (caseOfCase? {1} (ƛ (` zero)) (ƛ (` (zero))))
+-- open import Data.Fin using (zero; suc)
+-- 
+-- test : Bool
+-- test = Dec.does (caseOfCase? {1} (ƛ (` zero)) (ƛ (` (zero))))
 ```
 
 
