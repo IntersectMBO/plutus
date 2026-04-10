@@ -54,7 +54,7 @@ import PlutusCore.Quote (MonadQuote (..), Quote)
 import PlutusCore.Rename (Dupable, dupable, liftDupable)
 import PlutusPrelude (Generic)
 import UntypedPlutusCore.Analysis.Usages qualified as Usages
-import UntypedPlutusCore.AstSize (AstSize, termAstSize)
+import UntypedPlutusCore.AstSize (AstSize (..), termAstSize)
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..), modifyTermAnn, termAnn)
@@ -67,6 +67,7 @@ import UntypedPlutusCore.Purity
   , unEvalOrder
   )
 import UntypedPlutusCore.Rename ()
+import UntypedPlutusCore.Simplify.Opts
 import UntypedPlutusCore.Subst (termSubstNamesM)
 import UntypedPlutusCore.Transform.Certify.Hints qualified as CertifierHints
 import UntypedPlutusCore.Transform.Simplifier
@@ -153,6 +154,7 @@ data InlineInfo name fun a = InlineInfo
   , _iiInlineConstants :: Bool
   , _iiInlineCallsiteGrowth :: AstSize
   , _iiPreserveLogging :: Bool
+  , _iiOptBias :: OptBias
   }
 
 makeLenses ''InlineInfo
@@ -205,7 +207,8 @@ See Note [Inlining and global uniqueness] -}
 inline
   :: forall name uni fun m a
    . ExternalConstraints name uni fun m
-  => AstSize
+  => OptBias
+  -> AstSize
   -- ^ inline threshold
   -> Bool
   -- ^ inline constants
@@ -216,6 +219,7 @@ inline
   -> Term name uni fun a
   -> SimplifierT name uni fun a m (Term name uni fun a)
 inline
+  bias
   callsiteGrowth
   inlineConstants
   preserveLogging
@@ -234,6 +238,7 @@ inline
               , _iiInlineConstants = inlineConstants
               , _iiInlineCallsiteGrowth = callsiteGrowth
               , _iiPreserveLogging = preserveLogging
+              , _iiOptBias = bias
               }
     let result = snd <$> decoratedResult
     recordSimplificationWithHints (CertifierHints.Inline (mkHints decoratedResult)) t Inline result
@@ -504,9 +509,22 @@ acceptable
   -- ^ inline constants
   -> Term name uni fun a
   -> InlineM name uni fun b Bool
-acceptable inlineConstants t =
+acceptable inlineConstants t = do
+  bias <- view iiOptBias
+  thresh <- view iiInlineCallsiteGrowth
+  -- When bias is 0 or 1, we only require size to be acceptable.
+  -- When bias is 3 or 4, we only require cost to be acceptable.
+  -- When bias = 2, size and cost must both be acceptable.
+  let costMatters = unOptBias bias >= 2
+      actualThresh
+        | bias <= 2 = 0
+        | bias == 3 = thresh
+        | otherwise = thresh * 2
+
   -- See Note [Inlining criteria]
-  pure $ costIsAcceptable t && sizeIsAcceptable inlineConstants t
+  pure $
+    (not costMatters || costIsAcceptable t)
+      && (sizeIsAcceptable inlineConstants t || termAstSize t <= actualThresh)
 
 {-| Is the cost increase (in terms of evaluation work) of inlining a variable
 whose RHS is the given term acceptable? -}
@@ -646,11 +664,18 @@ inlineSaturatedApp t
             Nothing -> pure t
             Just fullyApplied -> do
               thresh <- view iiInlineCallsiteGrowth
+              bias <- view iiOptBias
               let
+                actualThresh = case unOptBias bias of
+                  0 -> 0
+                  1 -> AstSize $ unAstSize thresh `div` 2
+                  2 -> thresh
+                  3 -> thresh * 2
+                  _ -> thresh * 4
                 -- Inline only if the size is no bigger than
                 -- not inlining plus threshold.
                 sizeIsOk =
-                  termAstSize fullyApplied <= termAstSize t + max 0 thresh
+                  termAstSize fullyApplied <= termAstSize t + max 0 actualThresh
                 rhs = varInfo ^. varRhs
                 -- Cost is always OK if the RHS is a LamAbs,
                 -- but may not be otherwise.

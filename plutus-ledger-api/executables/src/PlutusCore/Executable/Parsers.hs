@@ -270,6 +270,18 @@ simplifyOpts = do
       ( long "opt-no-apply-to-case"
           <> help "Disable apply-to-case optimization"
       )
+  _soOptBias <-
+    option
+      (UPLC.optBias <$> auto)
+      ( long "opt-bias"
+          <> metavar "INT"
+          <> value (UPLC.defaultSimplifyOpts ^. UPLC.soOptBias)
+          <> showDefault
+          <> help
+            ( "A scale of 0 to 4, where 0 prioritizes minimizing script size and"
+                <> "4 prioritizes minimizing script cost."
+            )
+      )
   pure UPLC.SimplifyOpts {..}
 
 optimiseEvalOpts :: Parser OptimiseEvalOpts

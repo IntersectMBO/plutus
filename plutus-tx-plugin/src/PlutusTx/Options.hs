@@ -55,6 +55,7 @@ data PluginOptions = PluginOptions
   , _posDumpPlc :: Bool
   , _posDumpUPlc :: Bool
   , _posOptimize :: Bool
+  , _posOptBias :: Int
   , _posPedantic :: Bool
   , _posVerbosity :: Verbosity
   , _posDatatypes :: PIR.DatatypeCompilationOpts
@@ -236,6 +237,11 @@ pluginOptions =
     , let k = "optimize"
           desc = "Run optimization passes such as simplification and floating let-bindings."
        in (k, PluginOption typeRep (setTrue k) posOptimize desc [])
+    , let k = "optimization-bias"
+          desc =
+            "A scale of 0 to 4, where 0 prioritizes minimizing script size and"
+              <> "4 prioritizes minimizing script cost."
+       in (k, PluginOption typeRep (readOption k) posOptBias desc [])
     , let k = "pedantic"
           desc = "Run type checker after each compilation pass"
        in (k, PluginOption typeRep (setTrue k) posPedantic desc [])
@@ -387,6 +393,7 @@ defaultPluginOptions =
     , _posDumpPlc = False
     , _posDumpUPlc = False
     , _posOptimize = True
+    , _posOptBias = 2
     , _posPedantic = False
     , _posVerbosity = Quiet
     , _posDatatypes = PIR.defaultDatatypeCompilationOpts

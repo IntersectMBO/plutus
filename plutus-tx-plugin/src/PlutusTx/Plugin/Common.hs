@@ -802,6 +802,9 @@ runCompiler moduleName opts expr = do
             (PLC.coSimplifyOpts . UPLC.soInlineCallsiteGrowth)
             (opts ^. posInlineCallsiteGrowth . to fromIntegral)
           & set
+            (PLC.coSimplifyOpts . UPLC.soOptBias)
+            (opts ^. posOptBias . to fromIntegral)
+          & set
             (PLC.coSimplifyOpts . UPLC.soPreserveLogging)
             (opts ^. posPreserveLogging)
           & set

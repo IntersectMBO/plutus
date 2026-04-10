@@ -40,6 +40,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`max-cse-iterations`|Int|4|Set the max iterations for CSE|
 |`max-simplifier-iterations-pir`|Int|12|Set the max iterations for the PIR simplifier|
 |`max-simplifier-iterations-uplc`|Int|12|Set the max iterations for the UPLC simplifier|
+|`optimization-bias`|Int|2|A scale of 0 to 4, where 0 prioritizes minimizing script size and4 prioritizes minimizing script cost.|
 |`optimize`|Bool|True|Run optimization passes such as simplification and floating let-bindings.|
 |`pedantic`|Bool|False|Run type checker after each compilation pass|
 |`preserve-logging`|Bool|True|Turn off optimisations that may alter (i.e., add, remove or change the order of) trace messages. Implied by `conservative-optimisation`.|

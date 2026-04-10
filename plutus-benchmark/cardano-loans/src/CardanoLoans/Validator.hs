@@ -27,6 +27,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-conservative-optimisation #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-remove-trace #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:optimization-bias=4 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:preserve-logging #-}
 
 {-# HLINT ignore "Redundant if" #-}

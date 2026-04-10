@@ -110,6 +110,7 @@ termSimplifier opts builtinSemanticsVariant =
         >=> caseOfCase'
         >=> caseReduce
         >=> inline
+          (_soOptBias opts)
           (_soInlineCallsiteGrowth opts)
           (_soInlineConstants opts)
           (_soPreserveLogging opts)

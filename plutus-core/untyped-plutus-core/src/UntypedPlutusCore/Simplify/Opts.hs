@@ -11,7 +11,11 @@ module UntypedPlutusCore.Simplify.Opts
   , soInlineConstants
   , soInlineCallsiteGrowth
   , soPreserveLogging
+  , soOptBias
   , defaultSimplifyOpts
+  , OptBias
+  , unOptBias
+  , optBias
   ) where
 
 import Control.Lens.TH (makeLenses)
@@ -20,6 +24,12 @@ import Data.Default.Class
 import PlutusCore.Annotation (InlineHints (..))
 import PlutusCore.AstSize
 import UntypedPlutusCore.Transform.Cse (CseWhichSubterms (..))
+
+newtype OptBias = OptBias {unOptBias :: Int}
+  deriving newtype (Show, Eq, Ord, Num)
+
+optBias :: Int -> OptBias
+optBias = OptBias . max 0 . min 4
 
 data SimplifyOpts name a = SimplifyOpts
   { _soMaxSimplifierIterations :: Int
@@ -31,6 +41,7 @@ data SimplifyOpts name a = SimplifyOpts
   , _soInlineCallsiteGrowth :: AstSize
   , _soPreserveLogging :: Bool
   , _soApplyToCase :: Bool
+  , _soOptBias :: OptBias
   }
   deriving stock (Show)
 
@@ -48,4 +59,5 @@ defaultSimplifyOpts =
     , _soInlineCallsiteGrowth = 5
     , _soPreserveLogging = True
     , _soApplyToCase = True
+    , _soOptBias = optBias 2
     }
