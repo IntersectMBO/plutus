@@ -124,15 +124,8 @@ test-suite plutus-tx-plugin-tests
   hs-source-dirs:     test
   main-is:            Spec.hs
   other-modules:
-    Array.Spec
     AsData.Budget.Spec
     AsData.Budget.Types
-    AssocMap.Golden
-    AssocMap.Properties1
-    AssocMap.Properties2
-    AssocMap.Properties3
-    AssocMap.Semantics
-    AssocMap.Spec
     Blueprint.Tests
     Blueprint.Tests.Lib
     Blueprint.Tests.Lib.AsData.Blueprint
@@ -141,14 +134,11 @@ test-suite plutus-tx-plugin-tests
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations
     BuiltinCasing.Spec
-    BuiltinList.Budget.Spec
-    BuiltinList.NoCasing.Spec
     ByteStringLiterals.Lib
     ByteStringLiterals.Spec
     CallTrace.Lib
     CallTrace.OtherModule
     CallTrace.Spec
-    DataList.Budget.Spec
     Inline.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
     IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
@@ -159,10 +149,6 @@ test-suite plutus-tx-plugin-tests
     IsData.Budget.SoP
     IsData.Spec
     Lift.Spec
-    List.Properties1
-    List.Properties2
-    List.Semantics
-    List.Spec
     Optimization.Spec
     Plugin.Basic.Spec
     Plugin.Coverage.Spec
@@ -221,7 +207,76 @@ test-suite plutus-tx-plugin-tests
     , tasty-hunit
     , template-haskell
     , text
+
+  default-extensions: Strict
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+
+  -- NOTE: -g makes the plugin give better errors
+  -- See Note [-fno-full-laziness in Plutus Tx]
+  ghc-options:
+    -g -fno-strictness -fno-unbox-strict-fields
+    -fno-unbox-small-strict-fields -fno-full-laziness
+
+test-suite assocmap-plugin-tests
+  import:             lang, ghc-version-support, os-support
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     assocmap-test
+  main-is:            Spec.hs
+  other-modules:
+    AssocMap.Golden
+    AssocMap.Properties1
+    AssocMap.Properties2
+    AssocMap.Properties3
+    AssocMap.Semantics
+    AssocMap.Spec
+
+  build-depends:
+    , base                             >=4.9   && <5
+    , containers
+    , hedgehog
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.61
+    , plutus-tx-plugin
+    , plutus-tx:plutus-tx-testlib
+    , tasty
+    , tasty-hedgehog
     , these
+
+  default-extensions: Strict
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+
+  -- NOTE: -g makes the plugin give better errors
+  -- See Note [-fno-full-laziness in Plutus Tx]
+  ghc-options:
+    -g -fno-strictness -fno-unbox-strict-fields
+    -fno-unbox-small-strict-fields -fno-full-laziness
+    -Wno-unused-packages
+
+test-suite list-plugin-tests
+  import:             lang, ghc-version-support, os-support
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     list-test
+  main-is:            Spec.hs
+  other-modules:
+    Array.Spec
+    BuiltinList.Budget.Spec
+    BuiltinList.NoCasing.Spec
+    DataList.Budget.Spec
+    List.Properties1
+    List.Properties2
+    List.Semantics
+    List.Spec
+
+  build-depends:
+    , base                             >=4.9   && <5
+    , filepath
+    , hedgehog
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.61
+    , plutus-tx-plugin                 ^>=1.61
+    , plutus-tx:plutus-tx-testlib
+    , tasty
+    , tasty-hedgehog
 
   default-extensions: Strict
   ghc-options:        -threaded -rtsopts -with-rtsopts=-N

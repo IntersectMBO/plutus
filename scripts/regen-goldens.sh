@@ -19,6 +19,8 @@ tests_plutus_conformance=(
 )
 tests_plutus_tx_plugin=(
   "cabal run plutus-tx-plugin-tests -- --accept"
+  "cabal run list-plugin-tests -- --accept"
+  "cabal run assocmap-plugin-tests -- --accept"
   "cabal run size -- --accept"
   "cabal run plutus-ledger-api-plugin-test -- --accept"
 )
