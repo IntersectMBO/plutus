@@ -25,6 +25,8 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
 import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
 import Control.DeepSeq (force)
+import Control.Exception (evaluate)
+import Control.Monad (replicateM)
 import Control.Monad.Except (runExcept, tryError)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.IO.Class (liftIO)
@@ -34,11 +36,12 @@ import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as BSL
+import Data.IORef (newIORef, readIORef)
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Data.Text.IO qualified as T
-import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
+import Data.Time.Clock.System (SystemTime, getSystemTime, systemNanoseconds, systemSeconds)
 import Options.Applicative
 import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
@@ -46,7 +49,9 @@ import System.Console.Haskeline qualified as Repl
 import System.Directory.Extra (doesFileExist)
 import System.Exit (ExitCode (..), exitFailure, exitWith)
 import System.FilePath
-import System.IO (hPrint, stderr)
+import System.IO (hPrint, hPutStrLn, stderr)
+import System.Mem (performGC)
+import Text.Printf (printf)
 import Text.Read (readMaybe)
 
 import Data.Version.Extras (gitAwareVersionInfo)
@@ -80,6 +85,7 @@ data EvalOptions
       Output
       CekModel
       (BuiltinSemanticsVariant PLC.DefaultFun)
+      TimingMode
 
 data BenchmarkOptions
   = BenchmarkOptions
@@ -139,6 +145,26 @@ benchmarkOpts =
           <> help "Time limit (in seconds) for benchmarking."
       )
 
+timingmode :: Parser TimingMode
+timingmode = repeatOpt <|> timingFlag <|> pure NoTiming
+  where
+    timingFlag =
+      flag'
+        (Timing 1)
+        ( short 'x'
+            <> long "time-execution"
+            <> help "Time the evaluation of the script, printing elapsed time on stderr."
+        )
+    repeatOpt =
+      Timing
+        <$> option
+          auto
+          ( short 'n'
+              <> long "repeat"
+              <> metavar "N"
+              <> help "Run the script N times and print the average evaluation time on stderr."
+          )
+
 evalOpts :: Parser EvalOptions
 evalOpts =
   EvalOptions
@@ -151,6 +177,7 @@ evalOpts =
     <*> output
     <*> cekmodel
     <*> builtinSemanticsVariant
+    <*> timingmode
 
 dbgOpts :: Parser DbgOptions
 dbgOpts =
@@ -593,7 +620,7 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
       cekparams = PLC.defaultCekParametersForVariant semvar
       -- Extract an evaluation result
       getResult = either (error . show) (const ()) . Cek.cekResultToEither . Cek._cekReportResult
-      evaluate = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
+      cekEval = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
       -- we have to put them back to get an AST with NamedDeBruijn names.
       !term =
@@ -604,9 +631,19 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
       !anonTerm = UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) term
       -- Big annotations slow things down
       !unitAnnTerm = force (void anonTerm)
-  benchmarkWith criterionConfig $! whnf evaluate unitAnnTerm
+  benchmarkWith criterionConfig $! whnf cekEval unitAnnTerm
 
 ---------------- Evaluation ----------------
+
+toNanos :: SystemTime -> Integer
+toNanos t = fromIntegral (systemSeconds t) * 1000000000 + fromIntegral (systemNanoseconds t)
+
+formatNs :: Integer -> String
+formatNs ns
+  | ns < 1000 = show ns ++ "ns"
+  | ns < 1000000 = printf "%.3f\xb5s" (fromIntegral ns / 1000 :: Double)
+  | ns < 1000000000 = printf "%.3fms" (fromIntegral ns / 1000000 :: Double)
+  | otherwise = printf "%.3fs" (fromIntegral ns / 1000000000 :: Double)
 
 runEval :: EvalOptions -> IO ()
 runEval
@@ -620,6 +657,7 @@ runEval
       outp
       cekModel
       semvar
+      timingMode
     ) = do
     prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
@@ -641,24 +679,62 @@ runEval
           Silent -> SomeBudgetMode Cek.restrictingEnormous
           Verbose bm -> bm
     case budgetM of
-      SomeBudgetMode bm ->
-        do
-          let Cek.CekReport res budget logs = Cek.runCek cekparams bm emitM term
-          case Cek.cekResultToEither res of
-            Left err -> hPrint stderr err
-            Right v ->
-              case nameFormat of
-                IdNames -> writeToOutput outp $ prettyPrintByMode printMode v
-                DeBruijnNames -> writeToOutput outp $ prettyPrintByMode printMode $ toDeBruijnTermUPLC v
-          case budgetMode of
-            Silent -> pure ()
-            Verbose _ -> printBudgetState term cekModel budget
-          case traceMode of
-            None -> pure ()
-            _ -> writeToOutput outp (T.intercalate "\n" logs)
-          case Cek.cekResultToEither res of
-            Left _ -> exitFailure
-            Right _ -> pure ()
+      SomeBudgetMode bm -> do
+        (report, mAvgNs) <- case timingMode of
+          NoTiming -> do
+            r <- evaluate (Cek.runCek cekparams bm emitM term)
+            pure (r, Nothing)
+          Timing n -> do
+            let count = fromIntegral (max 1 n) :: Int
+            -- Convert to anonymised de Bruijn before timing so that only pure
+            -- CEK evaluation time is measured (not de Bruijn conversion or name
+            -- traversal costs).  Force to NF and GC before starting the loop.
+            let !dbTerm =
+                  fromRight (error "Timing: term has free variables")
+                    . runExcept @FreeVariableError
+                    $ UPLC.deBruijnTerm term
+            !anonTerm <-
+              evaluate . force $
+                UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) dbTerm
+            let !evalCtx = mkDefaultEvalCtx semvar
+            performGC
+            -- Store the term in an IORef so GHC cannot CSE/share the result of
+            -- evaluateCekLikeInProd across iterations (call-by-need would
+            -- otherwise memoize the first result and return it instantly for
+            -- every subsequent call, making the average shrink as N grows).
+            termRef <- newIORef anonTerm
+            timings <- replicateM count $ do
+              term' <- readIORef termRef
+              t0 <- getSystemTime
+              _ <- evaluate (evaluateCekLikeInProd evalCtx term')
+              t1 <- getSystemTime
+              pure (toNanos t1 - toNanos t0)
+            let avgNs = sum timings `div` fromIntegral count
+            -- Run once with the original named term to get the report used for
+            -- printing the result, budget statistics, and trace logs.
+            report <- evaluate (Cek.runCek cekparams bm emitM term)
+            pure (report, Just avgNs)
+        let Cek.CekReport res budget logs = report
+        case Cek.cekResultToEither res of
+          Left err -> hPrint stderr err
+          Right v ->
+            case nameFormat of
+              IdNames -> writeToOutput outp $ prettyPrintByMode printMode v
+              DeBruijnNames -> writeToOutput outp $ prettyPrintByMode printMode $ toDeBruijnTermUPLC v
+        case budgetMode of
+          Silent -> pure ()
+          Verbose _ -> printBudgetState term cekModel budget
+        case traceMode of
+          None -> pure ()
+          _ -> writeToOutput outp (T.intercalate "\n" logs)
+        whenJust mAvgNs $ \avgNs ->
+          let label = case timingMode of
+                Timing n | n > 1 -> "Average evaluation time: "
+                _ -> "Evaluation time: "
+           in hPutStrLn stderr $ label ++ formatNs avgNs
+        case Cek.cekResultToEither res of
+          Left _ -> exitFailure
+          Right _ -> pure ()
 
 ---------------- Debugging ----------------
 

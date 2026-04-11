@@ -78,6 +78,19 @@ evalSimplifierTrace evalCtx trace args =
       )
         <$> allASTs trace
 
+{-| Evaluate a term as it would be evaluated using the on-chain evaluator,
+at the most recent protocol version with restrictingEnormous budget mode
+(no budget tracking overhead). Suitable for timing. -}
+evaluateCekLikeInProd
+  :: EvaluationContext
+  -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+  -> Either
+       (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+       (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+evaluateCekLikeInProd evalCtx term =
+  cekResultToEither . _cekReportResult $
+    evaluateTerm restrictingEnormous newestPV Quiet evalCtx term
+
 {-| Evaluate a single program term applied to arguments in counting mode.
 Returns @(Maybe error, budget)@. -}
 evalCountingWithArgs
