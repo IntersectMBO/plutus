@@ -26,7 +26,6 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
 import Control.DeepSeq (force)
 import Control.Exception (evaluate)
-import Control.Monad (replicateM)
 import Control.Monad.Except (runExcept, tryError)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.IO.Class (liftIO)
@@ -734,22 +733,27 @@ runTime (TimeOptions inp ifmt semvar n raw) = do
   -- memoize the first result and return it instantly for every subsequent
   -- call, making the average shrink as N grows).
   termRef <- newIORef anonTerm
-  timings <- replicateM count $ do
-    term' <- readIORef termRef
-    t0 <- getSystemTime
-    r <- evaluate (evaluateCekLikeInProd evalCtx term')
-    t1 <- getSystemTime
-    pure (r, toNanos t1 - toNanos t0)
-  let avgNs = sum (map snd timings) `div` fromIntegral count
+  -- Use a strict tail-recursive loop rather than replicateM so that each
+  -- iteration's result term is reduced to a Bool and dropped before the next
+  -- iteration begins.  replicateM would accumulate all N results in a list,
+  -- keeping all N large terms live simultaneously.
+  let loop 0 lastOk !total = pure (lastOk, total)
+      loop k _ !total = do
+        term' <- readIORef termRef
+        t0 <- getSystemTime
+        r <- evaluate (evaluateCekLikeInProd evalCtx term')
+        t1 <- getSystemTime
+        let !ok = either (const False) (const True) r
+        loop (k - 1) ok (total + (toNanos t1 - toNanos t0))
+  (lastOk, totalNs) <- loop count True 0
+  let avgNs = totalNs `div` fromIntegral count
   hPutStrLn stderr $
     if raw
       then show avgNs
       else
         (if count > 1 then "Average evaluation time (" ++ show count ++ " runs): " else "Evaluation time: ")
           ++ formatNs avgNs
-  case fst (last timings) of
-    Left _ -> exitFailure
-    Right _ -> pure ()
+  if lastOk then pure () else exitFailure
 
 ---------------- Debugging ----------------
 
