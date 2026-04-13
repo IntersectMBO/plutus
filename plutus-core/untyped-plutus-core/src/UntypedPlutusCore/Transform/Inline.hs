@@ -273,10 +273,9 @@ restoreApps defs t = makeLams [] t (reverse defs)
     -- `aa` is the annotation on the Apply node, and `al` is the annotation
     -- on the LamAbs node.
     makeLams args acc ((Left al, aa) : rest) =
-      -- `Left` means the binding is dropped, so `acc` should be decorated with `al`
-      -- plus `DLamDrop`.
+      -- `Left` means the binding is dropped, so `acc` should be decorated with `al`.
       -- This corresponds to Note [Inliner's Certifier Hints], #3.
-      makeLams ((Nothing, aa) : args) (decorateWith (al ^. decorations ++ [DLamDrop]) acc) rest
+      makeLams ((Nothing, aa) : args) (decorateWith (al ^. decorations) acc) rest
     makeLams args acc ((Right (Def (UVarDecl al n) rhs), aa) : rest) =
       makeLams ((Just rhs, aa) : args) (LamAbs al n acc) rest
     makeLams args acc [] =
@@ -578,17 +577,17 @@ fullyApplyAndBetaReduce av info args0 = do
     --   * ...
     --   * decorations on the innermost Apply node, plus DDrop
     --   * `av` plus DExpand.
-    --   * decorations on the first LamAbs, plus DLamDrop
-    --   * decorations on the second LamAbs, plus DLamDrop
+    --   * decorations on the first LamAbs
+    --   * decorations on the second LamAbs
     --   * ...
-    --   * decorations on the last LamAbs, plus DLamDrop
+    --   * decorations on the last LamAbs
     --
     -- See Note [Inliner's Certifier Hints].
     decorateWith
       ( concatMap (\(annApply, _arg) -> annApply ^. decorations ++ [DDrop]) (reverse args0)
           ++ av ^. decorations
           ++ [DExpand]
-          ++ concatMap (\(_name, annLam) -> annLam ^. decorations ++ [DLamDrop]) (info ^. varBinders)
+          ++ concatMap (\(_name, annLam) -> annLam ^. decorations) (info ^. varBinders)
       )
       <$> liftDupable (let Done rhsBody = info ^. varRhsBody in rhsBody)
   let go
@@ -669,8 +668,8 @@ inlineSaturatedApp t
 -- See Note [Inliner's Certifier Hints] for an overview.
 -------------------------------------------------------------------------------
 
--- | An enclosing Drop, LamDrop or Expand layer
-data Decoration = DDrop | DLamDrop | DExpand
+-- | An enclosing Drop or Expand layer
+data Decoration = DDrop | DExpand
 
 type Ann a = ([Decoration], a)
 
@@ -696,7 +695,6 @@ mkHints = go
         decorate :: CertifierHints.Inline -> [Decoration] -> CertifierHints.Inline
         decorate = foldr $ \d h -> case d of
           DDrop -> CertifierHints.InlDrop h
-          DLamDrop -> CertifierHints.InlLamDrop h
           DExpand -> CertifierHints.InlExpand h
 
         ds = termAnn t ^. decorations
@@ -727,11 +725,11 @@ inliner as a process that repeatedly performs one of the following two operation
 
 Certifier hints are then defined constructively according to the following procedure.
 In the end, the final hints mirror the post-term structure, except that each node may be
-decorated with an arbitrary number of `InlExpand`, `InlDrop` and `InlLamDrop` layers,
+decorated with an arbitrary number of `InlExpand` and `InlDrop` layers,
 reflecting the inlining operations that the inliner has performed.
 
 - Initially the hints mirror the pre-term structure, using constructors of `Inline`
-  except `InlExpand`, `InlDrop` and `InlLamDrop`. Excluding these three constructors,
+  except `InlExpand` and `InlDrop`. Excluding these two constructors,
   there is a 1-1 correspondence between hints constructors and AST constructors.
 
 - Suppose the inliner performs operation 1, substituting term `N` for variable `v`.
@@ -739,8 +737,8 @@ reflecting the inlining operations that the inliner has performed.
 
     hints(v) = decorations(InlVar)
 
-  where `decorations` denotes an arbitrary number of enclosing `InlExpand`, `InlDrop` or
-  `InlLamDrop` layers. After the substitution, the hints at this location should become
+  where `decorations` denotes an arbitrary number of enclosing `InlExpand` or `InlDrop`
+  layers. After the substitution, the hints at this location should become
 
     decorations(InlExpand hints(N))                          (#1)
 
@@ -760,11 +758,11 @@ reflecting the inlining operations that the inliner has performed.
   That is, it is decorated with `decorations₁` plus `InlDrop`.
   The hints for `M` should become
 
-    decorations₂(InlLamDrop (hints(M)))                      (#3)
+    decorations₂(hints(M))                                   (#3)
 
-  That is, it is decorated with `decorations₂`, plus `InlLamDrop`. Note that when `n = 0`,
+  That is, it is decorated with `decorations₂`. Note that when `n = 0`,
   `(\x‾ₙ y. M) X‾ₙ` becomes `M`, and therefore, `hints(M)` should be decorated with
-  `decorations₁` plus `InlDrop` plus `InlLamDrop` plus `decorations₂`.
+  `decorations₁` plus `InlDrop` plus `decorations₂`.
 
 Refer to the golden tests for examples of hints (look for files ending with
 `.golden.certifier-hints`).

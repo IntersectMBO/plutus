@@ -27,15 +27,13 @@ InlLam
             InlDrop
               InlDrop
                 InlExpand
-                  InlLamDrop
-                    InlLamDrop
-                      InlApply
-                        InlApply
-                          InlVar
-                          InlExpand
-                            InlCon
-                        InlExpand
-                          InlCon
+                  InlApply
+                    InlApply
+                      InlVar
+                      InlExpand
+                        InlCon
+                    InlExpand
+                      InlCon
           InlApply
             InlVar
             InlCon

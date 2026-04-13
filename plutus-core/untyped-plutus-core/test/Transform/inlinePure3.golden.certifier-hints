@@ -18,17 +18,15 @@ NoHints
 
 -- Certifier hints #7 (Inline) --
 InlDrop
-  InlLamDrop
-    InlLam
-      InlExpand
-        InlDrop
-          InlLamDrop
-            InlLam
-              InlApply
-                InlExpand
-                  InlCon
-                InlExpand
-                  InlCon
+  InlLam
+    InlExpand
+      InlDrop
+        InlLam
+          InlApply
+            InlExpand
+              InlCon
+            InlExpand
+              InlCon
 
 
 -- Certifier hints #8 (ApplyToCase) --

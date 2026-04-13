@@ -22,21 +22,17 @@ InlLam
     InlDrop
       InlDrop
         InlDrop
-          InlLamDrop
-            InlLamDrop
-              InlLamDrop
-                InlLamDrop
-                  InlApply
-                    InlApply
-                      InlApply
-                        InlExpand
-                          InlVar
-                        InlExpand
-                          InlCon
-                      InlExpand
-                        InlCon
-                    InlExpand
-                      InlCon
+          InlApply
+            InlApply
+              InlApply
+                InlExpand
+                  InlVar
+                InlExpand
+                  InlCon
+              InlExpand
+                InlCon
+            InlExpand
+              InlCon
 
 
 -- Certifier hints #8 (ApplyToCase) --

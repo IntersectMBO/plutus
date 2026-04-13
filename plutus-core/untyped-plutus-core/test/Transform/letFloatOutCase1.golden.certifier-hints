@@ -18,8 +18,7 @@ NoHints
 
 -- Certifier hints #7 (Inline) --
 InlDrop
-  InlLamDrop
-    InlCon
+  InlCon
 
 
 -- Certifier hints #8 (ApplyToCase) --

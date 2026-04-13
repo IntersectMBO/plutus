@@ -20,11 +20,8 @@ NoHints
 InlDrop
   InlDrop
     InlDrop
-      InlLamDrop
-        InlLamDrop
-          InlLamDrop
-            InlExpand
-              InlCon
+      InlExpand
+        InlCon
 
 
 -- Certifier hints #8 (ApplyToCase) --

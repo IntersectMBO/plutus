@@ -19,10 +19,9 @@ NoHints
 -- Certifier hints #7 (Inline) --
 InlLam
   InlDrop
-    InlLamDrop
-      InlLam
-        InlExpand
-          InlVar
+    InlLam
+      InlExpand
+        InlVar
 
 
 -- Certifier hints #8 (ApplyToCase) --

@@ -81,7 +81,6 @@ instance AgdaUnparse Hints.Inline where
     Hints.InlCase t ts -> "(case " ++ agdaUnparse t ++ " " ++ agdaUnparse ts ++ ")"
     Hints.InlExpand t -> "(expand " ++ agdaUnparse t ++ ")"
     Hints.InlDrop t -> "(" ++ agdaUnparse t ++ " ·↓)"
-    Hints.InlLamDrop t -> "(ƛ↓ " ++ agdaUnparse t ++ ")"
 
 instance AgdaUnparse Natural where
   agdaUnparse = show
