@@ -102,9 +102,7 @@ unsupportedMarkerModule, unsupportedMarkerName :: String
 unsupportedMarkerModule = fromJust $ TH.nameModule 'PlutusTx.Plugin.Utils.unsupported
 unsupportedMarkerName = TH.nameBase 'PlutusTx.Plugin.Utils.unsupported
 
-injectUnsupportedMarkers
-  :: GHC.TcGblEnv
-  -> GHC.TcM GHC.TcGblEnv
+injectUnsupportedMarkers :: GHC.TcGblEnv -> GHC.TcM GHC.TcGblEnv
 injectUnsupportedMarkers env = do
   hscEnv <- GHC.getTopEnv
   findResult <-

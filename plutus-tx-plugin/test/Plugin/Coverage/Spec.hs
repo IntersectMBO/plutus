@@ -57,7 +57,7 @@ coverage =
             "Application heads and line coverage"
             [ mkTests "noBool" noBool Set.empty [31]
             , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [34]
-            , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [40, 41, 46]
+            , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["equalsInteger"]) [40, 41, 46]
             , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
             ]
       , goldenPirReadable "coverageCode" boolOtherFunction

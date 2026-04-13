@@ -7,6 +7,4 @@
 , <- methodB (test/Plugin/Profiling/Spec.hs:158:3-158:30)
 , -> subtractInteger
 , <- subtractInteger
-, -> addInteger
-, <- addInteger
 , <- useTypeclass (test/Plugin/Profiling/Spec.hs:168:1-168:12) ]

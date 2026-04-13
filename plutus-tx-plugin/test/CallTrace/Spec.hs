@@ -74,6 +74,11 @@ nestedLinear2 x = nestedLinear3 x
 nestedLinear3 x = nestedLinear4 x
 nestedLinear4 True = error ()
 nestedLinear4 False = error ()
+-- These NOINLINE pragmas ensure that the functions appear in the call trace.
+{-# NOINLINE nestedLinear #-}
+{-# NOINLINE nestedLinear2 #-}
+{-# NOINLINE nestedLinear3 #-}
+{-# NOINLINE nestedLinear4 #-}
 
 func :: Integer -> BuiltinString
 func 1 = trace "func 1" (\_thunk -> nestedLinear True) ()
@@ -89,6 +94,8 @@ func n =
   if bob 42 n == ()
     then error ()
     else ""
+-- See Note [NOINLINE in some tests]
+{-# NOINLINE func #-}
 
 functionFromOtherModule :: Bool -> BuiltinString
 functionFromOtherModule x = wraps $ not $ not x
@@ -99,6 +106,8 @@ class MyClass a where
 instance MyClass Integer where
   myClassFunc 5 = trace "myClassFunc 5" $ functionFromOtherModule True
   myClassFunc _ = error ()
+  -- See Note [NOINLINE in some tests]
+  {-# NOINLINE myClassFunc #-}
 
 instance MyClass () where
   myClassFunc () = error ()

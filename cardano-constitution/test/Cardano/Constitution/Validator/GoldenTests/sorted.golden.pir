@@ -128,19 +128,6 @@ program
                               go expectedPredValues))
             in
             go ds
-    !`$fOrdInteger_$ccompare` : integer -> integer -> Ordering
-      = \(eta : integer) (eta : integer) ->
-          case
-            (all dead. Ordering)
-            (equalsInteger eta eta)
-            [ (/\dead ->
-                 case
-                   (all dead. Ordering)
-                   (lessThanEqualsInteger eta eta)
-                   [(/\dead -> GT), (/\dead -> LT)]
-                   {all dead. dead})
-            , (/\dead -> EQ) ]
-            {all dead. dead}
     !ifThenElse : all a. bool -> a -> a -> a
       = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   in
@@ -209,7 +196,18 @@ program
                    (CConsOrd
                       {integer}
                       (\(x : integer) (y : integer) -> equalsInteger x y)
-                      `$fOrdInteger_$ccompare`
+                      (\(eta : integer) (eta : integer) ->
+                         case
+                           (all dead. Ordering)
+                           (equalsInteger eta eta)
+                           [ (/\dead ->
+                                case
+                                  (all dead. Ordering)
+                                  (lessThanEqualsInteger eta eta)
+                                  [(/\dead -> GT), (/\dead -> LT)]
+                                  {all dead. dead})
+                           , (/\dead -> EQ) ]
+                           {all dead. dead})
                       (\(x : integer) (y : integer) -> lessThanInteger x y)
                       (\(x : integer) (y : integer) ->
                          lessThanEqualsInteger x y)
@@ -419,26 +417,18 @@ program
        List (Tuple2 integer ParamValue) -> List (Tuple2 data data) -> bool
       = \(ds : List (Tuple2 integer ParamValue))
          (cparams : List (Tuple2 data data)) ->
-          let
-            !fail : unit -> bool
-              = \(ds : unit) ->
-                  (let
-                      a = Tuple2 data data
-                    in
-                    \(ds : List a) ->
-                      List_match
-                        {a}
-                        ds
-                        {bool}
-                        True
-                        (\(ipv : a) (ipv : List a) -> False))
-                    cparams
-          in
           List_match
             {Tuple2 integer ParamValue}
             ds
             {all dead. bool}
-            (/\dead -> fail ())
+            (/\dead ->
+               List_match
+                 {Tuple2 data data}
+                 cparams
+                 {bool}
+                 True
+                 (\(ipv : Tuple2 data data) (ipv : List (Tuple2 data data)) ->
+                    False))
             (\(ds : Tuple2 integer ParamValue)
               (cfgRest : List (Tuple2 integer ParamValue)) ->
                /\dead ->
@@ -451,36 +441,45 @@ program
                       List_match
                         {Tuple2 data data}
                         cparams
-                        {all dead. bool}
-                        (/\dead -> fail ())
+                        {bool}
+                        True
                         (\(ds : Tuple2 data data)
                           (cparamsRest : List (Tuple2 data data)) ->
-                           /\dead ->
-                             Tuple2_match
-                               {data}
-                               {data}
-                               ds
-                               {bool}
-                               (\(ds : data) (actualValueData : data) ->
-                                  Ordering_match
-                                    (`$fOrdInteger_$ccompare`
-                                       (unIData ds)
-                                       expectedPid)
-                                    {all dead. bool}
-                                    (/\dead ->
-                                       case
-                                         (all dead. bool)
-                                         (validateParamValue
-                                            paramValue
-                                            actualValueData)
-                                         [ (/\dead -> False)
-                                         , (/\dead ->
-                                              runRules cfgRest cparamsRest) ]
-                                         {all dead. dead})
-                                    (/\dead -> runRules cfgRest cparams)
-                                    (/\dead -> False)
-                                    {all dead. dead}))
-                        {all dead. dead}))
+                           Tuple2_match
+                             {data}
+                             {data}
+                             ds
+                             {bool}
+                             (\(ds : data) (actualValueData : data) ->
+                                Ordering_match
+                                  (let
+                                    !x : integer = unIData ds
+                                  in
+                                  case
+                                    (all dead. Ordering)
+                                    (equalsInteger x expectedPid)
+                                    [ (/\dead ->
+                                         case
+                                           (all dead. Ordering)
+                                           (lessThanEqualsInteger x expectedPid)
+                                           [(/\dead -> GT), (/\dead -> LT)]
+                                           {all dead. dead})
+                                    , (/\dead -> EQ) ]
+                                    {all dead. dead})
+                                  {all dead. bool}
+                                  (/\dead ->
+                                     case
+                                       (all dead. bool)
+                                       (validateParamValue
+                                          paramValue
+                                          actualValueData)
+                                       [ (/\dead -> False)
+                                       , (/\dead ->
+                                            runRules cfgRest cparamsRest) ]
+                                       {all dead. dead})
+                                  (/\dead -> runRules cfgRest cparams)
+                                  (/\dead -> False)
+                                  {all dead. dead}))))
             {all dead. dead}
   in
   let
