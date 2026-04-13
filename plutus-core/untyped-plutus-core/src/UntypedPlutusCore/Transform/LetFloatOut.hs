@@ -50,6 +50,6 @@ processTerm = \case
     Apply aa (LamAbs la x (Force fa body)) rhs
   -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/2148):
   -- This is definitely correct, but it somehow causes plutus-benchmark-marlowe-tests to fail.
-  --   Apply aa (Apply aa' (LamAbs la x body) rhs) arg ->
-  --     Apply aa' (LamAbs la x (Apply aa body arg)) rhs
+  Apply aa (Apply aa' (LamAbs la x body) rhs) arg ->
+    Apply aa' (LamAbs la x (Apply aa body arg)) rhs
   other -> other

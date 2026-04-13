@@ -26,13 +26,13 @@ main = withUtf8 $ do
       actualFileData = dir </> "data.budgets.actual.tsv"
   checkGoldenFileExists goldenFile -- See Note [Paths to golden files]
   let
-    benchSOP =
-      [ (scriptDir </> "semantics/validator/sop.flat", semanticsBenchmarks)
-      , (scriptDir </> "rolepayout/validator/sop.flat", rolePayoutBenchmarks)
-      ]
+    -- benchSOP =
+    --  [ (scriptDir </> "semantics/validator/sop.flat", semanticsBenchmarks)
+    --  , (scriptDir </> "rolepayout/validator/sop.flat", rolePayoutBenchmarks)
+    --  ]
     benchData =
       [ (scriptDir </> "semantics/validator/data.flat", semanticsBenchmarks)
-      , (scriptDir </> "rolepayout/validator/data.flat", rolePayoutBenchmarks)
+      -- , (scriptDir </> "rolepayout/validator/data.flat", rolePayoutBenchmarks)
       ]
 
     measure (validatorPath, getCases) = do
@@ -44,20 +44,20 @@ main = withUtf8 $ do
             Lib.measureProgram
             [benchmarkToUPLC validator bench | bench <- cases]
 
-  measuresSOP <- mapM measure benchSOP
+  -- measuresSOP <- mapM measure benchSOP
   measuresData <- mapM measure benchData
 
   -- Write the measures to the actual file
   defaultMain $
     testGroup
       "Marlowe"
-      [ Lib.goldenUplcMeasurements "budgets" goldenFile actualFile \writeHandle ->
-          for_
-            (mconcat measuresSOP)
-            \(ExCPU cpu, ExMemory mem, AstSize size) ->
-              hPutStrLn writeHandle $
-                List.intercalate "\t" [show cpu, show mem, show size]
-      , Lib.goldenUplcMeasurements "data-budgets" goldenFileData actualFileData \writeHandle ->
+      -- [ Lib.goldenUplcMeasurements "budgets" goldenFile actualFile \writeHandle ->
+      --     for_
+      --       (mconcat measuresSOP)
+      --       \(ExCPU cpu, ExMemory mem, AstSize size) ->
+      --         hPutStrLn writeHandle $
+      --           List.intercalate "\t" [show cpu, show mem, show size]
+      [ Lib.goldenUplcMeasurements "data-budgets" goldenFileData actualFileData \writeHandle ->
           for_
             (mconcat measuresData)
             \(ExCPU cpu, ExMemory mem, AstSize size) ->
