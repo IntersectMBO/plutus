@@ -7,15 +7,20 @@
 
 {-# HLINT ignore #-}
 
-module BuiltinCasing.Lib (failsToCompile) where
+module BuiltinCasing.Lib (caseListTwice) where
 
 import PlutusTx
 import PlutusTx.Builtins.Internal (unitval)
 import PlutusTx.Data.List (caseList')
 import PlutusTx.Prelude
 
-failsToCompile :: BuiltinData -> BuiltinUnit
-failsToCompile bd =
+{-| Regression test for #7716.  Calling caseList' twice on the same value
+makes GHC's simplifier create a join point whose type exposes the raw
+PlutusCore.Data.Data inside BuiltinData.  Without the second constructor
+on BuiltinData (see Note [Opaque builtin types]), the plugin with
+BuiltinCasing would try to compile Data as an ADT and crash on Addr#. -}
+caseListTwice :: BuiltinData -> BuiltinUnit
+caseListTwice bd =
   case toBuiltinData (firstOf items) of
     _ -> case toBuiltinData (firstOf items) of
       _ -> unitval
