@@ -104,6 +104,17 @@ we can't handle, but also so that GHC doesn't look inside and try and get clever
 In particular, we need to use 'data' rather than 'newtype' even for simple wrappers,
 otherwise GHC gets very keen to optimize through the newtype and e.g. our users
 see 'Addr#' popping up everywhere.
+
+Additionally, single-constructor types must have a second (unreachable) constructor.
+GHC's simplifier unconditionally unwraps single-constructor types via
+case-of-known-constructor, which can expose the inner type (e.g. PLC.Data inside
+BuiltinData) in join point type signatures.  The plugin with BuiltinCasing then
+tries to compile the inner type as a regular ADT, potentially reaching unsupported
+primitives like Addr# (#7716).
+
+A second constructor prevents this — GHC cannot case-simplify multi-constructor
+types.  The extra constructor is never constructed; COMPLETE pragmas tell GHC
+that matching on the real constructor alone is exhaustive.
 -}
 
 error :: BuiltinUnit -> a
@@ -542,8 +553,12 @@ that you want to be representable on-chain.
 
 For off-chain usage, there are conversion functions 'builtinDataToData' and
 'dataToBuiltinData', but note that these will not work on-chain. -}
-data BuiltinData = BuiltinData ~PLC.Data
+
+-- See Note [Opaque builtin types]
+data BuiltinData = BuiltinData ~PLC.Data | BuiltinDataUnreachable
   deriving stock (Data, Generic)
+
+{-# COMPLETE BuiltinData #-}
 
 instance Haskell.Show BuiltinData where
   show (BuiltinData d) = show d
