@@ -24,25 +24,24 @@
                        [lookup]) ])
                (\`$dToData` `$dUnsafeFromData` ds ds ->
                   (\k ->
-                     case
-                       ((\s -> s s)
-                          (\s xs ->
-                             case
-                               xs
-                               [ (\hd ->
-                                    case
-                                      (equalsData k (case hd [(\l r -> l)]))
-                                      [ (\x -> s s x)
-                                      , (\ds ->
-                                           constr 0
-                                             [(case hd [(\l r -> r)])]) ])
-                               , (constr 1 []) ])
-                          ds)
-                       [ (\a -> constr 0 [(`$dUnsafeFromData` a)])
-                       , (constr 1 []) ])
+                     (\s ->
+                        case
+                          (s s ds)
+                          [ (\a -> constr 0 [(`$dUnsafeFromData` a)])
+                          , (constr 1 []) ])
+                       (\s xs ->
+                          case
+                            xs
+                            [ (\hd ->
+                                 case
+                                   (equalsData k (case hd [(\l r -> l)]))
+                                   [ (\x -> s s x)
+                                   , (\ds ->
+                                        constr 0 [(case hd [(\l r -> r)])]) ])
+                            , (constr 1 []) ]))
                     (`$dToData` ds)))
             ((\k ->
-                (\s -> s s)
+                (\s -> s s nt)
                   (\s xs ->
                      case
                        xs
@@ -51,48 +50,45 @@
                               (equalsData k (case hd [(\l r -> l)]))
                               [(\eta -> force mkCons hd (s s eta)), (\x -> x)])
                        , [] ]))
-               (iData (addInteger 5 n))
-               nt))
+               (iData (addInteger 5 n))))
          ((\z ->
-             (\go eta -> go eta)
-               ((\s -> s s)
-                  (\s ds ->
-                     case
-                       ds
-                       [ z
-                       , (\y ys ->
-                            (\ds ->
-                               (\k ->
-                                  (\a ->
-                                     (\nilCase ->
-                                        (\s -> s s)
-                                          (\s xs ->
-                                             case
-                                               xs
-                                               [ (\hd ->
-                                                    case
-                                                      (equalsData
-                                                         k
-                                                         (case
-                                                            hd
-                                                            [(\l r -> l)]))
-                                                      [ (\eta ->
-                                                           force mkCons
-                                                             hd
-                                                             (s s eta))
-                                                      , (force mkCons
-                                                           (mkPairData k a)) ])
-                                               , nilCase ])
-                                          ds)
-                                       (force mkCons (mkPairData k a) []))
-                                    (iData y))
-                                 (iData (addInteger n y)))
-                              (s s ys)) ])))
-            (force mkCons (mkPairData (iData n) (I 0)) [])
-            (`$dmenumFromTo_$cenumFromTo` 1 10)))
+             (\s -> s s (`$dmenumFromTo_$cenumFromTo` 1 10))
+               (\s ds ->
+                  case
+                    ds
+                    [ z
+                    , (\y ys ->
+                         (\ds ->
+                            (\k ->
+                               (\a ->
+                                  (\nilCase ->
+                                     (\s -> s s ds)
+                                       (\s xs ->
+                                          case
+                                            xs
+                                            [ (\hd ->
+                                                 case
+                                                   (equalsData
+                                                      k
+                                                      (case hd [(\l r -> l)]))
+                                                   [ (\eta ->
+                                                        force mkCons
+                                                          hd
+                                                          (s s eta))
+                                                   , (force mkCons
+                                                        (mkPairData k a)) ])
+                                            , nilCase ]))
+                                    (force mkCons (mkPairData k a) []))
+                                 (iData y))
+                              (iData (addInteger n y)))
+                           (s s ys)) ]))
+            (force mkCons (mkPairData (iData n) (I 0)) [])))
       ((\s -> s s)
          (\s x lim ->
             case
               (lessThanEqualsInteger x lim)
               [ (constr 0 [])
-              , (constr 1 [x, ((\x -> s s x) (addInteger 1 x) lim)]) ]))))
+              , (constr 1
+                   [ x
+                   , ((\x -> case (constr 0 [s, x, lim]) [s])
+                        (addInteger 1 x)) ]) ]))))

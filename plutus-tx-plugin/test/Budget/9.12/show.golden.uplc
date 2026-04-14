@@ -85,8 +85,7 @@
                                                       trace
                                                       (concatBuiltinStrings
                                                          ((\showElem ->
-                                                             (\go
-                                                               eta ->
+                                                             (\go ->
                                                                 constr 1
                                                                   [ "["
                                                                   , (showElem
@@ -102,7 +101,8 @@
                                                                                             [  ]) ]) ]) ])
                                                                           (constr 1
                                                                              [ "]"
-                                                                             , eta ]))) ])
+                                                                             , (constr 0
+                                                                                  [  ]) ]))) ])
                                                                ((\s ->
                                                                    s s)
                                                                   (\s
@@ -127,8 +127,7 @@
                                                             (case
                                                                `$fShowInteger`
                                                                [(\v v -> v)]
-                                                               0)
-                                                            (constr 0 [])))
+                                                               0)))
                                                       d))
                                                 (force trace
                                                    (case
@@ -200,13 +199,14 @@
                                 , (\y ys ->
                                      case
                                        (equalsInteger 1 ds)
-                                       [ (case
-                                            ((\x -> s s x)
-                                               (subtractInteger ds 1)
-                                               ys)
-                                            [ (\zs ws ->
-                                                 constr 0
-                                                   [(constr 1 [y, zs]), ws]) ])
+                                       [ ((\x ->
+                                             case
+                                               (case (constr 0 [s, x, ys]) [s])
+                                               [ (\zs ws ->
+                                                    constr 0
+                                                      [ (constr 1 [y, zs])
+                                                      , ws ]) ])
+                                            (subtractInteger ds 1))
                                        , (constr 0
                                             [ (constr 1 [y, (constr 0 [])])
                                             , ys ]) ]) ])))
@@ -217,7 +217,8 @@
                              [ (constr 0 [])
                              , (constr 1
                                   [ x
-                                  , ((\x -> s s x) (addInteger 1 x) lim) ]) ])))
+                                  , ((\x -> case (constr 0 [s, x, lim]) [s])
+                                       (addInteger 1 x)) ]) ])))
                   ((\s -> s s)
                      (\s ds ->
                         case
@@ -225,14 +226,15 @@
                           [ (\x -> x)
                           , (\x xs ->
                                (\acc eta ->
-                                  (\x eta ->
-                                     toHex
-                                       (divideInteger x 16)
-                                       (toHex (modInteger x 16) eta))
+                                  (\x ->
+                                     (\eta ->
+                                        toHex
+                                          (divideInteger x 16)
+                                          (toHex (modInteger x 16) eta))
+                                       (acc eta))
                                     (indexByteString
                                        #5468697320697320616e206578616d706c65
-                                       x)
-                                    (acc eta))
+                                       x))
                                  (s s xs)) ])))
                (\x ->
                   case
@@ -329,6 +331,7 @@
             (\x ->
                case
                  (equalsInteger 0 x)
-                 [ ((\x -> s s x) (constr 1 [(remainderInteger n 10), acc]) x)
+                 [ ((\x -> case (constr 0 [s, x, x]) [s])
+                      (constr 1 [(remainderInteger n 10), acc]))
                  , (constr 1 [(remainderInteger n 10), acc]) ])
               (quotientInteger n 10)))))

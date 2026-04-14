@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\take xs -> case (constr 0 [[], 5, xs]) [(force take)])
-      ((\s -> s s)
+      ((\s -> s s (delay (\x -> x)))
          (\s arg ->
             delay
               (\`$dMkNil` n l ->
@@ -17,5 +17,4 @@
                                      [`$dMkNil`, (subtractInteger n 1), xs])
                                   [(force (s s (delay (\x -> x))))]))
                         , `$dMkNil` ])
-                   , `$dMkNil` ]))
-         (delay (\x -> x)))))
+                   , `$dMkNil` ])))))
