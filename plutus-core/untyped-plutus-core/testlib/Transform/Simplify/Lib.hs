@@ -8,6 +8,7 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
+import Data.Tuple.Extra ((&&&))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (BuiltinSemanticsVariant)
 import PlutusCore.Pretty (PrettyPlc, Render (render), prettyPlcReadableSimple)
@@ -61,10 +62,10 @@ renderCertifierHints (Trace.SimplifierTrace ss)
         zipWith
           renderHintsWithIdx
           [(1 :: Int) ..]
-          ((\(Trace.Simplification _ stage hints _) -> (show stage, hints)) <$> reverse ss)
+          ((Trace.stage &&& Trace.hints) <$> reverse ss)
   where
     renderHintsWithIdx i (st, h) =
-      ("-- Certifier hints #" <> T.pack (show i) <> " (" <> T.pack st <> ") --\n")
+      ("-- Certifier hints #" <> T.pack (show i) <> " (" <> T.pack (show st) <> ") --\n")
         <> renderHints h
         <> "\n"
 

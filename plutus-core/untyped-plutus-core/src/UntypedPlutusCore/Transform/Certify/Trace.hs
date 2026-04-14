@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 
 module UntypedPlutusCore.Transform.Certify.Trace where
@@ -10,59 +9,23 @@ import UntypedPlutusCore.Transform.Certify.Hints qualified as Certify
 import Control.DeepSeq
 import GHC.Generics
 
-data Certified = Certified
+data SimplifierStage
+  = FloatDelay
+  | ForceDelay
+  | ForceCaseDelay
+  | CaseOfCase
+  | CaseReduce
+  | Inline
+  | CSE
+  | ApplyToCase
+  | Unknown
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
-
-data NotCertified = NotCertified
-  deriving stock (Show, Generic)
-  deriving anyclass (NFData)
-
-data SimplifierStage a where
-  FloatDelay :: SimplifierStage Certified
-  ForceDelay :: SimplifierStage Certified
-  ForceCaseDelay :: SimplifierStage Certified
-  CaseOfCase :: SimplifierStage NotCertified
-  CaseReduce :: SimplifierStage Certified
-  Inline :: SimplifierStage Certified
-  CSE :: SimplifierStage Certified
-  ApplyToCase :: SimplifierStage Certified
-  Unknown :: SimplifierStage NotCertified
-
-deriving instance Show a => Show (SimplifierStage a)
-
-instance Generic a => Generic (SimplifierStage a)
-
-instance (Generic a, NFData a) => NFData (SimplifierStage a) where
-  rnf = undefined
-
-data Yes = Yes
-
-data No = No
-
--- this is much simpler, why did i go with something so complicated :(
--- data ImplTags = A | B | C
---
--- data NotImplTags = D
---
--- data Tags = Impl ImplTags | NotImpl NotImplTags
-
-data CertifierImplements a where
-  CertFloatDelay :: CertifierImplements Yes
-  CertForceDelay :: CertifierImplements Yes
-  CertCaseOfCase :: CertifierImplements No
-  CertCaseReduce :: CertifierImplements Yes
-  CertInline :: CertifierImplements Yes
-  CertCSE :: CertifierImplements Yes
-  CertApplyToCase :: CertifierImplements Yes
-  CertUnknown :: CertifierImplements No
 
 data Simplification name uni fun a
-  = forall isCertified.
-  Show isCertified =>
-  Simplification
+  = Simplification
   { beforeAST :: Term name uni fun a
-  , stage :: SimplifierStage isCertified
+  , stage :: SimplifierStage
   , hints :: Certify.Hints
   , afterAST :: Term name uni fun a
   }

@@ -59,8 +59,8 @@ open import VerifiedCompilation.Certificate hiding (_>>=_)
 data Error : Set where
   emptyDump : Error
   illScoped : Error
-  counterExample : SimplifierTag Certified → Error
-  abort : SimplifierTag Certified → Error
+  counterExample : SimplifierTag → Error
+  abort : SimplifierTag → Error
 ```
 
 ## Translation Relations and Certifiers
@@ -69,65 +69,40 @@ We map a `SimplifierTag` to the corresponding translation relation, or `nothing`
 if we don't have a translation relation.
 
 ```
-
-
-mRelationOf : {isCertified : Set} → SimplifierTag isCertified → Maybe (0 ⊢ → 0 ⊢ → Set)
-mRelationOf floatDelayT with isCertified? floatDelayT
-... | certified = just UFlD.FloatDelay
-mRelationOf forceDelayT with isCertified? forceDelayT
-... | certified = just UFD.ForceDelay
-mRelationOf forceCaseDelayT with isCertified? forceCaseDelayT
-... | certified = just UFCD.ForceCaseDelay
-mRelationOf caseOfCaseT with isCertified? caseOfCaseT
-... | notCertified = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
-mRelationOf caseReduceT with isCertified? caseReduceT 
-... | certified = just UCR.UCaseReduce
-mRelationOf inlineT with isCertified? inlineT
-... | certified = just (UInline.Inline (λ()) UInline.□)
-mRelationOf cseT with isCertified? cseT
-... | certified = just UCSE.UntypedCSE
-mRelationOf applyToCaseT with isCertified? applyToCaseT 
-... | certified = just UA2C.ApplyToCase
-mRelationOf unknown with isCertified? unknown 
-... | notCertified = nothing
-
-
-go : DumpStep → (0 ⊢ → 0 ⊢ → Set)
-go (dumpStep _ floatDelayT hints x y) with isCertified? floatDelayT
-... | certified = UFlD.FloatDelay
-go (dumpStep _ forceDelayT hints x y) = {!   !}
-go (dumpStep _ forceCaseDelayT hints x y) = {!   !}
-go (dumpStep _ caseOfCaseT hints x y) = {!   !}
-go (dumpStep _ caseReduceT hints x y) = {!   !}
-go (dumpStep _ inlineT hints x y) = {!   !}
-go (dumpStep _ cseT hints x y) = {!   !}
-go (dumpStep _ applyToCaseT hints x y) = {!   !}
-go (dumpStep _ unknown hints x y) = {!   !} 
-
+mRelationOf : SimplifierTag → Maybe (0 ⊢ → 0 ⊢ → Set)
+mRelationOf floatDelayT     = just UFlD.FloatDelay
+mRelationOf forceDelayT     = just UFD.ForceDelay
+mRelationOf caseReduceT     = just UCR.UCaseReduce
+mRelationOf cseT            = just UCSE.UntypedCSE
+mRelationOf inlineT         = just (UInline.Inline (λ()) UInline.□)
+mRelationOf unknown         = nothing
+mRelationOf caseOfCaseT     = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
+mRelationOf forceCaseDelayT = just UFCD.ForceCaseDelay
+mRelationOf applyToCaseT    = just UA2C.UApplyToCase
 ```
 
 We default to the `NotImplemented` relation to give each `SimplifierTag` a relation:
 
 ```
-RelationOf : {isCertified : Set} → SimplifierTag isCertified → (0 ⊢ → 0 ⊢ → Set)
+RelationOf : SimplifierTag → (0 ⊢ → 0 ⊢ → Set)
 RelationOf = fromMaybe (NotImplemented accept) ∘ mRelationOf
 
-hasRelation : {isCertified : Set} → SimplifierTag isCertified → Bool
+hasRelation : SimplifierTag → Bool
 hasRelation = is-just ∘ mRelationOf
-
+{-# COMPILE GHC hasRelation as certifierImplements #-}
 ```
 
 The corresponding certifier can then be called for a given pass:
 
 ```
-certifyPass : {isCertified : Set} → (pass : SimplifierTag isCertified) → Hints → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
+certifyPass : (pass : SimplifierTag) → Hints → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
 certifyPass floatDelayT _       = decider UFlD.isFloatDelay?
 certifyPass forceDelayT _       = decider UFD.isForceDelay?
 certifyPass caseReduceT _       = decider UCR.isCaseReduce?
 certifyPass cseT _              = decider UCSE.isUntypedCSE?
 certifyPass caseOfCaseT _       = certNotImplemented
 certifyPass forceCaseDelayT _   = decider UFCD.isForceCaseDelay?
--- certifyPass applyToCaseT _      = decider UA2C.a2c?ᶜᶜ
+certifyPass applyToCaseT _      = decider UA2C.a2c?ᶜᶜ
 certifyPass inlineT (inline hs) = checker (UInline.top-check hs)
 certifyPass inlineT none        = λ M M' → abort inlineT M M'
 certifyPass unknown _           = certNotImplemented
@@ -141,17 +116,17 @@ corresponding certifiers of each pass.
 ```
 Certificate : Trace (0 ⊢) → Set
 Certificate (done _) = ⊤
--- Certificate (step (certifierStep ty pass hints t) ts) = RelationOf pass t (head ts) × Certificate ts
+Certificate (step pass hints t ts) = RelationOf pass t (head ts) × Certificate ts
 
 certify : (trace : Trace (0 ⊢)) → Either Error (Certificate trace)
 certify (done _) = inj₂ tt
--- certify (step (certifierStep ty pass hints x) xs) with certifyPass pass hints x (head xs)
--- ... | ce _ tag _ _ = inj₁ (counterExample tag)
--- ... | abort tag _ _ = inj₁ (abort tag)
--- ... | proof p =
---   do
---     ps ← certify xs
---     return (p , ps)
+certify (step pass hints x xs) with certifyPass pass hints x (head xs)
+... | ce _ tag _ _ = inj₁ (counterExample tag)
+... | abort tag _ _ = inj₁ (abort tag)
+... | proof p =
+  do
+    ps ← certify xs
+    return (p , ps)
 ```
 
 If the certifier succeeds, we can produce the certificate:
@@ -171,12 +146,12 @@ checkScope : Untyped → Maybe (0 ⊢)
 checkScope = eitherToMaybe ∘ scopeCheckU0
 
 -- Scope-check all terms in a trace
--- checkScopeᵗ : Trace Untyped → ? (Trace (0 ⊢))
--- checkScopeᵗ (done x) = do
---   x' ← checkScope x
---   return (done x')
--- checkScopeᵗ (step pass hints t ts) = do
---   t' ← checkScope t
---   ts' ← checkScopeᵗ ts
---   return (step pass hints t' ts')
+checkScopeᵗ : Trace Untyped → Maybe (Trace (0 ⊢))
+checkScopeᵗ (done x) = do
+  x' ← checkScope x
+  return (done x')
+checkScopeᵗ (step pass hints t ts) = do
+  t' ← checkScope t
+  ts' ← checkScopeᵗ ts
+  return (step pass hints t' ts')
 ```

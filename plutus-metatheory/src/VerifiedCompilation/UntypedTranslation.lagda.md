@@ -105,14 +105,14 @@ matchIx builtin = refl
 matchIx error = refl
 
 translation?
-  : {X' : ℕ} {R : Relation} {isCertified : Set}
-  → SimplifierTag isCertified
+  : {X' : ℕ} {R : Relation}
+  → SimplifierTag
   → ({ X : ℕ } → DecidableCE (R {X}))
   → (p q : X' ⊢) → ProofOrCE (Translation R {X'} p q)
 
 decPointwiseTranslation?
-  : {X' : ℕ} {R : Relation} {isCertified : Set}
-  → SimplifierTag isCertified
+  : {X' : ℕ} {R : Relation}
+  → SimplifierTag
   → ({ X : ℕ } → DecidableCE (R {X}))
   → (p q : List (X' ⊢)) → ProofOrCE (Pointwise (Translation R {X'}) p q)
 decPointwiseTranslation? _ _ [] [] = proof Pointwise.[]

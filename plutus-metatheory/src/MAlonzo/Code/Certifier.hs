@@ -54,13 +54,13 @@ d_runCertifier_2 v0
               (coe
                  MAlonzo.Code.Utils.du_try_94
                  (coe
-                    MAlonzo.Code.VerifiedCompilation.d_checkScope'7511'_130 (coe v1))
+                    MAlonzo.Code.VerifiedCompilation.d_checkScope'7511'_100 (coe v1))
                  (coe MAlonzo.Code.VerifiedCompilation.C_illScoped_6))
               (coe
                  (\ v2 ->
                     coe
                       MAlonzo.Code.Utils.du_eitherBind_54
-                      (coe MAlonzo.Code.VerifiedCompilation.d_certify_74 (coe v2))
+                      (coe MAlonzo.Code.VerifiedCompilation.d_certify_44 (coe v2))
                       (coe
                          (\ v3 ->
                             coe
