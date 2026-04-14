@@ -88,7 +88,7 @@ instance AgdaUnparse Natural where
 
 instance AgdaUnparse Integer where
   agdaUnparse x
-    | x < 0 = "(ℤ.negsuc " ++ show (x - 1) ++ ")"
+    | x < 0 = "(ℤ.negsuc " ++ show (abs x - 1) ++ ")"
     | otherwise = "(ℤ.pos " ++ show x ++ ")"
 
 instance AgdaUnparse Bool where
