@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ViewPatterns #-}
 
 {-| Floats immediately-applied lambdas ("let bindings") outwards, as long as doing so
 cannot cause any expression to be evaluated more than before.
@@ -41,10 +42,10 @@ letFloatOut term = do
 
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
-  Case ca (Apply aa (LamAbs la x body) rhs) branches ->
-    Apply aa (LamAbs la x (Case ca body branches)) rhs
-  Force fa (Apply aa (LamAbs la x body) rhs) ->
-    Apply aa (LamAbs la x (Force fa body)) rhs
-  Apply aa (Apply aa' (LamAbs la x body) rhs) arg ->
-    Apply aa' (LamAbs la x (Apply aa body arg)) rhs
+  Case ca (extractBindings -> Just (bs, body)) branches ->
+    wrapWithBindings bs (Case ca body branches)
+  Force fa (extractBindings -> Just (bs, body)) ->
+    wrapWithBindings bs (Force fa body)
+  Apply aa (extractBindings -> Just (bs, body)) arg ->
+    wrapWithBindings bs (Apply aa body arg)
   other -> other

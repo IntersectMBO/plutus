@@ -239,29 +239,12 @@ inline
     recordSimplificationWithHints (CertifierHints.Inline (mkHints decoratedResult)) t Inline result
     return result
 
--- See Note [Differences from PIR inliner] 3
-
-{-| Extract the list of applications from a term,
-a bit like a "multi-beta" reduction.
-
-Some examples will help (annotations are omitted):
-[(\x . t) a] -> Just ([(x, a)], t)
-
-[[[(\x . (\y . (\z . t))) a] b] c] -> Just ([(x, a), (y, b), (z, c)]) t)
-
-[[(\x . t) a] b] -> Nothing -}
 extractApps
   :: Term name uni fun a
   -> Maybe ([(UTermDef name uni fun a, a)], Term name uni fun a)
-extractApps = go []
+extractApps = fmap (first (fmap toUTermDef)) . UPLC.extractBindings
   where
-    go argStack (Apply aa f arg) = go ((arg, aa) : argStack) f
-    go argStack t = matchArgs argStack [] t
-    matchArgs ((arg, aa) : rest) acc (LamAbs a n body) =
-      matchArgs rest ((Def (UVarDecl a n) arg, aa) : acc) body
-    matchArgs [] acc t =
-      if null acc then Nothing else Just (reverse acc, t)
-    matchArgs (_ : _) _ _ = Nothing
+    toUTermDef ((n, la), (arg, aa)) = (Def (UVarDecl la n) arg, aa)
 
 -- | The inverse of 'extractApps'.
 restoreApps
