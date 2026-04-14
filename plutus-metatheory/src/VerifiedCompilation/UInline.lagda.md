@@ -201,6 +201,19 @@ data Inline {X : ℕ} :
 
 # Check aided by hints
 
+The order of `check`'s arguments is important to ensure the completeness proof works.
+In particular:
+
+- `M` must be before `h` for `check σ (ƛ N) (drop M zz) h N′` to be reducible.
+  Splitting on `h` before `M` would cause reduction of this term to be stuck, since
+  it doesn't match on `h`.
+- `M` must be before `zz` for `check σ (L · M) zz (h ·↓) N′` to be reducible.
+  Splitting on `zz` before `M` would cause reduction of this term to be stuck, since
+  it doesn't match on `zz`.
+
+The position of `σ` doesn't matter since no clause matches on it.
+
+
 ```
 checkPointwise :
         (hs : List InlineHints)
