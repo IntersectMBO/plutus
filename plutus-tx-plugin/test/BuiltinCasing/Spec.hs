@@ -9,6 +9,7 @@ module BuiltinCasing.Spec where
 
 import Test.Tasty.Extras
 
+import BuiltinCasing.Lib qualified as Lib
 import PlutusTx (compile)
 import PlutusTx.Builtins (caseInteger, caseList, casePair)
 import PlutusTx.Builtins.Internal (chooseUnit, unitval)
@@ -29,7 +30,7 @@ integerABC :: Integer -> BuiltinString
 integerABC i = caseInteger i ["a", "b", "c"]
 
 head :: BuiltinList Bool -> Bool
-head xs = caseList (\_ -> error ()) (\x _ -> x) xs
+head = caseList (\_ -> error ()) (\x _ -> x)
 
 tests :: TestNested
 tests =
@@ -41,4 +42,5 @@ tests =
       , goldenUPlcReadable "addPair" $$(compile [||addPair||])
       , goldenUPlcReadable "integerABC" $$(compile [||integerABC||])
       , goldenUPlcReadable "head" $$(compile [||head||])
+      , goldenUPlcReadable "failsToCompile" $$(compile [||Lib.failsToCompile||])
       ]
