@@ -126,6 +126,8 @@ let
             plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.testFlags = [ "--no-create" ];
             plutus-ledger-api.components.tests.plutus-ledger-api-test.testFlags = [ "--no-create" ];
             plutus-tx-plugin.components.tests.plutus-tx-plugin-tests.testFlags = [ "--no-create" ];
+            plutus-tx-plugin.components.tests.assocmap-plugin-tests.testFlags = [ "--no-create" ];
+            plutus-tx-plugin.components.tests.list-plugin-tests.testFlags = [ "--no-create" ];
             plutus-tx-plugin.components.tests.size.testFlags = [ "--no-create" ];
             plutus-tx.components.tests.plutus-tx-test.testFlags = [ "--no-create" ];
           };
