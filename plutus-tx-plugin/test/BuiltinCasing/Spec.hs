@@ -42,7 +42,7 @@ tests =
       , goldenUPlcReadable "addPair" $$(compile [||addPair||])
       , goldenUPlcReadable "integerABC" $$(compile [||integerABC||])
       , goldenUPlcReadable "head" $$(compile [||head||])
-      , goldenUPlcReadable "caseListTwice" $$(compile [||Lib.caseListTwice||])
-      , goldenUPlcReadable "caseListTwiceByteString" $$(compile [||Lib.caseListTwiceByteString||])
-      , goldenUPlcReadable "caseListTwiceString" $$(compile [||Lib.caseListTwiceString||])
+      , goldenUPlcReadable "useTwiceData" $$(compile [||Lib.useTwiceData||])
+      , goldenUPlcReadable "useTwiceByteString" $$(compile [||Lib.useTwiceByteString||])
+      , goldenUPlcReadable "useTwiceString" $$(compile [||Lib.useTwiceString||])
       ]
