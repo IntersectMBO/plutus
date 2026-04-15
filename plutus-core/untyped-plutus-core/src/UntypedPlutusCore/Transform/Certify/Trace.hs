@@ -10,6 +10,12 @@ import UntypedPlutusCore.Transform.Certify.Hints qualified as Certify
 import Control.DeepSeq
 import GHC.Generics
 
+{-| Datatype which represents optimization passes which are also
+certified (__I__mplemented in the __C__ertifier).
+
+This means that these passes are formalized as part of the certifier,
+and adding a new pass constructor to this type means that it is expected
+the pass will be also certified in the same PR. -}
 data ICSimplifierStage
   = FloatDelay
   | ForceDelay
@@ -21,6 +27,13 @@ data ICSimplifierStage
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
+{-| Datatype which represents optimization passes which are not yet
+certified (__N__ot __I__mplemented in the __C__ertifier).
+
+IMPORTANT: if you add a new pass, or modify an existing pass, without
+also modifying the certifier in the same PR, you must add/move its
+corresponding constructor to this type. Please also open an issue
+at https://github.com/IntersectMBO/plutus/issues. -}
 data NICSimplifierStage
   = CaseOfCase
   deriving stock (Show, Generic)
