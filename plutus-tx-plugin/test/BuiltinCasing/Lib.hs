@@ -8,35 +8,29 @@
 {-# HLINT ignore #-}
 
 module BuiltinCasing.Lib
-  ( caseListTwice
-  , caseListTwiceByteString
-  , caseListTwiceString
+  ( useTwiceData
+  , useTwiceByteString
+  , useTwiceString
   ) where
 
 import PlutusTx
-import PlutusTx.Builtins.Internal
-  ( BuiltinByteString
-  , BuiltinList
-  , BuiltinString
-  , BuiltinUnit
-  , caseList'
-  , unitval
-  )
+import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinString, BuiltinUnit, unitval)
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Prelude
 
-{-| Regression tests for #7716.  Calling caseList' twice on the same value
-makes GHC's simplifier create a join point whose type exposes the raw
-inner type of the opaque builtin wrapper.  Without the second constructor
-(see Note [Opaque builtin types]), the plugin with BuiltinCasing would try
-to compile the inner type as an ADT and crash on Addr#.
+{-| Regression tests for #7716.  The simplifier unwraps single-constructor
+opaque types via case-of-known-constructor, potentially exposing inner types
+(Data, ByteString, Text) in join point type signatures.  Without the second
+constructor (see Note [Opaque builtin types]), the plugin with BuiltinCasing
+would try to compile the inner type as a regular ADT and crash.
 
 Each test targets a different opaque builtin type:
-  - caseListTwice:           BuiltinData       (wraps PlutusCore.Data.Data)
-  - caseListTwiceByteString: BuiltinByteString  (wraps ByteString -> BS Addr#)
-  - caseListTwiceString:     BuiltinString      (wraps Text -> Array# Char#) -}
-caseListTwice :: BuiltinData -> BuiltinUnit
-caseListTwice bd =
+  - useTwiceData:        BuiltinData       (wraps PlutusCore.Data.Data)
+  - useTwiceByteString:  BuiltinByteString (wraps ByteString -> BS Addr#)
+  - useTwiceString:      BuiltinString     (wraps Text -> Array# Char#) -}
+useTwiceData :: BuiltinData -> BuiltinUnit
+useTwiceData bd =
   case toBuiltinData (firstOf items) of
     _ -> case toBuiltinData (firstOf items) of
       _ -> unitval
@@ -44,26 +38,14 @@ caseListTwice bd =
     items = unsafeFromBuiltinData bd
     firstOf = Data.List.caseList' Nothing (\(h :: BuiltinData) _t -> Just h)
 
-caseListTwiceByteString :: BuiltinList BuiltinByteString -> BuiltinUnit
-caseListTwiceByteString items =
-  case firstOf items of
-    Nothing -> case firstOf items of
-      Nothing -> unitval
-      Just _ -> unitval
-    Just _ -> case firstOf items of
-      Nothing -> unitval
-      Just _ -> unitval
-  where
-    firstOf = caseList' Nothing (\(h :: BuiltinByteString) _ -> Just h)
+useTwiceByteString :: BuiltinByteString -> BuiltinUnit
+useTwiceByteString bs =
+  case BI.appendByteString bs bs of
+    _ -> case BI.appendByteString bs bs of
+      _ -> unitval
 
-caseListTwiceString :: BuiltinList BuiltinString -> BuiltinUnit
-caseListTwiceString items =
-  case firstOf items of
-    Nothing -> case firstOf items of
-      Nothing -> unitval
-      Just _ -> unitval
-    Just _ -> case firstOf items of
-      Nothing -> unitval
-      Just _ -> unitval
-  where
-    firstOf = caseList' Nothing (\(h :: BuiltinString) _ -> Just h)
+useTwiceString :: BuiltinString -> BuiltinUnit
+useTwiceString s =
+  case BI.appendString s s of
+    _ -> case BI.appendString s s of
+      _ -> unitval
