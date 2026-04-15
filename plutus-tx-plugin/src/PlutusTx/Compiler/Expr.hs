@@ -1257,11 +1257,24 @@ compileExpr mloc e = do
                 -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
                 Just unfolding -> hoistExpr n unfolding
                 Nothing ->
-                  throwSd FreeVariableError $
-                    "Variable"
+                  throwSd
+                    (if GHC.isLocalId n then UnsupportedError else FreeVariableError)
+                    $ "Variable"
                       GHC.<+> GHC.ppr n
                       GHC.$+$ (GHC.ppr $ GHC.idDetails n)
                       GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
+                      GHC.$+$ if GHC.isLocalId n
+                        then
+                          ""
+                            GHC.$+$ "This error often indicates a stage violation in Plinth compilation."
+                            GHC.$+$ "Variables inside compile quotations must be either:"
+                            GHC.$+$ "  • Top-level variables, or"
+                            GHC.$+$ "  • Bound inside the quotation itself"
+                            GHC.$+$ ""
+                            GHC.$+$ "Common causes:"
+                            GHC.$+$ "  • Using a function defined in a 'where' clause: move it to the top level"
+                            GHC.$+$ "  • Referencing local variables from outside the quotation"
+                        else ""
         -- arg can be a type here, in which case it's a type instantiation
         l `GHC.App` GHC.Type t -> do
           l' <- compileExpr Nothing l
