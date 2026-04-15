@@ -16,7 +16,7 @@ Pass 2: Float Force into Case Branches  ✅
   Program Size: 3504 (after)
   Execution Cost: CPU = 288404181782, MEM = 1752469055 (before)
   Execution Cost: CPU = 283210581782, MEM = 1720009055 (after)
-
+  Optimization sites: 18
 
 ──────────────────────────────────────────────────────
 Pass 3: Force-Delay Cancellation  ✅
@@ -70,7 +70,7 @@ Pass 8: Float Force into Case Branches  ✅
   Program Size: 3176 (after)
   Execution Cost: CPU = 264858581782, MEM = 1605309055 (before)
   Execution Cost: CPU = 264858581782, MEM = 1605309055 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 9: Force-Delay Cancellation  ✅
@@ -124,7 +124,7 @@ Pass 14: Float Force into Case Branches  ✅
   Program Size: 2467 (after)
   Execution Cost: CPU = 218067557782, MEM = 1312865155 (before)
   Execution Cost: CPU = 217316549782, MEM = 1308171355 (after)
-
+  Optimization sites: 5
 
 ──────────────────────────────────────────────────────
 Pass 15: Force-Delay Cancellation  ✅
@@ -178,7 +178,7 @@ Pass 20: Float Force into Case Branches  ✅
   Program Size: 2305 (after)
   Execution Cost: CPU = 203028821782, MEM = 1218873055 (before)
   Execution Cost: CPU = 203028821782, MEM = 1218873055 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 21: Force-Delay Cancellation  ✅
@@ -232,7 +232,7 @@ Pass 26: Float Force into Case Branches  ✅
   Program Size: 2405 (after)
   Execution Cost: CPU = 173898773782, MEM = 1036810255 (before)
   Execution Cost: CPU = 173898773782, MEM = 1036810255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 27: Force-Delay Cancellation  ✅
@@ -286,7 +286,7 @@ Pass 32: Float Force into Case Branches  ✅
   Program Size: 1852 (after)
   Execution Cost: CPU = 127574757782, MEM = 747285155 (before)
   Execution Cost: CPU = 120633541782, MEM = 703902555 (after)
-
+  Optimization sites: 28
 
 ──────────────────────────────────────────────────────
 Pass 33: Force-Delay Cancellation  ✅
@@ -340,7 +340,7 @@ Pass 38: Float Force into Case Branches  ✅
   Program Size: 1838 (after)
   Execution Cost: CPU = 118993781782, MEM = 693654055 (before)
   Execution Cost: CPU = 118993781782, MEM = 693654055 (after)
-
+  Optimization sites: 1
 
 ──────────────────────────────────────────────────────
 Pass 39: Force-Delay Cancellation  ✅
@@ -394,7 +394,7 @@ Pass 44: Float Force into Case Branches  ✅
   Program Size: 1770 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 45: Force-Delay Cancellation  ✅
@@ -448,7 +448,7 @@ Pass 50: Float Force into Case Branches  ✅
   Program Size: 1770 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 51: Force-Delay Cancellation  ✅
@@ -502,7 +502,7 @@ Pass 56: Float Force into Case Branches  ✅
   Program Size: 1770 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 57: Force-Delay Cancellation  ✅
@@ -556,7 +556,7 @@ Pass 62: Float Force into Case Branches  ✅
   Program Size: 1770 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 63: Force-Delay Cancellation  ✅
@@ -610,7 +610,7 @@ Pass 68: Float Force into Case Branches  ✅
   Program Size: 1770 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 69: Force-Delay Cancellation  ✅
@@ -673,7 +673,7 @@ Pass 75: Float Force into Case Branches  ✅
   Program Size: 1779 (after)
   Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
   Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 76: Force-Delay Cancellation  ✅
@@ -736,7 +736,7 @@ Pass 82: Float Force into Case Branches  ✅
   Program Size: 1780 (after)
   Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
   Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 83: Force-Delay Cancellation  ✅
@@ -799,7 +799,7 @@ Pass 89: Float Force into Case Branches  ✅
   Program Size: 1762 (after)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 90: Force-Delay Cancellation  ✅
@@ -862,7 +862,7 @@ Pass 96: Float Force into Case Branches  ✅
   Program Size: 1762 (after)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 97: Force-Delay Cancellation  ✅
