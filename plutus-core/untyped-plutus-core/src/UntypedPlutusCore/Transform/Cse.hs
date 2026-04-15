@@ -1,22 +1,22 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module UntypedPlutusCore.Transform.Cse (cse, CseWhichSubterms (..)) where
+module UntypedPlutusCore.Transform.Cse (cse) where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
-import PlutusCore.Pretty
-import Prettyprinter (viaShow)
 import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
+import UntypedPlutusCore.Simplify.Opts (CseWhichSubterms (..))
 import UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT
-  , cseStage
   , recordSimplification
+  , pattern CseStage
   )
 
 import Control.Arrow ((>>>))
@@ -205,13 +205,6 @@ type Path = [Int]
 isAncestorOrSelf :: Path -> Path -> Bool
 isAncestorOrSelf = isSuffixOf
 
--- | Which subterms should be considered as candidates?
-data CseWhichSubterms = AllSubterms | ExcludeWorkFree
-  deriving stock (Show, Read)
-
-instance Pretty CseWhichSubterms where
-  pretty = viaShow
-
 data CseCandidate uni fun ann = CseCandidate
   { ccFreshName :: Name
   , ccTerm :: Term Name uni fun ()
@@ -244,7 +237,7 @@ cse whichSubterms builtinSemanticsVariant t0 = do
           . Map.elems
           $ countOccs whichSubterms builtinSemanticsVariant annotated
   result <- mkCseTerm commonSubexprs annotated
-  recordSimplification t0 cseStage result
+  recordSimplification t0 CseStage result
   return result
 
 -- | The second pass. See Note [CSE].

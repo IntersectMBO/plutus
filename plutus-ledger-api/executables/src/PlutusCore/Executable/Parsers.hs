@@ -9,7 +9,6 @@ import PlutusCore.AstSize (AstSize (..))
 import PlutusCore.Default (BuiltinSemanticsVariant (..), DefaultFun)
 import PlutusCore.Executable.Types
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Transform.Cse (CseWhichSubterms (..))
 
 import Control.Lens ((^.))
 import Data.Maybe
@@ -222,15 +221,15 @@ simplifyOpts = do
     option
       ( maybeReader
           ( \case
-              "all" -> Just AllSubterms
-              "exclude-work-free" -> Just ExcludeWorkFree
+              "all" -> Just UPLC.AllSubterms
+              "exclude-work-free" -> Just UPLC.ExcludeWorkFree
               _ -> Nothing
           )
       )
       ( long "opt-cse-which-subterms"
           <> metavar "MODE"
-          <> value ExcludeWorkFree
-          <> showDefaultWith (\case AllSubterms -> "all"; ExcludeWorkFree -> "exclude-work-free")
+          <> value UPLC.ExcludeWorkFree
+          <> showDefaultWith (\case UPLC.AllSubterms -> "all"; UPLC.ExcludeWorkFree -> "exclude-work-free")
           <> help "CSE subterm selection: all | exclude-work-free"
       )
   _soConservativeOpts <-

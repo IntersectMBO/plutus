@@ -1,14 +1,16 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 module UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT (..)
   , Trace.SimplifierStage
-  , Trace.floatDelayStage
-  , Trace.forceDelayStage
-  , Trace.forceCaseDelayStage
-  , Trace.caseReduceStage
-  , Trace.inlineStage
-  , Trace.cseStage
-  , Trace.applyToCaseStage
-  , Trace.caseOfCaseStage
+  , pattern FloatDelayStage
+  , pattern ForceDelayStage
+  , pattern ForceCaseDelayStage
+  , pattern CaseReduceStage
+  , pattern InlineStage
+  , pattern CseStage
+  , pattern ApplyToCaseStage
+  , pattern CaseOfCaseStage
   , Trace.SimplifierTrace (..)
   , Trace.Simplification (..)
   , runSimplifierT
@@ -30,6 +32,16 @@ import Control.Monad.Identity (Identity, runIdentity)
 import PlutusCore.Quote (MonadQuote)
 import UntypedPlutusCore.Core.Type (Term)
 import UntypedPlutusCore.Transform.Certify.Hints qualified as Hints
+import UntypedPlutusCore.Transform.Certify.Trace
+  ( pattern ApplyToCaseStage
+  , pattern CaseOfCaseStage
+  , pattern CaseReduceStage
+  , pattern CseStage
+  , pattern FloatDelayStage
+  , pattern ForceCaseDelayStage
+  , pattern ForceDelayStage
+  , pattern InlineStage
+  )
 import UntypedPlutusCore.Transform.Certify.Trace qualified as Trace
 
 newtype SimplifierT name uni fun ann m a

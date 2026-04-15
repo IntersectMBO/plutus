@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module UntypedPlutusCore.Transform.Certify.Trace where
 
@@ -27,23 +28,40 @@ data NICSimplifierStage
 
 type SimplifierStage = Either NICSimplifierStage ICSimplifierStage
 
-floatDelayStage
-  , forceDelayStage
-  , forceCaseDelayStage
-  , caseReduceStage
-  , inlineStage
-  , cseStage
-  , applyToCaseStage
-  , caseOfCaseStage
-    :: SimplifierStage
-floatDelayStage = Right FloatDelay
-forceDelayStage = Right ForceDelay
-forceCaseDelayStage = Right ForceCaseDelay
-caseReduceStage = Right CaseReduce
-inlineStage = Right Inline
-cseStage = Right CSE
-applyToCaseStage = Right ApplyToCase
-caseOfCaseStage = Left CaseOfCase
+pattern FloatDelayStage :: SimplifierStage
+pattern FloatDelayStage = Right FloatDelay
+
+pattern ForceDelayStage :: SimplifierStage
+pattern ForceDelayStage = Right ForceDelay
+
+pattern ForceCaseDelayStage :: SimplifierStage
+pattern ForceCaseDelayStage = Right ForceCaseDelay
+
+pattern CaseReduceStage :: SimplifierStage
+pattern CaseReduceStage = Right CaseReduce
+
+pattern InlineStage :: SimplifierStage
+pattern InlineStage = Right Inline
+
+pattern CseStage :: SimplifierStage
+pattern CseStage = Right CSE
+
+pattern ApplyToCaseStage :: SimplifierStage
+pattern ApplyToCaseStage = Right ApplyToCase
+
+pattern CaseOfCaseStage :: SimplifierStage
+pattern CaseOfCaseStage = Left CaseOfCase
+
+{-# COMPLETE
+  FloatDelayStage
+  , ForceDelayStage
+  , ForceCaseDelayStage
+  , CaseReduceStage
+  , InlineStage
+  , CseStage
+  , ApplyToCaseStage
+  , CaseOfCaseStage
+  #-}
 
 data Simplification name uni fun a
   = Simplification

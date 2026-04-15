@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 {- Note [Applying force to delays in case branches]
 
@@ -37,8 +38,8 @@ where
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT
-  , forceCaseDelayStage
   , recordSimplification
+  , pattern ForceCaseDelayStage
   )
 
 import Control.Lens
@@ -49,7 +50,7 @@ forceCaseDelay
   -> SimplifierT name uni fun a m (Term name uni fun a)
 forceCaseDelay term = do
   let result = transformOf termSubterms processTerm term
-  recordSimplification term forceCaseDelayStage result
+  recordSimplification term ForceCaseDelayStage result
   return result
 
 processTerm :: Term name uni fun a -> Term name uni fun a

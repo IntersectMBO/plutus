@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TupleSections #-}
 
 module UntypedPlutusCore.Transform.CaseReduce
@@ -14,8 +15,8 @@ import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT
-  , caseReduceStage
   , recordSimplification
+  , pattern CaseReduceStage
   )
 
 caseReduce
@@ -24,7 +25,7 @@ caseReduce
   -> SimplifierT name uni fun a m (Term name uni fun a)
 caseReduce term = do
   let result = transformOf termSubterms processTerm term
-  recordSimplification term caseReduceStage result
+  recordSimplification term CaseReduceStage result
   return result
 
 processTerm :: CaseBuiltin uni => Term name uni fun a -> Term name uni fun a

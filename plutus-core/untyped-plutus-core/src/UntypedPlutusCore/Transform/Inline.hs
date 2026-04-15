@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -71,8 +72,8 @@ import UntypedPlutusCore.Subst (termSubstNamesM)
 import UntypedPlutusCore.Transform.Certify.Hints qualified as CertifierHints
 import UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT
-  , inlineStage
   , recordSimplificationWithHints
+  , pattern InlineStage
   )
 
 {- Note [Differences from PIR inliner]
@@ -239,7 +240,7 @@ inline
     recordSimplificationWithHints
       (CertifierHints.Inline (mkHints decoratedResult))
       t
-      inlineStage
+      InlineStage
       result
     return result
 

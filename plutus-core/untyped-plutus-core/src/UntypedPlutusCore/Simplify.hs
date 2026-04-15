@@ -76,8 +76,8 @@ termSimplifier
   -> SimplifierT name uni fun a m (Term name uni fun a)
 termSimplifier opts builtinSemanticsVariant =
   simplifyNTimes (_soMaxSimplifierIterations opts)
-    >=> cseNTimes cseTimes
-    >=> (if _soApplyToCase opts then applyToCase else pure)
+    >=> runStage CseStage
+    >=> runStage ApplyToCaseStage
   where
     -- Run the simplifier @n@ times
     simplifyNTimes
@@ -100,19 +100,50 @@ termSimplifier opts builtinSemanticsVariant =
       -> Term name uni fun a
       -> SimplifierT name uni fun a m (Term name uni fun a)
     simplifyStep _ =
-      floatDelay
-        >=> forceCaseDelay
-        >=> case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
-          (Just Refl, Just Refl) -> forceDelay builtinSemanticsVariant
-          _ -> pure
-        >=> caseOfCase'
-        >=> caseReduce
-        >=> inline
-          (_soInlineCallsiteGrowth opts)
-          (_soInlineConstants opts)
-          (_soPreserveLogging opts)
-          (_soInlineHints opts)
-          builtinSemanticsVariant
+      runStage FloatDelayStage
+        >=> runStage ForceCaseDelayStage
+        >=> runStage ForceDelayStage
+        >=> runStage CaseOfCaseStage
+        >=> runStage CaseReduceStage
+        >=> runStage InlineStage
+
+    runStage stage' =
+      let isIC = either (const False) (const True) stage'
+          withSafeOpts action
+            | _soSafeOpts opts
+            , isIC =
+                action
+            | _soSafeOpts opts
+            , not isIC =
+                return
+            | otherwise = action
+       in case stage' of
+            FloatDelayStage ->
+              withSafeOpts floatDelay
+            ForceCaseDelayStage ->
+              withSafeOpts forceCaseDelay
+            ForceDelayStage ->
+              withSafeOpts $
+                case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
+                  (Just Refl, Just Refl) -> forceDelay builtinSemanticsVariant
+                  _ -> pure
+            CaseOfCaseStage ->
+              withSafeOpts caseOfCase'
+            CaseReduceStage ->
+              withSafeOpts caseReduce
+            InlineStage ->
+              withSafeOpts $
+                inline
+                  (_soInlineCallsiteGrowth opts)
+                  (_soInlineConstants opts)
+                  (_soPreserveLogging opts)
+                  (_soInlineHints opts)
+                  builtinSemanticsVariant
+            CseStage ->
+              withSafeOpts $ cseNTimes cseTimes
+            ApplyToCaseStage ->
+              withSafeOpts $
+                if _soApplyToCase opts then applyToCase else pure
 
     caseOfCase'
       :: Term name uni fun a

@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 {-|
 Transform multi-argument applications into case-constr form.
 
@@ -18,8 +20,8 @@ import Data.Vector qualified as V
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT
-  , applyToCaseStage
   , recordSimplification
+  , pattern ApplyToCaseStage
   )
 
 minArgs :: Int
@@ -32,7 +34,7 @@ applyToCase
   -> SimplifierT name uni fun a m (Term name uni fun a)
 applyToCase term = do
   let result = processTerm term
-  recordSimplification term applyToCaseStage result
+  recordSimplification term ApplyToCaseStage result
   pure result
 
 processTerm :: Term name uni fun a -> Term name uni fun a

@@ -90,7 +90,7 @@ testTrivialSuccess1 :: TestTree
 testTrivialSuccess1 =
   testSuccess
     "Trivial success"
-    floatDelayStage
+    FloatDelayStage
     (mkConstant () (1 :: Integer))
     (mkConstant () (1 :: Integer))
 
@@ -98,7 +98,7 @@ testTrivialFailure1 :: TestTree
 testTrivialFailure1 =
   testFailure
     "Trivial failure"
-    floatDelayStage
+    FloatDelayStage
     (mkConstant () (1 :: Integer))
     (mkConstant () (2 :: Integer))
 
@@ -106,7 +106,7 @@ testByteStringEqSuccess :: TestTree
 testByteStringEqSuccess =
   testFailure
     "bytestrings expected to not be equal"
-    floatDelayStage
+    FloatDelayStage
     (mkConstant () (Text.encodeUtf8 "foo"))
     (mkConstant () (Text.encodeUtf8 "bar"))
 
@@ -114,7 +114,7 @@ testByteStringEqFailure :: TestTree
 testByteStringEqFailure =
   testSuccess
     "bytestrings expected to be equal"
-    floatDelayStage
+    FloatDelayStage
     (mkConstant () (Text.encodeUtf8 "foo"))
     (mkConstant () (Text.encodeUtf8 "foo"))
 

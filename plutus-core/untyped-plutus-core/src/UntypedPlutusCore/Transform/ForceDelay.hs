@@ -141,6 +141,7 @@
  if both @x@ and @y@ are pure and work-free.
 -}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -156,8 +157,8 @@ import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isPure, isWorkFree)
 import UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT
-  , forceDelayStage
   , recordSimplification
+  , pattern ForceDelayStage
   )
 
 import Control.Lens (transformOf)
@@ -173,7 +174,7 @@ forceDelay
   -> SimplifierT name uni fun a m (Term name uni fun a)
 forceDelay semVar term = do
   let result = transformOf termSubterms (processTerm semVar) term
-  recordSimplification term forceDelayStage result
+  recordSimplification term ForceDelayStage result
   return result
 
 {-| Checks whether the term is of the right form, and "pushes"

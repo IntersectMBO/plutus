@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 {-| The Float Delay optimization floats `Delay` from arguments into function bodies,
 if possible. It turns @(\n -> ...Force n...Force n...) (Delay arg)@ into
@@ -62,8 +63,8 @@ import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..))
 import UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT
-  , floatDelayStage
   , recordSimplification
+  , pattern FloatDelayStage
   )
 
 import Control.Lens (forOf, forOf_, transformOf)
@@ -80,7 +81,7 @@ floatDelay term = do
   result <-
     PLC.rename term >>= \t ->
       pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t
-  recordSimplification term floatDelayStage result
+  recordSimplification term FloatDelayStage result
   return result
 
 {-| First pass. Returns the names of all variables, at least one occurrence

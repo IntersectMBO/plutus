@@ -11,7 +11,9 @@ module UntypedPlutusCore.Simplify.Opts
   , soInlineConstants
   , soInlineCallsiteGrowth
   , soPreserveLogging
+  , soSafeOpts
   , defaultSimplifyOpts
+  , CseWhichSubterms (..)
   ) where
 
 import Control.Lens.TH (makeLenses)
@@ -19,7 +21,15 @@ import Data.Default.Class
 
 import PlutusCore.Annotation (InlineHints (..))
 import PlutusCore.AstSize
-import UntypedPlutusCore.Transform.Cse (CseWhichSubterms (..))
+import PlutusCore.Pretty
+import Prettyprinter (viaShow)
+
+-- | Which subterms should be considered as candidates for CSE?
+data CseWhichSubterms = AllSubterms | ExcludeWorkFree
+  deriving stock (Show, Read)
+
+instance Pretty CseWhichSubterms where
+  pretty = viaShow
 
 data SimplifyOpts name a = SimplifyOpts
   { _soMaxSimplifierIterations :: Int
