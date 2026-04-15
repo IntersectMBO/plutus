@@ -65,19 +65,20 @@ data Error : Set where
 
 ## Translation Relations and Certifiers
 
-We map a `SimplifierTag` to the corresponding translation relation, or `nothing`
-if we don't have a translation relation.
+We map a `ICSimplifierTag` to the corresponding translation relation.
 
 ```
 -- TODO: this should be enforced at the type level somehow
-f : ICSimplifierTag → (0 ⊢ → 0 ⊢ → Set)
-f floatDelayT = UFlD.FloatDelay
-f forceDelayT = UFD.ForceDelay
-f forceCaseDelayT = UFCD.ForceCaseDelay
-f caseReduceT = UCR.UCaseReduce
-f inlineT = UInline.Inline (λ()) UInline.□
-f cseT = UCSE.UntypedCSE
-f applyToCaseT = UA2C.UApplyToCase
+-- i.e. I shouldn't be able to associate 'forceDelayT' with
+-- 'floatDelay'!
+tagToRelation : ICSimplifierTag → (0 ⊢ → 0 ⊢ → Set)
+tagToRelation floatDelayT = UFlD.FloatDelay
+tagToRelation forceDelayT = UFD.ForceDelay
+tagToRelation forceCaseDelayT = UFCD.ForceCaseDelay
+tagToRelation caseReduceT = UCR.UCaseReduce
+tagToRelation inlineT = UInline.Inline (λ()) UInline.□
+tagToRelation cseT = UCSE.UntypedCSE
+tagToRelation applyToCaseT = UA2C.UApplyToCase
 ```
 
 We default to the `NotImplemented` relation to give each `SimplifierTag` a relation:
@@ -85,11 +86,10 @@ We default to the `NotImplemented` relation to give each `SimplifierTag` a relat
 ```
 RelationOf : SimplifierTag → (0 ⊢ → 0 ⊢ → Set)
 RelationOf (inj₁ _) = NotImplemented accept
-RelationOf (inj₂ tag) = f tag
+RelationOf (inj₂ tag) = tagToRelation tag
 
 hasRelation : SimplifierTag → Bool
-hasRelation (inj₁ _) = false
-hasRelation (inj₂ _) = true
+hasRelation = is-inj₂
 ```
 
 The corresponding certifier can then be called for a given pass:

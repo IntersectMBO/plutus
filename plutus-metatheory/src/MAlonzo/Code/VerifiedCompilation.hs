@@ -17,7 +17,6 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
                     rem64, lt64, eq64, word64FromNat, word64ToNat)
 import qualified MAlonzo.RTE
 import qualified Data.Text
-import qualified MAlonzo.Code.Agda.Builtin.Bool
 import qualified MAlonzo.Code.Agda.Builtin.Maybe
 import qualified MAlonzo.Code.Agda.Builtin.Unit
 import qualified MAlonzo.Code.Data.Maybe.Base
@@ -45,12 +44,12 @@ data T_Error_2
     C_abort_10 (MAlonzo.Code.Utils.T_Either_6
                   MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
                   MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_8)
--- VerifiedCompilation.f
-d_f_12 ::
+-- VerifiedCompilation.tagToRelation
+d_tagToRelation_12 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_8 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
-d_f_12 = erased
+d_tagToRelation_12 = erased
 -- VerifiedCompilation.RelationOf
 d_RelationOf_14 ::
   MAlonzo.Code.Utils.T_Either_6
@@ -65,13 +64,7 @@ d_hasRelation_18 ::
     MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
     MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_8 ->
   Bool
-d_hasRelation_18 v0
-  = case coe v0 of
-      MAlonzo.Code.Utils.C_inj'8321'_12 v1
-        -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8
-      MAlonzo.Code.Utils.C_inj'8322'_14 v1
-        -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
-      _ -> MAlonzo.RTE.mazUnreachableError
+d_hasRelation_18 = coe MAlonzo.Code.Utils.du_is'45'inj'8322'_46
 -- VerifiedCompilation.certifyPass
 d_certifyPass_26 ::
   MAlonzo.Code.Utils.T_Either_6
