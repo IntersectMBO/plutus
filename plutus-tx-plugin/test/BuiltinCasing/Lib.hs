@@ -10,11 +10,19 @@
 module BuiltinCasing.Lib
   ( caseListTwice
   , caseListTwiceByteString
+  , caseListTwiceString
   ) where
 
 import PlutusTx
-import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinUnit, unitval)
-import PlutusTx.Data.List (caseList')
+import PlutusTx.Builtins.Internal
+  ( BuiltinByteString
+  , BuiltinList
+  , BuiltinString
+  , BuiltinUnit
+  , caseList'
+  , unitval
+  )
+import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Prelude
 
 {-| Regression tests for #7716.  Calling caseList' twice on the same value
@@ -23,9 +31,10 @@ inner type of the opaque builtin wrapper.  Without the second constructor
 (see Note [Opaque builtin types]), the plugin with BuiltinCasing would try
 to compile the inner type as an ADT and crash on Addr#.
 
-Each test below targets a different opaque builtin type:
+Each test targets a different opaque builtin type:
   - caseListTwice:           BuiltinData       (wraps PlutusCore.Data.Data)
-  - caseListTwiceByteString: BuiltinByteString  (wraps ByteString -> BS Addr#) -}
+  - caseListTwiceByteString: BuiltinByteString  (wraps ByteString -> BS Addr#)
+  - caseListTwiceString:     BuiltinString      (wraps Text -> Array# Char#) -}
 caseListTwice :: BuiltinData -> BuiltinUnit
 caseListTwice bd =
   case toBuiltinData (firstOf items) of
@@ -33,13 +42,28 @@ caseListTwice bd =
       _ -> unitval
   where
     items = unsafeFromBuiltinData bd
-    firstOf = caseList' Nothing (\(h :: BuiltinData) _t -> Just h)
+    firstOf = Data.List.caseList' Nothing (\(h :: BuiltinData) _t -> Just h)
 
-caseListTwiceByteString :: BuiltinData -> BuiltinUnit
-caseListTwiceByteString bd =
-  case toBuiltinData (firstOf items) of
-    _ -> case toBuiltinData (firstOf items) of
-      _ -> unitval
+caseListTwiceByteString :: BuiltinList BuiltinByteString -> BuiltinUnit
+caseListTwiceByteString items =
+  case firstOf items of
+    Nothing -> case firstOf items of
+      Nothing -> unitval
+      Just _ -> unitval
+    Just _ -> case firstOf items of
+      Nothing -> unitval
+      Just _ -> unitval
   where
-    items = unsafeFromBuiltinData bd
-    firstOf = caseList' Nothing (\(h :: BuiltinByteString) _t -> Just h)
+    firstOf = caseList' Nothing (\(h :: BuiltinByteString) _ -> Just h)
+
+caseListTwiceString :: BuiltinList BuiltinString -> BuiltinUnit
+caseListTwiceString items =
+  case firstOf items of
+    Nothing -> case firstOf items of
+      Nothing -> unitval
+      Just _ -> unitval
+    Just _ -> case firstOf items of
+      Nothing -> unitval
+      Just _ -> unitval
+  where
+    firstOf = caseList' Nothing (\(h :: BuiltinString) _ -> Just h)
