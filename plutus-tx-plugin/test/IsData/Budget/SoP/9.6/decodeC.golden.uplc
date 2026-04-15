@@ -1,9 +1,9 @@
 (program
    1.1.0
    (\d ->
-      case
-        ((\p ->
-            (\index args ->
+      (\p ->
+         case
+           ((\index args ->
                force
                  (case
                     (constr 0
@@ -38,5 +38,5 @@
                  args)
               (force (force fstPair) p)
               (force (force sndPair) p))
-           (unConstrData d))
-        [(\x -> x), (\x -> addInteger 100 x), (\x -> addInteger 200 x)]))
+           [(\x -> x), (\x -> addInteger 100 x), (\x -> addInteger 200 x)])
+        (unConstrData d)))

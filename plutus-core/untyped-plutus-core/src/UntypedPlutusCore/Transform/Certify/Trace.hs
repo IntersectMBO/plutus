@@ -36,6 +36,7 @@ corresponding constructor to this type. Please also open an issue
 at https://github.com/IntersectMBO/plutus/issues. -}
 data NICSimplifierStage
   = CaseOfCase
+  | LetFloatOut
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -65,6 +66,9 @@ pattern ApplyToCaseStage = Right ApplyToCase
 pattern CaseOfCaseStage :: SimplifierStage
 pattern CaseOfCaseStage = Left CaseOfCase
 
+pattern LetFloatOutStage :: SimplifierStage
+pattern LetFloatOutStage = Left LetFloatOut
+
 {-# COMPLETE
   FloatDelayStage
   , ForceDelayStage
@@ -74,6 +78,7 @@ pattern CaseOfCaseStage = Left CaseOfCase
   , CseStage
   , ApplyToCaseStage
   , CaseOfCaseStage
+  , LetFloatOutStage
   #-}
 
 data Simplification name uni fun a

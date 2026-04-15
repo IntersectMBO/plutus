@@ -27,6 +27,7 @@ import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
 import UntypedPlutusCore.Transform.ForceCaseDelay (forceCaseDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
+import UntypedPlutusCore.Transform.LetFloatOut (letFloatOut)
 import UntypedPlutusCore.Transform.Simplifier
 
 import Control.Monad
@@ -102,6 +103,7 @@ termSimplifier opts builtinSemanticsVariant =
     simplifyStep _ =
       runStage FloatDelayStage
         >=> runStage ForceCaseDelayStage
+        >=> runStage LetFloatOutStage
         >=> runStage ForceDelayStage
         >=> runStage CaseOfCaseStage
         >=> runStage CaseReduceStage
@@ -144,6 +146,8 @@ termSimplifier opts builtinSemanticsVariant =
             ApplyToCaseStage ->
               withSafeOpts $
                 if _soApplyToCase opts then applyToCase else pure
+            LetFloatOutStage ->
+              withSafeOpts letFloatOut
 
     caseOfCase'
       :: Term name uni fun a

@@ -168,9 +168,9 @@
                                              ds
                                              [ x
                                              , (\ipv ipv ->
-                                                  case
-                                                    ((\n ->
-                                                        case
+                                                  (\n ->
+                                                     case
+                                                       (case
                                                           (lessThanEqualsInteger
                                                              n
                                                              0)
@@ -178,15 +178,15 @@
                                                           , (constr 0
                                                                [ (constr 0 [])
                                                                , ds ]) ])
-                                                       (divideInteger
-                                                          (go ds)
-                                                          2))
-                                                    [ (\ipv ipv ->
-                                                         (\cse ->
-                                                            appendString
-                                                              (cse ipv)
-                                                              (cse ipv))
-                                                           (s s)) ]) ]) ])))
+                                                       [ (\ipv ipv ->
+                                                            (\cse ->
+                                                               appendString
+                                                                 (cse ipv)
+                                                                 (cse ipv))
+                                                              (s s)) ])
+                                                    (divideInteger
+                                                       (go ds)
+                                                       2)) ]) ])))
                            ((\s -> s s)
                               (\s ds ->
                                  case

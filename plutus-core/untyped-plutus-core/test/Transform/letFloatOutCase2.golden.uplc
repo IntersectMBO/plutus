@@ -1,0 +1,1 @@
+\a -> addInteger a a

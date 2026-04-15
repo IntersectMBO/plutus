@@ -176,6 +176,18 @@ integerMatchFunction :: Integer -> Integer
 integerMatchFunction 1 = 12
 integerMatchFunction 2 = 22
 integerMatchFunction _ = 42
+-- We need NOINLINE, because otherwise the plugin automatically inserts INLINEABLE.
+-- With INLINEABLE, GHC generates `case` on Integer in Core, causing the plugin to
+-- error with "Cannot case on a value on type: GHC.Num.Integer.Integer".
+{-# NOINLINE integerMatchFunction #-}
 
 integerPatternMatch :: CompiledCode Integer
 integerPatternMatch = plc (Proxy @"integerPatternMatch") (integerMatchFunction 2)
+
+{- Note [NOINLINE in some tests]
+
+We need NOINLINE in some test cases that match on integers (which one isn't supposed to do
+in Plinth), because otherwise the plugin automatically inserts INLINEABLE. With INLINEABLE,
+GHC generates `case` on Integer in Core, causing the plugin to error with
+"Cannot case on a value on type: GHC.Num.Integer.Integer".
+-}

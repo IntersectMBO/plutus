@@ -20,9 +20,9 @@
                                       [ (\hd
                                           tl ->
                                            (\tl' ->
-                                              case
-                                                ((\k ->
-                                                    (\s ->
+                                              (\k ->
+                                                 case
+                                                   ((\s ->
                                                        s s)
                                                       (\s
                                                         xs ->
@@ -43,8 +43,8 @@
                                                                        True) ])
                                                            , False ])
                                                       nt)
-                                                   (case hd [(\l r -> l)]))
-                                                [(force mkCons hd tl'), tl'])
+                                                   [(force mkCons hd tl'), tl'])
+                                                (case hd [(\l r -> l)]))
                                              (s s tl))
                                       , [] ])
                                  nt)))

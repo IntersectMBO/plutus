@@ -506,6 +506,34 @@ forceCaseDelayWithApps2Fail = runQuote $ do
               )
   pure term
 
+-- case ((\x -> constr 0 []) 1) [42]
+letFloatOutCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+letFloatOutCase1 =
+  let arg = mkConstant @Integer () 1
+      body = Constr () 0 []
+      branch = mkConstant @Integer () 42
+   in Case () (Apply () (LamAbs () xName body) arg) (V.fromList [branch])
+  where
+    xName = runQuote $ freshName "x"
+
+-- \a -> case ((\x -> constr 0 [x, x]) a) addInteger
+letFloatOutCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+letFloatOutCase2 = runQuote $ do
+  a <- freshName "a"
+  x <- freshName "x"
+  let body = Constr () 0 [Var () x, Var () x]
+      binding = Apply () (LamAbs () x body) (Var () a)
+  pure $ LamAbs () a $ Case () binding (V.fromList [Builtin () PLC.AddInteger])
+
+-- \a -> force ((\x -> delay x) a)
+letFloatOutForce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+letFloatOutForce = runQuote $ do
+  a <- freshName "a"
+  x <- freshName "x"
+  let lam = LamAbs () x (Delay () (Var () x))
+      binding = Apply () lam (Var () a)
+  pure $ LamAbs () a (Force () binding)
+
 -- | This is the first example in Note [CSE].
 cse1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 cse1 = runQuote $ do
@@ -622,6 +650,9 @@ testSimplifyInputs =
   , ("forceCaseDelayWithApps2", forceCaseDelayWithApps2)
   , ("forceCaseDelayNoApps2Fail", forceCaseDelayNoApps2Fail)
   , ("forceCaseDelayWithApps2Fail", forceCaseDelayWithApps2Fail)
+  , ("letFloatOutCase1", letFloatOutCase1)
+  , ("letFloatOutCase2", letFloatOutCase2)
+  , ("letFloatOutForce", letFloatOutForce)
   ]
 
 testCseInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]

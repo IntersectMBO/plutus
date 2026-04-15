@@ -15,7 +15,7 @@ plugin =
   GHC.defaultPlugin
     { GHC.driverPlugin = addFlagsAndExts
     , GHC.typeCheckResultAction = \_cliOpts _modSummary ->
-        injectAnchors >=> injectUnsupportedMarkers
+        injectAnchors >=> injectUnsupportedMarkers >=> addInlineables
     , GHC.pluginRecompile = GHC.flagRecompile
     , GHC.installCoreToDos = installCorePlugin 'plinthc
     }

@@ -61,6 +61,7 @@ instance AgdaUnparse ICSimplifierStage where
 
 instance AgdaUnparse NICSimplifierStage where
   agdaUnparse CaseOfCase = "(inj₁ caseOfCaseT)"
+  agdaUnparse LetFloatOut = "(inj₁ letFloatOutT)"
 
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case
@@ -81,14 +82,13 @@ instance AgdaUnparse Hints.Inline where
     Hints.InlCase t ts -> "(case " ++ agdaUnparse t ++ " " ++ agdaUnparse ts ++ ")"
     Hints.InlExpand t -> "(expand " ++ agdaUnparse t ++ ")"
     Hints.InlDrop t -> "(" ++ agdaUnparse t ++ " ·↓)"
-    Hints.InlLamDrop t -> "(ƛ↓ " ++ agdaUnparse t ++ ")"
 
 instance AgdaUnparse Natural where
   agdaUnparse = show
 
 instance AgdaUnparse Integer where
   agdaUnparse x
-    | x < 0 = "(ℤ.negsuc " ++ show (x - 1) ++ ")"
+    | x < 0 = "(ℤ.negsuc " ++ show (abs x - 1) ++ ")"
     | otherwise = "(ℤ.pos " ++ show x ++ ")"
 
 instance AgdaUnparse Bool where

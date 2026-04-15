@@ -1,10 +1,10 @@
 (program
    1.1.0
    (\d ->
-      case
-        ((\p ->
-            (\args ->
-               force
+      (\p ->
+         (\args ->
+            case
+              (force
                  (case
                     (constr 0
                        [ (equalsInteger 0 (force (force fstPair) p))
@@ -13,6 +13,6 @@
                        , (delay error) ])
                     [(force ifThenElse)])
                  args)
-              (force (force sndPair) p))
-           (unConstrData d))
-        [(\x -> x)]))
+              [(\x -> x)])
+           (force (force sndPair) p))
+        (unConstrData d)))

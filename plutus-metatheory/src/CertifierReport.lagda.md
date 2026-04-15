@@ -46,6 +46,7 @@ showICTag applyToCaseT = "Transform multi-argument applications into case-constr
 
 showNICTag : NICSimplifierTag → String
 showNICTag caseOfCaseT = "Case-of-Case"
+showNICTag letFloatOutT = "Float bindings outwards"
 
 showTag : SimplifierTag → String
 showTag (inj₁ tag) = showNICTag tag ++ "  ⚠ (certifier unavailable)"

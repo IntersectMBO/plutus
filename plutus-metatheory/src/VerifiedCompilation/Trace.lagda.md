@@ -27,6 +27,7 @@ We enumerate the known passes and partition them into two categories:
 
 data NICSimplifierTag : Set where
   caseOfCaseT : NICSimplifierTag
+  letFloatOutT : NICSimplifierTag
 
 data ICSimplifierTag : Set where
   floatDelayT : ICSimplifierTag
@@ -56,10 +57,12 @@ applyToCaseTag = Utils.inj₂ applyToCaseT
 
 caseOfCaseTag : SimplifierTag
 caseOfCaseTag = Utils.inj₁ caseOfCaseT
+letFloatOutTag : SimplifierTag
+letFloatOutTag = Utils.inj₁ letFloatOutT
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
 {-# COMPILE GHC ICSimplifierTag = data ICSimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase) #-}
-{-# COMPILE GHC NICSimplifierTag = data NICSimplifierStage (CaseOfCase) #-}
+{-# COMPILE GHC NICSimplifierTag = data NICSimplifierStage (CaseOfCase | LetFloatOut) #-}
 ```
 
 ## Hints
@@ -70,7 +73,6 @@ data InlineHints : Set where
   var     : InlineHints
   expand  : InlineHints → InlineHints
   ƛ       : InlineHints → InlineHints
-  ƛ↓      : InlineHints → InlineHints
   _·_     : InlineHints → InlineHints → InlineHints
   _·↓     : InlineHints → InlineHints
   force   : InlineHints → InlineHints
@@ -87,7 +89,7 @@ data Hints : Set where
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Certify.Trace #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Transform.Certify.Hints as Hints #-}
-{-# COMPILE GHC InlineHints = data Hints.Inline (Hints.InlVar | Hints.InlExpand | Hints.InlLam | Hints.InlLamDrop | Hints.InlApply | Hints.InlDrop | Hints.InlForce | Hints.InlDelay | Hints.InlCon | Hints.InlBuiltin | Hints.InlError | Hints.InlConstr | Hints.InlCase) #-}
+{-# COMPILE GHC InlineHints = data Hints.Inline (Hints.InlVar | Hints.InlExpand | Hints.InlLam | Hints.InlApply | Hints.InlDrop | Hints.InlForce | Hints.InlDelay | Hints.InlCon | Hints.InlBuiltin | Hints.InlError | Hints.InlConstr | Hints.InlCase) #-}
 {-# COMPILE GHC Hints = data Hints.Hints (Hints.Inline | Hints.NoHints) #-}
 ```
 

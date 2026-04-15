@@ -23,9 +23,9 @@
                           [(\i -> iData i), unIData, (addInteger 5 n), nt])
                        [lookup]) ])
                (\`$dToData` `$dUnsafeFromData` ds ds ->
-                  case
-                    ((\k ->
-                        (\s -> s s)
+                  (\k ->
+                     case
+                       ((\s -> s s)
                           (\s xs ->
                              case
                                xs
@@ -38,8 +38,9 @@
                                              [(case hd [(\l r -> r)])]) ])
                                , (constr 1 []) ])
                           ds)
-                       (`$dToData` ds))
-                    [(\a -> constr 0 [(`$dUnsafeFromData` a)]), (constr 1 [])]))
+                       [ (\a -> constr 0 [(`$dUnsafeFromData` a)])
+                       , (constr 1 []) ])
+                    (`$dToData` ds)))
             ((\k ->
                 (\s -> s s)
                   (\s xs ->

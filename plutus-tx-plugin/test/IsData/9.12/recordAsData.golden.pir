@@ -1,14 +1,8 @@
 let
-  !mkI : integer -> data = iData
-  ~`$fToDataInteger_$ctoBuiltinData` : integer -> data
-    = \(i : integer) -> let !i : integer = i in mkI i
-  ~`$fToDataInteger` : (\a -> a -> data) integer
-    = `$fToDataInteger_$ctoBuiltinData`
   !mkCons : all a. a -> list a -> list a = mkCons
   !mkConstr : integer -> list data -> data = constrData
+  !mkI : integer -> data = iData
   !mkNilData : unit -> list data = mkNilData
-  ~toBuiltinData : all a. (\a -> a -> data) a -> a -> data
-    = /\a -> \(v : (\a -> a -> data) a) -> v
   !unitval : unit = ()
   ~`$bRecordConstructor` :
      all a.
@@ -32,11 +26,12 @@ let
               0
               (mkCons
                  {data}
-                 (toBuiltinData {a} `$dToData` x_)
-                 (mkCons
-                    {data}
-                    (toBuiltinData {integer} `$fToDataInteger` y_)
-                    (mkNilData unitval)))
+                 (`$dToData` x_)
+                 (mkCons {data} (mkI y_) (mkNilData unitval)))
+  ~`$fToDataInteger_$ctoBuiltinData` : integer -> data
+    = \(i : integer) -> let !i : integer = i in mkI i
+  ~`$fToDataInteger` : (\a -> a -> data) integer
+    = `$fToDataInteger_$ctoBuiltinData`
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
 in

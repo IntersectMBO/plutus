@@ -17,7 +17,11 @@ let
           ds
           {integer}
           (\(i : integer) (j : integer) (k : integer) ->
-             addInteger (addInteger i j) k)
+             let
+               !y : integer = k
+               !x : integer = addInteger i j
+             in
+             addInteger x y)
 in
 \(x : integer) ->
   let

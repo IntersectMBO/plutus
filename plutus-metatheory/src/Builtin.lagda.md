@@ -22,8 +22,10 @@ After the metatheory is synced with the rest of the codebase, remove the followi
 
 ```
 open import Data.Bool using (Bool;true;false)
-open import Data.List using (List)
+open import Data.Maybe using (Maybe;just;nothing)
+open import Data.List using (List; _∷_; [])
 open import Data.Nat using (ℕ;suc)
+open import Agda.Builtin.Nat using (_==_)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
 open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse;length)
 open import Data.Product using (Σ;proj₁;proj₂)
@@ -40,7 +42,7 @@ open _⊢♯ renaming (pair to bpair; list to blist; array to barray)
 open _/_⊢⋆
 open import Builtin.Constant.AtomicType
 
-open import Utils.Reflection using (defDec;defShow;defListConstructors)
+open import Utils.Reflection using (defDec;defShow;defEnum;defListConstructors)
 ```
 
 ## Built-in functions
@@ -679,13 +681,28 @@ postulate
 -- See Utils.List for the implementation of dropList
 ```
 
-Equality of Builtins is decidable.
-The following function is used for testing, when
-comparing expected with actual results.
+Equality of Builtins is decidable. In order to prove equality we would have to pattern match on n² cases, where n is the number of builtins. To avoid this, we identify each builtin with a natural number and defer to deciding equality on ℕ.
 
 ```
+
+enumBuiltin : Builtin → ℕ
+unquoteDef enumBuiltin = defEnum (quote Builtin) enumBuiltin
+
+open import Agda.Builtin.Equality using (_≡_)
+open import Agda.Builtin.TrustMe using (primTrustMe)
+open import Relation.Binary.PropositionalEquality using (cong)
+open import Relation.Nullary using (Dec; yes; no; ¬_)
+
+-- TODO: this should be safe since enumBuiltin is generated; can it be proven without having to
+-- explicitly match on all n² cases?
+enumBuiltin-injective : (b1 b2 : Builtin) → enumBuiltin b1 ≡ enumBuiltin b2 → b1 ≡ b2
+enumBuiltin-injective b1 b2 b1≡b2 = primTrustMe
+
 decBuiltin : DecidableEquality Builtin
-unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
+decBuiltin b1 b2 with (enumBuiltin b1) Data.Nat.≟ (enumBuiltin b2)
+... | yes p = yes (enumBuiltin-injective b1 b2 p)
+... | no np = no λ x → np (cong enumBuiltin x) 
+
 ```
 
 We define a show function for Builtins

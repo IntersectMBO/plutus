@@ -93,7 +93,6 @@ renderCertifierHints (Trace.SimplifierTrace ss)
           <> foldMap (renderInlineHints (i + 2)) alts
       Hints.InlExpand x -> line i "InlExpand" <> renderInlineHints (i + 2) x
       Hints.InlDrop x -> line i "InlDrop" <> renderInlineHints (i + 2) x
-      Hints.InlLamDrop x -> line i "InlLamDrop" <> renderInlineHints (i + 2) x
 
     line i payload = T.replicate i " " <> payload <> "\n"
 
