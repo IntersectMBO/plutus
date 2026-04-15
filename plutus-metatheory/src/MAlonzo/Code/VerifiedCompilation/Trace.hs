@@ -31,42 +31,38 @@ import FFI.CostInfo
 d_NICSimplifierTag_4 = ()
 type T_NICSimplifierTag_4 = NICSimplifierStage
 pattern C_caseOfCaseT_6 = CaseOfCase
-pattern C_unknown_8 = Unknown
 check_caseOfCaseT_6 :: T_NICSimplifierTag_4
 check_caseOfCaseT_6 = CaseOfCase
-check_unknown_8 :: T_NICSimplifierTag_4
-check_unknown_8 = Unknown
 cover_NICSimplifierTag_4 :: NICSimplifierStage -> ()
 cover_NICSimplifierTag_4 x
   = case x of
       CaseOfCase -> ()
-      Unknown -> ()
 -- VerifiedCompilation.Trace.ICSimplifierTag
-d_ICSimplifierTag_10 = ()
-type T_ICSimplifierTag_10 = ICSimplifierStage
-pattern C_floatDelayT_12 = FloatDelay
-pattern C_forceDelayT_14 = ForceDelay
-pattern C_forceCaseDelayT_16 = ForceCaseDelay
-pattern C_caseReduceT_18 = CaseReduce
-pattern C_inlineT_20 = Inline
-pattern C_cseT_22 = CSE
-pattern C_applyToCaseT_24 = ApplyToCase
-check_floatDelayT_12 :: T_ICSimplifierTag_10
-check_floatDelayT_12 = FloatDelay
-check_forceDelayT_14 :: T_ICSimplifierTag_10
-check_forceDelayT_14 = ForceDelay
-check_forceCaseDelayT_16 :: T_ICSimplifierTag_10
-check_forceCaseDelayT_16 = ForceCaseDelay
-check_caseReduceT_18 :: T_ICSimplifierTag_10
-check_caseReduceT_18 = CaseReduce
-check_inlineT_20 :: T_ICSimplifierTag_10
-check_inlineT_20 = Inline
-check_cseT_22 :: T_ICSimplifierTag_10
-check_cseT_22 = CSE
-check_applyToCaseT_24 :: T_ICSimplifierTag_10
-check_applyToCaseT_24 = ApplyToCase
-cover_ICSimplifierTag_10 :: ICSimplifierStage -> ()
-cover_ICSimplifierTag_10 x
+d_ICSimplifierTag_8 = ()
+type T_ICSimplifierTag_8 = ICSimplifierStage
+pattern C_floatDelayT_10 = FloatDelay
+pattern C_forceDelayT_12 = ForceDelay
+pattern C_forceCaseDelayT_14 = ForceCaseDelay
+pattern C_caseReduceT_16 = CaseReduce
+pattern C_inlineT_18 = Inline
+pattern C_cseT_20 = CSE
+pattern C_applyToCaseT_22 = ApplyToCase
+check_floatDelayT_10 :: T_ICSimplifierTag_8
+check_floatDelayT_10 = FloatDelay
+check_forceDelayT_12 :: T_ICSimplifierTag_8
+check_forceDelayT_12 = ForceDelay
+check_forceCaseDelayT_14 :: T_ICSimplifierTag_8
+check_forceCaseDelayT_14 = ForceCaseDelay
+check_caseReduceT_16 :: T_ICSimplifierTag_8
+check_caseReduceT_16 = CaseReduce
+check_inlineT_18 :: T_ICSimplifierTag_8
+check_inlineT_18 = Inline
+check_cseT_20 :: T_ICSimplifierTag_8
+check_cseT_20 = CSE
+check_applyToCaseT_22 :: T_ICSimplifierTag_8
+check_applyToCaseT_22 = ApplyToCase
+cover_ICSimplifierTag_8 :: ICSimplifierStage -> ()
+cover_ICSimplifierTag_8 x
   = case x of
       FloatDelay -> ()
       ForceDelay -> ()
@@ -76,111 +72,105 @@ cover_ICSimplifierTag_10 x
       CSE -> ()
       ApplyToCase -> ()
 -- VerifiedCompilation.Trace.SimplifierTag
-d_SimplifierTag_26 :: ()
-d_SimplifierTag_26 = erased
+d_SimplifierTag_24 :: ()
+d_SimplifierTag_24 = erased
 -- VerifiedCompilation.Trace.floatDelayTag
-d_floatDelayTag_28 ::
+d_floatDelayTag_26 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_NICSimplifierTag_4 T_ICSimplifierTag_10
-d_floatDelayTag_28
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_floatDelayT_12)
+    T_NICSimplifierTag_4 T_ICSimplifierTag_8
+d_floatDelayTag_26
+  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_floatDelayT_10)
 -- VerifiedCompilation.Trace.forceDelayTag
-d_forceDelayTag_30 ::
+d_forceDelayTag_28 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_NICSimplifierTag_4 T_ICSimplifierTag_10
-d_forceDelayTag_30
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_forceDelayT_14)
+    T_NICSimplifierTag_4 T_ICSimplifierTag_8
+d_forceDelayTag_28
+  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_forceDelayT_12)
 -- VerifiedCompilation.Trace.forceCaseDelayTag
-d_forceCaseDelayTag_32 ::
+d_forceCaseDelayTag_30 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_NICSimplifierTag_4 T_ICSimplifierTag_10
-d_forceCaseDelayTag_32
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_forceCaseDelayT_16)
+    T_NICSimplifierTag_4 T_ICSimplifierTag_8
+d_forceCaseDelayTag_30
+  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_forceCaseDelayT_14)
 -- VerifiedCompilation.Trace.caseReduceTag
-d_caseReduceTag_34 ::
+d_caseReduceTag_32 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_NICSimplifierTag_4 T_ICSimplifierTag_10
-d_caseReduceTag_34
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_caseReduceT_18)
+    T_NICSimplifierTag_4 T_ICSimplifierTag_8
+d_caseReduceTag_32
+  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_caseReduceT_16)
 -- VerifiedCompilation.Trace.inlineTag
-d_inlineTag_36 ::
+d_inlineTag_34 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_NICSimplifierTag_4 T_ICSimplifierTag_10
-d_inlineTag_36
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_inlineT_20)
+    T_NICSimplifierTag_4 T_ICSimplifierTag_8
+d_inlineTag_34
+  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_inlineT_18)
 -- VerifiedCompilation.Trace.cseTag
-d_cseTag_38 ::
+d_cseTag_36 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_NICSimplifierTag_4 T_ICSimplifierTag_10
-d_cseTag_38 = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_cseT_22)
+    T_NICSimplifierTag_4 T_ICSimplifierTag_8
+d_cseTag_36 = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_cseT_20)
 -- VerifiedCompilation.Trace.applyToCaseTag
-d_applyToCaseTag_40 ::
+d_applyToCaseTag_38 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_NICSimplifierTag_4 T_ICSimplifierTag_10
-d_applyToCaseTag_40
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_applyToCaseT_24)
+    T_NICSimplifierTag_4 T_ICSimplifierTag_8
+d_applyToCaseTag_38
+  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_applyToCaseT_22)
 -- VerifiedCompilation.Trace.caseOfCaseTag
-d_caseOfCaseTag_42 ::
+d_caseOfCaseTag_40 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_NICSimplifierTag_4 T_ICSimplifierTag_10
-d_caseOfCaseTag_42
+    T_NICSimplifierTag_4 T_ICSimplifierTag_8
+d_caseOfCaseTag_40
   = coe MAlonzo.Code.Utils.C_inj'8321'_12 (coe C_caseOfCaseT_6)
--- VerifiedCompilation.Trace.unknownTag
-d_unknownTag_44 ::
-  MAlonzo.Code.Utils.T_Either_6
-    T_NICSimplifierTag_4 T_ICSimplifierTag_10
-d_unknownTag_44
-  = coe MAlonzo.Code.Utils.C_inj'8321'_12 (coe C_unknown_8)
 -- VerifiedCompilation.Trace.InlineHints
-d_InlineHints_46 = ()
-type T_InlineHints_46 = Hints.Inline
-pattern C_var_48 = Hints.InlVar
-pattern C_expand_50 a0 = Hints.InlExpand a0
-pattern C_ƛ_52 a0 = Hints.InlLam a0
-pattern C_ƛ'8595'_54 a0 = Hints.InlLamDrop a0
-pattern C__'183'__56 a0 a1 = Hints.InlApply a0 a1
-pattern C__'183''8595'_58 a0 = Hints.InlDrop a0
-pattern C_force_60 a0 = Hints.InlForce a0
-pattern C_delay_62 a0 = Hints.InlDelay a0
-pattern C_con_64 = Hints.InlCon
-pattern C_builtin_66 = Hints.InlBuiltin
-pattern C_error_68 = Hints.InlError
-pattern C_constr_70 a0 = Hints.InlConstr a0
-pattern C_case_72 a0 a1 = Hints.InlCase a0 a1
-check_var_48 :: T_InlineHints_46
-check_var_48 = Hints.InlVar
-check_expand_50 :: T_InlineHints_46 -> T_InlineHints_46
-check_expand_50 = Hints.InlExpand
-check_ƛ_52 :: T_InlineHints_46 -> T_InlineHints_46
-check_ƛ_52 = Hints.InlLam
-check_ƛ'8595'_54 :: T_InlineHints_46 -> T_InlineHints_46
-check_ƛ'8595'_54 = Hints.InlLamDrop
-check__'183'__56 ::
-  T_InlineHints_46 -> T_InlineHints_46 -> T_InlineHints_46
-check__'183'__56 = Hints.InlApply
-check__'183''8595'_58 :: T_InlineHints_46 -> T_InlineHints_46
-check__'183''8595'_58 = Hints.InlDrop
-check_force_60 :: T_InlineHints_46 -> T_InlineHints_46
-check_force_60 = Hints.InlForce
-check_delay_62 :: T_InlineHints_46 -> T_InlineHints_46
-check_delay_62 = Hints.InlDelay
-check_con_64 :: T_InlineHints_46
-check_con_64 = Hints.InlCon
-check_builtin_66 :: T_InlineHints_46
-check_builtin_66 = Hints.InlBuiltin
-check_error_68 :: T_InlineHints_46
-check_error_68 = Hints.InlError
-check_constr_70 ::
-  MAlonzo.Code.Agda.Builtin.List.T_List_10 () T_InlineHints_46 ->
-  T_InlineHints_46
-check_constr_70 = Hints.InlConstr
-check_case_72 ::
-  T_InlineHints_46 ->
-  MAlonzo.Code.Agda.Builtin.List.T_List_10 () T_InlineHints_46 ->
-  T_InlineHints_46
-check_case_72 = Hints.InlCase
-cover_InlineHints_46 :: Hints.Inline -> ()
-cover_InlineHints_46 x
+d_InlineHints_42 = ()
+type T_InlineHints_42 = Hints.Inline
+pattern C_var_44 = Hints.InlVar
+pattern C_expand_46 a0 = Hints.InlExpand a0
+pattern C_ƛ_48 a0 = Hints.InlLam a0
+pattern C_ƛ'8595'_50 a0 = Hints.InlLamDrop a0
+pattern C__'183'__52 a0 a1 = Hints.InlApply a0 a1
+pattern C__'183''8595'_54 a0 = Hints.InlDrop a0
+pattern C_force_56 a0 = Hints.InlForce a0
+pattern C_delay_58 a0 = Hints.InlDelay a0
+pattern C_con_60 = Hints.InlCon
+pattern C_builtin_62 = Hints.InlBuiltin
+pattern C_error_64 = Hints.InlError
+pattern C_constr_66 a0 = Hints.InlConstr a0
+pattern C_case_68 a0 a1 = Hints.InlCase a0 a1
+check_var_44 :: T_InlineHints_42
+check_var_44 = Hints.InlVar
+check_expand_46 :: T_InlineHints_42 -> T_InlineHints_42
+check_expand_46 = Hints.InlExpand
+check_ƛ_48 :: T_InlineHints_42 -> T_InlineHints_42
+check_ƛ_48 = Hints.InlLam
+check_ƛ'8595'_50 :: T_InlineHints_42 -> T_InlineHints_42
+check_ƛ'8595'_50 = Hints.InlLamDrop
+check__'183'__52 ::
+  T_InlineHints_42 -> T_InlineHints_42 -> T_InlineHints_42
+check__'183'__52 = Hints.InlApply
+check__'183''8595'_54 :: T_InlineHints_42 -> T_InlineHints_42
+check__'183''8595'_54 = Hints.InlDrop
+check_force_56 :: T_InlineHints_42 -> T_InlineHints_42
+check_force_56 = Hints.InlForce
+check_delay_58 :: T_InlineHints_42 -> T_InlineHints_42
+check_delay_58 = Hints.InlDelay
+check_con_60 :: T_InlineHints_42
+check_con_60 = Hints.InlCon
+check_builtin_62 :: T_InlineHints_42
+check_builtin_62 = Hints.InlBuiltin
+check_error_64 :: T_InlineHints_42
+check_error_64 = Hints.InlError
+check_constr_66 ::
+  MAlonzo.Code.Agda.Builtin.List.T_List_10 () T_InlineHints_42 ->
+  T_InlineHints_42
+check_constr_66 = Hints.InlConstr
+check_case_68 ::
+  T_InlineHints_42 ->
+  MAlonzo.Code.Agda.Builtin.List.T_List_10 () T_InlineHints_42 ->
+  T_InlineHints_42
+check_case_68 = Hints.InlCase
+cover_InlineHints_42 :: Hints.Inline -> ()
+cover_InlineHints_42 x
   = case x of
       Hints.InlVar -> ()
       Hints.InlExpand _ -> ()
@@ -196,110 +186,110 @@ cover_InlineHints_46 x
       Hints.InlConstr _ -> ()
       Hints.InlCase _ _ -> ()
 -- VerifiedCompilation.Trace.Hints
-d_Hints_74 = ()
-type T_Hints_74 = Hints.Hints
-pattern C_inline_76 a0 = Hints.Inline a0
-pattern C_none_78 = Hints.NoHints
-check_inline_76 :: T_InlineHints_46 -> T_Hints_74
-check_inline_76 = Hints.Inline
-check_none_78 :: T_Hints_74
-check_none_78 = Hints.NoHints
-cover_Hints_74 :: Hints.Hints -> ()
-cover_Hints_74 x
+d_Hints_70 = ()
+type T_Hints_70 = Hints.Hints
+pattern C_inline_72 a0 = Hints.Inline a0
+pattern C_none_74 = Hints.NoHints
+check_inline_72 :: T_InlineHints_42 -> T_Hints_70
+check_inline_72 = Hints.Inline
+check_none_74 :: T_Hints_70
+check_none_74 = Hints.NoHints
+cover_Hints_70 :: Hints.Hints -> ()
+cover_Hints_70 x
   = case x of
       Hints.Inline _ -> ()
       Hints.NoHints -> ()
 -- VerifiedCompilation.Trace.Trace
-d_Trace_82 a0 = ()
-data T_Trace_82
-  = C_step_86 (MAlonzo.Code.Utils.T_Either_6
-                 T_NICSimplifierTag_4 T_ICSimplifierTag_10)
-              T_Hints_74 AgdaAny T_Trace_82 |
-    C_done_88 AgdaAny
+d_Trace_78 a0 = ()
+data T_Trace_78
+  = C_step_82 (MAlonzo.Code.Utils.T_Either_6
+                 T_NICSimplifierTag_4 T_ICSimplifierTag_8)
+              T_Hints_70 AgdaAny T_Trace_78 |
+    C_done_84 AgdaAny
 -- VerifiedCompilation.Trace.head
-d_head_92 :: T_Trace_82 -> AgdaAny
-d_head_92 v0
+d_head_88 :: T_Trace_78 -> AgdaAny
+d_head_88 v0
   = case coe v0 of
-      C_step_86 v1 v2 v3 v4 -> coe v3
-      C_done_88 v1 -> coe v1
+      C_step_82 v1 v2 v3 v4 -> coe v3
+      C_done_84 v1 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Trace.Dump
-d_Dump_98 :: ()
-d_Dump_98 = erased
+d_Dump_94 :: ()
+d_Dump_94 = erased
 -- VerifiedCompilation.Trace.toTrace
-d_toTrace_100 ::
+d_toTrace_96 ::
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        T_NICSimplifierTag_4 T_ICSimplifierTag_10)
+        T_NICSimplifierTag_4 T_ICSimplifierTag_8)
      (MAlonzo.Code.Utils.T__'215'__428
-        T_Hints_74
+        T_Hints_70
         (MAlonzo.Code.Utils.T__'215'__428
            MAlonzo.Code.RawU.T_Untyped_208
            MAlonzo.Code.RawU.T_Untyped_208))] ->
-  Maybe T_Trace_82
-d_toTrace_100 v0
+  Maybe T_Trace_78
+d_toTrace_96 v0
   = case coe v0 of
       [] -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
       (:) v1 v2
         -> coe
              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-             (coe du_go_110 (coe v1) (coe v2))
+             (coe du_go_106 (coe v1) (coe v2))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Trace._.go
-d_go_110 ::
+d_go_106 ::
   MAlonzo.Code.Utils.T__'215'__428
     (MAlonzo.Code.Utils.T_Either_6
-       T_NICSimplifierTag_4 T_ICSimplifierTag_10)
+       T_NICSimplifierTag_4 T_ICSimplifierTag_8)
     (MAlonzo.Code.Utils.T__'215'__428
-       T_Hints_74
+       T_Hints_70
        (MAlonzo.Code.Utils.T__'215'__428
           MAlonzo.Code.RawU.T_Untyped_208
           MAlonzo.Code.RawU.T_Untyped_208)) ->
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        T_NICSimplifierTag_4 T_ICSimplifierTag_10)
+        T_NICSimplifierTag_4 T_ICSimplifierTag_8)
      (MAlonzo.Code.Utils.T__'215'__428
-        T_Hints_74
+        T_Hints_70
         (MAlonzo.Code.Utils.T__'215'__428
            MAlonzo.Code.RawU.T_Untyped_208
            MAlonzo.Code.RawU.T_Untyped_208))] ->
   MAlonzo.Code.Utils.T__'215'__428
     (MAlonzo.Code.Utils.T_Either_6
-       T_NICSimplifierTag_4 T_ICSimplifierTag_10)
+       T_NICSimplifierTag_4 T_ICSimplifierTag_8)
     (MAlonzo.Code.Utils.T__'215'__428
-       T_Hints_74
+       T_Hints_70
        (MAlonzo.Code.Utils.T__'215'__428
           MAlonzo.Code.RawU.T_Untyped_208
           MAlonzo.Code.RawU.T_Untyped_208)) ->
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        T_NICSimplifierTag_4 T_ICSimplifierTag_10)
+        T_NICSimplifierTag_4 T_ICSimplifierTag_8)
      (MAlonzo.Code.Utils.T__'215'__428
-        T_Hints_74
+        T_Hints_70
         (MAlonzo.Code.Utils.T__'215'__428
            MAlonzo.Code.RawU.T_Untyped_208
            MAlonzo.Code.RawU.T_Untyped_208))] ->
-  T_Trace_82
-d_go_110 ~v0 ~v1 v2 v3 = du_go_110 v2 v3
-du_go_110 ::
+  T_Trace_78
+d_go_106 ~v0 ~v1 v2 v3 = du_go_106 v2 v3
+du_go_106 ::
   MAlonzo.Code.Utils.T__'215'__428
     (MAlonzo.Code.Utils.T_Either_6
-       T_NICSimplifierTag_4 T_ICSimplifierTag_10)
+       T_NICSimplifierTag_4 T_ICSimplifierTag_8)
     (MAlonzo.Code.Utils.T__'215'__428
-       T_Hints_74
+       T_Hints_70
        (MAlonzo.Code.Utils.T__'215'__428
           MAlonzo.Code.RawU.T_Untyped_208
           MAlonzo.Code.RawU.T_Untyped_208)) ->
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        T_NICSimplifierTag_4 T_ICSimplifierTag_10)
+        T_NICSimplifierTag_4 T_ICSimplifierTag_8)
      (MAlonzo.Code.Utils.T__'215'__428
-        T_Hints_74
+        T_Hints_70
         (MAlonzo.Code.Utils.T__'215'__428
            MAlonzo.Code.RawU.T_Untyped_208
            MAlonzo.Code.RawU.T_Untyped_208))] ->
-  T_Trace_82
-du_go_110 v0 v1
+  T_Trace_78
+du_go_106 v0 v1
   = case coe v0 of
       MAlonzo.Code.Utils.C__'44'__442 v2 v3
         -> case coe v3 of
@@ -309,7 +299,7 @@ du_go_110 v0 v1
                       -> case coe v1 of
                            []
                              -> coe
-                                  C_step_86 (coe v2) (coe v4) (coe v6) (coe C_done_88 (coe v7))
+                                  C_step_82 (coe v2) (coe v4) (coe v6) (coe C_done_84 (coe v7))
                            (:) v8 v9
                              -> case coe v8 of
                                   MAlonzo.Code.Utils.C__'44'__442 v10 v11
@@ -318,9 +308,9 @@ du_go_110 v0 v1
                                            -> case coe v13 of
                                                 MAlonzo.Code.Utils.C__'44'__442 v14 v15
                                                   -> coe
-                                                       C_step_86 (coe v2) (coe v4) (coe v6)
+                                                       C_step_82 (coe v2) (coe v4) (coe v6)
                                                        (coe
-                                                          du_go_110
+                                                          du_go_106
                                                           (coe
                                                              MAlonzo.Code.Utils.C__'44'__442
                                                              (coe v10)
@@ -339,18 +329,18 @@ du_go_110 v0 v1
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Trace.EvalResult
-d_EvalResult_136 = ()
-type T_EvalResult_136 = EvalResult
-pattern C_success_138 a0 a1 = EvalSuccess a0 a1
-pattern C_failure_140 a0 a1 a2 = EvalFailure a0 a1 a2
-check_success_138 :: Integer -> Integer -> T_EvalResult_136
-check_success_138 = EvalSuccess
-check_failure_140 ::
+d_EvalResult_132 = ()
+type T_EvalResult_132 = EvalResult
+pattern C_success_134 a0 a1 = EvalSuccess a0 a1
+pattern C_failure_136 a0 a1 a2 = EvalFailure a0 a1 a2
+check_success_134 :: Integer -> Integer -> T_EvalResult_132
+check_success_134 = EvalSuccess
+check_failure_136 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
-  Integer -> Integer -> T_EvalResult_136
-check_failure_140 = EvalFailure
-cover_EvalResult_136 :: EvalResult -> ()
-cover_EvalResult_136 x
+  Integer -> Integer -> T_EvalResult_132
+check_failure_136 = EvalFailure
+cover_EvalResult_132 :: EvalResult -> ()
+cover_EvalResult_132 x
   = case x of
       EvalSuccess _ _ -> ()
       EvalFailure _ _ _ -> ()

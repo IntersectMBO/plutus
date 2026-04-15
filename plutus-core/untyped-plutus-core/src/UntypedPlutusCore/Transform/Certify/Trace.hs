@@ -22,7 +22,6 @@ data ICSimplifierStage
 
 data NICSimplifierStage
   = CaseOfCase
-  | Unknown
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -36,7 +35,6 @@ floatDelayStage
   , cseStage
   , applyToCaseStage
   , caseOfCaseStage
-  , unknownStage
     :: SimplifierStage
 floatDelayStage = Right FloatDelay
 forceDelayStage = Right ForceDelay
@@ -46,7 +44,6 @@ inlineStage = Right Inline
 cseStage = Right CSE
 applyToCaseStage = Right ApplyToCase
 caseOfCaseStage = Left CaseOfCase
-unknownStage = Left Unknown
 
 data Simplification name uni fun a
   = Simplification

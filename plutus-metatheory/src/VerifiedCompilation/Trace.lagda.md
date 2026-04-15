@@ -25,7 +25,6 @@ We enumerate the known passes:
 
 data NICSimplifierTag : Set where
   caseOfCaseT : NICSimplifierTag
-  unknown : NICSimplifierTag -- a placeholder for passes that we don't yet know of, so the certifier doesn't break if a pass was added
 
 data ICSimplifierTag : Set where
   floatDelayT : ICSimplifierTag
@@ -55,12 +54,10 @@ applyToCaseTag = Utils.inj₂ applyToCaseT
 
 caseOfCaseTag : SimplifierTag
 caseOfCaseTag = Utils.inj₁ caseOfCaseT
-unknownTag : SimplifierTag
-unknownTag = Utils.inj₁ unknown
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
 {-# COMPILE GHC ICSimplifierTag = data ICSimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase) #-}
-{-# COMPILE GHC NICSimplifierTag = data NICSimplifierStage (CaseOfCase | Unknown) #-}
+{-# COMPILE GHC NICSimplifierTag = data NICSimplifierStage (CaseOfCase) #-}
 ```
 
 ## Hints

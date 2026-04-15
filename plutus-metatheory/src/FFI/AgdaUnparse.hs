@@ -61,7 +61,6 @@ instance AgdaUnparse ICSimplifierStage where
 
 instance AgdaUnparse NICSimplifierStage where
   agdaUnparse CaseOfCase = "(inj₁ caseOfCaseT)"
-  agdaUnparse Unknown = "(inj₁ unknown)"
 
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case

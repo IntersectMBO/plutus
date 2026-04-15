@@ -9,7 +9,6 @@ module UntypedPlutusCore.Transform.Simplifier
   , Trace.cseStage
   , Trace.applyToCaseStage
   , Trace.caseOfCaseStage
-  , Trace.unknownStage
   , Trace.SimplifierTrace (..)
   , Trace.Simplification (..)
   , runSimplifierT
