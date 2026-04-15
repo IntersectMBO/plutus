@@ -22,19 +22,45 @@ open Maybe
 We enumerate the known passes:
 
 ```
-data SimplifierTag : Set where
-  floatDelayT : SimplifierTag
-  forceDelayT : SimplifierTag
-  forceCaseDelayT : SimplifierTag
-  caseOfCaseT : SimplifierTag
-  caseReduceT : SimplifierTag
-  inlineT : SimplifierTag
-  cseT : SimplifierTag
-  applyToCaseT : SimplifierTag
-  unknown : SimplifierTag -- a placeholder for passes that we don't yet know of, so the certifier doesn't break if a pass was added
+
+data NICSimplifierTag : Set where
+  caseOfCaseT : NICSimplifierTag
+  unknown : NICSimplifierTag -- a placeholder for passes that we don't yet know of, so the certifier doesn't break if a pass was added
+
+data ICSimplifierTag : Set where
+  floatDelayT : ICSimplifierTag
+  forceDelayT : ICSimplifierTag
+  forceCaseDelayT : ICSimplifierTag
+  caseReduceT : ICSimplifierTag
+  inlineT : ICSimplifierTag
+  cseT : ICSimplifierTag
+  applyToCaseT : ICSimplifierTag
+
+SimplifierTag = Utils.Either NICSimplifierTag ICSimplifierTag
+
+floatDelayTag : SimplifierTag
+floatDelayTag = Utils.inj₂ floatDelayT
+forceDelayTag : SimplifierTag
+forceDelayTag = Utils.inj₂ forceDelayT
+forceCaseDelayTag : SimplifierTag
+forceCaseDelayTag = Utils.inj₂ forceCaseDelayT
+caseReduceTag : SimplifierTag
+caseReduceTag = Utils.inj₂ caseReduceT
+inlineTag : SimplifierTag
+inlineTag = Utils.inj₂ inlineT
+cseTag : SimplifierTag
+cseTag = Utils.inj₂ cseT
+applyToCaseTag : SimplifierTag
+applyToCaseTag = Utils.inj₂ applyToCaseT
+
+caseOfCaseTag : SimplifierTag
+caseOfCaseTag = Utils.inj₁ caseOfCaseT
+unknownTag : SimplifierTag
+unknownTag = Utils.inj₁ unknown
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
-{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE | ApplyToCase | Unknown) #-}
+{-# COMPILE GHC ICSimplifierTag = data ICSimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase) #-}
+{-# COMPILE GHC NICSimplifierTag = data NICSimplifierStage (CaseOfCase | Unknown) #-}
 ```
 
 ## Hints

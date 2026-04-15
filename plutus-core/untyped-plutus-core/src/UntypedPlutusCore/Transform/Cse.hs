@@ -14,8 +14,8 @@ import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
 import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (CSE)
-  , SimplifierT
+  ( SimplifierT
+  , cseStage
   , recordSimplification
   )
 
@@ -244,7 +244,7 @@ cse whichSubterms builtinSemanticsVariant t0 = do
           . Map.elems
           $ countOccs whichSubterms builtinSemanticsVariant annotated
   result <- mkCseTerm commonSubexprs annotated
-  recordSimplification t0 CSE result
+  recordSimplification t0 cseStage result
   return result
 
 -- | The second pass. See Note [CSE].

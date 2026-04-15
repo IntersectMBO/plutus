@@ -17,8 +17,8 @@ import Control.Lens (over)
 import Data.Vector qualified as V
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (ApplyToCase)
-  , SimplifierT
+  ( SimplifierT
+  , applyToCaseStage
   , recordSimplification
   )
 
@@ -32,7 +32,7 @@ applyToCase
   -> SimplifierT name uni fun a m (Term name uni fun a)
 applyToCase term = do
   let result = processTerm term
-  recordSimplification term ApplyToCase result
+  recordSimplification term applyToCaseStage result
   pure result
 
 processTerm :: Term name uni fun a -> Term name uni fun a

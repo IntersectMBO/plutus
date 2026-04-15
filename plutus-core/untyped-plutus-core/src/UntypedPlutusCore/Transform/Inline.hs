@@ -70,8 +70,8 @@ import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Subst (termSubstNamesM)
 import UntypedPlutusCore.Transform.Certify.Hints qualified as CertifierHints
 import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (Inline)
-  , SimplifierT
+  ( SimplifierT
+  , inlineStage
   , recordSimplificationWithHints
   )
 
@@ -236,7 +236,11 @@ inline
               , _iiPreserveLogging = preserveLogging
               }
     let result = snd <$> decoratedResult
-    recordSimplificationWithHints (CertifierHints.Inline (mkHints decoratedResult)) t Inline result
+    recordSimplificationWithHints
+      (CertifierHints.Inline (mkHints decoratedResult))
+      t
+      inlineStage
+      result
     return result
 
 -- See Note [Differences from PIR inliner] 3

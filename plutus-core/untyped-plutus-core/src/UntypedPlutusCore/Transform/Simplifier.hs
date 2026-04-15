@@ -1,7 +1,16 @@
 module UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT (..)
+  , Trace.SimplifierStage
+  , Trace.floatDelayStage
+  , Trace.forceDelayStage
+  , Trace.forceCaseDelayStage
+  , Trace.caseReduceStage
+  , Trace.inlineStage
+  , Trace.cseStage
+  , Trace.applyToCaseStage
+  , Trace.caseOfCaseStage
+  , Trace.unknownStage
   , Trace.SimplifierTrace (..)
-  , Trace.SimplifierStage (..)
   , Trace.Simplification (..)
   , runSimplifierT
   , evalSimplifierT

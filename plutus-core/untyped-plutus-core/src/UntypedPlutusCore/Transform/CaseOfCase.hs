@@ -43,8 +43,8 @@ import PlutusCore.MkPlc (mkIterApp)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.CaseReduce qualified as CaseReduce
 import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (CaseOfCase)
-  , SimplifierT
+  ( SimplifierT
+  , caseOfCaseStage
   , recordSimplification
   )
 
@@ -63,7 +63,7 @@ caseOfCase
   -> SimplifierT name uni fun a m (Term name uni fun a)
 caseOfCase term = do
   let result = transformOf termSubterms processTerm term
-  recordSimplification term CaseOfCase result
+  recordSimplification term caseOfCaseStage result
   return result
 
 processTerm

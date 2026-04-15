@@ -270,6 +270,14 @@ simplifyOpts = do
       ( long "opt-no-apply-to-case"
           <> help "Disable apply-to-case optimization"
       )
+  _soSafeOpts <-
+    flag
+      False
+      True
+      ( long "safe-optimisation"
+          <> help
+            "Run only those optimisation passes which are certified to preserve the functional behavior of the original program."
+      )
   pure UPLC.SimplifyOpts {..}
 
 optimiseEvalOpts :: Parser OptimiseEvalOpts

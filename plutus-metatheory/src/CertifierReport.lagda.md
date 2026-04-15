@@ -13,7 +13,7 @@ open import VerifiedCompilation.UntypedTranslation
 open import VerifiedCompilation.UInline
 open import Untyped
 open import Untyped.RenamingSubstitution using (Sub)
-open import Utils as U using (_×_; _,_; Either; either)
+open import Utils as U using (_×_; _,_; Either; either; inj₁; inj₂)
 
 open import Agda.Builtin.Sigma using (Σ; _,_; snd)
 open import Data.Bool using (if_then_else_)
@@ -35,16 +35,22 @@ nl = "\n"
 hl : String
 hl = "\n──────────────────────────────────────────────────────\n"
 
+showICTag : ICSimplifierTag → String
+showICTag floatDelayT = "Float Delay"
+showICTag forceDelayT = "Force-Delay Cancellation"
+showICTag forceCaseDelayT = "Float Force into Case Branches"
+showICTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
+showICTag inlineT = "Inlining"
+showICTag cseT = "Common Subexpression Elimination"
+showICTag applyToCaseT = "Transform multi-argument applications into case-constr form"
+
+showNICTag : NICSimplifierTag → String
+showNICTag caseOfCaseT = "Case-of-Case"
+showNICTag unknown = "Unknown Pass"
+
 showTag : SimplifierTag → String
-showTag floatDelayT = "Float Delay"
-showTag forceDelayT = "Force-Delay Cancellation"
-showTag forceCaseDelayT = "Float Force into Case Branches"
-showTag caseOfCaseT = "Case-of-Case"
-showTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
-showTag inlineT = "Inlining"
-showTag cseT = "Common Subexpression Elimination"
-showTag applyToCaseT = "Transform multi-argument applications into case-constr form"
-showTag unknown = "Unknown Pass"
+showTag (inj₁ tag) = showNICTag tag ++ "  ⚠ (certifier unavailable)"
+showTag (inj₂ tag) = showICTag tag ++ "  ✅"
 ```
 
 Number of times an optimization is applied on the given term in one compiler pass:
@@ -107,21 +113,18 @@ numSitesInline (case r rs) = numSitesInline r + numSitesInlineᵖʷ rs
 numSitesInlineᵖʷ Pointwise.[] = 0
 numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖʷ xs
 
-numSites : {M N : 0 ⊢} (tag : SimplifierTag) → RelationOf tag M N → Maybe ℕ
-numSites forceDelayT p = just (numSites′ p)
-numSites floatDelayT p = just (numSites′ p)
-numSites cseT p = just (numSites′ p)
-numSites caseReduceT p = just (numSites′ p)
-numSites inlineT p = just (numSitesInline p)
-numSites forceCaseDelayT _ = nothing
-numSites caseOfCaseT _ = nothing
-numSites applyToCaseT p = just (numSites′ p)
-numSites unknown _ = nothing
+numSites : {M N : 0 ⊢} (tag : ICSimplifierTag) → RelationOf (inj₂ tag) M N → ℕ
+numSites forceDelayT p = numSites′ p
+numSites floatDelayT p = numSites′ p
+numSites cseT p = numSites′ p
+numSites caseReduceT p = numSites′ p
+numSites inlineT p = numSitesInline p
+numSites forceCaseDelayT p = numSites′ p
+numSites applyToCaseT p = numSites′ p
 
 showSites : {M N : 0 ⊢} → (tag : SimplifierTag) → RelationOf tag M N → String
-showSites t p with numSites t p
-... | just n = ⇉ "Optimization sites: " ++ showℕ n
-... | nothing = ""
+showSites (inj₁ _) _ = ""
+showSites (inj₂ t) p = ⇉ "Optimization sites: " ++ showℕ (numSites t p)
 
 termSize : {X : ℕ} → X ⊢ → ℕ
 termSizeᵖʷ : {X : ℕ} → List (X ⊢) → ℕ
@@ -172,8 +175,7 @@ reportPasses :
 reportPasses _ (done _) _ _ = ""
 reportPasses n (step tag _ x trace) (p , proofs) costs =
   hl ++
-  "Pass " ++ showℕ n ++ ": " ++ showTag tag
-    ++ (if hasRelation tag then "  ✅" else "  ⚠ (certifier unavailable)") ++
+  "Pass " ++ showℕ n ++ ": " ++ showTag tag ++
   hl ++
   (⇉ "Program Size: ") ++ showℕ (termSize x) ++ " (before)" ++
   nl ++

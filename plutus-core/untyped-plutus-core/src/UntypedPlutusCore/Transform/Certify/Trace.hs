@@ -9,18 +9,44 @@ import UntypedPlutusCore.Transform.Certify.Hints qualified as Certify
 import Control.DeepSeq
 import GHC.Generics
 
-data SimplifierStage
+data ICSimplifierStage
   = FloatDelay
   | ForceDelay
   | ForceCaseDelay
-  | CaseOfCase
   | CaseReduce
   | Inline
   | CSE
   | ApplyToCase
+  deriving stock (Show, Generic)
+  deriving anyclass (NFData)
+
+data NICSimplifierStage
+  = CaseOfCase
   | Unknown
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
+
+type SimplifierStage = Either NICSimplifierStage ICSimplifierStage
+
+floatDelayStage
+  , forceDelayStage
+  , forceCaseDelayStage
+  , caseReduceStage
+  , inlineStage
+  , cseStage
+  , applyToCaseStage
+  , caseOfCaseStage
+  , unknownStage
+    :: SimplifierStage
+floatDelayStage = Right FloatDelay
+forceDelayStage = Right ForceDelay
+forceCaseDelayStage = Right ForceCaseDelay
+caseReduceStage = Right CaseReduce
+inlineStage = Right Inline
+cseStage = Right CSE
+applyToCaseStage = Right ApplyToCase
+caseOfCaseStage = Left CaseOfCase
+unknownStage = Left Unknown
 
 data Simplification name uni fun a
   = Simplification

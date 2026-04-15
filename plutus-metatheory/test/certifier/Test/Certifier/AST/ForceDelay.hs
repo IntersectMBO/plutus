@@ -306,19 +306,19 @@ successItems
 successItems =
   [
     ( "Simple one lambda"
-    , ForceDelay
+    , forceDelayStage
     , simpleSuccessBefore
     , simpleSuccessAfter
     )
   ,
     ( "Nested"
-    , ForceDelay
+    , forceDelayStage
     , nestedBefore
     , nestedAfter
     )
   ,
     ( "ifThenElse"
-    , ForceDelay
+    , forceDelayStage
     , ifThenElseSuccessBefore
     , ifThenElseSuccessAfter
     )
@@ -333,43 +333,43 @@ failItems
 failItems =
   [
     ( "Simple extra delay"
-    , ForceDelay
+    , forceDelayStage
     , simpleFailBefore
     , simpleFailAfter
     )
   ,
     ( "Simple force break"
-    , ForceDelay
+    , forceDelayStage
     , simpleForceBreakBefore
     , simpleForceBreakAfter
     )
   ,
     ( "Simple app break"
-    , ForceDelay
+    , forceDelayStage
     , simpleAppBreakBefore
     , simpleAppBreakAfter
     )
   ,
     ( "App term break"
-    , ForceDelay
+    , forceDelayStage
     , appTermBreakBefore
     , appTermBreakAfter
     )
   ,
     ( "Lambda break"
-    , ForceDelay
+    , forceDelayStage
     , lambdaBreakBefore
     , lambdaBreakAfter
     )
   ,
     ( "Last delay break"
-    , ForceDelay
+    , forceDelayStage
     , lastDelayBreakBefore
     , lastDelayBreakAfter
     )
   ,
     ( "Last abs break"
-    , ForceDelay
+    , forceDelayStage
     , lastAbsBreakBefore
     , lastAbsBreakAfter
     )
