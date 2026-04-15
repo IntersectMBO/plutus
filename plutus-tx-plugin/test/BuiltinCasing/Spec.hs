@@ -43,4 +43,5 @@ tests =
       , goldenUPlcReadable "integerABC" $$(compile [||integerABC||])
       , goldenUPlcReadable "head" $$(compile [||head||])
       , goldenUPlcReadable "caseListTwice" $$(compile [||Lib.caseListTwice||])
+      , goldenUPlcReadable "caseListTwiceByteString" $$(compile [||Lib.caseListTwiceByteString||])
       ]

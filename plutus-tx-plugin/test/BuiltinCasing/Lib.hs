@@ -7,18 +7,25 @@
 
 {-# HLINT ignore #-}
 
-module BuiltinCasing.Lib (caseListTwice) where
+module BuiltinCasing.Lib
+  ( caseListTwice
+  , caseListTwiceByteString
+  ) where
 
 import PlutusTx
-import PlutusTx.Builtins.Internal (unitval)
+import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinUnit, unitval)
 import PlutusTx.Data.List (caseList')
 import PlutusTx.Prelude
 
-{-| Regression test for #7716.  Calling caseList' twice on the same value
+{-| Regression tests for #7716.  Calling caseList' twice on the same value
 makes GHC's simplifier create a join point whose type exposes the raw
-PlutusCore.Data.Data inside BuiltinData.  Without the second constructor
-on BuiltinData (see Note [Opaque builtin types]), the plugin with
-BuiltinCasing would try to compile Data as an ADT and crash on Addr#. -}
+inner type of the opaque builtin wrapper.  Without the second constructor
+(see Note [Opaque builtin types]), the plugin with BuiltinCasing would try
+to compile the inner type as an ADT and crash on Addr#.
+
+Each test below targets a different opaque builtin type:
+  - caseListTwice:           BuiltinData       (wraps PlutusCore.Data.Data)
+  - caseListTwiceByteString: BuiltinByteString  (wraps ByteString -> BS Addr#) -}
 caseListTwice :: BuiltinData -> BuiltinUnit
 caseListTwice bd =
   case toBuiltinData (firstOf items) of
@@ -27,3 +34,12 @@ caseListTwice bd =
   where
     items = unsafeFromBuiltinData bd
     firstOf = caseList' Nothing (\(h :: BuiltinData) _t -> Just h)
+
+caseListTwiceByteString :: BuiltinData -> BuiltinUnit
+caseListTwiceByteString bd =
+  case toBuiltinData (firstOf items) of
+    _ -> case toBuiltinData (firstOf items) of
+      _ -> unitval
+  where
+    items = unsafeFromBuiltinData bd
+    firstOf = caseList' Nothing (\(h :: BuiltinByteString) _t -> Just h)
