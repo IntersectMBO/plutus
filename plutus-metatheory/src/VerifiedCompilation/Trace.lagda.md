@@ -20,8 +20,8 @@ open Maybe
 ```
 ## Pass tags
 We enumerate the known passes and partition them into two categories:
-- *N*ot *I*mplemented in the *C*ertifier
-- *I*mplemented in the *C*ertifier
+- those which are not yet (fully) implemented in the certifier 
+- those which are implemented in the certifier and we know they are correct.
 
 ```
 

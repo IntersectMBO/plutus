@@ -11,7 +11,7 @@ import Control.DeepSeq
 import GHC.Generics
 
 {-| Datatype which represents optimization passes which are also
-certified (__I__mplemented in the __C__ertifier).
+certified.
 
 This means that these passes are formalized as part of the certifier,
 and adding a new pass constructor to this type means that it is expected
@@ -28,7 +28,7 @@ data CertifiedOptStage
   deriving anyclass (NFData)
 
 {-| Datatype which represents optimization passes which are not yet
-certified (__N__ot __I__mplemented in the __C__ertifier).
+certified.
 
 IMPORTANT: if you add a new pass, or modify an existing pass, without
 also modifying the certifier in the same PR, you must add/move its
