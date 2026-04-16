@@ -14,7 +14,7 @@ module BuiltinCasing.Lib
   ) where
 
 import PlutusTx
-import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinString, BuiltinUnit, unitval)
+import PlutusTx.Builtins.Internal (unitval)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Prelude
