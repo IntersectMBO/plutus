@@ -13,19 +13,19 @@ import Data.Vector qualified as V
 import PlutusCore.Builtin (CaseBuiltin (..))
 import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
   , pattern CaseReduceStage
   )
 
 caseReduce
   :: (Monad m, CaseBuiltin uni)
   => Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 caseReduce term = do
   let result = transformOf termSubterms processTerm term
-  recordSimplification term CaseReduceStage result
+  recordOptimization term CaseReduceStage result
   return result
 
 processTerm :: CaseBuiltin uni => Term name uni fun a -> Term name uni fun a

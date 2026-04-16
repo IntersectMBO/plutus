@@ -28,7 +28,7 @@ import MAlonzo.Code.Certifier (runCertifierMain)
 import PlutusLedgerApi.Common
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
-import UntypedPlutusCore.Transform.Simplifier
+import UntypedPlutusCore.Transform.Optimizer
 
 type CertName = String
 type CertDir = FilePath

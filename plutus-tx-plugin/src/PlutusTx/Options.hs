@@ -268,7 +268,7 @@ pluginOptions =
           desc = "Set the max iterations for the PIR simplifier"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsPir desc [])
     , let k = "max-simplifier-iterations-uplc"
-          desc = "Set the max iterations for the UPLC simplifier"
+          desc = "Set the max iterations for the UPLC optimizer"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsUPlc desc [])
     , let k = "max-cse-iterations"
           desc = "Set the max iterations for CSE"
@@ -397,9 +397,9 @@ defaultPluginOptions =
     , _posVerbosity = Quiet
     , _posDatatypes = PIR.defaultDatatypeCompilationOpts
     , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
-    , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
-    , _posMaxCseIterations = view UPLC.soMaxCseIterations UPLC.defaultSimplifyOpts
-    , _posCseWhichSubterms = view UPLC.soCseWhichSubterms UPLC.defaultSimplifyOpts
+    , _posMaxSimplifierIterationsUPlc = view UPLC.ooMaxSimplifierIterations UPLC.defaultOptimizeOpts
+    , _posMaxCseIterations = view UPLC.ooMaxCseIterations UPLC.defaultOptimizeOpts
+    , _posCseWhichSubterms = view UPLC.ooCseWhichSubterms UPLC.defaultOptimizeOpts
     , _posDoSimplifierUnwrapCancel = True
     , _posDoSimplifierBeta = True
     , _posDoSimplifierInline = True

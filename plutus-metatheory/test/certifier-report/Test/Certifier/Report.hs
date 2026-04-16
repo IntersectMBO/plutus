@@ -58,10 +58,10 @@ simplify
        , OptimizerTrace Name DefaultUni DefaultFun ()
        )
 simplify =
-  runSimplifierT
-    . termSimplifier
-      ( defaultSimplifyOpts
-          & soPreserveLogging .~ False
+  runOptimizerT
+    . termOptimizer
+      ( defaultOptimizeOpts
+          & ooPreserveLogging .~ False
       )
       def
 

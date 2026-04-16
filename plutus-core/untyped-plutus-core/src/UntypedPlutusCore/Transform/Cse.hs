@@ -11,11 +11,11 @@ import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Core
+import UntypedPlutusCore.Optimize.Opts (CseWhichSubterms (..))
 import UntypedPlutusCore.Purity (isWorkFree)
-import UntypedPlutusCore.Simplify.Opts (CseWhichSubterms (..))
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
   , pattern CseStage
   )
 
@@ -222,7 +222,7 @@ cse
   => CseWhichSubterms
   -> BuiltinSemanticsVariant fun
   -> Term Name uni fun ann
-  -> SimplifierT Name uni fun ann m (Term Name uni fun ann)
+  -> OptimizerT Name uni fun ann m (Term Name uni fun ann)
 cse whichSubterms builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
@@ -237,7 +237,7 @@ cse whichSubterms builtinSemanticsVariant t0 = do
           . Map.elems
           $ countOccs whichSubterms builtinSemanticsVariant annotated
   result <- mkCseTerm commonSubexprs annotated
-  recordSimplification t0 CseStage result
+  recordOptimization t0 CseStage result
   return result
 
 -- | The second pass. See Note [CSE].

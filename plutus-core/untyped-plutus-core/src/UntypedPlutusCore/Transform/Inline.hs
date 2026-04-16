@@ -70,9 +70,9 @@ import UntypedPlutusCore.Purity
 import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Subst (termSubstNamesM)
 import UntypedPlutusCore.Transform.Certify.Hints qualified as CertifierHints
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierT
-  , recordSimplificationWithHints
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimizationWithHints
   , pattern InlineStage
   )
 
@@ -215,7 +215,7 @@ inline
   -> InlineHints name a
   -> PLC.BuiltinSemanticsVariant fun
   -> Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 inline
   callsiteGrowth
   inlineConstants
@@ -237,7 +237,7 @@ inline
               , _iiPreserveLogging = preserveLogging
               }
     let result = snd <$> decoratedResult
-    recordSimplificationWithHints
+    recordOptimizationWithHints
       (CertifierHints.Inline (mkHints decoratedResult))
       t
       InlineStage

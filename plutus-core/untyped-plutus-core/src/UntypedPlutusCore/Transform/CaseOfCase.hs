@@ -43,9 +43,9 @@ import PlutusCore.Builtin (CaseBuiltin (..))
 import PlutusCore.MkPlc (mkIterApp)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.CaseReduce qualified as CaseReduce
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
   , pattern CaseOfCaseStage
   )
 
@@ -61,10 +61,10 @@ caseOfCase
      , uni `PLC.Everywhere` Eq
      )
   => Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 caseOfCase term = do
   let result = transformOf termSubterms processTerm term
-  recordSimplification term CaseOfCaseStage result
+  recordOptimization term CaseOfCaseStage result
   return result
 
 processTerm

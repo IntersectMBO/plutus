@@ -36,9 +36,9 @@ module UntypedPlutusCore.Transform.ForceCaseDelay
 where
 
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
   , pattern ForceCaseDelayStage
   )
 
@@ -47,10 +47,10 @@ import Control.Lens
 forceCaseDelay
   :: Monad m
   => Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 forceCaseDelay term = do
   let result = transformOf termSubterms processTerm term
-  recordSimplification term ForceCaseDelayStage result
+  recordOptimization term ForceCaseDelayStage result
   return result
 
 processTerm :: Term name uni fun a -> Term name uni fun a

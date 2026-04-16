@@ -86,37 +86,37 @@ test_names =
         (genTerm @DefaultFun)
         T.BindingRemovalOk -- COKC removes branches, which may (and likely do) contain bindings.
         T.PrerenameYes
-        (evalSimplifierT . caseReduce)
+        (evalOptimizerT . caseReduce)
     , -- CSE creates entirely new names, which isn't supported by the scoping check machinery.
       T.test_scopingBad
         "cse"
         (genTerm @DefaultFun)
         T.BindingRemovalOk
         T.PrerenameYes
-        (evalSimplifierT . cse ExcludeWorkFree maxBound)
+        (evalOptimizerT . cse ExcludeWorkFree maxBound)
     , T.test_scopingGood
         "float-delay"
         (genTerm @DefaultFun)
         T.BindingRemovalNotOk
         T.PrerenameNo
-        (evalSimplifierT . floatDelay)
+        (evalOptimizerT . floatDelay)
     , T.test_scopingGood
         "force-delay"
         (genTerm @DefaultFun)
         T.BindingRemovalNotOk
         T.PrerenameYes
-        (evalSimplifierT . forceDelay maxBound)
+        (evalOptimizerT . forceDelay maxBound)
     , T.test_scopingGood
         "inline"
         (genTerm @DefaultFun)
         T.BindingRemovalOk
         T.PrerenameYes
-        ( evalSimplifierT
+        ( evalOptimizerT
             . inline
               0
               True
-              (_soPreserveLogging defaultSimplifyOpts)
-              (_soInlineHints defaultSimplifyOpts)
+              (_ooPreserveLogging defaultOptimizeOpts)
+              (_ooInlineHints defaultOptimizeOpts)
               maxBound
         )
     , test_mangle

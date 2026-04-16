@@ -253,14 +253,14 @@ uplcOptimise =
   case _optimiseLvl ?opts of
     NoOptimise -> const pure -- short-circuit to avoid renaming
     safeOrUnsafe ->
-      let sOpts =
-            UPLC.defaultSimplifyOpts
+      let oOpts =
+            UPLC.defaultOptimizeOpts
               & case safeOrUnsafe of
-                SafeOptimise -> set UPLC.soConservativeOpts True
+                SafeOptimise -> set UPLC.ooConservativeOpts True
                 UnsafeOptimise -> id
        in fmap PLC.runQuoteT
             . _Wrapped
-            . uplcViaName (UPLC.simplifyProgram sOpts def)
+            . uplcViaName (UPLC.optimizeProgram oOpts def)
 
 -- | We do not have a typechecker for uplc, but we could pretend that scopecheck is a "typechecker"
 uplcTypecheck

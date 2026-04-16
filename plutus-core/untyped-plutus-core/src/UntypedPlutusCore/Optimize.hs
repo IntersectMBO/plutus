@@ -2,15 +2,15 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
 
-module UntypedPlutusCore.Simplify
+module UntypedPlutusCore.Optimize
   ( module Opts
-  , simplifyTerm
-  , simplifyProgram
-  , simplifyProgramWithTrace
+  , optimizeTerm
+  , optimizeProgram
+  , optimizeProgramWithTrace
   , InlineHints (..)
   , CseWhichSubterms (..)
-  , termSimplifier
-  , module UntypedPlutusCore.Transform.Simplifier
+  , termOptimizer
+  , module UntypedPlutusCore.Transform.Optimizer
   ) where
 
 import PlutusCore.Compiler.Types
@@ -18,7 +18,7 @@ import PlutusCore.Default qualified as PLC
 import PlutusCore.Default.Builtins
 import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core.Type
-import UntypedPlutusCore.Simplify.Opts as Opts
+import UntypedPlutusCore.Optimize.Opts as Opts
 import UntypedPlutusCore.Transform.ApplyToCase (applyToCase)
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
@@ -28,55 +28,55 @@ import UntypedPlutusCore.Transform.ForceCaseDelay (forceCaseDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 import UntypedPlutusCore.Transform.LetFloatOut (letFloatOut)
-import UntypedPlutusCore.Transform.Simplifier
+import UntypedPlutusCore.Transform.Optimizer
 
 import Control.Monad
 import Data.List as List (foldl')
 import Data.Typeable
 import Data.Vector.Orphans ()
 
-simplifyProgram
+optimizeProgram
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => SimplifyOpts name a
+  => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
   -> Program name uni fun a
   -> m (Program name uni fun a)
-simplifyProgram opts builtinSemanticsVariant (Program a v t) =
-  Program a v <$> simplifyTerm opts builtinSemanticsVariant t
+optimizeProgram opts builtinSemanticsVariant (Program a v t) =
+  Program a v <$> optimizeTerm opts builtinSemanticsVariant t
 
-simplifyProgramWithTrace
+optimizeProgramWithTrace
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => SimplifyOpts name a
+  => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
   -> Program name uni fun a
   -> m (Program name uni fun a, OptimizerTrace name uni fun a)
-simplifyProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
+optimizeProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
   (result, trace) <-
-    runSimplifierT $
-      termSimplifier opts builtinSemanticsVariant t
+    runOptimizerT $
+      termOptimizer opts builtinSemanticsVariant t
   pure (Program a v result, trace)
 
-simplifyTerm
+optimizeTerm
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => SimplifyOpts name a
+  => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
   -> Term name uni fun a
   -> m (Term name uni fun a)
-simplifyTerm opts builtinSemanticsVariant term =
-  evalSimplifierT $ termSimplifier opts builtinSemanticsVariant term
+optimizeTerm opts builtinSemanticsVariant term =
+  evalOptimizerT $ termOptimizer opts builtinSemanticsVariant term
 
-termSimplifier
+termOptimizer
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => SimplifyOpts name a
+  => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
   -> Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
-termSimplifier opts builtinSemanticsVariant =
-  simplifyNTimes (_soMaxSimplifierIterations opts)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
+termOptimizer opts builtinSemanticsVariant =
+  simplifyNTimes (_ooMaxSimplifierIterations opts)
     >=> runStage CseStage
     >=> runStage ApplyToCaseStage
   where
@@ -84,7 +84,7 @@ termSimplifier opts builtinSemanticsVariant =
     simplifyNTimes
       :: Int
       -> Term name uni fun a
-      -> SimplifierT name uni fun a m (Term name uni fun a)
+      -> OptimizerT name uni fun a m (Term name uni fun a)
     simplifyNTimes n = List.foldl' (>=>) pure $ map simplifyStep [1 .. n]
 
     -- Run CSE @n@ times, interleaved with the simplifier.
@@ -92,14 +92,14 @@ termSimplifier opts builtinSemanticsVariant =
     cseNTimes
       :: Int
       -> Term name uni fun a
-      -> SimplifierT name uni fun a m (Term name uni fun a)
+      -> OptimizerT name uni fun a m (Term name uni fun a)
     cseNTimes n = foldl' (>=>) pure $ concatMap (\i -> [cseStep i, simplifyStep i]) [1 .. n]
 
     -- generate simplification step
     simplifyStep
       :: Int
       -> Term name uni fun a
-      -> SimplifierT name uni fun a m (Term name uni fun a)
+      -> OptimizerT name uni fun a m (Term name uni fun a)
     simplifyStep _ =
       runStage FloatDelayStage
         >=> runStage ForceCaseDelayStage
@@ -112,10 +112,10 @@ termSimplifier opts builtinSemanticsVariant =
     runStage stage' =
       let isIC = either (const False) (const True) stage'
           withSafeOpts action
-            | _soSafeOpts opts
+            | _ooSafeOpts opts
             , isIC =
                 action
-            | _soSafeOpts opts
+            | _ooSafeOpts opts
             , not isIC =
                 return
             | otherwise = action
@@ -136,22 +136,22 @@ termSimplifier opts builtinSemanticsVariant =
             InlineStage ->
               withSafeOpts $
                 inline
-                  (_soInlineCallsiteGrowth opts)
-                  (_soInlineConstants opts)
-                  (_soPreserveLogging opts)
-                  (_soInlineHints opts)
+                  (_ooInlineCallsiteGrowth opts)
+                  (_ooInlineConstants opts)
+                  (_ooPreserveLogging opts)
+                  (_ooInlineHints opts)
                   builtinSemanticsVariant
             CseStage ->
               withSafeOpts $ cseNTimes cseTimes
             ApplyToCaseStage ->
               withSafeOpts $
-                if _soApplyToCase opts then applyToCase else pure
+                if _ooApplyToCase opts then applyToCase else pure
             LetFloatOutStage ->
               withSafeOpts letFloatOut
 
     caseOfCase'
       :: Term name uni fun a
-      -> SimplifierT name uni fun a m (Term name uni fun a)
+      -> OptimizerT name uni fun a m (Term name uni fun a)
     caseOfCase' = case eqT @fun @DefaultFun of
       Just Refl -> caseOfCase
       Nothing -> pure
@@ -159,10 +159,10 @@ termSimplifier opts builtinSemanticsVariant =
     cseStep
       :: Int
       -> Term name uni fun a
-      -> SimplifierT name uni fun a m (Term name uni fun a)
+      -> OptimizerT name uni fun a m (Term name uni fun a)
     cseStep _ =
       case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
-        (Just Refl, Just Refl) -> cse (_soCseWhichSubterms opts) builtinSemanticsVariant
+        (Just Refl, Just Refl) -> cse (_ooCseWhichSubterms opts) builtinSemanticsVariant
         _ -> pure
 
-    cseTimes = if _soConservativeOpts opts then 0 else _soMaxCseIterations opts
+    cseTimes = if _ooConservativeOpts opts then 0 else _ooMaxCseIterations opts

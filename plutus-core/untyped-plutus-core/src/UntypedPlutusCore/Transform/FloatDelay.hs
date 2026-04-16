@@ -61,9 +61,9 @@ import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Name.UniqueSet qualified as USet
 import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..))
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
   , pattern FloatDelayStage
   )
 
@@ -76,12 +76,12 @@ floatDelay
      , PLC.HasUnique name PLC.TermUnique
      )
   => Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 floatDelay term = do
   result <-
     PLC.rename term >>= \t ->
       pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t
-  recordSimplification term FloatDelayStage result
+  recordOptimization term FloatDelayStage result
   return result
 
 {-| First pass. Returns the names of all variables, at least one occurrence

@@ -24,9 +24,9 @@ module UntypedPlutusCore.Transform.LetFloatOut (letFloatOut) where
 
 import PlutusCore qualified as PLC
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
   , pattern LetFloatOutStage
   )
 
@@ -37,10 +37,10 @@ letFloatOut
      , PLC.Rename (Term name uni fun a)
      )
   => Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 letFloatOut term = do
   result <- PLC.rename term >>= pure . transformOf termSubterms processTerm
-  recordSimplification term LetFloatOutStage result
+  recordOptimization term LetFloatOutStage result
   pure result
 
 processTerm :: Term name uni fun a -> Term name uni fun a

@@ -5,7 +5,7 @@ import MAlonzo.Code.Certifier (runCertifierMain)
 import PlutusCore qualified as PLC
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase)
-import Transform.Simplify.Lib (testCse, testSimplify)
+import Transform.Simplify.Lib (testCse, testOptimize)
 import Transform.Simplify.Spec (testCseInputs, testSimplifyInputs)
 import UntypedPlutusCore
   ( CseWhichSubterms (..)
@@ -43,7 +43,7 @@ mkUPLCSimplifierTest
   :: String
   -> Term Name DefaultUni DefaultFun ()
   -> TestTree
-mkUPLCSimplifierTest = mkUPLCTest testSimplify
+mkUPLCSimplifierTest = mkUPLCTest testOptimize
 
 mkUPLCCseTest
   :: CseWhichSubterms

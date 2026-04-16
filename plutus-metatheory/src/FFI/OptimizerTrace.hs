@@ -14,7 +14,7 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Transform.Certify.Hints qualified as Certify
-import UntypedPlutusCore.Transform.Simplifier
+import UntypedPlutusCore.Transform.Optimizer
 
 import Data.Coerce
 import Data.Functor
