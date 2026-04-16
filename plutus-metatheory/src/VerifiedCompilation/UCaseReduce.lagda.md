@@ -12,10 +12,8 @@ module VerifiedCompilation.UCaseReduce where
 
 ```
 
-open import Function using (case_of_; _$_)
 open import Data.Bool using (true; false; if_then_else_; Bool)
 open import Data.Maybe
-open import Data.Maybe.Properties using (just-injective)
 open import Data.List using (List; _∷_; []; [_])
 open import Data.Product
 open import Data.Unit using (tt)
@@ -23,20 +21,21 @@ open import Data.Nat using (ℕ; zero; suc)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Fin using (Fin)
 open import Data.Integer using (ℤ ; +_; -[1+_])
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; trans; sym; subst)
-open import Relation.Nullary using (Dec; yes; no; ¬_ ; _⊎-dec_)
 
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Nullary using (yes; no; ¬_)
+
+open import Untyped
 open import Builtin.Constant.AtomicType
 open import RawU using (tag2TyTag; tmCon; Tag)
 
-open import Untyped
 open import Untyped.Equality
 open import Untyped.Reduction using (iterApp)
 open import Untyped.Relation
 open import Untyped.Relation.Composable
 open import Untyped.Transform
 open import Untyped.CEK using (lookup?)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; caseReduceT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; caseReduceT; Proof?; abort)
 open import VerifiedCompilation.UntypedViews
 open import Utils using () renaming (_,_ to _,,_; _∷_ to cons; [] to nil)
 
@@ -319,10 +318,10 @@ sound-norm eq =
 The checker normalises the pre-term and uses the soundness proof:
 
 ```
-check :  ∀ {X} (M M' : X ⊢) → Maybe (CaseReduce M M')
+check :  ∀ {X} (M M' : X ⊢) → Proof? (CaseReduce M M')
 check M M' with norm M ≟ M'
-... | yes P = just (sound-norm P)
-... | no ¬P = nothing
+... | yes P = proof (sound-norm P)
+... | no ¬P = abort caseReduceT M M'
 ```
 
 A decision procedure that normalises both pre- and post-term. It is sound and

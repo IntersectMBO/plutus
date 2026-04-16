@@ -2028,7 +2028,7 @@ d_check_502 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  Maybe MAlonzo.Code.Untyped.Relation.T_Mu_36
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_Proof'63'_66
 d_check_502 v0 v1 v2
   = let v3
           = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
@@ -2623,10 +2623,14 @@ d_check_502 v0 v1 v2
                 then coe
                        seq (coe v5)
                        (coe
-                          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_72
                           (coe du_sound'45'norm_492 (coe v0) (coe v1)))
                 else coe
-                       seq (coe v5) (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
+                       seq (coe v5)
+                       (coe
+                          MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
+                          (coe MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_14) v1
+                          v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UCaseReduce.decide
 d_decide_530 ::
