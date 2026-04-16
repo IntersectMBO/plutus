@@ -11,7 +11,7 @@ module UntypedPlutusCore.Optimize.Opts
   , ooInlineConstants
   , ooInlineCallsiteGrowth
   , ooPreserveLogging
-  , ooSafeOpts
+  , ooCertifiedOptsOnly
   , defaultOptimizeOpts
   , CseWhichSubterms (..)
   ) where
@@ -41,7 +41,7 @@ data OptimizeOpts name a = OptimizeOpts
   , _ooInlineCallsiteGrowth :: AstSize
   , _ooPreserveLogging :: Bool
   , _ooApplyToCase :: Bool
-  , _ooSafeOpts :: Bool
+  , _ooCertifiedOptsOnly :: Bool
   }
   deriving stock (Show)
 
@@ -59,5 +59,5 @@ defaultOptimizeOpts =
     , _ooInlineCallsiteGrowth = 5
     , _ooPreserveLogging = True
     , _ooApplyToCase = True
-    , _ooSafeOpts = False
+    , _ooCertifiedOptsOnly = False
     }

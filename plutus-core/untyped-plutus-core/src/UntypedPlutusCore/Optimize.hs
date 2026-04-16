@@ -111,30 +111,30 @@ termOptimizer opts builtinSemanticsVariant =
 
     runStage stage' =
       let isIC = either (const False) (const True) stage'
-          withSafeOpts action
-            | _ooSafeOpts opts
+          withCertifiedOptsOnly action
+            | _ooCertifiedOptsOnly opts
             , isIC =
                 action
-            | _ooSafeOpts opts
+            | _ooCertifiedOptsOnly opts
             , not isIC =
                 return
             | otherwise = action
        in case stage' of
             FloatDelayStage ->
-              withSafeOpts floatDelay
+              withCertifiedOptsOnly floatDelay
             ForceCaseDelayStage ->
-              withSafeOpts forceCaseDelay
+              withCertifiedOptsOnly forceCaseDelay
             ForceDelayStage ->
-              withSafeOpts $
+              withCertifiedOptsOnly $
                 case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
                   (Just Refl, Just Refl) -> forceDelay builtinSemanticsVariant
                   _ -> pure
             CaseOfCaseStage ->
-              withSafeOpts caseOfCase'
+              withCertifiedOptsOnly caseOfCase'
             CaseReduceStage ->
-              withSafeOpts caseReduce
+              withCertifiedOptsOnly caseReduce
             InlineStage ->
-              withSafeOpts $
+              withCertifiedOptsOnly $
                 inline
                   (_ooInlineCallsiteGrowth opts)
                   (_ooInlineConstants opts)
@@ -142,12 +142,12 @@ termOptimizer opts builtinSemanticsVariant =
                   (_ooInlineHints opts)
                   builtinSemanticsVariant
             CseStage ->
-              withSafeOpts $ cseNTimes cseTimes
+              withCertifiedOptsOnly $ cseNTimes cseTimes
             ApplyToCaseStage ->
-              withSafeOpts $
+              withCertifiedOptsOnly $
                 if _ooApplyToCase opts then applyToCase else pure
             LetFloatOutStage ->
-              withSafeOpts letFloatOut
+              withCertifiedOptsOnly letFloatOut
 
     caseOfCase'
       :: Term name uni fun a

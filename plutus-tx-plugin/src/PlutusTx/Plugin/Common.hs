@@ -807,6 +807,9 @@ runCompiler moduleName opts expr = do
           & set
             (PLC.coOptimizeOpts . UPLC.ooApplyToCase)
             (opts ^. posApplyToCase)
+          & set
+            (PLC.coOptimizeOpts . UPLC.ooCertifiedOptsOnly)
+            (opts ^. posCertifiedOptsOnly)
 
   -- GHC.Core -> Pir translation.
   pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)

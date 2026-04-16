@@ -269,7 +269,7 @@ optimizeOpts = do
       ( long "opt-no-apply-to-case"
           <> help "Disable apply-to-case optimization"
       )
-  _ooSafeOpts <-
+  _ooCertifiedOptsOnly <-
     flag
       False
       True
