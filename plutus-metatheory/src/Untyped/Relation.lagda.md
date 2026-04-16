@@ -1,5 +1,5 @@
 ---
-title: Untyped.Transform
+title: Untyped.Relation
 layout: page
 ---
 
@@ -8,140 +8,100 @@ module Untyped.Relation where
 open import Function using (case_of_)
 
 open import Untyped
-open import Data.Nat
-open import Data.Fin
+open import Data.Nat using (suc)
+open import Data.Fin using (Fin)
 open import Data.List hiding (fromMaybe)
 open import Data.Maybe using (Maybe; just; nothing; fromMaybe)
-open import Data.List.Relation.Binary.Pointwise using (Pointwise)
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Data.Empty
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.Product using (∃; _,_)
+open import Relation.Nullary using (Dec; yes; no)
+
+open import Untyped.Relation.Core public
+open import Untyped.Relation.Properties public
+open import Untyped.Relation.Pointwise public
 ```
 
-## Note on reusing the standard library
-
-We can't reuse `Relation.Binary` from the standard library here because a
-relation on terms needs to be aware of the ℕ index that we use for representing
-the scope. `Relation.Binary.Indexed.Heterogeneous` on the other hand is a bit
-too general because its definitions may have indices that differ (see e.g.
-`Transitive`), which makes using it inconvenient to use because Agda cannot
-always infer the indices.
 
 
-## Binary relations on untyped terms
+This allows you to build relations modularly:
 
 ```
-Relation : Set₁
-Relation = ∀{X} → X ⊢ → X ⊢ → Set
+infixr 5 _+_
+
+data _+_ (F G : RelationT) (@++ R : Relation) : Relation where
+  inl : ∀ {X} {M N : X ⊢} → F R M N → (F + G) R M N
+  inr : ∀ {X} {M N : X ⊢} → G R M N → (F + G) R M N
+
+data Mu (F : RelationT) : Relation where
+  fix : ∀ {X} {M N : X ⊢} → F (Mu F) M N → (Mu F) M N
+
+Empty : RelationT
+Empty R M N = ⊥
+
+Const : @++ Relation → RelationT
+Const R _ = R
 ```
 
-## Standard properties
+## Running relations
+
+A function that by construction refines R:
 
 ```
-Reflexive : Relation → Set
-Reflexive _~_ = ∀ {X} {M : X ⊢} →
-  -----
-  M ~ M
+Refinement? : Relation → Set
+Refinement? R =
+  ∀ {X}
+  → (M : X ⊢)
+  → Maybe (∃ (λ M' → R M M'))
 
-Transitive : Relation → Set
-Transitive _~_ = ∀ {X} {L M N : X ⊢} →
-  L ~ M →
-  M ~ N →
-  -------
-  L ~ N
+run? : ∀ {X} {R : Relation} → Refinement? R → X ⊢ → Maybe (X ⊢)
+run? f M with f M
+... | nothing = nothing
+... | just (M' , _) = just M'
 
-Symmetric : Relation → Set
-Symmetric _~_ = ∀ {X} {M N : X ⊢} →
-  M ~ N →
-  -------
-  N ~ M
-
-Idempotent : Relation → Set
-Idempotent R = ∀ {X} {L M N : X ⊢} → R L M → R M N → M ≡ N
+run?-refines :
+  ∀ {R : Relation}
+  → (f : Refinement? R)
+  → Refines? (run? f) R
+run?-refines f {_} M eq with f M | eq
+... | just ( _ , RMN) | refl = RMN
 ```
 
-## Properties with respect to functions on terms
-
-Operations on terms can be abbreviated:
+For relation transformers, we can run the first, and if it fails the second:
 
 ```
-Transform : Set
-Transform = ∀{X} → X ⊢ → X ⊢
-
-Transform₂ : Set
-Transform₂ = ∀{X} → X ⊢ → X ⊢ → X ⊢
+infixr 5 _<|>_
+_<|>_ :
+  ∀ {F G : RelationT} {R : Relation}
+  → Refinement? (F R)
+  → Refinement? (G R)
+  → Refinement? ((F + G) R)
+(f <|> g) M
+  with f M
+... | just (N , RMN) = just (N , inl RMN)
+... | nothing
+  with g M
+... | just (N , SMN) = just (N , inr SMN)
+... | nothing = nothing
 ```
 
-A compatible function maps related inputs to related outputs:
-
-```
-Compatible₁ : Relation → Transform → Set
-Compatible₁ _~_ f =
-  ∀ {X} {M N : X ⊢} →
-    M ~ N →
-    ---------
-    f M ~ f N
-
-Compatible₂ : Relation → Transform₂ → Set
-Compatible₂ _~_ f =
-  ∀ {X} {K L M N : X ⊢} →
-    K ~ L →
-    M ~ N →
-    -------------
-    f K M ~ f L N
-
-Compatible' : ∀ {X Y} → Relation →  (X ⊢ → Y ⊢) → Set
-Compatible' _~_ f =
-  ∀ {M N} →
-    M ~ N →
-    ---------
-    f M ~ f N
-
-```
-
-An extensive function maps an input to a related output. Another way of viewing
-this is that the graph of the function (i.e. a set of pairs) is a subset of the
-relation (when viewed as set of pairs).
-
-```
--- TODO make M explicit arg
-Extensive : Transform → Relation → Set
-Extensive f _~_ = ∀ {X} {M : X ⊢} →
-  M ~ f M
-
-Extensive? : (∀ {X} → X ⊢ → Maybe (X ⊢)) → Relation → Set
-Extensive? f R = ∀ {X} (M : X ⊢) {M' : X ⊢} → f M ≡ just M' → R M M'
-
-_⊆_ : Relation → Relation → Set
-R ⊆ S = ∀ {X} {M N : X ⊢} → R M N → S M N
-
-ext?-⊆ : ∀ {f : ∀ {X} → X ⊢ → Maybe (X ⊢)} {R S : Relation} →
-  R ⊆ S →
-  Extensive? f R →
-  Extensive? f S
-ext?-⊆ R⊆S ext-f-R M eq = R⊆S (ext-f-R M eq)
-
--- ext?-ext : ∀{f : ∀ {X} → X ⊢ → Maybe (X ⊢)} {R : Relation} →
---   Extensive? f R →
---   Extensive (λ M → fromMaybe M (f M)) R
--- ext?-ext {f} ext?-f = ?
-
-```
 
 ## Structures
 
 ```
 record Equivalence (_~_ : Relation) : Set where
   field
-    refl : Reflexive _~_
-    trans : Transitive _~_
-    sym : Symmetric _~_
+    ~-refl : Reflexive _~_
+    ~-trans : Transitive _~_
+    ~-sym : Symmetric _~_
 
 record TermCompatible (_~_ : Relation) : Set where
   field
     compat-var : ∀ {X} {n : Fin X} → ` n  ~ ` n
     compat-ƛ : ∀ {X} {M N : suc X ⊢} → M ~ N → ƛ M ~ ƛ N
     compat-· : Compatible₂ _~_ _·_
-    compat-force : Compatible₁ _~_ force
-    compat-delay : Compatible₁ _~_ delay
+    compat-force : Compatible _~_ force
+    compat-delay : Compatible _~_ delay
     compat-constr :
       ∀ {X i} {Ms Ns : List (X ⊢)} →
         Pointwise _~_ Ms Ns →

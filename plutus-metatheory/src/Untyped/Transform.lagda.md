@@ -13,7 +13,6 @@ open import Untyped
 open import Untyped.Relation
 open import Data.List using (List; []; _∷_)
 open import Function using (case_of_)
-open import Data.List.Relation.Binary.Pointwise
 open import Data.Nat
 open import Data.Maybe
 open import Data.Fin
@@ -59,98 +58,97 @@ With partial functions:
 
 
 ```
-infixl 30 _⇑_
-infixl 30 _⇑*_
+infixl 30 _↑?_
+infixl 30 _↑?*_
 
-_⇑_ : (∀ {X} → X ⊢ → Maybe (X ⊢)) → ∀ {X} → X ⊢ → X ⊢
-_⇑*_ : (∀ {X} → X ⊢ → Maybe (X ⊢)) → ∀ {X} → List (X ⊢) → List (X ⊢)
+_↑?_ : (∀ {X} → X ⊢ → Maybe (X ⊢)) → ∀ {X} → X ⊢ → X ⊢
+_↑?*_ : (∀ {X} → X ⊢ → Maybe (X ⊢)) → ∀ {X} → List (X ⊢) → List (X ⊢)
 sub : (∀ {X} → X ⊢ → Maybe (X ⊢)) → ∀ {X} → X ⊢ → X ⊢
 
-f ⇑ M = let M' = sub f M
+f ↑? M = let M' = sub f M
         in fromMaybe M' (f M')
 
-f ⇑* [] = []
-f ⇑* (M ∷ Ms) = f ⇑ M ∷ f ⇑* Ms
+f ↑?* [] = []
+f ↑?* (M ∷ Ms) = f ↑? M ∷ f ↑?* Ms
 
 sub f M = case M of λ where
   (` x) → ` x
-  (ƛ M) → ƛ (f ⇑ M)
-  (M · N) → (f ⇑ M) · (f ⇑ N)
-  (force M) → force (f ⇑ M)
-  (delay M) → delay (f ⇑ M)
+  (ƛ M) → ƛ (f ↑? M)
+  (M · N) → (f ↑? M) · (f ↑? N)
+  (force M) → force (f ↑? M)
+  (delay M) → delay (f ↑? M)
   (con x) → con x
-  (constr i Ms) → constr i (f ⇑* Ms)
-  (case M Ms) → case (f ⇑ M) (f ⇑* Ms)
+  (constr i Ms) → constr i (f ↑?* Ms)
+  (case M Ms) → case (f ↑? M) (f ↑?* Ms)
   (builtin b) → builtin b
   error → error
 ```
 
 ## Properties
 
-If `f` is extensive w.r.t a relation `_~_`, then so is `f ↑`.
+If `f` refines `R`, then so does `f ↑`.
 
 ```
-module Extensive
-  (_~_ : Relation)
-  (~-trans : Transitive _~_)
-  (~-compat : TermCompatible _~_)
+module Refines
+  (R : Relation)
+  (~-trans : Transitive R)
+  (~-compat : TermCompatible R)
   (f : Transform)
-  (f-extensive : Extensive f _~_)
+  (f-relating : Refines f R)
   where
 
   open TermCompatible ~-compat
 
-  ↑-extensive : Extensive (f ↑_) _~_
-  ↑*-extensive : ∀ {X} {Ms : List (X ⊢)} →
-      Pointwise _~_ Ms (f ↑* Ms)
-  subterms-extensive : Extensive (subterms f) _~_
+  ↑-relating : Refines (f ↑_) R
+  ↑*-relating : ∀ {X} {Ms : List (X ⊢)} →
+      Pointwise R Ms (f ↑* Ms)
+  subterms-relating : Refines (subterms f) R
 
-  ↑-extensive {X} {M} = ~-trans subterms-extensive f-extensive 
-  ↑*-extensive {Ms = []} = []
-  ↑*-extensive {Ms = _ ∷ _} = ↑-extensive ∷ ↑*-extensive
-  subterms-extensive {X} {M} with M
+  ↑-relating {X} {M} = ~-trans subterms-relating f-relating 
+  ↑*-relating {Ms = []} = []
+  ↑*-relating {Ms = _ ∷ _} = ↑-relating ∷ ↑*-relating
+  subterms-relating {X} {M} with M
   ... | ` _ = compat-var
-  ... | ƛ _ = compat-ƛ ↑-extensive
-  ... | _ · _ = compat-· ↑-extensive ↑-extensive 
-  ... | force _ = compat-force ↑-extensive
-  ... | delay _ = compat-delay ↑-extensive
+  ... | ƛ _ = compat-ƛ ↑-relating
+  ... | _ · _ = compat-· ↑-relating ↑-relating 
+  ... | force _ = compat-force ↑-relating
+  ... | delay _ = compat-delay ↑-relating
   ... | con _ = compat-con
-  ... | constr i Ms = compat-constr ↑*-extensive
-  ... | case M Ms = compat-case ↑-extensive ↑*-extensive
+  ... | constr i Ms = compat-constr ↑*-relating
+  ... | case M Ms = compat-case ↑-relating ↑*-relating
   ... | builtin _ = compat-builtin
   ... | error = compat-error
 
-module Extensive?
-  (_~_ : Relation)
-  (~-trans : Transitive _~_)
-  (~-compat : TermCompatible _~_)
+module Refines?
+  (R : Relation)
+  (~-trans : Transitive R)
+  (~-compat : TermCompatible R)
   (f : ∀ {X} → X ⊢ → Maybe (X ⊢))
-  (f-extensive? : Extensive? f _~_)
+  (f-relating? : Refines? f R)
   where
 
   open TermCompatible ~-compat
 
-  ⇑-extensive : Extensive (f ⇑_) _~_
-  ⇑*-extensive : ∀ {X} {Ms : List (X ⊢)} →
-      Pointwise _~_ Ms (f ⇑* Ms)
-  sub-extensive : Extensive (sub f) _~_
+  ↑?-relating : Refines (f ↑?_) R
+  ↑?*-relating : ∀ {X} {Ms : List (X ⊢)} →
+      Pointwise R Ms (f ↑?* Ms)
+  sub-relating : Refines (sub f) R
 
-  ⇑-extensive {X} {M} with sub-extensive {_} {M}
+  ↑?-relating {X} {M} with sub-relating {_} {M}
   ... | sub-ext with f (sub f M) in eq
-  ... | just M'' = ~-trans sub-ext (f-extensive? _ eq)
+  ... | just M'' = ~-trans sub-ext (f-relating? _ eq)
   ... | nothing = sub-ext
-  ⇑*-extensive {Ms = []} = []
-  ⇑*-extensive {Ms = _ ∷ _} = ⇑-extensive ∷ ⇑*-extensive
-  sub-extensive {X} {M} with M
+  ↑?*-relating {Ms = []} = []
+  ↑?*-relating {Ms = _ ∷ _} = ↑?-relating ∷ ↑?*-relating
+  sub-relating {X} {M} with M
   ... | ` _ = compat-var
-  ... | ƛ _ = compat-ƛ ⇑-extensive
-  ... | _ · _ = compat-· ⇑-extensive ⇑-extensive
-  ... | force _ = compat-force ⇑-extensive
-  ... | delay _ = compat-delay ⇑-extensive
+  ... | ƛ _ = compat-ƛ ↑?-relating
+  ... | _ · _ = compat-· ↑?-relating ↑?-relating
+  ... | force _ = compat-force ↑?-relating
+  ... | delay _ = compat-delay ↑?-relating
   ... | con _ = compat-con
-  ... | constr i Ms = compat-constr ⇑*-extensive
-  ... | case M Ms = compat-case ⇑-extensive ⇑*-extensive
+  ... | constr i Ms = compat-constr ↑?*-relating
+  ... | case M Ms = compat-case ↑?-relating ↑?*-relating
   ... | builtin _ = compat-builtin
   ... | error = compat-error
 ```
-

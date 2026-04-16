@@ -372,8 +372,8 @@ For each rule, we need a decision procedure
 ## Overall decision procedure
 
 ```
-DecidableT : ∀ {A : Set} → (A → A → Set) → (A → A → Set) → Set
-DecidableT R S = Decidable R → Decidable S
+-- DecidableT : ∀ {A : Set} → (A → A → Set) → (A → A → Set) → Set
+-- DecidableT R S = Decidable R → Decidable S
 
 --data CaseOfCase {X} : Rel X where
 --  CC :
@@ -598,7 +598,7 @@ reduce
 {-# CATCHALL #-}
 reduce M = nothing
 
-norm = _⇑_ reduce
+norm = _↑?_ reduce
 
 _≡-cc_ : Relation
 M ≡-cc M' = norm M ≡ M'
