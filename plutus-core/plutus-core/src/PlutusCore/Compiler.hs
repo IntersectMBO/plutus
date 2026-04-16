@@ -47,7 +47,7 @@ compileProgramWithTrace
      , MonadReader (CompilationOpts name fun a) m
      )
   => Program tyname name uni fun a
-  -> m (UPLC.Program name uni fun a, UPLC.SimplifierTrace name uni fun a)
+  -> m (UPLC.Program name uni fun a, UPLC.OptimizerTrace name uni fun a)
 compileProgramWithTrace (Program a v t) = do
   simplOpts <- view coSimplifyOpts
   builtinSemanticsVariant <- view coBuiltinSemanticsVariant

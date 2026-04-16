@@ -363,7 +363,7 @@ runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts = do
           Nothing -> []
           Just args ->
             let evalCtx = mkDefaultEvalCtx def
-             in evalSimplifierTrace evalCtx simplificationTrace args
+             in evalOptimizerTrace evalCtx simplificationTrace args
         certDir = cert <> "-" <> show time
         certOutput = case certifierOutput of
           CertBasic -> BasicOutput
@@ -398,7 +398,7 @@ runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
           margs <- loadBlueprintArgs eopts validatorName
           let costs = case margs of
                 Nothing -> []
-                Just args -> evalSimplifierTrace evalCtx simplTrace args
+                Just args -> evalOptimizerTrace evalCtx simplTrace args
               certDir = cert <> "-" <> validatorName <> "-" <> show time
               certOutput = case certifierOutput of
                 CertBasic -> BasicOutput
@@ -415,7 +415,7 @@ optimiseProgram
   -> UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
   -> m
        ( UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
-       , UPLC.SimplifierTrace name UPLC.DefaultUni UPLC.DefaultFun a
+       , UPLC.OptimizerTrace name UPLC.DefaultUni UPLC.DefaultFun a
        )
 optimiseProgram opts prog = PLC.runQuoteT $ do
   renamed <- PLC.rename prog
@@ -424,7 +424,7 @@ optimiseProgram opts prog = PLC.runQuoteT $ do
   UPLC.simplifyProgramWithTrace opts defaultBuiltinSemanticsVariant renamed
 
 execCertifier
-  :: UPLC.SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  :: UPLC.OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -> CertName
   -> CertifierOutput
   -> [ ( Maybe

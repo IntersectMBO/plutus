@@ -298,7 +298,7 @@ lastAbsBreakAfter = runQuote $ do
 
 successItems
   :: [ ( String
-       , SimplifierStage
+       , OptStage
        , Term Name PLC.DefaultUni PLC.DefaultFun ()
        , Term Name PLC.DefaultUni PLC.DefaultFun ()
        )
@@ -325,7 +325,7 @@ successItems =
   ]
 failItems
   :: [ ( String
-       , SimplifierStage
+       , OptStage
        , Term Name PLC.DefaultUni PLC.DefaultFun ()
        , Term Name PLC.DefaultUni PLC.DefaultFun ()
        )

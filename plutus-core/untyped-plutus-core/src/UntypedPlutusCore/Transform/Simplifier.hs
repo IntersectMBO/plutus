@@ -2,7 +2,7 @@
 
 module UntypedPlutusCore.Transform.Simplifier
   ( SimplifierT (..)
-  , Trace.SimplifierStage
+  , Trace.OptStage
   , pattern Trace.FloatDelayStage
   , pattern Trace.ForceDelayStage
   , pattern Trace.ForceCaseDelayStage
@@ -12,8 +12,8 @@ module UntypedPlutusCore.Transform.Simplifier
   , pattern Trace.ApplyToCaseStage
   , pattern Trace.CaseOfCaseStage
   , pattern Trace.LetFloatOutStage
-  , Trace.SimplifierTrace (..)
-  , Trace.Simplification (..)
+  , Trace.OptimizerTrace (..)
+  , Trace.Optimization (..)
   , runSimplifierT
   , evalSimplifierT
   , execSimplifierT
@@ -21,9 +21,9 @@ module UntypedPlutusCore.Transform.Simplifier
   , runSimplifier
   , evalSimplifier
   , execSimplifier
-  , Trace.initSimplifierTrace
-  , recordSimplification
-  , recordSimplificationWithHints
+  , Trace.initOptimizerTrace
+  , recordOptimization
+  , recordOptimizationWithHints
   ) where
 
 import Control.Monad.State (MonadTrans, StateT)
@@ -37,7 +37,7 @@ import UntypedPlutusCore.Transform.Certify.Trace qualified as Trace
 
 newtype SimplifierT name uni fun ann m a
   = SimplifierT
-  { getSimplifierT :: StateT (Trace.SimplifierTrace name uni fun ann) m a
+  { getSimplifierT :: StateT (Trace.OptimizerTrace name uni fun ann) m a
   }
   deriving newtype (Functor, Applicative, Monad, MonadTrans)
 
@@ -45,44 +45,44 @@ instance MonadQuote m => MonadQuote (SimplifierT name uni fun ann m)
 
 runSimplifierT
   :: SimplifierT name uni fun ann m a
-  -> m (a, Trace.SimplifierTrace name uni fun ann)
-runSimplifierT = flip State.runStateT Trace.initSimplifierTrace . getSimplifierT
+  -> m (a, Trace.OptimizerTrace name uni fun ann)
+runSimplifierT = flip State.runStateT Trace.initOptimizerTrace . getSimplifierT
 
 evalSimplifierT
   :: Monad m => SimplifierT name uni fun ann m a -> m a
-evalSimplifierT = flip State.evalStateT Trace.initSimplifierTrace . getSimplifierT
+evalSimplifierT = flip State.evalStateT Trace.initOptimizerTrace . getSimplifierT
 
 execSimplifierT
-  :: Monad m => SimplifierT name uni fun ann m a -> m (Trace.SimplifierTrace name uni fun ann)
-execSimplifierT = flip State.execStateT Trace.initSimplifierTrace . getSimplifierT
+  :: Monad m => SimplifierT name uni fun ann m a -> m (Trace.OptimizerTrace name uni fun ann)
+execSimplifierT = flip State.execStateT Trace.initOptimizerTrace . getSimplifierT
 
 type Simplifier name uni fun ann = SimplifierT name uni fun ann Identity
 
-runSimplifier :: Simplifier name uni fun ann a -> (a, Trace.SimplifierTrace name uni fun ann)
+runSimplifier :: Simplifier name uni fun ann a -> (a, Trace.OptimizerTrace name uni fun ann)
 runSimplifier = runIdentity . runSimplifierT
 
 evalSimplifier :: Simplifier name uni fun ann a -> a
 evalSimplifier = runIdentity . evalSimplifierT
 
-execSimplifier :: Simplifier name uni fun ann a -> Trace.SimplifierTrace name uni fun ann
+execSimplifier :: Simplifier name uni fun ann a -> Trace.OptimizerTrace name uni fun ann
 execSimplifier = runIdentity . execSimplifierT
 
-recordSimplification
+recordOptimization
   :: Monad m
   => Term name uni fun a
-  -> Trace.SimplifierStage
+  -> Trace.OptStage
   -> Term name uni fun a
   -> SimplifierT name uni fun a m ()
-recordSimplification = recordSimplificationWithHints Hints.NoHints
+recordOptimization = recordOptimizationWithHints Hints.NoHints
 
-recordSimplificationWithHints
+recordOptimizationWithHints
   :: Monad m
   => Hints.Hints
   -> Term name uni fun a
-  -> Trace.SimplifierStage
+  -> Trace.OptStage
   -> Term name uni fun a
   -> SimplifierT name uni fun a m ()
-recordSimplificationWithHints hints before stage after =
-  let simplification = Trace.Simplification before stage hints after
+recordOptimizationWithHints hints before stage after =
+  let simplification = Trace.Optimization before stage hints after
    in SimplifierT . State.modify' $ \st ->
-        st {Trace.simplifierTrace = simplification : Trace.simplifierTrace st}
+        st {Trace.optimizerTrace = simplification : Trace.optimizerTrace st}

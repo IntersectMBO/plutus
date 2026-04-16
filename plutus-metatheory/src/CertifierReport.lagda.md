@@ -35,22 +35,22 @@ nl = "\n"
 hl : String
 hl = "\n──────────────────────────────────────────────────────\n"
 
-showICTag : ICSimplifierTag → String
-showICTag floatDelayT = "Float Delay"
-showICTag forceDelayT = "Force-Delay Cancellation"
-showICTag forceCaseDelayT = "Float Force into Case Branches"
-showICTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
-showICTag inlineT = "Inlining"
-showICTag cseT = "Common Subexpression Elimination"
-showICTag applyToCaseT = "Transform multi-argument applications into case-constr form"
+showCertifiedOptTag : CertifiedOptTag → String
+showCertifiedOptTag floatDelayT = "Float Delay"
+showCertifiedOptTag forceDelayT = "Force-Delay Cancellation"
+showCertifiedOptTag forceCaseDelayT = "Float Force into Case Branches"
+showCertifiedOptTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
+showCertifiedOptTag inlineT = "Inlining"
+showCertifiedOptTag cseT = "Common Subexpression Elimination"
+showCertifiedOptTag applyToCaseT = "Transform multi-argument applications into case-constr form"
 
-showNICTag : NICSimplifierTag → String
-showNICTag caseOfCaseT = "Case-of-Case"
-showNICTag letFloatOutT = "Float bindings outwards"
+showUncertifiedOptTag : UncertifiedOptTag → String
+showUncertifiedOptTag caseOfCaseT = "Case-of-Case"
+showUncertifiedOptTag letFloatOutT = "Float bindings outwards"
 
-showTag : SimplifierTag → String
-showTag (inj₁ tag) = showNICTag tag ++ "  ⚠ (certifier unavailable)"
-showTag (inj₂ tag) = showICTag tag ++ "  ✅"
+showTag : OptTag → String
+showTag (inj₁ tag) = showUncertifiedOptTag tag ++ "  ⚠ (certifier unavailable)"
+showTag (inj₂ tag) = showCertifiedOptTag tag ++ "  ✅"
 ```
 
 Number of times an optimization is applied on the given term in one compiler pass:
@@ -113,7 +113,7 @@ numSitesInline (case r rs) = numSitesInline r + numSitesInlineᵖʷ rs
 numSitesInlineᵖʷ Pointwise.[] = 0
 numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖʷ xs
 
-numSites : {M N : 0 ⊢} (tag : ICSimplifierTag) → RelationOf (inj₂ tag) M N → ℕ
+numSites : {M N : 0 ⊢} (tag : CertifiedOptTag) → RelationOf (inj₂ tag) M N → ℕ
 numSites forceDelayT p = numSites′ p
 numSites floatDelayT p = numSites′ p
 numSites cseT p = numSites′ p
@@ -122,7 +122,7 @@ numSites inlineT p = numSitesInline p
 numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
 
-showSites : {M N : 0 ⊢} → (tag : SimplifierTag) → RelationOf tag M N → String
+showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
 showSites (inj₁ _) _ = ""
 showSites (inj₂ t) p = ⇉ "Optimization sites: " ++ showℕ (numSites t p)
 

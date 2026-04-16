@@ -32,8 +32,8 @@ import qualified MAlonzo.Code.VerifiedCompilation.Trace
 d_runCertifier_2 ::
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-        MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10)
+        MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+        MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
      (MAlonzo.Code.Utils.T__'215'__428
         MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_72
         (MAlonzo.Code.Utils.T__'215'__428
@@ -76,8 +76,8 @@ runCertifierMain ::
     ()
     (MAlonzo.Code.Utils.T__'215'__428
        (MAlonzo.Code.Utils.T_Either_6
-          MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-          MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10)
+          MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+          MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
        (MAlonzo.Code.Utils.T__'215'__428
           MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_72
           (MAlonzo.Code.Utils.T__'215'__428
@@ -93,8 +93,8 @@ runCertifierMain = coe d_runCertifierMain_12
 d_runCertifierMain_12 ::
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-        MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10)
+        MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+        MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
      (MAlonzo.Code.Utils.T__'215'__428
         MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_72
         (MAlonzo.Code.Utils.T__'215'__428

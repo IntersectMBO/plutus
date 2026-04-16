@@ -59,19 +59,19 @@ open import VerifiedCompilation.Certificate hiding (_>>=_)
 data Error : Set where
   emptyDump : Error
   illScoped : Error
-  counterExample : SimplifierTag → Error
-  abort : SimplifierTag → Error
+  counterExample : OptTag → Error
+  abort : OptTag → Error
 ```
 
 ## Translation Relations and Certifiers
 
-We map a `ICSimplifierTag` to the corresponding translation relation.
+We map a `CertifiedOptTag` to the corresponding translation relation.
 
 ```
 -- TODO: this should be enforced at the type level somehow
 -- i.e. I shouldn't be able to associate 'forceDelayT' with
 -- 'floatDelay'!
-tagToRelation : ICSimplifierTag → (0 ⊢ → 0 ⊢ → Set)
+tagToRelation : CertifiedOptTag → (0 ⊢ → 0 ⊢ → Set)
 tagToRelation floatDelayT = UFlD.FloatDelay
 tagToRelation forceDelayT = UFD.ForceDelay
 tagToRelation forceCaseDelayT = UFCD.ForceCaseDelay
@@ -81,28 +81,28 @@ tagToRelation cseT = UCSE.UntypedCSE
 tagToRelation applyToCaseT = UA2C.UApplyToCase
 ```
 
-We default to the `NotImplemented` relation to give each `SimplifierTag` a relation:
+We default to the `NotImplemented` relation to give each `OptTag` a relation:
 
 ```
-RelationOf : SimplifierTag → (0 ⊢ → 0 ⊢ → Set)
+RelationOf : OptTag → (0 ⊢ → 0 ⊢ → Set)
 RelationOf (inj₁ _) = NotImplemented accept
 RelationOf (inj₂ tag) = tagToRelation tag
 
-hasRelation : SimplifierTag → Bool
+hasRelation : OptTag → Bool
 hasRelation = is-inj₂
 ```
 
 The corresponding certifier can then be called for a given pass:
 
 ```
-certifyPass : (pass : SimplifierTag) → Hints → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
+certifyPass : (pass : OptTag) → Hints → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
 certifyPass (inj₁ _) _ = certNotImplemented
 certifyPass (inj₂ floatDelayT) _ = decider UFlD.isFloatDelay?
 certifyPass (inj₂ forceDelayT) _ = decider UFD.isForceDelay?
 certifyPass (inj₂ forceCaseDelayT) _ = decider UFCD.isForceCaseDelay?
 certifyPass (inj₂ caseReduceT) _ = decider UCR.isCaseReduce?
 certifyPass (inj₂ inlineT) (inline hs) = checker (UInline.top-check hs)
-certifyPass (inj₂ inlineT) none = λ M M' → abort inlineTag M M'
+certifyPass (inj₂ inlineT) none = λ M M' → abort InlineT M M'
 certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
 certifyPass (inj₂ applyToCaseT) _ = decider UA2C.a2c?ᶜᶜ
 ```

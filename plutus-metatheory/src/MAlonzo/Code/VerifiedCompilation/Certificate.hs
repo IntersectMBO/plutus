@@ -32,20 +32,20 @@ d_CertResult_12 a0 a1 = ()
 data T_CertResult_12
   = C_proof_18 AgdaAny |
     C_ce_26 (MAlonzo.Code.Utils.T_Either_6
-               MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-               MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10)
+               MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+               MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
             AgdaAny AgdaAny |
     C_abort_32 (MAlonzo.Code.Utils.T_Either_6
-                  MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-                  MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10)
+                  MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+                  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
                AgdaAny AgdaAny
 -- VerifiedCompilation.Certificate.ProofOrCE
 d_ProofOrCE_38 a0 a1 = ()
 data T_ProofOrCE_38
   = C_proof_44 AgdaAny |
     C_ce_52 (MAlonzo.Code.Utils.T_Either_6
-               MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-               MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10)
+               MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+               MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
             AgdaAny AgdaAny
 -- VerifiedCompilation.Certificate.isProof?
 d_isProof'63'_56 ::
@@ -73,8 +73,8 @@ d_Proof'63'_66 a0 a1 = ()
 data T_Proof'63'_66
   = C_proof_72 AgdaAny |
     C_abort_78 (MAlonzo.Code.Utils.T_Either_6
-                  MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-                  MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10)
+                  MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+                  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
                AgdaAny AgdaAny
 -- VerifiedCompilation.Certificate._>>=_
 d__'62''62''61'__88 ::
@@ -144,15 +144,15 @@ d_decToPCE_234 ::
   () ->
   () ->
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20 ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_38
 d_decToPCE_234 ~v0 ~v1 v2 v3 v4 v5 = du_decToPCE_234 v2 v3 v4 v5
 du_decToPCE_234 ::
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20 ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_38
 du_decToPCE_234 v0 v1 v2 v3
@@ -194,8 +194,8 @@ d_matchOrCE_262 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   (AgdaAny -> AgdaAny -> ()) ->
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (AgdaAny ->
    AgdaAny ->
    MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
@@ -204,8 +204,8 @@ d_matchOrCE_262 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
   = du_matchOrCE_262 v4 v5 v6 v7
 du_matchOrCE_262 ::
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (AgdaAny ->
    AgdaAny ->
    MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
@@ -229,16 +229,16 @@ d_pcePointwise_304 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   (AgdaAny -> AgdaAny -> ()) ->
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (AgdaAny -> AgdaAny -> T_ProofOrCE_38) ->
   [AgdaAny] -> [AgdaAny] -> T_ProofOrCE_38
 d_pcePointwise_304 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
   = du_pcePointwise_304 v4 v5 v6 v7
 du_pcePointwise_304 ::
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (AgdaAny -> AgdaAny -> T_ProofOrCE_38) ->
   [AgdaAny] -> [AgdaAny] -> T_ProofOrCE_38
 du_pcePointwise_304 v0 v1 v2 v3

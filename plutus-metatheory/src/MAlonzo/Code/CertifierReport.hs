@@ -49,11 +49,11 @@ d_hl_8
       ("\n\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\9472\n"
        ::
        Data.Text.Text)
--- CertifierReport.showICTag
-d_showICTag_10 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+-- CertifierReport.showCertifiedOptTag
+d_showCertifiedOptTag_10 ::
+  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
-d_showICTag_10 v0
+d_showCertifiedOptTag_10 v0
   = case coe v0 of
       MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_12
         -> coe ("Float Delay" :: Data.Text.Text)
@@ -74,11 +74,11 @@ d_showICTag_10 v0
               ::
               Data.Text.Text)
       _ -> MAlonzo.RTE.mazUnreachableError
--- CertifierReport.showNICTag
-d_showNICTag_12 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4 ->
+-- CertifierReport.showUncertifiedOptTag
+d_showUncertifiedOptTag_12 ::
+  MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
-d_showNICTag_12 v0
+d_showUncertifiedOptTag_12 v0
   = case coe v0 of
       MAlonzo.Code.VerifiedCompilation.Trace.C_caseOfCaseT_6
         -> coe ("Case-of-Case" :: Data.Text.Text)
@@ -88,20 +88,20 @@ d_showNICTag_12 v0
 -- CertifierReport.showTag
 d_showTag_14 ::
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_showTag_14 v0
   = case coe v0 of
       MAlonzo.Code.Utils.C_inj'8321'_12 v1
         -> coe
              MAlonzo.Code.Data.String.Base.d__'43''43'__20
-             (d_showNICTag_12 (coe v1))
+             (d_showUncertifiedOptTag_12 (coe v1))
              ("  \9888 (certifier unavailable)" :: Data.Text.Text)
       MAlonzo.Code.Utils.C_inj'8322'_14 v1
         -> coe
              MAlonzo.Code.Data.String.Base.d__'43''43'__20
-             (d_showICTag_10 (coe v1)) ("  \9989" :: Data.Text.Text)
+             (d_showCertifiedOptTag_10 (coe v1)) ("  \9989" :: Data.Text.Text)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.numSites′
 d_numSites'8242'_26 ::
@@ -559,7 +559,7 @@ d_numSitesInline_140 v0 v1 v2 v3 v4 v5 v6 v7
 d_numSites_178 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny -> Integer
 d_numSites_178 v0 v1 v2 v3
   = case coe v2 of
@@ -588,8 +588,8 @@ d_showSites_200 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_showSites_200 v0 v1 v2 v3
   = case coe v2 of

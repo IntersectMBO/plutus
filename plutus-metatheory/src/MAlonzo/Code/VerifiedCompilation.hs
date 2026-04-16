@@ -39,37 +39,37 @@ d_Error_2 = ()
 data T_Error_2
   = C_emptyDump_4 | C_illScoped_6 |
     C_counterExample_8 (MAlonzo.Code.Utils.T_Either_6
-                          MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-                          MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10) |
+                          MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+                          MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10) |
     C_abort_10 (MAlonzo.Code.Utils.T_Either_6
-                  MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-                  MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10)
+                  MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+                  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
 -- VerifiedCompilation.tagToRelation
 d_tagToRelation_12 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
 d_tagToRelation_12 = erased
 -- VerifiedCompilation.RelationOf
 d_RelationOf_14 ::
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
 d_RelationOf_14 = erased
 -- VerifiedCompilation.hasRelation
 d_hasRelation_18 ::
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   Bool
 d_hasRelation_18 = coe MAlonzo.Code.Utils.du_is'45'inj'8322'_46
 -- VerifiedCompilation.certifyPass
 d_certifyPass_26 ::
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.VerifiedCompilation.Trace.T_NICSimplifierTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_ICSimplifierTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_72 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -118,7 +118,7 @@ d_certifyPass_26 v0 v1
                     MAlonzo.Code.VerifiedCompilation.Trace.C_none_76
                       -> coe
                            MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_32
-                           (coe MAlonzo.Code.VerifiedCompilation.Trace.d_inlineTag_36)
+                           (coe MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_36)
                     _ -> MAlonzo.RTE.mazUnreachableError
              MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_22
                -> coe

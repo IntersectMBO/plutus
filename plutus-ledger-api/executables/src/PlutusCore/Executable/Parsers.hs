@@ -273,7 +273,7 @@ simplifyOpts = do
     flag
       False
       True
-      ( long "safe-optimisation"
+      ( long "certified-opts-only"
           <> help
             "Run only those optimisation passes which are certified to preserve the functional behavior of the original program."
       )

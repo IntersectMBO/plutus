@@ -25,44 +25,43 @@ We enumerate the known passes and partition them into two categories:
 
 ```
 
-data NICSimplifierTag : Set where
-  caseOfCaseT : NICSimplifierTag
-  letFloatOutT : NICSimplifierTag
+data UncertifiedOptTag : Set where
+  caseOfCaseT : UncertifiedOptTag
+  letFloatOutT : UncertifiedOptTag
 
-data ICSimplifierTag : Set where
-  floatDelayT : ICSimplifierTag
-  forceDelayT : ICSimplifierTag
-  forceCaseDelayT : ICSimplifierTag
-  caseReduceT : ICSimplifierTag
-  inlineT : ICSimplifierTag
-  cseT : ICSimplifierTag
-  applyToCaseT : ICSimplifierTag
+data CertifiedOptTag : Set where
+  floatDelayT : CertifiedOptTag
+  forceDelayT : CertifiedOptTag
+  forceCaseDelayT : CertifiedOptTag
+  caseReduceT : CertifiedOptTag
+  inlineT : CertifiedOptTag
+  cseT : CertifiedOptTag
+  applyToCaseT : CertifiedOptTag
 
-SimplifierTag = Utils.Either NICSimplifierTag ICSimplifierTag
+OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
 
-floatDelayTag : SimplifierTag
-floatDelayTag = Utils.inj₂ floatDelayT
-forceDelayTag : SimplifierTag
-forceDelayTag = Utils.inj₂ forceDelayT
-forceCaseDelayTag : SimplifierTag
-forceCaseDelayTag = Utils.inj₂ forceCaseDelayT
-caseReduceTag : SimplifierTag
-caseReduceTag = Utils.inj₂ caseReduceT
-inlineTag : SimplifierTag
-inlineTag = Utils.inj₂ inlineT
-cseTag : SimplifierTag
-cseTag = Utils.inj₂ cseT
-applyToCaseTag : SimplifierTag
-applyToCaseTag = Utils.inj₂ applyToCaseT
+FloatDelayT : OptTag
+FloatDelayT = Utils.inj₂ floatDelayT
+ForceDelayT : OptTag
+ForceDelayT = Utils.inj₂ forceDelayT
+ForceCaseDelayT : OptTag
+ForceCaseDelayT = Utils.inj₂ forceCaseDelayT
+CaseReduceT : OptTag
+CaseReduceT = Utils.inj₂ caseReduceT
+InlineT : OptTag
+InlineT = Utils.inj₂ inlineT
+CseT : OptTag
+CseT = Utils.inj₂ cseT
+ApplyToCaseT : OptTag
+ApplyToCaseT = Utils.inj₂ applyToCaseT
 
-caseOfCaseTag : SimplifierTag
-caseOfCaseTag = Utils.inj₁ caseOfCaseT
-letFloatOutTag : SimplifierTag
-letFloatOutTag = Utils.inj₁ letFloatOutT
+CaseOfCaseT : OptTag
+CaseOfCaseT = Utils.inj₁ caseOfCaseT
+LetFloatOutT : OptTag
+LetFloatOutT = Utils.inj₁ letFloatOutT
 
-{-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
-{-# COMPILE GHC ICSimplifierTag = data ICSimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase) #-}
-{-# COMPILE GHC NICSimplifierTag = data NICSimplifierStage (CaseOfCase | LetFloatOut) #-}
+{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase) #-}
+{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut) #-}
 ```
 
 ## Hints
@@ -96,14 +95,14 @@ data Hints : Set where
 ## Compiler traces
 
 A `Trace A` is a sequence of optimisation transformations applied to terms of
-type `A`. Each transition is labeled with a `SimplifierTag` that contains
+type `A`. Each transition is labeled with a `OptTag` that contains
 information about which pass was performed.
 
 ```
 
 data Trace (A : Set) : Set where
   -- One step in the pipeline, with its pass and input term
-  step : SimplifierTag → Hints → A → Trace A → Trace A
+  step : OptTag → Hints → A → Trace A → Trace A
   -- Final AST in the trace
   done : A → Trace A
 
@@ -121,7 +120,7 @@ head (step _ _ x _) = x
 
 -- The current trace structure dumped from Haskell
 Dump : Set
-Dump = List (SimplifierTag × Hints × Untyped × Untyped)
+Dump = List (OptTag × Hints × Untyped × Untyped)
 
 --
 -- Since there is duplication in the dump, i.e. it is of the form
@@ -135,7 +134,7 @@ toTrace : Dump → Maybe (Trace Untyped)
 toTrace [] = nothing
 toTrace (x ∷ xs) = just (go x xs)
   where
-    go : SimplifierTag × Hints × Untyped × Untyped → Dump → Trace Untyped
+    go : OptTag × Hints × Untyped × Untyped → Dump → Trace Untyped
     go (pass , hints , x , y) [] = step pass hints x (done y)
     go (pass , hints , x , y) ((pass' , hints' , _ , z) ∷ xs) = step pass hints x (go (pass' , hints' , y , z) xs)
 ```

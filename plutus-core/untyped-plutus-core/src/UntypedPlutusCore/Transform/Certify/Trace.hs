@@ -16,7 +16,7 @@ certified (__I__mplemented in the __C__ertifier).
 This means that these passes are formalized as part of the certifier,
 and adding a new pass constructor to this type means that it is expected
 the pass will be also certified in the same PR. -}
-data ICSimplifierStage
+data CertifiedOptStage
   = FloatDelay
   | ForceDelay
   | ForceCaseDelay
@@ -34,39 +34,39 @@ IMPORTANT: if you add a new pass, or modify an existing pass, without
 also modifying the certifier in the same PR, you must add/move its
 corresponding constructor to this type. Please also open an issue
 at https://github.com/IntersectMBO/plutus/issues. -}
-data NICSimplifierStage
+data UncertifiedOptStage
   = CaseOfCase
   | LetFloatOut
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
-type SimplifierStage = Either NICSimplifierStage ICSimplifierStage
+type OptStage = Either UncertifiedOptStage CertifiedOptStage
 
-pattern FloatDelayStage :: SimplifierStage
+pattern FloatDelayStage :: OptStage
 pattern FloatDelayStage = Right FloatDelay
 
-pattern ForceDelayStage :: SimplifierStage
+pattern ForceDelayStage :: OptStage
 pattern ForceDelayStage = Right ForceDelay
 
-pattern ForceCaseDelayStage :: SimplifierStage
+pattern ForceCaseDelayStage :: OptStage
 pattern ForceCaseDelayStage = Right ForceCaseDelay
 
-pattern CaseReduceStage :: SimplifierStage
+pattern CaseReduceStage :: OptStage
 pattern CaseReduceStage = Right CaseReduce
 
-pattern InlineStage :: SimplifierStage
+pattern InlineStage :: OptStage
 pattern InlineStage = Right Inline
 
-pattern CseStage :: SimplifierStage
+pattern CseStage :: OptStage
 pattern CseStage = Right CSE
 
-pattern ApplyToCaseStage :: SimplifierStage
+pattern ApplyToCaseStage :: OptStage
 pattern ApplyToCaseStage = Right ApplyToCase
 
-pattern CaseOfCaseStage :: SimplifierStage
+pattern CaseOfCaseStage :: OptStage
 pattern CaseOfCaseStage = Left CaseOfCase
 
-pattern LetFloatOutStage :: SimplifierStage
+pattern LetFloatOutStage :: OptStage
 pattern LetFloatOutStage = Left LetFloatOut
 
 {-# COMPLETE
@@ -81,28 +81,28 @@ pattern LetFloatOutStage = Left LetFloatOut
   , LetFloatOutStage
   #-}
 
-data Simplification name uni fun a
-  = Simplification
+data Optimization name uni fun a
+  = Optimization
   { beforeAST :: Term name uni fun a
-  , stage :: SimplifierStage
+  , stage :: OptStage
   , hints :: Certify.Hints
   , afterAST :: Term name uni fun a
   }
 
 -- TODO2: we probably don't want this in memory so after MVP
 -- we should consider serializing this to disk
-newtype SimplifierTrace name uni fun a
-  = SimplifierTrace
-  { simplifierTrace
-      :: [Simplification name uni fun a]
+newtype OptimizerTrace name uni fun a
+  = OptimizerTrace
+  { optimizerTrace
+      :: [Optimization name uni fun a]
   }
 
-initSimplifierTrace :: SimplifierTrace name uni fun a
-initSimplifierTrace = SimplifierTrace []
+initOptimizerTrace :: OptimizerTrace name uni fun a
+initOptimizerTrace = OptimizerTrace []
 
-allASTs :: SimplifierTrace name uni fun a -> [Term name uni fun a]
+allASTs :: OptimizerTrace name uni fun a -> [Term name uni fun a]
 allASTs = \case
-  SimplifierTrace [] -> []
-  SimplifierTrace xs@(x : _) ->
-    -- `SimplifierTrace` is in reverse order: the first item is the last pass run.
+  OptimizerTrace [] -> []
+  OptimizerTrace xs@(x : _) ->
+    -- `OptimizerTrace` is in reverse order: the first item is the last pass run.
     afterAST x : map beforeAST xs

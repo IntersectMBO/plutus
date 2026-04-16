@@ -50,18 +50,18 @@ instance AgdaUnparse AgdaFFI.UTerm where
 instance AgdaUnparse UPLC.DefaultFun where
   agdaUnparse = usToHyphen . lowerInitialChar . show
 
-instance AgdaUnparse ICSimplifierStage where
-  agdaUnparse FloatDelay = "(inj₂ floatDelayT)"
-  agdaUnparse ForceDelay = "(inj₂ forceDelayT)"
-  agdaUnparse ForceCaseDelay = "(inj₂ forceCaseDelayT)"
-  agdaUnparse CaseReduce = "(inj₂ caseReduceT)"
-  agdaUnparse Inline = "(inj₂ inlineT)"
-  agdaUnparse CSE = "(inj₂ cseT)"
-  agdaUnparse ApplyToCase = "(inj₂ applyToCaseT)"
+instance AgdaUnparse CertifiedOptStage where
+  agdaUnparse FloatDelay = "floatDelayT"
+  agdaUnparse ForceDelay = "forceDelayT"
+  agdaUnparse ForceCaseDelay = "forceCaseDelayT"
+  agdaUnparse CaseReduce = "caseReduceT"
+  agdaUnparse Inline = "inlineT"
+  agdaUnparse CSE = "cseT"
+  agdaUnparse ApplyToCase = "applyToCaseT"
 
-instance AgdaUnparse NICSimplifierStage where
-  agdaUnparse CaseOfCase = "(inj₁ caseOfCaseT)"
-  agdaUnparse LetFloatOut = "(inj₁ letFloatOutT)"
+instance AgdaUnparse UncertifiedOptStage where
+  agdaUnparse CaseOfCase = "caseOfCaseT"
+  agdaUnparse LetFloatOut = "letFloatOutT"
 
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case

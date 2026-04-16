@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module FFI.SimplifierTrace
+module FFI.OptimizerTrace
   ( TraceElem
   , Trace
-  , mkFfiSimplifierTrace
+  , mkFfiOptimizerTrace
   , toEvalResult
   ) where
 
@@ -21,15 +21,15 @@ import Data.Functor
 import Data.SatInt
 import Data.Text qualified as T
 
-type TraceElem a = (SimplifierStage, (Certify.Hints, (a, a)))
+type TraceElem a = (OptStage, (Certify.Hints, (a, a)))
 type Trace a = [TraceElem a]
 
-mkFfiSimplifierTrace
-  :: SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+mkFfiOptimizerTrace
+  :: OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -> Trace FFI.UTerm
-mkFfiSimplifierTrace (SimplifierTrace simplTrace) = reverse $ toFfiAst <$> simplTrace
+mkFfiOptimizerTrace (OptimizerTrace simplTrace) = reverse $ toFfiAst <$> simplTrace
   where
-    toFfiAst (Simplification before stage hints after) =
+    toFfiAst (Optimization before stage hints after) =
       case (UPLC.deBruijnTerm before, UPLC.deBruijnTerm after) of
         (Right before', Right after') ->
           (stage, (hints, (FFI.conv (void before'), FFI.conv (void after'))))

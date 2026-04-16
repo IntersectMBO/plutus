@@ -18,7 +18,7 @@ import Test.Tasty.Golden (goldenVsString)
 import UntypedPlutusCore
   ( CseWhichSubterms
   , Name
-  , SimplifierTrace
+  , OptimizerTrace
   , Term
   , defaultSimplifyOpts
   , runSimplifierT
@@ -54,8 +54,8 @@ goldenVsSimplified name t =
     (t', trace) = PLC.runQuote (testSimplify t)
     hintsPath = "untyped-plutus-core/test/Transform/" ++ name ++ ".golden.certifier-hints"
 
-renderCertifierHints :: Trace.SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun () -> Text
-renderCertifierHints (Trace.SimplifierTrace ss)
+renderCertifierHints :: Trace.OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun () -> Text
+renderCertifierHints (Trace.OptimizerTrace ss)
   | null ss = "<no certifier hints in trace>"
   | otherwise =
       T.unlines $
@@ -100,7 +100,7 @@ testSimplify
   :: Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> PLC.Quote
        ( Term Name PLC.DefaultUni PLC.DefaultFun ()
-       , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
+       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun ()
        )
 testSimplify =
   runSimplifierT
@@ -130,7 +130,7 @@ testCse
   -> Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> PLC.Quote
        ( Term Name PLC.DefaultUni PLC.DefaultFun ()
-       , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
+       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun ()
        )
 testCse whichSubterms =
   runSimplifierT

@@ -51,7 +51,7 @@ simplifyProgramWithTrace
   => SimplifyOpts name a
   -> BuiltinSemanticsVariant fun
   -> Program name uni fun a
-  -> m (Program name uni fun a, SimplifierTrace name uni fun a)
+  -> m (Program name uni fun a, OptimizerTrace name uni fun a)
 simplifyProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
   (result, trace) <-
     runSimplifierT $
