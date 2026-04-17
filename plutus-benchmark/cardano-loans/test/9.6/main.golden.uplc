@@ -2039,7 +2039,8 @@
                                                                                                                                                                                                          (\go ->
                                                                                                                                                                                                             (\s ->
                                                                                                                                                                                                                s
-                                                                                                                                                                                                                 s)
+                                                                                                                                                                                                                 s
+                                                                                                                                                                                                                 value)
                                                                                                                                                                                                               (\s
                                                                                                                                                                                                                 ds ->
                                                                                                                                                                                                                  case
@@ -2059,8 +2060,7 @@
                                                                                                                                                                                                                                       s
                                                                                                                                                                                                                                       xs')
                                                                                                                                                                                                                                  , (go
-                                                                                                                                                                                                                                      i) ]) ]) ])
-                                                                                                                                                                                                              value)
+                                                                                                                                                                                                                                      i) ]) ]) ]))
                                                                                                                                                                                                            ((\s ->
                                                                                                                                                                                                                s
                                                                                                                                                                                                                  s)
@@ -2263,40 +2263,40 @@
                                                                                                                                                                                                              ipv
                                                                                                                                                                                                              pkh)
                                                                                                                                                                                                       , (\ds ->
-                                                                                                                                                                                                           case
-                                                                                                                                                                                                             ((\s ->
-                                                                                                                                                                                                                 s
-                                                                                                                                                                                                                   s)
-                                                                                                                                                                                                                (\s
-                                                                                                                                                                                                                  ds ->
-                                                                                                                                                                                                                   case
-                                                                                                                                                                                                                     ds
-                                                                                                                                                                                                                     [ (constr 1
-                                                                                                                                                                                                                          [  ])
-                                                                                                                                                                                                                     , (\ds
-                                                                                                                                                                                                                         xs' ->
-                                                                                                                                                                                                                          case
-                                                                                                                                                                                                                            ds
-                                                                                                                                                                                                                            [ (\c'
-                                                                                                                                                                                                                                i ->
-                                                                                                                                                                                                                                 case
-                                                                                                                                                                                                                                   (case
-                                                                                                                                                                                                                                      c'
-                                                                                                                                                                                                                                      [ (\l1l ->
-                                                                                                                                                                                                                                           False)
-                                                                                                                                                                                                                                      , (\l1l ->
-                                                                                                                                                                                                                                           equalsByteString
-                                                                                                                                                                                                                                             l1l
-                                                                                                                                                                                                                                             ds) ])
-                                                                                                                                                                                                                                   [ (s
-                                                                                                                                                                                                                                        s
-                                                                                                                                                                                                                                        xs')
-                                                                                                                                                                                                                                   , (constr 0
-                                                                                                                                                                                                                                        [ i ]) ]) ]) ])
-                                                                                                                                                                                                                ipv)
-                                                                                                                                                                                                             [ (\ds ->
-                                                                                                                                                                                                                  True)
-                                                                                                                                                                                                             , False ]) ])
+                                                                                                                                                                                                           (\s ->
+                                                                                                                                                                                                              case
+                                                                                                                                                                                                                (s
+                                                                                                                                                                                                                   s
+                                                                                                                                                                                                                   ipv)
+                                                                                                                                                                                                                [ (\ds ->
+                                                                                                                                                                                                                     True)
+                                                                                                                                                                                                                , False ])
+                                                                                                                                                                                                             (\s
+                                                                                                                                                                                                               ds ->
+                                                                                                                                                                                                                case
+                                                                                                                                                                                                                  ds
+                                                                                                                                                                                                                  [ (constr 1
+                                                                                                                                                                                                                       [  ])
+                                                                                                                                                                                                                  , (\ds
+                                                                                                                                                                                                                      xs' ->
+                                                                                                                                                                                                                       case
+                                                                                                                                                                                                                         ds
+                                                                                                                                                                                                                         [ (\c'
+                                                                                                                                                                                                                             i ->
+                                                                                                                                                                                                                              case
+                                                                                                                                                                                                                                (case
+                                                                                                                                                                                                                                   c'
+                                                                                                                                                                                                                                   [ (\l1l ->
+                                                                                                                                                                                                                                        False)
+                                                                                                                                                                                                                                   , (\l1l ->
+                                                                                                                                                                                                                                        equalsByteString
+                                                                                                                                                                                                                                          l1l
+                                                                                                                                                                                                                                          ds) ])
+                                                                                                                                                                                                                                [ (s
+                                                                                                                                                                                                                                     s
+                                                                                                                                                                                                                                     xs')
+                                                                                                                                                                                                                                , (constr 0
+                                                                                                                                                                                                                                     [ i ]) ]) ]) ])) ])
                                                                                                                                                                                                , (\ipv
                                                                                                                                                                                                    ipv
                                                                                                                                                                                                    ipv ->
@@ -5448,139 +5448,139 @@
                                                                                                                                        ds
                                                                                                                                        [ (\ds
                                                                                                                                            ds ->
-                                                                                                                                            case
-                                                                                                                                              ((\cse ->
-                                                                                                                                                  cse
+                                                                                                                                            (\cse ->
+                                                                                                                                               case
+                                                                                                                                                 (cse
                                                                                                                                                     (cse
-                                                                                                                                                       `$fFromDataInteger_$cfromBuiltinData`))
-                                                                                                                                                 (`$fFromDataMap_$cfromBuiltinData`
-                                                                                                                                                    `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`)
-                                                                                                                                                 ds)
-                                                                                                                                              [ (\arg ->
-                                                                                                                                                   case
-                                                                                                                                                     (case
-                                                                                                                                                        ds
-                                                                                                                                                        [ (\h
-                                                                                                                                                            t ->
-                                                                                                                                                             constr 0
-                                                                                                                                                               [ (constr 0
-                                                                                                                                                                    [ h
-                                                                                                                                                                    , t ]) ])
-                                                                                                                                                        , (constr 1
-                                                                                                                                                             [  ]) ])
-                                                                                                                                                     [ (\ds ->
-                                                                                                                                                          case
-                                                                                                                                                            ds
-                                                                                                                                                            [ (\ds
-                                                                                                                                                                ds ->
-                                                                                                                                                                 case
-                                                                                                                                                                   (case
-                                                                                                                                                                      (constr 0
-                                                                                                                                                                         [ ds
-                                                                                                                                                                         , (\index
-                                                                                                                                                                             args ->
-                                                                                                                                                                              case
-                                                                                                                                                                                (equalsInteger
-                                                                                                                                                                                   0
-                                                                                                                                                                                   index)
-                                                                                                                                                                                [ ((\fail ->
-                                                                                                                                                                                      case
-                                                                                                                                                                                        (equalsInteger
-                                                                                                                                                                                           1
-                                                                                                                                                                                           index)
-                                                                                                                                                                                        [ (fail
-                                                                                                                                                                                             ())
-                                                                                                                                                                                        , (case
-                                                                                                                                                                                             (case
-                                                                                                                                                                                                args
-                                                                                                                                                                                                [ (\h
-                                                                                                                                                                                                    ds ->
-                                                                                                                                                                                                     constr 0
-                                                                                                                                                                                                       [ h ])
-                                                                                                                                                                                                , (constr 1
-                                                                                                                                                                                                     [  ]) ])
-                                                                                                                                                                                             [ (\ds ->
-                                                                                                                                                                                                  case
-                                                                                                                                                                                                    (`$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                                                                                                                       ds)
-                                                                                                                                                                                                    [ (\arg ->
-                                                                                                                                                                                                         constr 0
-                                                                                                                                                                                                           [ (constr 2
-                                                                                                                                                                                                                [ arg ]) ])
-                                                                                                                                                                                                    , (fail
-                                                                                                                                                                                                         ()) ])
-                                                                                                                                                                                             , (fail
-                                                                                                                                                                                                  ()) ]) ])
-                                                                                                                                                                                     (\ds ->
-                                                                                                                                                                                        case
-                                                                                                                                                                                          (equalsInteger
-                                                                                                                                                                                             2
-                                                                                                                                                                                             index)
-                                                                                                                                                                                          [ (constr 1
-                                                                                                                                                                                               [  ])
-                                                                                                                                                                                          , (case
-                                                                                                                                                                                               (case
-                                                                                                                                                                                                  args
-                                                                                                                                                                                                  [ (\h
-                                                                                                                                                                                                      ds ->
+                                                                                                                                                       `$fFromDataInteger_$cfromBuiltinData`)
+                                                                                                                                                    ds)
+                                                                                                                                                 [ (\arg ->
+                                                                                                                                                      case
+                                                                                                                                                        (case
+                                                                                                                                                           ds
+                                                                                                                                                           [ (\h
+                                                                                                                                                               t ->
+                                                                                                                                                                constr 0
+                                                                                                                                                                  [ (constr 0
+                                                                                                                                                                       [ h
+                                                                                                                                                                       , t ]) ])
+                                                                                                                                                           , (constr 1
+                                                                                                                                                                [  ]) ])
+                                                                                                                                                        [ (\ds ->
+                                                                                                                                                             case
+                                                                                                                                                               ds
+                                                                                                                                                               [ (\ds
+                                                                                                                                                                   ds ->
+                                                                                                                                                                    case
+                                                                                                                                                                      (case
+                                                                                                                                                                         (constr 0
+                                                                                                                                                                            [ ds
+                                                                                                                                                                            , (\index
+                                                                                                                                                                                args ->
+                                                                                                                                                                                 case
+                                                                                                                                                                                   (equalsInteger
+                                                                                                                                                                                      0
+                                                                                                                                                                                      index)
+                                                                                                                                                                                   [ ((\fail ->
+                                                                                                                                                                                         case
+                                                                                                                                                                                           (equalsInteger
+                                                                                                                                                                                              1
+                                                                                                                                                                                              index)
+                                                                                                                                                                                           [ (fail
+                                                                                                                                                                                                ())
+                                                                                                                                                                                           , (case
+                                                                                                                                                                                                (case
+                                                                                                                                                                                                   args
+                                                                                                                                                                                                   [ (\h
+                                                                                                                                                                                                       ds ->
+                                                                                                                                                                                                        constr 0
+                                                                                                                                                                                                          [ h ])
+                                                                                                                                                                                                   , (constr 1
+                                                                                                                                                                                                        [  ]) ])
+                                                                                                                                                                                                [ (\ds ->
+                                                                                                                                                                                                     case
+                                                                                                                                                                                                       (`$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                                                                                                                          ds)
+                                                                                                                                                                                                       [ (\arg ->
+                                                                                                                                                                                                            constr 0
+                                                                                                                                                                                                              [ (constr 2
+                                                                                                                                                                                                                   [ arg ]) ])
+                                                                                                                                                                                                       , (fail
+                                                                                                                                                                                                            ()) ])
+                                                                                                                                                                                                , (fail
+                                                                                                                                                                                                     ()) ]) ])
+                                                                                                                                                                                        (\ds ->
+                                                                                                                                                                                           case
+                                                                                                                                                                                             (equalsInteger
+                                                                                                                                                                                                2
+                                                                                                                                                                                                index)
+                                                                                                                                                                                             [ (constr 1
+                                                                                                                                                                                                  [  ])
+                                                                                                                                                                                             , (case
+                                                                                                                                                                                                  (case
+                                                                                                                                                                                                     args
+                                                                                                                                                                                                     [ (\h
+                                                                                                                                                                                                         ds ->
+                                                                                                                                                                                                          constr 0
+                                                                                                                                                                                                            [ h ])
+                                                                                                                                                                                                     , (constr 1
+                                                                                                                                                                                                          [  ]) ])
+                                                                                                                                                                                                  [ (\ds ->
                                                                                                                                                                                                        constr 0
-                                                                                                                                                                                                         [ h ])
+                                                                                                                                                                                                         [ (constr 1
+                                                                                                                                                                                                              [ ds ]) ])
                                                                                                                                                                                                   , (constr 1
-                                                                                                                                                                                                       [  ]) ])
-                                                                                                                                                                                               [ (\ds ->
-                                                                                                                                                                                                    constr 0
-                                                                                                                                                                                                      [ (constr 1
-                                                                                                                                                                                                           [ ds ]) ])
-                                                                                                                                                                                               , (constr 1
-                                                                                                                                                                                                    [  ]) ]) ]))
-                                                                                                                                                                                , (constr 0
-                                                                                                                                                                                     [ (constr 0
-                                                                                                                                                                                          [  ]) ]) ])
-                                                                                                                                                                         , (\ds ->
-                                                                                                                                                                              constr 1
-                                                                                                                                                                                [  ])
-                                                                                                                                                                         , (\ds ->
-                                                                                                                                                                              constr 1
-                                                                                                                                                                                [  ])
-                                                                                                                                                                         , (\ds ->
-                                                                                                                                                                              constr 1
-                                                                                                                                                                                [  ])
-                                                                                                                                                                         , (\ds ->
-                                                                                                                                                                              constr 1
-                                                                                                                                                                                [  ]) ])
-                                                                                                                                                                      [ matchData' ])
-                                                                                                                                                                   [ (\arg ->
-                                                                                                                                                                        case
-                                                                                                                                                                          (case
-                                                                                                                                                                             ds
-                                                                                                                                                                             [ (\h
-                                                                                                                                                                                 ds ->
-                                                                                                                                                                                  constr 0
-                                                                                                                                                                                    [ h ])
+                                                                                                                                                                                                       [  ]) ]) ]))
+                                                                                                                                                                                   , (constr 0
+                                                                                                                                                                                        [ (constr 0
+                                                                                                                                                                                             [  ]) ]) ])
+                                                                                                                                                                            , (\ds ->
+                                                                                                                                                                                 constr 1
+                                                                                                                                                                                   [  ])
+                                                                                                                                                                            , (\ds ->
+                                                                                                                                                                                 constr 1
+                                                                                                                                                                                   [  ])
+                                                                                                                                                                            , (\ds ->
+                                                                                                                                                                                 constr 1
+                                                                                                                                                                                   [  ])
+                                                                                                                                                                            , (\ds ->
+                                                                                                                                                                                 constr 1
+                                                                                                                                                                                   [  ]) ])
+                                                                                                                                                                         [ matchData' ])
+                                                                                                                                                                      [ (\arg ->
+                                                                                                                                                                           case
+                                                                                                                                                                             (case
+                                                                                                                                                                                ds
+                                                                                                                                                                                [ (\h
+                                                                                                                                                                                    ds ->
+                                                                                                                                                                                     constr 0
+                                                                                                                                                                                       [ h ])
+                                                                                                                                                                                , (constr 1
+                                                                                                                                                                                     [  ]) ])
+                                                                                                                                                                             [ (\ds ->
+                                                                                                                                                                                  case
+                                                                                                                                                                                    (`$fFromDataMaybe_$cfromBuiltinData`
+                                                                                                                                                                                       `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
+                                                                                                                                                                                       ds)
+                                                                                                                                                                                    [ (\arg ->
+                                                                                                                                                                                         constr 0
+                                                                                                                                                                                           [ (constr 0
+                                                                                                                                                                                                [ arg
+                                                                                                                                                                                                , arg
+                                                                                                                                                                                                , arg
+                                                                                                                                                                                                , arg ]) ])
+                                                                                                                                                                                    , (constr 1
+                                                                                                                                                                                         [  ]) ])
                                                                                                                                                                              , (constr 1
                                                                                                                                                                                   [  ]) ])
-                                                                                                                                                                          [ (\ds ->
-                                                                                                                                                                               case
-                                                                                                                                                                                 (`$fFromDataMaybe_$cfromBuiltinData`
-                                                                                                                                                                                    `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`
-                                                                                                                                                                                    ds)
-                                                                                                                                                                                 [ (\arg ->
-                                                                                                                                                                                      constr 0
-                                                                                                                                                                                        [ (constr 0
-                                                                                                                                                                                             [ arg
-                                                                                                                                                                                             , arg
-                                                                                                                                                                                             , arg
-                                                                                                                                                                                             , arg ]) ])
-                                                                                                                                                                                 , (constr 1
-                                                                                                                                                                                      [  ]) ])
-                                                                                                                                                                          , (constr 1
-                                                                                                                                                                               [  ]) ])
-                                                                                                                                                                   , (constr 1
-                                                                                                                                                                        [  ]) ]) ])
-                                                                                                                                                     , (constr 1
-                                                                                                                                                          [  ]) ])
-                                                                                                                                              , (constr 1
-                                                                                                                                                   [  ]) ]) ])
+                                                                                                                                                                      , (constr 1
+                                                                                                                                                                           [  ]) ]) ])
+                                                                                                                                                        , (constr 1
+                                                                                                                                                             [  ]) ])
+                                                                                                                                                 , (constr 1
+                                                                                                                                                      [  ]) ])
+                                                                                                                                              (`$fFromDataMap_$cfromBuiltinData`
+                                                                                                                                                 `$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData`)) ])
                                                                                                                                 , (constr 1
                                                                                                                                      [  ]) ])
                                                                                                                          , (constr 1
@@ -5906,15 +5906,17 @@
                                                                                              n
                                                                                              d))
                                                                                      , ((\x ->
-                                                                                           s
-                                                                                             s
-                                                                                             x)
+                                                                                           case
+                                                                                             (constr 0
+                                                                                                [ s
+                                                                                                , x
+                                                                                                , (subtractInteger
+                                                                                                     0
+                                                                                                     d) ])
+                                                                                             [ s ])
                                                                                           (subtractInteger
                                                                                              0
-                                                                                             n)
-                                                                                          (subtractInteger
-                                                                                             0
-                                                                                             d)) ])
+                                                                                             n)) ])
                                                                                 , (traceError
                                                                                      "PT3") ])))
                                                                      (\str ->
@@ -6249,18 +6251,17 @@
                                        ds ->
                                         (\go ->
                                            (\rs'' ->
-                                              (\s -> s s)
+                                              (\s -> s s (go ds))
                                                 (\s ds ->
                                                    case
                                                      ds
                                                      [ rs''
                                                      , (\x xs ->
                                                           constr 1
-                                                            [x, (s s xs)]) ])
-                                                (go ds))
+                                                            [x, (s s xs)]) ]))
                                              (go
                                                 ((\s ->
-                                                    s s)
+                                                    s s ds)
                                                    (\s
                                                      ds ->
                                                       case
@@ -6303,8 +6304,7 @@
                                                                   , (constr 1
                                                                        [ x
                                                                        , xs ]) ])
-                                                               (s s xs)) ])
-                                                   ds)))
+                                                               (s s xs)) ]))))
                                           ((\s ->
                                               s s)
                                              (\s
@@ -6322,7 +6322,9 @@
                                                                    constr 0
                                                                      [ c
                                                                      , ((\s ->
-                                                                           s s)
+                                                                           s
+                                                                             s
+                                                                             ds)
                                                                           (\s
                                                                             ds ->
                                                                              case
@@ -6344,8 +6346,7 @@
                                                                                                   xs')
                                                                                              , (constr 1
                                                                                                   [ i
-                                                                                                  , i ]) ]) ]) ])
-                                                                          ds) ]) ])
+                                                                                                  , i ]) ]) ]) ])) ]) ])
                                                          , (s s xs) ]) ])))
                                        ((\s ->
                                            s s)
@@ -6481,14 +6482,13 @@
                                [ (constr 0 [])
                                , (\x xs ->
                                     (\ys ->
-                                       (\s -> s s)
+                                       (\s -> s s (f x))
                                          (\s ds ->
                                             case
                                               ds
                                               [ ys
                                               , (\x xs ->
-                                                   constr 1 [x, (s s xs)]) ])
-                                         (f x))
+                                                   constr 1 [x, (s s xs)]) ]))
                                       (s s xs)) ]))))
                ((\s -> s s)
                   (\s ds acc ds ->

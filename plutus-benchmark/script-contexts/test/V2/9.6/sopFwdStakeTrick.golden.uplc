@@ -47,11 +47,31 @@
                                                                                                              (\l ->
                                                                                                                 (\`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` ->
                                                                                                                    (\cse ->
-                                                                                                                      case
-                                                                                                                        (constr 0
-                                                                                                                           [ (cse
-                                                                                                                                (cse
-                                                                                                                                   unIData))
+                                                                                                                      (\cse ->
+                                                                                                                         constr 0
+                                                                                                                           [ (go
+                                                                                                                                (unListData
+                                                                                                                                   (force
+                                                                                                                                      headList
+                                                                                                                                      ds)))
+                                                                                                                           , (go
+                                                                                                                                (unListData
+                                                                                                                                   (force
+                                                                                                                                      headList
+                                                                                                                                      l)))
+                                                                                                                           , (go
+                                                                                                                                (unListData
+                                                                                                                                   (force
+                                                                                                                                      headList
+                                                                                                                                      l)))
+                                                                                                                           , (cse
+                                                                                                                                (force
+                                                                                                                                   headList
+                                                                                                                                   l))
+                                                                                                                           , (cse
+                                                                                                                                (force
+                                                                                                                                   headList
+                                                                                                                                   l))
                                                                                                                            , (go
                                                                                                                                 (unListData
                                                                                                                                    (force
@@ -179,68 +199,20 @@
                                                                                                                                 `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
                                                                                                                                 (force
                                                                                                                                    headList
-                                                                                                                                   l)) ])
-                                                                                                                        [ (\cse ->
-                                                                                                                             case
-                                                                                                                               (constr 0
-                                                                                                                                  [ (go
-                                                                                                                                       (unListData
-                                                                                                                                          (force
-                                                                                                                                             headList
-                                                                                                                                             ds)))
-                                                                                                                                  , (go
-                                                                                                                                       (unListData
-                                                                                                                                          (force
-                                                                                                                                             headList
-                                                                                                                                             l)))
-                                                                                                                                  , (go
-                                                                                                                                       (unListData
-                                                                                                                                          (force
-                                                                                                                                             headList
-                                                                                                                                             l)))
-                                                                                                                                  , (cse
-                                                                                                                                       (force
-                                                                                                                                          headList
-                                                                                                                                          l))
-                                                                                                                                  , (cse
-                                                                                                                                       (force
-                                                                                                                                          headList
-                                                                                                                                          l)) ])
-                                                                                                                               [ (\arg_0
-                                                                                                                                   arg_1
-                                                                                                                                   arg_2
-                                                                                                                                   arg_3
-                                                                                                                                   arg_4
-                                                                                                                                   arg_5
-                                                                                                                                   arg_6
-                                                                                                                                   arg_7
-                                                                                                                                   arg_8
-                                                                                                                                   arg_9
-                                                                                                                                   arg_10
-                                                                                                                                   arg_11 ->
-                                                                                                                                    constr 0
-                                                                                                                                      [ arg_0
-                                                                                                                                      , arg_1
-                                                                                                                                      , arg_2
-                                                                                                                                      , arg_3
-                                                                                                                                      , arg_4
-                                                                                                                                      , arg_5
-                                                                                                                                      , arg_6
-                                                                                                                                      , arg_7
-                                                                                                                                      , arg_8
-                                                                                                                                      , arg_9
-                                                                                                                                      , arg_10
-                                                                                                                                      , arg_11 ]) ]) ])
+                                                                                                                                   l))
+                                                                                                                           , (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                                                                                                                                (force
+                                                                                                                                   headList
+                                                                                                                                   (force
+                                                                                                                                      tailList
+                                                                                                                                      l))) ])
+                                                                                                                        (cse
+                                                                                                                           (cse
+                                                                                                                              unIData)))
                                                                                                                      (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                                                                                                                         unBData))
                                                                                                                   (\d ->
-                                                                                                                     d)
-                                                                                                                  (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
-                                                                                                                     (force
-                                                                                                                        headList
-                                                                                                                        (force
-                                                                                                                           tailList
-                                                                                                                           l))))
+                                                                                                                     d))
                                                                                                                (force
                                                                                                                   tailList
                                                                                                                   l))
@@ -738,10 +710,11 @@
                                                                                   ds))) ]) ]
                                                                 args) ])
                                                     , ((\cse ->
-                                                          cse (cse unIData))
+                                                          cse
+                                                            (cse unIData)
+                                                            (force headList l))
                                                          (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                            unBData)
-                                                         (force headList l))
+                                                            unBData))
                                                     , (case
                                                          (unConstrData
                                                             (force headList l))

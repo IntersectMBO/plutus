@@ -1,7 +1,7 @@
 (program
    1.1.0
    (\xs ->
-      (\s -> s s)
+      (\s -> s s xs)
         (\s xs ->
            case
              xs
@@ -11,5 +11,4 @@
                        (equalsInteger 0 (modInteger x 2))
                        [xs, (force mkCons x xs)])
                     (s s xs))
-             , [] ])
-        xs))
+             , [] ])))
