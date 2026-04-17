@@ -70,41 +70,41 @@
                                  tl ->
                                   (\v' ->
                                      (\k' ->
-                                        (\s ->
-                                           case
-                                             (s s nt)
-                                             [ (\r ->
-                                                  force mkCons
-                                                    (mkPairData
-                                                       k'
+                                        (\`$j` ->
+                                           (\s ->
+                                              case
+                                                (s s nt)
+                                                [ (\r ->
+                                                     `$j`
                                                        (iData
                                                           (addInteger
                                                              (unIData v')
                                                              (unIData r))))
-                                                    (s s tl))
-                                             , (force mkCons
-                                                  (mkPairData k' v')
-                                                  (s s tl)) ])
-                                          (\s
-                                            xs ->
-                                             case
-                                               xs
-                                               [ (\hd ->
-                                                    case
-                                                      (equalsData
-                                                         k'
-                                                         (case
-                                                            hd
-                                                            [(\l r -> l)]))
-                                                      [ (\x -> s s x)
-                                                      , (\ds ->
-                                                           constr 0
-                                                             [ (case
-                                                                  hd
-                                                                  [ (\l
-                                                                      r ->
-                                                                       r) ]) ]) ])
-                                               , (constr 1 []) ]))
+                                                , (`$j` v') ])
+                                             (\s
+                                               xs ->
+                                                case
+                                                  xs
+                                                  [ (\hd ->
+                                                       case
+                                                         (equalsData
+                                                            k'
+                                                            (case
+                                                               hd
+                                                               [(\l r -> l)]))
+                                                         [ (\x -> s s x)
+                                                         , (\ds ->
+                                                              constr 0
+                                                                [ (case
+                                                                     hd
+                                                                     [ (\l
+                                                                         r ->
+                                                                          r) ]) ]) ])
+                                                  , (constr 1 []) ]))
+                                          (\v'' ->
+                                             force mkCons
+                                               (mkPairData k' v'')
+                                               (s s tl)))
                                        (case hd [(\l r -> l)]))
                                     (case hd [(\l r -> r)]))
                              , [] ])))

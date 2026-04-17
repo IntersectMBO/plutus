@@ -107,13 +107,11 @@
                                                 tl ->
                                                  (\v ->
                                                     (\k ->
-                                                       case
-                                                         (lookup' k nt)
-                                                         [ (\r ->
-                                                              force
-                                                                mkCons
-                                                                (mkPairData
-                                                                   k
+                                                       (\`$j` ->
+                                                          case
+                                                            (lookup' k nt)
+                                                            [ (\r ->
+                                                                 `$j`
                                                                    (case
                                                                       (constr 0
                                                                          [ `$dToData`
@@ -124,11 +122,7 @@
                                                                               , (unIData
                                                                                    r) ]) ])
                                                                       [ `$fToDataThese_$ctoBuiltinData` ]))
-                                                                (s s tl))
-                                                         , (force
-                                                              mkCons
-                                                              (mkPairData
-                                                                 k
+                                                            , (`$j`
                                                                  (case
                                                                     (constr 0
                                                                        [ `$dToData`
@@ -136,8 +130,11 @@
                                                                        , (constr 0
                                                                             [ (unIData
                                                                                  v) ]) ])
-                                                                    [ `$fToDataThese_$ctoBuiltinData` ]))
-                                                              (s s tl)) ])
+                                                                    [ `$fToDataThese_$ctoBuiltinData` ])) ])
+                                                         (\v' ->
+                                                            force mkCons
+                                                              (mkPairData k v')
+                                                              (s s tl)))
                                                       (case hd [(\l r -> l)]))
                                                    (case hd [(\l r -> r)]))
                                             , [] ])))
@@ -179,13 +176,11 @@
                                           tl ->
                                            (\v ->
                                               (\k ->
-                                                 case
-                                                   (lookup' k nt)
-                                                   [ (\r ->
-                                                        force
-                                                          mkCons
-                                                          (mkPairData
-                                                             k
+                                                 (\`$j` ->
+                                                    case
+                                                      (lookup' k nt)
+                                                      [ (\r ->
+                                                           `$j`
                                                              (case
                                                                 (constr 0
                                                                    [ `$dToData`
@@ -196,11 +191,7 @@
                                                                         , (unIData
                                                                              r) ]) ])
                                                                 [ `$fToDataThese_$ctoBuiltinData` ]))
-                                                          (s s tl))
-                                                   , (force
-                                                        mkCons
-                                                        (mkPairData
-                                                           k
+                                                      , (`$j`
                                                            (case
                                                               (constr 0
                                                                  [ `$dToData`
@@ -208,8 +199,11 @@
                                                                  , (constr 2
                                                                       [ (unIData
                                                                            v) ]) ])
-                                                              [ `$fToDataThese_$ctoBuiltinData` ]))
-                                                        (s s tl)) ])
+                                                              [ `$fToDataThese_$ctoBuiltinData` ])) ])
+                                                   (\v' ->
+                                                      force mkCons
+                                                        (mkPairData k v')
+                                                        (s s tl)))
                                                 (case hd [(\l r -> l)]))
                                              (case hd [(\l r -> r)]))
                                       , [] ])))
