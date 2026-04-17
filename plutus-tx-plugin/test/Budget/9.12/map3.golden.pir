@@ -200,6 +200,9 @@ in
                  let
                    !v : data = case data hd [(\(l : data) (r : data) -> r)]
                    !k : data = case data hd [(\(l : data) (r : data) -> l)]
+                   !`$j` : data -> list (pair data data)
+                     = \(v' : data) ->
+                         mkCons {pair data data} (mkPairData k v') (goLeft tl)
                  in
                  Maybe_match
                    {data}
@@ -207,33 +210,25 @@ in
                    {all dead. list (pair data data)}
                    (\(r : data) ->
                       /\dead ->
-                        mkCons
-                          {pair data data}
-                          (mkPairData
-                             k
-                             (`$fToDataThese_$ctoBuiltinData`
+                        `$j`
+                          (`$fToDataThese_$ctoBuiltinData`
+                             {integer}
+                             {integer}
+                             `$dToData`
+                             `$dToData`
+                             (These
                                 {integer}
                                 {integer}
-                                `$dToData`
-                                `$dToData`
-                                (These
-                                   {integer}
-                                   {integer}
-                                   (unIData v)
-                                   (unIData r))))
-                          (goLeft tl))
+                                (unIData v)
+                                (unIData r))))
                    (/\dead ->
-                      mkCons
-                        {pair data data}
-                        (mkPairData
-                           k
-                           (`$fToDataThese_$ctoBuiltinData`
-                              {integer}
-                              {integer}
-                              `$dToData`
-                              `$dToData`
-                              (This {integer} {integer} (unIData v))))
-                        (goLeft tl))
+                      `$j`
+                        (`$fToDataThese_$ctoBuiltinData`
+                           {integer}
+                           {integer}
+                           `$dToData`
+                           `$dToData`
+                           (This {integer} {integer} (unIData v))))
                    {all dead. dead})
             , [] ]
   in
@@ -273,6 +268,9 @@ in
                  let
                    !v : data = case data hd [(\(l : data) (r : data) -> r)]
                    !k : data = case data hd [(\(l : data) (r : data) -> l)]
+                   !`$j` : data -> list (pair data data)
+                     = \(v' : data) ->
+                         mkCons {pair data data} (mkPairData k v') (goRight tl)
                  in
                  Maybe_match
                    {data}
@@ -280,33 +278,25 @@ in
                    {all dead. list (pair data data)}
                    (\(r : data) ->
                       /\dead ->
-                        mkCons
-                          {pair data data}
-                          (mkPairData
-                             k
-                             (`$fToDataThese_$ctoBuiltinData`
+                        `$j`
+                          (`$fToDataThese_$ctoBuiltinData`
+                             {integer}
+                             {integer}
+                             `$dToData`
+                             `$dToData`
+                             (These
                                 {integer}
                                 {integer}
-                                `$dToData`
-                                `$dToData`
-                                (These
-                                   {integer}
-                                   {integer}
-                                   (unIData v)
-                                   (unIData r))))
-                          (goRight tl))
+                                (unIData v)
+                                (unIData r))))
                    (/\dead ->
-                      mkCons
-                        {pair data data}
-                        (mkPairData
-                           k
-                           (`$fToDataThese_$ctoBuiltinData`
-                              {integer}
-                              {integer}
-                              `$dToData`
-                              `$dToData`
-                              (That {integer} {integer} (unIData v))))
-                        (goRight tl))
+                      `$j`
+                        (`$fToDataThese_$ctoBuiltinData`
+                           {integer}
+                           {integer}
+                           `$dToData`
+                           `$dToData`
+                           (That {integer} {integer} (unIData v))))
                    {all dead. dead})
             , [] ]
   in

@@ -232,6 +232,12 @@ let
                              = case data hd [(\(l : data) (r : data) -> r)]
                            !k : data
                              = case data hd [(\(l : data) (r : data) -> l)]
+                           !`$j` : data -> list (pair data data)
+                             = \(v' : data) ->
+                                 mkCons
+                                   {pair data data}
+                                   (mkPairData k v')
+                                   (goRight tl)
                          in
                          Maybe_match
                            {data}
@@ -239,33 +245,25 @@ let
                            {all dead. list (pair data data)}
                            (\(r : data) ->
                               /\dead ->
-                                mkCons
-                                  {pair data data}
-                                  (mkPairData
-                                     k
-                                     (`$fToDataThese_$ctoBuiltinData`
+                                `$j`
+                                  (`$fToDataThese_$ctoBuiltinData`
+                                     {a}
+                                     {b}
+                                     `$dToData`
+                                     `$dToData`
+                                     (These
                                         {a}
                                         {b}
-                                        `$dToData`
-                                        `$dToData`
-                                        (These
-                                           {a}
-                                           {b}
-                                           (`$dUnsafeFromData` v)
-                                           (`$dUnsafeFromData` r))))
-                                  (goRight tl))
+                                        (`$dUnsafeFromData` v)
+                                        (`$dUnsafeFromData` r))))
                            (/\dead ->
-                              mkCons
-                                {pair data data}
-                                (mkPairData
-                                   k
-                                   (`$fToDataThese_$ctoBuiltinData`
-                                      {a}
-                                      {b}
-                                      `$dToData`
-                                      `$dToData`
-                                      (That {a} {b} (`$dUnsafeFromData` v))))
-                                (goRight tl))
+                              `$j`
+                                (`$fToDataThese_$ctoBuiltinData`
+                                   {a}
+                                   {b}
+                                   `$dToData`
+                                   `$dToData`
+                                   (That {a} {b} (`$dUnsafeFromData` v))))
                            {all dead. dead})
                     , [] ]
           in
@@ -282,6 +280,12 @@ let
                                = case data hd [(\(l : data) (r : data) -> r)]
                              !k : data
                                = case data hd [(\(l : data) (r : data) -> l)]
+                             !`$j` : data -> list (pair data data)
+                               = \(v' : data) ->
+                                   mkCons
+                                     {pair data data}
+                                     (mkPairData k v')
+                                     (goLeft tl)
                            in
                            Maybe_match
                              {data}
@@ -289,33 +293,25 @@ let
                              {all dead. list (pair data data)}
                              (\(r : data) ->
                                 /\dead ->
-                                  mkCons
-                                    {pair data data}
-                                    (mkPairData
-                                       k
-                                       (`$fToDataThese_$ctoBuiltinData`
+                                  `$j`
+                                    (`$fToDataThese_$ctoBuiltinData`
+                                       {a}
+                                       {b}
+                                       `$dToData`
+                                       `$dToData`
+                                       (These
                                           {a}
                                           {b}
-                                          `$dToData`
-                                          `$dToData`
-                                          (These
-                                             {a}
-                                             {b}
-                                             (`$dUnsafeFromData` v)
-                                             (`$dUnsafeFromData` r))))
-                                    (goLeft tl))
+                                          (`$dUnsafeFromData` v)
+                                          (`$dUnsafeFromData` r))))
                              (/\dead ->
-                                mkCons
-                                  {pair data data}
-                                  (mkPairData
-                                     k
-                                     (`$fToDataThese_$ctoBuiltinData`
-                                        {a}
-                                        {b}
-                                        `$dToData`
-                                        `$dToData`
-                                        (This {a} {b} (`$dUnsafeFromData` v))))
-                                  (goLeft tl))
+                                `$j`
+                                  (`$fToDataThese_$ctoBuiltinData`
+                                     {a}
+                                     {b}
+                                     `$dToData`
+                                     `$dToData`
+                                     (This {a} {b} (`$dUnsafeFromData` v))))
                              {all dead. dead})
                       , [] ]
             in

@@ -1,2 +1,11 @@
-Error: Reference to a name which is not a local, a builtin, or an external INLINABLE function: Variable Plugin.Errors.Spec.oddDirectLocal
+Error: Unsupported feature: Variable Plugin.Errors.Spec.oddDirectLocal
        OtherCon []
+
+       This error often indicates a stage violation in Plinth compilation.
+       Variables inside compile quotations must be either:
+         • Top-level variables, or
+         • Bound inside the quotation itself
+
+       Common causes:
+         • Using a function defined in a 'where' clause: move it to the top level
+         • Referencing local variables from outside the quotation
