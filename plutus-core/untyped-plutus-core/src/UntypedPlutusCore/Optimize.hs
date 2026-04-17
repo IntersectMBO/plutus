@@ -31,6 +31,7 @@ import UntypedPlutusCore.Transform.LetFloatOut (letFloatOut)
 import UntypedPlutusCore.Transform.Optimizer
 
 import Control.Monad
+import Data.Either (isRight)
 import Data.List as List (foldl')
 import Data.Typeable
 import Data.Vector.Orphans ()
@@ -110,14 +111,9 @@ termOptimizer opts builtinSemanticsVariant =
         >=> runStage InlineStage
 
     runStage stage' =
-      let isIC = either (const False) (const True) stage'
+      let certified = isRight stage'
           withCertifiedOptsOnly action
-            | _ooCertifiedOptsOnly opts
-            , isIC =
-                action
-            | _ooCertifiedOptsOnly opts
-            , not isIC =
-                return
+            | _ooCertifiedOptsOnly opts && not certified = pure
             | otherwise = action
        in case stage' of
             FloatDelayStage ->
