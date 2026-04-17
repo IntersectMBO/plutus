@@ -69,6 +69,7 @@ common lang
     FlexibleContexts
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
+    NumericUnderscores
     ScopedTypeVariables
     StandaloneDeriving
 
