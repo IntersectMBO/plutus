@@ -1,0 +1,26 @@
+-- Certifier hints #1 (Right FloatDelay) --
+NoHints
+
+-- Certifier hints #2 (Right ForceCaseDelay) --
+NoHints
+
+-- Certifier hints #3 (Right ForceDelay) --
+NoHints
+
+-- Certifier hints #4 (Right CaseReduce) --
+NoHints
+
+-- Certifier hints #5 (Right Inline) --
+InlApply
+  InlApply
+    InlBuiltin
+    InlCon
+  InlCon
+
+
+-- Certifier hints #6 (Right ConstantFold) --
+NoHints
+
+-- Certifier hints #7 (Right ApplyToCase) --
+NoHints
+

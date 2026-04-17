@@ -24,6 +24,7 @@ data CertifiedOptStage
   | Inline
   | CSE
   | ApplyToCase
+  | ConstantFold
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -37,6 +38,7 @@ at https://github.com/IntersectMBO/plutus/issues. -}
 data UncertifiedOptStage
   = CaseOfCase
   | LetFloatOut
+  | UncertifiedConstantFold
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -69,6 +71,12 @@ pattern CaseOfCaseStage = Left CaseOfCase
 pattern LetFloatOutStage :: OptStage
 pattern LetFloatOutStage = Left LetFloatOut
 
+pattern ConstantFoldStage :: OptStage
+pattern ConstantFoldStage = Right ConstantFold
+
+pattern UncertifiedConstantFoldStage :: OptStage
+pattern UncertifiedConstantFoldStage = Left UncertifiedConstantFold
+
 {-# COMPLETE
   FloatDelayStage
   , ForceDelayStage
@@ -77,9 +85,56 @@ pattern LetFloatOutStage = Left LetFloatOut
   , InlineStage
   , CseStage
   , ApplyToCaseStage
+  , ConstantFoldStage
   , CaseOfCaseStage
   , LetFloatOutStage
+  , UncertifiedConstantFoldStage
   #-}
+
+{-| The set of 'DefaultFun' builtins that can be constant-folded in the
+certified optimization stage, i.e. those whose Agda implementations use
+only native Agda operations (no postulated functions).
+
+This type is FFI-linked to the Agda certifier via a @COMPILE GHC@ pragma.
+Adding a constructor here requires adding the corresponding native Agda
+implementation in the certifier; the Agda compiler will reject the build if
+the two types diverge in constructor count or order. -}
+data CertifiedBuiltin
+  = CertAddInteger
+  | CertSubtractInteger
+  | CertMultiplyInteger
+  | CertDivideInteger
+  | CertQuotientInteger
+  | CertRemainderInteger
+  | CertModInteger
+  | CertEqualsInteger
+  | CertLessThanInteger
+  | CertLessThanEqualsInteger
+  | CertIfThenElse
+  | CertChooseUnit
+  | CertFstPair
+  | CertSndPair
+  | CertChooseList
+  | CertMkCons
+  | CertHeadList
+  | CertTailList
+  | CertNullList
+  | CertDropList
+  | CertChooseData
+  | CertConstrData
+  | CertMapData
+  | CertListData
+  | CertIData
+  | CertUnConstrData
+  | CertUnMapData
+  | CertUnListData
+  | CertUnIData
+  | CertEqualsData
+  | CertMkPairData
+  | CertMkNilData
+  | CertMkNilPairData
+  deriving stock (Show, Eq, Ord, Enum, Bounded, Generic)
+  deriving anyclass (NFData)
 
 data Optimization name uni fun a
   = Optimization

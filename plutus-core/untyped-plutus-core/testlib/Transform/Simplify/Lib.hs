@@ -11,6 +11,7 @@ import Data.Text.Encoding (encodeUtf8)
 import Data.Tuple.Extra ((&&&))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (BuiltinSemanticsVariant)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.Pretty (PrettyPlc, Render (render), prettyPlcReadableSimple)
 import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree, testGroup)
@@ -113,6 +114,7 @@ testOptimize =
           & ooPreserveLogging .~ False
       )
       (def :: BuiltinSemanticsVariant PLC.DefaultFun)
+      defaultBuiltinCostModelForTesting
 
 goldenVsCse
   :: CseWhichSubterms
@@ -144,3 +146,4 @@ testCse whichSubterms =
           & ooPreserveLogging .~ False
       )
       (def :: BuiltinSemanticsVariant PLC.DefaultFun)
+      defaultBuiltinCostModelForTesting

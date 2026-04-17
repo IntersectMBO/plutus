@@ -91,7 +91,7 @@ compileTplcProgramOrFail
   -> m (UPLC.Program Name DefaultUni DefaultFun ())
 compileTplcProgramOrFail plcProgram =
   handlePirErrorByFailing @SrcSpan =<< do
-    TPLC.compileProgram plcProgram
+    TPLC.compileProgram defaultBuiltinCostModelForTesting plcProgram
       & flip runReaderT TPLC.defaultCompilationOpts
       & runQuoteT
       & runExceptT

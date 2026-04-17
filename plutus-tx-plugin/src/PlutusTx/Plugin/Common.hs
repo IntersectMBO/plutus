@@ -840,7 +840,7 @@ runCompiler moduleName opts expr = do
         PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
   let optCertify = opts ^. posCertify
-  (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+  (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace def plcP
   liftIO $ case optCertify of
     Just certName -> do
       -- FIXME: add a plugin option to choose from BasicOutput vs. other options

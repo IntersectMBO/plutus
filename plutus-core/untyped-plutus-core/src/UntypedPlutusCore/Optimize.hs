@@ -13,6 +13,7 @@ module UntypedPlutusCore.Optimize
   , module UntypedPlutusCore.Transform.Optimizer
   ) where
 
+import PlutusCore.Builtin
 import PlutusCore.Compiler.Types
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Default.Builtins
@@ -23,6 +24,7 @@ import UntypedPlutusCore.Transform.ApplyToCase (applyToCase)
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.Cse
+import UntypedPlutusCore.Transform.EvaluateBuiltins (certifiedBuiltinToFun, evaluateBuiltins)
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
 import UntypedPlutusCore.Transform.ForceCaseDelay (forceCaseDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
@@ -33,30 +35,34 @@ import UntypedPlutusCore.Transform.Optimizer
 import Control.Monad
 import Data.Either (isRight)
 import Data.List as List (foldl')
+import Data.Set qualified as Set
 import Data.Typeable
 import Data.Vector.Orphans ()
+import Universe (Some (..), ValueOf (..))
 
 optimizeProgram
   :: forall name uni fun m a
    . Compiling m uni fun name a
   => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
+  -> CostingPart uni fun
   -> Program name uni fun a
   -> m (Program name uni fun a)
-optimizeProgram opts builtinSemanticsVariant (Program a v t) =
-  Program a v <$> optimizeTerm opts builtinSemanticsVariant t
+optimizeProgram opts builtinSemanticsVariant costingPart (Program a v t) =
+  Program a v <$> optimizeTerm opts builtinSemanticsVariant costingPart t
 
 optimizeProgramWithTrace
   :: forall name uni fun m a
    . Compiling m uni fun name a
   => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
+  -> CostingPart uni fun
   -> Program name uni fun a
   -> m (Program name uni fun a, OptimizerTrace name uni fun a)
-optimizeProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
+optimizeProgramWithTrace opts builtinSemanticsVariant costingPart (Program a v t) = do
   (result, trace) <-
     runOptimizerT $
-      termOptimizer opts builtinSemanticsVariant t
+      termOptimizer opts builtinSemanticsVariant costingPart t
   pure (Program a v result, trace)
 
 optimizeTerm
@@ -64,19 +70,21 @@ optimizeTerm
    . Compiling m uni fun name a
   => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
+  -> CostingPart uni fun
   -> Term name uni fun a
   -> m (Term name uni fun a)
-optimizeTerm opts builtinSemanticsVariant term =
-  evalOptimizerT $ termOptimizer opts builtinSemanticsVariant term
+optimizeTerm opts builtinSemanticsVariant costingPart term =
+  evalOptimizerT $ termOptimizer opts builtinSemanticsVariant costingPart term
 
 termOptimizer
   :: forall name uni fun m a
    . Compiling m uni fun name a
   => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
+  -> CostingPart uni fun
   -> Term name uni fun a
   -> OptimizerT name uni fun a m (Term name uni fun a)
-termOptimizer opts builtinSemanticsVariant =
+termOptimizer opts builtinSemanticsVariant costingPart =
   simplifyNTimes (_ooMaxSimplifierIterations opts)
     >=> runStage CseStage
     >=> runStage ApplyToCaseStage
@@ -109,6 +117,8 @@ termOptimizer opts builtinSemanticsVariant =
         >=> runStage CaseOfCaseStage
         >=> runStage CaseReduceStage
         >=> runStage InlineStage
+        >=> runStage ConstantFoldStage
+        >=> runStage UncertifiedConstantFoldStage
 
     runStage stage' =
       let certified = isRight stage'
@@ -144,6 +154,45 @@ termOptimizer opts builtinSemanticsVariant =
                 if _ooApplyToCase opts then applyToCase else pure
             LetFloatOutStage ->
               withCertifiedOptsOnly letFloatOut
+            ConstantFoldStage ->
+              withCertifiedOptsOnly $
+                case eqT @fun @DefaultFun of
+                  Just Refl ->
+                    evaluateBuiltins
+                      (_ooPreserveLogging opts)
+                      builtinSemanticsVariant
+                      costingPart
+                      (`Set.member` certifiedFuns)
+                      (const True)
+                      ConstantFoldStage
+                  Nothing -> pure
+            UncertifiedConstantFoldStage ->
+              withCertifiedOptsOnly $
+                case (eqT @fun @DefaultFun, eqT @uni @PLC.DefaultUni) of
+                  (Just Refl, Just Refl) ->
+                    evaluateBuiltins
+                      (_ooPreserveLogging opts)
+                      builtinSemanticsVariant
+                      costingPart
+                      (`Set.notMember` certifiedFuns)
+                      defaultUniConstantIsSerializable
+                      UncertifiedConstantFoldStage
+                  (Just Refl, Nothing) ->
+                    evaluateBuiltins
+                      (_ooPreserveLogging opts)
+                      builtinSemanticsVariant
+                      costingPart
+                      (`Set.notMember` certifiedFuns)
+                      (const True)
+                      UncertifiedConstantFoldStage
+                  (Nothing, _) ->
+                    evaluateBuiltins
+                      (_ooPreserveLogging opts)
+                      builtinSemanticsVariant
+                      costingPart
+                      (const True)
+                      (const True)
+                      UncertifiedConstantFoldStage
 
     caseOfCase'
       :: Term name uni fun a
@@ -162,3 +211,13 @@ termOptimizer opts builtinSemanticsVariant =
         _ -> pure
 
     cseTimes = if _ooConservativeOpts opts then 0 else _ooMaxCseIterations opts
+
+    certifiedFuns :: Set.Set DefaultFun
+    certifiedFuns = Set.fromList (map certifiedBuiltinToFun [minBound .. maxBound])
+
+defaultUniConstantIsSerializable :: Some (ValueOf PLC.DefaultUni) -> Bool
+defaultUniConstantIsSerializable c = case c of
+  Some (ValueOf PLC.DefaultUniBLS12_381_G1_Element _) -> False
+  Some (ValueOf PLC.DefaultUniBLS12_381_G2_Element _) -> False
+  Some (ValueOf PLC.DefaultUniBLS12_381_MlResult _) -> False
+  _ -> True

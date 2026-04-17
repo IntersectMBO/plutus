@@ -50,6 +50,7 @@ import VerifiedCompilation.UForceCaseDelay as UFCD
 import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
+import VerifiedCompilation.UConstantFold as UCF
 open import VerifiedCompilation.NotImplemented
 open import VerifiedCompilation.Trace
 open import VerifiedCompilation.Certificate hiding (_>>=_)
@@ -79,6 +80,7 @@ tagToRelation caseReduceT = UCR.UCaseReduce
 tagToRelation inlineT = UInline.Inline (λ()) UInline.□
 tagToRelation cseT = UCSE.UntypedCSE
 tagToRelation applyToCaseT = UA2C.UApplyToCase
+tagToRelation constantFoldT = UCF.UConstantFold
 ```
 
 We default to the `NotImplemented` relation to give each `OptTag` a relation:
@@ -105,6 +107,7 @@ certifyPass (inj₂ inlineT) (inline hs) = checker (UInline.top-check hs)
 certifyPass (inj₂ inlineT) none = λ M M' → abort InlineT M M'
 certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
 certifyPass (inj₂ applyToCaseT) _ = decider UA2C.a2c?ᶜᶜ
+certifyPass (inj₂ constantFoldT) _ = decider UCF.isUConstantFold?
 ```
 
 A `Certificate t` states the main theorem of a trace `t`: a sequence (product)

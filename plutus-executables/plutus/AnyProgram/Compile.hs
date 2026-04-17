@@ -24,6 +24,7 @@ import PlutusCore.Compiler qualified as PLC
 import PlutusCore.DeBruijn qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Error as PLC
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.MkPlc hiding (error)
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler qualified as PIR
@@ -127,7 +128,7 @@ compileProgram = curry $ \case
       -- PLC.compileProgram subsumes uplcOptimise
       >=> ( PLC.runQuoteT
               . flip runReaderT PLC.defaultCompilationOpts
-              . plcToUplcViaName n2 PLC.compileProgram
+              . plcToUplcViaName n2 (PLC.compileProgram defaultBuiltinCostModelForTesting)
           )
       >=> pure
       . UPLC.UnrestrictedProgram
@@ -260,7 +261,7 @@ uplcOptimise =
                 UnsafeOptimise -> id
        in fmap PLC.runQuoteT
             . _Wrapped
-            . uplcViaName (UPLC.optimizeProgram oOpts def)
+            . uplcViaName (UPLC.optimizeProgram oOpts def defaultBuiltinCostModelForTesting)
 
 -- | We do not have a typechecker for uplc, but we could pretend that scopecheck is a "typechecker"
 uplcTypecheck

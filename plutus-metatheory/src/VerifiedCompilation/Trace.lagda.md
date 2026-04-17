@@ -28,6 +28,7 @@ We enumerate the known passes and partition them into two categories:
 data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
   letFloatOutT : UncertifiedOptTag
+  uncertifiedConstantFoldT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
@@ -37,6 +38,7 @@ data CertifiedOptTag : Set where
   inlineT : CertifiedOptTag
   cseT : CertifiedOptTag
   applyToCaseT : CertifiedOptTag
+  constantFoldT : CertifiedOptTag
 
 OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
 
@@ -55,13 +57,29 @@ CseT = Utils.inj₂ cseT
 ApplyToCaseT : OptTag
 ApplyToCaseT = Utils.inj₂ applyToCaseT
 
+ConstantFoldT : OptTag
+ConstantFoldT = Utils.inj₂ constantFoldT
+
 CaseOfCaseT : OptTag
 CaseOfCaseT = Utils.inj₁ caseOfCaseT
 LetFloatOutT : OptTag
 LetFloatOutT = Utils.inj₁ letFloatOutT
 
-{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase) #-}
-{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut) #-}
+{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase | ConstantFold) #-}
+{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut | UncertifiedConstantFold) #-}
+
+data CertifiedBuiltin : Set where
+  certAddInteger certSubtractInteger certMultiplyInteger
+    certDivideInteger certQuotientInteger certRemainderInteger certModInteger
+    certEqualsInteger certLessThanInteger certLessThanEqualsInteger
+    certIfThenElse certChooseUnit
+    certFstPair certSndPair
+    certChooseList certMkCons certHeadList certTailList certNullList certDropList
+    certChooseData certConstrData certMapData certListData certIData
+    certUnConstrData certUnMapData certUnListData certUnIData
+    certEqualsData certMkPairData certMkNilData certMkNilPairData : CertifiedBuiltin
+
+{-# COMPILE GHC CertifiedBuiltin = data CertifiedBuiltin (CertAddInteger | CertSubtractInteger | CertMultiplyInteger | CertDivideInteger | CertQuotientInteger | CertRemainderInteger | CertModInteger | CertEqualsInteger | CertLessThanInteger | CertLessThanEqualsInteger | CertIfThenElse | CertChooseUnit | CertFstPair | CertSndPair | CertChooseList | CertMkCons | CertHeadList | CertTailList | CertNullList | CertDropList | CertChooseData | CertConstrData | CertMapData | CertListData | CertIData | CertUnConstrData | CertUnMapData | CertUnListData | CertUnIData | CertEqualsData | CertMkPairData | CertMkNilData | CertMkNilPairData) #-}
 ```
 
 ## Hints

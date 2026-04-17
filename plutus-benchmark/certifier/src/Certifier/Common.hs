@@ -8,6 +8,7 @@ import FFI.OptimizerTrace
 import FFI.Untyped (UTerm)
 import PlutusBenchmark.Common (getDataDir)
 import PlutusCore.Default.Builtins
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.Quote
 import PlutusLedgerApi.Common
 import System.FilePath
@@ -47,6 +48,7 @@ simplify =
           & ooPreserveLogging .~ False
       )
       DefaultFunSemanticsVariantE
+      defaultBuiltinCostModelForTesting
 
 testScripts :: [FilePath]
 testScripts =

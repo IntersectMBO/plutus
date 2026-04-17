@@ -46,6 +46,12 @@ InlLam
             InlVar
 
 
--- Certifier hints #8 (Right ApplyToCase) --
+-- Certifier hints #8 (Right ConstantFold) --
+NoHints
+
+-- Certifier hints #9 (Left UncertifiedConstantFold) --
+NoHints
+
+-- Certifier hints #10 (Right ApplyToCase) --
 NoHints
 

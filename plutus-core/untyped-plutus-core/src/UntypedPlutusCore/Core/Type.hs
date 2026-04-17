@@ -34,6 +34,7 @@ import PlutusPrelude
 import Data.Vector
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage (..))
 import PlutusCore.MkPlc
 import PlutusCore.Name.Unique qualified as TPLC
 import Universe
@@ -151,6 +152,10 @@ instance TPLC.HasConstant (Term name uni fun ()) where
   asConstant _ = throwError TPLC.notAConstant
 
   fromConstant = Constant ()
+
+-- See Note [ExMemoryUsage instances for non-constants].
+instance ExMemoryUsage (Term name uni fun ann) where
+  memoryUsage = Prelude.error "Internal error: 'memoryUsage' for UPLC 'Term' is not supposed to be forced"
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)

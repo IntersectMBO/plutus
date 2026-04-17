@@ -2,6 +2,7 @@ module Test.Certifier.Executable where
 
 import Certifier
 import PlutusCore.Default.Builtins
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.Executable.Common
 import PlutusCore.Quote
 import UntypedPlutusCore as UPLC
@@ -33,6 +34,7 @@ simplify =
     . termOptimizer
       defaultOptimizeOpts
       DefaultFunSemanticsVariantE
+      defaultBuiltinCostModelForTesting
 
 loadAndMakeCert :: String -> IO FilePath
 loadAndMakeCert name =

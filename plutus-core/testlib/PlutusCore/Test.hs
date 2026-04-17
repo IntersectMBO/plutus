@@ -194,6 +194,7 @@ instance
   , TPLC.GEq uni
   , TPLC.Closed uni
   , TPLC.Everywhere uni Eq
+  , Default (CostingPart uni fun)
   )
   => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun
   where
@@ -201,7 +202,7 @@ instance
     pure
       . TPLC.runQuote
       . flip runReaderT TPLC.defaultCompilationOpts
-      . TPLC.compileProgram
+      . TPLC.compileProgram def
 
 instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
   toUPlc p =

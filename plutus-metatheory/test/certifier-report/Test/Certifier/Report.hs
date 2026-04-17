@@ -7,6 +7,7 @@ import Paths_plutus_metatheory (getDataDir)
 import PlutusCore qualified as PLC
 import PlutusCore.Default.Builtins
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.Executable.Eval (evalCounting, evalOptimizerTrace, mkDefaultEvalCtx)
 import PlutusCore.Quote
 import PlutusLedgerApi.Common
@@ -64,6 +65,7 @@ simplify =
           & ooPreserveLogging .~ False
       )
       def
+      defaultBuiltinCostModelForTesting
 
 evalCtx :: EvaluationContext
 evalCtx = mkDefaultEvalCtx def

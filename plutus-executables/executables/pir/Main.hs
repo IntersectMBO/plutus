@@ -12,6 +12,7 @@ import Paths_plutus_executables qualified as Paths
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.Executable.Common hiding (runPrint)
 import PlutusCore.Executable.Parsers
 import PlutusCore.Quote (runQuote, runQuoteT)
@@ -197,7 +198,9 @@ compileToUplc optimise plcProg =
               & PLC.coOptimizeOpts
               . UPLC.ooMaxSimplifierIterations
               .~ 0
-   in runQuote $ flip runReaderT plcCompilerOpts $ PLC.compileProgram plcProg
+   in runQuote $
+        flip runReaderT plcCompilerOpts $
+          PLC.compileProgram defaultBuiltinCostModelForTesting plcProg
 
 loadPirAndCompile :: CompileOptions -> IO ()
 loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode) = do

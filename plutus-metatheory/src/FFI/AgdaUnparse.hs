@@ -58,10 +58,12 @@ instance AgdaUnparse CertifiedOptStage where
   agdaUnparse Inline = "inlineT"
   agdaUnparse CSE = "cseT"
   agdaUnparse ApplyToCase = "applyToCaseT"
+  agdaUnparse ConstantFold = "constantFoldT"
 
 instance AgdaUnparse UncertifiedOptStage where
   agdaUnparse CaseOfCase = "caseOfCaseT"
   agdaUnparse LetFloatOut = "letFloatOutT"
+  agdaUnparse UncertifiedConstantFold = "uncertifiedConstantFoldT"
 
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case

@@ -421,7 +421,11 @@ optimiseProgram opts prog = PLC.runQuoteT $ do
   renamed <- PLC.rename prog
   let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
       defaultBuiltinSemanticsVariant = def
-  UPLC.optimizeProgramWithTrace opts defaultBuiltinSemanticsVariant renamed
+  UPLC.optimizeProgramWithTrace
+    opts
+    defaultBuiltinSemanticsVariant
+    PLC.defaultBuiltinCostModelForTesting
+    renamed
 
 execCertifier
   :: UPLC.OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a

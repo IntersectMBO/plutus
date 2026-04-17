@@ -112,7 +112,7 @@ safeLiftWith f g v x = do
         )
           PLC.defaultCompilationOpts
   plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
-  uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
+  uplc <- flip runReaderT ucOpts $ PLC.compileProgram def plc
   UPLC.Program _ _ db <-
     modifyError (PLCError . PLC.FreeVariableErrorE) $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
   pure (void pir, void db)
@@ -507,7 +507,7 @@ typeCode p prog = do
   _ <- typeCheckAgainst p prog
   compiled <-
     flip runReaderT PLC.defaultCompilationOpts $
-      PLC.compileProgram prog
+      PLC.compileProgram def prog
   db <-
     modifyError (PLCError . PLC.FreeVariableErrorE) $
       traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
