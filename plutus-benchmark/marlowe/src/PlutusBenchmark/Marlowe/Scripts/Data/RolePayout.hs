@@ -14,8 +14,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:target-version=1.0.0 #-}
 
 -- | Marlowe validators.
 module PlutusBenchmark.Marlowe.Scripts.Data.RolePayout
@@ -26,6 +26,7 @@ module PlutusBenchmark.Marlowe.Scripts.Data.RolePayout
   , mkRolePayoutValidator
   ) where
 
+import Plinth.Plugin ()
 import PlutusLedgerApi.Data.V2 qualified as Data
 import PlutusLedgerApi.V2
   ( CurrencySymbol
@@ -36,7 +37,6 @@ import PlutusLedgerApi.V2
   )
 import PlutusLedgerApi.V2.Data.Contexts qualified as Data
 import PlutusTx (CompiledCode, unsafeFromBuiltinData)
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude
   ( Bool (..)
   , BuiltinData

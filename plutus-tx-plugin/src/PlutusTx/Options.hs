@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -85,6 +84,7 @@ data PluginOptions = PluginOptions
     _posRemoveTrace :: Bool
   , _posDumpCompilationTrace :: Bool
   , _posCertify :: Maybe String
+  , _posPreserveSourceLocations :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -339,6 +339,11 @@ pluginOptions =
               rest <- many (alphaNumChar <|> char '_' <|> char '\\')
               pure (firstC : rest)
        in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
+    , let k = "preserve-source-locations"
+          desc =
+            "Try to preserve source locations for use in error messages. "
+              <> "This is an experimental feature."
+       in (k, PluginOption typeRep (setTrue k) posPreserveSourceLocations desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -414,6 +419,7 @@ defaultPluginOptions =
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
     , _posCertify = Nothing
+    , _posPreserveSourceLocations = False
     }
 
 processOne
@@ -456,6 +462,6 @@ toKeyValue opt = case List.elemIndex '=' opt of
      in (Text.pack lhs, Just (Text.pack (drop 1 rhs)))
 
 {-| Parses the arguments that were given to ghc at commandline as
- "-fplugin-opt PlutusTx.Plugin:opt" or "-fplugin-opt PlutusTx.Plugin:opt=val" -}
+ "-fplugin-opt Plinth.Plugin:opt" or "-fplugin-opt Plinth.Plugin:opt=val" -}
 parsePluginOptions :: [GHC.CommandLineOption] -> Validation ParseErrors PluginOptions
 parsePluginOptions = fmap (foldl' (flip ($)) defaultPluginOptions) . processAll . fmap toKeyValue

@@ -12,13 +12,13 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
 
 module IsData.Spec where
 
@@ -26,17 +26,15 @@ import Test.Tasty.Extras
 
 import Plugin.Data.Spec
 
+import Plinth.Plugin
 import PlutusCore.Test
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
-import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
-
-import Data.Proxy
 
 data MyMonoRecordAsList = MyMonoRecordAsList {mrlA :: Integer, mrlB :: Integer}
 instance P.Eq MyMonoRecordAsList where
@@ -63,10 +61,10 @@ instance P.Eq WrappedBS where
   (WrappedBS i1) == (WrappedBS i2) = i1 P.== i2
 
 deconstructData :: CompiledCode (Builtins.BuiltinData -> Maybe (Integer, Integer))
-deconstructData = plc (Proxy @"deconstructData4") (\(d :: Builtins.BuiltinData) -> IsData.fromBuiltinData d)
+deconstructData = plinthc (\(d :: Builtins.BuiltinData) -> IsData.fromBuiltinData d)
 
 unsafeDeconstructData :: CompiledCode (Builtins.BuiltinData -> Maybe (Integer, Integer))
-unsafeDeconstructData = plc (Proxy @"deconstructData4") (\(d :: Builtins.BuiltinData) -> IsData.unsafeFromBuiltinData d)
+unsafeDeconstructData = plinthc (\(d :: Builtins.BuiltinData) -> IsData.unsafeFromBuiltinData d)
 
 isDataRoundtrip
   :: (IsData.FromData a, IsData.UnsafeFromData a, IsData.ToData a, P.Eq a) => a -> Bool
@@ -99,20 +97,18 @@ AsData.asData
 -- Features a nested field which is also defined with AsData
 matchAsData :: CompiledCode (MaybeD SecretlyData -> SecretlyData)
 matchAsData =
-  plc
-    (Proxy @"matchAsData")
+  plinthc
     ( \case
         JustD a -> a
         NothingD -> FirstC ()
     )
 
 recordAsData :: CompiledCode (RecordConstructor Integer)
-recordAsData = plc (Proxy @"recordAsData") (RecordConstructor 1 2)
+recordAsData = plinthc (RecordConstructor 1 2)
 
 dataToData :: CompiledCode (RecordConstructor Integer -> SecretlyData)
 dataToData =
-  plc
-    (Proxy @"dataToData")
+  plinthc
     ( \case
         RecordConstructor a b | a P.== 3, b P.== 4 -> SecondC (Builtins.addInteger a b)
         _ -> FirstC ()
@@ -120,63 +116,59 @@ dataToData =
 
 -- Should ultimately use equalsData
 equalityAsData :: CompiledCode (SecretlyData -> SecretlyData -> Bool)
-equalityAsData = plc (Proxy @"equalityAsData") (\x y -> x P.== y)
+equalityAsData = plinthc (\x y -> x P.== y)
 
 fieldAccessor :: CompiledCode (RecordConstructor Integer -> Integer)
-fieldAccessor = plc (Proxy @"fieldAccessor") (\r -> x r)
+fieldAccessor = plinthc (\r -> x r)
 
 tests :: TestNested
 tests =
   testNested "IsData" . pure $
     testNestedGhc
-      [ assertResult "int" (plc (Proxy @"int") (isDataRoundtrip (1 :: Integer)))
-      , assertResult "tuple" (plc (Proxy @"tuple") (isDataRoundtrip (1 :: Integer, 2 :: Integer)))
+      [ assertResult "int" (plinthc (isDataRoundtrip (1 :: Integer)))
+      , assertResult "tuple" (plinthc (isDataRoundtrip (1 :: Integer, 2 :: Integer)))
       , assertResult
           "tupleInterop"
           ( unsafeApplyCodeN
-              ( plc
-                  (Proxy @"tupleInterop")
+              ( plinthc
                   ( \(d :: P.BuiltinData) ->
                       case IsData.fromBuiltinData d of
                         Just t -> t P.== (1 :: Integer, 2 :: Integer)
                         Nothing -> False
                   )
               )
-              (plc (Proxy @"tupleInteropArg") (P.toBuiltinData (1 :: Integer, 2 :: Integer)))
+              (plinthc (P.toBuiltinData (1 :: Integer, 2 :: Integer)))
           )
       , assertResult
           "unsafeTupleInterop"
           ( unsafeApplyCodeN
-              ( plc
-                  (Proxy @"unsafeTupleInterop")
+              ( plinthc
                   ( \(d :: P.BuiltinData) ->
                       IsData.unsafeFromBuiltinData d P.== (1 :: Integer, 2 :: Integer)
                   )
               )
-              (plc (Proxy @"unsafeTupleInteropArg") (P.toBuiltinData (1 :: Integer, 2 :: Integer)))
+              (plinthc (P.toBuiltinData (1 :: Integer, 2 :: Integer)))
           )
-      , assertResult "unit" (plc (Proxy @"unit") (isDataRoundtrip ()))
+      , assertResult "unit" (plinthc (isDataRoundtrip ()))
       , assertResult
           "unitInterop"
           ( unsafeApplyCodeN
-              ( plc
-                  (Proxy @"unitInterop")
+              ( plinthc
                   ( \(d :: P.BuiltinData) ->
                       case IsData.fromBuiltinData d of
                         Just t -> t P.== ()
                         Nothing -> False
                   )
               )
-              (plc (Proxy @"unitInteropArg") (P.toBuiltinData ()))
+              (plinthc (P.toBuiltinData ()))
           )
-      , assertResult "mono" (plc (Proxy @"mono") (isDataRoundtrip (Mono2 2)))
-      , assertResult "poly" (plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1 :: Integer) (2 :: Integer))))
-      , assertResult "record" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2)))
-      , assertResult "recordAsList" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecordAsList 1 2)))
+      , assertResult "mono" (plinthc (isDataRoundtrip (Mono2 2)))
+      , assertResult "poly" (plinthc (isDataRoundtrip (Poly1 (1 :: Integer) (2 :: Integer))))
+      , assertResult "record" (plinthc (isDataRoundtrip (MyMonoRecord 1 2)))
+      , assertResult "recordAsList" (plinthc (isDataRoundtrip (MyMonoRecordAsList 1 2)))
       , assertResult
           "recordAsList is List"
-          ( plc
-              (Proxy @"record")
+          ( plinthc
               ( P.toBuiltinData (MyMonoRecordAsList 1 2)
                   P.== ( BI.mkList $
                            BI.mkCons (P.toBuiltinData @Integer 1) $
@@ -185,11 +177,11 @@ tests =
                        )
               )
           )
-      , assertResult "list" (plc (Proxy @"list") (isDataRoundtrip ([1] :: [Integer])))
-      , assertResult "nested" (plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2)))))
+      , assertResult "list" (plinthc (isDataRoundtrip ([1] :: [Integer])))
+      , assertResult "nested" (plinthc (isDataRoundtrip (NestedRecord (Just (1, 2)))))
       , assertResult
           "bytestring"
-          (plc (Proxy @"bytestring") (isDataRoundtrip (WrappedBS Builtins.emptyByteString)))
+          (plinthc (isDataRoundtrip (WrappedBS Builtins.emptyByteString)))
       , goldenPirReadable "deconstructData" deconstructData
       , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
       , goldenPirReadable "matchAsData" matchAsData
@@ -197,7 +189,7 @@ tests =
           "matchAsDataE"
           [ unsafeApplyCodeN
               matchAsData
-              (plc (Proxy @"test") (P.unsafeFromBuiltinData $ P.toBuiltinData $ SecondC 3))
+              (plinthc (P.unsafeFromBuiltinData $ P.toBuiltinData $ SecondC 3))
           ]
       , goldenPirReadable "recordAsData" recordAsData
       , goldenPirReadable "dataToData" dataToData
@@ -205,7 +197,7 @@ tests =
       , goldenPirReadable "fieldAccessor" fieldAccessor
       , goldenPirReadable
           "MyMonoRecordAsListToData"
-          (plc (Proxy @"MyMonoRecordAsListToData") (IsData.toBuiltinData @MyMonoRecordAsList))
+          (plinthc (IsData.toBuiltinData @MyMonoRecordAsList))
       , $(goldenCodeGen "MyMonoRecordAsList" (IsData.makeIsDataAsList ''MyMonoRecord))
       , $(goldenCodeGen "MyMonoRecord" (IsData.unstableMakeIsData ''MyMonoRecord))
       , $(goldenCodeGen "MyMonoData" (IsData.unstableMakeIsData ''MyMonoData))

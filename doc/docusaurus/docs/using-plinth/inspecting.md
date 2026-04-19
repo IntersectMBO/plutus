@@ -15,7 +15,7 @@ For example, if you use an unsupported Haskell feature, causing the compilation 
 Another way of inspecting the compilation is by using the `dump-compilation-trace` plugin flag:
 
 ```haskell
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-compilation-trace #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:dump-compilation-trace #-}
 ```
 
 This compilation trace has two main differences from the previously mentioned trace:

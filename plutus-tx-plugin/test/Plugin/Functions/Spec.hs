@@ -7,13 +7,13 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
 
 module Plugin.Functions.Spec where
 
@@ -22,13 +22,11 @@ import Test.Tasty.Extras
 import Plugin.Data.Spec
 import Plugin.Lib
 
+import Plinth.Plugin
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
-import PlutusTx.Plugin
 import PlutusTx.Test
-
-import Data.Proxy
 
 functions :: TestNested
 functions =
@@ -43,12 +41,12 @@ recursiveFunctions =
   testNested
     "recursive"
     [ goldenPirReadable "fib" fib
-    , goldenUEval "fib4" [toUPlc fib, toUPlc $ plc (Proxy @"4") (4 :: Integer)]
+    , goldenUEval "fib4" [toUPlc fib, toUPlc $ plinthc (4 :: Integer)]
     , goldenPirReadable "sum" sumDirect
     , goldenUEval "sumList" [toUPlc sumDirect, toUPlc listConstruct3]
     , goldenPirReadable "even" evenMutual
-    , goldenUEval "even3" [toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3 :: Integer)]
-    , goldenUEval "even4" [toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4 :: Integer)]
+    , goldenUEval "even3" [toUPlc evenMutual, toUPlc $ plinthc (3 :: Integer)]
+    , goldenUEval "even4" [toUPlc evenMutual, toUPlc $ plinthc (4 :: Integer)]
     , goldenPirReadable "strictLength" strictLength
     , goldenPirReadable "lazyLength" lazyLength
     ]
@@ -56,8 +54,7 @@ recursiveFunctions =
 fib :: CompiledCode (Integer -> Integer)
 -- not using case to avoid literal cases
 fib =
-  plc
-    (Proxy @"fib")
+  plinthc
     ( let fib :: Integer -> Integer
           fib n =
             if Builtins.equalsInteger n 0
@@ -71,8 +68,7 @@ fib =
 
 sumDirect :: CompiledCode ([Integer] -> Integer)
 sumDirect =
-  plc
-    (Proxy @"sumDirect")
+  plinthc
     ( let sum :: [Integer] -> Integer
           sum [] = 0
           sum (x : xs) = Builtins.addInteger x (sum xs)
@@ -81,8 +77,7 @@ sumDirect =
 
 evenMutual :: CompiledCode (Integer -> Bool)
 evenMutual =
-  plc
-    (Proxy @"evenMutual")
+  plinthc
     ( let even :: Integer -> Bool
           even n = if Builtins.equalsInteger n 0 then True else odd (Builtins.subtractInteger n 1)
           odd :: Integer -> Bool
@@ -103,10 +98,10 @@ lengthLazy l = go 0 l
     go acc (_ : tl) = go (acc `Builtins.addInteger` 1) tl
 
 strictLength :: CompiledCode ([Integer] -> Integer)
-strictLength = plc (Proxy @"strictLength") (lengthStrict @Integer)
+strictLength = plinthc (lengthStrict @Integer)
 
 lazyLength :: CompiledCode ([Integer] -> Integer)
-lazyLength = plc (Proxy @"lazyLength") (lengthLazy @Integer)
+lazyLength = plinthc (lengthLazy @Integer)
 
 unfoldings :: TestNested
 unfoldings =
@@ -139,13 +134,13 @@ nandDirect :: Bool -> Bool -> Bool
 nandDirect = \(a :: Bool) -> \(b :: Bool) -> if a then False else if b then False else True
 
 nandPlcDirect :: CompiledCode Bool
-nandPlcDirect = plc (Proxy @"nandPlcDirect") (nandDirect True False)
+nandPlcDirect = plinthc (nandDirect True False)
 
 andPlcDirect :: CompiledCode Bool
-andPlcDirect = plc (Proxy @"andPlcDirect") (andDirect True False)
+andPlcDirect = plinthc (andDirect True False)
 
 andPlcExternal :: CompiledCode Bool
-andPlcExternal = plc (Proxy @"andPlcExternal") (andExternal True False)
+andPlcExternal = plinthc (andExternal True False)
 
 -- self-recursion
 allDirect :: (a -> Bool) -> [a] -> Bool
@@ -154,16 +149,16 @@ allDirect p l = case l of
   h : t -> andDirect (p h) (allDirect p t)
 
 allPlcDirect :: CompiledCode Bool
-allPlcDirect = plc (Proxy @"andPlcDirect") (allDirect (\(x :: Integer) -> Builtins.lessThanInteger x 5) [7, 6])
+allPlcDirect = plinthc (allDirect (\(x :: Integer) -> Builtins.lessThanInteger x 5) [7, 6])
 
 mutualRecursionUnfoldings :: CompiledCode Bool
-mutualRecursionUnfoldings = plc (Proxy @"mutualRecursionUnfoldings") (evenDirect 4)
+mutualRecursionUnfoldings = plinthc (evenDirect 4)
 
 recordSelector :: CompiledCode (MyMonoRecord -> Integer)
-recordSelector = plc (Proxy @"recordSelector") (\(x :: MyMonoRecord) -> mrA x)
+recordSelector = plinthc (\(x :: MyMonoRecord) -> mrA x)
 
 recordSelectorExternal :: CompiledCode (MyExternalRecord -> Integer)
-recordSelectorExternal = plc (Proxy @"recordSelectorExternal") (\(x :: MyExternalRecord) -> myExternal x)
+recordSelectorExternal = plinthc (\(x :: MyExternalRecord) -> myExternal x)
 
 mapDirect :: (a -> b) -> [a] -> [b]
 mapDirect f l = case l of
@@ -171,13 +166,13 @@ mapDirect f l = case l of
   x : xs -> f x : mapDirect f xs
 
 polyMap :: CompiledCode ([Integer])
-polyMap = plc (Proxy @"polyMap") (mapDirect (Builtins.addInteger 1) [0, 1])
+polyMap = plinthc (mapDirect (Builtins.addInteger 1) [0, 1])
 
 myDollar :: (a -> b) -> a -> b
 myDollar f a = f a
 
 applicationFunction :: CompiledCode (Integer)
-applicationFunction = plc (Proxy @"applicationFunction") ((\x -> Builtins.addInteger 1 x) `myDollar` 1)
+applicationFunction = plinthc ((\x -> Builtins.addInteger 1 x) `myDollar` 1)
 
 unboxedTuple2 :: (# Integer, Integer #) -> Integer
 unboxedTuple2 (# i, j #) = i `Builtins.addInteger` j
@@ -192,16 +187,16 @@ unboxedTuple5 :: (# Integer, Integer, Integer, Integer, Integer #) -> Integer
 unboxedTuple5 (# i, j, k, l, m #) = i `Builtins.addInteger` j `Builtins.addInteger` k `Builtins.addInteger` l `Builtins.addInteger` m
 
 unboxedTuples2 :: CompiledCode (Integer -> Integer)
-unboxedTuples2 = plc (Proxy @"unboxedTuples2") (\x -> let a = unboxedTuple2 (# x, x #) in a)
+unboxedTuples2 = plinthc (\x -> let a = unboxedTuple2 (# x, x #) in a)
 
 unboxedTuples3 :: CompiledCode (Integer -> Integer)
-unboxedTuples3 = plc (Proxy @"unboxedTuples3") (\x -> let a = unboxedTuple3 (# x, x, x #) in a)
+unboxedTuples3 = plinthc (\x -> let a = unboxedTuple3 (# x, x, x #) in a)
 
 unboxedTuples4 :: CompiledCode (Integer -> Integer)
-unboxedTuples4 = plc (Proxy @"unboxedTuples4") (\x -> let a = unboxedTuple4 (# x, x, x, x #) in a)
+unboxedTuples4 = plinthc (\x -> let a = unboxedTuple4 (# x, x, x, x #) in a)
 
 unboxedTuples5 :: CompiledCode (Integer -> Integer)
-unboxedTuples5 = plc (Proxy @"unboxedTuples5") (\x -> let a = unboxedTuple5 (# x, x, x, x, x #) in a)
+unboxedTuples5 = plinthc (\x -> let a = unboxedTuple5 (# x, x, x, x, x #) in a)
 
 unboxedTuples2Tuple
   :: (#
@@ -213,8 +208,7 @@ unboxedTuples2Tuple (# i, j #) = unboxedTuple5 i `Builtins.addInteger` unboxedTu
 
 unboxedTuples2Tuples :: CompiledCode (Integer -> Integer)
 unboxedTuples2Tuples =
-  plc
-    (Proxy @"unboxedTuples2Tuples")
+  plinthc
     (\x -> let a = unboxedTuples2Tuple (# (# x, x, x, x, x #), (# x, x, x, x, x #) #) in a)
 
 unboxedTuples3Tuple
@@ -228,8 +222,7 @@ unboxedTuples3Tuple (# i, j, k #) = unboxedTuple5 i `Builtins.addInteger` unboxe
 
 unboxedTuples3Tuples :: CompiledCode (Integer -> Integer)
 unboxedTuples3Tuples =
-  plc
-    (Proxy @"unboxedTuples3Tuples")
+  plinthc
     ( \x ->
         let a = unboxedTuples3Tuple (# (# x, x, x, x, x #), (# x, x, x, x, x #), (# x, x, x, x, x #) #) in a
     )

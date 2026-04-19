@@ -4,9 +4,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-preserve-logging #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-preserve-logging #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:target-version=1.0.0 #-}
 
 module PlutusBenchmark.Marlowe.Scripts.RolePayout
   ( rolePayoutValidatorHash
@@ -18,6 +18,7 @@ module PlutusBenchmark.Marlowe.Scripts.RolePayout
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
 import Data.ByteString.Short qualified as SBS
+import Plinth.Plugin ()
 import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2
   ( CurrencySymbol
@@ -30,7 +31,6 @@ import PlutusLedgerApi.V2
 import PlutusLedgerApi.V2.Contexts (valueSpent)
 import PlutusTx (CompiledCode, unsafeFromBuiltinData)
 import PlutusTx qualified
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude
   ( Bool (..)
   , BuiltinData

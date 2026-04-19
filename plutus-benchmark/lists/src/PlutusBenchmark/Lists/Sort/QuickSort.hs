@@ -7,9 +7,9 @@ module PlutusBenchmark.Lists.Sort.QuickSort where
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
+import Plinth.Plugin ()
 import PlutusTx qualified as Tx
 import PlutusTx.List
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 
 quickSort :: [Integer] -> [Integer]

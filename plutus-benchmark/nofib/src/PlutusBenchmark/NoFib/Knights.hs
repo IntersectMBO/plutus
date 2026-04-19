@@ -4,7 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.NoFib.Knights where
 
@@ -15,10 +15,10 @@ import PlutusBenchmark.NoFib.Knights.ChessSetList
 import PlutusBenchmark.NoFib.Knights.KnightHeuristic
 import PlutusBenchmark.NoFib.Knights.Queue
 
+import Plinth.Plugin ()
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
 import PlutusTx.List as List
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 import Prelude qualified as Haskell
 

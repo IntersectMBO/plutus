@@ -2,23 +2,23 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:coverage-all #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin -fplugin-opt Plinth.Plugin:coverage-all #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
 
 module Plugin.Coverage.Spec (coverage) where
 
 import Control.Lens
 
 import Data.Map qualified as Map
-import Data.Proxy
+
 import Data.Set (Set)
 import Data.Set qualified as Set
+import Plinth.Plugin
 import PlutusTx.Code
 import PlutusTx.Coverage
-import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
 import Prelude as Haskell
@@ -28,13 +28,13 @@ import Test.Tasty.Extras
 import Test.Tasty.HUnit
 
 noBool :: CompiledCode (() -> ())
-noBool = plc (Proxy @"noBool") (\() -> ())
+noBool = plinthc (\() -> ())
 
 boolTrueFalse :: CompiledCode (() -> Bool)
-boolTrueFalse = plc (Proxy @"boolTrueFalse") (\() -> True && False)
+boolTrueFalse = plinthc (\() -> True && False)
 
 boolOtherFunction :: CompiledCode (Maybe Integer -> Maybe Bool)
-boolOtherFunction = plc (Proxy @"boolOtherFunction") fun
+boolOtherFunction = plinthc fun
 
 fun :: Maybe Integer -> Maybe Bool
 fun x = case x of
@@ -46,7 +46,7 @@ otherFun :: Integer -> Bool
 otherFun x = (x P.== 5) && True
 
 boolQualifiedDisappears :: CompiledCode (() -> Bool)
-boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\() -> Haskell.True)
+boolQualifiedDisappears = plinthc (\() -> Haskell.True)
 
 coverage :: TestNested
 coverage =

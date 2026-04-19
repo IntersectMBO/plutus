@@ -8,7 +8,6 @@ module PlutusTx.TH
   , loadFromFile
   ) where
 
-import Data.Proxy
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Syntax qualified as TH
 import PlutusTx.Code
@@ -47,8 +46,6 @@ going to typecheck, and the result is always a 'CompiledCode', so that's also fi
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
 compileUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
 compileUntyped e = do
-  TH.addCorePlugin "PlutusTx.Plugin"
-  loc <- TH.location
-  let locStr = TH.pprint loc
+  TH.addCorePlugin "Plinth.Plugin"
   -- See Note [Typed TH]
-  [|plc (Proxy :: Proxy $(TH.litT $ TH.strTyLit locStr)) $(e)|]
+  [|plinthc $(e)|]

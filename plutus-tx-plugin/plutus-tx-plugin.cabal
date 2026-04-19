@@ -58,7 +58,6 @@ library
     Plinth.Plugin
     PlutusTx.Compiler.Error
     PlutusTx.Options
-    PlutusTx.Plugin
     PlutusTx.Plugin.Common
 
   other-modules:
