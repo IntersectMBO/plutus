@@ -383,14 +383,14 @@ applyCse
   => CseCandidate uni fun ann
   -> Term Name uni fun (Path, ann)
   -> Term Name uni fun (Path, ann)
-applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
+applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
   where
-    candidatePath = fst (termAnn (ccAnnotatedTerm c))
+    candidatePath = fst (termAnn (ccAnnotatedTerm candidate))
 
     substCseVarForTerm :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
     substCseVarForTerm t =
-      if currTerm == ccTerm c && candidatePath `isAncestorOrSelf` currPath
-        then Var (termAnn t) (ccFreshName c)
+      if currTerm == ccTerm candidate && candidatePath `isAncestorOrSelf` currPath
+        then Var (termAnn t) (ccFreshName candidate)
         else t
       where
         currTerm = void t
@@ -445,12 +445,12 @@ applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
             | otherwise -> wrapWithCse node
           _ -> wrapWithCse node
           where
-            cseName = ccFreshName c
+            cseName = ccFreshName candidate
             wrapWithCse n =
               Apply
                 (termAnn n)
                 (LamAbs (termAnn n) cseName n)
-                (ccAnnotatedTerm c)
+                (ccAnnotatedTerm candidate)
 
 occursIn :: Eq name => name -> Term name uni fun a -> Bool
 occursIn n = go
