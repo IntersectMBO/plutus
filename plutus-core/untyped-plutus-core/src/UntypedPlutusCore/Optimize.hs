@@ -132,6 +132,7 @@ termOptimizer opts builtinSemanticsVariant =
             caseReduce
           InlineStage ->
             inline
+              (_ooInlineUnconditionalGrowth opts)
               (_ooInlineCallsiteGrowth opts)
               (_ooInlineConstants opts)
               (_ooPreserveLogging opts)

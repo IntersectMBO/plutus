@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -74,6 +73,7 @@ data PluginOptions = PluginOptions
   , _posCoverageBoolean :: Bool
   , _posRelaxedFloatin :: Bool
   , _posCaseOfCaseConservative :: Bool
+  , _posInlineUnconditionalGrowth :: Int
   , _posInlineCallsiteGrowth :: Int
   , _posInlineConstants :: Bool
   , _posInlineFix :: Bool
@@ -216,9 +216,15 @@ pluginOptions =
     , let k = "dump-uplc"
           desc = "Dump Untyped Plutus Core"
        in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+    , let k = "inline-unconditional-growth"
+          desc =
+            "Sets the inlining threshold for unconditional inlining. `n` allows unconditional "
+              <> "inlining if the AST size grows by at most `n` at each callsite (i.e., the size of "
+              <> "the binding's RHS is at most `n+1`)."
+       in (k, PluginOption typeRep (readOption k) posInlineUnconditionalGrowth desc [])
     , let k = "inline-callsite-growth"
           desc =
-            "Sets the inlining threshold for callsites. 0 disables inlining a binding at a "
+            "Sets the inlining threshold for callsite inlining. 0 disables inlining a binding at a "
               <> "callsite if it increases the AST size; `n` allows inlining if the AST size grows by "
               <> "no more than `n`. Keep in mind that doing so does not mean the final program "
               <> "will be bigger, since inlining can often unlock further optimizations."
@@ -413,6 +419,7 @@ defaultPluginOptions =
     , _posCoverageBoolean = False
     , _posRelaxedFloatin = True
     , _posCaseOfCaseConservative = False
+    , _posInlineUnconditionalGrowth = 1
     , _posInlineCallsiteGrowth = 5
     , _posInlineConstants = True
     , _posInlineFix = True

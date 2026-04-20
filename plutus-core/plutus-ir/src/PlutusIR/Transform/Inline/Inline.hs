@@ -159,31 +159,35 @@ inlinePassSC
   :: forall uni fun ann m
    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
   => AstSize
-  -- ^ inline threshold
+  -- ^ Unconditional inlining threshold
+  -> AstSize
+  -- ^ Callsite inlining threshold
   -> Bool
   -- ^ should we inline constants?
   -> TC.PirTCConfig uni fun
   -> InlineHints Name ann
   -> BuiltinsInfo uni fun
   -> Pass m TyName Name uni fun ann
-inlinePassSC thresh ic tcconfig hints binfo =
-  renamePass <> inlinePass thresh ic tcconfig hints binfo
+inlinePassSC threshUnconditional threshCallsite ic tcconfig hints binfo =
+  renamePass <> inlinePass threshUnconditional threshCallsite ic tcconfig hints binfo
 
 inlinePass
   :: forall uni fun ann m
    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
   => AstSize
-  -- ^ inline threshold
+  -- ^ Unconditional inlining threshold
+  -> AstSize
+  -- ^ Callsite inlining threshold
   -> Bool
   -- ^ should we inline constants?
   -> TC.PirTCConfig uni fun
   -> InlineHints Name ann
   -> BuiltinsInfo uni fun
   -> Pass m TyName Name uni fun ann
-inlinePass thresh ic tcconfig hints binfo =
+inlinePass threshUnconditional threshCallsite ic tcconfig hints binfo =
   NamedPass "inline" $
     Pass
-      (inline thresh ic hints binfo)
+      (inline threshUnconditional threshCallsite ic hints binfo)
       [GloballyUniqueNames, Typechecks tcconfig]
       [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
 
@@ -193,17 +197,28 @@ inline
   :: forall tyname name uni fun ann m
    . ExternalConstraints tyname name uni fun m
   => AstSize
-  -- ^ inline threshold
+  -- ^ Unconditional inlining threshold
+  -> AstSize
+  -- ^ Callsite inlining threshold
   -> Bool
   -- ^ should we inline constants?
   -> InlineHints name ann
   -> BuiltinsInfo uni fun
   -> Term tyname name uni fun ann
   -> m (Term tyname name uni fun ann)
-inline thresh ic hints binfo t =
+inline threshUnconditional threshCallsite ic hints binfo t =
   let
     inlineInfo :: InlineInfo tyname name uni fun ann
-    inlineInfo = InlineInfo vinfo usgs hints binfo ic thresh
+    inlineInfo =
+      InlineInfo
+        { _iiVarInfo = vinfo
+        , _iiUsages = usgs
+        , _iiHints = hints
+        , _iiBuiltinsInfo = binfo
+        , _iiInlineConstants = ic
+        , _iiInlineUnconditionalGrowth = threshUnconditional
+        , _iiInlineCallsiteGrowth = threshCallsite
+        }
     vinfo = VarInfo.termVarInfo t
     usgs :: Usages.Usages
     usgs = Usages.termUsages t

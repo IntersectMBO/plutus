@@ -9,6 +9,7 @@ module UntypedPlutusCore.Optimize.Opts
   , ooInlineHints
   , ooConservativeOpts
   , ooInlineConstants
+  , ooInlineUnconditionalGrowth
   , ooInlineCallsiteGrowth
   , ooPreserveLogging
   , ooCertifiedOptsOnly
@@ -38,6 +39,7 @@ data OptimizeOpts name a = OptimizeOpts
   , _ooConservativeOpts :: Bool
   , _ooInlineHints :: InlineHints name a
   , _ooInlineConstants :: Bool
+  , _ooInlineUnconditionalGrowth :: AstSize
   , _ooInlineCallsiteGrowth :: AstSize
   , _ooPreserveLogging :: Bool
   , _ooApplyToCase :: Bool
@@ -56,6 +58,7 @@ defaultOptimizeOpts =
     , _ooConservativeOpts = False
     , _ooInlineHints = def
     , _ooInlineConstants = True
+    , _ooInlineUnconditionalGrowth = 1
     , _ooInlineCallsiteGrowth = 5
     , _ooPreserveLogging = True
     , _ooApplyToCase = True
