@@ -7,7 +7,7 @@
 
 module UntypedPlutusCore.Transform.Cse (cse) where
 
-import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
+import PlutusCore (MonadQuote, Name, Rename, freshName, getAnn, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Core
@@ -338,7 +338,7 @@ countOccs whichSubterms builtinSemanticsVariant =
         t
       where
         t = void t0
-        path = fst (termAnn t0)
+        path = fst (getAnn t0)
 
 -- | Combine a new path with a number of existing (path, count) pairs.
 combinePaths
@@ -385,20 +385,37 @@ applyCse
   -> Term Name uni fun (Path, ann)
 applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
   where
+<<<<<<< HEAD
     candidatePath = fst (termAnn (ccAnnotatedTerm candidate))
 
     substCseVarForTerm :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
     substCseVarForTerm t =
       if currTerm == ccTerm candidate && candidatePath `isAncestorOrSelf` currPath
         then Var (termAnn t) (ccFreshName candidate)
+=======
+    candidatePath = fst (getAnn (ccAnnotatedTerm c))
+
+    substCseVarForTerm :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
+    substCseVarForTerm t =
+      if currTerm == ccTerm c && candidatePath `isAncestorOrSelf` currPath
+        then Var (getAnn t) (ccFreshName c)
+>>>>>>> e9deb8c872 (Redo The Parser)
         else t
       where
         currTerm = void t
-        currPath = fst (termAnn t)
+        currPath = fst (getAnn t)
 
     mkLamApp :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
     mkLamApp t
+<<<<<<< HEAD
       | currPath == candidatePath = placeCseBinding t
+=======
+      | currPath == candidatePath =
+          Apply
+            (getAnn t)
+            (LamAbs (getAnn t) (ccFreshName c) t)
+            (ccAnnotatedTerm c)
+>>>>>>> e9deb8c872 (Redo The Parser)
       | currPath `isAncestorOrSelf` candidatePath = case t of
           Var ann name -> Var ann name
           LamAbs ann name body -> LamAbs ann name (mkLamApp body)
@@ -412,7 +429,7 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
           Case ann scrut branches -> Case ann (mkLamApp scrut) (mkLamApp <$> branches)
       | otherwise = t
       where
-        currPath = fst (termAnn t)
+        currPath = fst (getAnn t)
 
         -- See Note [CSE and immediately applied lambdas]
         placeCseBinding :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)

@@ -67,7 +67,7 @@ neutralType
 neutralType TyVar {} = pure ()
 neutralType (TyBuiltin ann someUni) = neutralUni ann someUni
 neutralType (TyApp _ ty1 ty2) = neutralType ty1 >> normalType ty2
-neutralType ty = Left (BadType (typeAnn ty) ty "neutral type")
+neutralType ty = Left (BadType (getAnn ty) ty "neutral type")
 
 -- See Note [Normalization of built-in types].
 neutralUni

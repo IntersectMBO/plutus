@@ -5,7 +5,7 @@
 -- | UPLC property tests (pretty-printing\/parsing and binary encoding\/decoding).
 module Generators.Spec where
 
-import PlutusPrelude (display, fold, void, (&&&))
+import PlutusPrelude (display, fold, getAnn, void, (&&&))
 
 import Control.Lens (view)
 import Data.Text (Text)
@@ -34,7 +34,7 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
 import UntypedPlutusCore (Program)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Core.Type (progTerm, termAnn)
+import UntypedPlutusCore.Core.Type (progTerm)
 import UntypedPlutusCore.Generators.Hedgehog.AST (genProgram, regenConstantsUntil)
 import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
@@ -116,7 +116,7 @@ propTermSrcSpan = testPropertyNamed
     genTrailingSpaces = forAllPretty $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])
 
     getTermEndingLineAndCol term = do
-      let sp = termAnn term
+      let sp = getAnn term
       (srcSpanELine sp, srcSpanECol sp)
 
     handleParseError err = annotate (display err) >> failure

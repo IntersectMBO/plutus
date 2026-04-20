@@ -33,7 +33,7 @@ import PlutusIR.Error qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
-import PlutusCore (toPatFuncKind, tyVarDeclName, typeAnn)
+import PlutusCore (getAnn, toPatFuncKind, tyVarDeclName)
 import PlutusCore.Builtin (annotateCaseBuiltin)
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
@@ -371,7 +371,7 @@ checkKindFromBinding =
       checkKindM ann rhs $ void k
     -- For a term binding, correct means that the declared type has kind *.
     TermBind _ _ (VarDecl _ _ ty) _ ->
-      checkKindM (typeAnn ty) ty $ Type ()
+      checkKindM (getAnn ty) ty $ Type ()
     -- For a datatype binding, correct means that the type constructor has kind * when fully-applied to its type arguments.
     DatatypeBind _ dt@(Datatype ann tycon tyargs _ vdecls) ->
       -- tycon+tyargs must be in scope during kindchecking

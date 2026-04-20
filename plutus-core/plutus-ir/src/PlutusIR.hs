@@ -1,14 +1,13 @@
 module PlutusIR
   ( -- * AST
-    Term (..)
+    HasAnn (..)
+  , Term (..)
   , progAnn
   , progVer
   , progTerm
   , termSubterms
   , termSubtypes
   , termBindings
-  , termAnn
-  , bindingAnn
   , Type (..)
   , typeSubtypes
   , Datatype (..)
