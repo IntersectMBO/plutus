@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 CPU:             1_832_742_144
 Memory:             10_707_218
 AST Size:                3_067
 Flat Size:               8_021
+=======
+CPU:             1_831_878_144
+Memory:             10_701_818
+AST Size:                3_071
+Flat Size:               8_025
+>>>>>>> 1b9ee7c83d08c37a4525e028574014683d5b403c
 
 (con unit ())

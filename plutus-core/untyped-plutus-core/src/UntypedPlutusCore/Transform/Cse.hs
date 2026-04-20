@@ -63,10 +63,9 @@ We use the following example to explain how the implementation works:
                 ]
         )
 
-The implementation makes several passes on the given term. The first pass collects builtin
-arity information as described above.
+The implementation makes several passes on the given term.
 
-In the second pass, we assign a unique ID to each `LamAbs`, `Delay`, and each `Case` branch.
+In the first pass, we assign a unique ID to each `LamAbs`, `Delay`, and each `Case` branch.
 Then, we annotate each subterm with a path, consisting of IDs encountered from the root
 to that subterm (not including itself). The reason to do this is because `LamAbs`, `Delay`,
 and `Case` branches represent places where computation stops, i.e., subexpressions are not
@@ -77,7 +76,7 @@ three case branches are 2, 3, 4 (the actual numbers don't matter, as long as the
 The path for the first `1+(2+x)` and the first `2+x` is "0.1"; the path for the second
 `1+(2+x)` and the second `2+x` is "0.1.2"; the path for `4+x` is "0.1.4".
 
-In the third pass, we calculate a count for each (term, path). Depending on the `cseWhichSubterms`
+In the second pass, we calculate a count for each (term, path). Depending on the `cseWhichSubterms`
 option, `term` can be any subterm or a subterm that is not work-free, while `path` is the
 path of that term. If the same term has two paths, and one is an ancestor (i.e., prefix)
 of the other, we increment the count for the ancestor path in both instances.
@@ -240,7 +239,7 @@ cse whichSubterms builtinSemanticsVariant t0 = do
   recordOptimization t0 CseStage result
   return result
 
--- | The second pass. See Note [CSE].
+-- | The first pass. See Note [CSE].
 annotate :: Term name uni fun ann -> Term name uni fun (Path, ann)
 annotate = flip evalState 0 . flip runReaderT [] . go
   where
@@ -250,6 +249,11 @@ annotate = flip evalState 0 . flip runReaderT [] . go
     go t = do
       path <- ask
       case t of
+        -- See Note [CSE and immediately applied lambdas]
+        Apply ann (LamAbs lamAnn n body) arg ->
+          Apply (path, ann)
+            <$> (LamAbs (path, lamAnn) n <$> go body)
+            <*> go arg
         Apply ann fun arg -> Apply (path, ann) <$> go fun <*> go arg
         Force ann body -> Force (path, ann) <$> go body
         Constr ann i args -> Constr (path, ann) i <$> traverse go args
@@ -298,7 +302,7 @@ isWorkFree' builtinSemanticsVariant term =
       Force _ t -> isForcingBuiltin t
       _ -> False
 
--- | The third pass. See Note [CSE].
+-- | The second pass. See Note [CSE].
 countOccs
   :: forall name uni fun ann
    . (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun)
@@ -379,14 +383,14 @@ applyCse
   => CseCandidate uni fun ann
   -> Term Name uni fun (Path, ann)
   -> Term Name uni fun (Path, ann)
-applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
+applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
   where
-    candidatePath = fst (termAnn (ccAnnotatedTerm c))
+    candidatePath = fst (termAnn (ccAnnotatedTerm candidate))
 
     substCseVarForTerm :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
     substCseVarForTerm t =
-      if currTerm == ccTerm c && candidatePath `isAncestorOrSelf` currPath
-        then Var (termAnn t) (ccFreshName c)
+      if currTerm == ccTerm candidate && candidatePath `isAncestorOrSelf` currPath
+        then Var (termAnn t) (ccFreshName candidate)
         else t
       where
         currTerm = void t
@@ -394,11 +398,7 @@ applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
 
     mkLamApp :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
     mkLamApp t
-      | currPath == candidatePath =
-          Apply
-            (termAnn t)
-            (LamAbs (termAnn t) (ccFreshName c) t)
-            (ccAnnotatedTerm c)
+      | currPath == candidatePath = placeCseBinding t
       | currPath `isAncestorOrSelf` candidatePath = case t of
           Var ann name -> Var ann name
           LamAbs ann name body -> LamAbs ann name (mkLamApp body)
@@ -414,6 +414,57 @@ applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
       where
         currPath = fst (termAnn t)
 
+        -- See Note [CSE and immediately applied lambdas]
+        placeCseBinding :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
+        placeCseBinding node = case node of
+          -- Immediately applied lambda: if `arg` does not use `cseName`, we'd want to be sure
+          -- to descend into the *body* of the lambda.
+          Apply ann (LamAbs lamAnn n body) arg
+            | not (cseName `occursIn` arg) -> Apply ann (LamAbs lamAnn n (placeCseBinding body)) arg
+            | not (cseName `occursIn` body) -> Apply ann (LamAbs lamAnn n body) (placeCseBinding arg)
+            | otherwise -> wrapWithCse node
+          Apply ann fun arg
+            | not (cseName `occursIn` arg) -> Apply ann (placeCseBinding fun) arg
+            | not (cseName `occursIn` fun) -> Apply ann fun (placeCseBinding arg)
+            | otherwise -> wrapWithCse node
+          Force ann body -> Force ann (placeCseBinding body)
+          Constr ann i args
+            | [idx :: Int] <- [j | (j, a) <- zip [0 ..] args, cseName `occursIn` a] ->
+                -- If there's a unique arg that uses `cseName`, we descend into it.
+                Constr
+                  ann
+                  i
+                  [ if j == idx then placeCseBinding a else a
+                  | (j, a) <- zip [0 ..] args
+                  ]
+            | otherwise -> wrapWithCse node
+          Case ann scrut branches
+            | not (any (cseName `occursIn`) branches) ->
+                -- Descend into the scrutinee, if no branch uses `cseName`.
+                Case ann (placeCseBinding scrut) branches
+            | otherwise -> wrapWithCse node
+          _ -> wrapWithCse node
+          where
+            cseName = ccFreshName candidate
+            wrapWithCse n =
+              Apply
+                (termAnn n)
+                (LamAbs (termAnn n) cseName n)
+                (ccAnnotatedTerm candidate)
+
+occursIn :: Eq name => name -> Term name uni fun a -> Bool
+occursIn n = go
+  where
+    go = \case
+      Var _ n' -> n == n'
+      LamAbs _ _ body -> go body
+      Apply _ fun arg -> go fun || go arg
+      Force _ t -> go t
+      Delay _ t -> go t
+      Constr _ _ ts -> any go ts
+      Case _ scrut branches -> go scrut || any go branches
+      _ -> False
+
 -- | Generate a fresh variable for the common subexpression.
 mkCseCandidate
   :: forall uni fun ann m
@@ -421,3 +472,23 @@ mkCseCandidate
   => Term Name uni fun (Path, ann)
   -> m (CseCandidate uni fun ann)
 mkCseCandidate t = CseCandidate <$> freshName "cse" <*> pure (void t) <*> pure t
+
+{- Note [CSE and immediately applied lambdas]
+
+Normally, two syntactically equal expressions under different lambdas aren't considered
+common subexpressions. For example, in `M = f (\a -> expr) (\b -> expr)`, it is incorrect
+to extract `expr` out, because evaluating `M` may not require evaluating `expr`.
+
+But if a lambda is part of a "binding" (in other words, if the lambda is immediately
+applied), then it's OK, because the body of the lambda will definitely be needed.
+So, in such cases CSE should not let the lambda prevent itself from extracting the
+common subexpression out.
+
+However, in doing so, we need to be careful where to put the `cse` binding. If we
+simply ignore immediately applied lambdas, it would place the `cse` outside of
+the lambda, but the subexpression may use the lambda binder, causing a free variable error.
+For example, it would transform `\y. f y + f y` into `(\cse. (\y. cse + cse)) (f y)`
+which is invalid. We therefore need to keep descending, and put the `cse` binding
+at the innermost possible spot.
+
+-}
