@@ -7,9 +7,8 @@
               xs
               [ (\x xs ->
                    (\acc ->
-                      (\s -> s s)
+                      (\s -> s s x)
                         (\s xs ->
                            case xs [(\x xs -> force mkCons x (s s xs)), acc]))
-                     (s s xs)
-                     x)
+                     (s s xs))
               , [] ]))))

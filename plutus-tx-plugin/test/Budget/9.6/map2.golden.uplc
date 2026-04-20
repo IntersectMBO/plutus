@@ -9,45 +9,37 @@
                    (\go ->
                       (\nt ->
                          go
-                           ((\rs' ->
-                               (\ls' -> go rs' ls') (go nt))
-                              ((\s ->
-                                  s s)
-                                 (\s
-                                   xs ->
+                           ((\rs' -> (\ls' -> go rs' ls') (go nt))
+                              ((\s -> s s nt)
+                                 (\s xs ->
                                     case
                                       xs
-                                      [ (\hd
-                                          tl ->
+                                      [ (\hd tl ->
                                            (\tl' ->
                                               (\k ->
-                                                 case
-                                                   ((\s ->
-                                                       s s)
-                                                      (\s
-                                                        xs ->
-                                                         case
-                                                           xs
-                                                           [ (\hd ->
-                                                                case
-                                                                  (equalsData
-                                                                     k
-                                                                     (case
-                                                                        hd
-                                                                        [ (\l
-                                                                            r ->
-                                                                             l) ]))
-                                                                  [ (\x ->
-                                                                       s s x)
-                                                                  , (\ds ->
-                                                                       True) ])
-                                                           , False ])
-                                                      nt)
-                                                   [(force mkCons hd tl'), tl'])
+                                                 (\s ->
+                                                    case
+                                                      (s s nt)
+                                                      [ (force mkCons hd tl')
+                                                      , tl' ])
+                                                   (\s xs ->
+                                                      case
+                                                        xs
+                                                        [ (\hd ->
+                                                             case
+                                                               (equalsData
+                                                                  k
+                                                                  (case
+                                                                     hd
+                                                                     [ (\l r ->
+                                                                          l) ]))
+                                                               [ (\x -> s s x)
+                                                               , (\ds ->
+                                                                    True) ])
+                                                        , False ]))
                                                 (case hd [(\l r -> l)]))
                                              (s s tl))
-                                      , [] ])
-                                 nt)))
+                                      , [] ]))))
                         (case
                            (constr 0
                               [ (\i -> iData i)
@@ -78,42 +70,41 @@
                                  tl ->
                                   (\v' ->
                                      (\k' ->
-                                        case
-                                          ((\s ->
-                                              s s)
-                                             (\s
-                                               xs ->
-                                                case
-                                                  xs
-                                                  [ (\hd ->
-                                                       case
-                                                         (equalsData
-                                                            k'
-                                                            (case
-                                                               hd
-                                                               [(\l r -> l)]))
-                                                         [ (\x -> s s x)
-                                                         , (\ds ->
-                                                              constr 0
-                                                                [ (case
-                                                                     hd
-                                                                     [ (\l
-                                                                         r ->
-                                                                          r) ]) ]) ])
-                                                  , (constr 1 []) ])
-                                             nt)
-                                          [ (\r ->
-                                               force mkCons
-                                                 (mkPairData
-                                                    k'
-                                                    (iData
-                                                       (addInteger
-                                                          (unIData v')
-                                                          (unIData r))))
-                                                 (s s tl))
-                                          , (force mkCons
-                                               (mkPairData k' v')
-                                               (s s tl)) ])
+                                        (\s ->
+                                           case
+                                             (s s nt)
+                                             [ (\r ->
+                                                  force mkCons
+                                                    (mkPairData
+                                                       k'
+                                                       (iData
+                                                          (addInteger
+                                                             (unIData v')
+                                                             (unIData r))))
+                                                    (s s tl))
+                                             , (force mkCons
+                                                  (mkPairData k' v')
+                                                  (s s tl)) ])
+                                          (\s
+                                            xs ->
+                                             case
+                                               xs
+                                               [ (\hd ->
+                                                    case
+                                                      (equalsData
+                                                         k'
+                                                         (case
+                                                            hd
+                                                            [(\l r -> l)]))
+                                                      [ (\x -> s s x)
+                                                      , (\ds ->
+                                                           constr 0
+                                                             [ (case
+                                                                  hd
+                                                                  [ (\l
+                                                                      r ->
+                                                                       r) ]) ]) ])
+                                               , (constr 1 []) ]))
                                        (case hd [(\l r -> l)]))
                                     (case hd [(\l r -> r)]))
                              , [] ])))

@@ -5,4 +5,7 @@
          (\s acc xs ->
             case
               xs
-              [(\x xs -> (\x -> s s x) (multiplyInteger acc x) xs), acc]))))
+              [ (\x xs ->
+                   (\x -> case (constr 0 [s, x, xs]) [s])
+                     (multiplyInteger acc x))
+              , acc ]))))

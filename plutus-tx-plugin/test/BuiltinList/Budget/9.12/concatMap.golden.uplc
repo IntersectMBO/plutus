@@ -9,12 +9,11 @@
                    (\go xs ->
                       (\ys ->
                          (\l ->
-                            (\s -> s s)
+                            (\s -> s s l)
                               (\s xs ->
                                  case
                                    xs
-                                   [(\x xs -> force mkCons x (s s xs)), ys])
-                              l)
+                                   [(\x xs -> force mkCons x (s s xs)), ys]))
                            (go 2))
                         (s s xs))
                      ((\s -> s s)

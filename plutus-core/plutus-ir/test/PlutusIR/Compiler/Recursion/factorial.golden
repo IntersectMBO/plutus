@@ -1,6 +1,6 @@
 program
   1.1.0
-  ((\s -> s s)
+  ((\s -> s s 5)
      (\s i ->
         case
           (constr 0
@@ -8,5 +8,4 @@ program
              , (\u -> 1)
              , (\u -> multiplyInteger i ((\x -> s s x) (subtractInteger i 1)))
              , () ])
-          [(force ifThenElse)])
-     5)
+          [(force ifThenElse)]))
