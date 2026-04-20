@@ -110,40 +110,39 @@ termOptimizer opts builtinSemanticsVariant =
         >=> runStage CaseReduceStage
         >=> runStage InlineStage
 
-    runStage stage' =
-      let certified = isRight stage'
-          withCertifiedOptsOnly action
-            | _ooCertifiedOptsOnly opts && not certified = pure
-            | otherwise = action
-       in case stage' of
-            FloatDelayStage ->
-              withCertifiedOptsOnly floatDelay
-            ForceCaseDelayStage ->
-              withCertifiedOptsOnly forceCaseDelay
-            ForceDelayStage ->
-              withCertifiedOptsOnly $
-                case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
-                  (Just Refl, Just Refl) -> forceDelay builtinSemanticsVariant
-                  _ -> pure
-            CaseOfCaseStage ->
-              withCertifiedOptsOnly caseOfCase'
-            CaseReduceStage ->
-              withCertifiedOptsOnly caseReduce
-            InlineStage ->
-              withCertifiedOptsOnly $
-                inline
-                  (_ooInlineCallsiteGrowth opts)
-                  (_ooInlineConstants opts)
-                  (_ooPreserveLogging opts)
-                  (_ooInlineHints opts)
-                  builtinSemanticsVariant
-            CseStage ->
-              withCertifiedOptsOnly $ cseNTimes cseTimes
-            ApplyToCaseStage ->
-              withCertifiedOptsOnly $
-                if _ooApplyToCase opts then applyToCase else pure
-            LetFloatOutStage ->
-              withCertifiedOptsOnly letFloatOut
+    certifiedOnly = _ooCertifiedOptsOnly opts
+
+    runStage stage'
+      | certifiedOnly && not certified = pure
+      | otherwise = action
+      where
+        certified = isRight stage'
+        action = case stage' of
+          FloatDelayStage ->
+            floatDelay
+          ForceCaseDelayStage ->
+            forceCaseDelay
+          ForceDelayStage ->
+            case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
+              (Just Refl, Just Refl) -> forceDelay builtinSemanticsVariant
+              _ -> pure
+          CaseOfCaseStage ->
+            caseOfCase'
+          CaseReduceStage ->
+            caseReduce
+          InlineStage ->
+            inline
+              (_ooInlineCallsiteGrowth opts)
+              (_ooInlineConstants opts)
+              (_ooPreserveLogging opts)
+              (_ooInlineHints opts)
+              builtinSemanticsVariant
+          CseStage ->
+            cseNTimes cseTimes
+          ApplyToCaseStage ->
+            if _ooApplyToCase opts then applyToCase else pure
+          LetFloatOutStage ->
+            letFloatOut
 
     caseOfCase'
       :: Term name uni fun a
