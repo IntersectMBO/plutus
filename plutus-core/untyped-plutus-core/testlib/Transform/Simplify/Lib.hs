@@ -18,16 +18,16 @@ import Test.Tasty.Golden (goldenVsString)
 import UntypedPlutusCore
   ( CseWhichSubterms
   , Name
-  , SimplifierTrace
+  , OptimizerTrace
   , Term
-  , defaultSimplifyOpts
-  , runSimplifierT
-  , soCseWhichSubterms
-  , soInlineCallsiteGrowth
-  , soMaxCseIterations
-  , soMaxSimplifierIterations
-  , soPreserveLogging
-  , termSimplifier
+  , defaultOptimizeOpts
+  , ooCseWhichSubterms
+  , ooInlineCallsiteGrowth
+  , ooMaxCseIterations
+  , ooMaxSimplifierIterations
+  , ooPreserveLogging
+  , runOptimizerT
+  , termOptimizer
   )
 import UntypedPlutusCore.Transform.Certify.Hints qualified as Hints
 import UntypedPlutusCore.Transform.Certify.Trace qualified as Trace
@@ -39,8 +39,8 @@ goldenVsPretty extn name value =
     pure . BSL.fromStrict . encodeUtf8 . render $
       prettyPlcReadableSimple value
 
-goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
-goldenVsSimplified name t =
+goldenVsOptimized :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
+goldenVsOptimized name t =
   testGroup
     name
     [ goldenVsPretty ".golden.uplc" name t'
@@ -51,11 +51,11 @@ goldenVsSimplified name t =
         $ renderCertifierHints trace
     ]
   where
-    (t', trace) = PLC.runQuote (testSimplify t)
+    (t', trace) = PLC.runQuote (testOptimize t)
     hintsPath = "untyped-plutus-core/test/Transform/" ++ name ++ ".golden.certifier-hints"
 
-renderCertifierHints :: Trace.SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun () -> Text
-renderCertifierHints (Trace.SimplifierTrace ss)
+renderCertifierHints :: Trace.OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun () -> Text
+renderCertifierHints (Trace.OptimizerTrace ss)
   | null ss = "<no certifier hints in trace>"
   | otherwise =
       T.unlines $
@@ -96,21 +96,21 @@ renderCertifierHints (Trace.SimplifierTrace ss)
 
     line i payload = T.replicate i " " <> payload <> "\n"
 
-testSimplify
+testOptimize
   :: Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> PLC.Quote
        ( Term Name PLC.DefaultUni PLC.DefaultFun ()
-       , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
+       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun ()
        )
-testSimplify =
-  runSimplifierT
-    . termSimplifier
-      ( defaultSimplifyOpts
+testOptimize =
+  runOptimizerT
+    . termOptimizer
+      ( defaultOptimizeOpts
           -- Just run one iteration, to see what that does
-          & soMaxSimplifierIterations .~ 1
-          & soMaxCseIterations .~ 0
-          & soInlineCallsiteGrowth .~ 0
-          & soPreserveLogging .~ False
+          & ooMaxSimplifierIterations .~ 1
+          & ooMaxCseIterations .~ 0
+          & ooInlineCallsiteGrowth .~ 0
+          & ooPreserveLogging .~ False
       )
       (def :: BuiltinSemanticsVariant PLC.DefaultFun)
 
@@ -130,17 +130,17 @@ testCse
   -> Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> PLC.Quote
        ( Term Name PLC.DefaultUni PLC.DefaultFun ()
-       , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
+       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun ()
        )
 testCse whichSubterms =
-  runSimplifierT
-    . termSimplifier
-      ( defaultSimplifyOpts
+  runOptimizerT
+    . termOptimizer
+      ( defaultOptimizeOpts
           -- Just run one iteration, to see what that does
-          & soMaxSimplifierIterations .~ 0
-          & soMaxCseIterations .~ 1
-          & soCseWhichSubterms .~ whichSubterms
-          & soInlineCallsiteGrowth .~ 0
-          & soPreserveLogging .~ False
+          & ooMaxSimplifierIterations .~ 0
+          & ooMaxCseIterations .~ 1
+          & ooCseWhichSubterms .~ whichSubterms
+          & ooInlineCallsiteGrowth .~ 0
+          & ooPreserveLogging .~ False
       )
       (def :: BuiltinSemanticsVariant PLC.DefaultFun)

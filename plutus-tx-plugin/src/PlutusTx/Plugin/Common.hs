@@ -783,30 +783,33 @@ runCompiler moduleName opts expr = do
       plcOpts =
         PLC.defaultCompilationOpts
           & set
-            (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)
+            (PLC.coOptimizeOpts . UPLC.ooMaxSimplifierIterations)
             (opts ^. posMaxSimplifierIterationsUPlc)
           & set
-            (PLC.coSimplifyOpts . UPLC.soCseWhichSubterms)
+            (PLC.coOptimizeOpts . UPLC.ooCseWhichSubterms)
             (opts ^. posCseWhichSubterms)
           & set
-            (PLC.coSimplifyOpts . UPLC.soMaxCseIterations)
+            (PLC.coOptimizeOpts . UPLC.ooMaxCseIterations)
             (opts ^. posMaxCseIterations)
           & set
-            (PLC.coSimplifyOpts . UPLC.soConservativeOpts)
+            (PLC.coOptimizeOpts . UPLC.ooConservativeOpts)
             (opts ^. posConservativeOpts)
-          & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
+          & set (PLC.coOptimizeOpts . UPLC.ooInlineHints) hints
           & set
-            (PLC.coSimplifyOpts . UPLC.soInlineConstants)
+            (PLC.coOptimizeOpts . UPLC.ooInlineConstants)
             (opts ^. posInlineConstants)
           & set
-            (PLC.coSimplifyOpts . UPLC.soInlineCallsiteGrowth)
+            (PLC.coOptimizeOpts . UPLC.ooInlineCallsiteGrowth)
             (opts ^. posInlineCallsiteGrowth . to fromIntegral)
           & set
-            (PLC.coSimplifyOpts . UPLC.soPreserveLogging)
+            (PLC.coOptimizeOpts . UPLC.ooPreserveLogging)
             (opts ^. posPreserveLogging)
           & set
-            (PLC.coSimplifyOpts . UPLC.soApplyToCase)
+            (PLC.coOptimizeOpts . UPLC.ooApplyToCase)
             (opts ^. posApplyToCase)
+          & set
+            (PLC.coOptimizeOpts . UPLC.ooCertifiedOptsOnly)
+            (opts ^. posCertifiedOptsOnly)
 
   -- GHC.Core -> Pir translation.
   pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)

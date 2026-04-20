@@ -36,7 +36,7 @@ open import Untyped.RenamingSubstitution using (weaken)
 open import Data.Empty using (⊥)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
-open import VerifiedCompilation.Certificate using (Proof?; _>>=_; InlineHints; var; expand; ƛ; _·_; _·↓; force; delay; con; builtin; error; constr; case; abort; proof; inlineT)
+open import VerifiedCompilation.Certificate using (Proof?; _>>=_; InlineHints; var; expand; ƛ; _·_; _·↓; force; delay; con; builtin; error; constr; case; abort; proof; InlineT)
 ```
 
 # Zippers, and relating two zippers
@@ -233,9 +233,9 @@ check {z = z} {z′ = z′} σ M@(` x) zz var M′@(` x′)
 ... | yes refl | yes refl
     with zz ≟ᶻᶻ idᶻᶻ z
 ...   | just refl = proof (` x)
-...   | nothing = abort inlineT M M′
+...   | nothing = abort InlineT M M′
 check σ M@(` x) zz var M′@(` x′)
-    | _ | _ = abort inlineT M M′
+    | _ | _ = abort InlineT M M′
 
 check σ (` x) zz (expand h) M′ =
    do r ← check σ (σ x) zz h M′
@@ -273,18 +273,18 @@ check σ (delay M) zz (delay h) (delay M′) =
 check σ M@(con c) zz con M′@(con c′)
   with c ≟ c′
 ... | yes refl = proof con
-... | no  _ = abort inlineT M M′
+... | no  _ = abort InlineT M M′
 
 check σ M@(builtin b) zz builtin M′@(builtin b′)
   with b ≟ b′
 ... | yes refl = proof builtin
-... | no  _ = abort inlineT M M′
+... | no  _ = abort InlineT M M′
 
 check σ M@(constr i Ms) zz (constr hs) M′@(constr i′ M′s) with i ≟ i′
 ... | yes refl =
    do rs ← checkPointwise hs σ □ Ms M′s
       proof (constr rs)
-... | no _ = abort inlineT M M′
+... | no _ = abort InlineT M M′
 
 check σ (case M Ms) zz (case h hs) (case M′ M′s) =
   do r ← check σ M □ h M′
@@ -293,14 +293,14 @@ check σ (case M Ms) zz (case h hs) (case M′ M′s) =
 
 check σ error zz error error = proof error
 
-check σ M zz h M′ = abort inlineT M M′
+check σ M zz h M′ = abort InlineT M M′
 
 checkPointwise [] σ zz [] [] = proof Pointwise.[]
 checkPointwise (h ∷ hs) σ zz (M ∷ Ms) (M′ ∷ M′s) =
    do p ← check σ M zz h M′
       ps ← checkPointwise hs σ zz Ms M′s
       proof (p Pointwise.∷ ps)
-checkPointwise _ _ _ Ms M′s = abort inlineT Ms M′s
+checkPointwise _ _ _ Ms M′s = abort InlineT Ms M′s
 ```
 
 # Top-level check

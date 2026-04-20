@@ -9,7 +9,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (mkConstant, mkIterApp, mkIterAppNoAnn)
 import PlutusCore.Quote (Quote, freshName, runQuote)
 import Test.Tasty (TestTree, testGroup)
-import Transform.Simplify.Lib (goldenVsCse, goldenVsSimplified)
+import Transform.Simplify.Lib (goldenVsCse, goldenVsOptimized)
 import UntypedPlutusCore
   ( CseWhichSubterms (..)
   , DefaultFun
@@ -674,6 +674,6 @@ test_simplify :: TestTree
 test_simplify =
   testGroup
     "simplify"
-    $ fmap (uncurry goldenVsSimplified) testSimplifyInputs
+    $ fmap (uncurry goldenVsOptimized) testSimplifyInputs
       <> fmap (uncurry (goldenVsCse ExcludeWorkFree)) testCseInputs
       <> fmap (uncurry (goldenVsCse AllSubterms)) testCseInputsWorkFree

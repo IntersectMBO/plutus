@@ -19,7 +19,7 @@ import PlutusCore.Value (Value)
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Certify.Hints qualified as Hints
-import UntypedPlutusCore.Transform.Simplifier
+import UntypedPlutusCore.Transform.Certify.Trace
 
 usToHyphen :: String -> String
 usToHyphen = map (\c -> if c == '_' then '-' else c)
@@ -50,17 +50,18 @@ instance AgdaUnparse AgdaFFI.UTerm where
 instance AgdaUnparse UPLC.DefaultFun where
   agdaUnparse = usToHyphen . lowerInitialChar . show
 
-instance AgdaUnparse SimplifierStage where
+instance AgdaUnparse CertifiedOptStage where
   agdaUnparse FloatDelay = "floatDelayT"
   agdaUnparse ForceDelay = "forceDelayT"
   agdaUnparse ForceCaseDelay = "forceCaseDelayT"
-  agdaUnparse CaseOfCase = "caseOfCaseT"
   agdaUnparse CaseReduce = "caseReduceT"
   agdaUnparse Inline = "inlineT"
   agdaUnparse CSE = "cseT"
   agdaUnparse ApplyToCase = "applyToCaseT"
+
+instance AgdaUnparse UncertifiedOptStage where
+  agdaUnparse CaseOfCase = "caseOfCaseT"
   agdaUnparse LetFloatOut = "letFloatOutT"
-  agdaUnparse Unknown = "unknown"
 
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case
@@ -117,6 +118,9 @@ instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
 instance AgdaUnparse a => AgdaUnparse (Vector a) where
   agdaUnparse v = "(mkArray (" ++ agdaUnfold v ++ "))"
 
+instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (Either a b) where
+  agdaUnparse (Left a) = "(inj₁ " ++ agdaUnparse a ++ ")"
+  agdaUnparse (Right b) = "(inj₂ " ++ agdaUnparse b ++ ")"
 instance AgdaUnparse Data where
   agdaUnparse (Data.Constr i args) =
     "(ConstrDATA " ++ agdaUnparse i ++ " " ++ agdaUnparse args ++ ")"

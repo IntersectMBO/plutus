@@ -59,54 +59,52 @@ open import VerifiedCompilation.Certificate hiding (_>>=_)
 data Error : Set where
   emptyDump : Error
   illScoped : Error
-  counterExample : SimplifierTag → Error
-  abort : SimplifierTag → Error
+  counterExample : OptTag → Error
+  abort : OptTag → Error
 ```
 
 ## Translation Relations and Certifiers
 
-We map a `SimplifierTag` to the corresponding translation relation, or `nothing`
-if we don't have a translation relation.
+We map a `CertifiedOptTag` to the corresponding translation relation.
 
 ```
-mRelationOf : SimplifierTag → Maybe (0 ⊢ → 0 ⊢ → Set)
-mRelationOf floatDelayT     = just UFlD.FloatDelay
-mRelationOf forceDelayT     = just UFD.ForceDelay
-mRelationOf caseReduceT     = just UCR.UCaseReduce
-mRelationOf cseT            = just UCSE.UntypedCSE
-mRelationOf inlineT         = just (UInline.Inline (λ()) UInline.□)
-mRelationOf unknown         = nothing
-mRelationOf caseOfCaseT     = nothing -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/2054
-mRelationOf forceCaseDelayT = just UFCD.ForceCaseDelay
-mRelationOf applyToCaseT    = just UA2C.UApplyToCase
-mRelationOf letFloatOutT    = nothing
+-- TODO: this should be enforced at the type level somehow
+-- i.e. I shouldn't be able to associate 'forceDelayT' with
+-- 'floatDelay'!
+tagToRelation : CertifiedOptTag → (0 ⊢ → 0 ⊢ → Set)
+tagToRelation floatDelayT = UFlD.FloatDelay
+tagToRelation forceDelayT = UFD.ForceDelay
+tagToRelation forceCaseDelayT = UFCD.ForceCaseDelay
+tagToRelation caseReduceT = UCR.UCaseReduce
+tagToRelation inlineT = UInline.Inline (λ()) UInline.□
+tagToRelation cseT = UCSE.UntypedCSE
+tagToRelation applyToCaseT = UA2C.UApplyToCase
 ```
 
-We default to the `NotImplemented` relation to give each `SimplifierTag` a relation:
+We default to the `NotImplemented` relation to give each `OptTag` a relation:
 
 ```
-RelationOf : SimplifierTag → (0 ⊢ → 0 ⊢ → Set)
-RelationOf = fromMaybe (NotImplemented accept) ∘ mRelationOf
+RelationOf : OptTag → (0 ⊢ → 0 ⊢ → Set)
+RelationOf (inj₁ _) = NotImplemented accept
+RelationOf (inj₂ tag) = tagToRelation tag
 
-hasRelation : SimplifierTag → Bool
-hasRelation = is-just ∘ mRelationOf
+hasRelation : OptTag → Bool
+hasRelation = is-inj₂
 ```
 
 The corresponding certifier can then be called for a given pass:
 
 ```
-certifyPass : (pass : SimplifierTag) → Hints → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
-certifyPass floatDelayT _       = decider UFlD.isFloatDelay?
-certifyPass forceDelayT _       = decider UFD.isForceDelay?
-certifyPass caseReduceT _       = decider UCR.isCaseReduce?
-certifyPass cseT _              = decider UCSE.isUntypedCSE?
-certifyPass caseOfCaseT _       = certNotImplemented
-certifyPass forceCaseDelayT _   = decider UFCD.isForceCaseDelay?
-certifyPass applyToCaseT _      = decider UA2C.a2c?ᶜᶜ
-certifyPass inlineT (inline hs) = checker (UInline.top-check hs)
-certifyPass inlineT none        = λ M M' → abort inlineT M M'
-certifyPass letFloatOutT _      = certNotImplemented
-certifyPass unknown _           = certNotImplemented
+certifyPass : (pass : OptTag) → Hints → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
+certifyPass (inj₁ _) _ = certNotImplemented
+certifyPass (inj₂ floatDelayT) _ = decider UFlD.isFloatDelay?
+certifyPass (inj₂ forceDelayT) _ = decider UFD.isForceDelay?
+certifyPass (inj₂ forceCaseDelayT) _ = decider UFCD.isForceCaseDelay?
+certifyPass (inj₂ caseReduceT) _ = decider UCR.isCaseReduce?
+certifyPass (inj₂ inlineT) (inline hs) = checker (UInline.top-check hs)
+certifyPass (inj₂ inlineT) none = λ M M' → abort InlineT M M'
+certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
+certifyPass (inj₂ applyToCaseT) _ = decider UA2C.a2c?ᶜᶜ
 ```
 
 A `Certificate t` states the main theorem of a trace `t`: a sequence (product)

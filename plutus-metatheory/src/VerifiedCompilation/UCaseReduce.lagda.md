@@ -32,7 +32,7 @@ open import RawU using (tag2TyTag; tmCon)
 open import Agda.Builtin.Int using (Int)
 open import Data.Empty using (⊥)
 open import Function using (case_of_)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; caseReduceT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; CaseReduceT)
 open import Untyped.Reduction using (iterApp)
 ```
 
@@ -56,14 +56,14 @@ justEq refl = refl
 {-# TERMINATING #-}
 isCR? : {X : ℕ} → (ast ast' : X ⊢) → ProofOrCE (CaseReduce ast ast')
 isCR? ast ast' with (isCase? (isConstr? allTerms?) allTerms?) ast
-... | no ¬p = ce (λ { (casereduce _ _) → ¬p (iscase (isconstr _ (allterms _)) (allterms _))} ) caseReduceT ast ast'
+... | no ¬p = ce (λ { (casereduce _ _) → ¬p (iscase (isconstr _ (allterms _)) (allterms _))} ) CaseReduceT ast ast'
 ... | yes (iscase (isconstr i (allterms vs)) (allterms xs)) with lookup? i xs in xv
-...          | nothing = ce (λ { (casereduce p _) → case trans (sym xv) p of λ { () }} ) caseReduceT ast ast'
+...          | nothing = ce (λ { (casereduce p _) → case trans (sym xv) p of λ { () }} ) CaseReduceT ast ast'
 ...          | just x with isCaseReduce? (iterApp x vs) ast'
 ...                  | proof p = proof (casereduce xv p)
 ...                  | ce ¬t t b a = ce (λ { (casereduce p t) → ¬t (subst (λ x → Translation CaseReduce (iterApp x vs) ast') (justEq (trans (sym p) xv)) t)}) t b a
 
-isCaseReduce? = translation? caseReduceT isCR?
+isCaseReduce? = translation? CaseReduceT isCR?
 
 UCaseReduce = Translation CaseReduce
 

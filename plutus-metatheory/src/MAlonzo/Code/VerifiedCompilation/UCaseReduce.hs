@@ -29,6 +29,7 @@ import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped
 import qualified MAlonzo.Code.Untyped.CEK
 import qualified MAlonzo.Code.Untyped.Reduction
+import qualified MAlonzo.Code.Utils
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
 import qualified MAlonzo.Code.VerifiedCompilation.Trace
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
@@ -49,7 +50,7 @@ d_isCaseReduce'63'_26 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
       (coe v0)
-      (coe MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_14)
+      (coe MAlonzo.Code.VerifiedCompilation.Trace.d_CaseReduceT_34)
       (coe d_isCR'63'_42)
 -- VerifiedCompilation.UCaseReduce.justEq
 d_justEq_34 ::
@@ -132,8 +133,7 @@ d_isCR'63'_42 v0 v1 v2
                                                                    MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
                                                                      -> coe
                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                          (coe
-                                                                             MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_14)
+                                                                          MAlonzo.Code.VerifiedCompilation.Trace.d_CaseReduceT_34
                                                                           v1 v2
                                                                    _ -> MAlonzo.RTE.mazUnreachableError)))
                                                    _ -> MAlonzo.RTE.mazUnreachableError
@@ -145,8 +145,7 @@ d_isCR'63'_42 v0 v1 v2
                        seq (coe v5)
                        (coe
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                          (coe MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_14) v1
-                          v2)
+                          MAlonzo.Code.VerifiedCompilation.Trace.d_CaseReduceT_34 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UCaseReduce..extendedlambda0
 d_'46'extendedlambda0_58 ::
@@ -191,7 +190,9 @@ d_'46'extendedlambda3_142 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
+  MAlonzo.Code.Utils.T_Either_6
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->

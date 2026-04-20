@@ -19,23 +19,49 @@ open Maybe
 
 ```
 ## Pass tags
-We enumerate the known passes:
+We enumerate the known passes and partition them into two categories:
+- those which are not yet (fully) implemented in the certifier 
+- those which are implemented in the certifier and we know they are correct.
 
 ```
-data SimplifierTag : Set where
-  floatDelayT : SimplifierTag
-  forceDelayT : SimplifierTag
-  forceCaseDelayT : SimplifierTag
-  caseOfCaseT : SimplifierTag
-  caseReduceT : SimplifierTag
-  inlineT : SimplifierTag
-  cseT : SimplifierTag
-  applyToCaseT : SimplifierTag
-  letFloatOutT : SimplifierTag
-  unknown : SimplifierTag -- a placeholder for passes that we don't yet know of, so the certifier doesn't break if a pass was added
 
-{-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
-{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE | ApplyToCase | LetFloatOut | Unknown) #-}
+data UncertifiedOptTag : Set where
+  caseOfCaseT : UncertifiedOptTag
+  letFloatOutT : UncertifiedOptTag
+
+data CertifiedOptTag : Set where
+  floatDelayT : CertifiedOptTag
+  forceDelayT : CertifiedOptTag
+  forceCaseDelayT : CertifiedOptTag
+  caseReduceT : CertifiedOptTag
+  inlineT : CertifiedOptTag
+  cseT : CertifiedOptTag
+  applyToCaseT : CertifiedOptTag
+
+OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
+
+FloatDelayT : OptTag
+FloatDelayT = Utils.inj₂ floatDelayT
+ForceDelayT : OptTag
+ForceDelayT = Utils.inj₂ forceDelayT
+ForceCaseDelayT : OptTag
+ForceCaseDelayT = Utils.inj₂ forceCaseDelayT
+CaseReduceT : OptTag
+CaseReduceT = Utils.inj₂ caseReduceT
+InlineT : OptTag
+InlineT = Utils.inj₂ inlineT
+CseT : OptTag
+CseT = Utils.inj₂ cseT
+ApplyToCaseT : OptTag
+ApplyToCaseT = Utils.inj₂ applyToCaseT
+
+CaseOfCaseT : OptTag
+CaseOfCaseT = Utils.inj₁ caseOfCaseT
+LetFloatOutT : OptTag
+LetFloatOutT = Utils.inj₁ letFloatOutT
+
+{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase) #-}
+{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut) #-}
 ```
 
 ## Hints
@@ -69,14 +95,14 @@ data Hints : Set where
 ## Compiler traces
 
 A `Trace A` is a sequence of optimisation transformations applied to terms of
-type `A`. Each transition is labeled with a `SimplifierTag` that contains
+type `A`. Each transition is labeled with a `OptTag` that contains
 information about which pass was performed.
 
 ```
 
 data Trace (A : Set) : Set where
   -- One step in the pipeline, with its pass and input term
-  step : SimplifierTag → Hints → A → Trace A → Trace A
+  step : OptTag → Hints → A → Trace A → Trace A
   -- Final AST in the trace
   done : A → Trace A
 
@@ -94,7 +120,7 @@ head (step _ _ x _) = x
 
 -- The current trace structure dumped from Haskell
 Dump : Set
-Dump = List (SimplifierTag × Hints × Untyped × Untyped)
+Dump = List (OptTag × Hints × Untyped × Untyped)
 
 --
 -- Since there is duplication in the dump, i.e. it is of the form
@@ -108,7 +134,7 @@ toTrace : Dump → Maybe (Trace Untyped)
 toTrace [] = nothing
 toTrace (x ∷ xs) = just (go x xs)
   where
-    go : SimplifierTag × Hints × Untyped × Untyped → Dump → Trace Untyped
+    go : OptTag × Hints × Untyped × Untyped → Dump → Trace Untyped
     go (pass , hints , x , y) [] = step pass hints x (done y)
     go (pass , hints , x , y) ((pass' , hints' , _ , z) ∷ xs) = step pass hints x (go (pass' , hints' , y , z) xs)
 ```

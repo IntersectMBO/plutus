@@ -95,8 +95,8 @@ library
     Certifier
     FFI.AgdaUnparse
     FFI.CostInfo
+    FFI.OptimizerTrace
     FFI.Opts
-    FFI.SimplifierTrace
     FFI.Untyped
     Raw
 

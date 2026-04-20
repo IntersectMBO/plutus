@@ -1,22 +1,22 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module UntypedPlutusCore.Transform.Cse (cse, CseWhichSubterms (..)) where
+module UntypedPlutusCore.Transform.Cse (cse) where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
-import PlutusCore.Pretty
-import Prettyprinter (viaShow)
 import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Core
+import UntypedPlutusCore.Optimize.Opts (CseWhichSubterms (..))
 import UntypedPlutusCore.Purity (isWorkFree)
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (CSE)
-  , SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
+  , pattern CseStage
   )
 
 import Control.Arrow ((>>>))
@@ -204,13 +204,6 @@ type Path = [Int]
 isAncestorOrSelf :: Path -> Path -> Bool
 isAncestorOrSelf = isSuffixOf
 
--- | Which subterms should be considered as candidates?
-data CseWhichSubterms = AllSubterms | ExcludeWorkFree
-  deriving stock (Show, Read)
-
-instance Pretty CseWhichSubterms where
-  pretty = viaShow
-
 data CseCandidate uni fun ann = CseCandidate
   { ccFreshName :: Name
   , ccTerm :: Term Name uni fun ()
@@ -228,7 +221,7 @@ cse
   => CseWhichSubterms
   -> BuiltinSemanticsVariant fun
   -> Term Name uni fun ann
-  -> SimplifierT Name uni fun ann m (Term Name uni fun ann)
+  -> OptimizerT Name uni fun ann m (Term Name uni fun ann)
 cse whichSubterms builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
@@ -243,7 +236,7 @@ cse whichSubterms builtinSemanticsVariant t0 = do
           . Map.elems
           $ countOccs whichSubterms builtinSemanticsVariant annotated
   result <- mkCseTerm commonSubexprs annotated
-  recordSimplification t0 CSE result
+  recordOptimization t0 CseStage result
   return result
 
 -- | The first pass. See Note [CSE].

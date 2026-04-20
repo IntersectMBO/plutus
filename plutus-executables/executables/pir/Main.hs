@@ -194,8 +194,8 @@ compileToUplc optimise plcProg =
           then PLC.defaultCompilationOpts
           else
             PLC.defaultCompilationOpts
-              & PLC.coSimplifyOpts
-              . UPLC.soMaxSimplifierIterations
+              & PLC.coOptimizeOpts
+              . UPLC.ooMaxSimplifierIterations
               .~ 0
    in runQuote $ flip runReaderT plcCompilerOpts $ PLC.compileProgram plcProg
 

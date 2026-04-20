@@ -31,6 +31,7 @@ import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped
 import qualified MAlonzo.Code.Untyped.Purity
+import qualified MAlonzo.Code.Utils
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
 import qualified MAlonzo.Code.VerifiedCompilation.Trace
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
@@ -540,7 +541,7 @@ d_isFloatDelay'63'_488 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
       (coe v0)
-      (coe MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6)
+      (coe MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_28)
       (coe d_isFlD'63'_492)
 -- VerifiedCompilation.UFloatDelay.isFlD?
 d_isFlD'63'_492 ::
@@ -696,8 +697,7 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                                                                                                 v38)
                                                                                                                                                                              (coe
                                                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                                                                                                                (coe
-                                                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6)
+                                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_28
                                                                                                                                                                                 v1
                                                                                                                                                                                 v2)
                                                                                                                                                                _ -> MAlonzo.RTE.mazUnreachableError)
@@ -726,8 +726,7 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                   v21)
                                                                                                (coe
                                                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                                  (coe
-                                                                                                     MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6)
+                                                                                                  MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_28
                                                                                                   v1
                                                                                                   v2)
                                                                                  _ -> MAlonzo.RTE.mazUnreachableError))
@@ -742,7 +741,7 @@ d_isFlD'63'_492 v0 v1 v2
                        seq (coe v5)
                        (coe
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                          (coe MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6) v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_28 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UFloatDelay..extendedlambda8
 d_'46'extendedlambda8_508 ::
@@ -772,7 +771,9 @@ d_'46'extendedlambda10_582 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
+  MAlonzo.Code.Utils.T_Either_6
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -788,7 +789,9 @@ d_'46'extendedlambda11_630 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
+  MAlonzo.Code.Utils.T_Either_6
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->

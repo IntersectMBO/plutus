@@ -14,7 +14,7 @@ module VerifiedCompilation.UCaseOfCase where
 open import Untyped.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; caseOfCaseT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; CaseOfCaseT)
 
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
@@ -104,18 +104,18 @@ isCaseOfCase? : {X : ℕ} (ast ast' : X ⊢) → ProofOrCE (Translation CoC {X} 
 isCoC? : {X : ℕ}  (ast ast' : X ⊢) → ProofOrCE (CoC {X} ast ast')
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ... | no ¬cf = ce (λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
-                                                                           (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') } ) caseOfCaseT ast ast'
+                                                                           (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') } ) CaseOfCaseT ast ast'
 ... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁)
-... | no ¬p = ce (λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl)}) caseOfCaseT ast ast'
-... | yes (refl , refl , refl) with pcePointwise caseOfCaseT isCaseOfCase? tt tt'
+... | no ¬p = ce (λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl)}) CaseOfCaseT ast ast'
+... | yes (refl , refl , refl) with pcePointwise CaseOfCaseT isCaseOfCase? tt tt'
 ...   | ce ¬p t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p x₁}) t b a
-...   | proof tt=tt' with pcePointwise caseOfCaseT isCaseOfCase? ft ft'
+...   | proof tt=tt' with pcePointwise CaseOfCaseT isCaseOfCase? ft ft'
 ...      | ce ¬p t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p x₂}) t b a
-...      | proof ft=ft' with pcePointwise caseOfCaseT isCaseOfCase? alts alts'
+...      | proof ft=ft' with pcePointwise CaseOfCaseT isCaseOfCase? alts alts'
 ...        | ce ¬pp t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬pp x}) t b a
 ...        | proof alts=alts' = proof (isCoC b tn fn tt tt' ft ft' alts alts' alts=alts' tt=tt' ft=ft')
 
-isCaseOfCase? {X} = translation? {X} caseOfCaseT isCoC?
+isCaseOfCase? {X} = translation? {X} CaseOfCaseT isCoC?
 ```
 
 ## Semantic Equivalence

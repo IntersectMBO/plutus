@@ -85,6 +85,7 @@ data PluginOptions = PluginOptions
     _posRemoveTrace :: Bool
   , _posDumpCompilationTrace :: Bool
   , _posCertify :: Maybe String
+  , _posCertifiedOptsOnly :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -267,7 +268,7 @@ pluginOptions =
           desc = "Set the max iterations for the PIR simplifier"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsPir desc [])
     , let k = "max-simplifier-iterations-uplc"
-          desc = "Set the max iterations for the UPLC simplifier"
+          desc = "Set the max iterations for the UPLC optimizer"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsUPlc desc [])
     , let k = "max-cse-iterations"
           desc = "Set the max iterations for CSE"
@@ -339,6 +340,11 @@ pluginOptions =
               rest <- many (alphaNumChar <|> char '_' <|> char '\\')
               pure (firstC : rest)
        in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
+    , let k = "certified-opts-only"
+          desc =
+            "Run only those optimisation passes which are certified to preserve the functional "
+              <> "behavior of the original program."
+       in (k, PluginOption typeRep (setTrue k) posCertifiedOptsOnly desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -391,9 +397,9 @@ defaultPluginOptions =
     , _posVerbosity = Quiet
     , _posDatatypes = PIR.defaultDatatypeCompilationOpts
     , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
-    , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
-    , _posMaxCseIterations = view UPLC.soMaxCseIterations UPLC.defaultSimplifyOpts
-    , _posCseWhichSubterms = view UPLC.soCseWhichSubterms UPLC.defaultSimplifyOpts
+    , _posMaxSimplifierIterationsUPlc = view UPLC.ooMaxSimplifierIterations UPLC.defaultOptimizeOpts
+    , _posMaxCseIterations = view UPLC.ooMaxCseIterations UPLC.defaultOptimizeOpts
+    , _posCseWhichSubterms = view UPLC.ooCseWhichSubterms UPLC.defaultOptimizeOpts
     , _posDoSimplifierUnwrapCancel = True
     , _posDoSimplifierBeta = True
     , _posDoSimplifierInline = True
@@ -414,6 +420,7 @@ defaultPluginOptions =
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
     , _posCertify = Nothing
+    , _posCertifiedOptsOnly = False
     }
 
 processOne
