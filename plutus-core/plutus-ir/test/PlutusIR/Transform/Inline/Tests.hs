@@ -76,4 +76,4 @@ prop_inline biVariant =
   withMaxSuccess numTestsForPassProp
     $ testPassProp
       runQuote
-    $ \tc -> inlinePassSC 0 True tc def (def {_biSemanticsVariant = biVariant})
+    $ \tc -> inlinePassSC 0 0 True tc def (def {_biSemanticsVariant = biVariant})
