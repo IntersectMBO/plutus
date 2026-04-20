@@ -47,7 +47,7 @@ d_isUntypedCSE'63'_26 ::
 d_isUntypedCSE'63'_26 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
-      (coe v0) (coe MAlonzo.Code.VerifiedCompilation.Trace.d_CseT_38)
+      (coe v0) (coe MAlonzo.Code.VerifiedCompilation.Trace.d_CseT_36)
       (coe d_isUCSE'63'_30)
 -- VerifiedCompilation.UCSE.isUCSE?
 d_isUCSE'63'_30 ::
@@ -116,7 +116,7 @@ d_isUCSE'63'_30 v0 v1 v2
                        seq (coe v5)
                        (coe
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                          MAlonzo.Code.VerifiedCompilation.Trace.d_CseT_38 v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Trace.d_CseT_36 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UCSE..extendedlambda0
 d_'46'extendedlambda0_46 ::
@@ -139,7 +139,7 @@ d_'46'extendedlambda1_78 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
   AgdaAny ->
   AgdaAny -> T_UCSE_4 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda1_78 = erased

@@ -46,13 +46,13 @@ Pass 5: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 6: Case-Constr and Case-Constant Cancellation  ✅
+Pass 6: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 3280 (before)
   Program Size: 3280 (after)
   Execution Cost: CPU = 275603093782, MEM = 1672462255 (before)
   Execution Cost: CPU = 275603093782, MEM = 1672462255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 7: Inlining  ✅
@@ -109,13 +109,13 @@ Pass 12: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 13: Case-Constr and Case-Constant Cancellation  ✅
+Pass 13: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 2910 (before)
   Program Size: 2910 (after)
   Execution Cost: CPU = 254090741782, MEM = 1538010055 (before)
   Execution Cost: CPU = 254090741782, MEM = 1538010055 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 14: Inlining  ✅
@@ -172,13 +172,13 @@ Pass 19: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 20: Case-Constr and Case-Constant Cancellation  ✅
+Pass 20: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 2357 (before)
   Program Size: 2357 (after)
   Execution Cost: CPU = 204103557782, MEM = 1225590155 (before)
   Execution Cost: CPU = 204103557782, MEM = 1225590155 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 21: Inlining  ✅
@@ -235,13 +235,13 @@ Pass 26: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 27: Case-Constr and Case-Constant Cancellation  ✅
+Pass 27: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 2266 (before)
   Program Size: 2266 (after)
   Execution Cost: CPU = 161169253782, MEM = 957250755 (before)
   Execution Cost: CPU = 161169253782, MEM = 957250755 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 28: Inlining  ✅
@@ -298,13 +298,13 @@ Pass 33: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 34: Case-Constr and Case-Constant Cancellation  ✅
+Pass 34: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1820 (before)
   Program Size: 1820 (after)
   Execution Cost: CPU = 118337877782, MEM = 689554655 (before)
   Execution Cost: CPU = 118337877782, MEM = 689554655 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 35: Inlining  ✅
@@ -361,13 +361,13 @@ Pass 40: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 41: Case-Constr and Case-Constant Cancellation  ✅
+Pass 41: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1767 (before)
   Program Size: 1767 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 42: Inlining  ✅
@@ -424,13 +424,13 @@ Pass 47: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 48: Case-Constr and Case-Constant Cancellation  ✅
+Pass 48: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 49: Inlining  ✅
@@ -487,13 +487,13 @@ Pass 54: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 55: Case-Constr and Case-Constant Cancellation  ✅
+Pass 55: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 56: Inlining  ✅
@@ -550,13 +550,13 @@ Pass 61: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 62: Case-Constr and Case-Constant Cancellation  ✅
+Pass 62: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 63: Inlining  ✅
@@ -613,13 +613,13 @@ Pass 68: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 69: Case-Constr and Case-Constant Cancellation  ✅
+Pass 69: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 70: Inlining  ✅
@@ -676,13 +676,13 @@ Pass 75: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 76: Case-Constr and Case-Constant Cancellation  ✅
+Pass 76: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 77: Inlining  ✅
@@ -739,13 +739,13 @@ Pass 82: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 83: Case-Constr and Case-Constant Cancellation  ✅
+Pass 83: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 84: Inlining  ✅
@@ -811,13 +811,13 @@ Pass 90: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 91: Case-Constr and Case-Constant Cancellation  ✅
+Pass 91: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1773 (before)
   Program Size: 1773 (after)
   Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
   Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 92: Inlining  ✅
@@ -883,13 +883,13 @@ Pass 98: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 99: Case-Constr and Case-Constant Cancellation  ✅
+Pass 99: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1770 (before)
   Program Size: 1770 (after)
   Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
   Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 100: Inlining  ✅
@@ -955,13 +955,13 @@ Pass 106: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 107: Case-Constr and Case-Constant Cancellation  ✅
+Pass 107: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1756 (before)
   Program Size: 1756 (after)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 108: Inlining  ✅
@@ -1027,13 +1027,13 @@ Pass 114: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 115: Case-Constr and Case-Constant Cancellation  ✅
+Pass 115: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1756 (before)
   Program Size: 1756 (after)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 116: Inlining  ✅

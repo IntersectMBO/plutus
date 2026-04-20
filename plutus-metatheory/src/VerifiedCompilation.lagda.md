@@ -75,7 +75,6 @@ tagToRelation : CertifiedOptTag → (0 ⊢ → 0 ⊢ → Set)
 tagToRelation floatDelayT = UFlD.FloatDelay
 tagToRelation forceDelayT = UFD.ForceDelay
 tagToRelation forceCaseDelayT = UFCD.ForceCaseDelay
-tagToRelation caseReduceT = UCR.UCaseReduce
 tagToRelation inlineT = UInline.Inline (λ()) UInline.□
 tagToRelation cseT = UCSE.UntypedCSE
 tagToRelation applyToCaseT = UA2C.UApplyToCase
@@ -100,7 +99,6 @@ certifyPass (inj₁ _) _ = certNotImplemented
 certifyPass (inj₂ floatDelayT) _ = decider UFlD.isFloatDelay?
 certifyPass (inj₂ forceDelayT) _ = decider UFD.isForceDelay?
 certifyPass (inj₂ forceCaseDelayT) _ = decider UFCD.isForceCaseDelay?
-certifyPass (inj₂ caseReduceT) _ = decider UCR.isCaseReduce?
 certifyPass (inj₂ inlineT) (inline hs) = checker (UInline.top-check hs)
 certifyPass (inj₂ inlineT) none = λ M M' → abort InlineT M M'
 certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
