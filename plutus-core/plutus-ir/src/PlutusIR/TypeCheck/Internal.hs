@@ -33,7 +33,7 @@ import PlutusIR.Error qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
-import PlutusCore (getAnn, toPatFuncKind, tyVarDeclName)
+import PlutusCore (toPatFuncKind, tyVarDeclName)
 import PlutusCore.Builtin (annotateCaseBuiltin)
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
