@@ -385,21 +385,12 @@ applyCse
   -> Term Name uni fun (Path, ann)
 applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
   where
-<<<<<<< HEAD
-    candidatePath = fst (termAnn (ccAnnotatedTerm candidate))
+    candidatePath = fst (getAnn (ccAnnotatedTerm candidate))
 
     substCseVarForTerm :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
     substCseVarForTerm t =
       if currTerm == ccTerm candidate && candidatePath `isAncestorOrSelf` currPath
-        then Var (termAnn t) (ccFreshName candidate)
-=======
-    candidatePath = fst (getAnn (ccAnnotatedTerm c))
-
-    substCseVarForTerm :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
-    substCseVarForTerm t =
-      if currTerm == ccTerm c && candidatePath `isAncestorOrSelf` currPath
-        then Var (getAnn t) (ccFreshName c)
->>>>>>> e9deb8c872 (Redo The Parser)
+        then Var (getAnn t) (ccFreshName candidate)
         else t
       where
         currTerm = void t
@@ -407,15 +398,7 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
 
     mkLamApp :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
     mkLamApp t
-<<<<<<< HEAD
       | currPath == candidatePath = placeCseBinding t
-=======
-      | currPath == candidatePath =
-          Apply
-            (getAnn t)
-            (LamAbs (getAnn t) (ccFreshName c) t)
-            (ccAnnotatedTerm c)
->>>>>>> e9deb8c872 (Redo The Parser)
       | currPath `isAncestorOrSelf` candidatePath = case t of
           Var ann name -> Var ann name
           LamAbs ann name body -> LamAbs ann name (mkLamApp body)
@@ -465,8 +448,8 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
             cseName = ccFreshName candidate
             wrapWithCse n =
               Apply
-                (termAnn n)
-                (LamAbs (termAnn n) cseName n)
+                (getAnn n)
+                (LamAbs (getAnn n) cseName n)
                 (ccAnnotatedTerm candidate)
 
 occursIn :: Eq name => name -> Term name uni fun a -> Bool
