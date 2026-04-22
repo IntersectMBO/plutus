@@ -21,7 +21,6 @@ data CertifiedOptStage
   | ForceDelay
   | ForceCaseDelay
   | Inline
-  | CSE
   | ApplyToCase
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
@@ -37,6 +36,7 @@ data UncertifiedOptStage
   = CaseOfCase
   | LetFloatOut
   | CaseReduce
+  | CSE
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -58,7 +58,7 @@ pattern InlineStage :: OptStage
 pattern InlineStage = Right Inline
 
 pattern CseStage :: OptStage
-pattern CseStage = Right CSE
+pattern CseStage = Left CSE
 
 pattern ApplyToCaseStage :: OptStage
 pattern ApplyToCaseStage = Right ApplyToCase

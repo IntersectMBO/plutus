@@ -276,7 +276,7 @@ d_'46'extendedlambda1_94 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_14 ->
   AgdaAny ->
   AgdaAny ->
   T_ApplyToCase_4 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
