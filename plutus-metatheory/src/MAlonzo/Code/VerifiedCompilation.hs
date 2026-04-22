@@ -176,7 +176,7 @@ d_checkScope_100 ::
 d_checkScope_100 v0
   = coe
       MAlonzo.Code.Utils.du_eitherToMaybe_104
-      (coe MAlonzo.Code.Untyped.d_scopeCheckU0_276 (coe v0))
+      (coe MAlonzo.Code.Untyped.d_scopeCheckU0_282 (coe v0))
 -- VerifiedCompilation.checkScopeᵗ
 d_checkScope'7511'_102 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_Trace_80 ->
