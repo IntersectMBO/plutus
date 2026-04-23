@@ -11,6 +11,9 @@ open import VerifiedCompilation
 open import VerifiedCompilation.Certificate
 open import VerifiedCompilation.UntypedTranslation
 open import VerifiedCompilation.UInline
+open import VerifiedCompilation.UCaseReduce as CR
+open import Untyped.Relation.Binary.Modular hiding (_+_)
+open import Untyped.Relation.Binary.Core renaming (Pointwise to PW)
 open import Untyped
 open import Untyped.RenamingSubstitution using (Sub)
 open import Utils as U using (_×_; _,_; Either; either; inj₁; inj₂)
@@ -113,6 +116,33 @@ numSitesInline (case r rs) = numSitesInline r + numSitesInlineᵖʷ rs
 numSitesInlineᵖʷ Pointwise.[] = 0
 numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖʷ xs
 
+numSitesCaseReduce :
+  ∀ {X} {M N : X ⊢}
+  → M CR.~ N
+  → ℕ
+numSitesCaseReduce* :
+  ∀ {X} {Ms Ns : List (X ⊢)}
+  → PW _~_ Ms Ns
+  → ℕ
+
+numSitesCaseReduce (cr-reduction _)                = 1
+numSitesCaseReduce (cr-trans p q)                  = numSitesCaseReduce p + numSitesCaseReduce q
+numSitesCaseReduce (cr-sym p)                      = numSitesCaseReduce p
+numSitesCaseReduce (cr-refl)                       = 0
+numSitesCaseReduce (cr-compat (compat-varF n))     = 0
+numSitesCaseReduce (cr-compat (compat-lambdaF p))  = numSitesCaseReduce p
+numSitesCaseReduce (cr-compat (compat-applyF p q)) = numSitesCaseReduce p + numSitesCaseReduce q
+numSitesCaseReduce (cr-compat (compat-forceF p))   = numSitesCaseReduce p
+numSitesCaseReduce (cr-compat (compat-delayF p))   = numSitesCaseReduce p
+numSitesCaseReduce (cr-compat (compat-conF))       = 0
+numSitesCaseReduce (cr-compat (compat-constrF ps)) = numSitesCaseReduce* ps
+numSitesCaseReduce (cr-compat (compat-caseF p qs)) = numSitesCaseReduce p + numSitesCaseReduce* qs
+numSitesCaseReduce (cr-compat (compat-builtinF))   = 0
+numSitesCaseReduce (cr-compat (compat-errorF))     = 0
+
+numSitesCaseReduce* [] = 0
+numSitesCaseReduce* (x ∷ xs) = numSitesCaseReduce x + numSitesCaseReduce* xs
+
 numSites : {M N : 0 ⊢} (tag : CertifiedOptTag) → RelationOf (inj₂ tag) M N → ℕ
 numSites forceDelayT p = numSites′ p
 numSites floatDelayT p = numSites′ p
@@ -120,7 +150,7 @@ numSites cseT p = numSites′ p
 numSites inlineT p = numSitesInline p
 numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
-numSites caseReduceT p = 0 -- TODO
+numSites {M = M} caseReduceT p = numSitesCaseReduce (CR.sound {M = M} p)
 
 showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
 showSites (inj₁ _) _ = ""
