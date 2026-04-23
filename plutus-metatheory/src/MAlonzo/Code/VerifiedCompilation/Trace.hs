@@ -31,46 +31,46 @@ d_UncertifiedOptTag_4 = ()
 type T_UncertifiedOptTag_4 = UncertifiedOptStage
 pattern C_caseOfCaseT_6 = CaseOfCase
 pattern C_letFloatOutT_8 = LetFloatOut
+pattern C_caseReduceT_10 = CaseReduce
 check_caseOfCaseT_6 :: T_UncertifiedOptTag_4
 check_caseOfCaseT_6 = CaseOfCase
 check_letFloatOutT_8 :: T_UncertifiedOptTag_4
 check_letFloatOutT_8 = LetFloatOut
+check_caseReduceT_10 :: T_UncertifiedOptTag_4
+check_caseReduceT_10 = CaseReduce
 cover_UncertifiedOptTag_4 :: UncertifiedOptStage -> ()
 cover_UncertifiedOptTag_4 x
   = case x of
       CaseOfCase -> ()
       LetFloatOut -> ()
+      CaseReduce -> ()
 -- VerifiedCompilation.Trace.CertifiedOptTag
-d_CertifiedOptTag_10 = ()
-type T_CertifiedOptTag_10 = CertifiedOptStage
-pattern C_floatDelayT_12 = FloatDelay
-pattern C_forceDelayT_14 = ForceDelay
-pattern C_forceCaseDelayT_16 = ForceCaseDelay
-pattern C_caseReduceT_18 = CaseReduce
+d_CertifiedOptTag_12 = ()
+type T_CertifiedOptTag_12 = CertifiedOptStage
+pattern C_floatDelayT_14 = FloatDelay
+pattern C_forceDelayT_16 = ForceDelay
+pattern C_forceCaseDelayT_18 = ForceCaseDelay
 pattern C_inlineT_20 = Inline
 pattern C_cseT_22 = CSE
 pattern C_applyToCaseT_24 = ApplyToCase
-check_floatDelayT_12 :: T_CertifiedOptTag_10
-check_floatDelayT_12 = FloatDelay
-check_forceDelayT_14 :: T_CertifiedOptTag_10
-check_forceDelayT_14 = ForceDelay
-check_forceCaseDelayT_16 :: T_CertifiedOptTag_10
-check_forceCaseDelayT_16 = ForceCaseDelay
-check_caseReduceT_18 :: T_CertifiedOptTag_10
-check_caseReduceT_18 = CaseReduce
-check_inlineT_20 :: T_CertifiedOptTag_10
+check_floatDelayT_14 :: T_CertifiedOptTag_12
+check_floatDelayT_14 = FloatDelay
+check_forceDelayT_16 :: T_CertifiedOptTag_12
+check_forceDelayT_16 = ForceDelay
+check_forceCaseDelayT_18 :: T_CertifiedOptTag_12
+check_forceCaseDelayT_18 = ForceCaseDelay
+check_inlineT_20 :: T_CertifiedOptTag_12
 check_inlineT_20 = Inline
-check_cseT_22 :: T_CertifiedOptTag_10
+check_cseT_22 :: T_CertifiedOptTag_12
 check_cseT_22 = CSE
-check_applyToCaseT_24 :: T_CertifiedOptTag_10
+check_applyToCaseT_24 :: T_CertifiedOptTag_12
 check_applyToCaseT_24 = ApplyToCase
-cover_CertifiedOptTag_10 :: CertifiedOptStage -> ()
-cover_CertifiedOptTag_10 x
+cover_CertifiedOptTag_12 :: CertifiedOptStage -> ()
+cover_CertifiedOptTag_12 x
   = case x of
       FloatDelay -> ()
       ForceDelay -> ()
       ForceCaseDelay -> ()
-      CaseReduce -> ()
       Inline -> ()
       CSE -> ()
       ApplyToCase -> ()
@@ -80,56 +80,56 @@ d_OptTag_26 = erased
 -- VerifiedCompilation.Trace.FloatDelayT
 d_FloatDelayT_28 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_UncertifiedOptTag_4 T_CertifiedOptTag_10
+    T_UncertifiedOptTag_4 T_CertifiedOptTag_12
 d_FloatDelayT_28
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_floatDelayT_12)
+  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_floatDelayT_14)
 -- VerifiedCompilation.Trace.ForceDelayT
 d_ForceDelayT_30 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_UncertifiedOptTag_4 T_CertifiedOptTag_10
+    T_UncertifiedOptTag_4 T_CertifiedOptTag_12
 d_ForceDelayT_30
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_forceDelayT_14)
+  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_forceDelayT_16)
 -- VerifiedCompilation.Trace.ForceCaseDelayT
 d_ForceCaseDelayT_32 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_UncertifiedOptTag_4 T_CertifiedOptTag_10
+    T_UncertifiedOptTag_4 T_CertifiedOptTag_12
 d_ForceCaseDelayT_32
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_forceCaseDelayT_16)
--- VerifiedCompilation.Trace.CaseReduceT
-d_CaseReduceT_34 ::
-  MAlonzo.Code.Utils.T_Either_6
-    T_UncertifiedOptTag_4 T_CertifiedOptTag_10
-d_CaseReduceT_34
-  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_caseReduceT_18)
+  = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_forceCaseDelayT_18)
 -- VerifiedCompilation.Trace.InlineT
-d_InlineT_36 ::
+d_InlineT_34 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_UncertifiedOptTag_4 T_CertifiedOptTag_10
-d_InlineT_36
+    T_UncertifiedOptTag_4 T_CertifiedOptTag_12
+d_InlineT_34
   = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_inlineT_20)
 -- VerifiedCompilation.Trace.CseT
-d_CseT_38 ::
+d_CseT_36 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_UncertifiedOptTag_4 T_CertifiedOptTag_10
-d_CseT_38 = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_cseT_22)
+    T_UncertifiedOptTag_4 T_CertifiedOptTag_12
+d_CseT_36 = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_cseT_22)
 -- VerifiedCompilation.Trace.ApplyToCaseT
-d_ApplyToCaseT_40 ::
+d_ApplyToCaseT_38 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_UncertifiedOptTag_4 T_CertifiedOptTag_10
-d_ApplyToCaseT_40
+    T_UncertifiedOptTag_4 T_CertifiedOptTag_12
+d_ApplyToCaseT_38
   = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_applyToCaseT_24)
 -- VerifiedCompilation.Trace.CaseOfCaseT
-d_CaseOfCaseT_42 ::
+d_CaseOfCaseT_40 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_UncertifiedOptTag_4 T_CertifiedOptTag_10
-d_CaseOfCaseT_42
+    T_UncertifiedOptTag_4 T_CertifiedOptTag_12
+d_CaseOfCaseT_40
   = coe MAlonzo.Code.Utils.C_inj'8321'_12 (coe C_caseOfCaseT_6)
 -- VerifiedCompilation.Trace.LetFloatOutT
-d_LetFloatOutT_44 ::
+d_LetFloatOutT_42 ::
   MAlonzo.Code.Utils.T_Either_6
-    T_UncertifiedOptTag_4 T_CertifiedOptTag_10
-d_LetFloatOutT_44
+    T_UncertifiedOptTag_4 T_CertifiedOptTag_12
+d_LetFloatOutT_42
   = coe MAlonzo.Code.Utils.C_inj'8321'_12 (coe C_letFloatOutT_8)
+-- VerifiedCompilation.Trace.CaseReduceT
+d_CaseReduceT_44 ::
+  MAlonzo.Code.Utils.T_Either_6
+    T_UncertifiedOptTag_4 T_CertifiedOptTag_12
+d_CaseReduceT_44
+  = coe MAlonzo.Code.Utils.C_inj'8321'_12 (coe C_caseReduceT_10)
 -- VerifiedCompilation.Trace.InlineHints
 d_InlineHints_46 = ()
 type T_InlineHints_46 = Hints.Inline
@@ -208,7 +208,7 @@ cover_Hints_72 x
 d_Trace_80 a0 = ()
 data T_Trace_80
   = C_step_84 (MAlonzo.Code.Utils.T_Either_6
-                 T_UncertifiedOptTag_4 T_CertifiedOptTag_10)
+                 T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
               T_Hints_72 AgdaAny T_Trace_80 |
     C_done_86 AgdaAny
 -- VerifiedCompilation.Trace.head
@@ -225,7 +225,7 @@ d_Dump_96 = erased
 d_toTrace_98 ::
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        T_UncertifiedOptTag_4 T_CertifiedOptTag_10)
+        T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
      (MAlonzo.Code.Utils.T__'215'__428
         T_Hints_72
         (MAlonzo.Code.Utils.T__'215'__428
@@ -244,7 +244,7 @@ d_toTrace_98 v0
 d_go_108 ::
   MAlonzo.Code.Utils.T__'215'__428
     (MAlonzo.Code.Utils.T_Either_6
-       T_UncertifiedOptTag_4 T_CertifiedOptTag_10)
+       T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
     (MAlonzo.Code.Utils.T__'215'__428
        T_Hints_72
        (MAlonzo.Code.Utils.T__'215'__428
@@ -252,7 +252,7 @@ d_go_108 ::
           MAlonzo.Code.RawU.T_Untyped_208)) ->
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        T_UncertifiedOptTag_4 T_CertifiedOptTag_10)
+        T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
      (MAlonzo.Code.Utils.T__'215'__428
         T_Hints_72
         (MAlonzo.Code.Utils.T__'215'__428
@@ -260,7 +260,7 @@ d_go_108 ::
            MAlonzo.Code.RawU.T_Untyped_208))] ->
   MAlonzo.Code.Utils.T__'215'__428
     (MAlonzo.Code.Utils.T_Either_6
-       T_UncertifiedOptTag_4 T_CertifiedOptTag_10)
+       T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
     (MAlonzo.Code.Utils.T__'215'__428
        T_Hints_72
        (MAlonzo.Code.Utils.T__'215'__428
@@ -268,7 +268,7 @@ d_go_108 ::
           MAlonzo.Code.RawU.T_Untyped_208)) ->
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        T_UncertifiedOptTag_4 T_CertifiedOptTag_10)
+        T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
      (MAlonzo.Code.Utils.T__'215'__428
         T_Hints_72
         (MAlonzo.Code.Utils.T__'215'__428
@@ -279,7 +279,7 @@ d_go_108 ~v0 ~v1 v2 v3 = du_go_108 v2 v3
 du_go_108 ::
   MAlonzo.Code.Utils.T__'215'__428
     (MAlonzo.Code.Utils.T_Either_6
-       T_UncertifiedOptTag_4 T_CertifiedOptTag_10)
+       T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
     (MAlonzo.Code.Utils.T__'215'__428
        T_Hints_72
        (MAlonzo.Code.Utils.T__'215'__428
@@ -287,7 +287,7 @@ du_go_108 ::
           MAlonzo.Code.RawU.T_Untyped_208)) ->
   [MAlonzo.Code.Utils.T__'215'__428
      (MAlonzo.Code.Utils.T_Either_6
-        T_UncertifiedOptTag_4 T_CertifiedOptTag_10)
+        T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
      (MAlonzo.Code.Utils.T__'215'__428
         T_Hints_72
         (MAlonzo.Code.Utils.T__'215'__428

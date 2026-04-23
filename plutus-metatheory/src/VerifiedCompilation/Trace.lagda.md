@@ -28,12 +28,12 @@ We enumerate the known passes and partition them into two categories:
 data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
   letFloatOutT : UncertifiedOptTag
+  caseReduceT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
   forceDelayT : CertifiedOptTag
   forceCaseDelayT : CertifiedOptTag
-  caseReduceT : CertifiedOptTag
   inlineT : CertifiedOptTag
   cseT : CertifiedOptTag
   applyToCaseT : CertifiedOptTag
@@ -46,8 +46,6 @@ ForceDelayT : OptTag
 ForceDelayT = Utils.inj₂ forceDelayT
 ForceCaseDelayT : OptTag
 ForceCaseDelayT = Utils.inj₂ forceCaseDelayT
-CaseReduceT : OptTag
-CaseReduceT = Utils.inj₂ caseReduceT
 InlineT : OptTag
 InlineT = Utils.inj₂ inlineT
 CseT : OptTag
@@ -59,9 +57,11 @@ CaseOfCaseT : OptTag
 CaseOfCaseT = Utils.inj₁ caseOfCaseT
 LetFloatOutT : OptTag
 LetFloatOutT = Utils.inj₁ letFloatOutT
+CaseReduceT : OptTag
+CaseReduceT = Utils.inj₁ caseReduceT
 
-{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase) #-}
-{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut) #-}
+{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | Inline | CSE | ApplyToCase) #-}
+{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut | CaseReduce) #-}
 ```
 
 ## Hints

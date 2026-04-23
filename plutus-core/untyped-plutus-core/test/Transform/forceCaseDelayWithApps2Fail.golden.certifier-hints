@@ -13,7 +13,7 @@ NoHints
 -- Certifier hints #5 (Left CaseOfCase) --
 NoHints
 
--- Certifier hints #6 (Right CaseReduce) --
+-- Certifier hints #6 (Left CaseReduce) --
 NoHints
 
 -- Certifier hints #7 (Right Inline) --

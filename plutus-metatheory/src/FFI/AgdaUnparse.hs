@@ -54,7 +54,6 @@ instance AgdaUnparse CertifiedOptStage where
   agdaUnparse FloatDelay = "floatDelayT"
   agdaUnparse ForceDelay = "forceDelayT"
   agdaUnparse ForceCaseDelay = "forceCaseDelayT"
-  agdaUnparse CaseReduce = "caseReduceT"
   agdaUnparse Inline = "inlineT"
   agdaUnparse CSE = "cseT"
   agdaUnparse ApplyToCase = "applyToCaseT"
@@ -62,6 +61,7 @@ instance AgdaUnparse CertifiedOptStage where
 instance AgdaUnparse UncertifiedOptStage where
   agdaUnparse CaseOfCase = "caseOfCaseT"
   agdaUnparse LetFloatOut = "letFloatOutT"
+  agdaUnparse CaseReduce = "caseReduceT"
 
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case
