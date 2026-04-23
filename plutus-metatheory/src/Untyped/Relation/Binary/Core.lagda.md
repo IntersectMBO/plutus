@@ -22,7 +22,8 @@ Relation = ∀{X} → X ⊢ → X ⊢ → Set
 ## Pointwise
 
 Variant of Data.List.Relation.Binary.Pointwise that works well for well-scoped
-terms, which have an implicit scope parameter.
+terms, which have an implicit scope parameter. The polarity annotation helps for
+constructing relations using `Untyped.Relation.Binary.Modular`.
 
 ```
 data Pointwise {X} (@++ R : X ⊢ → X ⊢ → Set) : List (X ⊢) → List (X ⊢) → Set where

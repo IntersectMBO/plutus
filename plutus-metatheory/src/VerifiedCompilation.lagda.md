@@ -50,7 +50,6 @@ import VerifiedCompilation.UForceCaseDelay as UFCD
 import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
--- import VerifiedCompilation.UCaseReduce.Equivalence as UCR
 open import VerifiedCompilation.NotImplemented
 open import VerifiedCompilation.Trace
 open import VerifiedCompilation.Certificate hiding (_>>=_)
