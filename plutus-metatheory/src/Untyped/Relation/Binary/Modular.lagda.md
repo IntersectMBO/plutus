@@ -34,9 +34,11 @@ open _⊢
 ## Approach
 
 This uses the fixpoint-of-functors approach to construct inductive relations out
-of reusable parts. In essence, each rule of a translation relation is defined as
-a single constructor in an inductive type, with a type parameter for the
-relation that that can be used for recursive uses.
+of reusable parts. See the end of the file for an example translation relation.
+
+In essence, each rule of a translation relation is defined as a single
+constructor in an inductive type, with a type parameter for the relation that
+that can be used for recursive uses.
 
 ## Relation transformers
 
