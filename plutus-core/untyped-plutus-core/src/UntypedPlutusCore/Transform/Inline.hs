@@ -517,7 +517,7 @@ acceptable inlineConstants t = do
   unconditionalGrowth <- view iiInlineUnconditionalGrowth
   -- See Note [Inlining criteria]
   let costOk = costIsAcceptable t
-      sizeOk = termAstSize t - 1 <= unconditionalGrowth
+      sizeOk = termAstSize t <= 1 + unconditionalGrowth
       constantsOk = case t of
         Constant {} -> inlineConstants
         _ -> True

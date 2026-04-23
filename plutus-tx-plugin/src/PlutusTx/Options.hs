@@ -219,8 +219,8 @@ pluginOptions =
     , let k = "inline-unconditional-growth"
           desc =
             "Sets the inlining threshold for unconditional inlining. `n` allows unconditional "
-              <> "inlining if the AST size grows by at most `n` at each callsite (i.e., the size of "
-              <> "the binding's RHS is at most `n+1`)."
+              <> "inlining if the AST size grows by at most `n` at each variable occurrence "
+              <> "(i.e., the size of the binding's RHS is at most `n+1`)."
        in (k, PluginOption typeRep (readOption k) posInlineUnconditionalGrowth desc [])
     , let k = "inline-callsite-growth"
           desc =

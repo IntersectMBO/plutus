@@ -430,7 +430,7 @@ shouldUnconditionallyInline safe s n rhs body = preUnconditional ||^ postUncondi
       inlineConstants <- view iiInlineConstants
       unconditionalGrowth <- view iiInlineUnconditionalGrowth
       let costOk = costIsAcceptable rhs
-          sizeOk = PIR.termAstSize rhs - 1 <= unconditionalGrowth
+          sizeOk = PIR.termAstSize rhs <= 1 + unconditionalGrowth
           constantsOk = case rhs of
             Constant {} -> inlineConstants
             _ -> True
