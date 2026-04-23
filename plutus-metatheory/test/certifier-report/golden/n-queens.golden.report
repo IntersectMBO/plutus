@@ -46,7 +46,7 @@ Pass 5: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 6: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 6: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 3280 (before)
   Program Size: 3280 (after)
@@ -109,7 +109,7 @@ Pass 12: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 13: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 13: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 2910 (before)
   Program Size: 2910 (after)
@@ -172,7 +172,7 @@ Pass 19: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 20: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 20: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 2357 (before)
   Program Size: 2357 (after)
@@ -235,7 +235,7 @@ Pass 26: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 27: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 27: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 2266 (before)
   Program Size: 2266 (after)
@@ -298,7 +298,7 @@ Pass 33: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 34: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 34: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1820 (before)
   Program Size: 1820 (after)
@@ -361,7 +361,7 @@ Pass 40: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 41: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 41: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1767 (before)
   Program Size: 1767 (after)
@@ -424,7 +424,7 @@ Pass 47: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 48: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 48: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
@@ -487,7 +487,7 @@ Pass 54: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 55: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 55: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
@@ -550,7 +550,7 @@ Pass 61: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 62: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 62: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
@@ -613,7 +613,7 @@ Pass 68: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 69: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 69: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
@@ -676,7 +676,7 @@ Pass 75: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 76: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 76: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
@@ -739,7 +739,7 @@ Pass 82: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 83: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 83: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
@@ -757,13 +757,13 @@ Pass 84: Inlining  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 85: Common Subexpression Elimination  ✅
+Pass 85: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1773 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
-  Optimization sites: 4
+
 
 ──────────────────────────────────────────────────────
 Pass 86: Float Delay  ✅
@@ -811,7 +811,7 @@ Pass 90: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 91: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 91: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1773 (before)
   Program Size: 1773 (after)
@@ -829,13 +829,13 @@ Pass 92: Inlining  ✅
   Optimization sites: 5
 
 ──────────────────────────────────────────────────────
-Pass 93: Common Subexpression Elimination  ✅
+Pass 93: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1774 (before)
   Program Size: 1774 (after)
   Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
   Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 94: Float Delay  ✅
@@ -883,7 +883,7 @@ Pass 98: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 99: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 99: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1770 (before)
   Program Size: 1770 (after)
@@ -901,13 +901,13 @@ Pass 100: Inlining  ✅
   Optimization sites: 2
 
 ──────────────────────────────────────────────────────
-Pass 101: Common Subexpression Elimination  ✅
+Pass 101: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1756 (before)
   Program Size: 1756 (after)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 102: Float Delay  ✅
@@ -955,7 +955,7 @@ Pass 106: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 107: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 107: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1756 (before)
   Program Size: 1756 (after)
@@ -973,13 +973,13 @@ Pass 108: Inlining  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 109: Common Subexpression Elimination  ✅
+Pass 109: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1756 (before)
   Program Size: 1756 (after)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 110: Float Delay  ✅
@@ -1027,7 +1027,7 @@ Pass 114: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 115: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
+Pass 115: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1756 (before)
   Program Size: 1756 (after)
