@@ -54,8 +54,8 @@ open import RawU using (tag2TyTag; tmCon; Tag)
 
 open import Untyped.Equality
 open import Untyped.Reduction using (iterApp)
-open import Untyped.Relation
-open import Untyped.Relation.Modular
+open import Untyped.Relation.Binary
+open import Untyped.Relation.Binary.Modular
 open import Untyped.Transform
 open Untyped.Transform.Refines?
 open import Untyped.CEK using (lookup?)

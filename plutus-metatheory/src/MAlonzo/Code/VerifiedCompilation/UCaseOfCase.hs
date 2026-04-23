@@ -35,8 +35,8 @@ import qualified MAlonzo.Code.Untyped
 import qualified MAlonzo.Code.Untyped.CEK
 import qualified MAlonzo.Code.Untyped.Equality
 import qualified MAlonzo.Code.Untyped.Reduction
-import qualified MAlonzo.Code.Untyped.Relation
-import qualified MAlonzo.Code.Untyped.Relation.Pointwise
+import qualified MAlonzo.Code.Untyped.Relation.Binary
+import qualified MAlonzo.Code.Untyped.Relation.Binary.Pointwise
 import qualified MAlonzo.Code.Untyped.Transform
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
 import qualified MAlonzo.Code.VerifiedCompilation.Trace
@@ -50,7 +50,7 @@ data T_Scrutinizable_46 = C_scrut'45'constr_48 | C_scrut'45'con_50
 d_CaseCase_54 a0 a1 a2 a3 = ()
 data T_CaseCase_54
   = C_caseCase_72 MAlonzo.Code.Data.List.Relation.Unary.All.T_All_44
-                  MAlonzo.Code.Untyped.Relation.Pointwise.T_Pointwise_10
+                  MAlonzo.Code.Untyped.Relation.Binary.Pointwise.T_Pointwise_12
 -- VerifiedCompilation.UCaseOfCase.scrutinizable?
 d_scrutinizable'63'_76 ::
   Integer ->
@@ -142,9 +142,9 @@ data T_CaseIfPost_158 = C_isCaseIfPost_174
 -- VerifiedCompilation.UCaseOfCase.CoC
 d_CoC_176 a0 a1 a2 = ()
 data T_CoC_176
-  = C_isCoC_198 MAlonzo.Code.Untyped.Relation.Pointwise.T_Pointwise_10
-                MAlonzo.Code.Untyped.Relation.Pointwise.T_Pointwise_10
-                MAlonzo.Code.Untyped.Relation.Pointwise.T_Pointwise_10
+  = C_isCoC_198 MAlonzo.Code.Untyped.Relation.Binary.Pointwise.T_Pointwise_12
+                MAlonzo.Code.Untyped.Relation.Binary.Pointwise.T_Pointwise_12
+                MAlonzo.Code.Untyped.Relation.Binary.Pointwise.T_Pointwise_12
 -- VerifiedCompilation.UCaseOfCase.CaseOfCase'
 d_CaseOfCase''_206 ::
   Integer ->
@@ -866,43 +866,43 @@ d_reduce_354 v0 v1
                                                                       coe
                                                                         (let v18
                                                                                = coe
-                                                                                   MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                   MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                    (coe
                                                                                       (\ v18 ->
                                                                                          coe
                                                                                            MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_304))
                                                                                    (coe
-                                                                                      MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                      MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                       (coe
                                                                                          (\ v18 ->
                                                                                             coe
                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_324))
                                                                                       (coe
-                                                                                         MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                         MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                          (coe
                                                                                             (\ v18 ->
                                                                                                coe
                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_342))
                                                                                          (coe
-                                                                                            MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                            MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                             (coe
                                                                                                (\ v18 ->
                                                                                                   coe
                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_364))
                                                                                             (coe
-                                                                                               MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                               MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                (coe
                                                                                                   (\ v18 ->
                                                                                                      coe
                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_404))
                                                                                                (coe
-                                                                                                  MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                  MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                   (coe
                                                                                                      (\ v18 ->
                                                                                                         coe
                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_430))
                                                                                                   (coe
-                                                                                                     MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                     MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                      (coe
                                                                                                         (\ v18 ->
                                                                                                            coe
@@ -938,43 +938,43 @@ d_reduce_354 v0 v1
                                                                                          coe
                                                                                            (let v23
                                                                                                   = coe
-                                                                                                      MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                      MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                       (coe
                                                                                                          (\ v23 ->
                                                                                                             coe
                                                                                                               MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_304))
                                                                                                       (coe
-                                                                                                         MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                         MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                          (coe
                                                                                                             (\ v23 ->
                                                                                                                coe
                                                                                                                  MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_324))
                                                                                                          (coe
-                                                                                                            MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                            MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                             (coe
                                                                                                                (\ v23 ->
                                                                                                                   coe
                                                                                                                     MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_342))
                                                                                                             (coe
-                                                                                                               MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                               MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                (coe
                                                                                                                   (\ v23 ->
                                                                                                                      coe
                                                                                                                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_364))
                                                                                                                (coe
-                                                                                                                  MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                  MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                   (coe
                                                                                                                      (\ v23 ->
                                                                                                                         coe
                                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_404))
                                                                                                                   (coe
-                                                                                                                     MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                     MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                      (coe
                                                                                                                         (\ v23 ->
                                                                                                                            coe
                                                                                                                              MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_430))
                                                                                                                      (coe
-                                                                                                                        MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                        MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                         (coe
                                                                                                                            (\ v23 ->
                                                                                                                               coe
@@ -1152,43 +1152,43 @@ d_reduce_354 v0 v1
                                                                                                     coe
                                                                                                       (let v24
                                                                                                              = coe
-                                                                                                                 MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                 MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                  (coe
                                                                                                                     (\ v24 ->
                                                                                                                        coe
                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_304))
                                                                                                                  (coe
-                                                                                                                    MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                    MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                     (coe
                                                                                                                        (\ v24 ->
                                                                                                                           coe
                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_324))
                                                                                                                     (coe
-                                                                                                                       MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                       MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                        (coe
                                                                                                                           (\ v24 ->
                                                                                                                              coe
                                                                                                                                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_342))
                                                                                                                        (coe
-                                                                                                                          MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                          MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                           (coe
                                                                                                                              (\ v24 ->
                                                                                                                                 coe
                                                                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_364))
                                                                                                                           (coe
-                                                                                                                             MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                             MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                              (coe
                                                                                                                                 (\ v24 ->
                                                                                                                                    coe
                                                                                                                                      MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_404))
                                                                                                                              (coe
-                                                                                                                                MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                 (coe
                                                                                                                                    (\ v24 ->
                                                                                                                                       coe
                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_430))
                                                                                                                                 (coe
-                                                                                                                                   MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                   MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                    (coe
                                                                                                                                       (\ v24 ->
                                                                                                                                          coe
@@ -1373,43 +1373,43 @@ d_reduce_354 v0 v1
                                                                                                               coe
                                                                                                                 (let v25
                                                                                                                        = coe
-                                                                                                                           MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                           MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                            (coe
                                                                                                                               (\ v25 ->
                                                                                                                                  coe
                                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_304))
                                                                                                                            (coe
-                                                                                                                              MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                              MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                               (coe
                                                                                                                                  (\ v25 ->
                                                                                                                                     coe
                                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_324))
                                                                                                                               (coe
-                                                                                                                                 MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                 MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                  (coe
                                                                                                                                     (\ v25 ->
                                                                                                                                        coe
                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_342))
                                                                                                                                  (coe
-                                                                                                                                    MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                    MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                     (coe
                                                                                                                                        (\ v25 ->
                                                                                                                                           coe
                                                                                                                                             MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_364))
                                                                                                                                     (coe
-                                                                                                                                       MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                       MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                        (coe
                                                                                                                                           (\ v25 ->
                                                                                                                                              coe
                                                                                                                                                MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_404))
                                                                                                                                        (coe
-                                                                                                                                          MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                          MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                           (coe
                                                                                                                                              (\ v25 ->
                                                                                                                                                 coe
                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_430))
                                                                                                                                           (coe
-                                                                                                                                             MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                             MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                              (coe
                                                                                                                                                 (\ v25 ->
                                                                                                                                                    coe
@@ -1588,43 +1588,43 @@ d_reduce_354 v0 v1
                                                                                                                      coe
                                                                                                                        (let v25
                                                                                                                               = coe
-                                                                                                                                  MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                  MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                   (coe
                                                                                                                                      (\ v25 ->
                                                                                                                                         coe
                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_304))
                                                                                                                                   (coe
-                                                                                                                                     MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                     MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                      (coe
                                                                                                                                         (\ v25 ->
                                                                                                                                            coe
                                                                                                                                              MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_324))
                                                                                                                                      (coe
-                                                                                                                                        MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                        MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                         (coe
                                                                                                                                            (\ v25 ->
                                                                                                                                               coe
                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_342))
                                                                                                                                         (coe
-                                                                                                                                           MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                           MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                            (coe
                                                                                                                                               (\ v25 ->
                                                                                                                                                  coe
                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_364))
                                                                                                                                            (coe
-                                                                                                                                              MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                              MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                               (coe
                                                                                                                                                  (\ v25 ->
                                                                                                                                                     coe
                                                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_404))
                                                                                                                                               (coe
-                                                                                                                                                 MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                                 MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                                  (coe
                                                                                                                                                     (\ v25 ->
                                                                                                                                                        coe
                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_430))
                                                                                                                                                  (coe
-                                                                                                                                                    MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                                    MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                                     (coe
                                                                                                                                                        (\ v25 ->
                                                                                                                                                           coe
@@ -1800,43 +1800,43 @@ d_reduce_354 v0 v1
                                                                                                                      coe
                                                                                                                        (let v23
                                                                                                                               = coe
-                                                                                                                                  MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                  MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                   (coe
                                                                                                                                      (\ v23 ->
                                                                                                                                         coe
                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'unit_304))
                                                                                                                                   (coe
-                                                                                                                                     MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                     MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                      (coe
                                                                                                                                         (\ v23 ->
                                                                                                                                            coe
                                                                                                                                              MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'false'8321'_324))
                                                                                                                                      (coe
-                                                                                                                                        MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                        MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                         (coe
                                                                                                                                            (\ v23 ->
                                                                                                                                               coe
                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'bool_342))
                                                                                                                                         (coe
-                                                                                                                                           MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                           MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                            (coe
                                                                                                                                               (\ v23 ->
                                                                                                                                                  coe
                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'integer_364))
                                                                                                                                            (coe
-                                                                                                                                              MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                              MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                               (coe
                                                                                                                                                  (\ v23 ->
                                                                                                                                                     coe
                                                                                                                                                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8321'_404))
                                                                                                                                               (coe
-                                                                                                                                                 MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                                 MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                                  (coe
                                                                                                                                                     (\ v23 ->
                                                                                                                                                        coe
                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_red'45'cons'8322'_430))
                                                                                                                                                  (coe
-                                                                                                                                                    MAlonzo.Code.Untyped.Relation.du__'60''124''62'__124
+                                                                                                                                                    MAlonzo.Code.Untyped.Relation.Binary.du__'60''124''62'__126
                                                                                                                                                     (coe
                                                                                                                                                        (\ v23 ->
                                                                                                                                                           coe

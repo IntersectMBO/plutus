@@ -29,7 +29,7 @@ open import Untyped.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE; DecidableCE; SimplifierTag)
 open import Data.Sum using (_⊎_;inj₁; inj₂)
 
-open import Untyped.Relation using (Relation) public
+open import Untyped.Relation.Binary using (Relation) public
 
 ```
 The generic type of a Translation is that it matches one (or more) patterns on the left to one

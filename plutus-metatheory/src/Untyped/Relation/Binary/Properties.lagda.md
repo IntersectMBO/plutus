@@ -1,17 +1,19 @@
 ---
-title: Untyped.Relation.Properties
+title: Untyped.Relation.Binary.Properties
 layout: page
 ---
 
 ```
-module Untyped.Relation.Properties where
+module Untyped.Relation.Binary.Properties where
 
 open import Function using (_∘_)
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.List using (List; []; _∷_)
 open import Data.Maybe
+open import Data.Product
 
 open import Untyped
-open import Untyped.Relation.Core
+open import Untyped.Relation.Binary.Core
 ```
 
 ## Why not reuse these properties from agda-stdlib?
@@ -101,15 +103,20 @@ Compatible₂ _~_ f =
     f K M ~ f L N
 ```
 
-A function refines a relation when it maps an input to a related output. Another
-way of viewing this is that the graph of the function (i.e. a relation that
-relates inputs to outputs) is a subset of the relation (when viewed as set of
-pairs).
+## Pointwise
+
 
 ```
-Graph : Transform → Relation
-Graph f M N = f M ≡ N
+pointwise-refl : ∀ {X} {R : Relation} {Ms : List (X ⊢)} → Reflexive R → Pointwise R Ms Ms
+pointwise-refl {Ms = []} R-refl = []
+pointwise-refl {R = R} {Ms = M ∷ Ms} R-refl = R-refl ∷ pointwise-refl {R = R} R-refl
+```
 
+## Refinement
+
+A function refines a relation `R `when each input-output pair is related in R.
+
+```
 Refines : Transform → Relation → Set
 Refines f R = ∀ {X} {M : X ⊢} → R M (f M)
 ```
@@ -117,9 +124,6 @@ Refines f R = ∀ {X} {M : X ⊢} → R M (f M)
 There is a similar notion for partial functions:
 
 ```
-Graph? : Transform? → Relation
-Graph? f M N = f M ≡ just N
-
 Refines? : Transform? → Relation → Set
 Refines? f R =
   ∀ {X}
@@ -133,4 +137,27 @@ Refines?-⊆ :
   → Refines? f R
   → Refines? f S
 Refines?-⊆ R⊆S refines?-f _ _ eq = R⊆S (refines?-f _ _ eq)
+```
+
+A partial function can be a refinement by construction, if it also returns the
+proof of inhabitance of the relation:
+
+```
+Refinement? : Relation → Set
+Refinement? R =
+  ∀ {X}
+  → (M : X ⊢)
+  → Maybe (∃ (λ M' → R M M'))
+
+refine? : ∀ {X} {R : Relation} → Refinement? R → X ⊢ → Maybe (X ⊢)
+refine? f M with f M
+... | nothing = nothing
+... | just (M' , _) = just M'
+
+refine?-refines :
+  ∀ {R : Relation}
+  → (f : Refinement? R)
+  → Refines? (refine? f) R
+refine?-refines f M _ fM≡just with f M | fM≡just
+... | just ( _ , RMN) | refl = RMN
 ```

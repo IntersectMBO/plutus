@@ -30,7 +30,7 @@ open import Relation.Binary.PropositionalEquality
 import Relation.Binary.Reasoning.Setoid as Reasoning
 
 open import Untyped
-open import Untyped.Relation
+open import Untyped.Relation.Binary
 open import Untyped.Transform
 open import Untyped.Equality
 open import Untyped.Reduction using (iterApp)

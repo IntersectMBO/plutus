@@ -49,8 +49,8 @@ open import Data.Empty using (⊥)
 open import Function using (_∘_; case_of_; _$_)
 open import Untyped.Transform
 
-open import Untyped.Relation
-open import Untyped.Relation.Modular
+open import Untyped.Relation.Binary
+open import Untyped.Relation.Binary.Modular
 import VerifiedCompilation.UCaseReduce as CR
 ```
 

@@ -366,8 +366,11 @@ library
     MAlonzo.Code.Untyped.Equality
     MAlonzo.Code.Untyped.Purity
     MAlonzo.Code.Untyped.Reduction
-    MAlonzo.Code.Untyped.Relation
-    MAlonzo.Code.Untyped.Relation.Composable
+    MAlonzo.Code.Untyped.Relation.Binary
+    MAlonzo.Code.Untyped.Relation.Binary.Core
+    MAlonzo.Code.Untyped.Relation.Binary.Modular
+    MAlonzo.Code.Untyped.Relation.Binary.Properties
+    MAlonzo.Code.Untyped.Relation.Binary.Structures
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Untyped.Transform
     MAlonzo.Code.Utils

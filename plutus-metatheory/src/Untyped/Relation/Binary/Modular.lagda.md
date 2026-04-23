@@ -3,7 +3,7 @@ title: Extensible translation relations
 layout: page
 ---
 ```
-module Untyped.Relation.Modular where
+module Untyped.Relation.Binary.Modular where
 
 open import Untyped
 ```
@@ -39,15 +39,33 @@ open import RawU using (tag2TyTag; tmCon; TmCon)
 open import Data.Empty using (⊥)
 open import Data.Bool using (true; false; Bool)
 
-open import Untyped.Relation
-open import Untyped.Relation.Properties
+open import Untyped.Relation.Binary
+open import Untyped.Relation.Binary.Properties
 ```
 
-## Translation Relation
+## Basic combinators for relation transformers
 
+```
+infixr 5 _+_
+
+data _+_ (F G : RelationT) (@++ R : Relation) : Relation where
+  inl : ∀ {X} {M N : X ⊢} → F R M N → (F + G) R M N
+  inr : ∀ {X} {M N : X ⊢} → G R M N → (F + G) R M N
+
+data Fix (F : RelationT) : Relation where
+  fix : ∀ {X} {M N : X ⊢} → F (Fix F) M N → (Fix F) M N
+
+Empty : RelationT
+Empty R M N = ⊥
+
+Const : @++ Relation → RelationT
+Const R _ = R
 ```
 
 
+## Term compatibilty rules
+
+```
 data CompatVar (@++ R : Relation) : Relation where
   `F_ :
     ∀ {X} (x : Fin X)
@@ -194,9 +212,6 @@ CompatTerm-TermCompatible inj = record
 ## Decision procedures
 
 ```
-DecidableRel : Relation → Set
-DecidableRel R = ∀ {X : ℕ} (M M' : X ⊢) → Dec (R M M')
-
 DecidableT : RelationT → Set₁
 DecidableT F =
   ∀ {R : Relation}
@@ -356,9 +371,27 @@ compatTerm?
   +-dec compatBuiltin?
   +-dec compatError?
   +-dec empty?
+```
 
 
+## Refinements
 
+Given partial refinement functions for both transformers, we can define a choice operator:
+
+```
+infixr 5 _<|>_
+_<|>_ :
+  ∀ {F G : RelationT} {R : Relation}
+  → Refinement? (F R)
+  → Refinement? (G R)
+  → Refinement? ((F + G) R)
+(f <|> g) M
+  with f M
+... | just (N , RMN) = just (N , inl RMN)
+... | nothing
+  with g M
+... | just (N , SMN) = just (N , inr SMN)
+... | nothing = nothing
 ```
 
 

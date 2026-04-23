@@ -10,7 +10,7 @@ layout: page
 module Untyped.Transform where
 
 open import Untyped
-open import Untyped.Relation
+open import Untyped.Relation.Binary
 open import Data.List using (List; []; _∷_)
 open import Function using (case_of_)
 open import Data.Nat
