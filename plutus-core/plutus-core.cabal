@@ -236,7 +236,7 @@ library
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
     UntypedPlutusCore.Transform.LetFloatOut
-    UntypedPlutusCore.Transform.Simplifier
+    UntypedPlutusCore.Transform.Optimizer
 
   other-modules:
     Data.Aeson.Flatten
@@ -290,8 +290,8 @@ library
     UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
     UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     UntypedPlutusCore.Evaluation.Machine.CommonAPI
-    UntypedPlutusCore.Simplify
-    UntypedPlutusCore.Simplify.Opts
+    UntypedPlutusCore.Optimize
+    UntypedPlutusCore.Optimize.Opts
     UntypedPlutusCore.Subst
 
   reexported-modules: Data.SatInt

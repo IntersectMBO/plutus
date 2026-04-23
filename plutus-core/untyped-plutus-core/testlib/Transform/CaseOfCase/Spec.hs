@@ -36,7 +36,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
   , unsafeSplitStructuralOperational
   )
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
-import UntypedPlutusCore.Transform.Simplifier (evalSimplifier)
+import UntypedPlutusCore.Transform.Optimizer (evalOptimizer)
 
 test_caseOfCase :: TestTree
 test_caseOfCase =
@@ -128,7 +128,7 @@ testCaseOfCaseWithError =
 evalCaseOfCase
   :: Term Name DefaultUni DefaultFun ()
   -> Term Name DefaultUni DefaultFun ()
-evalCaseOfCase term = evalSimplifier $ caseOfCase term
+evalCaseOfCase term = evalOptimizer $ caseOfCase term
 
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()

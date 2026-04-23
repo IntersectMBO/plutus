@@ -16,7 +16,7 @@ Pass 2: Float Force into Case Branches  ✅
   Program Size: 3504 (after)
   Execution Cost: CPU = 288404181782, MEM = 1752469055 (before)
   Execution Cost: CPU = 283210581782, MEM = 1720009055 (after)
-
+  Optimization sites: 18
 
 ──────────────────────────────────────────────────────
 Pass 3: Float bindings outwards  ⚠ (certifier unavailable)
@@ -46,13 +46,13 @@ Pass 5: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 6: Case-Constr and Case-Constant Cancellation  ✅
+Pass 6: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 3280 (before)
   Program Size: 3280 (after)
   Execution Cost: CPU = 275603093782, MEM = 1672462255 (before)
   Execution Cost: CPU = 275603093782, MEM = 1672462255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 7: Inlining  ✅
@@ -79,7 +79,7 @@ Pass 9: Float Force into Case Branches  ✅
   Program Size: 3170 (after)
   Execution Cost: CPU = 264858581782, MEM = 1605309055 (before)
   Execution Cost: CPU = 264858581782, MEM = 1605309055 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 10: Float bindings outwards  ⚠ (certifier unavailable)
@@ -109,13 +109,13 @@ Pass 12: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 13: Case-Constr and Case-Constant Cancellation  ✅
+Pass 13: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 2910 (before)
   Program Size: 2910 (after)
   Execution Cost: CPU = 254090741782, MEM = 1538010055 (before)
   Execution Cost: CPU = 254090741782, MEM = 1538010055 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 14: Inlining  ✅
@@ -142,7 +142,7 @@ Pass 16: Float Force into Case Branches  ✅
   Program Size: 2527 (after)
   Execution Cost: CPU = 218067557782, MEM = 1312865155 (before)
   Execution Cost: CPU = 217316549782, MEM = 1308171355 (after)
-
+  Optimization sites: 5
 
 ──────────────────────────────────────────────────────
 Pass 17: Float bindings outwards  ⚠ (certifier unavailable)
@@ -172,13 +172,13 @@ Pass 19: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 20: Case-Constr and Case-Constant Cancellation  ✅
+Pass 20: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 2357 (before)
   Program Size: 2357 (after)
   Execution Cost: CPU = 204103557782, MEM = 1225590155 (before)
   Execution Cost: CPU = 204103557782, MEM = 1225590155 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 21: Inlining  ✅
@@ -205,7 +205,7 @@ Pass 23: Float Force into Case Branches  ✅
   Program Size: 2402 (after)
   Execution Cost: CPU = 173477157782, MEM = 1034175155 (before)
   Execution Cost: CPU = 173477157782, MEM = 1034175155 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 24: Float bindings outwards  ⚠ (certifier unavailable)
@@ -235,13 +235,13 @@ Pass 26: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 27: Case-Constr and Case-Constant Cancellation  ✅
+Pass 27: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 2266 (before)
   Program Size: 2266 (after)
   Execution Cost: CPU = 161169253782, MEM = 957250755 (before)
   Execution Cost: CPU = 161169253782, MEM = 957250755 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 28: Inlining  ✅
@@ -268,7 +268,7 @@ Pass 30: Float Force into Case Branches  ✅
   Program Size: 1846 (after)
   Execution Cost: CPU = 125934997782, MEM = 737036655 (before)
   Execution Cost: CPU = 118993781782, MEM = 693654055 (after)
-
+  Optimization sites: 28
 
 ──────────────────────────────────────────────────────
 Pass 31: Float bindings outwards  ⚠ (certifier unavailable)
@@ -298,13 +298,13 @@ Pass 33: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 34: Case-Constr and Case-Constant Cancellation  ✅
+Pass 34: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1820 (before)
   Program Size: 1820 (after)
   Execution Cost: CPU = 118337877782, MEM = 689554655 (before)
   Execution Cost: CPU = 118337877782, MEM = 689554655 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 35: Inlining  ✅
@@ -331,7 +331,7 @@ Pass 37: Float Force into Case Branches  ✅
   Program Size: 1767 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 1
 
 ──────────────────────────────────────────────────────
 Pass 38: Float bindings outwards  ⚠ (certifier unavailable)
@@ -361,13 +361,13 @@ Pass 40: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 41: Case-Constr and Case-Constant Cancellation  ✅
+Pass 41: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1767 (before)
   Program Size: 1767 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 42: Inlining  ✅
@@ -394,7 +394,7 @@ Pass 44: Float Force into Case Branches  ✅
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 45: Float bindings outwards  ⚠ (certifier unavailable)
@@ -424,13 +424,13 @@ Pass 47: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 48: Case-Constr and Case-Constant Cancellation  ✅
+Pass 48: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 49: Inlining  ✅
@@ -457,7 +457,7 @@ Pass 51: Float Force into Case Branches  ✅
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 52: Float bindings outwards  ⚠ (certifier unavailable)
@@ -487,13 +487,13 @@ Pass 54: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 55: Case-Constr and Case-Constant Cancellation  ✅
+Pass 55: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 56: Inlining  ✅
@@ -520,7 +520,7 @@ Pass 58: Float Force into Case Branches  ✅
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 59: Float bindings outwards  ⚠ (certifier unavailable)
@@ -550,13 +550,13 @@ Pass 61: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 62: Case-Constr and Case-Constant Cancellation  ✅
+Pass 62: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 63: Inlining  ✅
@@ -583,7 +583,7 @@ Pass 65: Float Force into Case Branches  ✅
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 66: Float bindings outwards  ⚠ (certifier unavailable)
@@ -613,13 +613,13 @@ Pass 68: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 69: Case-Constr and Case-Constant Cancellation  ✅
+Pass 69: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 70: Inlining  ✅
@@ -646,7 +646,7 @@ Pass 72: Float Force into Case Branches  ✅
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 73: Float bindings outwards  ⚠ (certifier unavailable)
@@ -676,13 +676,13 @@ Pass 75: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 76: Case-Constr and Case-Constant Cancellation  ✅
+Pass 76: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 77: Inlining  ✅
@@ -709,7 +709,7 @@ Pass 79: Float Force into Case Branches  ✅
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 80: Float bindings outwards  ⚠ (certifier unavailable)
@@ -739,13 +739,13 @@ Pass 82: Case-of-Case  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 83: Case-Constr and Case-Constant Cancellation  ✅
+Pass 83: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1764 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 84: Inlining  ✅
@@ -760,295 +760,295 @@ Pass 84: Inlining  ✅
 Pass 85: Common Subexpression Elimination  ✅
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
-  Program Size: 1772 (after)
+  Program Size: 1773 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (after)
-  Optimization sites: 3
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
+  Optimization sites: 4
 
 ──────────────────────────────────────────────────────
 Pass 86: Float Delay  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1772 (before)
-  Program Size: 1772 (after)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (before)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (after)
+  Program Size: 1773 (before)
+  Program Size: 1773 (after)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 87: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1772 (before)
-  Program Size: 1772 (after)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (before)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (after)
-
+  Program Size: 1773 (before)
+  Program Size: 1773 (after)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 88: Float bindings outwards  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1772 (before)
-  Program Size: 1772 (after)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (before)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (after)
+  Program Size: 1773 (before)
+  Program Size: 1773 (after)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
 
 
 ──────────────────────────────────────────────────────
 Pass 89: Force-Delay Cancellation  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1772 (before)
-  Program Size: 1772 (after)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (before)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (after)
+  Program Size: 1773 (before)
+  Program Size: 1773 (after)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 90: Case-of-Case  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1772 (before)
-  Program Size: 1772 (after)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (before)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (after)
+  Program Size: 1773 (before)
+  Program Size: 1773 (after)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
 
 
 ──────────────────────────────────────────────────────
-Pass 91: Case-Constr and Case-Constant Cancellation  ✅
+Pass 91: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1772 (before)
-  Program Size: 1772 (after)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (before)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (after)
-  Optimization sites: 0
+  Program Size: 1773 (before)
+  Program Size: 1773 (after)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
+
 
 ──────────────────────────────────────────────────────
 Pass 92: Inlining  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1772 (before)
-  Program Size: 1773 (after)
-  Execution Cost: CPU = 117354069782, MEM = 683405855 (before)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (after)
+  Program Size: 1773 (before)
+  Program Size: 1774 (after)
+  Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
   Optimization sites: 5
 
 ──────────────────────────────────────────────────────
 Pass 93: Common Subexpression Elimination  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1773 (before)
-  Program Size: 1773 (after)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (before)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (after)
+  Program Size: 1774 (before)
+  Program Size: 1774 (after)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 94: Float Delay  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1773 (before)
-  Program Size: 1773 (after)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (before)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (after)
+  Program Size: 1774 (before)
+  Program Size: 1774 (after)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 95: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1773 (before)
-  Program Size: 1773 (after)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (before)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (after)
-
+  Program Size: 1774 (before)
+  Program Size: 1774 (after)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 96: Float bindings outwards  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1773 (before)
-  Program Size: 1773 (after)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (before)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (after)
+  Program Size: 1774 (before)
+  Program Size: 1774 (after)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
 
 
 ──────────────────────────────────────────────────────
 Pass 97: Force-Delay Cancellation  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1773 (before)
-  Program Size: 1769 (after)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (before)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (after)
+  Program Size: 1774 (before)
+  Program Size: 1770 (after)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
   Optimization sites: 2
 
 ──────────────────────────────────────────────────────
 Pass 98: Case-of-Case  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1769 (before)
-  Program Size: 1769 (after)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (before)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (after)
+  Program Size: 1770 (before)
+  Program Size: 1770 (after)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
 
 
 ──────────────────────────────────────────────────────
-Pass 99: Case-Constr and Case-Constant Cancellation  ✅
+Pass 99: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1769 (before)
-  Program Size: 1769 (after)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (before)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (after)
-  Optimization sites: 0
+  Program Size: 1770 (before)
+  Program Size: 1770 (after)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
+
 
 ──────────────────────────────────────────────────────
 Pass 100: Inlining  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1769 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117354021782, MEM = 683405555 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1770 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
   Optimization sites: 2
 
 ──────────────────────────────────────────────────────
 Pass 101: Common Subexpression Elimination  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 102: Float Delay  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 103: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 104: Float bindings outwards  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
 
 
 ──────────────────────────────────────────────────────
 Pass 105: Force-Delay Cancellation  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 106: Case-of-Case  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
 
 
 ──────────────────────────────────────────────────────
-Pass 107: Case-Constr and Case-Constant Cancellation  ✅
+Pass 107: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
+
 
 ──────────────────────────────────────────────────────
 Pass 108: Inlining  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 109: Common Subexpression Elimination  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 110: Float Delay  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 111: Float Force into Case Branches  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
+  Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 112: Float bindings outwards  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
 
 
 ──────────────────────────────────────────────────────
 Pass 113: Force-Delay Cancellation  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 114: Case-of-Case  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
 
 
 ──────────────────────────────────────────────────────
-Pass 115: Case-Constr and Case-Constant Cancellation  ✅
+Pass 115: Case-Constr and Case-Constant Cancellation  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
-  Optimization sites: 0
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
+
 
 ──────────────────────────────────────────────────────
 Pass 116: Inlining  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1755 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (after)
+  Program Size: 1756 (before)
+  Program Size: 1756 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
 Pass 117: Transform multi-argument applications into case-constr form  ✅
 ──────────────────────────────────────────────────────
-  Program Size: 1755 (before)
-  Program Size: 1737 (after)
-  Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
-  Execution Cost: CPU = 115517221782, MEM = 671925555 (after)
+  Program Size: 1756 (before)
+  Program Size: 1738 (after)
+  Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
+  Execution Cost: CPU = 115517029782, MEM = 671924355 (after)
   Optimization sites: 15

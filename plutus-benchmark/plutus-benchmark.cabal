@@ -29,7 +29,7 @@ source-repository head
   location: https://github.com/IntersectMBO/plutus
 
 -- Any files that use a `$$(...)` splice from the plugin should mention
--- `PlutusTx.Plugin()` somewhere, even if it's just `import PlutusTx.Plugin()`.
+-- `Plinth.Plugin()` somewhere, even if it's just `import Plinth.Plugin()`.
 -- If none of your files mention the plugin explicitly then the code will still
 -- compile (assuming that there's a dependence on `plutus-tx-plugin`) but you'll
 -- get a warning that `plutus-tx-plugin` was not needed for compilation, and

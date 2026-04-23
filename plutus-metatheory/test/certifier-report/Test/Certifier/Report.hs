@@ -7,7 +7,7 @@ import Paths_plutus_metatheory (getDataDir)
 import PlutusCore qualified as PLC
 import PlutusCore.Default.Builtins
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Executable.Eval (evalCounting, evalSimplifierTrace, mkDefaultEvalCtx)
+import PlutusCore.Executable.Eval (evalCounting, evalOptimizerTrace, mkDefaultEvalCtx)
 import PlutusCore.Quote
 import PlutusLedgerApi.Common
 import PlutusPrelude (def, unsafeFromRight)
@@ -30,7 +30,7 @@ import System.IO.Extra
 import Test.Tasty
 import Test.Tasty.Golden
 
-loadFrom :: FilePath -> IO (SimplifierTrace Name DefaultUni DefaultFun ())
+loadFrom :: FilePath -> IO (OptimizerTrace Name DefaultUni DefaultFun ())
 loadFrom name = do
   root <- getDataDir
   prog <-
@@ -55,13 +55,13 @@ simplify
   :: Term Name DefaultUni DefaultFun ()
   -> Quote
        ( Term Name DefaultUni DefaultFun ()
-       , SimplifierTrace Name DefaultUni DefaultFun ()
+       , OptimizerTrace Name DefaultUni DefaultFun ()
        )
 simplify =
-  runSimplifierT
-    . termSimplifier
-      ( defaultSimplifyOpts
-          & soPreserveLogging .~ False
+  runOptimizerT
+    . termOptimizer
+      ( defaultOptimizeOpts
+          & ooPreserveLogging .~ False
       )
       def
 
@@ -70,7 +70,7 @@ evalCtx = mkDefaultEvalCtx def
 {-# OPAQUE evalCtx #-}
 
 evalTrace
-  :: SimplifierTrace Name DefaultUni DefaultFun ()
+  :: OptimizerTrace Name DefaultUni DefaultFun ()
   -> [Term NamedDeBruijn DefaultUni DefaultFun ()]
   -> [ ( Maybe (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
        , ExBudget
@@ -102,7 +102,7 @@ testNQueens :: IO TestTree
 testNQueens = withTempFile $ \actual -> pure $ goldenVsFile name golden actual $ do
   trace <- loadFrom $ name <.> "uplc"
   let costs =
-        evalSimplifierTrace
+        evalOptimizerTrace
           evalCtx
           trace
           [ snd $ lift PLC.latestVersion (5 :: Integer)

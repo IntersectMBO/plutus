@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 {-| Floats immediately-applied lambdas ("let bindings") outwards, as long as doing so
 cannot cause any expression to be evaluated more than before.
@@ -20,10 +21,10 @@ module UntypedPlutusCore.Transform.LetFloatOut (letFloatOut) where
 
 import PlutusCore qualified as PLC
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (LetFloatOut)
-  , SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
+  , pattern LetFloatOutStage
   )
 
 import Control.Lens (transformOf)
@@ -33,10 +34,10 @@ letFloatOut
      , PLC.Rename (Term name uni fun a)
      )
   => Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 letFloatOut term = do
   result <- transformOf termSubterms processTerm <$> PLC.rename term
-  recordSimplification term LetFloatOut result
+  recordOptimization term LetFloatOutStage result
   pure result
 
 processTerm :: Term name uni fun a -> Term name uni fun a

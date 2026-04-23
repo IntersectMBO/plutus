@@ -296,14 +296,11 @@ compileDataConRef dc = do
   dcs <- getDataCons tc
   constrs <- getConstructors tc
 
-  -- TODO: this is inelegant
-  index <- case elemIndex dc dcs of
-    Just i -> pure i
+  case lookup dc (zip dcs constrs) of
+    Just constr -> pure constr
     Nothing ->
       throwPlain $
         CompilationError "Data constructor not in the type constructor's list of constructors"
-
-  pure $ constrs !! index
   where
     tc = GHC.dataConTyCon dc
 

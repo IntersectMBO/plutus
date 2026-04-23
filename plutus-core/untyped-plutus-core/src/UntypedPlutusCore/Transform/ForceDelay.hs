@@ -141,6 +141,7 @@
  if both @x@ and @y@ are pure and work-free.
 -}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -154,10 +155,10 @@ import PlutusCore.Default (DefaultFun (IfThenElse), DefaultUni)
 import PlutusCore.MkPlc (mkIterApp)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isPure, isWorkFree)
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (ForceDelay)
-  , SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
+  , pattern ForceDelayStage
   )
 
 import Control.Lens (transformOf)
@@ -170,10 +171,10 @@ forceDelay
   :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
   => BuiltinSemanticsVariant fun
   -> Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 forceDelay semVar term = do
   let result = transformOf termSubterms (processTerm semVar) term
-  recordSimplification term ForceDelay result
+  recordOptimization term ForceDelayStage result
   return result
 
 {-| Checks whether the term is of the right form, and "pushes"

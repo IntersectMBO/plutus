@@ -20,7 +20,7 @@ module VerifiedCompilation.UApplyToCase where
 ```
 open import Untyped using (_⊢; case; constr)
 open import Untyped.Reduction using (iterApp)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; applyToCaseT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; ApplyToCaseT)
 open import VerifiedCompilation.UCaseReduce using (justEq)
 open import VerifiedCompilation.UntypedViews
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
@@ -60,13 +60,13 @@ a2c?ᶜᶜ : {n : ℕ} → (M N : n ⊢) → ProofOrCE (Translation ApplyToCase 
 
 a2c? : {n : ℕ} → (M N : n ⊢) → ProofOrCE (ApplyToCase M N)
 a2c? M N with (case? (constr? (_≟_ 0) (⋯ ∷? ⋯)) singleton?) N
-... | no ¬p = ce (λ { (a2c _) → ¬p inhabitant } ) applyToCaseT M N
+... | no ¬p = ce (λ { (a2c _) → ¬p inhabitant } ) ApplyToCaseT M N
 ... | yes (case! (constr! refl (match! x ∷! match! xs)) (match! M' ∷! []!))
   with a2c?ᶜᶜ M (iterApp M' (x ∷ xs))
 ...   | proof p = proof (a2c p)
 ...   | ce ¬p tag L L′ = ce (λ { (a2c p) → ¬p p }) tag L L′
 
-a2c?ᶜᶜ = translation? applyToCaseT a2c?
+a2c?ᶜᶜ = translation? ApplyToCaseT a2c?
 
 UApplyToCase : Relation
 UApplyToCase = Translation ApplyToCase

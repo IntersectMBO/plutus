@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -69,10 +70,10 @@ import UntypedPlutusCore.Purity
 import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Subst (termSubstNamesM)
 import UntypedPlutusCore.Transform.Certify.Hints qualified as CertifierHints
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (Inline)
-  , SimplifierT
-  , recordSimplificationWithHints
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimizationWithHints
+  , pattern InlineStage
   )
 
 {- Note [Differences from PIR inliner]
@@ -214,7 +215,7 @@ inline
   -> InlineHints name a
   -> PLC.BuiltinSemanticsVariant fun
   -> Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 inline
   callsiteGrowth
   inlineConstants
@@ -236,7 +237,11 @@ inline
               , _iiPreserveLogging = preserveLogging
               }
     let result = snd <$> decoratedResult
-    recordSimplificationWithHints (CertifierHints.Inline (mkHints decoratedResult)) t Inline result
+    recordOptimizationWithHints
+      (CertifierHints.Inline (mkHints decoratedResult))
+      t
+      InlineStage
+      result
     return result
 
 -- See Note [Differences from PIR inliner] 3

@@ -4,7 +4,7 @@ import Control.Lens ((&), (.~))
 import Control.Monad.Trans.Except
 import Data.ByteString qualified as B
 import Data.ByteString.Short qualified as SBS
-import FFI.SimplifierTrace
+import FFI.OptimizerTrace
 import FFI.Untyped (UTerm)
 import PlutusBenchmark.Common (getDataDir)
 import PlutusCore.Default.Builtins
@@ -32,19 +32,19 @@ loadFrom name = do
           . runQuote
           . runExceptT
           $ UPLC.unDeBruijnTerm (UPLC._progTerm prog)
-  pure . runQuote $ mkFfiSimplifierTrace . snd <$> simplify term
+  pure . runQuote $ mkFfiOptimizerTrace . snd <$> simplify term
 
 simplify
   :: Term Name DefaultUni DefaultFun ()
   -> Quote
        ( Term Name DefaultUni DefaultFun ()
-       , SimplifierTrace Name DefaultUni DefaultFun ()
+       , OptimizerTrace Name DefaultUni DefaultFun ()
        )
 simplify =
-  runSimplifierT
-    . termSimplifier
-      ( defaultSimplifyOpts
-          & soPreserveLogging .~ False
+  runOptimizerT
+    . termOptimizer
+      ( defaultOptimizeOpts
+          & ooPreserveLogging .~ False
       )
       DefaultFunSemanticsVariantE
 
