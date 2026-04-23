@@ -74,7 +74,7 @@ if we don't have a translation relation.
 mRelationOf : SimplifierTag → Maybe (0 ⊢ → 0 ⊢ → Set)
 mRelationOf floatDelayT     = just UFlD.FloatDelay
 mRelationOf forceDelayT     = just UFD.ForceDelay
-mRelationOf caseReduceT     = just UCR.CaseReduce
+mRelationOf caseReduceT     = just UCR.Computational
 mRelationOf cseT            = just UCSE.UntypedCSE
 mRelationOf inlineT         = just (UInline.Inline (λ()) UInline.□)
 mRelationOf unknown         = nothing
@@ -102,7 +102,7 @@ certifyPass forceDelayT _       = decider UFD.isForceDelay?
 certifyPass cseT _              = decider UCSE.isUntypedCSE?
 certifyPass caseOfCaseT _       = certNotImplemented -- decider UCC.decide
 certifyPass forceCaseDelayT _   = decider UFCD.isForceCaseDelay?
-certifyPass caseReduceT _       = checker UCR.check -- certNotImplemented -- decider UCR.decide
+certifyPass caseReduceT _       = decider UCR.decide
 certifyPass applyToCaseT _      = decider UA2C.a2c?ᶜᶜ
 certifyPass inlineT (inline hs) = checker (UInline.top-check hs)
 certifyPass inlineT none        = λ M M' → abort inlineT M M'

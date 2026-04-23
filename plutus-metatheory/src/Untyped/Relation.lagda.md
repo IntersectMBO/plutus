@@ -33,8 +33,8 @@ data _+_ (F G : RelationT) (@++ R : Relation) : Relation where
   inl : ∀ {X} {M N : X ⊢} → F R M N → (F + G) R M N
   inr : ∀ {X} {M N : X ⊢} → G R M N → (F + G) R M N
 
-data Mu (F : RelationT) : Relation where
-  fix : ∀ {X} {M N : X ⊢} → F (Mu F) M N → (Mu F) M N
+data Fix (F : RelationT) : Relation where
+  fix : ∀ {X} {M N : X ⊢} → F (Fix F) M N → (Fix F) M N
 
 Empty : RelationT
 Empty R M N = ⊥

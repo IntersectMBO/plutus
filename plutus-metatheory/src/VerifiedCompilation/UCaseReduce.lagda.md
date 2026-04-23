@@ -55,7 +55,7 @@ open import RawU using (tag2TyTag; tmCon; Tag)
 open import Untyped.Equality
 open import Untyped.Reduction using (iterApp)
 open import Untyped.Relation
-open import Untyped.Relation.Composable
+open import Untyped.Relation.Modular
 open import Untyped.Transform
 open Untyped.Transform.Refines?
 open import Untyped.CEK using (lookup?)
@@ -168,7 +168,7 @@ rules, and equivalence rules:
 
 ```
 CaseReduce : Relation
-CaseReduce = Mu (Reduction + CompatTerm + Transitivity + Symmetry + Reflexivity)
+CaseReduce = Fix (Reduction + CompatTerm + Transitivity + Symmetry + Reflexivity)
 ```
 
 Pattern synonyms for constructors:
@@ -402,33 +402,32 @@ check M M' with case-reduce M ≟ M'
 ### Deciding `CaseReduce`
 
 Interestingly, the inductive `CaseReduce` equivalence relation is decidable by
-normalising both the pre- and post-term.
+case-reducing both the pre- and post-term. This can be proven via soundness and
+completeness.
 
 ```
-sound-both :
-    case-reduce M ≡ case-reduce N
-  → CaseReduce M N
-sound-both eq =
-  cr-trans
-    case-reduce-refines
-    (cr-trans
-      (cr-refl' eq)
-      (cr-sym case-reduce-refines)
-    )
+module Decide
+  {X : ℕ}
+  -- TODO: completeness, by induction on the `CaseReduce` derivation, requires a lemma for each
+  -- reduction rule
+  (complete-both : ∀ {M N : X ⊢} → CaseReduce M N → case-reduce M ≡ case-reduce N)
+  where
 
--- TODO: by induction on the `CaseReduce` derivation, requires a lemma for each
--- reduction rule
-postulate
-  complete-both : CaseReduce M N → case-reduce M ≡ case-reduce N
-```
+  sound-both :
+    ∀ {X} {M N : X ⊢}
+    → case-reduce M ≡ case-reduce N
+    → CaseReduce M N
+  sound-both eq =
+    cr-trans
+      case-reduce-refines
+      (cr-trans
+        (cr-refl' eq)
+        (cr-sym case-reduce-refines)
+      )
 
-A decision procedure for that normalises both pre- and post-term. It is sound and
-complete with respect to the inductive `CaseReduce` relation, but the
-completeness proof is still to be done.
 
-```
-decide-CaseReduce : (M M' : X ⊢) → ProofOrCE (CaseReduce M M')
-decide-CaseReduce M M' with case-reduce M ≟ case-reduce M'
-... | yes P = proof (sound-both P)
-... | no ¬P = ce (λ P → ¬P (complete-both P)) caseReduceT M M'
+  decide-CaseReduce : (M M' : X ⊢) → ProofOrCE (CaseReduce M M')
+  decide-CaseReduce M M' with case-reduce M ≟ case-reduce M'
+  ... | yes P = proof (sound-both P)
+  ... | no ¬P = ce (λ P → ¬P (complete-both P)) caseReduceT M M'
 ```

@@ -34,7 +34,7 @@ import qualified MAlonzo.Code.Untyped.CEK
 import qualified MAlonzo.Code.Untyped.Equality
 import qualified MAlonzo.Code.Untyped.Reduction
 import qualified MAlonzo.Code.Untyped.Relation
-import qualified MAlonzo.Code.Untyped.Relation.Composable
+import qualified MAlonzo.Code.Untyped.Relation.Modular
 import qualified MAlonzo.Code.Untyped.Relation.Pointwise
 import qualified MAlonzo.Code.Untyped.Relation.Properties
 import qualified MAlonzo.Code.Untyped.Transform
@@ -106,7 +106,7 @@ du_cr'45'refl''_200
                MAlonzo.Code.Untyped.Relation.C_inr_32
                (coe
                   MAlonzo.Code.Untyped.Relation.C_inr_32
-                  (coe MAlonzo.Code.Untyped.Relation.Composable.C_reflF_188)))))
+                  (coe MAlonzo.Code.Untyped.Relation.Modular.C_reflF_188)))))
 -- VerifiedCompilation.UCaseReduce.cr-refl*
 d_cr'45'refl'42'_206 ::
   Integer ->
@@ -128,13 +128,13 @@ d_cr'45'refl'42'_206 v0 v1
                        MAlonzo.Code.Untyped.Relation.C_inr_32
                        (coe
                           MAlonzo.Code.Untyped.Relation.C_inr_32
-                          (coe MAlonzo.Code.Untyped.Relation.Composable.C_reflF_188)))))))
+                          (coe MAlonzo.Code.Untyped.Relation.Modular.C_reflF_188)))))))
 -- VerifiedCompilation.UCaseReduce.cr-TermCompat
 d_cr'45'TermCompat_208 ::
   MAlonzo.Code.Untyped.Relation.T_TermCompatible_194
 d_cr'45'TermCompat_208
   = coe
-      MAlonzo.Code.Untyped.Relation.Composable.du_CompatTerm'45'TermCompatible_276
+      MAlonzo.Code.Untyped.Relation.Modular.du_CompatTerm'45'TermCompatible_276
       (coe
          (\ v0 v1 v2 v3 ->
             coe
@@ -2516,8 +2516,7 @@ d_case'45'reduce'45'refines_548 v0 v1
                     (coe
                        MAlonzo.Code.Untyped.Relation.C_inl_24
                        (coe
-                          MAlonzo.Code.Untyped.Relation.Composable.C_transF_162 v4 v6
-                          v7))))))
+                          MAlonzo.Code.Untyped.Relation.Modular.C_transF_162 v4 v6 v7))))))
       (coe d_cr'45'TermCompat_208) (coe d_reduceM_506)
       (coe du_reduceM'45'CaseReduce_558) (coe v0) (coe v1)
 -- VerifiedCompilation.UCaseReduce._.red⊆cr
@@ -2601,7 +2600,7 @@ du_sound_566 v0 v1
             (coe
                MAlonzo.Code.Untyped.Relation.C_inl_24
                (coe
-                  MAlonzo.Code.Untyped.Relation.Composable.C_transF_162
+                  MAlonzo.Code.Untyped.Relation.Modular.C_transF_162
                   (d_case'45'reduce_508 (coe v0) (coe v1))
                   (d_case'45'reduce'45'refines_548 (coe v0) (coe v1))
                   (coe du_cr'45'refl''_200)))))
@@ -3237,7 +3236,7 @@ du_sound'45'both_594 v0 v1 v2
             (coe
                MAlonzo.Code.Untyped.Relation.C_inl_24
                (coe
-                  MAlonzo.Code.Untyped.Relation.Composable.C_transF_162
+                  MAlonzo.Code.Untyped.Relation.Modular.C_transF_162
                   (d_case'45'reduce_508 (coe v0) (coe v1))
                   (d_case'45'reduce'45'refines_548 (coe v0) (coe v1))
                   (coe
@@ -3249,7 +3248,7 @@ du_sound'45'both_594 v0 v1 v2
                            (coe
                               MAlonzo.Code.Untyped.Relation.C_inl_24
                               (coe
-                                 MAlonzo.Code.Untyped.Relation.Composable.C_transF_162
+                                 MAlonzo.Code.Untyped.Relation.Modular.C_transF_162
                                  (d_case'45'reduce_508 (coe v0) (coe v2)) (coe du_cr'45'refl''_200)
                                  (coe
                                     MAlonzo.Code.Untyped.Relation.C_fix_46
@@ -3262,7 +3261,7 @@ du_sound'45'both_594 v0 v1 v2
                                              (coe
                                                 MAlonzo.Code.Untyped.Relation.C_inl_24
                                                 (coe
-                                                   MAlonzo.Code.Untyped.Relation.Composable.C_symF_176
+                                                   MAlonzo.Code.Untyped.Relation.Modular.C_symF_176
                                                    (d_case'45'reduce'45'refines_548
                                                       (coe v0) (coe v2)))))))))))))))))
 -- VerifiedCompilation.UCaseReduce.complete-both

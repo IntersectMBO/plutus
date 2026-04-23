@@ -3,7 +3,7 @@ title: Extensible translation relations
 layout: page
 ---
 ```
-module Untyped.Relation.Composable where
+module Untyped.Relation.Modular where
 
 open import Untyped
 ```
@@ -66,7 +66,7 @@ data CompatApply (@++ R : Relation) : Relation where
     ∀ {X} {M M' N N' : X ⊢}
     → R M M'
     → R N N'
-    -------------------------------
+    ---------------------------------
     → CompatApply R (M · N) (M' · N')
 
 data CompatForce (@++ R : Relation) : Relation where
@@ -84,27 +84,37 @@ data CompatDelay (@++ R : Relation) : Relation where
     → CompatDelay R (delay M) (delay M')
 
 data CompatCon (@++ R : Relation) : Relation where
-  conF : ∀ {X} {c : TmCon} →
-    CompatCon R (con {n = X} c) (con c)
+  conF :
+    ∀ {X} {c : TmCon}
+    -------------------------------------
+    → CompatCon R (con {n = X} c) (con c)
 
 data CompatConstr (@++ R : Relation) : Relation where
-  constrF : ∀ {X} {i : ℕ} {xs xs' : List (X ⊢)} →
-    Pointwise R xs xs' →
-    CompatConstr R (constr i xs) (constr i xs')
+  constrF :
+    ∀ {X} {i : ℕ} {xs xs' : List (X ⊢)}
+    → Pointwise R xs xs'
+    ---------------------------------------------
+    → CompatConstr R (constr i xs) (constr i xs')
 
 data CompatCase (@++ R : Relation) : Relation where
-  caseF : ∀ {X} {t t' : X ⊢} {ts ts' : List (X ⊢)} →
-    R t t' →
-    Pointwise R ts ts' →
-    CompatCase R (case t ts) (case t' ts')
+  caseF :
+    ∀ {X} {t t' : X ⊢} {ts ts' : List (X ⊢)}
+    → R t t'
+    → Pointwise R ts ts'
+    --------------------------------------
+    → CompatCase R (case t ts) (case t' ts')
 
 data CompatBuiltin (@++ R : Relation) : Relation where
-  builtinF : ∀ {X} {b : Builtin} →
-    CompatBuiltin R (builtin {n = X} b) (builtin b)
+  builtinF :
+    ∀ {X} {b : Builtin}
+    -------------------------------------------------
+    → CompatBuiltin R (builtin {n = X} b) (builtin b)
 
 data CompatError (@++ R : Relation) : Relation where
-  errorF : ∀ {X} →
-    CompatError R (error {n = X}) (error {n = X})
+  errorF :
+    ∀ {X}
+    -----------------------------------------------
+    → CompatError R (error {n = X}) (error {n = X})
 
 
 CompatTerm : RelationT
@@ -215,11 +225,11 @@ empty? R? M M' = no λ ()
 
 -- TODO: how to make this terminating? Accessibility proofs?
 {-# TERMINATING #-}
-Mu-dec : ∀ {F : RelationT} →
+Fix-dec : ∀ {F : RelationT} →
   DecidableT F →
-  DecidableRel (Mu F)
-Mu-dec F? M N
-  with F? (Mu-dec F?) M N
+  DecidableRel (Fix F)
+Fix-dec F? M N
+  with F? (Fix-dec F?) M N
 ... | yes P = yes (fix P)
 ... | no ¬P = no λ {(fix P) → ¬P P}
 
@@ -359,7 +369,7 @@ compatTerm?
 private module Example where
 
   Identity : Relation
-  Identity = Mu CompatTerm
+  Identity = Fix CompatTerm
 
   _ : Identity {1} (` zero ) (` zero)
   _ = fix (compat-varF _)
@@ -371,7 +381,7 @@ private module Example where
   _ = fix (compat-lambdaF (fix (compat-varF _)))
 
   lc-id? : DecidableRel Identity
-  lc-id? = Mu-dec compatTerm?
+  lc-id? = Fix-dec compatTerm?
 
   _ : Dec.does (lc-id? {2} (` zero · ` zero) (` zero · ` zero)) ≡ true
   _ = refl
