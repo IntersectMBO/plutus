@@ -432,7 +432,7 @@ will define a translation relation and decision procedure.
 ```
 private module Example where
 
-  open import Data.Bool using (true)
+  open import Data.Bool using (true; false)
   open import Data.Nat using (ℕ; zero; suc)
 
   open import Untyped.RenamingSubstitution using (weaken)
@@ -531,5 +531,8 @@ Terms with force/delay have to be transformed:
   M-post = (ƛ (` (suc zero))) · (constr 0 [])
 
   _ : does (dec-RemoveFD M-pre M-post) ≡ true
+  _ = refl
+
+  _ : does (dec-RemoveFD M-pre M-pre) ≡ false
   _ = refl
 ```
