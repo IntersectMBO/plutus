@@ -269,6 +269,7 @@ test-suite plutus-ledger-api-plugin-test
     Spec.Data.MintValue.V3
     Spec.Data.ScriptContext
     Spec.Data.Value
+    Spec.Data.Value.Budget
     Spec.Envelope
     Spec.MintValue.V3
     Spec.ReturnUnit.V1
