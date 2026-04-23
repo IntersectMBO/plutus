@@ -36,6 +36,3 @@ d_DecidableRel_38 ::
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   ()
 d_DecidableRel_38 = erased
--- Untyped.Relation.Binary.Core.RelationT
-d_RelationT_48 :: ()
-d_RelationT_48 = erased

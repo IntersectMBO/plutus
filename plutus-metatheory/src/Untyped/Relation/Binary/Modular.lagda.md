@@ -1,46 +1,53 @@
 ---
-title: Extensible translation relations
+title: Untyped.Relation.Binary.Modular
 layout: page
 ---
 ```
 module Untyped.Relation.Binary.Modular where
 
-open import Untyped
 ```
 
 ## Imports
 
 ```
-open import Untyped.Equality using (DecEq; _≟_;decPointwise)
-open import VerifiedCompilation.UntypedViews
-open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; convert; reflexive)
-open import Relation.Nullary using (_×-dec_)
-open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; con-integer)
-open import Builtin using (Builtin;equals;decBuiltin)
-import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl)
-open import Relation.Binary.PropositionalEquality.Core using (trans; sym; subst)
-open import Untyped.CEK using (lookup?; lookup?-deterministic)
-open import Data.Fin using (Fin; zero; suc)
-open import Data.Nat using (ℕ; zero; suc)
-open import Data.List using (List; _∷_; []; [_])
-open import Data.Maybe using (Maybe; just; nothing)
--- open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
-open import Relation.Binary as Binary using (Decidable)
-open import Relation.Nullary using (Dec; yes; no; ¬_)
-open import Data.Product using (_,_)
-open import RawU using (tag2TyTag; tmCon)
-open import Agda.Builtin.Int using (Int)
-open import Data.Empty using (⊥)
-open import Function using (case_of_)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; caseReduceT)
-open import Untyped.Reduction using (iterApp)
-open import RawU using (tag2TyTag; tmCon; TmCon)
-open import Data.Empty using (⊥)
-open import Data.Bool using (true; false; Bool)
+open import Relation.Nullary using (Dec; yes; no; ¬_; _×-dec_; does)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
+open import Data.List using (List; _∷_; [])
+open import Data.Fin using (Fin; suc; zero)
+open import Data.Nat using (ℕ; suc; zero)
+open import Data.Maybe using (just; nothing)
+open import Data.Product using (_,_)
+open import Data.Empty using (⊥)
+
+open import Untyped using (_⊢)
+open import RawU using (TmCon)
+open import Builtin using (Builtin)
+open import Untyped.Equality using (_≟_)
 open import Untyped.Relation.Binary
 open import Untyped.Relation.Binary.Properties
+open import VerifiedCompilation.UntypedViews
+
+open _⊢
+```
+
+## Approach
+
+This uses the fixpoint-of-functors approach to construct inductive relations out
+of reusable parts. In essence, each rule of a translation relation is defined as
+a single constructor in an inductive type, with a type parameter for the
+relation that that can be used for recursive uses.
+
+## Relation transformers
+
+Relation transformers are relations parametrised by other relations. The
+parameter has a polarity annotation so that relations may only use it in
+strictly positive positions. This makes it possible to take a fixpoint without
+Agda's positivity checker failing.
+
+```
+RelationT : Set₁
+RelationT = @++ Relation → Relation
 ```
 
 ## Basic combinators for relation transformers
@@ -52,18 +59,42 @@ data _+_ (F G : RelationT) (@++ R : Relation) : Relation where
   inl : ∀ {X} {M N : X ⊢} → F R M N → (F + G) R M N
   inr : ∀ {X} {M N : X ⊢} → G R M N → (F + G) R M N
 
-data Fix (F : RelationT) : Relation where
-  fix : ∀ {X} {M N : X ⊢} → F (Fix F) M N → (Fix F) M N
-
 Empty : RelationT
 Empty R M N = ⊥
+
+data Fix (F : RelationT) : Relation where
+  fix :
+    ∀ {X} {M N : X ⊢}
+    → F (Fix F) M N
+    → (Fix F) M N
 
 Const : @++ Relation → RelationT
 Const R _ = R
 ```
 
+## Relation transformers for equivalence relations
+
+```
+data Transitivity (@++ R : Relation) : Relation where
+  transF : ∀ {X} {L M N : X ⊢} →
+    R L M →
+    R M N →
+    Transitivity R L N
+
+data Symmetry (@++ R : Relation) : Relation where
+  symF : ∀ {X} {M N : X ⊢} →
+    R M N →
+    Symmetry R N M
+
+data Reflexivity (@++ R : Relation) : Relation where
+  reflF : ∀ {X} {M : X ⊢} →
+    Reflexivity R M M
+```
+
 
 ## Term compatibilty rules
+
+These are typical rules that are part of a translation relation.
 
 ```
 data CompatVar (@++ R : Relation) : Relation where
@@ -133,64 +164,50 @@ data CompatError (@++ R : Relation) : Relation where
     ∀ {X}
     -----------------------------------------------
     → CompatError R (error {n = X}) (error {n = X})
+```
 
+Term-compatibility can be constructed by using compatibility rules of all constructors:
 
+```
 CompatTerm : RelationT
-CompatTerm = CompatVar + CompatLambda + CompatApply + CompatForce + CompatDelay + CompatCon + CompatConstr + CompatCase + CompatBuiltin + CompatError + Empty
-
-data Transitivity (@++ R : Relation) : Relation where
-  transF : ∀ {X} {L M N : X ⊢} →
-    R L M →
-    R M N →
-    Transitivity R L N
-
-data Symmetry (@++ R : Relation) : Relation where
-  symF : ∀ {X} {M N : X ⊢} →
-    R M N →
-    Symmetry R N M
-
-data Reflexivity (@++ R : Relation) : Relation where
-  reflF : ∀ {X} {M : X ⊢} →
-    Reflexivity R M M
+CompatTerm
+  = CompatVar + CompatLambda + CompatApply + CompatForce + CompatDelay
+  + CompatCon + CompatConstr + CompatCase + CompatBuiltin + CompatError + Empty
 ```
 
 ## Pattern synonyms
 
+Convenient synonyms for constructing/matching cases of `CompatTerm`
+
 ```
+-- TODO: solve this with metaprogramming or typeclasses
+pattern p0 p = inl p
+pattern p1 p = inr (p0 p)
+pattern p2 p = inr (p1 p)
+pattern p3 p = inr (p2 p)
+pattern p4 p = inr (p3 p)
+pattern p5 p = inr (p4 p)
+pattern p6 p = inr (p5 p)
+pattern p7 p = inr (p6 p)
+pattern p8 p = inr (p7 p)
+pattern p9 p = inr (p8 p)
 
-module Patterns
-  (R : Relation)
-  (inj : CompatTerm R ⊆ R)
-  where
-
-  -- TODO: solve this with metaprogramming or typeclasses
-  pattern p0 p = inl p
-  pattern p1 p = inr (p0 p)
-  pattern p2 p = inr (p1 p)
-  pattern p3 p = inr (p2 p)
-  pattern p4 p = inr (p3 p)
-  pattern p5 p = inr (p4 p)
-  pattern p6 p = inr (p5 p)
-  pattern p7 p = inr (p6 p)
-  pattern p8 p = inr (p7 p)
-  pattern p9 p = inr (p8 p)
-
-  pattern compat-varF n     = (p0 (`F n))
-  pattern compat-lambdaF p  = (p1 (ƛF p))
-  pattern compat-applyF p q = (p2 (p ·F q))
-  pattern compat-forceF p   = (p3 (forceF p))
-  pattern compat-delayF p   = (p4 (delayF p))
-  pattern compat-conF       = (p5 conF)
-  pattern compat-constrF p  = (p6 (constrF p))
-  pattern compat-caseF p q  = (p7 (caseF p q))
-  pattern compat-builtinF   = p8 builtinF
-  pattern compat-errorF     = p9 errorF
-
-open Patterns public
+pattern compat-varF n     = p0 (`F n)
+pattern compat-lambdaF p  = p1 (ƛF p)
+pattern compat-applyF p q = p2 (p ·F q)
+pattern compat-forceF p   = p3 (forceF p)
+pattern compat-delayF p   = p4 (delayF p)
+pattern compat-conF       = p5 conF
+pattern compat-constrF p  = p6 (constrF p)
+pattern compat-caseF p q  = p7 (caseF p q)
+pattern compat-builtinF   = p8 builtinF
+pattern compat-errorF     = p9 errorF
 ```
 
 
 ## Structures
+
+If a relation has the `CompatTerm` rules, then it forms a `TermCompatible` structure.
 
 ```
 CompatTerm-TermCompatible : ∀ {R : Relation} → CompatTerm R ⊆ R → TermCompatible R
@@ -211,16 +228,20 @@ CompatTerm-TermCompatible inj = record
 
 ## Decision procedures
 
+A decision procedure for a relation transformer requires a decision procedure
+for the relation it abstracts over:
+
 ```
 DecidableT : RelationT → Set₁
 DecidableT F =
   ∀ {R : Relation}
   → DecidableRel R
   → DecidableRel (F R)
+```
 
-private variable
-  R : Relation
+## Decision procedures for combinators
 
+```
 infixr 5 _+-dec_
 _+-dec_ :
   ∀ {F G : RelationT}
@@ -248,6 +269,11 @@ Fix-dec F? M N
 ... | yes P = yes (fix P)
 ... | no ¬P = no λ {(fix P) → ¬P P}
 
+```
+
+## Decision procedures for compatibility rules
+
+```
 compatVar? :
   DecidableT CompatVar
 compatVar? R? M M'
@@ -395,28 +421,113 @@ _<|>_ :
 ```
 
 
-## Examples
+## Example relation: remove force/delay
+
+Suppose there is a compiler pass that removes each force and delay construct, by
+mapping `delay` to a `ƛ`, and `force` into an application `_· constr 0 []`. We
+will define a translation relation and decision procedure.
+
+```
+private module Example where
+
+  open import Data.Bool using (true)
+  open import Data.Nat using (ℕ; zero; suc)
+
+  open import Untyped.RenamingSubstitution using (weaken)
+```
+
+We define a rule for transforming `delay`:
+
+```
+  data DelayLambda (@++ R : Relation) : Relation where
+    delay-lambda :
+      ∀ {X} {M : X ⊢} {M' : suc X ⊢}
+      → R (weaken M) M'
+      ----------------------------------------
+      → DelayLambda R (delay M) (ƛ M')
+```
+
+And its corresponding decision procedure:
+
+```
+  dec-DelayLambda : DecidableT DelayLambda
+  dec-DelayLambda R? M M'
+    with (delay? ⋯ M) ×-dec (ƛ? ⋯ M')
+  ... | no ¬delay×ƛ = no λ {(delay-lambda _) → ¬delay×ƛ inhabitant}
+  ... | yes (delay! (match! N) , ƛ! (match! N'))
+    with R? (weaken N) N'
+  ... | yes RNN' = yes (delay-lambda RNN')
+  ... | no ¬RNN' = no λ {(delay-lambda RNN') → ¬RNN' RNN'}
+```
+
+Similarly for the `force` transformation:
+
+```
+  data ForceApply (@++ R : Relation) : Relation where
+    force-apply :
+      ∀ {X} {M M' : X ⊢}
+      → R M M'
+      ----------------------------------------
+      → ForceApply R (force M) (M' · constr 0 [])
+
+  dec-ForceApply : DecidableT ForceApply
+  dec-ForceApply R? M M'
+    with (force? ⋯ M) ×-dec ((⋯ ·? (constr? (_≟ 0) []?)) M')
+  ... | no ¬force×· = no λ {(force-apply _) → ¬force×· inhabitant}
+  ... | yes (force! (match! N) , (match! N') ·! (constr! refl []!))
+    with R? N N'
+  ... | no ¬RNN = no λ {(force-apply RNN) → ¬RNN RNN}
+  ... | yes RNN = yes (force-apply RNN)
+```
+
+The translation relation is now defined by composing the two rules with
+compatibility rules of the other language constructs (note that we don't include
+the compatibility rules for force and delay)
+
+```
+  RemoveFD : Relation
+  RemoveFD = Fix
+    ( ForceApply + DelayLambda
+    + CompatVar + CompatLambda + CompatApply
+    + CompatCon + CompatConstr + CompatCase
+    + CompatBuiltin + CompatError
+    )
+
+  dec-RemoveFD : DecidableRel RemoveFD
+  dec-RemoveFD = Fix-dec
+    (     dec-ForceApply
+    +-dec dec-DelayLambda
+    +-dec compatVar?
+    +-dec compatLam?
+    +-dec compatApply?
+    +-dec compatCon?
+    +-dec compatConstr?
+    +-dec compatCase?
+    +-dec compatBuiltin?
+    +-dec compatError?
+    )
+```
+
+On terms without force/delay, the relation is the identity:
+
+```
+  L : 1 ⊢
+  L = ` zero · ` zero
+
+  _ : does (dec-RemoveFD L L) ≡ true
+  _ = refl
 
 ```
 
-private module Example where
+Terms with force/delay have to be transformed:
 
-  Identity : Relation
-  Identity = Fix CompatTerm
+```
+  M-pre : 1 ⊢
+  M-pre = force (delay (` zero))
 
-  _ : Identity {1} (` zero ) (` zero)
-  _ = fix (compat-varF _)
+  M-post : 1 ⊢
+  M-post = (ƛ (` (suc zero))) · (constr 0 [])
 
-  _ : Identity {1} (` zero · ` zero) (` zero · ` zero)
-  _ = fix (compat-applyF (fix (compat-varF _)) (fix (compat-varF _)))
-
-  _ : Identity {1} (ƛ (` zero)) (ƛ (` zero))
-  _ = fix (compat-lambdaF (fix (compat-varF _)))
-
-  lc-id? : DecidableRel Identity
-  lc-id? = Fix-dec compatTerm?
-
-  _ : Dec.does (lc-id? {2} (` zero · ` zero) (` zero · ` zero)) ≡ true
+  _ : does (dec-RemoveFD M-pre M-post) ≡ true
   _ = refl
-
 ```

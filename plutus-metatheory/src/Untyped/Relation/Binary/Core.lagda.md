@@ -1,5 +1,5 @@
 ---
-title: Untyped.Relation.Core
+title: Untyped.Relation.Binary.Core
 layout: page
 ---
 
@@ -45,15 +45,4 @@ data Pointwise {X} (@++ R : X ⊢ → X ⊢ → Set) : List (X ⊢) → List (X 
 ```
 DecidableRel : Relation → Set
 DecidableRel R = ∀ {X : ℕ} (M M' : X ⊢) → Dec (R M M')
-```
-
-## Relation transformers
-
-Relation transformers are relations parametrised by other relations, such that
-the parameter may only be used in strictly positive positions. This is useful
-for defining inductive relations modularly.
-
-```
-RelationT : Set₁
-RelationT = @++ Relation → Relation
 ```
