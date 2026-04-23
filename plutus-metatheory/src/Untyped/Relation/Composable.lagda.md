@@ -40,6 +40,7 @@ open import Data.Empty using (⊥)
 open import Data.Bool using (true; false; Bool)
 
 open import Untyped.Relation
+open import Untyped.Relation.Properties
 ```
 
 ## Translation Relation
@@ -48,32 +49,42 @@ open import Untyped.Relation
 
 
 data CompatVar (@++ R : Relation) : Relation where
-  `F_ : ∀ {X} (x : Fin X) →
-    CompatVar R (` x) (` x)
-
-data CompatApply (@++ R : Relation) : Relation where
-  _·F_ : ∀ {X} {M M' N N' : X ⊢} →
-    R M M' →
-    R N N' →
-    CompatApply R (M · N) (M' · N')
+  `F_ :
+    ∀ {X} (x : Fin X)
+    -------------------------
+    → CompatVar R (` x) (` x)
 
 data CompatLambda (@++ R : Relation) : Relation where
-  ƛF : ∀ {X} {M M' : suc X ⊢} →
-    R M M' →
-    CompatLambda R (ƛ M) (ƛ M')
+  ƛF :
+    ∀ {X} {M M' : suc X ⊢}
+    → R M M'
+    -----------------------------
+    → CompatLambda R (ƛ M) (ƛ M')
+
+data CompatApply (@++ R : Relation) : Relation where
+  _·F_ :
+    ∀ {X} {M M' N N' : X ⊢}
+    → R M M'
+    → R N N'
+    -------------------------------
+    → CompatApply R (M · N) (M' · N')
 
 data CompatForce (@++ R : Relation) : Relation where
-  forceF : ∀ {X} {M M' : X ⊢} →
-    R M M' →
-    CompatForce R (force M) (force M')
+  forceF :
+    ∀ {X} {M M' : X ⊢}
+    → R M M'
+    ------------------------------------
+    → CompatForce R (force M) (force M')
 
 data CompatDelay (@++ R : Relation) : Relation where
-  delayF : ∀ {X} {M M' : X ⊢} →
-    R M M' →
-    CompatDelay R (delay M) (delay M')
+  delayF :
+    ∀ {X} {M M' : X ⊢}
+    → R M M'
+    ------------------------------------
+    → CompatDelay R (delay M) (delay M')
 
 data CompatCon (@++ R : Relation) : Relation where
-  conF : ∀ {X} (c : TmCon) →
+  conF : ∀ {X} {c : TmCon} →
     CompatCon R (con {n = X} c) (con c)
 
 data CompatConstr (@++ R : Relation) : Relation where
@@ -88,7 +99,7 @@ data CompatCase (@++ R : Relation) : Relation where
     CompatCase R (case t ts) (case t' ts')
 
 data CompatBuiltin (@++ R : Relation) : Relation where
-  builtinF : ∀ {X} (b : Builtin) →
+  builtinF : ∀ {X} {b : Builtin} →
     CompatBuiltin R (builtin {n = X} b) (builtin b)
 
 data CompatError (@++ R : Relation) : Relation where
@@ -97,8 +108,7 @@ data CompatError (@++ R : Relation) : Relation where
 
 
 CompatTerm : RelationT
-CompatTerm = CompatVar + CompatApply + CompatLambda + CompatForce + CompatDelay + CompatConstr + CompatCase + CompatBuiltin + CompatError
-
+CompatTerm = CompatVar + CompatLambda + CompatApply + CompatForce + CompatDelay + CompatCon + CompatConstr + CompatCase + CompatBuiltin + CompatError + Empty
 
 data Transitivity (@++ R : Relation) : Relation where
   transF : ∀ {X} {L M N : X ⊢} →
@@ -119,22 +129,57 @@ data Reflexivity (@++ R : Relation) : Relation where
 ## Pattern synonyms
 
 ```
-pattern p0 p = inl p
-pattern p1 p = inr (p0 p)
-pattern p2 p = inr (p1 p)
-pattern p3 p = inr (p2 p)
-pattern p4 p = inr (p3 p)
-pattern p5 p = inr (p4 p)
-pattern p6 p = inr (p5 p)
-pattern p7 p = inr (p6 p)
-pattern p8 p = inr (p7 p)
-pattern p9 p = inr (p8 p)
 
-pattern compat-var n       = fix (p0 (`F n))
-pattern compat-apply p q = fix (p1 (p ·F q))
-pattern compat-lambda p    = fix (p2 (ƛF p))
-pattern compat-case p q    = p6 (caseF p q)
+module Patterns
+  (R : Relation)
+  (inj : CompatTerm R ⊆ R)
+  where
+
+  -- TODO: solve this with metaprogramming or typeclasses
+  pattern p0 p = inl p
+  pattern p1 p = inr (p0 p)
+  pattern p2 p = inr (p1 p)
+  pattern p3 p = inr (p2 p)
+  pattern p4 p = inr (p3 p)
+  pattern p5 p = inr (p4 p)
+  pattern p6 p = inr (p5 p)
+  pattern p7 p = inr (p6 p)
+  pattern p8 p = inr (p7 p)
+  pattern p9 p = inr (p8 p)
+
+  pattern compat-varF n     = (p0 (`F n))
+  pattern compat-lambdaF p  = (p1 (ƛF p))
+  pattern compat-applyF p q = (p2 (p ·F q))
+  pattern compat-forceF p   = (p3 (forceF p))
+  pattern compat-delayF p   = (p4 (delayF p))
+  pattern compat-conF       = (p5 conF)
+  pattern compat-constrF p  = (p6 (constrF p))
+  pattern compat-caseF p q  = (p7 (caseF p q))
+  pattern compat-builtinF   = p8 builtinF
+  pattern compat-errorF     = p9 errorF
+
+open Patterns public
 ```
+
+
+## Structures
+
+```
+CompatTerm-TermCompatible : ∀ {R : Relation} → CompatTerm R ⊆ R → TermCompatible R
+CompatTerm-TermCompatible inj = record
+  { compat-var     = inj (compat-varF _)
+  ; compat-ƛ       = λ RM → inj (compat-lambdaF RM)
+  ; compat-·       = λ RM RN → inj (compat-applyF RM RN)
+  ; compat-force   = λ RM → inj (compat-forceF RM)
+  ; compat-delay   = λ RM → inj (compat-delayF RM)
+  ; compat-constr  = λ RMS → inj (compat-constrF RMS)
+  ; compat-case    = λ RM RMS → inj (compat-caseF RM RMS)
+  ; compat-con     = inj compat-conF
+  ; compat-builtin = inj compat-builtinF
+  ; compat-error   = inj compat-errorF
+  }
+```
+
 
 ## Decision procedures
 
@@ -168,8 +213,7 @@ _+-dec_ F? G? R? M M'
 empty? : DecidableT Empty
 empty? R? M M' = no λ ()
 
--- TODO: how to make this terminating, exploiting polarity?
--- perhaps simplify first with extensible AST?
+-- TODO: how to make this terminating? Accessibility proofs?
 {-# TERMINATING #-}
 Mu-dec : ∀ {F : RelationT} →
   DecidableT F →
@@ -266,21 +310,21 @@ compatCase? R? M M'
 compatCon? : DecidableT CompatCon
 compatCon? R? M M'
   with con? ⋯ M 
-... | no ¬M = no λ {(conF _) → ¬M inhabitant}
+... | no ¬M = no λ {conF → ¬M inhabitant}
 ... | yes (con! (match! K))
   with con? (_≟_ K) M'
-...   | no ¬M' = no λ {(conF _) → ¬M' inhabitant}
-...   | yes (con! refl) = yes (conF _)
+...   | no ¬M' = no λ {conF → ¬M' inhabitant}
+...   | yes (con! refl) = yes conF
 
 
 compatBuiltin? : DecidableT CompatBuiltin
 compatBuiltin? R? M M'
   with builtin? ⋯ M 
-... | no ¬M = no λ {(builtinF _) → ¬M inhabitant}
+... | no ¬M = no λ {builtinF → ¬M inhabitant}
 ... | yes (builtin! (match! K))
   with builtin? (_≟_ K) M'
-...   | no ¬M' = no λ {(builtinF _) → ¬M' inhabitant}
-...   | yes (builtin! refl) = yes (builtinF _)
+...   | no ¬M' = no λ {builtinF → ¬M' inhabitant}
+...   | yes (builtin! refl) = yes builtinF
 
 
 compatError? : DecidableT CompatError
@@ -292,14 +336,16 @@ compatError? R? M M'
 compatTerm? : DecidableT CompatTerm
 compatTerm?
   =     compatVar?
-  +-dec compatApply?
   +-dec compatLam?
+  +-dec compatApply?
   +-dec compatForce?
   +-dec compatDelay?
+  +-dec compatCon?
   +-dec compatConstr?
   +-dec compatCase?
   +-dec compatBuiltin?
   +-dec compatError?
+  +-dec empty?
 
 
 
@@ -310,22 +356,21 @@ compatTerm?
 
 ```
 
-module Example where
+private module Example where
 
-  LambdaCalcId : Relation
-  LambdaCalcId = Mu CompatTerm
+  Identity : Relation
+  Identity = Mu CompatTerm
 
+  _ : Identity {1} (` zero ) (` zero)
+  _ = fix (compat-varF _)
 
-  _ : LambdaCalcId {1} (` zero ) (` zero)
-  _ = compat-var _
+  _ : Identity {1} (` zero · ` zero) (` zero · ` zero)
+  _ = fix (compat-applyF (fix (compat-varF _)) (fix (compat-varF _)))
 
-  _ : LambdaCalcId {1} (` zero · ` zero) (` zero · ` zero)
-  _ = compat-apply (compat-var _) (compat-var _)
+  _ : Identity {1} (ƛ (` zero)) (ƛ (` zero))
+  _ = fix (compat-lambdaF (fix (compat-varF _)))
 
-  _ : LambdaCalcId {1} (ƛ (` zero)) (ƛ (` zero))
-  _ = compat-lambda (compat-var _)
-
-  lc-id? : DecidableRel LambdaCalcId
+  lc-id? : DecidableRel Identity
   lc-id? = Mu-dec compatTerm?
 
   _ : Dec.does (lc-id? {2} (` zero · ` zero) (` zero · ` zero)) ≡ true

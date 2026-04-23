@@ -94,28 +94,28 @@ module Refines
   (~-trans : Transitive R)
   (~-compat : TermCompatible R)
   (f : Transform)
-  (f-relating : Refines f R)
+  (f-refines : Refines f R)
   where
 
   open TermCompatible ~-compat
 
-  ↑-relating : Refines (f ↑_) R
-  ↑*-relating : ∀ {X} {Ms : List (X ⊢)} →
+  ↑-refines : Refines (f ↑_) R
+  ↑*-refines : ∀ {X} {Ms : List (X ⊢)} →
       Pointwise R Ms (f ↑* Ms)
-  subterms-relating : Refines (subterms f) R
+  subterms-refines : Refines (subterms f) R
 
-  ↑-relating {X} {M} = ~-trans subterms-relating f-relating 
-  ↑*-relating {Ms = []} = []
-  ↑*-relating {Ms = _ ∷ _} = ↑-relating ∷ ↑*-relating
-  subterms-relating {X} {M} with M
+  ↑-refines {X} {M} = ~-trans subterms-refines f-refines 
+  ↑*-refines {Ms = []} = []
+  ↑*-refines {Ms = _ ∷ _} = ↑-refines ∷ ↑*-refines
+  subterms-refines {X} {M} with M
   ... | ` _ = compat-var
-  ... | ƛ _ = compat-ƛ ↑-relating
-  ... | _ · _ = compat-· ↑-relating ↑-relating 
-  ... | force _ = compat-force ↑-relating
-  ... | delay _ = compat-delay ↑-relating
+  ... | ƛ _ = compat-ƛ ↑-refines
+  ... | _ · _ = compat-· ↑-refines ↑-refines 
+  ... | force _ = compat-force ↑-refines
+  ... | delay _ = compat-delay ↑-refines
   ... | con _ = compat-con
-  ... | constr i Ms = compat-constr ↑*-relating
-  ... | case M Ms = compat-case ↑-relating ↑*-relating
+  ... | constr i Ms = compat-constr ↑*-refines
+  ... | case M Ms = compat-case ↑-refines ↑*-refines
   ... | builtin _ = compat-builtin
   ... | error = compat-error
 
@@ -124,31 +124,31 @@ module Refines?
   (~-trans : Transitive R)
   (~-compat : TermCompatible R)
   (f : ∀ {X} → X ⊢ → Maybe (X ⊢))
-  (f-relating? : Refines? f R)
+  (f-refines? : Refines? f R)
   where
 
   open TermCompatible ~-compat
 
-  ↑?-relating : Refines (f ↑?_) R
-  ↑?*-relating : ∀ {X} {Ms : List (X ⊢)} →
+  ↑?-refines : Refines (f ↑?_) R
+  ↑?*-refines : ∀ {X} {Ms : List (X ⊢)} →
       Pointwise R Ms (f ↑?* Ms)
-  sub-relating : Refines (sub f) R
+  sub-refines : Refines (sub f) R
 
-  ↑?-relating {X} {M} with sub-relating {_} {M}
+  ↑?-refines {X} {M} with sub-refines {_} {M}
   ... | sub-ext with f (sub f M) in eq
-  ... | just M'' = ~-trans sub-ext (f-relating? _ eq)
+  ... | just M'' = ~-trans sub-ext (f-refines? _ _ eq)
   ... | nothing = sub-ext
-  ↑?*-relating {Ms = []} = []
-  ↑?*-relating {Ms = _ ∷ _} = ↑?-relating ∷ ↑?*-relating
-  sub-relating {X} {M} with M
+  ↑?*-refines {Ms = []} = []
+  ↑?*-refines {Ms = _ ∷ _} = ↑?-refines ∷ ↑?*-refines
+  sub-refines {X} {M} with M
   ... | ` _ = compat-var
-  ... | ƛ _ = compat-ƛ ↑?-relating
-  ... | _ · _ = compat-· ↑?-relating ↑?-relating
-  ... | force _ = compat-force ↑?-relating
-  ... | delay _ = compat-delay ↑?-relating
+  ... | ƛ _ = compat-ƛ ↑?-refines
+  ... | _ · _ = compat-· ↑?-refines ↑?-refines
+  ... | force _ = compat-force ↑?-refines
+  ... | delay _ = compat-delay ↑?-refines
   ... | con _ = compat-con
-  ... | constr i Ms = compat-constr ↑?*-relating
-  ... | case M Ms = compat-case ↑?-relating ↑?*-relating
+  ... | constr i Ms = compat-constr ↑?*-refines
+  ... | case M Ms = compat-case ↑?-refines ↑?*-refines
   ... | builtin _ = compat-builtin
   ... | error = compat-error
 ```

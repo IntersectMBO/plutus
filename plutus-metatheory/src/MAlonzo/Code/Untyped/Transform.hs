@@ -208,8 +208,8 @@ du_'46'extendedlambda1_100 v0 v1 v2
       MAlonzo.Code.Untyped.C_builtin_44 v3 -> coe v2
       MAlonzo.Code.Untyped.C_error_46 -> coe v2
       _ -> MAlonzo.RTE.mazUnreachableError
--- Untyped.Transform.Refines.↑-relating
-d_'8593''45'relating_162 ::
+-- Untyped.Transform.Refines.↑-refines
+d_'8593''45'refines_162 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -224,9 +224,9 @@ d_'8593''45'relating_162 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   (Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny) ->
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny
-d_'8593''45'relating_162 ~v0 v1 v2 v3 v4 v5 v6
-  = du_'8593''45'relating_162 v1 v2 v3 v4 v5 v6
-du_'8593''45'relating_162 ::
+d_'8593''45'refines_162 ~v0 v1 v2 v3 v4 v5 v6
+  = du_'8593''45'refines_162 v1 v2 v3 v4 v5 v6
+du_'8593''45'refines_162 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -238,16 +238,16 @@ du_'8593''45'relating_162 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   (Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny) ->
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny
-du_'8593''45'relating_162 v0 v1 v2 v3 v4 v5
+du_'8593''45'refines_162 v0 v1 v2 v3 v4 v5
   = coe
       v0 v4 v5 (d_subterms_20 (coe v2) (coe v4) (coe v5))
       (coe v2 v4 (d_subterms_20 (coe v2) (coe v4) (coe v5)))
       (coe
-         du_subterms'45'relating_170 (coe v0) (coe v1) (coe v2) (coe v3)
+         du_subterms'45'refines_170 (coe v0) (coe v1) (coe v2) (coe v3)
          (coe v4) (coe v5))
       (coe v3 v4 (d_subterms_20 (coe v2) (coe v4) (coe v5)))
--- Untyped.Transform.Refines.↑*-relating
-d_'8593''42''45'relating_168 ::
+-- Untyped.Transform.Refines.↑*-refines
+d_'8593''42''45'refines_168 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -264,9 +264,9 @@ d_'8593''42''45'relating_168 ::
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Untyped.Relation.Pointwise.T_Pointwise_10
-d_'8593''42''45'relating_168 ~v0 v1 v2 v3 v4 v5 v6
-  = du_'8593''42''45'relating_168 v1 v2 v3 v4 v5 v6
-du_'8593''42''45'relating_168 ::
+d_'8593''42''45'refines_168 ~v0 v1 v2 v3 v4 v5 v6
+  = du_'8593''42''45'refines_168 v1 v2 v3 v4 v5 v6
+du_'8593''42''45'refines_168 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -280,21 +280,21 @@ du_'8593''42''45'relating_168 ::
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Untyped.Relation.Pointwise.T_Pointwise_10
-du_'8593''42''45'relating_168 v0 v1 v2 v3 v4 v5
+du_'8593''42''45'refines_168 v0 v1 v2 v3 v4 v5
   = case coe v5 of
       [] -> coe MAlonzo.Code.Untyped.Relation.Pointwise.C_'91''93'_16
       (:) v6 v7
         -> coe
              MAlonzo.Code.Untyped.Relation.Pointwise.C__'8759'__26
              (coe
-                du_'8593''45'relating_162 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''45'refines_162 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
              (coe
-                du_'8593''42''45'relating_168 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''42''45'refines_168 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v7))
       _ -> MAlonzo.RTE.mazUnreachableError
--- Untyped.Transform.Refines.subterms-relating
-d_subterms'45'relating_170 ::
+-- Untyped.Transform.Refines.subterms-refines
+d_subterms'45'refines_170 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -309,9 +309,9 @@ d_subterms'45'relating_170 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   (Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny) ->
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny
-d_subterms'45'relating_170 ~v0 v1 v2 v3 v4 v5 v6
-  = du_subterms'45'relating_170 v1 v2 v3 v4 v5 v6
-du_subterms'45'relating_170 ::
+d_subterms'45'refines_170 ~v0 v1 v2 v3 v4 v5 v6
+  = du_subterms'45'refines_170 v1 v2 v3 v4 v5 v6
+du_subterms'45'refines_170 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -323,7 +323,7 @@ du_subterms'45'relating_170 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   (Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny) ->
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny
-du_subterms'45'relating_170 v0 v1 v2 v3 v4 v5
+du_subterms'45'refines_170 v0 v1 v2 v3 v4 v5
   = case coe v5 of
       MAlonzo.Code.Untyped.C_'96'_18 v6
         -> coe MAlonzo.Code.Untyped.Relation.d_compat'45'var_260 v1 v4 v6
@@ -333,7 +333,7 @@ du_subterms'45'relating_170 v0 v1 v2 v3 v4 v5
              (d__'8593'__8
                 (coe v2) (coe addInt (coe (1 :: Integer)) (coe v4)) (coe v6))
              (coe
-                du_'8593''45'relating_162 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''45'refines_162 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe addInt (coe (1 :: Integer)) (coe v4)) (coe v6))
       MAlonzo.Code.Untyped.C__'183'__22 v6 v7
         -> coe
@@ -341,24 +341,24 @@ du_subterms'45'relating_170 v0 v1 v2 v3 v4 v5
              (d__'8593'__8 (coe v2) (coe v4) (coe v6)) v7
              (d__'8593'__8 (coe v2) (coe v4) (coe v7))
              (coe
-                du_'8593''45'relating_162 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''45'refines_162 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
              (coe
-                du_'8593''45'relating_162 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''45'refines_162 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v7))
       MAlonzo.Code.Untyped.C_force_24 v6
         -> coe
              MAlonzo.Code.Untyped.Relation.d_compat'45'force_272 v1 v4 v6
              (d__'8593'__8 (coe v2) (coe v4) (coe v6))
              (coe
-                du_'8593''45'relating_162 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''45'refines_162 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
       MAlonzo.Code.Untyped.C_delay_26 v6
         -> coe
              MAlonzo.Code.Untyped.Relation.d_compat'45'delay_274 v1 v4 v6
              (d__'8593'__8 (coe v2) (coe v4) (coe v6))
              (coe
-                du_'8593''45'relating_162 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''45'refines_162 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
       MAlonzo.Code.Untyped.C_con_28 v6
         -> coe MAlonzo.Code.Untyped.Relation.d_compat'45'con_302 v1 v6 v4
@@ -367,7 +367,7 @@ du_subterms'45'relating_170 v0 v1 v2 v3 v4 v5
              MAlonzo.Code.Untyped.Relation.d_compat'45'constr_284 v1 v4 v6 v7
              (d__'8593''42'__14 (coe v2) (coe v4) (coe v7))
              (coe
-                du_'8593''42''45'relating_168 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''42''45'refines_168 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v7))
       MAlonzo.Code.Untyped.C_case_40 v6 v7
         -> coe
@@ -375,10 +375,10 @@ du_subterms'45'relating_170 v0 v1 v2 v3 v4 v5
              (d__'8593'__8 (coe v2) (coe v4) (coe v6)) v7
              (d__'8593''42'__14 (coe v2) (coe v4) (coe v7))
              (coe
-                du_'8593''45'relating_162 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''45'refines_162 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
              (coe
-                du_'8593''42''45'relating_168 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''42''45'refines_168 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v7))
       MAlonzo.Code.Untyped.C_builtin_44 v6
         -> coe
@@ -386,8 +386,8 @@ du_subterms'45'relating_170 v0 v1 v2 v3 v4 v5
       MAlonzo.Code.Untyped.C_error_46
         -> coe MAlonzo.Code.Untyped.Relation.d_compat'45'error_312 v1 v4
       _ -> MAlonzo.RTE.mazUnreachableError
--- Untyped.Transform.Refines?.↑?-relating
-d_'8593''63''45'relating_270 ::
+-- Untyped.Transform.Refines?.↑?-refines
+d_'8593''63''45'refines_270 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -405,9 +405,9 @@ d_'8593''63''45'relating_270 ::
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -> AgdaAny) ->
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny
-d_'8593''63''45'relating_270 ~v0 v1 v2 v3 v4 v5 v6
-  = du_'8593''63''45'relating_270 v1 v2 v3 v4 v5 v6
-du_'8593''63''45'relating_270 ::
+d_'8593''63''45'refines_270 ~v0 v1 v2 v3 v4 v5 v6
+  = du_'8593''63''45'refines_270 v1 v2 v3 v4 v5 v6
+du_'8593''63''45'refines_270 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -422,10 +422,10 @@ du_'8593''63''45'relating_270 ::
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -> AgdaAny) ->
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny
-du_'8593''63''45'relating_270 v0 v1 v2 v3 v4 v5
+du_'8593''63''45'refines_270 v0 v1 v2 v3 v4 v5
   = let v6
           = coe
-              du_sub'45'relating_278 (coe v0) (coe v1) (coe v2) (coe v3) (coe v4)
+              du_sub'45'refines_278 (coe v0) (coe v1) (coe v2) (coe v3) (coe v4)
               (coe v5) in
     coe
       (let v7 = coe v2 v4 (d_sub_80 (coe v2) (coe v4) (coe v5)) in
@@ -440,8 +440,8 @@ du_'8593''63''45'relating_270 v0 v1 v2 v3 v4 v5
                       v8 erased)
             MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 -> coe v6
             _ -> MAlonzo.RTE.mazUnreachableError))
--- Untyped.Transform.Refines?.↑?*-relating
-d_'8593''63''42''45'relating_276 ::
+-- Untyped.Transform.Refines?.↑?*-refines
+d_'8593''63''42''45'refines_276 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -461,9 +461,9 @@ d_'8593''63''42''45'relating_276 ::
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Untyped.Relation.Pointwise.T_Pointwise_10
-d_'8593''63''42''45'relating_276 ~v0 v1 v2 v3 v4 v5 v6
-  = du_'8593''63''42''45'relating_276 v1 v2 v3 v4 v5 v6
-du_'8593''63''42''45'relating_276 ::
+d_'8593''63''42''45'refines_276 ~v0 v1 v2 v3 v4 v5 v6
+  = du_'8593''63''42''45'refines_276 v1 v2 v3 v4 v5 v6
+du_'8593''63''42''45'refines_276 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -480,21 +480,21 @@ du_'8593''63''42''45'relating_276 ::
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Untyped.Relation.Pointwise.T_Pointwise_10
-du_'8593''63''42''45'relating_276 v0 v1 v2 v3 v4 v5
+du_'8593''63''42''45'refines_276 v0 v1 v2 v3 v4 v5
   = case coe v5 of
       [] -> coe MAlonzo.Code.Untyped.Relation.Pointwise.C_'91''93'_16
       (:) v6 v7
         -> coe
              MAlonzo.Code.Untyped.Relation.Pointwise.C__'8759'__26
              (coe
-                du_'8593''63''45'relating_270 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''63''45'refines_270 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
              (coe
-                du_'8593''63''42''45'relating_276 (coe v0) (coe v1) (coe v2)
+                du_'8593''63''42''45'refines_276 (coe v0) (coe v1) (coe v2)
                 (coe v3) (coe v4) (coe v7))
       _ -> MAlonzo.RTE.mazUnreachableError
--- Untyped.Transform.Refines?.sub-relating
-d_sub'45'relating_278 ::
+-- Untyped.Transform.Refines?.sub-refines
+d_sub'45'refines_278 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -512,9 +512,9 @@ d_sub'45'relating_278 ::
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -> AgdaAny) ->
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny
-d_sub'45'relating_278 ~v0 v1 v2 v3 v4 v5 v6
-  = du_sub'45'relating_278 v1 v2 v3 v4 v5 v6
-du_sub'45'relating_278 ::
+d_sub'45'refines_278 ~v0 v1 v2 v3 v4 v5 v6
+  = du_sub'45'refines_278 v1 v2 v3 v4 v5 v6
+du_sub'45'refines_278 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -529,7 +529,7 @@ du_sub'45'relating_278 ::
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -> AgdaAny) ->
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny
-du_sub'45'relating_278 v0 v1 v2 v3 v4 v5
+du_sub'45'refines_278 v0 v1 v2 v3 v4 v5
   = case coe v5 of
       MAlonzo.Code.Untyped.C_'96'_18 v6
         -> coe MAlonzo.Code.Untyped.Relation.d_compat'45'var_260 v1 v4 v6
@@ -539,7 +539,7 @@ du_sub'45'relating_278 v0 v1 v2 v3 v4 v5
              (d__'8593''63'__68
                 (coe v2) (coe addInt (coe (1 :: Integer)) (coe v4)) (coe v6))
              (coe
-                du_'8593''63''45'relating_270 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''63''45'refines_270 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe addInt (coe (1 :: Integer)) (coe v4)) (coe v6))
       MAlonzo.Code.Untyped.C__'183'__22 v6 v7
         -> coe
@@ -547,24 +547,24 @@ du_sub'45'relating_278 v0 v1 v2 v3 v4 v5
              (d__'8593''63'__68 (coe v2) (coe v4) (coe v6)) v7
              (d__'8593''63'__68 (coe v2) (coe v4) (coe v7))
              (coe
-                du_'8593''63''45'relating_270 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''63''45'refines_270 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
              (coe
-                du_'8593''63''45'relating_270 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''63''45'refines_270 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v7))
       MAlonzo.Code.Untyped.C_force_24 v6
         -> coe
              MAlonzo.Code.Untyped.Relation.d_compat'45'force_272 v1 v4 v6
              (d__'8593''63'__68 (coe v2) (coe v4) (coe v6))
              (coe
-                du_'8593''63''45'relating_270 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''63''45'refines_270 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
       MAlonzo.Code.Untyped.C_delay_26 v6
         -> coe
              MAlonzo.Code.Untyped.Relation.d_compat'45'delay_274 v1 v4 v6
              (d__'8593''63'__68 (coe v2) (coe v4) (coe v6))
              (coe
-                du_'8593''63''45'relating_270 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''63''45'refines_270 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
       MAlonzo.Code.Untyped.C_con_28 v6
         -> coe MAlonzo.Code.Untyped.Relation.d_compat'45'con_302 v1 v6 v4
@@ -573,7 +573,7 @@ du_sub'45'relating_278 v0 v1 v2 v3 v4 v5
              MAlonzo.Code.Untyped.Relation.d_compat'45'constr_284 v1 v4 v6 v7
              (d__'8593''63''42'__74 (coe v2) (coe v4) (coe v7))
              (coe
-                du_'8593''63''42''45'relating_276 (coe v0) (coe v1) (coe v2)
+                du_'8593''63''42''45'refines_276 (coe v0) (coe v1) (coe v2)
                 (coe v3) (coe v4) (coe v7))
       MAlonzo.Code.Untyped.C_case_40 v6 v7
         -> coe
@@ -581,10 +581,10 @@ du_sub'45'relating_278 v0 v1 v2 v3 v4 v5
              (d__'8593''63'__68 (coe v2) (coe v4) (coe v6)) v7
              (d__'8593''63''42'__74 (coe v2) (coe v4) (coe v7))
              (coe
-                du_'8593''63''45'relating_270 (coe v0) (coe v1) (coe v2) (coe v3)
+                du_'8593''63''45'refines_270 (coe v0) (coe v1) (coe v2) (coe v3)
                 (coe v4) (coe v6))
              (coe
-                du_'8593''63''42''45'relating_276 (coe v0) (coe v1) (coe v2)
+                du_'8593''63''42''45'refines_276 (coe v0) (coe v1) (coe v2)
                 (coe v3) (coe v4) (coe v7))
       MAlonzo.Code.Untyped.C_builtin_44 v6
         -> coe

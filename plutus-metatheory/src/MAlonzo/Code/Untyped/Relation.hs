@@ -60,8 +60,8 @@ d_Refinement'63'_60 ::
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   ()
 d_Refinement'63'_60 = erased
--- Untyped.Relation.run?
-d_run'63'_74 ::
+-- Untyped.Relation.refine?
+d_refine'63'_74 ::
   Integer ->
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -71,15 +71,15 @@ d_run'63'_74 ::
    Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Maybe MAlonzo.Code.Untyped.T__'8866'_14
-d_run'63'_74 v0 ~v1 v2 v3 = du_run'63'_74 v0 v2 v3
-du_run'63'_74 ::
+d_refine'63'_74 v0 ~v1 v2 v3 = du_refine'63'_74 v0 v2 v3
+du_refine'63'_74 ::
   Integer ->
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Maybe MAlonzo.Code.Untyped.T__'8866'_14
-du_run'63'_74 v0 v1 v2
+du_refine'63'_74 v0 v1 v2
   = let v3 = coe v1 v0 v2 in
     coe
       (case coe v3 of
@@ -90,8 +90,8 @@ du_run'63'_74 v0 v1 v2
                 _ -> MAlonzo.RTE.mazUnreachableError
          MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 -> coe v3
          _ -> MAlonzo.RTE.mazUnreachableError)
--- Untyped.Relation.run?-refines
-d_run'63''45'refines_98 ::
+-- Untyped.Relation.refine?-refines
+d_refine'63''45'refines_98 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -102,14 +102,14 @@ d_run'63''45'refines_98 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -> AgdaAny
-d_run'63''45'refines_98 ~v0 v1 v2 v3 ~v4 ~v5
-  = du_run'63''45'refines_98 v1 v2 v3
-du_run'63''45'refines_98 ::
+d_refine'63''45'refines_98 ~v0 v1 v2 v3 ~v4 ~v5
+  = du_refine'63''45'refines_98 v1 v2 v3
+du_refine'63''45'refines_98 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) ->
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> AgdaAny
-du_run'63''45'refines_98 v0 v1 v2
+du_refine'63''45'refines_98 v0 v1 v2
   = let v3 = coe v0 v1 v2 in
     coe
       (case coe v3 of

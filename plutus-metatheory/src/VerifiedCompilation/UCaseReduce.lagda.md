@@ -4,6 +4,29 @@ layout: page
 ---
 
 # Case-Reduce Translation Phase
+
+This module defines two translation relations for the case-reduce pass:
+
+- `Computational`: A "computational" relation that builds on a re-implementation
+  of the compiler pass (`case-reduce` function below). The relation simply
+  requires the reduced pre-term to be equal to the post-term. This was simpler
+  than defining a decision procedure that compares pre- and post-term. The
+  relation has a decision procedure.
+
+- `CaseReduce`: An inductive relation, built using the generic building blocks
+  from `Untyped.Relation.Modular`. It is an equivalence relation and therefore
+  allows applying reduction rules in the reverse direction (which is not
+  expected from the compiler pass). It also admits a decision procedure which
+  works by case-reducing _both_ the pre-term and post-term.
+
+The computational relation is closer to the compiler implementation, while the
+inductive relation more general: it is an equivalence relation similar to the
+one in the "A Tale of two Zippers" papers. The equivalence is more "obviously"
+semantics preserving.
+
+The computational relation is sound (but not complete) w.r.t. the inductive
+equivalence relation.
+
 ```
 module VerifiedCompilation.UCaseReduce where
 
@@ -34,18 +57,19 @@ open import Untyped.Reduction using (iterApp)
 open import Untyped.Relation
 open import Untyped.Relation.Composable
 open import Untyped.Transform
+open Untyped.Transform.Refines?
 open import Untyped.CEK using (lookup?)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; caseReduceT; Proof?; abort)
 open import VerifiedCompilation.UntypedViews
 open import Utils using () renaming (_,_ to _,,_; _∷_ to cons; [] to nil)
 
 ```
-## Rules
+## Reduction Rules
 
-These are the reduction rules of the case-reduce pass, defined as relation transformers.
+These are the (single-step) reduction rules of the case-reduce pass, defined as
+relation transformers so they can be composed for the inductive translation relation.
 
 ```
-
 module Rules where
 
   private variable
@@ -55,68 +79,73 @@ module Rules where
     i : ℕ
 
   data CaseConstr (@++ R : Relation) : Relation where
-    case-constr : ∀ {X} {i} {N : X ⊢} {Ns Ms} →
-      lookup? i Ns ≡ just N →
-      -------------------------------------------------
-      CaseConstr R (case (constr i Ms) Ns) (iterApp N Ms)
+    case-constr :
+      ∀ {X} {i} {N : X ⊢} {Ns Ms}
+      → lookup? i Ns ≡ just N
+      -----------------------------------------------------
+      → CaseConstr R (case (constr i Ms) Ns) (iterApp N Ms)
 
   data CaseUnit (@++ R : Relation) : Relation where
-    case-unit : ∀ {X} {N : X ⊢} →
-       ---------------------------------------------
-       CaseUnit R (case (con (tmCon unit tt)) [ N ]) N
+    case-unit :
+      ∀ {X} {N : X ⊢}
+      ---------------------------------------------
+      → CaseUnit R (case (con (tmCon unit tt)) [ N ]) N
 
   data CaseFalse₁ (@++ R : Relation) : Relation where
-    case-false₁ : ∀ {X} {N : X ⊢} →
+    case-false₁ :
+      ∀ {X} {N : X ⊢}
       --------------------------------------------------
-      CaseFalse₁ R (case (con (tmCon bool false)) [ N ]) N
+      → CaseFalse₁ R (case (con (tmCon bool false)) [ N ]) N
 
   data CaseBool (@++ R : Relation) : Relation where
     case-bool :
-      ∀ {X} {b} {N₁ N₂ : X ⊢}  →
+      ∀ {X} {b} {N₁ N₂ : X ⊢}
       -----------------------------------------------------------------------
-      CaseBool R (case (con (tmCon bool b)) (N₁ ∷ N₂ ∷ [])) (if b then N₂ else N₁)
+      → CaseBool R (case (con (tmCon bool b)) (N₁ ∷ N₂ ∷ [])) (if b then N₂ else N₁)
 
   data CaseInteger (@++ R : Relation) : Relation where
     case-integer :
-      ∀ {X n} {N : X ⊢} {Ns} →
-      lookup? n Ns ≡ just N →
+      ∀ {X n} {N : X ⊢} {Ns}
+      → lookup? n Ns ≡ just N
       ---------------------------------------------------
-      CaseInteger R (case (con (tmCon integer (+ n))) Ns) N
+      → CaseInteger R (case (con (tmCon integer (+ n))) Ns) N
 
   data CaseCons₁ (@++ R : Relation) : Relation where
     case-cons₁ :
-      ∀ {X} {A x xs} {N : X ⊢} →
+      ∀ {X} {A x xs} {N : X ⊢}
       ----------------------------------------------------
-      CaseCons₁ R
-        (case (con (tmCon (list A) (cons x xs))) (N ∷ []))
-        (N · con (tmCon A x) · con (tmCon (list A) xs))
+      → CaseCons₁ R
+          (case (con (tmCon (list A) (cons x xs))) (N ∷ []))
+          (N · con (tmCon A x) · con (tmCon (list A) xs))
 
   data CaseCons₂ (@++ R : Relation) : Relation where
     case-cons₂ :
-      ∀ {X} {A x xs} {N₁ N₂ : X ⊢} →
+      ∀ {X} {A x xs} {N₁ N₂ : X ⊢}
       ----------------------------------------------------------
-      CaseCons₂ R
-        (case (con (tmCon (list A) (cons x xs))) (N₁ ∷ N₂ ∷ []))
-        (N₁ · con (tmCon A x) · con (tmCon (list A) xs))
+      → CaseCons₂ R
+          (case (con (tmCon (list A) (cons x xs))) (N₁ ∷ N₂ ∷ []))
+          (N₁ · con (tmCon A x) · con (tmCon (list A) xs))
 
   data CaseNil (@++ R : Relation) : Relation where
     case-nil :
-      ∀ {X} {N₁ N₂ : X ⊢} {A} →
+      ∀ {X} {N₁ N₂ : X ⊢} {A}
       -----------------------------------------------------------
-      CaseNil R
-        (case (con (tmCon (list A) nil)) (N₁ ∷ N₂ ∷ []))
-        N₂
+      → CaseNil R
+          (case (con (tmCon (list A) nil)) (N₁ ∷ N₂ ∷ []))
+          N₂
 
   data CasePair (@++ R : Relation) : Relation where
     case-pair :
-      ∀ {X} {A B x y} {N : X ⊢} →
+      ∀ {X} {A B x y} {N : X ⊢}
       ----------------------------------------------------
-      CasePair R
-        (case (con (tmCon (pair A B) (x ,, y ))) (N ∷ []))
-        (N · con (tmCon A x) · con (tmCon B y))
+      → CasePair R
+          (case (con (tmCon (pair A B) (x ,, y ))) (N ∷ []))
+          (N · con (tmCon A x) · con (tmCon B y))
 
 open Rules
 ```
+
+## Inductive translation relation
 
 Combining the reduction rules:
 
@@ -150,20 +179,30 @@ pattern cr-compat p    = fix (inr (inl p))
 pattern cr-trans p q   = fix (inr (inr (inl (transF p q))))
 pattern cr-sym p       = fix (inr (inr (inr (inl (symF p)))))
 pattern cr-refl        = fix (inr (inr (inr (inr reflF))))
+```
 
-cr-refl' : ∀ {X} {M N : X ⊢} → M ≡ N → CaseReduce M N
+Convenient helpers
+
+```
+cr-refl' :
+  ∀ {X} {M N : X ⊢}
+  → M ≡ N
+  → CaseReduce M N
 cr-refl' refl = cr-refl
 
--- TODO
-postulate cr-refl* : ∀{X}{Ms : List (X ⊢)} → Pointwise CaseReduce Ms Ms
-postulate cr-termcompat : TermCompatible CaseReduce
+cr-refl* :
+  ∀ {X} {Ms : List (X ⊢)}
+  → Pointwise CaseReduce Ms Ms
+cr-refl* = pointwise-refl {R = CaseReduce} cr-refl
 
+cr-TermCompat : TermCompatible CaseReduce
+cr-TermCompat = CompatTerm-TermCompatible cr-compat
 ```
 
 Testing the relation:
 
 ```
-module Test where
+private module Test where
   M : 0 ⊢
   M = case (constr 0 []) (constr 0 [] ∷ constr 1 [] ∷ [])
 
@@ -182,17 +221,25 @@ module Test where
   _ : CaseReduce N N'
   _ =
     cr-trans
-      (cr-compat (compat-case MM' cr-refl*))
+      (compat-case MM' cr-refl*)
       (cr-reduction (inl (case-constr refl)))
+    where
+      open TermCompatible cr-TermCompat
 ```
 
-## The reduction rules
+## Computational translation relation
+
+For each of the inductive reduction rules, we give a corresponding partial
+function, which also witnesses the proof of the reduction rule when it succeeds
+(this comes in handy when proving soundness w.r.t the inductive translation
+relation later on)
 
 ```
 private variable
   R : Relation
+  X : ℕ
 
-red-constr : Refinement? (CaseConstr CaseReduce)
+red-constr : (M : X ⊢) → Maybe (∃ λ M' → CaseConstr R M M')
 red-constr M
   with (case? (constr? ⋯ ⋯) ⋯) M
 ... | no _ = nothing
@@ -201,27 +248,27 @@ red-constr M
 ... | nothing = nothing
 ... | just N = just (iterApp N Ms , case-constr eq)
 
-red-unit : Refinement? (CaseUnit CaseReduce)
+red-unit : (M : X ⊢) → Maybe (∃ λ M' → CaseUnit R M M')
 red-unit M
   with (case? (con? (tmCon? unit ⋯)) (⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon! (match! v))) (match! N ∷! []!))
   = just (N , case-unit)
 
-red-false₁ : Refinement? (CaseFalse₁ CaseReduce)
+red-false₁ : (M : X ⊢) → Maybe (∃ λ M' → CaseFalse₁ R M M')
 red-false₁ M
   with (case? (con? (tmCon? bool (_≟_ false))) (⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon! refl)) (match! N ∷! []!)) = just (N , case-false₁)
 
-red-bool : Refinement? (CaseBool CaseReduce)
+red-bool : (M : X ⊢) → Maybe (∃ λ M' → CaseBool R M M')
 red-bool M
   with (case? (con? (tmCon? bool ⋯)) (⋯ ∷? ⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon! (match! b))) (match! N₁ ∷! match! N₂ ∷! []!))
     = just ((if b then N₂ else N₁) , case-bool)
 
-red-integer : Refinement? (CaseInteger CaseReduce)
+red-integer : (M : X ⊢) → Maybe (∃ λ M' → CaseInteger R M M')
 red-integer M
   with (case? (con? (tmCon? integer pos?)) ⋯) M
 ... | no _ = nothing
@@ -230,14 +277,14 @@ red-integer M
 ... | nothing = nothing
 ... | just N = just (N , case-integer eq)
 
-red-cons₁ : Refinement? (CaseCons₁ CaseReduce)
+red-cons₁ : (M : X ⊢) → Maybe (∃ λ M' → CaseCons₁ R M M')
 red-cons₁ M with
   (case? (con? (tmCon-list? (λ A xs → cons? ⋯ ⋯ xs))) (⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon-list! (cons! (match! x) (match! xs)))) (match! N ∷! []!)) =
   just (N · con (tmCon _ x) · con (tmCon (list _) xs) ,  case-cons₁)
 
-red-cons₂ : Refinement? (CaseCons₂ CaseReduce)
+red-cons₂ : (M : X ⊢) → Maybe (∃ λ M' → CaseCons₂ R M M')
 red-cons₂ M
  with (case? (con? (tmCon-list? (λ A → cons? ⋯ ⋯))) (⋯ ∷? ⋯ ∷? []?)) M
 ... | no _ = nothing
@@ -245,20 +292,24 @@ red-cons₂ M
   just (N₁ · con (tmCon _ x) · con (tmCon (list _) xs) ,  case-cons₂)
 
 
-red-nil : Refinement? (CaseNil CaseReduce)
+red-nil : (M : X ⊢) → Maybe (∃ λ M' → CaseNil R M M')
 red-nil M
   with (case? (con? (tmCon-list? (λ A → nil?))) (⋯ ∷? ⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon-list! nil!)) (match! N₁ ∷! match! N₂ ∷! []!)) = just (N₂ , case-nil)
 
-red-pair : Refinement? (CasePair CaseReduce)
+red-pair : (M : X ⊢) → Maybe (∃ λ M' → CasePair R M M')
 red-pair M
   with (case? (con? (tmCon-pair? λ A B → ⋯)) (⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon-pair! (match! (x ,, y)))) (match! N ∷! []!)) =
   just (N · con (tmCon _ x) · con (tmCon _ y) , case-pair)
+```
 
-reduce : Refinement? (Reduction CaseReduce)
+Combining all reduction rules:
+
+```
+reduce : (M : X ⊢) → Maybe (∃ λ M' → Reduction R M M')
 reduce =
   red-constr
   <|> red-unit
@@ -269,68 +320,115 @@ reduce =
   <|> red-cons₂
   <|> red-nil
   <|> red-pair
+```
 
-reduceM : ∀ {X} → X ⊢ → Maybe (X ⊢)
-reduceM = run? reduce
-
-norm : ∀ {X} → X ⊢ → X ⊢
-norm M = reduceM ↑? M
-
-reduceM-CaseReduce : Refines? reduceM CaseReduce
-reduceM-CaseReduce = Refines?-⊆ red⊆cr (run?-refines reduce)
-  where
-    -- This helps with inference
-    red⊆cr : Reduction CaseReduce ⊆ CaseReduce
-    red⊆cr = cr-reduction
-
-
-norm-CaseReduce : Refines norm CaseReduce
-norm-CaseReduce = ↑?-relating
-  where open Refines? CaseReduce cr-trans cr-termcompat reduceM reduceM-CaseReduce
-
-norm* : ∀ {X} → List (X ⊢) → List (X ⊢)
-norm* Ns = run? reduce ↑?* Ns
+The pass is implemented as a bottom-up traversal that applies the reduction
+rules:
 
 ```
+reduceM : X ⊢ → Maybe (X ⊢)
+reduceM = refine? (reduce {R = CaseReduce})
+
+case-reduce : X ⊢ → X ⊢
+case-reduce M = reduceM ↑? M
+```
+
+The computational translation relation:
+
+```
+Computational : Relation
+Computational M M' = case-reduce M ≡ M'
+```
+
+### Deciding `Computational`
+
+The computational relation admits a decision procedure:
+
+```
+decide : (M M' : X ⊢) → ProofOrCE (Computational M M')
+decide M M' with case-reduce M ≟ M'
+... | yes P = proof P
+... | no ¬P  = ce ¬P caseReduceT M M'
+```
+
 
 ## Soundness
 
-```
-sound-norm-norm : ∀ {X} {M N : X ⊢} → norm M ≡ norm N → CaseReduce M N
-sound-norm-norm eq =
-  cr-trans
-    norm-CaseReduce
-    (cr-trans
-      (cr-refl' eq)
-      (cr-sym norm-CaseReduce)
-    )
+The `case-reduce` function refines the `CaseReduce` relation:
 
-sound-norm : ∀ {X} {M N : X ⊢} → norm M ≡ N → CaseReduce M N
-sound-norm eq =
+```
+variable
+  M N : X ⊢
+
+case-reduce-refines : CaseReduce M (case-reduce M)
+case-reduce-refines = ↑?-refines CaseReduce cr-trans cr-TermCompat reduceM reduceM-CaseReduce
+  where
+    -- This helps with type inference
+    red⊆cr : Reduction CaseReduce ⊆ CaseReduce
+    red⊆cr = cr-reduction
+
+    reduce-refine : Refines? reduceM (Reduction CaseReduce)
+    reduce-refine = refine?-refines reduce
+
+    reduceM-CaseReduce : Refines? reduceM CaseReduce
+    reduceM-CaseReduce = Refines?-⊆ red⊆cr reduce-refine
+```
+
+The soundness lemma then follows from transitivity and reflexivity:
+
+```
+sound :
+  ∀ {X} {M N : X ⊢}
+  → Computational M N
+  → CaseReduce M N
+sound eq =
   cr-trans
-    norm-CaseReduce
+    case-reduce-refines
     (cr-refl' eq)
 ```
 
-
-## Checker and Decision procedure
-
-The checker normalises the pre-term and uses the soundness proof:
+Via soundness, we can define a checker that produces an inhabitant of the
+equivalence.
 
 ```
-check :  ∀ {X} (M M' : X ⊢) → Proof? (CaseReduce M M')
-check M M' with norm M ≟ M'
-... | yes P = proof (sound-norm P)
-... | no ¬P = abort caseReduceT M M'
+check : (M M' : X ⊢) → Proof? (CaseReduce M M')
+check M M' with case-reduce M ≟ M'
+... | yes P = proof (sound P)
+... | no _  = abort caseReduceT M M'
 ```
 
-A decision procedure that normalises both pre- and post-term. It is sound and
+
+
+### Deciding `CaseReduce`
+
+Interestingly, the inductive `CaseReduce` equivalence relation is decidable by
+normalising both the pre- and post-term.
+
+```
+sound-both :
+    case-reduce M ≡ case-reduce N
+  → CaseReduce M N
+sound-both eq =
+  cr-trans
+    case-reduce-refines
+    (cr-trans
+      (cr-refl' eq)
+      (cr-sym case-reduce-refines)
+    )
+
+-- TODO: by induction on the `CaseReduce` derivation, requires a lemma for each
+-- reduction rule
+postulate
+  complete-both : CaseReduce M N → case-reduce M ≡ case-reduce N
+```
+
+A decision procedure for that normalises both pre- and post-term. It is sound and
 complete with respect to the inductive `CaseReduce` relation, but the
 completeness proof is still to be done.
 
 ```
-decide : ∀ {X} (M M' : X ⊢) → ProofOrCE (norm M ≡ norm M')
-decide M M' with norm M ≟ norm M'
-... | yes P = proof P
-... | no ¬P = ce ¬P caseReduceT M M'
+decide-CaseReduce : (M M' : X ⊢) → ProofOrCE (CaseReduce M M')
+decide-CaseReduce M M' with case-reduce M ≟ case-reduce M'
+... | yes P = proof (sound-both P)
+... | no ¬P = ce (λ P → ¬P (complete-both P)) caseReduceT M M'
 ```

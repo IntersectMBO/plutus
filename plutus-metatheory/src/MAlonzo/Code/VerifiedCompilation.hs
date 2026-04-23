@@ -116,7 +116,7 @@ d_certifyPass_24 v0 v1
         -> coe
              MAlonzo.Code.VerifiedCompilation.Certificate.du_checker_156
              (coe
-                MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_check_502
+                MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_check_574
                 (coe (0 :: Integer)))
       MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_16
         -> case coe v1 of

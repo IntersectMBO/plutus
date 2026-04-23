@@ -54,16 +54,16 @@ Refinement? R =
   → (M : X ⊢)
   → Maybe (∃ (λ M' → R M M'))
 
-run? : ∀ {X} {R : Relation} → Refinement? R → X ⊢ → Maybe (X ⊢)
-run? f M with f M
+refine? : ∀ {X} {R : Relation} → Refinement? R → X ⊢ → Maybe (X ⊢)
+refine? f M with f M
 ... | nothing = nothing
 ... | just (M' , _) = just M'
 
-run?-refines :
+refine?-refines :
   ∀ {R : Relation}
   → (f : Refinement? R)
-  → Refines? (run? f) R
-run?-refines f {_} M eq with f M | eq
+  → Refines? (refine? f) R
+refine?-refines f M _ fM≡just with f M | fM≡just
 ... | just ( _ , RMN) | refl = RMN
 ```
 

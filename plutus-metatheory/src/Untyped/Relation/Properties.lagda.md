@@ -6,6 +6,7 @@ layout: page
 ```
 module Untyped.Relation.Properties where
 
+open import Function using (_∘_)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 open import Data.Maybe
 
@@ -51,6 +52,13 @@ R ⊆ S =
   ∀ {X} {M N : X ⊢}
   → R M N
   → S M N
+
+⊆-trans :
+  {R S T : Relation}
+  → R ⊆ S
+  → S ⊆ T
+  → R ⊆ T
+⊆-trans R⊆S S⊆T RMN = S⊆T (R⊆S RMN)
 ```
 
 ## Properties with respect to functions on terms
@@ -60,6 +68,9 @@ Operations on terms can be abbreviated:
 ```
 Transform : Set
 Transform = ∀{X} → X ⊢ → X ⊢
+
+Transform? : Set
+Transform? = ∀{X} → X ⊢ → Maybe (X ⊢)
 
 Transform₂ : Set
 Transform₂ = ∀{X} → X ⊢ → X ⊢ → X ⊢
@@ -91,30 +102,35 @@ Compatible₂ _~_ f =
 ```
 
 A function refines a relation when it maps an input to a related output. Another
-way of viewing this is that the graph of the function (i.e. a set of pairs) is a
-subset of the relation (when viewed as set of pairs).
+way of viewing this is that the graph of the function (i.e. a relation that
+relates inputs to outputs) is a subset of the relation (when viewed as set of
+pairs).
 
 ```
--- TODO make M explicit arg
+Graph : Transform → Relation
+Graph f M N = f M ≡ N
+
 Refines : Transform → Relation → Set
-Refines f R =
-  ∀ {X} {M : X ⊢}
-  → R M (f M)
+Refines f R = ∀ {X} {M : X ⊢} → R M (f M)
 ```
 
-A similar notion for partial functions:
+There is a similar notion for partial functions:
 
 ```
-Refines? : (∀ {X} → X ⊢ → Maybe (X ⊢)) → Relation → Set
+Graph? : Transform? → Relation
+Graph? f M N = f M ≡ just N
+
+Refines? : Transform? → Relation → Set
 Refines? f R =
-  ∀ {X} (M : X ⊢) {M' : X ⊢}
-  → f M ≡ just M'
-  → R M M'
+  ∀ {X}
+  → (M N : X ⊢)
+  → f M ≡ just N
+  → R M N
 
 Refines?-⊆ :
   ∀ {f : ∀ {X} → X ⊢ → Maybe (X ⊢)} {R S : Relation}
   → R ⊆ S
   → Refines? f R
   → Refines? f S
-Refines?-⊆ R⊆S ext-f-R M eq = R⊆S (ext-f-R M eq)
+Refines?-⊆ R⊆S refines?-f _ _ eq = R⊆S (refines?-f _ _ eq)
 ```
