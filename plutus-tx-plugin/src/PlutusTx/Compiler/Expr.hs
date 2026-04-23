@@ -617,6 +617,7 @@ hoistExpr
 hoistExpr var t = do
   wrapUnsafeDataAsConstrName <-
     lookupGhcName 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
+  anchorName <- lookupGhcName 'PlutusTx.Plugin.Utils.anchor
   let name = GHC.getName var
       lexName = LexName name
 
@@ -635,10 +636,15 @@ hoistExpr var t = do
   -- See Note [Dependency tracking]
   modifyCurDeps (Set.insert lexName)
   maybeDef <- PIR.lookupTerm lexName
-  let varSpan = getVarSourceSpan var
+  -- Source spans only come from @anchor@ wrappers injected by Plinth.Plugin.
+  -- @GHC.nameSrcSpan@ on imported Vars is unreliable because it depends on the
+  -- defining module being recompiled from source (issue #7203/#7722), so it is
+  -- deliberately not consulted — we prefer a missing span over a flaky one.
+  let varSpan = findAnchorLoc anchorName t
       addSpan = case varSpan of
         Nothing -> id
         Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
+      nameStr = GHC.occNameString $ GHC.occName $ GHC.varName var
   case maybeDef of
     Just term -> pure term
     -- See Note [Dependency tracking]
@@ -650,27 +656,27 @@ hoistExpr var t = do
         (PIR.Def var' (PIR.mkVar var', PIR.Strict))
         mempty
 
-      t' <- maybeProfileRhs var var' =<< addSpan (compileExpr Nothing t)
+      t' <- maybeProfileRhs varSpan nameStr var' =<< addSpan (compileExpr Nothing t)
       -- See Note [Non-strict let-bindings]
       PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
       pure $ PIR.mkVar var'
 
--- 'GHC.Var' in argument is only for extracting srcspan and accurate name.
+{-| Wrap the RHS of a definition with entry/exit profile traces when profiling
+is enabled and the definition is a function/abstraction. The span is
+resolved by the caller (see 'hoistExpr'), preferring an @anchor@-carried
+span so it still works with GHC's interface cache. -}
 maybeProfileRhs
   :: CompilingDefault uni fun m ann
-  => GHC.Var
+  => Maybe GHC.RealSrcSpan
+  -> String
   -> PLCVar uni
   -> PIRTerm uni fun
   -> m (PIRTerm uni fun)
-maybeProfileRhs ghcVar var t = do
+maybeProfileRhs mSpan nameStr var t = do
   CompileContext {ccOpts = compileOpts} <- ask
   let
-    nameStr = GHC.occNameString $ GHC.occName $ GHC.varName $ ghcVar
     displayName = T.pack $
-      case getVarSourceSpan ghcVar of
-        -- When module is not compiled and GHC is using cached build from previous build, it will
-        -- lack source span. There's nothing much we can do about this here since this is GHC
-        -- behavior. Issue #7203
+      case mSpan of
         Nothing -> nameStr
         Just src -> nameStr <> " (" <> show (src ^. srcSpanIso) <> ")"
 
@@ -1328,7 +1334,9 @@ compileExpr mloc e = do
             _ -> compileTypeNorm $ GHC.varType b
           -- See Note [Non-strict let-bindings]
           withVarTyScoped b ty $ \v -> do
-            rhs'' <- maybeProfileRhs b v rhs'
+            let bSpan = findAnchorLoc anchorName rhs
+                bName = GHC.occNameString (GHC.occName (GHC.varName b))
+            rhs'' <- maybeProfileRhs bSpan bName v rhs'
             let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs''
             body' <- compileExpr Nothing body
             pure $ PIR.Let annMayInline PIR.NonRec binds body'
@@ -1337,7 +1345,9 @@ compileExpr mloc e = do
             -- the bindings are scope in both the body and the args
             -- TODO: this is a bit inelegant matching the vars back up
             binds <- for (zip vars bs) $ \(v, (ghcVar, rhs)) -> do
-              rhs' <- maybeProfileRhs ghcVar v =<< compileExpr Nothing rhs
+              let gvSpan = findAnchorLoc anchorName rhs
+                  gvName = GHC.occNameString (GHC.occName (GHC.varName ghcVar))
+              rhs' <- maybeProfileRhs gvSpan gvName v =<< compileExpr Nothing rhs
               -- See Note [Non-strict let-bindings]
               pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs'
             body' <- compileExpr Nothing body
@@ -1532,9 +1542,6 @@ getSourceSpan mmb GHC.HpcTick {GHC.tickId = tid} = do
   return sp
 getSourceSpan _ _ = Nothing
 
-getVarSourceSpan :: GHC.Var -> Maybe GHC.RealSrcSpan
-getVarSourceSpan = GHC.srcSpanToRealSrcSpan . GHC.nameSrcSpan . GHC.varName
-
 srcSpanIso :: Iso' GHC.RealSrcSpan SrcSpan
 srcSpanIso = iso fromGHC toGHC
   where
@@ -1725,6 +1732,32 @@ extractLoc anchorName modBreaks = go Nothing
         | Just ss <- getSourceSpan modBreaks tick ->
             go (Just ss) e
       other -> (acc, other)
+
+{-| Find the first @anchor@-carried 'RealSrcSpan' anywhere inside a 'CoreExpr',
+descending through applications, lambdas, lets, cases, casts, and ticks.
+Useful when the immediate head of the expression is not an anchor call
+(e.g. a hoisted top-level RHS that starts with a lambda). -}
+findAnchorLoc :: GHC.Name -> GHC.CoreExpr -> Maybe GHC.RealSrcSpan
+findAnchorLoc anchorName = go
+  where
+    firstJust = foldr ((<|>) . go) Nothing
+    go = \case
+      GHC.App
+        ( GHC.App
+            (GHC.App (GHC.Var f) (GHC.Type (GHC.LitTy (GHC.StrTyLit loc))))
+            (GHC.Type _eTy)
+          )
+        _
+          | GHC.getName f == anchorName -> decodeSrcSpan (GHC.unpackFS loc)
+      GHC.App f x -> go f <|> go x
+      GHC.Lam _ b -> go b
+      GHC.Let (GHC.NonRec _ rhs) e -> go rhs <|> go e
+      GHC.Let (GHC.Rec bs) e -> firstJust (map snd bs) <|> go e
+      GHC.Case scrut _ _ alts ->
+        go scrut <|> firstJust [rhs | GHC.Alt _ _ rhs <- alts]
+      GHC.Cast e _ -> go e
+      GHC.Tick _ e -> go e
+      _ -> Nothing
 
 extractUnsupported
   :: GHC.Name

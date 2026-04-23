@@ -176,7 +176,10 @@ injectAnchors env = do
   let binds = GHC.tcg_binds env
       bindsAnchored =
         Compat.modifyBinds
-          (transformBi (stripGuardAnchors anchorId) . transformBi (anchorExpr anchorId))
+          ( transformBi (stripGuardAnchors anchorId)
+              . transformBi (anchorBinding anchorId)
+              . transformBi (anchorExpr anchorId)
+          )
           binds
   pure env {GHC.tcg_binds = bindsAnchored}
 
@@ -185,13 +188,64 @@ anchorExpr :: GHC.Id -> GHC.LHsExpr GHC.GhcTc -> GHC.LHsExpr GHC.GhcTc
 anchorExpr anchorId le@(GHC.L ann e)
   | isAnchorWorthy anchorId e
   , Just !sp <- GHC.srcSpanToRealSrcSpan (GHC.locA ann) =
+      wrapWithAnchor anchorId sp le
+  | otherwise = le
+
+{-| Wrap an 'LHsExpr' with an @anchor@ carrying the given source span. Skips
+expressions whose type might be unlifted (since @anchor@'s type variable has
+kind @Type@). -}
+wrapWithAnchor
+  :: GHC.Id
+  -> GHC.RealSrcSpan
+  -> GHC.LHsExpr GHC.GhcTc
+  -> GHC.LHsExpr GHC.GhcTc
+wrapWithAnchor anchorId sp le@(GHC.L _ e)
+  | GHC.mightBeUnliftedType (GHC.hsExprType e) = le
+  | otherwise =
       let locStr = encodeSrcSpan sp
           locTy = GHC.LitTy (GHC.StrTyLit (GHC.mkFastString locStr))
           exprTy = GHC.hsExprType e
           wrapper = GHC.WpTyApp exprTy `GHC.WpCompose` GHC.WpTyApp locTy
           anchor = GHC.mkHsWrap wrapper (GHC.HsVar GHC.noExtField $ GHC.noLocA anchorId)
        in GHC.noLocA (Compat.hsAppTc (GHC.noLocA anchor) le)
-  | otherwise = le
+
+{-| Wrap the body of every 'GRHS' of a value binding with an @anchor@ carrying
+the binder's source span. This gives 'findAnchorLoc' a reliable outer-most
+anchor for every hoisted binding, so profile-trace output identifies which
+function was entered (the span points to the binder, not an arbitrary
+sub-expression). See issue #7722. -}
+anchorBinding
+  :: GHC.Id
+  -> GHC.HsBindLR GHC.GhcTc GHC.GhcTc
+  -> GHC.HsBindLR GHC.GhcTc GHC.GhcTc
+anchorBinding anchorId = \case
+  fb@GHC.FunBind {GHC.fun_id = GHC.L ann _, GHC.fun_matches = mg}
+    | Just sp <- GHC.srcSpanToRealSrcSpan (GHC.locA ann) ->
+        fb {GHC.fun_matches = wrapMatchGroup sp mg}
+  pb@GHC.PatBind {GHC.pat_lhs = GHC.L ann _, GHC.pat_rhs = grhss}
+    | Just sp <- GHC.srcSpanToRealSrcSpan (GHC.locA ann) ->
+        pb {GHC.pat_rhs = wrapGRHSs sp grhss}
+  other -> other
+  where
+    -- Extension constructors (XMG/XMatch/XGRHSs/XGRHS) are uninhabited for
+    -- 'GhcTc', but GHC's pattern coverage checker does not know that, so each
+    -- helper has a fall-through to silence the warning.
+    wrapMatchGroup sp = \case
+      mg@GHC.MG {GHC.mg_alts = lalts} ->
+        mg {GHC.mg_alts = (fmap . fmap . fmap) (wrapMatch sp) lalts}
+      other -> other
+    wrapMatch sp = \case
+      m@GHC.Match {GHC.m_grhss = grhss} ->
+        m {GHC.m_grhss = wrapGRHSs sp grhss}
+      other -> other
+    wrapGRHSs sp = \case
+      grhss@GHC.GRHSs {GHC.grhssGRHSs = lgrhss} ->
+        grhss {GHC.grhssGRHSs = (fmap . fmap) (wrapGRHS sp) lgrhss}
+      other -> other
+    wrapGRHS sp = \case
+      GHC.GRHS x guards body ->
+        GHC.GRHS x guards (wrapWithAnchor anchorId sp body)
+      other -> other
 
 isAnchorWorthy :: GHC.Id -> GHC.HsExpr GHC.GhcTc -> Bool
 isAnchorWorthy marker expr

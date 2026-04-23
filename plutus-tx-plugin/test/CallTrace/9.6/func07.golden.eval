@@ -4,4 +4,4 @@ Caused by: error
 
 Trace:
 -> func (test/CallTrace/Spec.hs:84:1-84:4)
--> $fMyClassInOtherModuleInteger_$cmyClassFuncInOtherModule (test/CallTrace/OtherModule.hs:24:3-24:26)
+-> $fMyClassInOtherModuleInteger_$cmyClassFuncInOtherModule (test/CallTrace/OtherModule.hs:25:3-25:26)

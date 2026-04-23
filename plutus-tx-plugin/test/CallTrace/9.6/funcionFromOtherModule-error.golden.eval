@@ -4,4 +4,4 @@ Caused by: error
 
 Trace:
 -> functionFromOtherModule (test/CallTrace/Spec.hs:101:1-101:23)
--> errorWhenTrue (test/CallTrace/OtherModule.hs:10:1-10:13)
+-> errorWhenTrue (test/CallTrace/OtherModule.hs:15:1-15:13)
