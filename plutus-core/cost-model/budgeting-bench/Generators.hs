@@ -12,13 +12,14 @@ import Control.Monad
 import Data.Bits
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
-import Data.List as List (foldl')
+import Data.List as List (foldl', unfoldr)
 import Data.Text (Text)
 import Data.Word (Word64)
 
 import Hedgehog qualified as H
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
+import Hedgehog.Internal.Seed qualified as Seed
 import Hedgehog.Internal.Tree qualified as T
 import System.IO.Unsafe (unsafePerformIO)
 import System.Random (StdGen, randomR)
@@ -77,9 +78,10 @@ makeSizedIntegers g (n : ns) =
 makeSizedByteString :: H.Seed -> Int -> ByteString
 makeSizedByteString seed n = genSample seed (G.bytes (R.singleton (8 * n)))
 
--- FIXME: this is terrible
 makeSizedByteStrings :: H.Seed -> [Int] -> [ByteString]
-makeSizedByteStrings seed l = map (makeSizedByteString seed) l
+makeSizedByteStrings seed sizes = zipWith makeSizedByteString seeds sizes
+  where
+    seeds = unfoldr (Just . Seed.split) seed
 
 -- TODO: don't use Hedgehog's 'sample' below: it silently resizes the generator
 -- to size 30, so listOfByteStringsOfLength and listOfByteStrings are biased
