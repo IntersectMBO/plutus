@@ -31,23 +31,23 @@ d_UncertifiedOptTag_4 = ()
 type T_UncertifiedOptTag_4 = UncertifiedOptStage
 pattern C_caseOfCaseT_6 = CaseOfCase
 pattern C_letFloatOutT_8 = LetFloatOut
-pattern C_caseReduceT_10 = CSE
-pattern C_cseT_12 = CaseReduce
+pattern C_caseReduceT_10 = CaseReduce
+pattern C_cseT_12 = CSE
 check_caseOfCaseT_6 :: T_UncertifiedOptTag_4
 check_caseOfCaseT_6 = CaseOfCase
 check_letFloatOutT_8 :: T_UncertifiedOptTag_4
 check_letFloatOutT_8 = LetFloatOut
 check_caseReduceT_10 :: T_UncertifiedOptTag_4
-check_caseReduceT_10 = CSE
+check_caseReduceT_10 = CaseReduce
 check_cseT_12 :: T_UncertifiedOptTag_4
-check_cseT_12 = CaseReduce
+check_cseT_12 = CSE
 cover_UncertifiedOptTag_4 :: UncertifiedOptStage -> ()
 cover_UncertifiedOptTag_4 x
   = case x of
       CaseOfCase -> ()
       LetFloatOut -> ()
-      CSE -> ()
       CaseReduce -> ()
+      CSE -> ()
 -- VerifiedCompilation.Trace.CertifiedOptTag
 d_CertifiedOptTag_14 = ()
 type T_CertifiedOptTag_14 = CertifiedOptStage

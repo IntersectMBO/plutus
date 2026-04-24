@@ -15,7 +15,10 @@ certified.
 
 This means that these passes are formalized as part of the certifier,
 and adding a new pass constructor to this type means that it is expected
-the pass will be also certified in the same PR. -}
+the pass will be also certified in the same PR.
+
+IMPORTANT: the order of the constructors MUST be the same as the order
+of their counterparts in 'VerifiedCompilation.Trace'. -}
 data CertifiedOptStage
   = FloatDelay
   | ForceDelay
@@ -27,6 +30,9 @@ data CertifiedOptStage
 
 {-| Datatype which represents optimization passes which are not yet
 certified.
+
+IMPORTANT: the order of the constructors MUST be the same as the order
+of their counterparts in 'VerifiedCompilation.Trace'.
 
 IMPORTANT: if you add a new pass, or modify an existing pass, without
 also modifying the certifier in the same PR, you must add/move its
