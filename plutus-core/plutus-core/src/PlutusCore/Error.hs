@@ -52,6 +52,12 @@ data ParserError
   = BuiltinTypeNotAStar !T.Text !SourcePos
   | UnknownBuiltinFunction !T.Text !SourcePos ![T.Text]
   | InvalidBuiltinConstant !T.Text !T.Text !SourcePos
+  | {-| An unquoted identifier that violates the grammar: a '-' appeared
+    anywhere other than as the separator of a terminal numeric unique-suffix
+    (e.g. @pubKeyHash-305478r71@, @foo-bar@, @foo-123-456@). The 'Text'
+    carries the full offending text as it appeared in the source, so the
+    user sees their own name back in the diagnostic. -}
+    InvalidIdentifier !T.Text !SourcePos
   deriving stock (Eq, Ord, Generic)
   deriving anyclass (NFData)
 
@@ -192,6 +198,18 @@ instance Pretty ParserError where
       <+> squotes (pretty s)
       <+> "at"
       <+> pretty loc
+  pretty (InvalidIdentifier txt loc) =
+    "Invalid identifier"
+      <+> squotes (pretty txt)
+      <+> "at"
+      <+> pretty loc
+      <> "."
+      <> hardline
+      <> "A '-' inside a name is the numeric unique-suffix separator and must be"
+      <+> "followed only by digits and a word boundary."
+      <> hardline
+      <> "To use this text as a name verbatim, quote it with backticks:"
+      <+> pretty ("`" <> txt <> "`")
 
 instance ShowErrorComponent ParserError where
   showErrorComponent = show . pretty

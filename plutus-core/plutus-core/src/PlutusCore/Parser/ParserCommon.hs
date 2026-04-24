@@ -13,6 +13,7 @@ import Control.Monad.Except
 import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 import Control.Monad.State (StateT, evalStateT)
 import Data.Map qualified as M
+import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Text.Megaparsec hiding (ParseError, State, parse, some)
@@ -217,9 +218,33 @@ name = try $ parseUnquoted <|> parseQuoted
   where
     parseUnquoted :: Parser Name
     parseUnquoted = do
+      startOffset <- getOffset
+      startPos <- getSourcePos'
       _ <- lookAhead (satisfy isIdentifierStartingChar)
+      inputBefore <- getInput
       str <- takeWhileP (Just "identifier-unquoted") isIdentifierChar
-      Name str <$> uniqueSuffix str
+      u <- uniqueSuffix str
+      {- The parsed prefix is only a valid identifier if the next character is
+      a real word-boundary. If instead we see more identifier chars or another
+      '-', the user wrote something like `foo-bar` or `pubKeyHash-305478r71` —
+      the '-NNN' run we just treated as a unique-suffix was actually part of
+      their intended name (or they have a stray '-' at all). Fail with a
+      custom diagnostic that points at the whole offending identifier. -}
+      mBad <- optional (lookAhead (satisfy isNameExtensionChar))
+      case mBad of
+        Nothing -> pure (Name str u)
+        Just _ -> do
+          -- Consume the remainder so the reported text covers the full name.
+          _ <- takeWhileP Nothing isNameExtensionChar
+          inputAfter <- getInput
+          let consumed = Text.length inputBefore - Text.length inputAfter
+              fullText = Text.take consumed inputBefore
+          parseError $
+            FancyError startOffset $
+              Set.singleton (ErrorCustom (InvalidIdentifier fullText startPos))
+
+    isNameExtensionChar :: Char -> Bool
+    isNameExtensionChar c = isIdentifierChar c || c == '-'
 
     parseQuoted :: Parser Name
     parseQuoted = do
