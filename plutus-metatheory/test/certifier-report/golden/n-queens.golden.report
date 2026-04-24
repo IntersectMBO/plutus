@@ -757,13 +757,13 @@ Pass 84: Inlining  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 85: Common Subexpression Elimination  ✅
+Pass 85: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1764 (before)
   Program Size: 1773 (after)
   Execution Cost: CPU = 117353973782, MEM = 683405255 (before)
   Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
-  Optimization sites: 4
+
 
 ──────────────────────────────────────────────────────
 Pass 86: Float Delay  ✅
@@ -829,13 +829,13 @@ Pass 92: Inlining  ✅
   Optimization sites: 5
 
 ──────────────────────────────────────────────────────
-Pass 93: Common Subexpression Elimination  ✅
+Pass 93: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1774 (before)
   Program Size: 1774 (after)
   Execution Cost: CPU = 117353829782, MEM = 683404355 (before)
   Execution Cost: CPU = 117353829782, MEM = 683404355 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 94: Float Delay  ✅
@@ -901,13 +901,13 @@ Pass 100: Inlining  ✅
   Optimization sites: 2
 
 ──────────────────────────────────────────────────────
-Pass 101: Common Subexpression Elimination  ✅
+Pass 101: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1756 (before)
   Program Size: 1756 (after)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 102: Float Delay  ✅
@@ -973,13 +973,13 @@ Pass 108: Inlining  ✅
   Optimization sites: 0
 
 ──────────────────────────────────────────────────────
-Pass 109: Common Subexpression Elimination  ✅
+Pass 109: Common Subexpression Elimination  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1756 (before)
   Program Size: 1756 (after)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (after)
-  Optimization sites: 0
+
 
 ──────────────────────────────────────────────────────
 Pass 110: Float Delay  ✅

@@ -3,25 +3,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 -- To ensure the traces don't get optimized away in the tests
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:conservative-optimisation #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:conservative-optimisation #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 
 module Plugin.Strict.Spec (strict) where
 
 import Test.Tasty.Extras
 
+import Plinth.Plugin
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
-import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
-
-import Data.Proxy
 
 strict :: TestNested
 strict =
@@ -45,19 +43,19 @@ strict =
       ]
 
 strictAdd :: CompiledCode (Integer -> Integer -> Integer)
-strictAdd = plc (Proxy @"strictLet") strictAddExample
+strictAdd = plinthc strictAddExample
 
 strictAddExample :: Integer -> Integer -> Integer
 strictAddExample !x !y = Builtins.addInteger x y
 
 strictAppend :: CompiledCode (P.BuiltinByteString -> P.BuiltinByteString -> P.BuiltinByteString)
-strictAppend = plc (Proxy @"strictLet") strictAppendExample
+strictAppend = plinthc strictAppendExample
 
 strictAppendExample :: P.BuiltinByteString -> P.BuiltinByteString -> P.BuiltinByteString
 strictAppendExample !x !y = Builtins.appendByteString x y
 
 strictAppend2 :: CompiledCode (Wrapper -> Wrapper -> Wrapper)
-strictAppend2 = plc (Proxy @"strictLet") strictAppend2Example
+strictAppend2 = plinthc strictAppend2Example
 
 strictAppend2Example :: Wrapper -> Wrapper -> Wrapper
 strictAppend2Example !(Wrapper x) !(Wrapper y) = Wrapper (Builtins.appendByteString x y)
@@ -66,37 +64,37 @@ strictAppend2Example !(Wrapper x) !(Wrapper y) = Wrapper (Builtins.appendByteStr
 newtype Wrapper = Wrapper P.BuiltinByteString
 
 strictAppendString :: CompiledCode (P.BuiltinString -> P.BuiltinString -> P.BuiltinString)
-strictAppendString = plc (Proxy @"strictAppendString") strictAppendStringExample
+strictAppendString = plinthc strictAppendStringExample
 
 strictAppendStringExample :: P.BuiltinString -> P.BuiltinString -> P.BuiltinString
 strictAppendStringExample !x !y = Builtins.appendString x y
 
 strictITE :: CompiledCode (Bool -> Integer -> Integer -> Integer)
-strictITE = plc (Proxy @"strictITE") strictITEExample
+strictITE = plinthc strictITEExample
 
 strictITEExample :: Bool -> Integer -> Integer -> Integer
 strictITEExample !x !y !z = BI.ifThenElse x y z
 
 strictPair :: CompiledCode (BI.BuiltinPair Integer Integer -> Integer)
-strictPair = plc (Proxy @"strictPair") strictPairExample
+strictPair = plinthc strictPairExample
 
 strictPairExample :: BI.BuiltinPair Integer Integer -> Integer
 strictPairExample !p = BI.fst p
 
 strictList :: CompiledCode (BI.BuiltinList Integer -> Integer)
-strictList = plc (Proxy @"strictList") strictListExample
+strictList = plinthc strictListExample
 
 strictListExample :: BI.BuiltinList Integer -> Integer
 strictListExample !p = BI.head p
 
 strictData :: CompiledCode (BI.BuiltinData -> Integer)
-strictData = plc (Proxy @"strictData") strictDataExample
+strictData = plinthc strictDataExample
 
 strictDataExample :: BI.BuiltinData -> Integer
 strictDataExample !d = BI.unsafeDataAsI d
 
 issue4645 :: CompiledCode Bool
-issue4645 = plc (Proxy @"issue4645") issue4645Example
+issue4645 = plinthc issue4645Example
 
 -- Reproducer for plutus#4645
 issue4645Example :: Bool

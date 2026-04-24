@@ -6,28 +6,27 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
 
 {-# HLINT ignore "Eta reduce" #-}
 {-# HLINT ignore "Redundant if" #-}
 
 module Plugin.Basic.Spec where
 
+import Plinth.Plugin (plinthc)
 import PlutusCore.Test (goldenUEval)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.HasOpaque qualified as P
 import PlutusTx.Code (CompiledCode)
-import PlutusTx.Plugin (plc)
 import PlutusTx.Prelude qualified as P
 import PlutusTx.Test (goldenPirReadable, goldenUPlc)
 
-import Data.Proxy (Proxy (..))
 import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 
 basic :: TestNested
@@ -58,10 +57,10 @@ basic =
       ]
 
 emptyBoolArray :: CompiledCode (P.BuiltinList (P.BuiltinList Bool))
-emptyBoolArray = plc (Proxy @"emptyBoolArray") (P.mkNil @(P.BuiltinList Bool))
+emptyBoolArray = plinthc (P.mkNil @(P.BuiltinList Bool))
 
 emptyByteStringArray :: CompiledCode (P.BuiltinList P.BuiltinByteString)
-emptyByteStringArray = plc (Proxy @"emptyByteStringArray") (P.mkNil @P.BuiltinByteString)
+emptyByteStringArray = plinthc (P.mkNil @P.BuiltinByteString)
 
 emptyComplexArray
   :: CompiledCode
@@ -70,22 +69,22 @@ emptyComplexArray
                (P.BuiltinPair P.BuiltinByteString (P.BuiltinPair (P.BuiltinList Integer) Bool))
            )
        )
-emptyComplexArray = plc (Proxy @"emptyComplexArray") P.mkNil
+emptyComplexArray = plinthc P.mkNil
 
 monoId :: CompiledCode (Integer -> Integer)
-monoId = plc (Proxy @"monoId") \(x :: Integer) -> x
+monoId = plinthc \(x :: Integer) -> x
 
 monoK :: CompiledCode (Integer -> Integer -> Integer)
-monoK = plc (Proxy @"monoK") \(i :: Integer) (_ :: Integer) -> i
+monoK = plinthc \(i :: Integer) (_ :: Integer) -> i
 
 -- GHC actually turns this into a lambda for us, try and make one that stays a let
 letFun :: CompiledCode (Integer -> Integer -> Bool)
-letFun = plc (Proxy @"letFun") do
+letFun = plinthc do
   \(x :: Integer) (y :: Integer) ->
     let f z = Builtins.equalsInteger x z in f y
 
 nonstrictLet :: CompiledCode (Integer -> Integer -> Integer)
-nonstrictLet = plc (Proxy @"strictLet") do
+nonstrictLet = plinthc do
   \(x :: Integer) (y :: Integer) ->
     let z = Builtins.addInteger x y
      in Builtins.addInteger z z
@@ -93,13 +92,13 @@ nonstrictLet = plc (Proxy @"strictLet") do
 -- GHC turns strict let-bindings into case expressions,
 -- which we correctly turn into strict let-bindings
 strictLet :: CompiledCode (Integer -> Integer -> Integer)
-strictLet = plc (Proxy @"strictLet") do
+strictLet = plinthc do
   \(x :: Integer) (y :: Integer) ->
     let !z = Builtins.addInteger x y
      in Builtins.addInteger z z
 
 strictMultiLet :: CompiledCode (Integer -> Integer -> Integer)
-strictMultiLet = plc (Proxy @"strictLet") do
+strictMultiLet = plinthc do
   \(x :: Integer) (y :: Integer) ->
     let !z = Builtins.addInteger x y
         !q = Builtins.addInteger z z
@@ -110,14 +109,14 @@ strictMultiLet = plc (Proxy @"strictLet") do
 -- So we get non-strict external bindings for z and q, and inside that we get strict bindings
 -- corresponding to the case expressions.
 strictLetRec :: CompiledCode (Integer -> Integer -> Integer)
-strictLetRec = plc (Proxy @"strictLetRec") do
+strictLetRec = plinthc do
   \(x :: Integer) (y :: Integer) ->
     let !z = Builtins.addInteger x q
         !q = Builtins.addInteger y z
      in Builtins.addInteger z z
 
 ifOpt :: CompiledCode Integer
-ifOpt = plc (Proxy @"ifOpt") do
+ifOpt = plinthc do
   if (1 `Builtins.divideInteger` 0) `Builtins.equalsInteger` 0 then 1 else 1
 
 -- TODO: It's pretty questionable that this works at all! It's actually using 'Monad' from 'base',
@@ -125,7 +124,7 @@ ifOpt = plc (Proxy @"ifOpt") do
 -- enough to work...
 -- Test what basic do-notation looks like (should just be a bunch of calls to '>>=')
 monadicDo :: CompiledCode (Maybe Integer -> Maybe Integer -> Maybe Integer)
-monadicDo = plc (Proxy @"monadicDo") do
+monadicDo = plinthc do
   \(x :: Maybe Integer) (y :: Maybe Integer) -> do
     x' <- x
     y' <- y
@@ -133,7 +132,7 @@ monadicDo = plc (Proxy @"monadicDo") do
 
 -- Irrefutable match in a do block
 patternMatchDo :: CompiledCode (Maybe (Integer, Integer) -> Maybe Integer -> Maybe Integer)
-patternMatchDo = plc (Proxy @"patternMatchDo") do
+patternMatchDo = plinthc do
   \(x :: Maybe (Integer, Integer)) (y :: Maybe Integer) -> do
     (x1, x2) <- x
     y' <- y
@@ -141,7 +140,7 @@ patternMatchDo = plc (Proxy @"patternMatchDo") do
 
 -- Should fail, since it'll call 'MonadFail.fail' with a String, which won't work
 patternMatchFailure :: CompiledCode (Maybe (Maybe Integer) -> Maybe Integer -> Maybe Integer)
-patternMatchFailure = plc (Proxy @"patternMatchFailure") do
+patternMatchFailure = plinthc do
   \(x :: Maybe (Maybe Integer)) (y :: Maybe Integer) -> do
     Just x' <- x
     y' <- y
@@ -151,7 +150,7 @@ data A = B | C | D
 
 -- We don't want to duplicate the RHS of the default case
 defaultCaseDuplication :: CompiledCode (A -> Integer)
-defaultCaseDuplication = plc (Proxy @"defaultCaseDuplication") do
+defaultCaseDuplication = plinthc do
   \(x :: A) ->
     case x of
       B -> 1
@@ -160,7 +159,7 @@ defaultCaseDuplication = plc (Proxy @"defaultCaseDuplication") do
 -- If we do duplicate the RHS of default cases, then here we will end up with
 -- 4 copies of the literal 3, showing how this can become exponential
 defaultCaseDuplicationNested :: CompiledCode (A -> A -> Integer)
-defaultCaseDuplicationNested = plc (Proxy @"defaultCaseDuplicationNested") do
+defaultCaseDuplicationNested = plinthc do
   \(x :: A) (y :: A) ->
     case x of
       B -> 1
@@ -170,7 +169,7 @@ defaultCaseDuplicationNested = plc (Proxy @"defaultCaseDuplicationNested") do
           _ -> 3
 
 integerCase :: CompiledCode Integer
-integerCase = plc (Proxy @"integerCase") ((\case 1 -> 42; 2 -> 100; _ -> -1) (2 :: Integer))
+integerCase = plinthc ((\case 1 -> 42; 2 -> 100; _ -> -1) (2 :: Integer))
 
 integerMatchFunction :: Integer -> Integer
 integerMatchFunction 1 = 12
@@ -182,7 +181,7 @@ integerMatchFunction _ = 42
 {-# NOINLINE integerMatchFunction #-}
 
 integerPatternMatch :: CompiledCode Integer
-integerPatternMatch = plc (Proxy @"integerPatternMatch") (integerMatchFunction 2)
+integerPatternMatch = plinthc (integerMatchFunction 2)
 
 {- Note [NOINLINE in some tests]
 

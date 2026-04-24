@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module V2.Spec (allTests) where
 
@@ -12,8 +12,8 @@ import Test.Tasty.HUnit (testCase)
 import PlutusBenchmark.V2.Data.ScriptContexts qualified as Data.SC
 import PlutusBenchmark.V2.ScriptContexts qualified as SOP.SC
 
+import Plinth.Plugin ()
 import PlutusTx qualified
-import PlutusTx.Plugin ()
 import PlutusTx.Test qualified as Tx
 import PlutusTx.Test.Run.Code (assertEvaluatesSuccessfully, assertEvaluatesWithError)
 

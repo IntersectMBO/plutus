@@ -47,7 +47,6 @@ import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
 import VerifiedCompilation.UForceCaseDelay as UFCD
-import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
 open import VerifiedCompilation.NotImplemented
@@ -77,7 +76,6 @@ tagToRelation floatDelayT = UFlD.FloatDelay
 tagToRelation forceDelayT = UFD.ForceDelay
 tagToRelation forceCaseDelayT = UFCD.ForceCaseDelay
 tagToRelation inlineT = UInline.Inline (λ()) UInline.□
-tagToRelation cseT = UCSE.UntypedCSE
 tagToRelation applyToCaseT = UA2C.UApplyToCase
 tagToRelation caseReduceT = UCR.CaseReduce
 ```
@@ -103,7 +101,6 @@ certifyPass (inj₂ forceDelayT) _ = decider UFD.isForceDelay?
 certifyPass (inj₂ forceCaseDelayT) _ = decider UFCD.isForceCaseDelay?
 certifyPass (inj₂ inlineT) (inline hs) = checker (UInline.top-check hs)
 certifyPass (inj₂ inlineT) none = λ M M' → abort InlineT M M'
-certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
 certifyPass (inj₂ applyToCaseT) _ = decider UA2C.a2c?ᶜᶜ
 certifyPass (inj₂ caseReduceT) _ = decider UCR.decide
 ```

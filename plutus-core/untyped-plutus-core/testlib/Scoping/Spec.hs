@@ -114,6 +114,7 @@ test_names =
         ( evalOptimizerT
             . inline
               0
+              0
               True
               (_ooPreserveLogging defaultOptimizeOpts)
               (_ooInlineHints defaultOptimizeOpts)

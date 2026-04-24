@@ -3,13 +3,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
 
 module Plugin.Laziness.Spec where
 
@@ -17,13 +17,11 @@ import Test.Tasty.Extras
 
 import Plugin.Lib
 
+import Plinth.Plugin
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
-import PlutusTx.Plugin
 import PlutusTx.Test
-
-import Data.Proxy
 
 laziness :: TestNested
 laziness =
@@ -32,12 +30,12 @@ laziness =
       [ goldenPirReadable "joinError" joinErrorPir
       , goldenUEval
           "joinErrorEval"
-          [toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
+          [toUPlc joinErrorPir, toUPlc $ plinthc True, toUPlc $ plinthc False]
       , goldenPirReadable "lazyDepUnit" lazyDepUnit
       ]
 
 joinErrorPir :: CompiledCode (Bool -> Bool -> ())
-joinErrorPir = plc (Proxy @"joinError") joinError
+joinErrorPir = plinthc joinError
 
 monoId :: Builtins.BuiltinByteString -> Builtins.BuiltinByteString
 monoId x = x
@@ -49,4 +47,4 @@ aByteString = monoId Builtins.emptyByteString
 {-# OPAQUE aByteString #-}
 
 lazyDepUnit :: CompiledCode Builtins.BuiltinByteString
-lazyDepUnit = plc (Proxy @"lazyDepUnit") aByteString
+lazyDepUnit = plinthc aByteString

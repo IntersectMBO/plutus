@@ -53,15 +53,15 @@ An alternative way to compile `myPlutusTxCode` is by using the `-fplugin` GHC fl
 Use this flag with the `plc` function:
 
 ```haskell
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 module B where
 
 import Data.Proxy
 import PlutusTx.Code (CompiledCode)
-import PlutusTx.Plugin (plc)
+import Plinth.Plugin (plinthc)
 
 myPlutusTxCodeCompiled :: CompiledCode (Integer -> Integer)
-myPlutusTxCodeCompiled = plc (Proxy @"location info") myPlutusTxCode
+myPlutusTxCodeCompiled = plinthc myPlutusTxCode
 ```
 
 Here you can manually provide the location info to be included in error messages, but it's not essential, especially if `plc` is only called once in the module, since there won't be any confusion about which `plc` is causing the issue if the module fails to compile.

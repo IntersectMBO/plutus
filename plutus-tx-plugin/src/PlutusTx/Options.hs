@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -74,6 +73,7 @@ data PluginOptions = PluginOptions
   , _posCoverageBoolean :: Bool
   , _posRelaxedFloatin :: Bool
   , _posCaseOfCaseConservative :: Bool
+  , _posInlineUnconditionalGrowth :: Int
   , _posInlineCallsiteGrowth :: Int
   , _posInlineConstants :: Bool
   , _posInlineFix :: Bool
@@ -86,6 +86,7 @@ data PluginOptions = PluginOptions
   , _posDumpCompilationTrace :: Bool
   , _posCertify :: Maybe String
   , _posCertifiedOptsOnly :: Bool
+  , _posPreserveSourceLocations :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -216,9 +217,15 @@ pluginOptions =
     , let k = "dump-uplc"
           desc = "Dump Untyped Plutus Core"
        in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+    , let k = "inline-unconditional-growth"
+          desc =
+            "Sets the inlining threshold for unconditional inlining. `n` allows unconditional "
+              <> "inlining if the AST size grows by at most `n` at each variable occurrence "
+              <> "(i.e., the size of the binding's RHS is at most `n+1`)."
+       in (k, PluginOption typeRep (readOption k) posInlineUnconditionalGrowth desc [])
     , let k = "inline-callsite-growth"
           desc =
-            "Sets the inlining threshold for callsites. 0 disables inlining a binding at a "
+            "Sets the inlining threshold for callsite inlining. 0 disables inlining a binding at a "
               <> "callsite if it increases the AST size; `n` allows inlining if the AST size grows by "
               <> "no more than `n`. Keep in mind that doing so does not mean the final program "
               <> "will be bigger, since inlining can often unlock further optimizations."
@@ -345,6 +352,11 @@ pluginOptions =
             "Run only those optimisation passes which are certified to preserve the functional "
               <> "behavior of the original program."
        in (k, PluginOption typeRep (setTrue k) posCertifiedOptsOnly desc [])
+    , let k = "preserve-source-locations"
+          desc =
+            "Try to preserve source locations for use in error messages. "
+              <> "This is an experimental feature."
+       in (k, PluginOption typeRep (setTrue k) posPreserveSourceLocations desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -413,6 +425,7 @@ defaultPluginOptions =
     , _posCoverageBoolean = False
     , _posRelaxedFloatin = True
     , _posCaseOfCaseConservative = False
+    , _posInlineUnconditionalGrowth = 1
     , _posInlineCallsiteGrowth = 5
     , _posInlineConstants = True
     , _posInlineFix = True
@@ -421,6 +434,7 @@ defaultPluginOptions =
     , _posDumpCompilationTrace = False
     , _posCertify = Nothing
     , _posCertifiedOptsOnly = False
+    , _posPreserveSourceLocations = False
     }
 
 processOne
@@ -463,6 +477,6 @@ toKeyValue opt = case List.elemIndex '=' opt of
      in (Text.pack lhs, Just (Text.pack (drop 1 rhs)))
 
 {-| Parses the arguments that were given to ghc at commandline as
- "-fplugin-opt PlutusTx.Plugin:opt" or "-fplugin-opt PlutusTx.Plugin:opt=val" -}
+ "-fplugin-opt Plinth.Plugin:opt" or "-fplugin-opt Plinth.Plugin:opt=val" -}
 parsePluginOptions :: [GHC.CommandLineOption] -> Validation ParseErrors PluginOptions
 parsePluginOptions = fmap (foldl' (flip ($)) defaultPluginOptions) . processAll . fmap toKeyValue
