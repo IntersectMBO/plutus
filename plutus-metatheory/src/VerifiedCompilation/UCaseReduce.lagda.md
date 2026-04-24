@@ -402,7 +402,7 @@ The decision procedure is currently not used, since it accepts unwanted compiler
 behaviour, such as case-reducing in the opposite direction.
 
 Completeness requires for each reduction rule in `_~_` a lemma that it is
-admissible in `Computaitonal`. Here is one proof for the `case-constr` rule.
+admissible in `Computational`. Here is one proof for the `case-constr` rule.
 
 ```
 module Decide
