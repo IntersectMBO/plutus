@@ -1,8 +1,8 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 {-|
 Budget comparison between the builtin Value ops ('unsafeDataAsValue',
@@ -270,6 +270,24 @@ tests =
           "union_S100_handrolled"
           unionAdaHandrolled
           (unionAdaHandrolled `unsafeApplyCode` valueS100 `unsafeApplyCode` valueS100)
+      , -- Standalone `unsafeDataAsValue` per shape. Isolates the conversion
+        -- tax from downstream ops.
+        goldenBundle
+          "unValueData_S1"
+          unValueDataOnly
+          (unValueDataOnly `unsafeApplyCode` valueS1)
+      , goldenBundle
+          "unValueData_S3"
+          unValueDataOnly
+          (unValueDataOnly `unsafeApplyCode` valueS3)
+      , goldenBundle
+          "unValueData_S8"
+          unValueDataOnly
+          (unValueDataOnly `unsafeApplyCode` valueS8)
+      , goldenBundle
+          "unValueData_S100"
+          unValueDataOnly
+          (unValueDataOnly `unsafeApplyCode` valueS100)
       ]
 
 -- --------------------------------------------------------------------------
@@ -606,14 +624,10 @@ lookupKeyInMap
   -> Maybe B.BuiltinData
 lookupKeyInMap k = go
   where
-    go =
-      B.caseList'
-        Nothing
-        ( \hd ->
-            if B.equalsData k (BI.fst hd)
-              then \_ -> Just (BI.snd hd)
-              else go
-        )
+    go = B.caseList' Nothing \hd ->
+      if B.equalsData k (BI.fst hd)
+        then \_ -> Just (BI.snd hd)
+        else go
 {-# INLINEABLE lookupKeyInMap #-}
 
 -- | Return 'True' if a key appears in a Data-encoded map.
@@ -623,14 +637,10 @@ containsKeyInMap
   -> Bool
 containsKeyInMap k = go
   where
-    go =
-      B.caseList'
-        False
-        ( \hd ->
-            if B.equalsData k (BI.fst hd)
-              then \_ -> True
-              else go
-        )
+    go = B.caseList' False \hd ->
+      if B.equalsData k (BI.fst hd)
+        then \_ -> True
+        else go
 {-# INLINEABLE containsKeyInMap #-}
 
 -- | Append two BuiltinLists.
@@ -656,24 +666,15 @@ This replicates what `valueOf` does semantically but without going through
 handRolledLookup :: B.BuiltinData -> BuiltinByteString -> BuiltinByteString -> Integer
 handRolledLookup bd cs tn = goOuter (BI.unsafeDataAsMap bd)
   where
-    goOuter list =
-      B.caseList'
-        0
-        ( \hd ->
-            if B.equalsByteString cs (BI.unsafeDataAsB (BI.fst hd))
-              then \_ -> goInner (BI.unsafeDataAsMap (BI.snd hd))
-              else goOuter
-        )
-        list
-    goInner list =
-      B.caseList'
-        0
-        ( \hd ->
-            if B.equalsByteString tn (BI.unsafeDataAsB (BI.fst hd))
-              then \_ -> BI.unsafeDataAsI (BI.snd hd)
-              else goInner
-        )
-        list
+    goOuter = B.caseList' 0 \hd ->
+      if B.equalsByteString cs (BI.unsafeDataAsB (BI.fst hd))
+        then \_ -> goInner (BI.unsafeDataAsMap (BI.snd hd))
+        else goOuter
+
+    goInner = B.caseList' 0 \hd ->
+      if B.equalsByteString tn (BI.unsafeDataAsB (BI.fst hd))
+        then \_ -> BI.unsafeDataAsI (BI.snd hd)
+        else goInner
 {-# INLINEABLE handRolledLookup #-}
 
 {-| Union two 'BuiltinData'-encoded 'Value's. Produces a new 'BuiltinData'.
@@ -687,49 +688,39 @@ handRolledUnion bd1 bd2 =
   where
     mergeOuters l1 l2 = goOuter l1
       where
-        goOuter list =
-          B.caseList'
-            (BI.mkNilPairData BI.unitval)
-            ( \hd ->
-                let csData = BI.fst hd
-                    inner1 = BI.snd hd
-                    mergedValue = case lookupKeyInMap csData l2 of
-                      Just inner2Data ->
-                        let i1 = BI.unsafeDataAsMap inner1
-                            i2 = BI.unsafeDataAsMap inner2Data
-                         in BI.mkMap (appendBuiltinList (mergeInners i1 i2) (filterMissingOuter i2 i1))
-                      Nothing -> inner1
-                 in \tl -> BI.mkCons (BI.mkPairData csData mergedValue) (goOuter tl)
-            )
-            list
+        goOuter =
+          B.caseList' (BI.mkNilPairData BI.unitval) \hd ->
+            let csData = BI.fst hd
+                inner1 = BI.snd hd
+                mergedValue = case lookupKeyInMap csData l2 of
+                  Just inner2Data ->
+                    let i1 = BI.unsafeDataAsMap inner1
+                        i2 = BI.unsafeDataAsMap inner2Data
+                     in BI.mkMap (appendBuiltinList (mergeInners i1 i2) (filterMissingOuter i2 i1))
+                  Nothing -> inner1
+             in \tl -> BI.mkCons (BI.mkPairData csData mergedValue) (goOuter tl)
 
     mergeInners l1 l2 = goInner l1
       where
-        goInner list =
-          B.caseList'
-            (BI.mkNilPairData BI.unitval)
-            ( \hd ->
-                let tnData = BI.fst hd
-                    amt1 = BI.unsafeDataAsI (BI.snd hd)
-                    combined = case lookupKeyInMap tnData l2 of
-                      Just amt2Data -> amt1 + BI.unsafeDataAsI amt2Data
-                      Nothing -> amt1
-                 in \tl -> BI.mkCons (BI.mkPairData tnData (BI.mkI combined)) (goInner tl)
-            )
-            list
+        goInner =
+          B.caseList' (BI.mkNilPairData BI.unitval) \hd ->
+            let tnData = BI.fst hd
+                amt1 = BI.unsafeDataAsI (BI.snd hd)
+                combined = case lookupKeyInMap tnData l2 of
+                  Just amt2Data -> amt1 + BI.unsafeDataAsI amt2Data
+                  Nothing -> amt1
+             in \tl ->
+                  BI.mkCons
+                    (BI.mkPairData tnData (BI.mkI combined))
+                    (goInner tl)
 
     -- Keep entries from l2 whose key is NOT in l1.
     filterMissingOuter l2 l1 = go l2
       where
-        go list =
-          B.caseList'
-            (BI.mkNilPairData BI.unitval)
-            ( \hd ->
-                if containsKeyInMap (BI.fst hd) l1
-                  then \tl -> go tl
-                  else \tl -> BI.mkCons hd (go tl)
-            )
-            list
+        go = B.caseList' (BI.mkNilPairData BI.unitval) \hd ->
+          if containsKeyInMap (BI.fst hd) l1
+            then \tl -> go tl
+            else \tl -> BI.mkCons hd (go tl)
 {-# INLINEABLE handRolledUnion #-}
 
 -- --------------------------------------------------------------------------
@@ -815,3 +806,14 @@ unionAdaHandrolled =
           handRolledLookup (handRolledUnion bd1 bd2) "" ""
         ||]
     )
+
+-- --------------------------------------------------------------------------
+-- Standalone `unsafeDataAsValue` measurement.
+--
+-- Isolates the conversion cost from any downstream operation, so the
+-- per-shape `unValueData` overhead can be read directly.
+-- --------------------------------------------------------------------------
+
+unValueDataOnly :: CompiledCode (B.BuiltinData -> BI.BuiltinValue)
+unValueDataOnly =
+  $$(compile [||\bd -> B.unsafeDataAsValue bd||])

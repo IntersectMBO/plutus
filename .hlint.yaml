@@ -33,3 +33,5 @@
 - ignore: {name: Use guards, within: [PlutusTx.Ord.Class]}
 # parens around lambda params in TH quotations are required by the parser
 - ignore: {name: Redundant bracket, within: [PlutusTx.IsData.TH]}
+
+- ignore: {name: Use const, within: [Spec.Data.Value.Budget]}
