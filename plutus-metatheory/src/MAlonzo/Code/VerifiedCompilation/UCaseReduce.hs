@@ -1841,28 +1841,28 @@ du_reduce_504 ::
   Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_reduce_504 v0
   = coe
-      MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+      MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
       (coe (\ v1 -> coe du_red'45'constr_258))
       (coe
-         MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+         MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
          (coe (\ v1 -> coe du_red'45'unit_304))
          (coe
-            MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+            MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
             (coe (\ v1 -> coe du_red'45'false'8321'_324))
             (coe
-               MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+               MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                (coe (\ v1 -> coe du_red'45'bool_342))
                (coe
-                  MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                  MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                   (coe (\ v1 -> coe du_red'45'integer_364))
                   (coe
-                     MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                     MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                      (coe (\ v1 -> coe du_red'45'cons'8321'_404))
                      (coe
-                        MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                        MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                         (coe (\ v1 -> coe du_red'45'cons'8322'_430))
                         (coe
-                           MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                           MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                            (coe (\ v1 -> coe du_red'45'nil_456))
                            (coe (\ v1 -> coe du_red'45'pair_478)))))))))
       (coe v0)
@@ -1931,25 +1931,25 @@ d_decide_526 v0 v1 v2
                   coe
                     (let v4
                            = coe
-                               MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                               MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                (coe (\ v4 -> coe du_red'45'unit_304))
                                (coe
-                                  MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                  MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                   (coe (\ v4 -> coe du_red'45'false'8321'_324))
                                   (coe
-                                     MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                     MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                      (coe (\ v4 -> coe du_red'45'bool_342))
                                      (coe
-                                        MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                        MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                         (coe (\ v4 -> coe du_red'45'integer_364))
                                         (coe
-                                           MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                           MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                            (coe (\ v4 -> coe du_red'45'cons'8321'_404))
                                            (coe
-                                              MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                              MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                               (coe (\ v4 -> coe du_red'45'cons'8322'_430))
                                               (coe
-                                                 MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                                 MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                                  (coe (\ v4 -> coe du_red'45'nil_456))
                                                  (coe (\ v4 -> coe du_red'45'pair_478)))))))) in
                      coe
@@ -2726,25 +2726,25 @@ du_decide'45''126'_604 v0 v1 v2
                   coe
                     (let v4
                            = coe
-                               MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                               MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                (coe (\ v4 -> coe du_red'45'unit_304))
                                (coe
-                                  MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                  MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                   (coe (\ v4 -> coe du_red'45'false'8321'_324))
                                   (coe
-                                     MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                     MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                      (coe (\ v4 -> coe du_red'45'bool_342))
                                      (coe
-                                        MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                        MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                         (coe (\ v4 -> coe du_red'45'integer_364))
                                         (coe
-                                           MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                           MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                            (coe (\ v4 -> coe du_red'45'cons'8321'_404))
                                            (coe
-                                              MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                              MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                               (coe (\ v4 -> coe du_red'45'cons'8322'_430))
                                               (coe
-                                                 MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1190
+                                                 MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
                                                  (coe (\ v4 -> coe du_red'45'nil_456))
                                                  (coe (\ v4 -> coe du_red'45'pair_478)))))))) in
                      coe

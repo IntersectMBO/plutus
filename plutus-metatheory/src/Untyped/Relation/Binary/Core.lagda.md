@@ -7,9 +7,11 @@ layout: page
 module Untyped.Relation.Binary.Core where
 
 open import Data.List using (List; []; _∷_)
+open import Data.Product using (_,_)
 open import Data.Nat using (ℕ)
-open import Relation.Nullary using (Dec)
+open import Relation.Nullary using (Dec; yes; no; _×-dec_)
 open import Untyped
+open import VerifiedCompilation.UntypedViews
 ```
 
 ## Binary relations on untyped terms
@@ -29,7 +31,7 @@ terms, which have an implicit scope parameter. The polarity annotation helps for
 constructing relations using `Untyped.Relation.Binary.Modular`.
 
 ```
-data Pointwise {X} (@++ R : X ⊢ → X ⊢ → Set) : List (X ⊢) → List (X ⊢) → Set where
+data Pointwise {X} (@++ R : Relation) : List (X ⊢) → List (X ⊢) → Set where
   []  :
     Pointwise R [] []
 
@@ -45,4 +47,19 @@ data Pointwise {X} (@++ R : X ⊢ → X ⊢ → Set) : List (X ⊢) → List (X 
 ```
 DecidableRel : Relation → Set
 DecidableRel R = ∀ {X : ℕ} (M M' : X ⊢) → Dec (R M M')
+```
+
+
+```
+pointwise? : ∀ {R : Relation} →
+  DecidableRel R →
+  ∀ {X} (Ms Ns : List (X ⊢)) →
+  Dec (Pointwise R Ms Ns)
+pointwise? R? [] []         = yes []
+pointwise? R? (x ∷ xs) (y ∷ ys)
+  with R? x y ×-dec pointwise? R? xs ys
+... | yes (Rxy , Rxsys) = yes (Rxy ∷ Rxsys)
+... | no ¬R = no λ {(R ∷ Rs ) → ¬R (R , Rs)}
+pointwise? R? (_ ∷ _) []    = no λ ()
+pointwise? R? [] (_ ∷ _)    = no λ ()
 ```

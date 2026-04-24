@@ -1322,89 +1322,8 @@ du_compatDelay'63'_742 v0 v1 v2 v3
                           (coe v5)
                           (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
          _ -> MAlonzo.RTE.mazUnreachableError)
--- Untyped.Relation.Binary.Modular.pointwise?
-d_pointwise'63'_814 ::
-  (Integer ->
-   MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
-  (Integer ->
-   MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
-  Integer ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_pointwise'63'_814 ~v0 v1 v2 v3 v4
-  = du_pointwise'63'_814 v1 v2 v3 v4
-du_pointwise'63'_814 ::
-  (Integer ->
-   MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
-  Integer ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_pointwise'63'_814 v0 v1 v2 v3
-  = case coe v2 of
-      []
-        -> case coe v3 of
-             []
-               -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
-                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
-                    (coe
-                       MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
-                       (coe MAlonzo.Code.Untyped.Relation.Binary.Core.C_'91''93'_26))
-             (:) v4 v5
-               -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
-                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
-                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             _ -> MAlonzo.RTE.mazUnreachableError
-      (:) v4 v5
-        -> case coe v3 of
-             []
-               -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
-                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
-                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             (:) v6 v7
-               -> let v8
-                        = coe
-                            MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
-                            (coe v0 v1 v4 v6)
-                            (coe du_pointwise'63'_814 (coe v0) (coe v1) (coe v5) (coe v7)) in
-                  coe
-                    (case coe v8 of
-                       MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
-                         -> if coe v9
-                              then case coe v10 of
-                                     MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v11
-                                       -> case coe v11 of
-                                            MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v12 v13
-                                              -> coe
-                                                   MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
-                                                   (coe v9)
-                                                   (coe
-                                                      MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
-                                                      (coe
-                                                         MAlonzo.Code.Untyped.Relation.Binary.Core.C__'8759'__36
-                                                         v12 v13))
-                                            _ -> MAlonzo.RTE.mazUnreachableError
-                                     _ -> MAlonzo.RTE.mazUnreachableError
-                              else coe
-                                     seq (coe v10)
-                                     (coe
-                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
-                                        (coe v9)
-                                        (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
-                       _ -> MAlonzo.RTE.mazUnreachableError)
-             _ -> MAlonzo.RTE.mazUnreachableError
-      _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.Relation.Binary.Modular.compatConstr?
-d_compatConstr'63'_868 ::
+d_compatConstr'63'_806 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -1416,9 +1335,9 @@ d_compatConstr'63'_868 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_compatConstr'63'_868 ~v0 v1 v2 v3 v4
-  = du_compatConstr'63'_868 v1 v2 v3 v4
-du_compatConstr'63'_868 ::
+d_compatConstr'63'_806 ~v0 v1 v2 v3 v4
+  = du_compatConstr'63'_806 v1 v2 v3 v4
+du_compatConstr'63'_806 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1427,7 +1346,7 @@ du_compatConstr'63'_868 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_compatConstr'63'_868 v0 v1 v2 v3
+du_compatConstr'63'_806 v0 v1 v2 v3
   = let v4
           = \ v4 ->
               coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2158 in
@@ -1580,7 +1499,7 @@ du_compatConstr'63'_868 v0 v1 v2 v3
                                                                                                  v21)
                                                                                               (let v22
                                                                                                      = coe
-                                                                                                         du_pointwise'63'_814
+                                                                                                         MAlonzo.Code.Untyped.Relation.Binary.Core.du_pointwise'63'_56
                                                                                                          (coe
                                                                                                             v0)
                                                                                                          (coe
@@ -1646,7 +1565,7 @@ du_compatConstr'63'_868 v0 v1 v2 v3
                                                                                                                    v26)
                                                                                                                 (let v27
                                                                                                                        = coe
-                                                                                                                           du_pointwise'63'_814
+                                                                                                                           MAlonzo.Code.Untyped.Relation.Binary.Core.du_pointwise'63'_56
                                                                                                                            (coe
                                                                                                                               v0)
                                                                                                                            (coe
@@ -1816,7 +1735,7 @@ du_compatConstr'63'_868 v0 v1 v2 v3
                                                                                                                    v26)
                                                                                                                 (let v27
                                                                                                                        = coe
-                                                                                                                           du_pointwise'63'_814
+                                                                                                                           MAlonzo.Code.Untyped.Relation.Binary.Core.du_pointwise'63'_56
                                                                                                                            (coe
                                                                                                                               v0)
                                                                                                                            (coe
@@ -1885,7 +1804,7 @@ du_compatConstr'63'_868 v0 v1 v2 v3
                                                                                                                                      v31)
                                                                                                                                   (let v32
                                                                                                                                          = coe
-                                                                                                                                             du_pointwise'63'_814
+                                                                                                                                             MAlonzo.Code.Untyped.Relation.Binary.Core.du_pointwise'63'_56
                                                                                                                                              (coe
                                                                                                                                                 v0)
                                                                                                                                              (coe
@@ -1991,7 +1910,7 @@ du_compatConstr'63'_868 v0 v1 v2 v3
                       (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
             _ -> MAlonzo.RTE.mazUnreachableError))
 -- Untyped.Relation.Binary.Modular.compatCase?
-d_compatCase'63'_966 ::
+d_compatCase'63'_904 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -2003,9 +1922,9 @@ d_compatCase'63'_966 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_compatCase'63'_966 ~v0 v1 v2 v3 v4
-  = du_compatCase'63'_966 v1 v2 v3 v4
-du_compatCase'63'_966 ::
+d_compatCase'63'_904 ~v0 v1 v2 v3 v4
+  = du_compatCase'63'_904 v1 v2 v3 v4
+du_compatCase'63'_904 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -2014,7 +1933,7 @@ du_compatCase'63'_966 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_compatCase'63'_966 v0 v1 v2 v3
+du_compatCase'63'_904 v0 v1 v2 v3
   = let v4
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
@@ -2063,7 +1982,7 @@ du_compatCase'63'_966 v0 v1 v2 v3
                                                                                         v0 v1 v14
                                                                                         v20)
                                                                                      (coe
-                                                                                        du_pointwise'63'_814
+                                                                                        MAlonzo.Code.Untyped.Relation.Binary.Core.du_pointwise'63'_56
                                                                                         (coe v0)
                                                                                         (coe v1)
                                                                                         (coe v15)
@@ -2116,7 +2035,7 @@ du_compatCase'63'_966 v0 v1 v2 v3
                           (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Untyped.Relation.Binary.Modular.compatCon?
-d_compatCon'63'_1046 ::
+d_compatCon'63'_984 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -2128,13 +2047,12 @@ d_compatCon'63'_1046 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_compatCon'63'_1046 ~v0 ~v1 ~v2 v3 v4
-  = du_compatCon'63'_1046 v3 v4
-du_compatCon'63'_1046 ::
+d_compatCon'63'_984 ~v0 ~v1 ~v2 v3 v4 = du_compatCon'63'_984 v3 v4
+du_compatCon'63'_984 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_compatCon'63'_1046 v0 v1
+du_compatCon'63'_984 v0 v1
   = let v2
           = \ v2 ->
               coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2158 in
@@ -2510,7 +2428,7 @@ du_compatCon'63'_1046 v0 v1
                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Untyped.Relation.Binary.Modular.compatBuiltin?
-d_compatBuiltin'63'_1100 ::
+d_compatBuiltin'63'_1038 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -2522,13 +2440,13 @@ d_compatBuiltin'63'_1100 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_compatBuiltin'63'_1100 ~v0 ~v1 ~v2 v3 v4
-  = du_compatBuiltin'63'_1100 v3 v4
-du_compatBuiltin'63'_1100 ::
+d_compatBuiltin'63'_1038 ~v0 ~v1 ~v2 v3 v4
+  = du_compatBuiltin'63'_1038 v3 v4
+du_compatBuiltin'63'_1038 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_compatBuiltin'63'_1100 v0 v1
+du_compatBuiltin'63'_1038 v0 v1
   = let v2
           = \ v2 ->
               coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2158 in
@@ -2904,7 +2822,7 @@ du_compatBuiltin'63'_1100 v0 v1
                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Untyped.Relation.Binary.Modular.compatError?
-d_compatError'63'_1154 ::
+d_compatError'63'_1092 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -2916,13 +2834,13 @@ d_compatError'63'_1154 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_compatError'63'_1154 ~v0 ~v1 ~v2 v3 v4
-  = du_compatError'63'_1154 v3 v4
-du_compatError'63'_1154 ::
+d_compatError'63'_1092 ~v0 ~v1 ~v2 v3 v4
+  = du_compatError'63'_1092 v3 v4
+du_compatError'63'_1092 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_compatError'63'_1154 v0 v1
+du_compatError'63'_1092 v0 v1
   = let v2
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
@@ -2960,7 +2878,7 @@ du_compatError'63'_1154 v0 v1
                           (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Untyped.Relation.Binary.Modular.compatTerm?
-d_compatTerm'63'_1182 ::
+d_compatTerm'63'_1120 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -2972,8 +2890,8 @@ d_compatTerm'63'_1182 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_compatTerm'63'_1182 ~v0 = du_compatTerm'63'_1182
-du_compatTerm'63'_1182 ::
+d_compatTerm'63'_1120 ~v0 = du_compatTerm'63'_1120
+du_compatTerm'63'_1120 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -2982,7 +2900,7 @@ du_compatTerm'63'_1182 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_compatTerm'63'_1182
+du_compatTerm'63'_1120
   = coe
       du__'43''45'dec__360
       (\ v0 v1 v2 v3 v4 -> coe du_compatVar'63'_480 v3 v4)
@@ -3000,23 +2918,23 @@ du_compatTerm'63'_1182
                   (\ v0 v1 v2 v3 v4 -> coe du_compatDelay'63'_742 v1 v2 v3 v4)
                   (coe
                      du__'43''45'dec__360
-                     (\ v0 v1 v2 v3 v4 -> coe du_compatCon'63'_1046 v3 v4)
+                     (\ v0 v1 v2 v3 v4 -> coe du_compatCon'63'_984 v3 v4)
                      (coe
                         du__'43''45'dec__360
-                        (\ v0 v1 v2 v3 v4 -> coe du_compatConstr'63'_868 v1 v2 v3 v4)
+                        (\ v0 v1 v2 v3 v4 -> coe du_compatConstr'63'_806 v1 v2 v3 v4)
                         (coe
                            du__'43''45'dec__360
-                           (\ v0 v1 v2 v3 v4 -> coe du_compatCase'63'_966 v1 v2 v3 v4)
+                           (\ v0 v1 v2 v3 v4 -> coe du_compatCase'63'_904 v1 v2 v3 v4)
                            (coe
                               du__'43''45'dec__360
-                              (\ v0 v1 v2 v3 v4 -> coe du_compatBuiltin'63'_1100 v3 v4)
+                              (\ v0 v1 v2 v3 v4 -> coe du_compatBuiltin'63'_1038 v3 v4)
                               (coe
                                  du__'43''45'dec__360
-                                 (\ v0 v1 v2 v3 v4 -> coe du_compatError'63'_1154 v3 v4)
+                                 (\ v0 v1 v2 v3 v4 -> coe du_compatError'63'_1092 v3 v4)
                                  (\ v0 v1 v2 v3 v4 -> coe du_empty'63'_438))))))))))
       erased
 -- Untyped.Relation.Binary.Modular._<|>_
-d__'60''124''62'__1190 ::
+d__'60''124''62'__1128 ::
   ((Integer ->
     MAlonzo.Code.Untyped.T__'8866'_14 ->
     MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
@@ -3041,9 +2959,9 @@ d__'60''124''62'__1190 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d__'60''124''62'__1190 ~v0 ~v1 ~v2 v3 v4 v5 v6
-  = du__'60''124''62'__1190 v3 v4 v5 v6
-du__'60''124''62'__1190 ::
+d__'60''124''62'__1128 ~v0 ~v1 ~v2 v3 v4 v5 v6
+  = du__'60''124''62'__1128 v3 v4 v5 v6
+du__'60''124''62'__1128 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) ->
@@ -3053,7 +2971,7 @@ du__'60''124''62'__1190 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-du__'60''124''62'__1190 v0 v1 v2 v3
+du__'60''124''62'__1128 v0 v1 v2 v3
   = let v4 = coe v0 v2 v3 in
     coe
       (case coe v4 of

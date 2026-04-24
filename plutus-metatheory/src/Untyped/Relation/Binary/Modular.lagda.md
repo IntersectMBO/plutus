@@ -324,19 +324,6 @@ compatDelay? R? M M'
 ...   | no ¬NN' = no λ { (delayF NN) → ¬NN' NN}
 ...   | yes NN = yes (delayF NN)
 
-pointwise? : ∀ {R : Relation} →
-  DecidableRel R →
-  ∀ {X} (Ms Ns : List (X ⊢)) →
-  Dec (Pointwise R Ms Ns)
-pointwise? R? [] []         = yes []
-pointwise? R? (x ∷ xs) (y ∷ ys)
-  with R? x y ×-dec pointwise? R? xs ys
-... | yes (Rxy , Rxsys) = yes (Rxy ∷ Rxsys)
-... | no ¬R = no λ {(R ∷ Rs ) → ¬R (R , Rs)}
-pointwise? R? (_ ∷ _) []    = no λ ()
-pointwise? R? [] (_ ∷ _)    = no λ ()
-
-
 compatConstr? :
   DecidableT CompatConstr
 compatConstr? R? M M'
