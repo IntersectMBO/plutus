@@ -31,6 +31,7 @@ import PlutusTx.Prelude
 import PlutusLedgerApi.Test.V1.Data.Value (listsToValue)
 import PlutusLedgerApi.V1.Data.Value qualified as DValue
 import PlutusTx.Builtins qualified as B
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.IsData qualified as Tx
 import PlutusTx.Lift (liftCodeDef)
@@ -61,6 +62,14 @@ tests =
           "lookup_S1_miss_nonbuiltin"
           lookupMissNonBuiltin
           (lookupMissNonBuiltin `unsafeApplyCode` valueS1)
+      , goldenBundle
+          "lookup_S1_ada_handrolled"
+          lookupAdaHandrolled
+          (lookupAdaHandrolled `unsafeApplyCode` valueS1)
+      , goldenBundle
+          "lookup_S1_miss_handrolled"
+          lookupMissHandrolled
+          (lookupMissHandrolled `unsafeApplyCode` valueS1)
       , -- S3: ada + two single-token policies.
         goldenBundle
           "lookup_S3_ada_builtin"
@@ -94,6 +103,22 @@ tests =
           "lookup_S3_miss_nonbuiltin"
           lookupMissNonBuiltin
           (lookupMissNonBuiltin `unsafeApplyCode` valueS3)
+      , goldenBundle
+          "lookup_S3_ada_handrolled"
+          lookupAdaHandrolled
+          (lookupAdaHandrolled `unsafeApplyCode` valueS3)
+      , goldenBundle
+          "lookup_S3_middle_handrolled"
+          lookupCs01Tn01Handrolled
+          (lookupCs01Tn01Handrolled `unsafeApplyCode` valueS3)
+      , goldenBundle
+          "lookup_S3_last_handrolled"
+          lookupCs02Tn02Handrolled
+          (lookupCs02Tn02Handrolled `unsafeApplyCode` valueS3)
+      , goldenBundle
+          "lookup_S3_miss_handrolled"
+          lookupMissHandrolled
+          (lookupMissHandrolled `unsafeApplyCode` valueS3)
       , -- S8: ada + 7 single-token policies. Tuned so the builtin/non-builtin
         -- CPU ratio at the "ada hit" position lands near 1:1 — this is the
         -- crossover scenario, where the `unsafeDataAsValue` traversal cost has
@@ -130,6 +155,22 @@ tests =
           "lookup_S8_miss_nonbuiltin"
           lookupMissNonBuiltin
           (lookupMissNonBuiltin `unsafeApplyCode` valueS8)
+      , goldenBundle
+          "lookup_S8_ada_handrolled"
+          lookupAdaHandrolled
+          (lookupAdaHandrolled `unsafeApplyCode` valueS8)
+      , goldenBundle
+          "lookup_S8_middle_handrolled"
+          lookupCs04Tn04Handrolled
+          (lookupCs04Tn04Handrolled `unsafeApplyCode` valueS8)
+      , goldenBundle
+          "lookup_S8_last_handrolled"
+          lookupCs07Tn07Handrolled
+          (lookupCs07Tn07Handrolled `unsafeApplyCode` valueS8)
+      , goldenBundle
+          "lookup_S8_miss_handrolled"
+          lookupMissHandrolled
+          (lookupMissHandrolled `unsafeApplyCode` valueS8)
       , -- S100: ada + 10 policies × 10 tokens each.
         goldenBundle
           "lookup_S100_ada_builtin"
@@ -163,6 +204,22 @@ tests =
           "lookup_S100_miss_nonbuiltin"
           lookupMissNonBuiltin
           (lookupMissNonBuiltin `unsafeApplyCode` valueS100)
+      , goldenBundle
+          "lookup_S100_ada_handrolled"
+          lookupAdaHandrolled
+          (lookupAdaHandrolled `unsafeApplyCode` valueS100)
+      , goldenBundle
+          "lookup_S100_middle_handrolled"
+          lookupCs05Tn05Handrolled
+          (lookupCs05Tn05Handrolled `unsafeApplyCode` valueS100)
+      , goldenBundle
+          "lookup_S100_last_handrolled"
+          lookupCs10Tn10Handrolled
+          (lookupCs10Tn10Handrolled `unsafeApplyCode` valueS100)
+      , goldenBundle
+          "lookup_S100_miss_handrolled"
+          lookupMissHandrolled
+          (lookupMissHandrolled `unsafeApplyCode` valueS100)
       , -- Union-and-lookup: combine two copies of each shape and inspect
         -- ada in the result. Conservation-of-value pattern.
         goldenBundle
@@ -197,6 +254,22 @@ tests =
           "union_S100_nonbuiltin"
           unionAdaNonBuiltin
           (unionAdaNonBuiltin `unsafeApplyCode` valueS100 `unsafeApplyCode` valueS100)
+      , goldenBundle
+          "union_S1_handrolled"
+          unionAdaHandrolled
+          (unionAdaHandrolled `unsafeApplyCode` valueS1 `unsafeApplyCode` valueS1)
+      , goldenBundle
+          "union_S3_handrolled"
+          unionAdaHandrolled
+          (unionAdaHandrolled `unsafeApplyCode` valueS3 `unsafeApplyCode` valueS3)
+      , goldenBundle
+          "union_S8_handrolled"
+          unionAdaHandrolled
+          (unionAdaHandrolled `unsafeApplyCode` valueS8 `unsafeApplyCode` valueS8)
+      , goldenBundle
+          "union_S100_handrolled"
+          unionAdaHandrolled
+          (unionAdaHandrolled `unsafeApplyCode` valueS100 `unsafeApplyCode` valueS100)
       ]
 
 -- --------------------------------------------------------------------------
@@ -517,6 +590,185 @@ lookupCs10Tn10NonBuiltin =
   $$(compile [||\bd -> DValue.valueOf (Tx.unsafeFromBuiltinData bd) cs10 tn10||])
 
 -- --------------------------------------------------------------------------
+-- Hand-rolled helpers operating directly on raw BuiltinData.
+--
+-- These bypass the CurrencySymbol / TokenName newtype wrappers and the
+-- Maybe / withCurrencySymbol continuation indirection that PlutusLedgerApi's
+-- `valueOf` chains together. The union variant additionally exploits the
+-- ledger invariant that output Values have strictly positive quantities,
+-- so it skips the zero-filter that `unionWith` does via the `These` algebra.
+-- --------------------------------------------------------------------------
+
+-- | Look up a key in a Data-encoded map, short-circuiting on first match.
+lookupKeyInMap
+  :: B.BuiltinData
+  -> BI.BuiltinList (BI.BuiltinPair B.BuiltinData B.BuiltinData)
+  -> Maybe B.BuiltinData
+lookupKeyInMap k = go
+  where
+    go =
+      B.caseList'
+        Nothing
+        ( \hd ->
+            if B.equalsData k (BI.fst hd)
+              then \_ -> Just (BI.snd hd)
+              else go
+        )
+{-# INLINEABLE lookupKeyInMap #-}
+
+-- | Return 'True' if a key appears in a Data-encoded map.
+containsKeyInMap
+  :: B.BuiltinData
+  -> BI.BuiltinList (BI.BuiltinPair B.BuiltinData B.BuiltinData)
+  -> Bool
+containsKeyInMap k = go
+  where
+    go =
+      B.caseList'
+        False
+        ( \hd ->
+            if B.equalsData k (BI.fst hd)
+              then \_ -> True
+              else go
+        )
+{-# INLINEABLE containsKeyInMap #-}
+
+-- | Append two BuiltinLists.
+appendBuiltinList
+  :: forall a
+   . BI.BuiltinList a
+  -> BI.BuiltinList a
+  -> BI.BuiltinList a
+appendBuiltinList l1 l2 = go l1
+  where
+    go =
+      B.caseList'
+        l2
+        (\hd tl -> BI.mkCons hd (go tl))
+{-# INLINEABLE appendBuiltinList #-}
+
+{-| Look up the integer quantity for a (currency, token) pair directly from
+a 'BuiltinData'-encoded 'Value'. Returns 0 if either key is missing.
+
+This replicates what `valueOf` does semantically but without going through
+`CurrencySymbol`/`TokenName` newtype wrappers, `AssocMap.lookup`'s
+`Maybe`-wrapping, or `withCurrencySymbol`'s continuation. -}
+handRolledLookup :: B.BuiltinData -> BuiltinByteString -> BuiltinByteString -> Integer
+handRolledLookup bd cs tn = goOuter (BI.unsafeDataAsMap bd)
+  where
+    goOuter list =
+      B.caseList'
+        0
+        ( \hd ->
+            if B.equalsByteString cs (BI.unsafeDataAsB (BI.fst hd))
+              then \_ -> goInner (BI.unsafeDataAsMap (BI.snd hd))
+              else goOuter
+        )
+        list
+    goInner list =
+      B.caseList'
+        0
+        ( \hd ->
+            if B.equalsByteString tn (BI.unsafeDataAsB (BI.fst hd))
+              then \_ -> BI.unsafeDataAsI (BI.snd hd)
+              else goInner
+        )
+        list
+{-# INLINEABLE handRolledLookup #-}
+
+{-| Union two 'BuiltinData'-encoded 'Value's. Produces a new 'BuiltinData'.
+Assumes all quantities are strictly positive (ledger invariant for Values
+from tx outputs), so it does not filter out zero entries. -}
+handRolledUnion :: B.BuiltinData -> B.BuiltinData -> B.BuiltinData
+handRolledUnion bd1 bd2 =
+  let outer1 = BI.unsafeDataAsMap bd1
+      outer2 = BI.unsafeDataAsMap bd2
+   in BI.mkMap (appendBuiltinList (mergeOuters outer1 outer2) (filterMissingOuter outer2 outer1))
+  where
+    mergeOuters l1 l2 = goOuter l1
+      where
+        goOuter list =
+          B.caseList'
+            (BI.mkNilPairData BI.unitval)
+            ( \hd ->
+                let csData = BI.fst hd
+                    inner1 = BI.snd hd
+                    mergedValue = case lookupKeyInMap csData l2 of
+                      Just inner2Data ->
+                        let i1 = BI.unsafeDataAsMap inner1
+                            i2 = BI.unsafeDataAsMap inner2Data
+                         in BI.mkMap (appendBuiltinList (mergeInners i1 i2) (filterMissingOuter i2 i1))
+                      Nothing -> inner1
+                 in \tl -> BI.mkCons (BI.mkPairData csData mergedValue) (goOuter tl)
+            )
+            list
+
+    mergeInners l1 l2 = goInner l1
+      where
+        goInner list =
+          B.caseList'
+            (BI.mkNilPairData BI.unitval)
+            ( \hd ->
+                let tnData = BI.fst hd
+                    amt1 = BI.unsafeDataAsI (BI.snd hd)
+                    combined = case lookupKeyInMap tnData l2 of
+                      Just amt2Data -> amt1 + BI.unsafeDataAsI amt2Data
+                      Nothing -> amt1
+                 in \tl -> BI.mkCons (BI.mkPairData tnData (BI.mkI combined)) (goInner tl)
+            )
+            list
+
+    -- Keep entries from l2 whose key is NOT in l1.
+    filterMissingOuter l2 l1 = go l2
+      where
+        go list =
+          B.caseList'
+            (BI.mkNilPairData BI.unitval)
+            ( \hd ->
+                if containsKeyInMap (BI.fst hd) l1
+                  then \tl -> go tl
+                  else \tl -> BI.mkCons hd (go tl)
+            )
+            list
+{-# INLINEABLE handRolledUnion #-}
+
+-- --------------------------------------------------------------------------
+-- Compiled hand-rolled lookup operations.
+-- --------------------------------------------------------------------------
+
+lookupAdaHandrolled :: CompiledCode (B.BuiltinData -> Integer)
+lookupAdaHandrolled =
+  $$(compile [||\bd -> handRolledLookup bd "" ""||])
+
+lookupMissHandrolled :: CompiledCode (B.BuiltinData -> Integer)
+lookupMissHandrolled =
+  $$(compile [||\bd -> handRolledLookup bd bsPolicyMiss bsTokMiss||])
+
+lookupCs01Tn01Handrolled :: CompiledCode (B.BuiltinData -> Integer)
+lookupCs01Tn01Handrolled =
+  $$(compile [||\bd -> handRolledLookup bd bsPolicy01 bsTok01||])
+
+lookupCs02Tn02Handrolled :: CompiledCode (B.BuiltinData -> Integer)
+lookupCs02Tn02Handrolled =
+  $$(compile [||\bd -> handRolledLookup bd bsPolicy02 bsTok02||])
+
+lookupCs04Tn04Handrolled :: CompiledCode (B.BuiltinData -> Integer)
+lookupCs04Tn04Handrolled =
+  $$(compile [||\bd -> handRolledLookup bd bsPolicy04 bsTok04||])
+
+lookupCs05Tn05Handrolled :: CompiledCode (B.BuiltinData -> Integer)
+lookupCs05Tn05Handrolled =
+  $$(compile [||\bd -> handRolledLookup bd bsPolicy05 bsTok05||])
+
+lookupCs07Tn07Handrolled :: CompiledCode (B.BuiltinData -> Integer)
+lookupCs07Tn07Handrolled =
+  $$(compile [||\bd -> handRolledLookup bd bsPolicy07 bsTok07||])
+
+lookupCs10Tn10Handrolled :: CompiledCode (B.BuiltinData -> Integer)
+lookupCs10Tn10Handrolled =
+  $$(compile [||\bd -> handRolledLookup bd bsPolicy10 bsTok10||])
+
+-- --------------------------------------------------------------------------
 -- Compiled union-and-lookup operations.
 --
 -- Combine two incoming BuiltinData-encoded values and inspect how much ada
@@ -550,5 +802,16 @@ unionAdaNonBuiltin =
             )
             DValue.adaSymbol
             DValue.adaToken
+        ||]
+    )
+
+{-| Hand-rolled union (materializes a new BuiltinData), then hand-rolled ada lookup.
+Exploits the positive-quantities invariant. -}
+unionAdaHandrolled :: CompiledCode (B.BuiltinData -> B.BuiltinData -> Integer)
+unionAdaHandrolled =
+  $$( compile
+        [||
+        \bd1 bd2 ->
+          handRolledLookup (handRolledUnion bd1 bd2) "" ""
         ||]
     )
