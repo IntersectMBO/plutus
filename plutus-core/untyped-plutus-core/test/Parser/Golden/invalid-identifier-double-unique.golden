@@ -1,0 +1,6 @@
+test:1:28:
+  |
+1 | (program 1.1.0 (lam foo-123-456 foo-123-456))
+  |                            ^
+unexpected '-'
+expecting '`', digit, opening bracket '[', or opening parenthesis '('

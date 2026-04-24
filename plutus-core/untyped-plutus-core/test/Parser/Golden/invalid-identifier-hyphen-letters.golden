@@ -1,0 +1,6 @@
+test:1:42:
+  |
+1 | (program 1.1.0 (lam pubKeyHash-305478r71 (lam x x)))
+  |                                          ^
+unexpected '('
+expecting closing parenthesis ')'

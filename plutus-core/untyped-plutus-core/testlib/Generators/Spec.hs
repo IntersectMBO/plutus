@@ -60,6 +60,9 @@ test_parsing =
         , propMissingConOperands
         , propInvalidKeyword
         , propBracketMismatch
+        , propInvalidIdentifierHyphenLetters
+        , propInvalidIdentifierHyphenWord
+        , propInvalidIdentifierDoubleUnique
         ]
     ]
 
@@ -240,6 +243,49 @@ propBracketMismatch =
     "Bracket type mismatch error"
     "bracket-mismatch"
     "(program 1.1.0 [(var x))"
+
+{- Note [Negative identifier-grammar tests]
+The parser's name grammar treats '-NNN' purely as the numeric unique-suffix:
+'foo-123' → Name "foo" (Unique 123). A '-' anywhere else in an identifier is
+not allowed by the unquoted grammar (see 'isIdentifierChar' in
+'PlutusCore.Name.Unique'). Several tools in the wild (e.g. Scalus 0.16.0's
+'toUplcOptimized') emit names like 'pubKeyHash-305478r71' that violate this,
+and today the parser mis-parses them in a way that surfaces as a confusing
+error hundreds of lines away from the offending name — see issue #7742.
+
+The goldens below freeze the *current* (unhelpful) error output so that a
+future diagnostic improvement shows up as an explicit golden-file diff.
+When the parser is taught to point at the bad name itself, accept the new
+goldens with 'scripts/regen-goldens.sh' (or '--accept'). -}
+
+{-| @pubKeyHash-305478r71@ — the exact shape Scalus 0.16.0 produces, inside a
+binder. Current behaviour: the parser eats @pubKeyHash-305478@ as name+unique,
+picks up @r71@ as the lam body, then fails far away on the next paren. -}
+propInvalidIdentifierHyphenLetters :: TestTree
+propInvalidIdentifierHyphenLetters =
+  testParseErrorGolden
+    "Invalid identifier: hyphen followed by digits then letters"
+    "invalid-identifier-hyphen-letters"
+    "(program 1.1.0 (lam pubKeyHash-305478r71 (lam x x)))"
+
+{-| @foo-bar@ — hyphen followed by non-digits. Current behaviour: the parser
+stops at '-' (it is not in 'isIdentifierChar'), takes @foo@ as the name, and
+then explodes on @-bar@ which is not a valid continuation anywhere. -}
+propInvalidIdentifierHyphenWord :: TestTree
+propInvalidIdentifierHyphenWord =
+  testParseErrorGolden
+    "Invalid identifier: hyphen followed by non-digits"
+    "invalid-identifier-hyphen-word"
+    "(program 1.1.0 (lam foo-bar foo-bar))"
+
+{-| @foo-123-456@ — ambiguous double '-NNN' run. Current behaviour: the first
+@-123@ wins as the unique, @-456@ is left over and fails the next check. -}
+propInvalidIdentifierDoubleUnique :: TestTree
+propInvalidIdentifierDoubleUnique =
+  testParseErrorGolden
+    "Invalid identifier: double unique-suffix"
+    "invalid-identifier-double-unique"
+    "(program 1.1.0 (lam foo-123-456 foo-123-456))"
 
 --------------------------------------------------------------------------------
 -- Helper Functions ------------------------------------------------------------
