@@ -24,7 +24,8 @@ open import Untyped using (_⊢)
 open import RawU using (TmCon)
 open import Builtin using (Builtin)
 open import Untyped.Equality using (_≟_)
-open import Untyped.Relation.Binary
+open import Untyped.Relation.Binary.Core
+open import Untyped.Relation.Binary.Structures
 open import Untyped.Relation.Binary.Properties
 open import VerifiedCompilation.UntypedViews
 
