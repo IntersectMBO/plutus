@@ -23,23 +23,19 @@ We enumerate the known passes and partition them into two categories:
 - those which are not yet (fully) implemented in the certifier 
 - those which are implemented in the certifier and we know they are correct.
 
-### IMPORTANT
-The order of the constructors in both their Agda definitions and in the "COMPILE"
-pragmas MUST be the same as the order of their counterparts in
-`UntypedPlutusCore.Transform.Certify.Trace`.
 ```
 
 data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
   letFloatOutT : UncertifiedOptTag
   caseReduceT : UncertifiedOptTag
-  cseT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
   forceDelayT : CertifiedOptTag
   forceCaseDelayT : CertifiedOptTag
   inlineT : CertifiedOptTag
+  cseT : CertifiedOptTag
   applyToCaseT : CertifiedOptTag
 
 OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
@@ -53,7 +49,7 @@ ForceCaseDelayT = Utils.inj₂ forceCaseDelayT
 InlineT : OptTag
 InlineT = Utils.inj₂ inlineT
 CseT : OptTag
-CseT = Utils.inj₁ cseT
+CseT = Utils.inj₂ cseT
 ApplyToCaseT : OptTag
 ApplyToCaseT = Utils.inj₂ applyToCaseT
 
@@ -64,25 +60,8 @@ LetFloatOutT = Utils.inj₁ letFloatOutT
 CaseReduceT : OptTag
 CaseReduceT = Utils.inj₁ caseReduceT
 
-{-# COMPILE GHC
-  CertifiedOptTag
-    = data CertifiedOptStage
-      ( FloatDelay
-      | ForceDelay
-      | ForceCaseDelay
-      | Inline
-      | ApplyToCase
-      )
-#-}
-{-# COMPILE GHC
-  UncertifiedOptTag
-    = data UncertifiedOptStage
-      ( CaseOfCase
-      | LetFloatOut
-      | CaseReduce
-      | CSE
-      )
-#-}
+{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | Inline | CSE | ApplyToCase) #-}
+{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut | CaseReduce) #-}
 ```
 
 ## Hints
