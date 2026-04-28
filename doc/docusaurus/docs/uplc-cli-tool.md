@@ -61,11 +61,14 @@ The full list of supported formats is:
 The `opt-*` flags let you configure the optimization pipeline.
 Run `uplc optimize --help` to see the full list.
 
-The two most useful options are likely `--opt-inline-unconditional-growth` and `--opt-inline-callsite-growth`.
-These flags control the aggressiveness of the inliner: higher values allow more aggressive inlining.
+The flags most worth experimenting with when you're optimizing primarily for either execution cost or script size are the inliner-aggressiveness flags — `--opt-inline-unconditional-growth` and `--opt-inline-callsite-growth` — plus `--opt-no-inline-constants` and `--opt-cse-which-subterms`.
+They give you direct control over the cost-vs-size tradeoff.
 
-More inlining can reduce execution cost, but it can also increase script size.
-Depending on whether you are optimizing primarily for execution cost or script size, it may be worth experimenting with these values to find the right trade-off for your scripts.
+The two `--opt-inline-...-growth` flags govern how much AST growth the inliner accepts.
+Higher values mean more aggressive inlining, and more inlining usually reduces cost, but sometimes increases size.
+`--opt-no-inline-constants` controls the inlining of constants specifically: inlining constants is good for cost, but if a large constant occurs at many callsites, inlining it copies the constant each time and inflates size.
+`--opt-cse-which-subterms` controls how aggressive common subexpression elimination is: `all` is more aggressive than the default `exclude-work-free`.
+Aggressive CSE typically reduces size (more duplicates get factored out) but can raise cost (each factored subterm adds a small evaluation overhead).
 
 ## Certifying optimizations
 
@@ -85,7 +88,7 @@ Basic usage:
 uplc optimize -i MyValidator.uplc -o MyValidator-opt.uplc --certify MyProof
 ```
 
-This produces an Agda project (the default output mode) that encodes a correctness proof of the transformation, named after the `MyProof`.
+This produces an Agda project (the default output mode) that encodes a correctness proof of the transformation, named after the `MyProof` argument.
 You can then run the Agda type checker on the generated project to verify the certificate.
 
 The certifier has three output modes:
@@ -102,7 +105,7 @@ Report filenames and project directories have the validator's title appended aut
 
 ## Evaluating before and after each optimization
 
-The `--eval*` flags supply arguments to the script and runs it on the CEK machine at every stage of the optimization pipeline, recording the execution cost at each step.
+The `--eval*` flags supply arguments to the script and run it on the CEK machine at every stage of the optimization pipeline, recording the execution cost at each step.
 
 > :pushpin: **NOTE**
 >
