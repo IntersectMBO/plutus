@@ -61,7 +61,7 @@ The full list of supported formats is:
 The `opt-*` flags let you configure the optimization pipeline.
 Run `uplc optimize --help` to see the full list.
 
-The two most useful options are likely`--opt-inline-unconditional-growth` and `--opt-inline-callsite-growth`.
+The two most useful options are likely `--opt-inline-unconditional-growth` and `--opt-inline-callsite-growth`.
 These flags control the aggressiveness of the inliner: higher values allow more aggressive inlining.
 
 More inlining can reduce execution cost, but it can also increase script size.
