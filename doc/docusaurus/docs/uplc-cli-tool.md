@@ -39,7 +39,7 @@ uplc optimize --if hex --of hex -i MyValidator.uplc -o MyValidator-opt.uplc
 ```
 
 __Blueprint JSON__.
-A CIP-57 blueprint is the standard packaging format for Plutus contracts and may contain multiple validators.
+A [CIP-57](https://cips.cardano.org/cips/cip57/) blueprint is the standard packaging format for Plutus contracts and may contain multiple validators.
 You can feed a blueprint straight into `uplc` and get an optimized blueprint back, with every validator optimized and the corresponding hash field recomputed:
 
 ```
