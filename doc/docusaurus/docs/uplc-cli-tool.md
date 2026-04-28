@@ -15,7 +15,7 @@ Run `uplc --help` to see the available subcommands, and `uplc <subcommand> --hel
 # Script optimization
 
 For most users, the most immediately useful subcommand is `optimize` (or `optimise`), which optimizes UPLC programs.
-It runs the same optimization pipeline that the Plinth compiler uses internally: case-of-known-constructor, inlining, common subexpression elimination (CSE), and more.
+It runs the same UPLC optimization pipeline that the Plinth compiler uses internally: case-of-known-constructor, inlining, common subexpression elimination (CSE), and more.
 
 Basic usage:
 
