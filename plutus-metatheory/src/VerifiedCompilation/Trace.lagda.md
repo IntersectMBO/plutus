@@ -33,13 +33,13 @@ data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
   letFloatOutT : UncertifiedOptTag
   caseReduceT : UncertifiedOptTag
-  cseT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
   forceDelayT : CertifiedOptTag
   forceCaseDelayT : CertifiedOptTag
   inlineT : CertifiedOptTag
+  cseT : CertifiedOptTag
   applyToCaseT : CertifiedOptTag
 
 OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
@@ -53,7 +53,7 @@ ForceCaseDelayT = Utils.inj₂ forceCaseDelayT
 InlineT : OptTag
 InlineT = Utils.inj₂ inlineT
 CseT : OptTag
-CseT = Utils.inj₁ cseT
+CseT = Utils.inj₂ cseT
 ApplyToCaseT : OptTag
 ApplyToCaseT = Utils.inj₂ applyToCaseT
 
@@ -71,6 +71,7 @@ CaseReduceT = Utils.inj₁ caseReduceT
       | ForceDelay
       | ForceCaseDelay
       | Inline
+      | CSE
       | ApplyToCase
       )
 #-}
@@ -80,7 +81,6 @@ CaseReduceT = Utils.inj₁ caseReduceT
       ( CaseOfCase
       | LetFloatOut
       | CaseReduce
-      | CSE
       )
 #-}
 ```

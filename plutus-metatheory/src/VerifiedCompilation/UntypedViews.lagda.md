@@ -7,7 +7,7 @@ layout: page
 module VerifiedCompilation.UntypedViews where
 module SimpleTypeClass where
 
-open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error)
+open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error; Let_In_)
 open import Relation.Unary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Relation.Nullary.Negation
@@ -279,6 +279,12 @@ data builtinᵖ (P : Pr Builtin) : Pr (X ⊢) where
 
 data errorᵖ : Pr (X ⊢) where
   error! : errorᵖ {X} error
+
+data Letᵖ_Inᵖ_ (P : Pr (X ⊢)) (Q : Pr (suc X ⊢)) : Pr (X ⊢) where
+  Let!_In!_ : ∀ {M N} → P M → Q N → (Letᵖ P Inᵖ Q) (Let M In N) 
+
+infix 0 Letᵖ_Inᵖ_
+infix 0 Let!_In!_
 ```
 
 Each predicate is decidable if the predicates on sub-terms are decidable.
@@ -439,6 +445,31 @@ error? M with M
 ... | case _ _   = no λ ()
 ... | builtin _  = no λ ()
 ... | error      = yes error!
+
+infix 0 Let?_In?_
+Let?_In?_ :  {P : Pr (X ⊢)} {Q : Pr (suc X ⊢)} → Decidable P → Decidable Q → Decidable (Letᵖ P Inᵖ Q) 
+(Let? P? In? Q?) M with M
+... | ` _             = no λ ()
+... | ƛ _             = no λ ()
+... | ` x · N         = no λ ()
+... | M₁ · M₂ · N     = no λ ()
+... | force M₁ · N    = no λ ()
+... | delay M₁ · N    = no λ ()
+... | con x · N       = no λ ()
+... | constr i xs · N = no λ ()
+... | case M₁ ts · N  = no λ ()
+... | builtin b · N   = no λ ()
+... | error · N       = no λ ()
+... | force _         = no λ ()
+... | delay _         = no λ ()
+... | con _           = no λ ()
+... | constr _ _      = no λ ()
+... | case _ _        = no λ ()
+... | builtin _       = no λ ()
+... | error           = no λ ()
+... | Let N In M₁ with P? N ×-dec Q? M₁
+... | yes (PN , QM) = yes (Let! PN In! QM)
+... | no ¬PN×QM = no λ { (Let! PN In! QM) → ¬PN×QM (PN , QM)}
 ```
 
 `match` is the trivial predicate that always holds:
@@ -558,6 +589,13 @@ instance
   inh-error : ∀ {X} →
     Inhabited (errorᵖ (error {X}))
   inh-error = inh error!
+  
+  inh-let
+    : ∀ {X} {P Q} {M : X ⊢} {N : suc X ⊢}
+    → {{Inhabited (P M)}}
+    → {{Inhabited (Q N)}}
+    →  Inhabited ((Letᵖ P Inᵖ Q) (Let M In N))
+  inh-let = inh (Let! inhabitant In! inhabitant)
 
   inh-match : ∀ {A : Set} {X : A} → Inhabited (match X)
   inh-match = record {inhabitant = match! _}

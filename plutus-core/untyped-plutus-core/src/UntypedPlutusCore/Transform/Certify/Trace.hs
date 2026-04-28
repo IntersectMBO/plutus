@@ -17,13 +17,14 @@ This means that these passes are formalized as part of the certifier,
 and adding a new pass constructor to this type means that it is expected
 the pass will be also certified in the same PR.
 
-IMPORTANT: the order of the constructors MUST be the same as the order
+WARNING: the order of the constructors MUST be the same as the order
 of their counterparts in 'VerifiedCompilation.Trace'. -}
 data CertifiedOptStage
   = FloatDelay
   | ForceDelay
   | ForceCaseDelay
   | Inline
+  | CSE
   | ApplyToCase
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
@@ -31,7 +32,7 @@ data CertifiedOptStage
 {-| Datatype which represents optimization passes which are not yet
 certified.
 
-IMPORTANT: the order of the constructors MUST be the same as the order
+WARNING: the order of the constructors MUST be the same as the order
 of their counterparts in 'VerifiedCompilation.Trace'.
 
 IMPORTANT: if you add a new pass, or modify an existing pass, without
@@ -42,7 +43,6 @@ data UncertifiedOptStage
   = CaseOfCase
   | LetFloatOut
   | CaseReduce
-  | CSE
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -64,7 +64,7 @@ pattern InlineStage :: OptStage
 pattern InlineStage = Right Inline
 
 pattern CseStage :: OptStage
-pattern CseStage = Left CSE
+pattern CseStage = Right CSE
 
 pattern ApplyToCaseStage :: OptStage
 pattern ApplyToCaseStage = Right ApplyToCase
