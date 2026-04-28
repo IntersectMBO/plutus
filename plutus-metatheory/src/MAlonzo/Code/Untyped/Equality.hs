@@ -1214,7 +1214,7 @@ du_DecEq'45'List_156 v0
 -- Untyped.Equality.DecEq-Builtin
 d_DecEq'45'Builtin_160 :: T_DecEq_6
 d_DecEq'45'Builtin_160
-  = coe C_constructor_14 (coe MAlonzo.Code.Builtin.d_decBuiltin_440)
+  = coe C_constructor_14 (coe MAlonzo.Code.Builtin.d_decBuiltin_472)
 -- Untyped.Equality.DecEq-ℕ
 d_DecEq'45'ℕ_162 :: T_DecEq_6
 d_DecEq'45'ℕ_162

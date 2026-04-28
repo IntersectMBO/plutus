@@ -42,7 +42,7 @@ open _⊢♯ renaming (pair to bpair; list to blist; array to barray)
 open _/_⊢⋆
 open import Builtin.Constant.AtomicType
 
-open import Utils.Reflection using (defDec;defShow;defEnum;defListConstructors)
+open import Utils.Reflection using (defDec;defShow;defEnum;defFromEnum;defListConstructors)
 ```
 
 ## Built-in functions
@@ -688,15 +688,36 @@ Equality of Builtins is decidable. In order to prove equality we would have to p
 enumBuiltin : Builtin → ℕ
 unquoteDef enumBuiltin = defEnum (quote Builtin) enumBuiltin
 
+fromEnumBuiltin : ℕ → Maybe Builtin
+unquoteDef fromEnumBuiltin = defFromEnum (quote Builtin) fromEnumBuiltin
+
 open import Agda.Builtin.Equality using (_≡_)
 open import Agda.Builtin.TrustMe using (primTrustMe)
-open import Relation.Binary.PropositionalEquality using (cong)
+open import Relation.Binary.PropositionalEquality using (cong; sym)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Data.Maybe.Properties using (just-injective)
+open import Relation.Binary.Reasoning.Syntax 
+open import Function.Base using (id; _∘_)
+open import Relation.Binary.PropositionalEquality.Core
+  using (_≡_; cong; refl; subst; trans; sym; subst₂; cong₂)
 
--- TODO: this should be safe since enumBuiltin is generated; can it be proven without having to
--- explicitly match on all n² cases?
+-- TODO: this should be generated
+decode-encode : ∀ x → fromEnumBuiltin (enumBuiltin x) ≡ just x
+decode-encode x = primTrustMe
+
 enumBuiltin-injective : (b1 b2 : Builtin) → enumBuiltin b1 ≡ enumBuiltin b2 → b1 ≡ b2
-enumBuiltin-injective b1 b2 b1≡b2 = primTrustMe
+enumBuiltin-injective x y p = just-injective (
+  begin
+    just x                            ≡⟨ sym (decode-encode x) ⟩
+    fromEnumBuiltin (enumBuiltin x)   ≡⟨ cong fromEnumBuiltin p ⟩
+    fromEnumBuiltin (enumBuiltin y)   ≡⟨ decode-encode y ⟩
+    just y
+  ∎)
+  where
+    open begin-syntax {Agda.Primitive.lzero} {Maybe Builtin} _≡_ id 
+    open ≡-syntax {Agda.Primitive.lzero} {Maybe Builtin} _≡_ trans 
+    open end-syntax {Agda.Primitive.lzero} {Maybe Builtin} _≡_ refl 
+
 
 decBuiltin : DecidableEquality Builtin
 decBuiltin b1 b2 with (enumBuiltin b1) Data.Nat.≟ (enumBuiltin b2)
