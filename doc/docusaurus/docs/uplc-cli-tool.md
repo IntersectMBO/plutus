@@ -111,7 +111,7 @@ The `--eval*` flags supply arguments to the script and runs it on the CEK machin
 For a single script:
 
 ```
-uplc optimise -i MyValidator.uplc -o MyValidator-opt.uplc \
+uplc optimize -i MyValidator.uplc -o MyValidator-opt.uplc \
   --certify MyProof --certifier-report MyValidator.report \
   --eval-apply datum.hex \
   --eval-apply redeemer.hex \
