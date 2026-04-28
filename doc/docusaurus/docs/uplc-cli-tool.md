@@ -69,7 +69,7 @@ Depending on whether you are optimizing primarily for execution cost or script s
 
 ## Certifying optimizations
 
-`uplc` includes certifiers for optimization passes
+`uplc` includes certifiers for optimization passes.
 Each pass is formalized in Agda as a translation relation between pre- and post-terms together with a procedure that decides whether the relation holds.
 
 Each certifier takes the pre- and post-terms of a single pass and either accepts the transformation as valid or rejects it.
