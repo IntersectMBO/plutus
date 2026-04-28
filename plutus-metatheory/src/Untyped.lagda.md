@@ -61,7 +61,7 @@ data _⊢ (n : ℕ) : Set where
   error : n ⊢
 
 pattern Let_In_ rhs body = ƛ body · rhs
-infixr 0 Let_In_
+infix 2 Let_In_
 ```
 
 ```

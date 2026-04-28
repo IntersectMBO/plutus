@@ -367,6 +367,7 @@ library
     MAlonzo.Code.Untyped.Purity
     MAlonzo.Code.Untyped.Reduction
     MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.Strictness
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.List

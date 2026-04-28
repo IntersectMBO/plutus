@@ -117,7 +117,7 @@ d_certifyPass_26 v0 v1
                -> coe
                     MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
                     (coe
-                       MAlonzo.Code.VerifiedCompilation.UCSE.d_isUntypedCSE'63'_520
+                       MAlonzo.Code.VerifiedCompilation.UCSE.d_isUntypedCSE'63'_22
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_24
                -> coe
