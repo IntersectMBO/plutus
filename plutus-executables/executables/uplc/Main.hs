@@ -493,7 +493,7 @@ loadArgsFromDir
   -> IO (Maybe [UplcTermNDB ()])
 loadArgsFromDir baseDir title argKind = do
   let dir = baseDir </> title
-  paths <- collectArgFiles dir 1
+  paths <- collectArgFiles dir 0
   if null paths
     then pure Nothing
     else Just <$> loadArgs argKind paths
