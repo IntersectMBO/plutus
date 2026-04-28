@@ -1,7 +1,0 @@
-test:1:21:
-  |
-1 | (program 1.1.0 (lam pubKeyHash-305478r71 (lam x x)))
-  |                     ^
-Invalid identifier 'pubKeyHash-305478r71' at test:1:21.
-A '-' inside a name is the numeric unique-suffix separator and must be followed only by digits and a word boundary.
-To use this text as a name verbatim, quote it with backticks: `pubKeyHash-305478r71`

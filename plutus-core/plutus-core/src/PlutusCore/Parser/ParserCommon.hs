@@ -16,6 +16,7 @@ import Data.Map qualified as M
 import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as Text
+import Data.Text.Read qualified as TextRead
 import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
@@ -218,30 +219,9 @@ name = try $ parseUnquoted <|> parseQuoted
   where
     parseUnquoted :: Parser Name
     parseUnquoted = do
-      startOffset <- getOffset
-      startPos <- getSourcePos'
       _ <- lookAhead (satisfy isIdentifierStartingChar)
-      inputBefore <- getInput
-      str <- takeWhileP (Just "identifier-unquoted") isIdentifierChar
-      u <- uniqueSuffix str
-      {- The parsed prefix is only a valid identifier if the next character is
-      a real word-boundary. If instead we see more identifier chars or another
-      '-', the user wrote something like `foo-bar` or `pubKeyHash-305478r71` —
-      the '-NNN' run we just treated as a unique-suffix was actually part of
-      their intended name (or they have a stray '-' at all). Fail with a
-      custom diagnostic that points at the whole offending identifier. -}
-      mBad <- optional (lookAhead (satisfy isNameExtensionChar))
-      case mBad of
-        Nothing -> pure (Name str u)
-        Just _ -> do
-          -- Consume the remainder so the reported text covers the full name.
-          _ <- takeWhileP Nothing isNameExtensionChar
-          inputAfter <- getInput
-          let consumed = Text.length inputBefore - Text.length inputAfter
-              fullText = Text.take consumed inputBefore
-          parseError $
-            FancyError startOffset $
-              Set.singleton (ErrorCustom (InvalidIdentifier fullText startPos))
+      base <- takeWhileP (Just "identifier-unquoted") isIdentifierChar
+      Name base <$> uniqueSuffix base
 
     isNameExtensionChar :: Char -> Bool
     isNameExtensionChar c = isIdentifierChar c || c == '-'
@@ -254,11 +234,27 @@ name = try $ parseUnquoted <|> parseQuoted
       _ <- char '`'
       Name str <$> uniqueSuffix str
 
-    -- Tries to parse a `Unique` value.
-    -- If it fails then looks up the `Unique` value for the given name.
-    -- If lookup fails too then generates a fresh `Unique` value.
+    {- Parses an optional unique-suffix, committing on '-': if a '-' is seen,
+    the entire region up to the next word boundary must validate as a
+    non-empty digit-string, otherwise we raise 'MalformedUniqueSuffix'. If no
+    '-' is seen, the name has no explicit unique and we look one up (or
+    generate a fresh one). -}
     uniqueSuffix :: Text -> Parser Unique
-    uniqueSuffix nameStr = try (Unique <$> (char '-' *> Lex.decimal)) <|> uniqueForName nameStr
+    uniqueSuffix nameStr = do
+      mDash <- optional (char '-')
+      case mDash of
+        Nothing -> uniqueForName nameStr
+        Just _ -> do
+          suffixOff <- getOffset
+          suffixPos <- getSourcePos'
+          suffixText <- takeWhileP (Just "unique-suffix") isNameExtensionChar
+          case TextRead.decimal suffixText of
+            Right (n, rest) | Text.null rest -> pure (Unique n)
+            _ ->
+              parseError $
+                FancyError suffixOff $
+                  Set.singleton
+                    (ErrorCustom (MalformedUniqueSuffix nameStr suffixText suffixPos))
 
     -- Return the unique identifier of a name.
     -- If it's not in the current parser state, map the name to a fresh id and add it to the state.
