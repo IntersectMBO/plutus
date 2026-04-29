@@ -17,6 +17,7 @@ module UntypedPlutusCore.Transform.ApplyToCase (applyToCase) where
 
 import Control.Lens (over)
 import Data.Vector qualified as V
+import PlutusPrelude (getAnn)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Optimizer
   ( OptimizerT
@@ -41,6 +42,6 @@ processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm t = case splitApplication t of
   (fun, args)
     | length args >= minArgs ->
-        let ann = termAnn t
+        let ann = getAnn t
          in Case ann (Constr ann 0 (processTerm . snd <$> args)) (V.singleton (processTerm fun))
   _ -> over termSubterms processTerm t

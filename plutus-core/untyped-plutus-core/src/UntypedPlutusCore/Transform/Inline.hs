@@ -53,12 +53,12 @@ import PlutusCore.Name.Unique (HasUnique, TermUnique (..), Unique (..))
 import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Quote (MonadQuote (..), Quote)
 import PlutusCore.Rename (Dupable, dupable, liftDupable)
-import PlutusPrelude (Generic)
+import PlutusPrelude (Generic, getAnn, modifyAnn)
 import UntypedPlutusCore.Analysis.Usages qualified as Usages
 import UntypedPlutusCore.AstSize (AstSize, termAstSize)
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Core.Plated (termSubterms)
-import UntypedPlutusCore.Core.Type (Term (..), modifyTermAnn, termAnn)
+import UntypedPlutusCore.Core.Type (Term (..))
 import UntypedPlutusCore.MkUPlc (Def (..), UTermDef, UVarDecl (..))
 import UntypedPlutusCore.Purity
   ( EvalTerm (EvalTerm, Unknown)
@@ -672,7 +672,7 @@ decorations = _1
 
 -- | Prepend the given decorations
 decorateWith :: [Decoration] -> Term name uni fun (Ann a) -> Term name uni fun (Ann a)
-decorateWith ds = modifyTermAnn (first (ds ++))
+decorateWith ds = modifyAnn (first (ds ++))
 {-# INLINE decorateWith #-}
 
 -- | Fold a decorated term into certifier hints.
@@ -686,7 +686,7 @@ mkHints = go
           DDrop -> CertifierHints.InlDrop h
           DExpand -> CertifierHints.InlExpand h
 
-        ds = termAnn t ^. decorations
+        ds = getAnn t ^. decorations
 
         hints = case t of
           Var {} -> CertifierHints.InlVar

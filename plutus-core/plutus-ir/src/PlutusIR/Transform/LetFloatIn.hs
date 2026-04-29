@@ -372,15 +372,15 @@ floatTerm binfo relaxed t0 =
 
 -- | The set of `Unique`s of used variables in a `Term`.
 termUniqs :: Term tyname name uni fun (a, Uniques) -> Uniques
-termUniqs = snd . termAnn
+termUniqs = snd . getAnn
 
 -- | The set of `Unique`s of used variables in a `Type`.
 typeUniqs :: Type tyname uni (a, Uniques) -> Uniques
-typeUniqs = snd . PLC.typeAnn
+typeUniqs = snd . getAnn
 
 -- | The set of `Unique`s of used variables in the RHS of a `Binding`.
 bindingUniqs :: Binding tyname name uni fun (a, Uniques) -> Uniques
-bindingUniqs = snd . bindingAnn
+bindingUniqs = snd . getAnn
 
 -- | The set of `Unique`s of used variables in a `VarDecl`.
 varDeclUniqs :: VarDecl tyname name uni (a, Uniques) -> Uniques
