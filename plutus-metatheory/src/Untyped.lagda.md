@@ -69,6 +69,9 @@ data _⊢ (n : ℕ) : Set where
   case :  (t : n ⊢) → (ts : L.List (n ⊢)) → n ⊢
   builtin : (b : Builtin) → n ⊢
   error : n ⊢
+
+pattern Let_In_ rhs body = ƛ body · rhs
+infix 2 Let_In_
 ```
 
 ```

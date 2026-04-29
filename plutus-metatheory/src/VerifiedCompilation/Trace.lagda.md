@@ -32,13 +32,13 @@ pragmas MUST be the same as the order of their counterparts in
 data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
   letFloatOutT : UncertifiedOptTag
-  cseT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
   forceDelayT : CertifiedOptTag
   forceCaseDelayT : CertifiedOptTag
   inlineT : CertifiedOptTag
+  cseT : CertifiedOptTag
   applyToCaseT : CertifiedOptTag
   caseReduceT : CertifiedOptTag
 
@@ -53,7 +53,7 @@ ForceCaseDelayT = Utils.inj₂ forceCaseDelayT
 InlineT : OptTag
 InlineT = Utils.inj₂ inlineT
 CseT : OptTag
-CseT = Utils.inj₁ cseT
+CseT = Utils.inj₂ cseT
 ApplyToCaseT : OptTag
 ApplyToCaseT = Utils.inj₂ applyToCaseT
 
@@ -71,6 +71,7 @@ CaseReduceT = Utils.inj₂ caseReduceT
       | ForceDelay
       | ForceCaseDelay
       | Inline
+      | CSE
       | ApplyToCase
       | CaseReduce
       )
@@ -80,7 +81,6 @@ CaseReduceT = Utils.inj₂ caseReduceT
     = data UncertifiedOptStage
       ( CaseOfCase
       | LetFloatOut
-      | CSE
       )
 #-}
 ```

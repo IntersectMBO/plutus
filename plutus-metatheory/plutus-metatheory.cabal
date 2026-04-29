@@ -372,6 +372,7 @@ library
     MAlonzo.Code.Untyped.Relation.Binary.Properties
     MAlonzo.Code.Untyped.Relation.Binary.Structures
     MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.Strictness
     MAlonzo.Code.Untyped.Transform
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
@@ -384,6 +385,7 @@ library
     MAlonzo.Code.VerifiedCompilation.UApplyToCase
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
+    MAlonzo.Code.VerifiedCompilation.UCSE
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
     MAlonzo.Code.VerifiedCompilation.UForceCaseDelay
     MAlonzo.Code.VerifiedCompilation.UForceDelay
