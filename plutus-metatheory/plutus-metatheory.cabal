@@ -383,6 +383,7 @@ library
     MAlonzo.Code.VerifiedCompilation.Trace
     MAlonzo.Code.VerifiedCompilation.UApplyToCase
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
+    MAlonzo.Code.VerifiedCompilation.UCaseReduce
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
     MAlonzo.Code.VerifiedCompilation.UForceCaseDelay
     MAlonzo.Code.VerifiedCompilation.UForceDelay
