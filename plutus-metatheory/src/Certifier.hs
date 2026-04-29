@@ -350,7 +350,7 @@ mkReadme name =
              \\n\
              \### Using Nix (recommended)\n\
              \\n\
-             \From the root of the `plutus` repository, enter the development shell\n\
+             \Enter the development shell provided by the `plutus` repository, `cd` into the root of the certificate project, \n\
              \and use the bundled Agda wrapper that includes all required libraries:\n\
              \\n\
              \```\n\
