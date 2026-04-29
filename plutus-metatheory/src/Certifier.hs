@@ -314,6 +314,7 @@ data AgdaCertificateProject = AgdaCertificateProject
   { mainModule :: (FilePath, String)
   , astModules :: [(FilePath, String)]
   , agdalib :: (FilePath, String)
+  , readme :: (FilePath, String)
   }
 
 mkAgdaLib :: String -> (FilePath, String)
@@ -328,6 +329,50 @@ mkAgdaLib name =
              \\nflags: --polarity"
    in (name <> ".agda-lib", contents)
 
+mkReadme :: String -> (FilePath, String)
+mkReadme name =
+  let contents =
+        "# Certificate: "
+          <> name
+          <> "\n\
+             \\n\
+             \This directory contains a machine-verifiable Agda certificate that\n\
+             \proves the Plutus optimizer correctly transformed a program.\n\
+             \Type-checking this project with Agda verifies the certificate.\n\
+             \\n\
+             \## Dependencies\n\
+             \\n\
+             \- [Agda](https://agda.readthedocs.io/) 2.8.0\n\
+             \- [Agda standard library](https://github.com/agda/agda-stdlib) 2.3\n\
+             \- [plutus-metatheory](https://github.com/IntersectMBO/plutus/tree/master/plutus-metatheory)\n\
+             \\n\
+             \## Type-checking\n\
+             \\n\
+             \### Using Nix (recommended)\n\
+             \\n\
+             \From the root of the `plutus` repository, enter the development shell\n\
+             \and use the bundled Agda wrapper that includes all required libraries:\n\
+             \\n\
+             \```\n\
+             \nix develop\n\
+             \agda-with-stdlib-and-metatheory src/"
+          <> name
+          <> ".agda\n\
+             \```\n\
+             \\n\
+             \### Without Nix\n\
+             \\n\
+             \Ensure Agda 2.8.0 is installed and that both `standard-library-2.3`\n\
+             \and `plutus-metatheory` are registered in your `$AGDA_DIR/libraries`\n\
+             \file (see `plutus-metatheory/AGDA.md` for guidance), then run:\n\
+             \\n\
+             \```\n\
+             \agda src/"
+          <> name
+          <> ".agda\n\
+             \```\n"
+   in ("README.md", contents)
+
 mkAgdaCertificateProject
   :: Certificate
   -> AgdaCertificateProject
@@ -336,7 +381,8 @@ mkAgdaCertificateProject cert =
       mainModule = mkCertificateFile cert
       astModules = fmap mkAgdaAstFile (certReprAsts cert)
       agdalib = mkAgdaLib name
-   in AgdaCertificateProject {mainModule, astModules, agdalib}
+      readme = mkReadme name
+   in AgdaCertificateProject {mainModule, astModules, agdalib, readme}
 
 writeCertificateProject
   :: CertDir
@@ -348,14 +394,17 @@ writeCertificateProject
     { mainModule
     , astModules
     , agdalib
+    , readme
     } =
     liftIO $ do
       let (mainModulePath, mainModuleContents) = mainModule
           (agdalibPath, agdalibContents) = agdalib
+          (readmePath, readmeContents) = readme
       createDirectory certDir
       createDirectory (certDir </> "src")
       writeFile (certDir </> "src" </> mainModulePath) mainModuleContents
       writeFile (certDir </> agdalibPath) agdalibContents
+      writeFile (certDir </> readmePath) readmeContents
       traverse_
         ( \(path, contents) ->
             writeFile (certDir </> "src" </> path) contents
