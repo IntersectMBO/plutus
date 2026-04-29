@@ -32,7 +32,6 @@ pragmas MUST be the same as the order of their counterparts in
 data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
   letFloatOutT : UncertifiedOptTag
-  caseReduceT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
@@ -41,6 +40,7 @@ data CertifiedOptTag : Set where
   inlineT : CertifiedOptTag
   cseT : CertifiedOptTag
   applyToCaseT : CertifiedOptTag
+  caseReduceT : CertifiedOptTag
 
 OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
 
@@ -62,7 +62,7 @@ CaseOfCaseT = Utils.inj₁ caseOfCaseT
 LetFloatOutT : OptTag
 LetFloatOutT = Utils.inj₁ letFloatOutT
 CaseReduceT : OptTag
-CaseReduceT = Utils.inj₁ caseReduceT
+CaseReduceT = Utils.inj₂ caseReduceT
 
 {-# COMPILE GHC
   CertifiedOptTag
@@ -73,6 +73,7 @@ CaseReduceT = Utils.inj₁ caseReduceT
       | Inline
       | CSE
       | ApplyToCase
+      | CaseReduce
       )
 #-}
 {-# COMPILE GHC
@@ -80,7 +81,6 @@ CaseReduceT = Utils.inj₁ caseReduceT
     = data UncertifiedOptStage
       ( CaseOfCase
       | LetFloatOut
-      | CaseReduce
       )
 #-}
 ```

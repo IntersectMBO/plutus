@@ -38,7 +38,7 @@ import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
 d_UCSE_6 a0 a1 a2 = ()
 data T_UCSE_6
   = C_cse_14 MAlonzo.Code.Untyped.Strictness.T__'8712''8595'__10
-             MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12
+             MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8
 -- VerifiedCompilation.UCSE.UntypedCSE
 d_UntypedCSE_20 ::
   Integer ->
@@ -53,7 +53,7 @@ d_isUntypedCSE'63'_22 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isUntypedCSE'63'_22 v0
   = coe
-      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
+      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0) (coe MAlonzo.Code.VerifiedCompilation.Trace.d_CseT_36)
       (coe d_isUCSE'63'_24)
 -- VerifiedCompilation.UCSE.isUCSE?
@@ -65,11 +65,11 @@ d_isUCSE'63'_24 ::
 d_isUCSE'63'_24 v0 v1 v2
   = let v3
           = \ v3 ->
-              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108 in
+              coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386 in
     coe
       (let v4
              = \ v4 ->
-                 coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108 in
+                 coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386 in
        coe
          (case coe v2 of
             MAlonzo.Code.Untyped.C_'96'_18 v5
@@ -107,7 +107,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                MAlonzo.Code.Untyped.C_'96'_18 v14
                                                                  -> let v15
                                                                           = coe
-                                                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108 in
+                                                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386 in
                                                                     coe
                                                                       (case coe v15 of
                                                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v16 v17
@@ -394,9 +394,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v17 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v18 v19
@@ -413,7 +413,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                        v21)
                                                                                                                     (case coe
                                                                                                                             v22 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                          -> let v24
                                                                                                                                   = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                       (coe
@@ -626,7 +626,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -877,9 +877,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v17 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v18 v19
@@ -1052,7 +1052,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v23
                                                                                                                   -> case coe
                                                                                                                             v23 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_Let'33'_In'33'__996 v26 v27
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_Let'33'_In'33'__1042 v26 v27
                                                                                                                          -> let v28
                                                                                                                                   = seq
                                                                                                                                       (coe
@@ -1264,9 +1264,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v18 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v19 v20
@@ -1283,7 +1283,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                        v22)
                                                                                                                     (case coe
                                                                                                                             v23 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                          -> let v25
                                                                                                                                   = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                       (coe
@@ -1496,7 +1496,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v27)
                                                                                                                                       (case coe
                                                                                                                                               v28 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v30
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -1747,9 +1747,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v17 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v18 v19
@@ -1766,7 +1766,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                        v21)
                                                                                                                     (case coe
                                                                                                                             v22 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                          -> let v24
                                                                                                                                   = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                       (coe
@@ -1979,7 +1979,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -2230,9 +2230,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v17 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v18 v19
@@ -2249,7 +2249,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                        v21)
                                                                                                                     (case coe
                                                                                                                             v22 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                          -> let v24
                                                                                                                                   = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                       (coe
@@ -2462,7 +2462,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -2713,9 +2713,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v17 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v18 v19
@@ -2732,7 +2732,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                        v21)
                                                                                                                     (case coe
                                                                                                                             v22 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                          -> let v24
                                                                                                                                   = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                       (coe
@@ -2945,7 +2945,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -3196,9 +3196,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v18 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v19 v20
@@ -3215,7 +3215,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                        v22)
                                                                                                                     (case coe
                                                                                                                             v23 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                          -> let v25
                                                                                                                                   = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                       (coe
@@ -3428,7 +3428,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v27)
                                                                                                                                       (case coe
                                                                                                                                               v28 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v30
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -3679,9 +3679,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v18 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v19 v20
@@ -3698,7 +3698,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                        v22)
                                                                                                                     (case coe
                                                                                                                             v23 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                          -> let v25
                                                                                                                                   = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                       (coe
@@ -3911,7 +3911,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v27)
                                                                                                                                       (case coe
                                                                                                                                               v28 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v30
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -4162,9 +4162,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v17 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v18 v19
@@ -4181,7 +4181,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                        v21)
                                                                                                                     (case coe
                                                                                                                             v22 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                          -> let v24
                                                                                                                                   = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                       (coe
@@ -4394,7 +4394,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -4645,9 +4645,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  = coe
                                                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                        MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                            coe
                                                                              (case coe v16 of
                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v17 v18
@@ -4664,7 +4664,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                        v20)
                                                                                                                     (case coe
                                                                                                                             v21 of
-                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                       MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                          -> let v23
                                                                                                                                   = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                       (coe
@@ -4877,7 +4877,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v25)
                                                                                                                                       (case coe
                                                                                                                                               v26 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v28
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -5127,7 +5127,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                MAlonzo.Code.Untyped.C_force_24 v14
                                                                  -> let v15
                                                                           = coe
-                                                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108 in
+                                                                              MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386 in
                                                                     coe
                                                                       (case coe v15 of
                                                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v16 v17
@@ -5435,9 +5435,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                           = coe
                                                                               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                               (coe
-                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                               (coe
-                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                     coe
                                                                       (case coe v16 of
                                                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v17 v18
@@ -5731,9 +5731,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                           = coe
                                                                               MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                               (coe
-                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                               (coe
-                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                     coe
                                                                       (case coe v16 of
                                                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v17 v18
@@ -6058,7 +6058,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                       then case coe v13 of
                                                              MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v14
                                                                -> case coe v14 of
-                                                                    MAlonzo.Code.VerifiedCompilation.UntypedViews.C_Let'33'_In'33'__996 v17 v18
+                                                                    MAlonzo.Code.VerifiedCompilation.UntypedViews.C_Let'33'_In'33'__1042 v17 v18
                                                                       -> coe
                                                                            seq (coe v17)
                                                                            (coe
@@ -6067,7 +6067,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  MAlonzo.Code.Untyped.C_'96'_18 v19
                                                                                    -> let v20
                                                                                             = coe
-                                                                                                MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108 in
+                                                                                                MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386 in
                                                                                       coe
                                                                                         (case coe
                                                                                                 v20 of
@@ -6356,9 +6356,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v22 of
@@ -6377,7 +6377,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -6590,7 +6590,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                                            v31)
                                                                                                                                                         (case coe
                                                                                                                                                                 v32 of
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                                              -> let v34
                                                                                                                                                                       = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                                           (coe
@@ -6841,9 +6841,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v22 of
@@ -7018,7 +7018,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                   MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v28
                                                                                                                                     -> case coe
                                                                                                                                               v28 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_Let'33'_In'33'__996 v31 v32
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_Let'33'_In'33'__1042 v31 v32
                                                                                                                                            -> let v33
                                                                                                                                                     = seq
                                                                                                                                                         (coe
@@ -7230,9 +7230,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v23 of
@@ -7251,7 +7251,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v27)
                                                                                                                                       (case coe
                                                                                                                                               v28 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v30
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -7464,7 +7464,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                                            v32)
                                                                                                                                                         (case coe
                                                                                                                                                                 v33 of
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                                              -> let v35
                                                                                                                                                                       = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                                           (coe
@@ -7715,9 +7715,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v22 of
@@ -7736,7 +7736,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -7949,7 +7949,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                                            v31)
                                                                                                                                                         (case coe
                                                                                                                                                                 v32 of
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                                              -> let v34
                                                                                                                                                                       = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                                           (coe
@@ -8200,9 +8200,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v22 of
@@ -8221,7 +8221,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -8434,7 +8434,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                                            v31)
                                                                                                                                                         (case coe
                                                                                                                                                                 v32 of
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                                              -> let v34
                                                                                                                                                                       = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                                           (coe
@@ -8685,9 +8685,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v22 of
@@ -8706,7 +8706,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -8919,7 +8919,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                                            v31)
                                                                                                                                                         (case coe
                                                                                                                                                                 v32 of
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                                              -> let v34
                                                                                                                                                                       = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                                           (coe
@@ -9170,9 +9170,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v23 of
@@ -9191,7 +9191,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v27)
                                                                                                                                       (case coe
                                                                                                                                               v28 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v30
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -9404,7 +9404,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                                            v32)
                                                                                                                                                         (case coe
                                                                                                                                                                 v33 of
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                                              -> let v35
                                                                                                                                                                       = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                                           (coe
@@ -9655,9 +9655,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v23 of
@@ -9676,7 +9676,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v27)
                                                                                                                                       (case coe
                                                                                                                                               v28 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v30
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -9889,7 +9889,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                                            v32)
                                                                                                                                                         (case coe
                                                                                                                                                                 v33 of
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                                              -> let v35
                                                                                                                                                                       = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                                           (coe
@@ -10140,9 +10140,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v22 of
@@ -10161,7 +10161,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v26)
                                                                                                                                       (case coe
                                                                                                                                               v27 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v29
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -10374,7 +10374,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                                            v31)
                                                                                                                                                         (case coe
                                                                                                                                                                 v32 of
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                                              -> let v34
                                                                                                                                                                       = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                                           (coe
@@ -10625,9 +10625,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                    = coe
                                                                                                        MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                        (coe
-                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                          MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                              coe
                                                                                                (case coe
                                                                                                        v21 of
@@ -10646,7 +10646,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                          v25)
                                                                                                                                       (case coe
                                                                                                                                               v26 of
-                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                         MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                            -> let v28
                                                                                                                                                     = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                         (coe
@@ -10859,7 +10859,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                                                                                            v30)
                                                                                                                                                         (case coe
                                                                                                                                                                 v31 of
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2104
+                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C_match'33'_2382
                                                                                                                                                              -> let v33
                                                                                                                                                                       = MAlonzo.Code.Untyped.Strictness.d__'8712''8595''63'__64
                                                                                                                                                                           (coe
@@ -11109,7 +11109,7 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                  MAlonzo.Code.Untyped.C_force_24 v19
                                                                                    -> let v20
                                                                                             = coe
-                                                                                                MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108 in
+                                                                                                MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386 in
                                                                                       coe
                                                                                         (case coe
                                                                                                 v20 of
@@ -11416,9 +11416,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                             = coe
                                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                       coe
                                                                                         (case coe
                                                                                                 v21 of
@@ -11715,9 +11715,9 @@ d_isUCSE'63'_24 v0 v1 v2
                                                                                             = coe
                                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108)
+                                                                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386)
                                                                                                 (coe
-                                                                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2108) in
+                                                                                                   MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2386) in
                                                                                       coe
                                                                                         (case coe
                                                                                                 v21 of
@@ -12100,7 +12100,7 @@ d_isUCSE'63'_24 v0 v1 v2
 d_'46'extendedlambda0_40 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_Let'7510'_In'7510'__986 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_Let'7510'_In'7510'__1032 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_UCSE_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
@@ -12121,13 +12121,13 @@ d_'46'extendedlambda2_106 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.Strictness.T__'8712''8595'__10 ->

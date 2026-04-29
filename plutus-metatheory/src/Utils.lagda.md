@@ -66,6 +66,12 @@ decIf : ∀{A B : Set} → Dec A → B → B → B
 decIf (yes p) t f = t
 decIf (no ¬p) t f = f
 
+infixr 8 _<|>_
+
+_<|>_ : ∀{A : Set} → Maybe A → Maybe A → Maybe A
+nothing <|> m = m
+just x <|> _ = just x
+
 maybeToEither : {A B : Set} → A → Maybe B → Either A B
 maybeToEither x = maybe inj₂ (inj₁ x)
 

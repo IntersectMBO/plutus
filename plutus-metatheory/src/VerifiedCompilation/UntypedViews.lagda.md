@@ -7,23 +7,28 @@ layout: page
 module VerifiedCompilation.UntypedViews where
 module SimpleTypeClass where
 
-open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error; Let_In_)
+open import Untyped
 open import Relation.Unary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Relation.Nullary.Negation
-open import Utils as U using (Maybe; nothing; just; Either)
+open import Utils as U using (Maybe; nothing; just; Either) renaming (_∷_ to cons; [] to nil)
 open import Relation.Nullary using (_×-dec_)
-open import Data.Product using (_,_; _×_)
+open import Data.Product using (_,_; _×_;Σ)
 open import RawU using (TmCon)
 open import Builtin using (Builtin; addInteger)
 open import Untyped.Equality using (decEq-⊢; _≟_)
 open import Data.List using (List; [_])
 open import Data.Fin using (Fin; suc; zero)
 open import Data.Nat using (ℕ; suc; zero)
+open import Data.Unit using (⊤; tt)
 open import Function using (_∋_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise; _∷_; [])
 open import Data.List using (List; _∷_; []; map)
+open import Data.Integer using (ℤ; +_; -[1+_])
+open import Builtin.Constant.AtomicType
+open import Builtin.Signature as B using (_⊢♯)
+open _⊢♯
 
 ```
 ## Pattern Views for Terms
@@ -280,8 +285,17 @@ data builtinᵖ (P : Pr Builtin) : Pr (X ⊢) where
 data errorᵖ : Pr (X ⊢) where
   error! : errorᵖ {X} error
 
+data tmConᵖ (t : TyTag) (P : Pr (⟦ t ⟧tag) ) : TmCon → Set where
+  tmCon! : ∀ {x} → P x → tmConᵖ t P (tmCon t x)
+
+data tmCon-listᵖ (P : ∀ t → Pr (⟦ list t ⟧tag)) : TmCon → Set where
+  tmCon-list! : ∀ {t xs} → P t xs → tmCon-listᵖ P (tmCon (list t) xs)
+
+data tmCon-pairᵖ (P : ∀ A B → Pr (⟦ pair A B ⟧tag)) : TmCon → Set where
+  tmCon-pair! : ∀ {A B x} → P A B x → tmCon-pairᵖ P (tmCon (pair A B) x)
+
 data Letᵖ_Inᵖ_ (P : Pr (X ⊢)) (Q : Pr (suc X ⊢)) : Pr (X ⊢) where
-  Let!_In!_ : ∀ {M N} → P M → Q N → (Letᵖ P Inᵖ Q) (Let M In N) 
+  Let!_In!_ : ∀ {M N} → P M → Q N → (Letᵖ P Inᵖ Q) (Let M In N)
 
 infix 0 Letᵖ_Inᵖ_
 infix 0 Let!_In!_
@@ -446,6 +460,46 @@ error? M with M
 ... | builtin _  = no λ ()
 ... | error      = yes error!
 
+tmCon? : ∀ (t : TyTag) {Q : Pr ⟦ t ⟧tag} → Decidable Q → Decidable (tmConᵖ t Q)
+tmCon? t Q? (tmCon t' x)
+  with t ≟ t'
+... | no ¬t≡t' = no λ {(tmCon! Q) → ¬t≡t' refl}
+... | yes refl
+  with Q? x
+... | no ¬Q = no λ {(tmCon! Q) → ¬Q Q}
+... | yes Q = yes (tmCon! Q)
+
+list? : ∀ (t : TyTag) → Dec (Σ _ λ t' → t ≡ list t')
+list? (list x) = yes (x , refl)
+list? (atomic _) = no λ ()
+list? (array _) = no λ ()
+list? (pair _ _) = no λ ()
+
+pair? : ∀ (t : TyTag) → Dec (Σ (TyTag × TyTag) λ {(A , B) → t ≡ pair A B})
+pair? (pair x y) = yes (_ , refl)
+pair? (atomic _) = no λ ()
+pair? (array _) = no λ ()
+pair? (list _) = no λ ()
+
+tmCon-list? : {P : ∀ t → Pr (⟦ list t ⟧tag)} → (∀ t → Decidable (P t)) → Decidable (tmCon-listᵖ P)
+tmCon-list? P? (tmCon t x)
+  with list? t
+... | no ¬Σ = no λ {(tmCon-list! P) → ¬Σ (_ , refl)}
+... | yes (t' , refl)
+  with P? t' x
+... | no ¬P = no λ {(tmCon-list! P) → ¬P P}
+... | yes P = yes (tmCon-list! P)
+
+
+tmCon-pair? : {P : ∀ A B → Pr (⟦ pair A B ⟧tag)} → (∀ A B → Decidable (P A B)) → Decidable (tmCon-pairᵖ P)
+tmCon-pair? P? (tmCon t x)
+  with pair? t
+... | no ¬Σ = no λ {(tmCon-pair! P) → ¬Σ (_ , refl)}
+... | yes ((A , B) , refl)
+  with P? A B x
+... | no ¬P = no λ {(tmCon-pair! P) → ¬P P}
+... | yes P = yes (tmCon-pair! P)
+
 infix 0 Let?_In?_
 Let?_In?_ :  {P : Pr (X ⊢)} {Q : Pr (suc X ⊢)} → Decidable P → Decidable Q → Decidable (Letᵖ P Inᵖ Q) 
 (Let? P? In? Q?) M with M
@@ -483,9 +537,11 @@ data match {A : Set} : Pr A where
 
 ```
 
-Views for lists:
+Views for lists (both from `Data.List` and `Util`)
 
 ```
+infixr 8 _∷ᵖ_ _∷!_ _∷?_
+
 data _∷ᵖ_ {A : Set} ( P : Pr A ) (Q : Pr (List A)) : Pr (List A) where
   _∷!_ : ∀ {x xs} → P x → Q xs → (P ∷ᵖ Q) (x ∷ xs)
 
@@ -501,6 +557,23 @@ data []ᵖ {A : Set} : Pr (List A) where
 []? : ∀ {A : Set} → Decidable ([]ᵖ {A})
 []? [] = yes []!
 []? (_ ∷ _) = no λ()
+
+
+data consᵖ {A : Set} (P : Pr A) (Q : Pr (U.List A)) : Pr (U.List A) where
+  cons! : ∀ {x xs} → P x → Q xs → (consᵖ P Q) (cons x xs)
+
+cons? : ∀ {A : Set} {P : Pr A} {Q} → Decidable P → Decidable Q → Decidable (consᵖ P Q)
+cons? P? Q? nil = no λ()
+cons? P? Q? (cons x xs) with P? x ×-dec Q? xs
+... | yes (Px , Qxs) = yes (cons! Px Qxs)
+... | no  ¬PQ = no λ {(cons! P Q) → ¬PQ (P , Q)}
+
+data nilᵖ {A : Set} : Pr (U.List A) where
+  nil! : nilᵖ nil
+
+nil? : ∀ {A : Set} → Decidable (nilᵖ {A})
+nil? nil = yes nil!
+nil? (cons _ _) = no λ()
 ```
 
 Shorthand for singleton lists:
@@ -508,6 +581,18 @@ Shorthand for singleton lists:
 ```
 singleton? : ∀ {A : Set} → Decidable (match {A} ∷ᵖ []ᵖ)
 singleton? = ⋯ ∷? []?
+```
+
+Views for built-in datatypes
+
+```
+data posᵖ : ℤ → Set where
+  pos! : ∀ n → posᵖ (+ n)
+
+pos? : (x : ℤ) → Dec (posᵖ x)
+pos? (+ x) = yes (pos! x)
+pos? (-[1+ x ]) = no λ ()
+
 ```
 
 ## Inhabited types
@@ -597,6 +682,21 @@ instance
     →  Inhabited ((Letᵖ P Inᵖ Q) (Let M In N))
   inh-let = inh (Let! inhabitant In! inhabitant)
 
+  inh-tmCon : ∀ {t} {x : ⟦ t ⟧tag} {Q} →
+    {{Inhabited (Q x)}} →
+    Inhabited (tmConᵖ t Q (tmCon t x))
+  inh-tmCon = inh (tmCon! inhabitant)
+
+  inh-tmCon-list : ∀ {P t xs} →
+    {{Inhabited (P t xs)}} →
+    Inhabited (tmCon-listᵖ P (tmCon (list t) xs))
+  inh-tmCon-list = inh (tmCon-list! inhabitant)
+
+  inh-tmCon-pair : ∀ {P A B x} →
+    {{Inhabited (P A B x)}} →
+    Inhabited (tmCon-pairᵖ P (tmCon (pair A B) x))
+  inh-tmCon-pair = inh (tmCon-pair! inhabitant)
+
   inh-match : ∀ {A : Set} {X : A} → Inhabited (match X)
   inh-match = record {inhabitant = match! _}
 
@@ -616,6 +716,18 @@ instance
     Inhabited ([]ᵖ ([] {A = A}))
   inh-[]ᵖ = record {inhabitant = []!}
 
+  inh-consᵖ : ∀ {A : Set} {x : A} {xs} {P Q} →
+    {{Inhabited (P x)}} →
+    {{Inhabited (Q xs)}} →
+    Inhabited ((consᵖ P Q) (cons x xs))
+  inh-consᵖ = record {inhabitant = cons! inhabitant inhabitant}
+
+  inh-nilᵖ : ∀ {A : Set} →
+    Inhabited (nilᵖ (nil {A = A}))
+  inh-nilᵖ = record {inhabitant = nil!}
+
+  inh-posᵖ : ∀ {n} → Inhabited (posᵖ (+ n))
+  inh-posᵖ {n} = inh (pos! n)
 ```
 
 ### Examples

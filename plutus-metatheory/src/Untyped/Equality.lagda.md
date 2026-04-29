@@ -139,6 +139,9 @@ instance
   DecEq-ℤ : DecEq ℤ
   DecEq-ℤ ._≟_ = Data.Integer.Properties._≟_
 
+  DecEq-Fin : ∀ {n} → DecEq (Fin n)
+  DecEq-Fin ._≟_ = Data.Fin.Properties._≟_
+
   DecEq-String : DecEq String
   DecEq-String ._≟_ = Data.String.Properties._≟_
 

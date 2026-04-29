@@ -53,6 +53,7 @@ import VerifiedCompilation.UCaseReduce as UCR
 open import VerifiedCompilation.NotImplemented
 open import VerifiedCompilation.Trace
 open import VerifiedCompilation.Certificate hiding (_>>=_)
+open import Relation.Binary.PropositionalEquality
 
 
 -- | The failure modes of the certifier
@@ -78,6 +79,7 @@ tagToRelation forceCaseDelayT = UFCD.ForceCaseDelay
 tagToRelation inlineT = UInline.Inline (λ()) UInline.□
 tagToRelation cseT = UCSE.UntypedCSE
 tagToRelation applyToCaseT = UA2C.UApplyToCase
+tagToRelation caseReduceT = UCR.CaseReduce
 ```
 
 We default to the `NotImplemented` relation to give each `OptTag` a relation:
@@ -103,6 +105,7 @@ certifyPass (inj₂ inlineT) (inline hs) = checker (UInline.top-check hs)
 certifyPass (inj₂ inlineT) none = λ M M' → abort InlineT M M'
 certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
 certifyPass (inj₂ applyToCaseT) _ = decider UA2C.a2c?ᶜᶜ
+certifyPass (inj₂ caseReduceT) _ = decider UCR.decide
 ```
 
 A `Certificate t` states the main theorem of a trace `t`: a sequence (product)

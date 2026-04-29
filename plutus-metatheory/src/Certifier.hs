@@ -218,7 +218,6 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
        \\nopen import VerifiedCompilation\
        \\nopen import VerifiedCompilation.Certificate\
        \\nopen import VerifiedCompilation.Trace\
-       \\nopen import Untyped\
        \\nopen import RawU\
        \\nopen import Builtin\
        \\nopen import Data.Unit\
@@ -325,7 +324,8 @@ mkAgdaLib name =
           <> "\ndepend:\
              \\n  standard-library-2.3\
              \\n  plutus-metatheory\
-             \\ninclude: src"
+             \\ninclude: src\
+             \\nflags: --polarity"
    in (name <> ".agda-lib", contents)
 
 mkAgdaCertificateProject
