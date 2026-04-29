@@ -86,6 +86,7 @@ library
     , plutus-core                       ^>=1.62
     , plutus-ledger-api
     , plutus-ledger-api:plutus-execlib
+    , prettyprinter
     , text
     , transformers
     , vector                            ^>=0.13.2
