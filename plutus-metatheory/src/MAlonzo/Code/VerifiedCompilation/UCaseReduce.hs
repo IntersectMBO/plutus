@@ -1829,17 +1829,9 @@ du_red'45'pair_478 v0
 -- VerifiedCompilation.UCaseReduce.reduce
 d_reduce_504 ::
   Integer ->
-  (Integer ->
-   MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_reduce_504 v0 ~v1 = du_reduce_504 v0
-du_reduce_504 ::
-  Integer ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-du_reduce_504 v0
+d_reduce_504 v0
   = coe
       MAlonzo.Code.Untyped.Relation.Binary.Modular.du__'60''124''62'__1128
       (coe (\ v1 -> coe du_red'45'constr_258))
@@ -1874,7 +1866,7 @@ d_reduceM_506 ::
 d_reduceM_506 v0
   = coe
       MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-      (coe v0) (coe (\ v1 -> coe du_reduce_504 (coe v1)))
+      (coe v0) (coe d_reduce_504)
 -- VerifiedCompilation.UCaseReduce.case-reduce
 d_case'45'reduce_508 ::
   Integer ->
@@ -1917,7 +1909,7 @@ d_decide_526 v0 v1 v2
                        (\ v3 ->
                           coe
                             MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                            (coe v3) (coe (\ v4 -> coe du_reduce_504 (coe v4)))))
+                            (coe v3) (coe d_reduce_504)))
                     (coe v0) (coe v1))
                  (let v3
                         = coe
@@ -1926,7 +1918,7 @@ d_decide_526 v0 v1 v2
                                (\ v3 ->
                                   coe
                                     MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                                    (coe v3) (coe (\ v4 -> coe du_reduce_504 (coe v4)))))
+                                    (coe v3) (coe d_reduce_504)))
                             (coe v0) (coe v1) in
                   coe
                     (let v4
@@ -1960,7 +1952,7 @@ d_decide_526 v0 v1 v2
                                      (\ v5 ->
                                         coe
                                           MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                                          (coe v5) (coe (\ v6 -> coe du_reduce_504 (coe v6)))))
+                                          (coe v5) (coe d_reduce_504)))
                                   (coe v0) (coe v1) in
                         coe
                           (let v6
@@ -1970,7 +1962,7 @@ d_decide_526 v0 v1 v2
                                         (\ v6 ->
                                            coe
                                              MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                                             (coe v6) (coe (\ v7 -> coe du_reduce_504 (coe v7)))))
+                                             (coe v6) (coe d_reduce_504)))
                                      (coe v0) (coe v1) in
                            coe
                              (let v7
@@ -2566,7 +2558,7 @@ du_reduce'45'refine_558 ::
 du_reduce'45'refine_558 v0 v1 v2 v3
   = coe
       MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63''45'refines_234
-      (coe (\ v4 -> coe du_reduce_504 (coe v4))) (coe v0) v1
+      (coe d_reduce_504) (coe v0) v1
 -- VerifiedCompilation.UCaseReduce._.reduceM-~
 d_reduceM'45''126'_560 ::
   Integer ->
@@ -2712,7 +2704,7 @@ du_decide'45''126'_604 v0 v1 v2
                        (\ v3 ->
                           coe
                             MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                            (coe v3) (coe (\ v4 -> coe du_reduce_504 (coe v4)))))
+                            (coe v3) (coe d_reduce_504)))
                     (coe v0) (coe v1))
                  (let v3
                         = coe
@@ -2721,7 +2713,7 @@ du_decide'45''126'_604 v0 v1 v2
                                (\ v3 ->
                                   coe
                                     MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                                    (coe v3) (coe (\ v4 -> coe du_reduce_504 (coe v4)))))
+                                    (coe v3) (coe d_reduce_504)))
                             (coe v0) (coe v1) in
                   coe
                     (let v4
@@ -2755,7 +2747,7 @@ du_decide'45''126'_604 v0 v1 v2
                                      (\ v5 ->
                                         coe
                                           MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                                          (coe v5) (coe (\ v6 -> coe du_reduce_504 (coe v6)))))
+                                          (coe v5) (coe d_reduce_504)))
                                   (coe v0) (coe v1) in
                         coe
                           (let v6
@@ -2765,7 +2757,7 @@ du_decide'45''126'_604 v0 v1 v2
                                         (\ v6 ->
                                            coe
                                              MAlonzo.Code.Untyped.Relation.Binary.Properties.du_refine'63'_210
-                                             (coe v6) (coe (\ v7 -> coe du_reduce_504 (coe v7)))))
+                                             (coe v6) (coe d_reduce_504)))
                                      (coe v0) (coe v1) in
                            coe
                              (let v7

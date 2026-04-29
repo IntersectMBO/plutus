@@ -228,9 +228,9 @@ private module Test where
 ## CaseReduce translation relation
 
 For each of the inductive reduction rules, we give a corresponding partial
-function, which also witnesses the proof of the reduction rule when it succeeds
-(this comes in handy when proving soundness w.r.t the inductive translation
-relation later on)
+function, which by construction is sound w.r.t `_~_`: it also produces proof of
+the reduction rule when it succeeds (this comes in handy when proving soundness
+w.r.t the inductive translation relation later on)
 
 ```
 private variable
@@ -304,10 +304,10 @@ red-pair M
   just (N · con (tmCon _ x) · con (tmCon _ y) , case-pair)
 ```
 
-Combining all reduction rules:
+Combining all reduction rules gives a sound-by-construction reduction function:
 
 ```
-reduce : (M : X ⊢) → Maybe (∃ λ M' → Reduction R M M')
+reduce : (M : X ⊢) → Maybe (∃ λ M' → Reduction _~_ M M')
 reduce =
   red-constr
   <|> red-unit
@@ -320,12 +320,28 @@ reduce =
   <|> red-pair
 ```
 
+### Alternative for sound-by-construction
+
+We could alternatively set it up in a more extrinsic way:
+
+```text
+red-unit : X ⊢ → Maybe (X ⊢)
+
+red-unit-sound : (M M' : X ⊢) → red-unit M ≡ just M' → CaseUnit R M M'
+```
+
+But this has to be done for each reduction rule and resulted in more boilerplate
+code which disappears if you combine them.
+
+
+## The pass
+
 The pass is implemented as a bottom-up traversal that applies the reduction
 rules:
 
 ```
 reduceM : X ⊢ → Maybe (X ⊢)
-reduceM = refine? (reduce {R = _~_})
+reduceM = refine? reduce
 
 case-reduce : X ⊢ → X ⊢
 case-reduce M = reduceM ↑? M
