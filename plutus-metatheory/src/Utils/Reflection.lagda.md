@@ -129,8 +129,9 @@ natPat : ℕ → Pattern
 natPat zero    = con (quote zero) []
 natPat (suc n) = con (quote suc) (vArg (natPat n) ∷ [])
 
+
 mk-FromEnum : List Name → List Clause
-mk-FromEnum xs = go 0 xs ++ [ clause [ ("_" , vArg (quoteTerm ℕ)) ] [ vArg (var zero) ] (con (quote nothing) []) ]
+mk-FromEnum xs = go 0 xs ++ [ clause [ ("foo" , vArg (quoteTerm ℕ)) ] [ vArg (var zero) ] (con (quote nothing) []) ]
   where
     go : ℕ → List Name → List Clause
     go _ [] = []
@@ -155,6 +156,10 @@ defFromEnum type defName = do
   d ← getDefinition type
   let clauses = mk-FromEnum (constructors d)
   defineFun defName clauses
+
+defDecodeEncode : Name → Name → TC ⊤
+defDecodeEncode T defName = {!   !}
+  
 
 ```
 

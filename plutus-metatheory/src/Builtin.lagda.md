@@ -703,7 +703,7 @@ open import Relation.Binary.PropositionalEquality.Core
 
 -- TODO: this should be generated
 decode-encode : ∀ x → fromEnumBuiltin (enumBuiltin x) ≡ just x
-decode-encode x = primTrustMe
+unquoteDef decode-encode = defDecodeEncode (quote Builtin) decode-encode
 
 enumBuiltin-injective : (b1 b2 : Builtin) → enumBuiltin b1 ≡ enumBuiltin b2 → b1 ≡ b2
 enumBuiltin-injective x y p = just-injective (
@@ -714,9 +714,7 @@ enumBuiltin-injective x y p = just-injective (
     just y
   ∎)
   where
-    open begin-syntax {Agda.Primitive.lzero} {Maybe Builtin} _≡_ id 
-    open ≡-syntax {Agda.Primitive.lzero} {Maybe Builtin} _≡_ trans 
-    open end-syntax {Agda.Primitive.lzero} {Maybe Builtin} _≡_ refl 
+    open Relation.Binary.PropositionalEquality.≡-Reasoning
 
 
 decBuiltin : DecidableEquality Builtin
