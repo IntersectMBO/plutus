@@ -72,6 +72,8 @@ data _⊢ (n : ℕ) : Set where
 
 pattern Let_In_ rhs body = ƛ body · rhs
 infix 2 Let_In_
+
+pattern let' rhs body = ƛ body · rhs
 ```
 
 ```

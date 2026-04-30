@@ -299,6 +299,11 @@ data Letᵖ_Inᵖ_ (P : Pr (X ⊢)) (Q : Pr (suc X ⊢)) : Pr (X ⊢) where
 
 infix 0 Letᵖ_Inᵖ_
 infix 0 Let!_In!_
+
+let'ᵖ : (P : Pr (X ⊢)) (Q : Pr (suc X ⊢)) → Pr (X ⊢)
+let'ᵖ = Letᵖ_Inᵖ_
+
+pattern let'! P Q = Let! P In! Q
 ```
 
 Each predicate is decidable if the predicates on sub-terms are decidable.
@@ -524,6 +529,9 @@ Let?_In?_ :  {P : Pr (X ⊢)} {Q : Pr (suc X ⊢)} → Decidable P → Decidable
 ... | Let N In M₁ with P? N ×-dec Q? M₁
 ... | yes (PN , QM) = yes (Let! PN In! QM)
 ... | no ¬PN×QM = no λ { (Let! PN In! QM) → ¬PN×QM (PN , QM)}
+
+let'? :  {P : Pr (X ⊢)} {Q : Pr (suc X ⊢)} → Decidable P → Decidable Q → Decidable (let'ᵖ P Q) 
+let'? = Let?_In?_
 ```
 
 `match` is the trivial predicate that always holds:
