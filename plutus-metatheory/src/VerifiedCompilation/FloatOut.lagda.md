@@ -30,7 +30,7 @@ data FloatApply (@++ R : Relation) : Relation where
     ∀ {X} {M N K : X ⊢} {L N' : suc X ⊢}
     → R M (let' K L)
     → R (weaken N) N'
-    -----------------------------------------------------------
+    ----------------------------------------
     → FloatApply R (M · N) (let' K (L · N'))
 
 data FloatCase (@++ R : Relation) : Relation where
@@ -38,14 +38,14 @@ data FloatCase (@++ R : Relation) : Relation where
     ∀ {X} {M N : X ⊢} {L : suc X ⊢} {Ms Ms'}
     → R M (let' N L)
     → Pointwise R (map weaken Ms) Ms'
-    ------------------------------------------------------------------------
+    -----------------------------------------------
     → FloatCase R (case M Ms) (let' N (case L Ms'))
 
 data FloatForce (@++ R : Relation) : Relation where
   float-force :
     ∀ {X} {M N : X ⊢} {L : suc X ⊢}
     → R M (let' N L)
-    -----------------------------------------------------------
+    -------------------------------------------
     → FloatForce R (force M) (let' N (force L))
 ```
 ## Full relation
@@ -101,7 +101,10 @@ to more often see a compatibility case:
 ```
 dec : DecidableRel FloatOut
 dec = Fix-dec (compatTerm? +-dec apply-dec +-dec case-dec +-dec force-dec)
+```
 
+Wrapper for `ProofOrCE`:
+```
 decide : ∀ {X} (M M' : X ⊢) → ProofOrCE (FloatOut M M')
 decide M M' = case dec M M' of λ where
   (yes P) → proof P
