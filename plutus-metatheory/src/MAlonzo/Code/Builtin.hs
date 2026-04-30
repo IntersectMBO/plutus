@@ -2742,13 +2742,19 @@ d_replicateBYTE_408
 -- Builtin.shiftBYTESTRING
 d_shiftBYTESTRING_410 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
-  Integer -> MAlonzo.Code.Utils.T_ByteString_426
-d_shiftBYTESTRING_410 = Bitwise.shiftByteString
+  Integer ->
+  MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
+    () MAlonzo.Code.Utils.T_ByteString_426
+d_shiftBYTESTRING_410
+  = \s i -> if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int) then Just $ Bitwise.shiftByteString s i else Nothing
 -- Builtin.rotateBYTESTRING
 d_rotateBYTESTRING_412 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
-  Integer -> MAlonzo.Code.Utils.T_ByteString_426
-d_rotateBYTESTRING_412 = Bitwise.rotateByteString
+  Integer ->
+  MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
+    () MAlonzo.Code.Utils.T_ByteString_426
+d_rotateBYTESTRING_412
+  = \s i -> if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int) then Just $ Bitwise.rotateByteString s i else Nothing
 -- Builtin.countSetBITS
 d_countSetBITS_414 ::
   MAlonzo.Code.Utils.T_ByteString_426 -> Integer

@@ -38,6 +38,7 @@ module PlutusCore.Default.Universe
   , pattern DefaultUniList
   , pattern DefaultUniArray
   , pattern DefaultUniPair
+  , defaultUniSize
   , noMoreTypeFunctions
   , module Export -- Re-exporting universes infrastructure for convenience.
   ) where
@@ -50,6 +51,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
+import PlutusCore.Default.Universe.Cardano
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , IntegerCostedLiterally (..)
@@ -62,6 +64,7 @@ import PlutusCore.Value (Value)
 
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
+import Data.ByteString qualified as B
 import Data.Int
   ( Int16
   , Int32
@@ -143,6 +146,11 @@ pattern DefaultUniArray uniA =
   DefaultUniProtoArray `DefaultUniApply` uniA
 pattern DefaultUniPair uniA uniB =
   DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
+
+defaultUniSize :: forall k (a :: k). DefaultUni (Esc a) -> Int
+defaultUniSize = \case
+  DefaultUniApply uniF uniA -> defaultUniSize uniF + defaultUniSize uniA + 1
+  _ -> 1
 
 -- Removing 'LoopBreaker' didn't change anything at the time this comment was written, but we kept
 -- it, because it hopefully provides some additional assurance that 'geqL' will not get elaborated
@@ -778,6 +786,60 @@ instance
               [ Text.pack $ show i
               , " is not within the bounds of Natural"
               ]
+  {-# INLINE readKnown #-}
+
+deriving newtype instance
+  KnownTypeAst tyname DefaultUni CInteger
+
+instance
+  KnownBuiltinTypeIn DefaultUni term Integer
+  => MakeKnownIn DefaultUni term CInteger
+  where
+  makeKnown (CInteger i)
+    | i > maxBoundInteger || i < minBoundInteger =
+        BuiltinFailure
+          (pure "Integer overflow")
+          BuiltinEvaluationFailure
+    | otherwise = makeKnown i
+  {-# INLINE makeKnown #-}
+
+instance
+  KnownBuiltinTypeIn DefaultUni term Integer
+  => ReadKnownIn DefaultUni term CInteger
+  where
+  readKnown term =
+    inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+      if i > maxBoundInteger || i < minBoundInteger
+        then
+          throwError . operationalUnliftingError $
+            "Integer overflow"
+        else pure $ CInteger i
+  {-# INLINE readKnown #-}
+
+deriving newtype instance
+  KnownTypeAst tyname DefaultUni CByteString
+instance
+  KnownBuiltinTypeIn DefaultUni term ByteString
+  => MakeKnownIn DefaultUni term CByteString
+  where
+  makeKnown (CByteString s)
+    | B.length s > maxBoundByteString =
+        BuiltinFailure
+          (pure "Integer overflow")
+          BuiltinEvaluationFailure
+    | otherwise = makeKnown s
+  {-# INLINE makeKnown #-}
+instance
+  KnownBuiltinTypeIn DefaultUni term ByteString
+  => ReadKnownIn DefaultUni term CByteString
+  where
+  readKnown term =
+    inline readKnownConstant term >>= oneShot \(s :: ByteString) ->
+      if B.length s > maxBoundByteString
+        then
+          throwError . operationalUnliftingError $
+            "ByteString overflow"
+        else pure $ CByteString s
   {-# INLINE readKnown #-}
 
 outOfBoundsErr :: Pretty a => a -> Vector.Vector term -> Text

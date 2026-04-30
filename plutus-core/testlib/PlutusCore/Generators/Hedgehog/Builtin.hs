@@ -18,6 +18,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
+import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount
   , IntegerCostedLiterally
@@ -37,7 +38,7 @@ import Data.Text (Text)
 import Data.Type.Equality
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
-import Data.Word (Word8)
+import Data.Word (Word64, Word8)
 import GHC.Natural
 import Hedgehog hiding
   ( Opaque
@@ -107,11 +108,14 @@ genConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @Integer) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @Int) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @Word8) = genArbitraryBuiltin @Integer
+  | Just HRefl <- eqTypeRep tr (typeRep @Word64) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @Natural) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = genArbitraryBuiltin @Integer
+  | Just HRefl <- eqTypeRep tr (typeRep @CInteger) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @Bool) = genArbitraryBuiltin @Bool
   | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = genArbitraryBuiltin @BS.ByteString
+  | Just HRefl <- eqTypeRep tr (typeRep @CByteString) = genArbitraryBuiltin @BS.ByteString
   | Just HRefl <- eqTypeRep tr (typeRep @Text) = genArbitraryBuiltin @Text
   | Just HRefl <- eqTypeRep tr (typeRep @Data) = genArbitraryBuiltin @Data
   | Just HRefl <- eqTypeRep tr (typeRep @DataNodeCount) = genArbitraryBuiltin @Data

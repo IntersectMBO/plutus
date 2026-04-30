@@ -7,6 +7,7 @@ module PlutusCore.Crypto.ExpMod
 
 import PlutusCore.Builtin
 
+import Data.Bits (shiftL)
 import GHC.Natural
 import GHC.Num.Integer
 
@@ -22,6 +23,7 @@ expMod b e m
   -- is invertible modulo 1, with inverse 0.
   | b == 0 && e < 0 = failNonInvertible 0 m
   -- \^ integerPowMod# incorrectly returns 0 in this case.
+  | oob b || oob e || m > maxBoundN = fail "expMod: out of bounds"
   | otherwise =
       case integerPowMod# b e m of
         (# n | #) -> pure n
@@ -29,5 +31,19 @@ expMod b e m
   where
     failNonInvertible :: Integer -> Natural -> BuiltinResult Natural
     failNonInvertible b1 m1 =
-      fail ("expMod: " ++ (show b1) ++ " is not invertible modulo " ++ (show m1))
+      fail ("expMod: " ++ show b1 ++ " is not invertible modulo " ++ show m1)
 {-# INLINE expMod #-}
+
+maxBoundI, minBoundI :: Integer
+maxBoundI = shiftL 1 8191 - 1
+minBoundI = negate (shiftL 1 8191)
+{-# NOINLINE maxBoundI #-}
+{-# NOINLINE minBoundI #-}
+
+maxBoundN :: Natural
+maxBoundN = shiftL 1 8191 - 1
+{-# NOINLINE maxBoundN #-}
+
+oob :: Integer -> Bool
+oob x = x > maxBoundI || x < minBoundI
+{-# INLINE oob #-}

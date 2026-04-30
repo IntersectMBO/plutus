@@ -135,16 +135,25 @@ decodeTerm
      , Flat (Binder name)
      )
   => Version
+  -> (Some (ValueOf uni) -> Maybe String)
   -> (fun -> Maybe String)
+  -> (Int -> Maybe String)
   -> Get (Term name uni fun ann)
-decodeTerm version builtinPred = go
+decodeTerm version constantPred builtinPred constrPred = go
   where
     go = handleTerm =<< decodeTermTag
     handleTerm 0 = Var <$> decode <*> decode
     handleTerm 1 = Delay <$> decode <*> go
     handleTerm 2 = LamAbs <$> decode <*> (unBinder <$> decode) <*> go
     handleTerm 3 = Apply <$> decode <*> go <*> go
-    handleTerm 4 = Constant <$> decode <*> decode
+    handleTerm 4 = do
+      ann <- decode
+      val <- decode
+      let c :: Term name uni fun ann
+          c = Constant ann val
+      case constantPred val of
+        Nothing -> pure c
+        Just e -> fail e
     handleTerm 5 = Force <$> decode <*> go
     handleTerm 6 = Error <$> decode
     handleTerm 7 = do
@@ -160,7 +169,15 @@ decodeTerm version builtinPred = go
         fail $
           "'constr' is not allowed before version 1.1.0, this program has version: "
             ++ (show $ pretty version)
-      Constr <$> decode <*> decode <*> decodeListWith go
+      Constr
+        <$> decode
+        <*> decode
+        <*> ( do
+                fields <- decodeListWith go
+                case constrPred (length fields) of
+                  Nothing -> pure fields
+                  Just e -> fail e
+            )
     handleTerm 9 = do
       unless (version >= PLC.plcVersion110) $
         fail $
@@ -222,12 +239,14 @@ decodeProgram
      , Flat name
      , Flat (Binder name)
      )
-  => (fun -> Maybe String)
+  => (Some (ValueOf uni) -> Maybe String)
+  -> (fun -> Maybe String)
+  -> (Int -> Maybe String)
   -> Get (Program name uni fun ann)
-decodeProgram builtinPred = do
+decodeProgram constantPred builtinPred constrPred = do
   ann <- decode
   v <- decode
-  Program ann v <$> decodeTerm v builtinPred
+  Program ann v <$> decodeTerm v constantPred builtinPred constrPred
 
 sizeProgram
   :: forall name uni fun ann
@@ -282,6 +301,6 @@ instance
   => Flat (UnrestrictedProgram name uni fun ann)
   where
   encode (UnrestrictedProgram p) = encodeProgram p
-  decode = UnrestrictedProgram <$> decodeProgram (const Nothing)
+  decode = UnrestrictedProgram <$> decodeProgram (const Nothing) (const Nothing) (const Nothing)
 
   size (UnrestrictedProgram p) = sizeProgram p

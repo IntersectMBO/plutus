@@ -1,1 +1,1 @@
-Bool -> ByteString -> Integer
+Bool -> CByteString -> Integer

@@ -22,6 +22,7 @@ import PlutusPrelude
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Default
 import PlutusCore.Pretty
 
 import Data.ByteString qualified as BS
@@ -103,7 +104,12 @@ genTypedBuiltinDef
   :: (HasConstantIn DefaultUni term, Monad m)
   => TypedBuiltinGenT term m
 genTypedBuiltinDef =
-  updateTypedBuiltinGen @Integer (Gen.integral $ Range.linearFrom 0 0 10) $
-    updateTypedBuiltinGen (genLowerBytes (Range.linear 0 10)) $
-      updateTypedBuiltinGen Gen.bool $
-        genTypedBuiltinFail
+  updateTypedBuiltinGen @Integer genInteger $
+    updateTypedBuiltinGen (CInteger <$> genInteger) $
+      updateTypedBuiltinGen genByteString $
+        updateTypedBuiltinGen (CByteString <$> genByteString) $
+          updateTypedBuiltinGen Gen.bool $
+            genTypedBuiltinFail
+  where
+    genInteger = Gen.integral $ Range.linearFrom 0 0 10
+    genByteString = genLowerBytes (Range.linear 0 10)
