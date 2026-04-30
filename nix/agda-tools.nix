@@ -139,7 +139,7 @@ let
     version = "2.8.0";
     compiler-nix-name = "ghc96";
     cabalProjectLocal = "extra-packages: ieee754, filemanip";
-    modules = [ agda-project-module-patch-default ];
+    modules = [ agda-project-module-patch-default { packages.Agda.flags.debug = true; } ];
   };
 
   # Path to the stdlib .agda-lib file for shell export.

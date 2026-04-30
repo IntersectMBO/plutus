@@ -1,3 +1,4 @@
+{-# OPTIONS -v tc.instance:30 #-}
 ---
 title: VerifiedCompilation.UCaseReduce
 layout: page
@@ -33,6 +34,7 @@ module VerifiedCompilation.UCaseReduce where
 
 ```
 
+open import Function using (_∘_)
 open import Data.Bool using (true; false; if_then_else_; Bool)
 open import Data.Maybe
 open import Data.List using (List; _∷_; []; [_])
@@ -53,13 +55,13 @@ open import RawU using (tag2TyTag; tmCon; Tag)
 open import Untyped.Equality
 open import Untyped.Reduction using (iterApp)
 open import Untyped.Relation.Binary
-open import Untyped.Relation.Binary.Modular
+open import Untyped.Relation.Binary.Modular hiding (_<|>_)
 open import Untyped.Transform
 open Untyped.Transform.Refines?
 open import Untyped.CEK using (lookup?)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; CaseReduceT; Proof?; abort)
 open import VerifiedCompilation.UntypedViews
-open import Utils using () renaming (_,_ to _,,_; _∷_ to cons; [] to nil)
+open import Utils using (_<|>_) renaming (_,_ to _,,_; _∷_ to cons; [] to nil)
 
 ```
 ## Reduction Rules
@@ -159,24 +161,61 @@ Reduction
   + CaseCons₂
   + CaseNil
   + CasePair
+  + Empty
+
+
+private variable
+  R : Relation
+  X : ℕ
+
+-- cr-constr : CaseConstr R ⊆ Reduction R
+-- cr-constr = p0
+-- 
+-- cr-unit : CaseUnit R ⊆ Reduction R
+-- cr-unit = p1
+-- 
+-- cr-false₁ : CaseFalse₁ R ⊆ Reduction R
+-- cr-false₁ = p2
+-- 
+-- cr-bool : CaseBool R ⊆ Reduction R
+-- cr-bool = p3
+-- 
+-- cr-integer : CaseInteger R ⊆ Reduction R
+-- cr-integer = p4
+-- 
+-- cr-cons₁ : CaseCons₁ R ⊆ Reduction R
+-- cr-cons₁ = p5
+-- 
+-- cr-cons₂ : CaseCons₂ R ⊆ Reduction R
+-- cr-cons₂ = p6
+-- 
+-- cr-nil : CaseNil R ⊆ Reduction R
+-- cr-nil = p7
+-- 
+-- cr-pair : CasePair R ⊆ Reduction R
+-- cr-pair = p8
 ```
 
 The equivalence is closed under the reduction rules and compatibility
 rules
 
 ```
+Rules : RelationT
+Rules = Reduction + CompatTerm + Transitivity + Symmetry + Reflexivity + Empty
+
 _~_ : Relation
-_~_ = Fix (Reduction + CompatTerm + Transitivity + Symmetry + Reflexivity)
+_~_ = Fix Rules
 ```
 
 Pattern synonyms for constructors:
 
 ```
-pattern cr-reduction p = fix (inl p)
+cr-reduction : Reduction _~_ ⊆ _~_
+cr-reduction p = fix (inl p)
 pattern cr-compat p    = fix (inr (inl p))
 pattern cr-trans p q   = fix (inr (inr (inl (transF p q))))
 pattern cr-sym p       = fix (inr (inr (inr (inl (symF p)))))
-pattern cr-refl        = fix (inr (inr (inr (inr reflF))))
+pattern cr-refl        = fix (inr (inr (inr (inr (inl reflF)))))
 ```
 
 Convenient helpers
@@ -194,7 +233,7 @@ cr-refl* :
 cr-refl* = pointwise-refl {R = _~_} cr-refl
 
 cr-TermCompat : TermCompatible _~_
-cr-TermCompat = CompatTerm-TermCompatible cr-compat
+cr-TermCompat = CompatTerm-TermCompatible (inj {G = Rules})
 ```
 
 Testing the relation:
@@ -233,91 +272,95 @@ the reduction rule when it succeeds (this comes in handy when proving soundness
 w.r.t the inductive translation relation later on)
 
 ```
-private variable
-  R : Relation
-  X : ℕ
+variable
+  F : RelationT
 
-red-constr : (M : X ⊢) → Maybe (∃ λ M' → CaseConstr R M M')
-red-constr M
+red-constr : CaseConstr ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+red-constr inj M
   with (case? (constr? ⋯ ⋯) ⋯) M
 ... | no _ = nothing
 ... | yes (case! (constr! (match! i) (match! Ms)) (match! Ns))
   with lookup? i Ns in eq
 ... | nothing = nothing
-... | just N = just (iterApp N Ms , case-constr eq)
+... | just N = just (iterApp N Ms , fix (inj (case-constr eq)))
 
-red-unit : (M : X ⊢) → Maybe (∃ λ M' → CaseUnit R M M')
-red-unit M
+red-unit : CaseUnit ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+red-unit inj M
   with (case? (con? (tmCon? unit ⋯)) (⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon! (match! v))) (match! N ∷! []!))
-  = just (N , case-unit)
+  = just (N , fix (inj case-unit))
 
-red-false₁ : (M : X ⊢) → Maybe (∃ λ M' → CaseFalse₁ R M M')
-red-false₁ M
+red-false₁ : CaseFalse₁ ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+red-false₁ inj M
   with (case? (con? (tmCon? bool (_≟_ false))) (⋯ ∷? []?)) M
 ... | no _ = nothing
-... | yes (case! (con! (tmCon! refl)) (match! N ∷! []!)) = just (N , case-false₁)
+... | yes (case! (con! (tmCon! refl)) (match! N ∷! []!))
+  = just (N , fix (inj case-false₁))
 
-red-bool : (M : X ⊢) → Maybe (∃ λ M' → CaseBool R M M')
-red-bool M
+red-bool : CaseBool ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+red-bool inj M
   with (case? (con? (tmCon? bool ⋯)) (⋯ ∷? ⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon! (match! b))) (match! N₁ ∷! match! N₂ ∷! []!))
-    = just ((if b then N₂ else N₁) , case-bool)
+    = just ((if b then N₂ else N₁) , fix (inj case-bool))
 
-red-integer : (M : X ⊢) → Maybe (∃ λ M' → CaseInteger R M M')
-red-integer M
+red-integer : CaseInteger ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+red-integer inj M
   with (case? (con? (tmCon? integer pos?)) ⋯) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon! (pos! n))) (match! Ns))
   with lookup? n Ns in eq
 ... | nothing = nothing
-... | just N = just (N , case-integer eq)
+... | just N = just (N , fix (inj (case-integer eq)))
 
-red-cons₁ : (M : X ⊢) → Maybe (∃ λ M' → CaseCons₁ R M M')
-red-cons₁ M with
+red-cons₁ : CaseCons₁ ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+red-cons₁ inj M with
   (case? (con? (tmCon-list? (λ A xs → cons? ⋯ ⋯ xs))) (⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon-list! (cons! (match! x) (match! xs)))) (match! N ∷! []!)) =
-  just (N · con (tmCon _ x) · con (tmCon (list _) xs) ,  case-cons₁)
+  just (N · con (tmCon _ x) · con (tmCon (list _) xs) , fix (inj case-cons₁))
 
-red-cons₂ : (M : X ⊢) → Maybe (∃ λ M' → CaseCons₂ R M M')
-red-cons₂ M
+red-cons₂ : CaseCons₂ ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+red-cons₂ inj M
  with (case? (con? (tmCon-list? (λ A → cons? ⋯ ⋯))) (⋯ ∷? ⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon-list! (cons! (match! x) (match! xs)))) (match! N₁ ∷! match! N₂ ∷! []!)) =
-  just (N₁ · con (tmCon _ x) · con (tmCon (list _) xs) ,  case-cons₂)
+  just (N₁ · con (tmCon _ x) · con (tmCon (list _) xs) , fix (inj case-cons₂))
 
 
-red-nil : (M : X ⊢) → Maybe (∃ λ M' → CaseNil R M M')
-red-nil M
+red-nil : CaseNil ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+red-nil inj M
   with (case? (con? (tmCon-list? (λ A → nil?))) (⋯ ∷? ⋯ ∷? []?)) M
 ... | no _ = nothing
-... | yes (case! (con! (tmCon-list! nil!)) (match! N₁ ∷! match! N₂ ∷! []!)) = just (N₂ , case-nil)
+... | yes (case! (con! (tmCon-list! nil!)) (match! N₁ ∷! match! N₂ ∷! []!))
+  = just (N₂ , fix (inj case-nil))
 
-red-pair : (M : X ⊢) → Maybe (∃ λ M' → CasePair R M M')
-red-pair M
+red-pair : CasePair ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+red-pair inj M
   with (case? (con? (tmCon-pair? λ A B → ⋯)) (⋯ ∷? []?)) M
 ... | no _ = nothing
 ... | yes (case! (con! (tmCon-pair! (match! (x ,, y)))) (match! N ∷! []!)) =
-  just (N · con (tmCon _ x) · con (tmCon _ y) , case-pair)
+  just (N · con (tmCon _ x) · con (tmCon _ y) , fix (inj case-pair))
 ```
 
 Combining all reduction rules gives a sound-by-construction reduction function:
 
 ```
-reduce : (M : X ⊢) → Maybe (∃ λ M' → Reduction _~_ M M')
-reduce =
-  red-constr
-  <|> red-unit
-  <|> red-false₁
-  <|> red-bool
-  <|> red-integer
-  <|> red-cons₁
-  <|> red-cons₂
-  <|> red-nil
-  <|> red-pair
+test : Inj CasePair Reduction
+test = Function.it
+
+reduce : Reduction ≤ F → (M : X ⊢) → Maybe (∃ λ M' → Fix F M M')
+reduce injF M =
+  red-constr (injF ∘ inj {G = Reduction}) M
+--  <|> red-unit (injF ∘ inj {G = Reduction}) M
+--  <|> red-false₁ (injF ∘ inj {G = Reduction}) M
+--  <|> red-bool (injF ∘ inj {G = Reduction}) M
+--  <|> red-integer (injF ∘ inj {G = Reduction} ) M
+--  <|> red-cons₁ (injF ∘ inj {G = Reduction}) M
+--  <|> red-cons₂ (injF ∘ inj {G = Reduction}) M
+--  <|> red-nil (injF ∘ inj {G = Reduction}) M
+--  <|> red-pair (injF ∘ inj {G = Reduction}) M
 ```
 
 ### Alternative for sound-by-construction
@@ -341,7 +384,7 @@ rules:
 
 ```
 reduceM : X ⊢ → Maybe (X ⊢)
-reduceM = refine? reduce
+reduceM = refine? (reduce {F = Rules} (inj {G = Rules}))
 
 case-reduce : X ⊢ → X ⊢
 case-reduce M = reduceM ↑? M
@@ -381,11 +424,8 @@ case-reduce-refines = ↑?-refines _~_ cr-trans cr-TermCompat reduceM reduceM-~
     red⊆cr : Reduction _~_ ⊆ _~_
     red⊆cr = cr-reduction
 
-    reduce-refine : Refines? reduceM (Reduction _~_)
-    reduce-refine = refine?-refines reduce
-
     reduceM-~ : Refines? reduceM _~_
-    reduceM-~ = Refines?-⊆ red⊆cr reduce-refine
+    reduceM-~ = refine?-refines (reduce {F = Rules} (inj {G = Rules}))
 ```
 
 The soundness lemma then follows from transitivity and reflexivity:

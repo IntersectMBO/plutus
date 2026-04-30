@@ -13,6 +13,7 @@ module Untyped.Relation.Binary.Modular where
 open import Relation.Nullary using (Dec; yes; no; ¬_; _×-dec_; does)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
+open import Function using (_∘_)
 open import Data.List using (List; _∷_; [])
 open import Data.Fin using (Fin; suc; zero)
 open import Data.Nat using (ℕ; suc; zero)
@@ -73,6 +74,7 @@ data Fix (F : RelationT) : Relation where
 
 Const : @++ Relation → RelationT
 Const R _ = R
+
 ```
 
 ## Relation transformers for equivalence relations
@@ -178,33 +180,68 @@ CompatTerm
   + CompatCon + CompatConstr + CompatCase + CompatBuiltin + CompatError + Empty
 ```
 
-## Pattern synonyms
+## Injections
 
-Convenient synonyms for constructing/matching cases of `CompatTerm`
+Injecting relation transformers into larger transformers:
 
 ```
--- TODO: solve this with metaprogramming or typeclasses
-pattern p0 p = inl p
-pattern p1 p = inr (p0 p)
-pattern p2 p = inr (p1 p)
-pattern p3 p = inr (p2 p)
-pattern p4 p = inr (p3 p)
-pattern p5 p = inr (p4 p)
-pattern p6 p = inr (p5 p)
-pattern p7 p = inr (p6 p)
-pattern p8 p = inr (p7 p)
-pattern p9 p = inr (p8 p)
+infix 4 _≤_
+_≤_ : RelationT → RelationT → Set₁
+F ≤ G = ∀ {R : Relation} {X} {M N : X ⊢} → F R M N → G R M N
 
-pattern compat-varF n     = p0 (`F n)
-pattern compat-lambdaF p  = p1 (ƛF p)
-pattern compat-applyF p q = p2 (p ·F q)
-pattern compat-forceF p   = p3 (forceF p)
-pattern compat-delayF p   = p4 (delayF p)
-pattern compat-conF       = p5 conF
-pattern compat-constrF p  = p6 (constrF p)
-pattern compat-caseF p q  = p7 (caseF p q)
-pattern compat-builtinF   = p8 builtinF
-pattern compat-errorF     = p9 errorF
+record Inj (F G : RelationT) : Set₁ where
+  field
+    inj : F ≤ G
+
+open Inj {{...}} public
+
+Inj-refl : ∀ {F : RelationT} → Inj F F
+Inj-refl = record {inj = λ x → x}
+
+instance
+  Inj-here : ∀ {F G : RelationT} → Inj F (F + G)
+  Inj-here = record {inj = λ x → inl x}
+
+  Inj-there :
+    ∀ {F G H : RelationT}
+    → {{Inj F H }}
+    → Inj F (G + H)
+  Inj-there {F} {G} {H} = record {inj = λ x → inr (inj {F = F} {G = H} x)  }
+  {-# OVERLAPPABLE Inj-there #-}
+
+
+private module InjectExamples where
+  M : 1 ⊢
+  M = ` zero
+
+  _ : Fix (CompatLambda + CompatVar + CompatApply) M M
+  _ = fix (inj {G = _ + _} (`F zero))
+
+-- TODO: solve this with metaprogramming or typeclasses
+-- pattern p0 p = inl p
+-- pattern p1 p = inr (p0 p)
+-- pattern p2 p = inr (p1 p)
+-- pattern p3 p = inr (p2 p)
+-- pattern p4 p = inr (p3 p)
+-- pattern p5 p = inr (p4 p)
+-- pattern p6 p = inr (p5 p)
+-- pattern p7 p = inr (p6 p)
+-- pattern p8 p = inr (p7 p)
+-- pattern p9 p = inr (p8 p)
+
+-- compat-var' : Inject (CompatVar (Fix CompatTerm)) (Fix CompatTerm)
+-- compat-var' = record {inj p}
+
+-- pattern compat-varF n     = p0 (`F n)
+-- pattern compat-lambdaF p  = p1 (ƛF p)
+-- pattern compat-applyF p q = p2 (p ·F q)
+-- pattern compat-forceF p   = p3 (forceF p)
+-- pattern compat-delayF p   = p4 (delayF p)
+-- pattern compat-conF       = p5 conF
+-- pattern compat-constrF p  = p6 (constrF p)
+-- pattern compat-caseF p q  = p7 (caseF p q)
+-- pattern compat-builtinF   = p8 builtinF
+-- pattern compat-errorF     = p9 errorF
 ```
 
 
@@ -213,19 +250,25 @@ pattern compat-errorF     = p9 errorF
 If a relation has the `CompatTerm` rules, then it forms a `TermCompatible` structure.
 
 ```
-CompatTerm-TermCompatible : ∀ {R : Relation} → CompatTerm R ⊆ R → TermCompatible R
-CompatTerm-TermCompatible inj = record
-  { compat-var     = inj (compat-varF _)
-  ; compat-ƛ       = λ RM → inj (compat-lambdaF RM)
-  ; compat-·       = λ RM RN → inj (compat-applyF RM RN)
-  ; compat-force   = λ RM → inj (compat-forceF RM)
-  ; compat-delay   = λ RM → inj (compat-delayF RM)
-  ; compat-constr  = λ RMS → inj (compat-constrF RMS)
-  ; compat-case    = λ RM RMS → inj (compat-caseF RM RMS)
-  ; compat-con     = inj compat-conF
-  ; compat-builtin = inj compat-builtinF
-  ; compat-error   = inj compat-errorF
+inj-compat : ∀ {F : RelationT} → {{Inj F CompatTerm}} → F ≤ CompatTerm
+inj-compat = inj {G = CompatTerm}
+
+CompatTerm-TermCompatible : ∀ {F : RelationT} → CompatTerm ≤ F → TermCompatible (Fix F)
+CompatTerm-TermCompatible {F} injF = record
+  { compat-var     = fix (injF (inj-compat (`F _)))
+  ; compat-ƛ       = λ RM → fix (inj' (ƛF RM))
+  ; compat-·       = λ RM RN → fix (inj' (RM ·F RN))
+  ; compat-force   = λ RM → fix (inj' (forceF RM))
+  ; compat-delay   = λ RM → fix (inj' (delayF RM))
+  ; compat-constr  = λ RMS → fix (inj' (constrF RMS))
+  ; compat-case    = λ RM RMS → fix (inj' (caseF RM RMS))
+  ; compat-con     = fix (inj' conF)
+  ; compat-builtin = fix (inj' builtinF)
+  ; compat-error   = fix (inj' errorF)
   }
+  where
+    inj' : ∀ {G : RelationT} → {{Inj G CompatTerm}} → G ≤ F
+    inj' x = injF (inj-compat x)
 ```
 
 

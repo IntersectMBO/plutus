@@ -31,7 +31,7 @@ terms, which have an implicit scope parameter. The polarity annotation helps for
 constructing relations using `Untyped.Relation.Binary.Modular`.
 
 ```
-data Pointwise {X} (@++ R : Relation) : List (X ⊢) → List (X ⊢) → Set where
+data Pointwise {X} (@++ R : X ⊢ → X ⊢ → Set) : List (X ⊢) → List (X ⊢) → Set where
   []  :
     Pointwise R [] []
 
