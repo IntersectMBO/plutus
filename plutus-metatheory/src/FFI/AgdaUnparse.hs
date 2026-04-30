@@ -169,43 +169,8 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
   agdaUnparse (PLC.DefaultUniApply _ _) = error "Application of an unknown type is not supported."
 
 instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
-  agdaUnparse (PLC.Some valOf) =
+  agdaUnparse (PLC.Some (PLC.ValueOf univ val)) =
     parens $
       "tagCon"
-        <+> case valOf of
-          PLC.ValueOf PLC.DefaultUniInteger val ->
-            "integer" <+> agdaUnparse val
-          PLC.ValueOf PLC.DefaultUniByteString val ->
-            "bytestring" <+> agdaUnparse val
-          PLC.ValueOf PLC.DefaultUniString val ->
-            "string" <+> agdaUnparse val
-          PLC.ValueOf PLC.DefaultUniBool val ->
-            "bool" <+> agdaUnparse val
-          PLC.ValueOf PLC.DefaultUniUnit _ ->
-            "unit" <+> agdaUnparse ()
-          PLC.ValueOf PLC.DefaultUniData val ->
-            "pdata" <+> agdaUnparse val
-          PLC.ValueOf PLC.DefaultUniValue val ->
-            "value" <+> agdaUnparse val
-          PLC.ValueOf univ@(PLC.DefaultUniList elemType) val ->
-            agdaUnparse univ
-              <+> PLC.bring (Proxy @AgdaUnparse) elemType (agdaUnparse val)
-          PLC.ValueOf univ@(PLC.DefaultUniPair type1 type2) val ->
-            agdaUnparse univ
-              <+> PLC.bring
-                (Proxy @AgdaUnparse)
-                type1
-                ( PLC.bring (Proxy @AgdaUnparse) type2 $
-                    agdaUnparse val
-                )
-          PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element val ->
-            "bls12-381-g1-element" <+> agdaUnparse val
-          PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element val ->
-            "bls12-381-g2-element" <+> agdaUnparse val
-          PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult val ->
-            "bls12-381-mlresult" <+> agdaUnparse val
-          PLC.ValueOf univ@(PLC.DefaultUniArray elemType) val ->
-            agdaUnparse univ
-              <+> PLC.bring (Proxy @AgdaUnparse) elemType (agdaUnparse val)
-          PLC.ValueOf (PLC.DefaultUniApply _ _) _ ->
-            error "Application of an unknown type is not supported."
+        <+> agdaUnparse univ
+        <+> PLC.bring (Proxy @AgdaUnparse) univ (agdaUnparse val)
