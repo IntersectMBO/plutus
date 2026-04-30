@@ -682,8 +682,8 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
         go !shift = \case
           LamAbs _ name body -> LamAbs () name $ go (shift + 1) body
           Var _ named@(NamedDeBruijn _ (coerce -> idx)) ->
-            if shift >= idx
-              -- the index n is less-than-or-equal than the number of lambdas we have descended
+            if shift > idx
+              -- the index n is strictly less than the number of lambdas we have descended
               -- this means that n points to a bound variable, so we don't discharge it.
               then Var () named
               else
