@@ -2887,19 +2887,335 @@ d_enumBuiltin_426 v0
       C_bls12'45'381'45'G1'45'multiScalarMul_188 -> coe (92 :: Integer)
       C_bls12'45'381'45'G2'45'multiScalarMul_190 -> coe (93 :: Integer)
       _ -> MAlonzo.RTE.mazUnreachableError
+-- Builtin.fromEnumBuiltin
+d_fromEnumBuiltin_428 :: Integer -> Maybe T_Builtin_2
+d_fromEnumBuiltin_428 v0
+  = let v1 = coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 in
+    coe
+      (case coe v0 of
+         0 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_addInteger_4)
+         1 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_subtractInteger_6)
+         2 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_multiplyInteger_8)
+         3 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_divideInteger_10)
+         4 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_quotientInteger_12)
+         5 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_remainderInteger_14)
+         6 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_modInteger_16)
+         7 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_equalsInteger_18)
+         8 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_lessThanInteger_20)
+         9 -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_lessThanEqualsInteger_22)
+         10
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_appendByteString_24)
+         11
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_consByteString_26)
+         12
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_sliceByteString_28)
+         13
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_lengthOfByteString_30)
+         14
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_indexByteString_32)
+         15
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_equalsByteString_34)
+         16
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_lessThanByteString_36)
+         17
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_lessThanEqualsByteString_38)
+         18
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_sha2'45'256_40)
+         19
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_sha3'45'256_42)
+         20
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_blake2b'45'256_44)
+         21
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_verifyEd25519Signature_46)
+         22
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_verifyEcdsaSecp256k1Signature_48)
+         23
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_verifySchnorrSecp256k1Signature_50)
+         24
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_appendString_52)
+         25
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_equalsString_54)
+         26
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_encodeUtf8_56)
+         27
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_decodeUtf8_58)
+         28
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_ifThenElse_60)
+         29
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_chooseUnit_62)
+         30
+           -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_trace_64)
+         31
+           -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_fstPair_66)
+         32
+           -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_sndPair_68)
+         33
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_chooseList_70)
+         34
+           -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_mkCons_72)
+         35
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_headList_74)
+         36
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_tailList_76)
+         37
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_nullList_78)
+         38
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_lengthOfArray_80)
+         39
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_listToArray_82)
+         40
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_indexArray_84)
+         41
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_chooseData_86)
+         42
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_constrData_88)
+         43
+           -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_mapData_90)
+         44
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_listData_92)
+         45
+           -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_iData_94)
+         46
+           -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_bData_96)
+         47
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_unConstrData_98)
+         48
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_unMapData_100)
+         49
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_unListData_102)
+         50
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_unIData_104)
+         51
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_unBData_106)
+         52
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_equalsData_108)
+         53
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_serialiseData_110)
+         54
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_mkPairData_112)
+         55
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_mkNilData_114)
+         56
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_mkNilPairData_116)
+         57
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G1'45'add_118)
+         58
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G1'45'neg_120)
+         59
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G1'45'scalarMul_122)
+         60
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G1'45'equal_124)
+         61
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G1'45'hashToGroup_126)
+         62
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G1'45'compress_128)
+         63
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G1'45'uncompress_130)
+         64
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G2'45'add_132)
+         65
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G2'45'neg_134)
+         66
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G2'45'scalarMul_136)
+         67
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G2'45'equal_138)
+         68
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G2'45'hashToGroup_140)
+         69
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G2'45'compress_142)
+         70
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G2'45'uncompress_144)
+         71
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'millerLoop_146)
+         72
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'mulMlResult_148)
+         73
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'finalVerify_150)
+         74
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_keccak'45'256_152)
+         75
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_blake2b'45'224_154)
+         76
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_byteStringToInteger_156)
+         77
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_integerToByteString_158)
+         78
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_andByteString_160)
+         79
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_orByteString_162)
+         80
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_xorByteString_164)
+         81
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_complementByteString_166)
+         82
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_readBit_168)
+         83
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_writeBits_170)
+         84
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_replicateByte_172)
+         85
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_shiftByteString_174)
+         86
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_rotateByteString_176)
+         87
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_countSetBits_178)
+         88
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_findFirstSetBit_180)
+         89
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_ripemd'45'160_182)
+         90
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_expModInteger_184)
+         91
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe C_dropList_186)
+         92
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G1'45'multiScalarMul_188)
+         93
+           -> coe
+                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                (coe C_bls12'45'381'45'G2'45'multiScalarMul_190)
+         _ -> coe v1)
+-- Builtin.decode-encode
+d_decode'45'encode_432 ::
+  T_Builtin_2 -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+d_decode'45'encode_432 = erased
 -- Builtin.enumBuiltin-injective
-d_enumBuiltin'45'injective_432 ::
+d_enumBuiltin'45'injective_440 ::
   T_Builtin_2 ->
   T_Builtin_2 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_enumBuiltin'45'injective_432 = erased
+d_enumBuiltin'45'injective_440 = erased
 -- Builtin.decBuiltin
-d_decBuiltin_440 ::
+d_decBuiltin_472 ::
   T_Builtin_2 ->
   T_Builtin_2 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_decBuiltin_440 v0 v1
+d_decBuiltin_472 v0 v1
   = let v2
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
@@ -2931,9 +3247,9 @@ d_decBuiltin_440 v0 v1
                           (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Builtin.showBuiltin
-d_showBuiltin_464 ::
+d_showBuiltin_496 ::
   T_Builtin_2 -> MAlonzo.Code.Agda.Builtin.String.T_String_6
-d_showBuiltin_464 v0
+d_showBuiltin_496 v0
   = case coe v0 of
       C_addInteger_4 -> coe ("addInteger" :: Data.Text.Text)
       C_subtractInteger_6 -> coe ("subtractInteger" :: Data.Text.Text)
@@ -3061,8 +3377,8 @@ d_showBuiltin_464 v0
         -> coe ("bls12-381-G2-multiScalarMul" :: Data.Text.Text)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.builtinList
-d_builtinList_466 :: [T_Builtin_2]
-d_builtinList_466
+d_builtinList_498 :: [T_Builtin_2]
+d_builtinList_498
   = coe
       MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_addInteger_4)
       (coe

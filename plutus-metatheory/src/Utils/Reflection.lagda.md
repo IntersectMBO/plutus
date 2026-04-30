@@ -24,6 +24,7 @@ open import Agda.Builtin.Reflection
 open import Reflection
 open import Relation.Binary.PropositionalEquality using (refl)
 open import Relation.Nullary using (_because_;Reflects;ofʸ;ofⁿ)
+open import Data.Maybe using (just)
 ```
 
  Some definitions to help define functions by reflection
@@ -124,11 +125,41 @@ mk-Enum = go 0
         ((lit (nat acc)))
       ∷ go (suc acc) cs
 
+natPat : ℕ → Pattern
+natPat zero    = con (quote zero) []
+natPat (suc n) = con (quote suc) (vArg (natPat n) ∷ [])
+
+
+mk-FromEnum : List Name → List Clause
+mk-FromEnum xs = go 0 xs ++ [ clause [ ("foo" , vArg (quoteTerm ℕ)) ] [ vArg (var zero) ] (con (quote nothing) []) ]
+  where
+    go : ℕ → List Name → List Clause
+    go _ [] = []
+    go acc (c ∷ cs) =
+      clause
+        []
+        [ vArg (natPat acc) ]
+        (con
+          (quote just)
+          [ vArg (con c []) ]
+        )
+      ∷ go (suc acc) cs
+
 defEnum : Name → Name → TC ⊤
 defEnum T defName = do
-       d ← getDefinition T
-       let cls = mk-Enum (constructors d)
-       defineFun defName cls
+  d ← getDefinition T
+  let cls = mk-Enum (constructors d)
+  defineFun defName cls
+
+defFromEnum : Name → Name → TC ⊤
+defFromEnum type defName = do
+  d ← getDefinition type
+  let clauses = mk-FromEnum (constructors d)
+  defineFun defName clauses
+
+defDecodeEncode : Name → Name → TC ⊤
+defDecodeEncode T defName = {!   !}
+  
 
 ```
 
