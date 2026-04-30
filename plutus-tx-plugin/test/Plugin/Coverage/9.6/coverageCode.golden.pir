@@ -109,6 +109,6 @@ let
 in
 trace
   {all dead. Maybe integer -> Maybe bool}
-  "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 37, _covLocEndLine = 37, _covLocStartCol = 54, _covLocEndCol = 57})"
+  "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 37, _covLocEndLine = 37, _covLocStartCol = 29, _covLocEndCol = 32})"
   (/\dead -> fun)
   {all dead. dead}

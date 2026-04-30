@@ -245,6 +245,15 @@ optimizeOpts = do
       ( long "opt-no-inline-constants"
           <> help "Disable constant inlining"
       )
+  _ooInlineUnconditionalGrowth <-
+    option
+      (AstSize <$> auto)
+      ( long "opt-inline-unconditional-growth"
+          <> metavar "INT"
+          <> value (UPLC.defaultOptimizeOpts ^. UPLC.ooInlineUnconditionalGrowth)
+          <> showDefault
+          <> help "Maximum allowed AST growth for unconditional inlining"
+      )
   _ooInlineCallsiteGrowth <-
     option
       (AstSize <$> auto)
@@ -252,7 +261,7 @@ optimizeOpts = do
           <> metavar "INT"
           <> value (UPLC.defaultOptimizeOpts ^. UPLC.ooInlineCallsiteGrowth)
           <> showDefault
-          <> help "Maximum allowed AST growth at call sites for inlining"
+          <> help "Maximum allowed AST growth for callsite inlining"
       )
   _ooPreserveLogging <-
     switch

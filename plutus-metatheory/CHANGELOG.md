@@ -1,4 +1,15 @@
 
+<a id='changelog-1.62.0.0'></a>
+# 1.62.0.0 — 2026-04-24
+
+## Removed
+
+- Temporarily disabled the CaseReduce certifier pass due to the discovery of bugs in the specification.
+
+## Fixed
+
+- The certifier reports now include the number of optimization sites for the force-case-delay pass as well.
+
 <a id='changelog-1.61.0.0'></a>
 # 1.61.0.0 — 2026-04-02
 

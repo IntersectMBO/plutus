@@ -18,8 +18,8 @@ Profiling requires compiling your script differently so that it will emit inform
 To do this, use the `profile-all` and `conservative-optimisation` plugin flags:
 
 ``` haskell
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:conservative-optimisation #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:profile-all #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:conservative-optimisation #-}
 ```
 
 This instructs the plugin to insert profiling instrumentation for all functions.

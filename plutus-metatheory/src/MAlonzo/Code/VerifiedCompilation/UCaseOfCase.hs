@@ -558,7 +558,7 @@ d_isCaseOfCase'63'_256 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isCaseOfCase'63'_256 v0
   = coe
-      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
+      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0)
       (coe MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_48)
       (coe d_isCoC'63'_264)

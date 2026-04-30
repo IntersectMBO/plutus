@@ -127,11 +127,11 @@ beta = over termSubterms beta . localTransform
     localTransform = \case
       -- See Note [Multi-beta]
       -- This maybe isn't the best annotation for this term, but it will do.
-      (extractBindings -> Just (bs, t)) -> Let (termAnn t) NonRec bs t
+      (extractBindings -> Just (bs, t)) -> Let (getAnn t) NonRec bs t
       -- See Note [Multi-beta] for why we don't perform multi-beta on `TyInst`.
       TyInst _ (TyAbs a n k body) tyArg ->
         let b = TypeBind a (TyVarDecl a n k) tyArg
-         in Let (termAnn body) NonRec (pure b) body
+         in Let (getAnn body) NonRec (pure b) body
       t -> t
 
 betaPassSC

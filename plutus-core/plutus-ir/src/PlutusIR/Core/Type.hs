@@ -7,7 +7,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module PlutusIR.Core.Type
-  ( TyName (..)
+  ( HasAnn (..)
+  , TyName (..)
   , Name (..)
   , VarDecl (..)
   , TyVarDecl (..)
@@ -24,8 +25,6 @@ module PlutusIR.Core.Type
   , Program (..)
   , Version (..)
   , applyProgram
-  , termAnn
-  , bindingAnn
   , progAnn
   , progVer
   , progTerm
@@ -227,28 +226,46 @@ applyProgram
   -> m (Program tyname name uni fun a)
 applyProgram (Program a1 v1 t1) (Program a2 v2 t2)
   | v1 == v2 =
-      pure $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
+      pure $ Program (a1 <> a2) v1 (Apply (getAnn t1 <> getAnn t2) t1 t2)
 applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
   throwError $ MkApplyProgramError v1 v2
 
-termAnn :: Term tyname name uni fun a -> a
-termAnn = \case
-  Let a _ _ _ -> a
-  Var a _ -> a
-  TyAbs a _ _ _ -> a
-  LamAbs a _ _ _ -> a
-  Apply a _ _ -> a
-  Constant a _ -> a
-  Builtin a _ -> a
-  TyInst a _ _ -> a
-  Error a _ -> a
-  IWrap a _ _ _ -> a
-  Unwrap a _ -> a
-  Constr a _ _ _ -> a
-  Case a _ _ _ -> a
+instance HasAnn (Term tyname name uni fun) where
+  getAnn = \case
+    Let a _ _ _   -> a
+    Var a _       -> a
+    TyAbs a _ _ _ -> a
+    LamAbs a _ _ _ -> a
+    Apply a _ _   -> a
+    Constant a _  -> a
+    Builtin a _   -> a
+    TyInst a _ _  -> a
+    Error a _     -> a
+    IWrap a _ _ _ -> a
+    Unwrap a _    -> a
+    Constr a _ _ _ -> a
+    Case a _ _ _  -> a
+  modifyAnn f = \case
+    Let a r bs t      -> Let (f a) r bs t
+    Var a x           -> Var (f a) x
+    TyAbs a tn k t    -> TyAbs (f a) tn k t
+    LamAbs a n ty t   -> LamAbs (f a) n ty t
+    Apply a t1 t2     -> Apply (f a) t1 t2
+    Constant a c      -> Constant (f a) c
+    Builtin a b       -> Builtin (f a) b
+    TyInst a t ty     -> TyInst (f a) t ty
+    Error a ty        -> Error (f a) ty
+    IWrap a ty1 ty2 t -> IWrap (f a) ty1 ty2 t
+    Unwrap a t        -> Unwrap (f a) t
+    Constr a ty i ts  -> Constr (f a) ty i ts
+    Case a ty t ts    -> Case (f a) ty t ts
 
-bindingAnn :: Binding tyname name uni fun a -> a
-bindingAnn = \case
-  TermBind a _ _ _ -> a
-  TypeBind a _ _ -> a
-  DatatypeBind a _ -> a
+instance HasAnn (Binding tyname name uni fun) where
+  getAnn = \case
+    TermBind a _ _ _  -> a
+    TypeBind a _ _    -> a
+    DatatypeBind a _  -> a
+  modifyAnn f = \case
+    TermBind a s d t  -> TermBind (f a) s d t
+    TypeBind a d t    -> TypeBind (f a) d t
+    DatatypeBind a d  -> DatatypeBind (f a) d

@@ -13,7 +13,7 @@ package, we can:
 Plutus plugin supports dumping binary representation of the PIR via `dump-pir-flat`:
 
 ```haskell
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-pir-flat #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:dump-pir-flat #-}
 ```
 
 The PIR binary dump file dumps to `plutus/plutus-core/` and has the name as the module name followed by a brief description and ".flat".
@@ -36,4 +36,3 @@ We can also profile the evaluation.
 ```bash
 cabal run plutus-core:pir --enable-profiling -- FILE.flat
 ```
-

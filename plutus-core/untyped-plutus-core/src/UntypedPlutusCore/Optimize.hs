@@ -13,7 +13,7 @@ module UntypedPlutusCore.Optimize
   , module UntypedPlutusCore.Transform.Optimizer
   ) where
 
-import PlutusCore.Builtin
+import PlutusCore.Builtin (CostingPart)
 import PlutusCore.Compiler.Types
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Default.Builtins
@@ -142,6 +142,7 @@ termOptimizer opts builtinSemanticsVariant costingPart =
             InlineStage ->
               withCertifiedOptsOnly $
                 inline
+                  (_ooInlineUnconditionalGrowth opts)
                   (_ooInlineCallsiteGrowth opts)
                   (_ooInlineConstants opts)
                   (_ooPreserveLogging opts)

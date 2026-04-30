@@ -21,7 +21,6 @@ module VerifiedCompilation.UApplyToCase where
 open import Untyped using (_⊢; case; constr)
 open import Untyped.Reduction using (iterApp)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; ApplyToCaseT)
-open import VerifiedCompilation.UCaseReduce using (justEq)
 open import VerifiedCompilation.UntypedViews
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
 

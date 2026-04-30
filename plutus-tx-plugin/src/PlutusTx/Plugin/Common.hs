@@ -768,6 +768,9 @@ runCompiler moduleName opts expr = do
             (opts ^. posInlineFix)
           & set (PIR.ccOpts . PIR.coInlineHints) hints
           & set
+            (PIR.ccOpts . PIR.coInlineUnconditionalGrowth)
+            (opts ^. posInlineUnconditionalGrowth . to fromIntegral)
+          & set
             (PIR.ccOpts . PIR.coInlineCallsiteGrowth)
             (opts ^. posInlineCallsiteGrowth . to fromIntegral)
           & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
@@ -798,6 +801,9 @@ runCompiler moduleName opts expr = do
           & set
             (PLC.coOptimizeOpts . UPLC.ooInlineConstants)
             (opts ^. posInlineConstants)
+          & set
+            (PLC.coOptimizeOpts . UPLC.ooInlineUnconditionalGrowth)
+            (opts ^. posInlineUnconditionalGrowth . to fromIntegral)
           & set
             (PLC.coOptimizeOpts . UPLC.ooInlineCallsiteGrowth)
             (opts ^. posInlineCallsiteGrowth . to fromIntegral)

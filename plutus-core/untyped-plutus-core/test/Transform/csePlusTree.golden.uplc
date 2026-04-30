@@ -1,6 +1,3 @@
-(\cse ->
-   (\cse ->
-      (\cse -> (\cse -> addInteger cse cse) (addInteger cse cse))
-        (addInteger cse cse))
-     (addInteger cse cse))
-  2
+(\cse -> addInteger cse cse)
+  ((\cse -> addInteger cse cse)
+     ((\cse -> addInteger cse cse) ((\cse -> addInteger cse cse) 2)))

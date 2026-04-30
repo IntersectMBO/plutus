@@ -28,7 +28,7 @@ propTermSrcSpan = property $ do
   trailingSpaces <- forAll $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])
   case runQuoteT . parseTerm $ code <> trailingSpaces of
     Right parsed ->
-      let sp = termAnn parsed
+      let sp = getAnn parsed
        in (srcSpanELine sp, srcSpanECol sp) === (endingLine, endingCol + 1)
     Left err -> annotate (display err) >> failure
 
@@ -92,4 +92,32 @@ tests =
     , testCase
         "parser of Value should succeed"
         parseValueValid
+    , testCase
+        "multi-arg application has per-argument spans on inner nodes"
+        multiArgSpans
     ]
+
+-- | Test that inner Apply nodes get per-argument spans, not the bracket span.
+-- For @[ (con integer 1) (con integer 2) (con integer 3) ]@, the outer Apply
+-- should have the bracket span, but the inner Apply should have the span of
+-- its argument @(con integer 2)@, NOT the bracket span.
+multiArgSpans :: Assertion
+multiArgSpans = do
+  let code = "[ (con integer 1) (con integer 2) (con integer 3) ]"
+  case runQuoteT (parseTerm code) of
+    Left err -> assertFailure $ "parse failed: " <> show err
+    Right parsed ->
+      case parsed of
+        Apply outerAnn (Apply innerAnn _ _) _ -> do
+          -- outer should have the bracket span (col 1 to col 52)
+          assertBool "outer span should start at col 1"
+            (srcSpanSCol outerAnn == 1)
+          -- inner should NOT have the same span as outer
+          assertBool
+            ("inner Apply should have a different span than outer, but both are: " <> show outerAnn)
+            (outerAnn /= innerAnn)
+          -- inner span should start after col 1 (it's the span of the 2nd arg)
+          assertBool
+            ("inner Apply span should not start at col 1, got: " <> show innerAnn)
+            (srcSpanSCol innerAnn /= 1)
+        other -> assertFailure $ "expected nested Apply, got: " <> show other

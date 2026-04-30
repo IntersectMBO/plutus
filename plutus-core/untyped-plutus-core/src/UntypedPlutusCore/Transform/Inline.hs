@@ -53,12 +53,12 @@ import PlutusCore.Name.Unique (HasUnique, TermUnique (..), Unique (..))
 import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Quote (MonadQuote (..), Quote)
 import PlutusCore.Rename (Dupable, dupable, liftDupable)
-import PlutusPrelude (Generic)
+import PlutusPrelude (Generic, getAnn, modifyAnn)
 import UntypedPlutusCore.Analysis.Usages qualified as Usages
 import UntypedPlutusCore.AstSize (AstSize, termAstSize)
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Core.Plated (termSubterms)
-import UntypedPlutusCore.Core.Type (Term (..), modifyTermAnn, termAnn)
+import UntypedPlutusCore.Core.Type (Term (..))
 import UntypedPlutusCore.MkUPlc (Def (..), UTermDef, UVarDecl (..))
 import UntypedPlutusCore.Purity
   ( EvalTerm (EvalTerm, Unknown)
@@ -152,6 +152,7 @@ data InlineInfo name fun a = InlineInfo
   , _iiHints :: InlineHints name a
   , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _iiInlineConstants :: Bool
+  , _iiInlineUnconditionalGrowth :: AstSize
   , _iiInlineCallsiteGrowth :: AstSize
   , _iiPreserveLogging :: Bool
   }
@@ -207,7 +208,9 @@ inline
   :: forall name uni fun m a
    . ExternalConstraints name uni fun m
   => AstSize
-  -- ^ inline threshold
+  -- ^ unconditional threshold
+  -> AstSize
+  -- ^ callsite threshold
   -> Bool
   -- ^ inline constants
   -> Bool
@@ -217,6 +220,7 @@ inline
   -> Term name uni fun a
   -> OptimizerT name uni fun a m (Term name uni fun a)
 inline
+  unconditionalGrowth
   callsiteGrowth
   inlineConstants
   preserveLogging
@@ -233,6 +237,7 @@ inline
               , _iiHints = hints
               , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
               , _iiInlineConstants = inlineConstants
+              , _iiInlineUnconditionalGrowth = unconditionalGrowth
               , _iiInlineCallsiteGrowth = callsiteGrowth
               , _iiPreserveLogging = preserveLogging
               }
@@ -508,9 +513,15 @@ acceptable
   -- ^ inline constants
   -> Term name uni fun a
   -> InlineM name uni fun b Bool
-acceptable inlineConstants t =
+acceptable inlineConstants t = do
+  unconditionalGrowth <- view iiInlineUnconditionalGrowth
   -- See Note [Inlining criteria]
-  pure $ costIsAcceptable t && sizeIsAcceptable inlineConstants t
+  let costOk = costIsAcceptable t
+      sizeOk = termAstSize t <= 1 + unconditionalGrowth
+      constantsOk = case t of
+        Constant {} -> inlineConstants
+        _ -> True
+  pure $ costOk && sizeOk && constantsOk
 
 {-| Is the cost increase (in terms of evaluation work) of inlining a variable
 whose RHS is the given term acceptable? -}
@@ -535,33 +546,6 @@ costIsAcceptable = \case
   Case {} -> False
   Force {} -> False
   Delay {} -> True
-
-{-| Is the size increase (in the AST) of inlining a variable whose RHS is
-the given term acceptable? -}
-sizeIsAcceptable
-  :: Bool
-  -- ^ inline constants
-  -> Term name uni fun a
-  -> Bool
-sizeIsAcceptable inlineConstants = \case
-  Builtin {} -> True
-  Var {} -> True
-  Error {} -> True
-  -- See Note [Differences from PIR inliner] 4
-  LamAbs {} -> False
-  -- Inlining constructors of size 1 or 0 seems okay
-  Constr _ _ es -> case es of
-    [] -> True
-    [e] -> sizeIsAcceptable inlineConstants e
-    _ -> False
-  -- Cases are pretty big, due to the case branches
-  Case {} -> False
-  -- Inlining constants is deemed acceptable if the 'inlineConstants'
-  -- flag is turned on, see Note [Inlining constants].
-  Constant {} -> inlineConstants
-  Apply {} -> False
-  Force _ t -> sizeIsAcceptable inlineConstants t
-  Delay _ t -> sizeIsAcceptable inlineConstants t
 
 -- | Fully apply and beta reduce.
 fullyApplyAndBetaReduce
@@ -688,7 +672,7 @@ decorations = _1
 
 -- | Prepend the given decorations
 decorateWith :: [Decoration] -> Term name uni fun (Ann a) -> Term name uni fun (Ann a)
-decorateWith ds = modifyTermAnn (first (ds ++))
+decorateWith ds = modifyAnn (first (ds ++))
 {-# INLINE decorateWith #-}
 
 -- | Fold a decorated term into certifier hints.
@@ -702,7 +686,7 @@ mkHints = go
           DDrop -> CertifierHints.InlDrop h
           DExpand -> CertifierHints.InlExpand h
 
-        ds = termAnn t ^. decorations
+        ds = getAnn t ^. decorations
 
         hints = case t of
           Var {} -> CertifierHints.InlVar

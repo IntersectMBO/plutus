@@ -281,9 +281,7 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    ((unsafeFromBuiltinResult . Value.valueData) <$> generateTestValues gen)
-
--- FIXME: account properly for out-of-range errors when test values are too big.
+    (unsafeFromBuiltinResult . Value.valueData <$> generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------
@@ -390,11 +388,9 @@ buildValue policyIds tokenNames amt =
       | pId <- policyIds
       ]
 
--- Number of benchmarking inputs for `valueData` and `unValueData`.
-maxValueEntries :: Int
-maxValueEntries = 50_000
-
--- | Test values for benchmarking `valueData` and `unValueData`
+{-| Test values for benchmarking `valueData` and `unValueData`.
+The upper bound on the number of entries is tied to `Value.valueDataMaxSize`
+so that every generated `Value` is a valid input to `valueData`. -}
 generateTestValues :: StdGen -> [Value]
 generateTestValues gen = runStateGen_ gen \g ->
   -- Empty value as edge case
@@ -403,13 +399,14 @@ generateTestValues gen = runStateGen_ gen \g ->
     -- Random tests for parameter spread (100 combinations)
     replicateM 100 (generateValue g)
   where
-    -- \| Generate Value with random number of entries between 1 and maxValueEntries
+    -- Generate Value with random number of entries between 1 and
+    -- `Value.valueDataMaxSize`.
     generateValue :: StatefulGen g m => g -> m Value
     generateValue g = do
-      numEntries <- uniformRM (1, maxValueEntries) g
+      numEntries <- uniformRM (1, Value.valueDataMaxSize) g
       generateValueMaxEntries numEntries g
 
-    -- \| Generate Value within total size budget
+    -- Generate Value within total size budget
     generateValueMaxEntries :: StatefulGen g m => Int -> g -> m Value
     generateValueMaxEntries maxEntries g = do
       -- Uniform random distribution: cover full range from many policies (few tokens each)

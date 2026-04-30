@@ -12,10 +12,10 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
 -- CSE is very unstable and produces different output, likely depending on the version of either
 -- @unordered-containers@ or @hashable@.
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
 
 {-# HLINT ignore "Use elemIndex" #-}
 

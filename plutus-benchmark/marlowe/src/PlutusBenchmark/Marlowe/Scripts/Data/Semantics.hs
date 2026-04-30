@@ -17,9 +17,9 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:target-version=1.0.0 #-}
 
 -- | Marlowe validators.
 module PlutusBenchmark.Marlowe.Scripts.Data.Semantics
@@ -38,6 +38,7 @@ module PlutusBenchmark.Marlowe.Scripts.Data.Semantics
   ) where
 
 import GHC.Generics (Generic)
+import Plinth.Plugin ()
 import PlutusBenchmark.Marlowe.Core.V1.Semantics as Semantics
   ( MarloweData (..)
   , MarloweParams (MarloweParams, rolesCurrency)
@@ -74,7 +75,6 @@ import PlutusLedgerApi.V2.Data.Contexts qualified as Data
 import PlutusTx (CompiledCode, makeIsDataIndexed, makeLift, unsafeFromBuiltinData)
 import PlutusTx.Foldable (foldMap)
 import PlutusTx.List (all, elem, null)
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude
   ( AdditiveGroup ((-))
   , AdditiveMonoid (zero)
@@ -263,11 +263,12 @@ mkMarloweValidator
 
       -- Find the input being spent by a script.
       findOwnInput :: Data.ScriptContext -> Maybe Data.TxInInfo
-      findOwnInput Data.ScriptContext
-                     { scriptContextTxInfo = Data.TxInfo {txInfoInputs}
-                     , scriptContextPurpose = Data.Spending txOutRef
-                     } =
-        Data.List.find (\Data.TxInInfo {txInInfoOutRef} -> txInInfoOutRef == txOutRef) txInfoInputs
+      findOwnInput
+        Data.ScriptContext
+          { scriptContextTxInfo = Data.TxInfo {txInfoInputs}
+          , scriptContextPurpose = Data.Spending txOutRef
+          } =
+          Data.List.find (\Data.TxInInfo {txInInfoOutRef} -> txInInfoOutRef == txOutRef) txInfoInputs
       findOwnInput _ = Nothing
 
       -- [Marlowe-Cardano Specification: "2. Single Marlowe script input".]
@@ -306,19 +307,21 @@ mkMarloweValidator
                             Data.TxInInfo
                               { txInInfoResolved = Data.TxOut {txOutAddress = Data.Address (Data.ScriptCredential vh) _}
                               } ->
-                              if f vh
-                                then case mSelf of
-                                  Nothing -> go f (Just hd') noOthers tl
-                                  Just _ -> traceError "w"
-                                else go f mSelf False tl
+                                if f vh
+                                  then case mSelf of
+                                    Nothing -> go f (Just hd') noOthers tl
+                                    Just _ -> traceError "w"
+                                  else go f mSelf False tl
                             _ -> go f mSelf noOthers tl
               )
 
       -- Check if inputs are being spent from the same script.
       sameValidatorHash :: Data.TxInInfo -> ScriptHash -> Bool
-      sameValidatorHash Data.TxInInfo
-                          { txInInfoResolved = Data.TxOut {txOutAddress = Data.Address (Data.ScriptCredential vh1) _}
-                          } vh2 = vh1 == vh2
+      sameValidatorHash
+        Data.TxInInfo
+          { txInInfoResolved = Data.TxOut {txOutAddress = Data.Address (Data.ScriptCredential vh1) _}
+          }
+        vh2 = vh1 == vh2
       sameValidatorHash _ _ = False
 
       -- Check a state for the correct value, positive accounts, and no duplicates.

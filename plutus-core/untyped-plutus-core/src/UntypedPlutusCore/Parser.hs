@@ -1,6 +1,5 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 
 module UntypedPlutusCore.Parser
   ( parse
@@ -21,7 +20,7 @@ import Control.Monad.Except
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Error qualified as PLC
-import PlutusPrelude (through)
+import PlutusPrelude ((&&&), getAnn, setAnn, through)
 import Text.Megaparsec hiding (ParseError, State, parse)
 import Text.Megaparsec.Char (char)
 import Text.Megaparsec.Char.Lexer qualified as Lex
@@ -59,8 +58,8 @@ lamTerm sp =
 
 appTerm :: SrcSpan -> Parser PTerm
 appTerm sp =
-  -- TODO: should not use the same `sp` for all arguments.
-  mkIterApp <$> term <*> (fmap (sp,) <$> some term)
+  setAnn sp <$>
+    (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
 
 delayTerm :: SrcSpan -> Parser PTerm
 delayTerm sp =

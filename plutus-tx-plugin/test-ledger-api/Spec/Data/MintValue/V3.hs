@@ -11,7 +11,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 
 module Spec.Data.MintValue.V3 where
 

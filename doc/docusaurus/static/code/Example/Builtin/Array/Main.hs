@@ -4,8 +4,8 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:target-version=1.1.0 #-}
 
 module Main where
 

@@ -2,12 +2,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoFieldSelectors #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE UndecidableInstances #-}
-
--- TODO: add @NoFieldSelectors@ once we are past antiquity, so that 'ScopeError' doesn't generate
--- partial field selectors.
 
 module PlutusCore.Check.Scoping where
 

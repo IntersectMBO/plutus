@@ -8,5 +8,6 @@
               [ (\x xs ->
                    case
                      (equalsInteger 4 x)
-                     [((\x -> s s x) (addInteger 1 i) xs), (constr 0 [i])])
+                     [ ((\x -> case (constr 0 [s, x, xs]) [s]) (addInteger 1 i))
+                     , (constr 0 [i]) ])
               , (constr 1 []) ]))))

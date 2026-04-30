@@ -8,13 +8,13 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:profile-all #-}
 
 {-# HLINT ignore "Eta reduce" #-}
 {-# HLINT ignore "Redundant if" #-}

@@ -485,7 +485,7 @@ loadArgs kind = case kind of
 
 {-| Load args from a dir.
 
-It tries to load the first arg from the file named "1", second from "2", and so on,
+It tries to load the first arg from the file named "0", second from "1", and so on,
 until the file doesn't exist.
 
 The args can be either @Program@s or @Data@ objects, depending on `EvalArgKind`. -}
@@ -497,7 +497,7 @@ loadArgsFromDir
   -> IO (Maybe [UplcTermNDB ()])
 loadArgsFromDir baseDir title argKind = do
   let dir = baseDir </> title
-  paths <- collectArgFiles dir 1
+  paths <- collectArgFiles dir 0
   if null paths
     then pure Nothing
     else Just <$> loadArgs argKind paths

@@ -23,6 +23,10 @@ We enumerate the known passes and partition them into two categories:
 - those which are not yet (fully) implemented in the certifier 
 - those which are implemented in the certifier and we know they are correct.
 
+### IMPORTANT
+The order of the constructors in both their Agda definitions and in the "COMPILE"
+pragmas MUST be the same as the order of their counterparts in
+`UntypedPlutusCore.Transform.Certify.Trace`.
 ```
 
 data UncertifiedOptTag : Set where
@@ -65,8 +69,25 @@ CaseOfCaseT = Utils.inj₁ caseOfCaseT
 LetFloatOutT : OptTag
 LetFloatOutT = Utils.inj₁ letFloatOutT
 
-{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseReduce | Inline | CSE | ApplyToCase | ConstantFold) #-}
-{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut | UncertifiedConstantFold) #-}
+{-# COMPILE GHC CertifiedOptTag =
+    data CertifiedOptStage
+      ( FloatDelay
+      | ForceDelay
+      | ForceCaseDelay
+      | CaseReduce
+      | Inline
+      | CSE
+      | ApplyToCase
+      | ConstantFold
+      )
+#-}
+{-# COMPILE GHC UncertifiedOptTag =
+    data UncertifiedOptStage
+      ( CaseOfCase
+      | LetFloatOut
+      | UncertifiedConstantFold
+      )
+#-}
 
 data CertifiedBuiltin : Set where
   certAddInteger certSubtractInteger certMultiplyInteger

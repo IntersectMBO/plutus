@@ -106,7 +106,7 @@ d_certifyPass_26 v0 v1
                -> coe
                     MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
                     (coe
-                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_isCaseReduce'63'_26
+                       MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_decide_526
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_22
                -> case coe v1 of
@@ -125,7 +125,7 @@ d_certifyPass_26 v0 v1
                -> coe
                     MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
                     (coe
-                       MAlonzo.Code.VerifiedCompilation.UCSE.d_isUntypedCSE'63'_26
+                       MAlonzo.Code.VerifiedCompilation.UCSE.d_isUntypedCSE'63'_22
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_26
                -> coe
@@ -165,7 +165,7 @@ d_certify_46 v0
                           (\ v7 ->
                              coe
                                MAlonzo.Code.Utils.C_inj'8322'_14
-                               (coe MAlonzo.Code.Utils.C__'44'__442 (coe v6) (coe v7))))
+                               (coe MAlonzo.Code.Utils.C__'44'__450 (coe v6) (coe v7))))
                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_26 v9 v10 v11
                   -> coe
                        MAlonzo.Code.Utils.C_inj'8321'_12 (coe C_counterExample_8 (coe v9))
@@ -196,8 +196,8 @@ d_checkScope_100 ::
   Maybe MAlonzo.Code.Untyped.T__'8866'_14
 d_checkScope_100 v0
   = coe
-      MAlonzo.Code.Utils.du_eitherToMaybe_104
-      (coe MAlonzo.Code.Untyped.d_scopeCheckU0_276 (coe v0))
+      MAlonzo.Code.Utils.du_eitherToMaybe_112
+      (coe MAlonzo.Code.Untyped.d_scopeCheckU0_282 (coe v0))
 -- VerifiedCompilation.checkScopeᵗ
 d_checkScope'7511'_102 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_Trace_154 ->

@@ -54,10 +54,10 @@ instance AgdaUnparse CertifiedOptStage where
   agdaUnparse FloatDelay = "floatDelayT"
   agdaUnparse ForceDelay = "forceDelayT"
   agdaUnparse ForceCaseDelay = "forceCaseDelayT"
-  agdaUnparse CaseReduce = "caseReduceT"
   agdaUnparse Inline = "inlineT"
   agdaUnparse CSE = "cseT"
   agdaUnparse ApplyToCase = "applyToCaseT"
+  agdaUnparse CaseReduce = "caseReduceT"
   agdaUnparse ConstantFold = "constantFoldT"
 
 instance AgdaUnparse UncertifiedOptStage where
