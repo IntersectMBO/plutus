@@ -533,11 +533,11 @@ d_executeUPLCwithMP_144 ::
     (MAlonzo.Code.Utils.T_List_454
        (MAlonzo.Code.Utils.T__'215'__436
           MAlonzo.Code.Agda.Builtin.String.T_String_6
-          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_192)) ->
+          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_196)) ->
   (MAlonzo.Code.Utils.T__'215'__436
      MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
      (MAlonzo.Code.Builtin.T_Builtin_2 ->
-      MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
+      MAlonzo.Code.Cost.Model.T_BuiltinModel_68) ->
    MAlonzo.Code.Cost.Base.T_MachineParameters_46) ->
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.String.T_String_6) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -552,11 +552,11 @@ du_executeUPLCwithMP_144 ::
     (MAlonzo.Code.Utils.T_List_454
        (MAlonzo.Code.Utils.T__'215'__436
           MAlonzo.Code.Agda.Builtin.String.T_String_6
-          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_192)) ->
+          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_196)) ->
   (MAlonzo.Code.Utils.T__'215'__436
      MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
      (MAlonzo.Code.Builtin.T_Builtin_2 ->
-      MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
+      MAlonzo.Code.Cost.Model.T_BuiltinModel_68) ->
    MAlonzo.Code.Cost.Base.T_MachineParameters_46) ->
   (AgdaAny -> MAlonzo.Code.Agda.Builtin.String.T_String_6) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -573,19 +573,19 @@ du_executeUPLCwithMP_144 v0 v1 v2 v3
                         (\ v6 ->
                            coe
                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe MAlonzo.Code.Cost.Model.d_lookupModel_522 (coe v6))))
+                             (coe MAlonzo.Code.Cost.Model.d_lookupModel_544 (coe v6))))
                      (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
                      (coe
-                        MAlonzo.Code.Cost.Model.du_allJust_558
+                        MAlonzo.Code.Cost.Model.du_allJust_580
                         (coe
                            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                            (coe
-                              MAlonzo.Code.Cost.Model.d_getModel_480
+                              MAlonzo.Code.Cost.Model.d_getModel_502
                               (coe MAlonzo.Code.Builtin.C_addInteger_4) (coe v5))
                            (coe
                               MAlonzo.Code.Data.List.Base.du_map_22
                               (coe
-                                 (\ v6 -> MAlonzo.Code.Cost.Model.d_getModel_480 (coe v6) (coe v5)))
+                                 (\ v6 -> MAlonzo.Code.Cost.Model.d_getModel_502 (coe v6) (coe v5)))
                               (coe
                                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                  (coe MAlonzo.Code.Builtin.C_subtractInteger_6)
@@ -1015,7 +1015,7 @@ d_executeUPLC_192 ::
        (MAlonzo.Code.Utils.T_List_454
           (MAlonzo.Code.Utils.T__'215'__436
              MAlonzo.Code.Agda.Builtin.String.T_String_6
-             MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_192))) ->
+             MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_196))) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
@@ -1055,7 +1055,7 @@ d_evalProgramNU_204 ::
        (MAlonzo.Code.Utils.T_List_454
           (MAlonzo.Code.Utils.T__'215'__436
              MAlonzo.Code.Agda.Builtin.String.T_String_6
-             MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_192))) ->
+             MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_196))) ->
   T_ProgramNU_26 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12

@@ -109,6 +109,7 @@ data Model
   | MaxSize LinearFunction
   | LinearInX LinearFunction
   | LinearInY LinearFunction
+  | LinearInY2 LinearFunction Integer
   | LinearInZ LinearFunction
   | LinearInU LinearFunction
   | LiteralInYOrLinearInZ LinearFunction
@@ -126,6 +127,7 @@ data Model
   | ConstBelowDiagonal Integer Model
   | ConstOffDiagonal Integer Model
   | ExpModCost ExpModCostingFunction
+  | AboveAndBelowDiagonal Integer Model
   deriving stock (Show, Lift)
 
 {- The JSON representation consists of a list of pairs of (type, arguments)
@@ -159,6 +161,7 @@ instance FromJSON Model where
           "multiplied_sizes" -> MultipliedSizes <$> parseJSON args
           "linear_in_x" -> LinearInX <$> parseJSON args
           "linear_in_y" -> LinearInY <$> parseJSON args
+          "linear_in_y2" -> LinearInY2 <$> parseJSON args <*> objOf args .: "minimum"
           "linear_in_z" -> LinearInZ <$> parseJSON args
           "linear_in_u" -> LinearInU <$> parseJSON args
           "quadratic_in_x" -> QuadraticInX <$> parseJSON args
@@ -175,6 +178,7 @@ instance FromJSON Model where
           "const_above_diagonal" -> modelWithConstant ConstAboveDiagonal args
           "const_below_diagonal" -> modelWithConstant ConstBelowDiagonal args
           "const_off_diagonal" -> modelWithConstant ConstOffDiagonal args
+          "above_and_below_diagonal" -> modelWithConstant AboveAndBelowDiagonal args
           {- An adaptor to deal with the old "linear_on_diagonal" tag.  See Note [Backward
              compatibility for costing functions].  We never want to convert back to JSON
              here, so it's OK to forget that we originally got something tagged with

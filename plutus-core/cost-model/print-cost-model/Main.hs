@@ -157,6 +157,7 @@ renderModel =
     MaxSize f -> [renderLinearFunction f "max(x,y)"]
     LinearInX f -> [renderLinearFunction f "x"]
     LinearInY f -> [renderLinearFunction f "y"]
+    LinearInY2 f _ -> [renderLinearFunction f "y"]
     LinearInZ f -> [renderLinearFunction f "z"]
     LinearInU f -> [renderLinearFunction f "u"]
     QuadraticInX f -> [renderOneVariableQuadraticFunction f "x"]
@@ -192,6 +193,11 @@ renderModel =
       [ "if x==y"
       , printf "then %s" $ intercalate "\n" (renderModel m)
       , printf "else %d" c
+      ]
+    AboveAndBelowDiagonal c m ->
+      [ "if x<y && x>y"
+      , printf "then %d" c
+      , printf "else %s" $ intercalate "\n" (renderModel m)
       ]
 
 -- \^ We're not properly indenting submodels in the above/below diagonal

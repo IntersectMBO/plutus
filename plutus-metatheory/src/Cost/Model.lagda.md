@@ -81,6 +81,7 @@ data CostingModel : ℕ → Set where
   twoArgumentsConstAboveDiagonal : CostingNat → CostingModel 2 → CostingModel 2
   twoArgumentsConstBelowDiagonal : CostingNat → CostingModel 2 → CostingModel 2
   twoArgumentsConstOffDiagonal   : CostingNat → CostingModel 2 → CostingModel 2
+  twoArgumentsAboveAndBelowDiagonal : CostingNat → CostingModel 2 → CostingModel 2
   -- exactly 3 arguments
   twoArgumentsLinearInYAndZ      : Intercept → Slope → Slope → CostingModel 3
   twoArgumentsLinearInMaxYZ      : Intercept → Slope → CostingModel 3
@@ -160,6 +161,12 @@ runModel (twoArgumentsConstOffDiagonal c m) (x ∷ y ∷ []) =
   in if not (a ≡ᵇ b)
       then c
       else runModel m (x ∷ y ∷ [])
+runModel (twoArgumentsAboveAndBelowDiagonal _ m) (x ∷ y ∷ []) =
+  let a = sizeOf x
+      b = sizeOf y
+  in if b <ᵇ a
+      then runModel m (x ∷ y ∷ [])
+      else runModel m (y ∷ x ∷ [])
 runModel (threeArgumentsExpModCost c00 c11 c12) (x ∷ y ∷ z ∷ []) =
   let aa = sizeOf x
       ee = sizeOf y
@@ -192,6 +199,7 @@ convertRawModel {suc n} (LinearInX (mkLF intercept slope)) = just (linearCostIn 
 convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearCostIn (suc zero) intercept slope)
 convertRawModel {3} (LinearInYAndZ (mkLF2 intercept slope1 slope2)) =
                    just (twoArgumentsLinearInYAndZ intercept slope1 slope2)
+convertRawModel {suc (suc n)} (LinearInY2 (mkLF intercept slope) _) = just (linearCostIn (suc zero) intercept slope)
 convertRawModel {3} (LinearInMaxYZ (mkLF intercept slope)) = just (twoArgumentsLinearInMaxYZ intercept slope)
 convertRawModel {suc (suc n)} (QuadraticInX (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 zero c0 c1 c2)
 convertRawModel {suc (suc n)} (QuadraticInY (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc zero) c0 c1 c2)
@@ -206,6 +214,7 @@ convertRawModel {2} (SubtractedSizes (mkLF intercept slope) c) = just (twoArgume
 convertRawModel {2} (ConstAboveDiagonal c m) = mapMaybe (twoArgumentsConstAboveDiagonal c) (convertRawModel m)
 convertRawModel {2} (ConstBelowDiagonal c m) = mapMaybe (twoArgumentsConstBelowDiagonal c) (convertRawModel m)
 convertRawModel {2} (ConstOffDiagonal c m) = mapMaybe (twoArgumentsConstOffDiagonal c) (convertRawModel m)
+convertRawModel {2} (AboveAndBelowDiagonal c m) = mapMaybe (twoArgumentsAboveAndBelowDiagonal c) (convertRawModel m)
 convertRawModel {3} (ExpModCost (mkExpModCostingFunction c00 c11 c12)) = just (threeArgumentsExpModCost c00 c11 c12)
 convertRawModel {suc (suc n)} (WithInteractionInXAndY (mkWI c00 c10 c01 c11)) = just (withInteractionIn zero (suc zero) c00 c10 c01 c11)
 convertRawModel _ = nothing

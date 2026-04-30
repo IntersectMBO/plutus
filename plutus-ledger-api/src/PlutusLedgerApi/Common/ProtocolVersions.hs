@@ -131,8 +131,9 @@ ll
 
 I.e. for example
 
-- post-Conway 'PlutusV1' corresponds to 'DefaultFunSemanticsVariantB'
+- post-Conway and pre-van Rossem 'PlutusV1' corresponds to 'DefaultFunSemanticsVariantB'
 - pre-Conway  'PlutusV2' corresponds to 'DefaultFunSemanticsVariantA'
-- post-Conway 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantC'
+- post-Conway and pre-van Rossem 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantC'
+- post-van Rossem 'PlutusV1' corresponds to 'DefaultFunSemanticsVariantD'
 - post-van Rossem 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantE'
 -}
