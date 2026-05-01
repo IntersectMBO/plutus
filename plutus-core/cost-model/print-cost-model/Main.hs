@@ -236,7 +236,7 @@ printModel component width (name, CpuAndMemoryModel cpu mem) = do
 -- option prints the cost model file (if any) corresponding to the final element
 -- in the list.
 semvars :: [String]
-semvars = ["A", "B", "C"]
+semvars = ["A", "B", "C", "D", "E"]
 
 semvarOptions :: [String]
 semvarOptions = fmap ('-' :) semvars

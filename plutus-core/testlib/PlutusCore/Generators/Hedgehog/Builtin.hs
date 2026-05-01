@@ -23,7 +23,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount
   , IntegerCostedLiterally
   , NumBytesCostedAsNumWords
-  , TextCostingByteLength
+  , TextCostedByByteLength
   , ValueMaxDepth
   , ValueTotalSize
   )
@@ -118,7 +118,7 @@ genConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = genArbitraryBuiltin @BS.ByteString
   | Just HRefl <- eqTypeRep tr (typeRep @CByteString) = genArbitraryBuiltin @BS.ByteString
   | Just HRefl <- eqTypeRep tr (typeRep @Text) = genArbitraryBuiltin @Text
-  | Just HRefl <- eqTypeRep tr (typeRep @TextCostingByteLength) = genArbitraryBuiltin @Text
+  | Just HRefl <- eqTypeRep tr (typeRep @TextCostedByByteLength) = genArbitraryBuiltin @Text
   | Just HRefl <- eqTypeRep tr (typeRep @Data) = genArbitraryBuiltin @Data
   | Just HRefl <- eqTypeRep tr (typeRep @DataNodeCount) = genArbitraryBuiltin @Data
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G1.Element) =

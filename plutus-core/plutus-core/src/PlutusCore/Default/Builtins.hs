@@ -29,7 +29,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , ExMemoryUsage
   , IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
-  , TextCostingByteLength (..)
+  , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
   , ValueTotalSize (..)
   , memoryUsage
@@ -1510,10 +1510,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 costingFun
         appendStringMeaning_V2 =
           let appendStringD
-                :: TextCostingByteLength
-                -> TextCostingByteLength
+                :: TextCostedByByteLength
+                -> TextCostedByByteLength
                 -> Text
-              appendStringD (TextCostingByteLength x) (TextCostingByteLength y) = x <> y
+              appendStringD (TextCostedByByteLength x) (TextCostedByByteLength y) = x <> y
               {-# INLINE appendStringD #-}
            in makeBuiltinMeaning
                 appendStringD
@@ -1539,8 +1539,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 costingFun
         equalsStringMeaning_V2 =
           let equalsStringD
-                :: TextCostingByteLength -> TextCostingByteLength -> Bool
-              equalsStringD (TextCostingByteLength x) (TextCostingByteLength y) = x == y
+                :: TextCostedByByteLength -> TextCostedByByteLength -> Bool
+              equalsStringD (TextCostedByByteLength x) (TextCostedByByteLength y) = x == y
               {-# INLINE equalsStringD #-}
            in makeBuiltinMeaning
                 equalsStringD
@@ -1565,8 +1565,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 encodeUtf8D
                 costingFun
         encodeUtf8Meaning_V2 =
-          let encodeUtf8D :: TextCostingByteLength -> BS.ByteString
-              encodeUtf8D (TextCostingByteLength t) = encodeUtf8 t
+          let encodeUtf8D :: TextCostedByByteLength -> BS.ByteString
+              encodeUtf8D (TextCostedByByteLength t) = encodeUtf8 t
               {-# INLINE encodeUtf8D #-}
            in makeBuiltinMeaning
                 encodeUtf8D

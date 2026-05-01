@@ -12,7 +12,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , flattenCostRose
   , NumBytesCostedAsNumWords (..)
   , IntegerCostedLiterally (..)
-  , TextCostingByteLength (..)
+  , TextCostedByByteLength (..)
   , ValueTotalSize (..)
   , ValueMaxDepth (..)
   , DataNodeCount (..)
@@ -332,10 +332,10 @@ instance ExMemoryUsage T.Text where
           ys = T.drop 100 xs
   {-# INLINE memoryUsage #-}
 
-newtype TextCostingByteLength = TextCostingByteLength {unTextCostingByteLength :: T.Text}
+newtype TextCostedByByteLength = TextCostedByByteLength {unTextCostedByByteLength :: T.Text}
 
-instance ExMemoryUsage TextCostingByteLength where
-  memoryUsage (TextCostingByteLength (TI.Text _ _ lenInBytes)) =
+instance ExMemoryUsage TextCostedByByteLength where
+  memoryUsage (TextCostedByByteLength (TI.Text _ _ lenInBytes)) =
     singletonRose . unsafeToSatInt $ lenInBytes `quot` 4
   {-# INLINE memoryUsage #-}
 

@@ -39,7 +39,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount
   , IntegerCostedLiterally
   , NumBytesCostedAsNumWords
-  , TextCostingByteLength
+  , TextCostedByByteLength
   , ValueMaxDepth
   , ValueTotalSize
   )
@@ -146,7 +146,7 @@ smallConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeConst $ BS.pack []
   | Just HRefl <- eqTypeRep tr (typeRep @CByteString) = SomeConst $ BS.pack []
   | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeConst ("" :: Text)
-  | Just HRefl <- eqTypeRep tr (typeRep @TextCostingByteLength) = SomeConst ("" :: Text)
+  | Just HRefl <- eqTypeRep tr (typeRep @TextCostedByByteLength) = SomeConst ("" :: Text)
   | Just HRefl <- eqTypeRep tr (typeRep @Data) = SomeConst $ I 0
   | Just HRefl <- eqTypeRep tr (typeRep @DataNodeCount) = SomeConst $ I 0
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G1.Element) =

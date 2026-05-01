@@ -56,7 +56,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
-  , TextCostingByteLength (..)
+  , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
   , ValueTotalSize (..)
   )
@@ -714,16 +714,16 @@ instance
   {-# INLINE readKnown #-}
 
 deriving newtype instance
-  KnownTypeAst tyname DefaultUni TextCostingByteLength
+  KnownTypeAst tyname DefaultUni TextCostedByByteLength
 instance
   KnownBuiltinTypeIn DefaultUni term Text
-  => MakeKnownIn DefaultUni term TextCostingByteLength
+  => MakeKnownIn DefaultUni term TextCostedByByteLength
   where
   makeKnown = makeKnownCoerce @Text
   {-# INLINE makeKnown #-}
 instance
   KnownBuiltinTypeIn DefaultUni term Text
-  => ReadKnownIn DefaultUni term TextCostingByteLength
+  => ReadKnownIn DefaultUni term TextCostedByByteLength
   where
   readKnown = readKnownCoerce @Text
   {-# INLINE readKnown #-}
