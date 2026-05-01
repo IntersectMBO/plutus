@@ -1,1 +1,1 @@
-Bool -> ByteString -> ByteString -> ByteString
+Bool -> CByteString -> CByteString -> ByteString

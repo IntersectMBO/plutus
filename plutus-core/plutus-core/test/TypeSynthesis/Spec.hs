@@ -251,7 +251,7 @@ test_dumpTypeRepDefaultFuns =
                     ]
                   )
                 ]
-           in map (test_dumpTypeRepAllFun @DefaultFun "DefaultFun" semVarChanges) enumerate
+           in [test_dumpTypeRepAllFun @DefaultFun "DefaultFun" semVarChanges DefaultFunSemanticsVariantE]
         , let semVarChanges =
                 -- Keep the inner lists sorted.
                 [

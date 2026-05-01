@@ -1,1 +1,1 @@
-ByteString -> Int
+CByteString -> Int

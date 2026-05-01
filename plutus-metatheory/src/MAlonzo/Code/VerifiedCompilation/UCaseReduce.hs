@@ -210,7 +210,7 @@ du_red'45'constr_258 v0
                                                                       seq (coe v10)
                                                                       (let v17
                                                                              = coe
-                                                                                 MAlonzo.Code.Untyped.CEK.du_lookup'63'_996
+                                                                                 MAlonzo.Code.Untyped.CEK.du_lookup'63'_1004
                                                                                  (coe v15)
                                                                                  (coe v4) in
                                                                        coe
@@ -263,7 +263,7 @@ du_red'45'constr_258 v0
                                                                                         (coe v15)
                                                                                         (let v22
                                                                                                = coe
-                                                                                                   MAlonzo.Code.Untyped.CEK.du_lookup'63'_996
+                                                                                                   MAlonzo.Code.Untyped.CEK.du_lookup'63'_1004
                                                                                                    (coe
                                                                                                       v20)
                                                                                                    (coe
@@ -852,7 +852,7 @@ du_red'45'integer_364 v0
                                                                                  seq (coe v10)
                                                                                  (let v19
                                                                                         = coe
-                                                                                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_996
+                                                                                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_1004
                                                                                             (coe
                                                                                                v18)
                                                                                             (coe
@@ -912,7 +912,7 @@ du_red'45'integer_364 v0
                                                                                                       v15)
                                                                                                    (let v24
                                                                                                           = coe
-                                                                                                              MAlonzo.Code.Untyped.CEK.du_lookup'63'_996
+                                                                                                              MAlonzo.Code.Untyped.CEK.du_lookup'63'_1004
                                                                                                               (coe
                                                                                                                  v23)
                                                                                                               (coe
@@ -2183,7 +2183,7 @@ d_decide_526 v0 v1 v2
                                                                                                                   v16)
                                                                                                                (let v25
                                                                                                                       = coe
-                                                                                                                          MAlonzo.Code.Untyped.CEK.du_lookup'63'_996
+                                                                                                                          MAlonzo.Code.Untyped.CEK.du_lookup'63'_1004
                                                                                                                           (coe
                                                                                                                              v23)
                                                                                                                           (coe
@@ -2301,7 +2301,7 @@ d_decide_526 v0 v1 v2
                                                                                                                                     v21)
                                                                                                                                  (let v30
                                                                                                                                         = coe
-                                                                                                                                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_996
+                                                                                                                                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_1004
                                                                                                                                             (coe
                                                                                                                                                v28)
                                                                                                                                             (coe
@@ -2978,7 +2978,7 @@ du_decide'45''126'_604 v0 v1 v2
                                                                                                                   v16)
                                                                                                                (let v25
                                                                                                                       = coe
-                                                                                                                          MAlonzo.Code.Untyped.CEK.du_lookup'63'_996
+                                                                                                                          MAlonzo.Code.Untyped.CEK.du_lookup'63'_1004
                                                                                                                           (coe
                                                                                                                              v23)
                                                                                                                           (coe
@@ -3096,7 +3096,7 @@ du_decide'45''126'_604 v0 v1 v2
                                                                                                                                     v21)
                                                                                                                                  (let v30
                                                                                                                                         = coe
-                                                                                                                                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_996
+                                                                                                                                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_1004
                                                                                                                                             (coe
                                                                                                                                                v28)
                                                                                                                                             (coe

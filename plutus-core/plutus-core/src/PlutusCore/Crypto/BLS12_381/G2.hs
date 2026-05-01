@@ -8,6 +8,7 @@ module PlutusCore.Crypto.BLS12_381.G2
   , add
   , neg
   , scalarMul
+  , scalarMulE
   , hashToGroup
   , compress
   , uncompress
@@ -90,6 +91,12 @@ neg = coerce (BlstBindings.blsNeg @BlstBindings.Curve2)
 scalarMul :: Integer -> Element -> Element -- Other way round from library function
 scalarMul = coerce $ flip (BlstBindings.blsMult @BlstBindings.Curve2)
 {-# INLINE scalarMul #-}
+
+scalarMulE :: Integer -> Element -> BuiltinResult Element
+scalarMulE x
+  | msmScalarOutOfBounds x = const $ fail "Scalar exceeds 512-byte bound for G2.scalarMul"
+  | otherwise = pure . (coerce . flip (BlstBindings.blsMult @BlstBindings.Curve2) $ x)
+{-# INLINE scalarMulE #-}
 
 {-| Compress a G2 element to a bytestring. This serialises a curve point to its x
  coordinate only, using an extra bit to determine which of two possible y

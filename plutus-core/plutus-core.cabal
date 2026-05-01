@@ -264,6 +264,7 @@ library
     PlutusCore.Core.Type
     PlutusCore.Crypto.Utils
     PlutusCore.Default.Universe
+    PlutusCore.Default.Universe.Cardano
     PlutusCore.Eq
     PlutusCore.Parser.Builtin
     PlutusCore.Parser.ParserCommon
