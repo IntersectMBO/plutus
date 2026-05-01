@@ -16,8 +16,19 @@ on:
         required: false
         default: "100000"
 
+      quickcheck-tests:
+        description: 'Number of QuickCheck tests to run per property'
+        required: false
+        default: '100000'
+      quickcheck-max-size:
+        description: 'Max QuickCheck size parameter'
+        required: false
+        default: '500'
+
 env: 
   HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 100000 }}
+  QUICKCHECK_TESTS: ${{ github.event.inputs.quickcheck-tests || 100000 }}
+  QUICKCHECK_MAX_SIZE: ${{ github.event.inputs.quickcheck-max-size || 500 }}
 
 jobs:
   run:
@@ -32,11 +43,11 @@ jobs:
       - name: Run Plutus Core Test
         run: |
           pushd plutus-core
-          nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS --no-create
+          nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS --quickcheck-tests $QUICKCHECK_TESTS --quickcheck-max-size $QUICKCHECK_MAX_SIZE --no-create
           popd
 
       - name: Run Plutus IR Test
         run: |
           pushd plutus-core
-          nix run --no-warn-dirty --accept-flake-config .#plutus-ir-test -- --hedgehog-tests $HEDGEHOG_TESTS --no-create
+          nix run --no-warn-dirty --accept-flake-config .#plutus-ir-test -- --hedgehog-tests $HEDGEHOG_TESTS --quickcheck-tests $QUICKCHECK_TESTS --quickcheck-max-size $QUICKCHECK_MAX_SIZE --no-create
           popd
