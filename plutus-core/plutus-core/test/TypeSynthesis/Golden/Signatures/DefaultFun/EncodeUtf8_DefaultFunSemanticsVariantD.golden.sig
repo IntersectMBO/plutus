@@ -1,1 +1,1 @@
-TextCostingByteLength -> ByteString
+TextCostedByByteLength -> ByteString

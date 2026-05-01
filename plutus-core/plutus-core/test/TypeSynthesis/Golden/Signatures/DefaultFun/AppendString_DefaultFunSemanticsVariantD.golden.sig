@@ -1,1 +1,1 @@
-TextCostingByteLength -> TextCostingByteLength -> Text
+TextCostedByByteLength -> TextCostedByByteLength -> Text
