@@ -569,6 +569,7 @@ data ModelTwoArguments
   = ModelTwoArgumentsConstantCost CostingInteger
   | ModelTwoArgumentsLinearInX OneVariableLinearFunction
   | ModelTwoArgumentsLinearInY OneVariableLinearFunction
+  | ModelTwoArgumentsLinearInY2 ModelSubtractedSizes
   | ModelTwoArgumentsLinearInXAndY TwoVariableLinearFunction
   | ModelTwoArgumentsAddedSizes OneVariableLinearFunction
   | ModelTwoArgumentsSubtractedSizes ModelSubtractedSizes
@@ -582,6 +583,7 @@ data ModelTwoArguments
   | ModelTwoArgumentsQuadraticInY OneVariableQuadraticFunction
   | ModelTwoArgumentsQuadraticInXAndY TwoVariableQuadraticFunction
   | ModelTwoArgumentsWithInteractionInXAndY TwoVariableWithInteractionFunction
+  | ModelTwoArgumentsAboveAndBelowDiagonal ModelConstantOrTwoArguments
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
 
@@ -664,6 +666,10 @@ runTwoArgumentModel
     lazy $ \_ costs2 ->
       scaleLinearly intercept slope costs2
 runTwoArgumentModel
+  (ModelTwoArgumentsLinearInY2 (ModelSubtractedSizes intercept slope _)) =
+    lazy $ \_ costs2 ->
+      scaleLinearly intercept slope costs2
+runTwoArgumentModel
   (ModelTwoArgumentsLinearInXAndY (TwoVariableLinearFunction intercept slope1 slope2)) =
     lazy $ \costs1 costs2 ->
       scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
@@ -707,6 +713,13 @@ runTwoArgumentModel
         if size1 < size2
           then CostLast c
           else run (CostLast size1) (CostLast size2)
+runTwoArgumentModel
+  (ModelTwoArgumentsAboveAndBelowDiagonal (ModelConstantOrTwoArguments _c m)) =
+    case runTwoArgumentModel m of
+      !run -> lazy $ \costs1 costs2 -> do
+        let !size1 = sumCostStream costs1
+            !size2 = sumCostStream costs2
+        run (CostLast (max size1 size2)) (CostLast (min size1 size2))
 runTwoArgumentModel
   (ModelTwoArgumentsQuadraticInY f) =
     lazy $ \_ costs2 -> scaleQuadratically f costs2

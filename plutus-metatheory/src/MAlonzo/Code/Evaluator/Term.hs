@@ -881,7 +881,7 @@ runUCountingAgda ::
     (MAlonzo.Code.Utils.T_List_454
        (MAlonzo.Code.Utils.T__'215'__436
           MAlonzo.Code.Agda.Builtin.String.T_String_6
-          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_192)) ->
+          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_196)) ->
   T_TermU_24 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
@@ -894,7 +894,7 @@ d_runUCounting_202 ::
     (MAlonzo.Code.Utils.T_List_454
        (MAlonzo.Code.Utils.T__'215'__436
           MAlonzo.Code.Agda.Builtin.String.T_String_6
-          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_192)) ->
+          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_196)) ->
   T_TermU_24 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
@@ -910,19 +910,19 @@ d_runUCounting_202 v0 v1
                         (\ v4 ->
                            coe
                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe MAlonzo.Code.Cost.Model.d_lookupModel_522 (coe v4))))
+                             (coe MAlonzo.Code.Cost.Model.d_lookupModel_544 (coe v4))))
                      (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
                      (coe
-                        MAlonzo.Code.Cost.Model.du_allJust_558
+                        MAlonzo.Code.Cost.Model.du_allJust_580
                         (coe
                            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                            (coe
-                              MAlonzo.Code.Cost.Model.d_getModel_480
+                              MAlonzo.Code.Cost.Model.d_getModel_502
                               (coe MAlonzo.Code.Builtin.C_addInteger_4) (coe v3))
                            (coe
                               MAlonzo.Code.Data.List.Base.du_map_22
                               (coe
-                                 (\ v4 -> MAlonzo.Code.Cost.Model.d_getModel_480 (coe v4) (coe v3)))
+                                 (\ v4 -> MAlonzo.Code.Cost.Model.d_getModel_502 (coe v4) (coe v3)))
                               (coe
                                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                  (coe MAlonzo.Code.Builtin.C_subtractInteger_6)
