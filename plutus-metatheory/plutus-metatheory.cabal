@@ -381,6 +381,7 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Certificate
+    MAlonzo.Code.VerifiedCompilation.FloatOut
     MAlonzo.Code.VerifiedCompilation.NotImplemented
     MAlonzo.Code.VerifiedCompilation.Trace
     MAlonzo.Code.VerifiedCompilation.UApplyToCase

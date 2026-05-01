@@ -4,7 +4,7 @@ NoHints
 -- Certifier hints #2 (Right ForceCaseDelay) --
 NoHints
 
--- Certifier hints #3 (Left LetFloatOut) --
+-- Certifier hints #3 (Right LetFloatOut) --
 NoHints
 
 -- Certifier hints #4 (Right ForceDelay) --
