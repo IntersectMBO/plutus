@@ -6,10 +6,12 @@ import PlutusCore.Pretty
 import Data.Bits (shiftL)
 import Data.ByteString (ByteString)
 
-minBoundInteger, maxBoundInteger :: Integer
+minBoundInteger :: Integer
 minBoundInteger = negate (shiftL 1 262143)
-maxBoundInteger = shiftL 1 262143 - 1
 {-# NOINLINE minBoundInteger #-}
+
+maxBoundInteger :: Integer
+maxBoundInteger = shiftL 1 262143 - 1
 {-# NOINLINE maxBoundInteger #-}
 
 maxBoundByteString :: Int

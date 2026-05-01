@@ -798,7 +798,7 @@ instance
   makeKnown (CInteger i)
     | i > maxBoundInteger || i < minBoundInteger =
         BuiltinFailure
-          (pure "Integer overflow")
+          (pure "Integer out of bounds")
           BuiltinEvaluationFailure
     | otherwise = makeKnown i
   {-# INLINE makeKnown #-}
@@ -812,7 +812,7 @@ instance
       if i > maxBoundInteger || i < minBoundInteger
         then
           throwError . operationalUnliftingError $
-            "Integer overflow"
+            "Integer out of bounds"
         else pure $ CInteger i
   {-# INLINE readKnown #-}
 
@@ -825,7 +825,7 @@ instance
   makeKnown (CByteString s)
     | B.length s > maxBoundByteString =
         BuiltinFailure
-          (pure "Integer overflow")
+          (pure "Bytestring overflow")
           BuiltinEvaluationFailure
     | otherwise = makeKnown s
   {-# INLINE makeKnown #-}

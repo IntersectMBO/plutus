@@ -78,10 +78,12 @@ CPU time increases smoothly for inputs up to about 8K then increases sharply, be
 about 14K).  This restriction may be removed once a more efficient implementation becomes available.-}
 {- NB: if we do relax the length restriction then we will need two variants of integerToByteString in
    Plutus Core so that we can continue to support the current behaviour for old scripts.-}
-maximumInputLength, maximumOutputLength :: Integer
+maximumInputLength :: Integer
 maximumInputLength = 4096
-maximumOutputLength = 8192
 {-# INLINE maximumInputLength #-}
+
+maximumOutputLength :: Integer
+maximumOutputLength = 8192
 {-# INLINE maximumOutputLength #-}
 
 -- | Wrapper for 'unsafeIntegerToByteString' to make it more convenient to define as a builtin.
