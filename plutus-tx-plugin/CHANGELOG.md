@@ -1,4 +1,12 @@
 
+<a id='changelog-1.63.0.0'></a>
+# 1.63.0.0 — 2026-05-01
+
+## Removed
+
+- Removed `PlutusTx.Plugin` and `plc`.
+  Use `Plinth.Plugin` and `plinthc` instead.
+
 <a id='changelog-1.62.0.0'></a>
 # 1.62.0.0 — 2026-04-24
 
