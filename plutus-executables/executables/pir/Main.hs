@@ -191,11 +191,10 @@ compileToUplc :: Bool -> PlcProg () -> UplcProg ()
 compileToUplc optimise plcProg =
   let plcCompilerOpts =
         if optimise
-          then PLC.defaultCompilationOpts
+          then UPLC.defaultOptimizeOpts
           else
-            PLC.defaultCompilationOpts
-              & PLC.coOptimizeOpts
-              . UPLC.ooMaxSimplifierIterations
+            UPLC.defaultOptimizeOpts
+              & UPLC.ooMaxSimplifierIterations
               .~ 0
    in runQuote $ flip runReaderT plcCompilerOpts $ PLC.compileProgram plcProg
 
