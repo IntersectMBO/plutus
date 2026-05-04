@@ -237,10 +237,10 @@ generate-release-notes() {
 
 publish-gh-release() {
   for EXEC in uplc pir plc plutus; do
-    nix build ".#packages.x86_64-linux.musl64-$EXEC"
+    nix build "path:.#packages.x86_64-linux.musl64-$EXEC"
     upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
   done
-  nix build ".#metatheory-agda-library"
+  nix build "path:.#metatheory-agda-library"
   cp -f ./result/plutus-metatheory.tar.gz .
   local NOTES_FILE=$(mktemp)
   generate-release-notes > $NOTES_FILE
