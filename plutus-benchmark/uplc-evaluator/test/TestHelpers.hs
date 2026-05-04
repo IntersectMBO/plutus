@@ -160,9 +160,10 @@ waitForError handle jobId = waitForFile (errorPath handle jobId) defaultWaitMs
 {-| Wait for a file to appear, event-driven
 
 Registers an fsnotify watcher on the parent directory and blocks until the
-file appears, with a wall-clock safety net. A post-registration existence
-check closes the race window where the file is created after the watcher is
-set up but before an event is observed. Timeout is specified in milliseconds. -}
+file appears, with a wall-clock safety net. After registering the watcher
+we do a single 'doesFileExist' probe to cover the case where the file was
+already created before the watcher was ready (otherwise the event would
+have fired and been missed). Timeout is specified in milliseconds. -}
 waitForFile :: FilePath -> Int -> IO (Maybe FilePath)
 waitForFile filepath timeoutMs = do
   done <- newEmptyMVar

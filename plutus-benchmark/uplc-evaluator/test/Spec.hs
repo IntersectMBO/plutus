@@ -29,7 +29,6 @@ import TestHelpers
   , resultPath
   , submitProgram
   , submitProgramFlat
-  , waitForError
   , waitForErrorOrFail
   , waitForFile
   , waitForResult
@@ -74,7 +73,6 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
 
@@ -133,7 +131,6 @@ main = withUtf8 do
                   let flatBytes = "\x01\x00\x00\x00\x01\x00\x00\x00" -- 8 bytes of binary data
                   submitProgramFlat handle jobId flatBytes
 
-                  -- Wait for error (5 second timeout)
                   -- Expected: MVP validates text content, flat binary won't have "(program" prefix
                   path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
@@ -177,7 +174,6 @@ main = withUtf8 do
                   let emptyProgram = ""
                   submitProgram handle jobId emptyProgram
 
-                  -- Wait for error (5 second timeout)
                   path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
 
@@ -207,7 +203,6 @@ main = withUtf8 do
                   let invalidProgram = "not a valid program"
                   submitProgram handle jobId invalidProgram
 
-                  -- Wait for error (5 second timeout)
                   path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches submitted UUID
@@ -235,7 +230,6 @@ main = withUtf8 do
                   let invalidProgram = "program 1.0.0 (con integer 42)"
                   submitProgram handle jobId invalidProgram
 
-                  -- Wait for error (5 second timeout)
                   path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches submitted UUID
@@ -264,12 +258,11 @@ main = withUtf8 do
                   -- Service will extract "not-a-uuid" as the job ID (first 36 chars of base name)
                   let expectedJobId = "not-a-uuid"
                       errorFilename = expectedJobId ++ ".error.json"
-                      errorPath = shOutputDir handle </> errorFilename
+                      errorFilePath = shOutputDir handle </> errorFilename
 
-                  -- Wait for error file (5 second timeout)
                   path <-
                     maybe (assertFailure "Timeout waiting for error.json") pure
-                      =<< waitForFile errorPath defaultWaitMs
+                      =<< waitForFile errorFilePath defaultWaitMs
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches truncated filename
                   eeProgramId evalError @?= T.pack expectedJobId
@@ -298,12 +291,11 @@ main = withUtf8 do
                   -- Service will extract "job-123" as the job ID
                   let expectedJobId = "job-123"
                       errorFilename = expectedJobId ++ ".error.json"
-                      errorPath = shOutputDir handle </> errorFilename
+                      errorFilePath = shOutputDir handle </> errorFilename
 
-                  -- Wait for error file (5 second timeout)
                   path <-
                     maybe (assertFailure "Timeout waiting for error.json") pure
-                      =<< waitForFile errorPath defaultWaitMs
+                      =<< waitForFile errorFilePath defaultWaitMs
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches truncated filename
                   eeProgramId evalError @?= T.pack expectedJobId
@@ -332,12 +324,11 @@ main = withUtf8 do
                   -- Service will extract "12345" as the job ID
                   let expectedJobId = "12345"
                       errorFilename = expectedJobId ++ ".error.json"
-                      errorPath = shOutputDir handle </> errorFilename
+                      errorFilePath = shOutputDir handle </> errorFilename
 
-                  -- Wait for error file (5 second timeout)
                   path <-
                     maybe (assertFailure "Timeout waiting for error.json") pure
-                      =<< waitForFile errorPath defaultWaitMs
+                      =<< waitForFile errorFilePath defaultWaitMs
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches truncated filename
                   eeProgramId evalError @?= T.pack expectedJobId
@@ -366,7 +357,6 @@ main = withUtf8 do
                   let program = "(program 1.0.0 [ (con integer 42) (con integer 1) ])"
                   submitProgram handle jobId program
 
-                  -- Wait for error (5 second timeout)
                   path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
 
@@ -462,7 +452,6 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify timing_samples array has 10-20 entries
@@ -507,7 +496,6 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify we have timing samples
@@ -649,7 +637,6 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   erStatus result @?= "success"
@@ -702,7 +689,6 @@ main = withUtf8 do
                   -- Submit all 5 programs simultaneously
                   mapM_ (\jobId -> submitProgram handle jobId program) jobIds
 
-                  -- Wait for all results (5 second timeout each)
                   paths <- mapM (\jobId -> waitForResultOrFail handle jobId) jobIds
                   results <- mapM readResultJsonOrFail paths
                   -- Verify we got exactly 5 results
@@ -754,7 +740,6 @@ main = withUtf8 do
                   let program = "   (program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
@@ -775,7 +760,6 @@ main = withUtf8 do
                   let program = "\n\n(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
@@ -796,7 +780,6 @@ main = withUtf8 do
                   let program = "\t(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
@@ -817,7 +800,6 @@ main = withUtf8 do
                   let program = " \t\n  \t(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
@@ -841,7 +823,6 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
@@ -867,7 +848,6 @@ main = withUtf8 do
                     |]
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
@@ -895,7 +875,6 @@ main = withUtf8 do
                     |]
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
@@ -916,7 +895,6 @@ main = withUtf8 do
                   let program = "(program 1.1.0 (constr 0 (con integer 42) (con bool True)))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
                   path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
