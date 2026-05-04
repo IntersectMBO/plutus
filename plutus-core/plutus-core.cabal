@@ -114,7 +114,6 @@ library
     PlutusCore.Check.Value
     PlutusCore.Compiler
     PlutusCore.Compiler.Erase
-    PlutusCore.Compiler.Opts
     PlutusCore.Compiler.Types
     PlutusCore.Core
     PlutusCore.Core.Plated
@@ -750,7 +749,6 @@ library plutus-core-testlib
     , dependent-map               >=0.4.0.0
     , filepath
     , free
-    , hashable
     , hedgehog                    >=1.0
     , hedgehog-quickcheck
     , lazy-search

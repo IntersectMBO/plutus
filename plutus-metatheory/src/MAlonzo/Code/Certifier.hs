@@ -33,9 +33,9 @@ d_runCertifier_2 ::
   [MAlonzo.Code.Utils.T__'215'__436
      (MAlonzo.Code.Utils.T_Either_6
         MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-        MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_8)
+        MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
      (MAlonzo.Code.Utils.T__'215'__436
-        MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_72
+        MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_76
         (MAlonzo.Code.Utils.T__'215'__436
            MAlonzo.Code.RawU.T_Untyped_208
            MAlonzo.Code.RawU.T_Untyped_208))] ->
@@ -47,7 +47,7 @@ d_runCertifier_2 v0
       MAlonzo.Code.Utils.du_eitherBind_54
       (coe
          MAlonzo.Code.Utils.du_try_102
-         (coe MAlonzo.Code.VerifiedCompilation.Trace.d_toTrace_98 (coe v0))
+         (coe MAlonzo.Code.VerifiedCompilation.Trace.d_toTrace_102 (coe v0))
          (coe MAlonzo.Code.VerifiedCompilation.C_emptyDump_4))
       (coe
          (\ v1 ->
@@ -77,14 +77,14 @@ runCertifierMain ::
     (MAlonzo.Code.Utils.T__'215'__436
        (MAlonzo.Code.Utils.T_Either_6
           MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-          MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_8)
+          MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
        (MAlonzo.Code.Utils.T__'215'__436
-          MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_72
+          MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_76
           (MAlonzo.Code.Utils.T__'215'__436
              MAlonzo.Code.RawU.T_Untyped_208
              MAlonzo.Code.RawU.T_Untyped_208))) ->
   MAlonzo.Code.Agda.Builtin.List.T_List_10
-    () MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_134 ->
+    () MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_138 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     ()
     (MAlonzo.Code.Utils.T__'215'__436
@@ -94,13 +94,13 @@ d_runCertifierMain_12 ::
   [MAlonzo.Code.Utils.T__'215'__436
      (MAlonzo.Code.Utils.T_Either_6
         MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-        MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_8)
+        MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
      (MAlonzo.Code.Utils.T__'215'__436
-        MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_72
+        MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_76
         (MAlonzo.Code.Utils.T__'215'__436
            MAlonzo.Code.RawU.T_Untyped_208
            MAlonzo.Code.RawU.T_Untyped_208))] ->
-  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_134] ->
+  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_138] ->
   Maybe
     (MAlonzo.Code.Utils.T__'215'__436
        Bool MAlonzo.Code.Agda.Builtin.String.T_String_6)

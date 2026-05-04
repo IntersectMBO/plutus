@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 
 module UntypedPlutusCore.Transform.EvaluateBuiltins
@@ -5,13 +6,14 @@ module UntypedPlutusCore.Transform.EvaluateBuiltins
   ) where
 
 import PlutusCore.Builtin
+import UntypedPlutusCore.Analysis.Builtins
 import UntypedPlutusCore.Contexts
 import UntypedPlutusCore.Core
+import UntypedPlutusCore.Transform.Certify.Trace
 import UntypedPlutusCore.Transform.Optimizer
 
 import Control.Lens (transformOf, (^.))
 import Data.Functor (void)
-import UntypedPlutusCore.Analysis.Builtins
 
 evaluateBuiltinsPass
   :: (Monad m, ToBuiltinMeaning uni fun, Typeable name)
@@ -23,7 +25,7 @@ evaluateBuiltinsPass
   -> OptimizerT name uni fun a m (Term name uni fun a)
 evaluateBuiltinsPass preserveLogging binfo costModel term = do
   result <- evaluateBuiltins preserveLogging binfo costModel term
-  recordOptimization term undefined result
+  recordOptimization term ConstantFoldingStage result
   return result
 
 evaluateBuiltins

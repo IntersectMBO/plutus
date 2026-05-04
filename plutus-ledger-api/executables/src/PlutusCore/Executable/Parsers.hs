@@ -197,7 +197,7 @@ certifierOutputMode =
         )
     ]
 
-optimizeOpts :: Parser (UPLC.OptimizeOpts name a)
+optimizeOpts :: Parser (UPLC.OptimizeOpts name UPLC.DefaultUni UPLC.DefaultFun a)
 optimizeOpts = do
   _ooMaxSimplifierIterations <-
     option
@@ -286,6 +286,8 @@ optimizeOpts = do
           <> help
             "Run only those optimisation passes which are certified to preserve the functional behavior of the original program."
       )
+  _ooBuiltinsInfo <- undefined
+  _ooBuiltinCostModel <- undefined
   pure UPLC.OptimizeOpts {..}
 
 optimiseEvalOpts :: Parser OptimiseEvalOpts

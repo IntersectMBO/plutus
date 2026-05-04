@@ -23,6 +23,7 @@ import UntypedPlutusCore.Transform.ApplyToCase (applyToCase)
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.Cse
+import UntypedPlutusCore.Transform.EvaluateBuiltins (evaluateBuiltinsPass)
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
 import UntypedPlutusCore.Transform.ForceCaseDelay (forceCaseDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
@@ -39,7 +40,7 @@ import Data.Vector.Orphans ()
 optimizeProgram
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => OptimizeOpts name a
+  => OptimizeOpts name uni fun a
   -> BuiltinSemanticsVariant fun
   -> Program name uni fun a
   -> m (Program name uni fun a)
@@ -49,7 +50,7 @@ optimizeProgram opts builtinSemanticsVariant (Program a v t) =
 optimizeProgramWithTrace
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => OptimizeOpts name a
+  => OptimizeOpts name uni fun a
   -> BuiltinSemanticsVariant fun
   -> Program name uni fun a
   -> m (Program name uni fun a, OptimizerTrace name uni fun a)
@@ -62,7 +63,7 @@ optimizeProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
 optimizeTerm
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => OptimizeOpts name a
+  => OptimizeOpts name uni fun a
   -> BuiltinSemanticsVariant fun
   -> Term name uni fun a
   -> m (Term name uni fun a)
@@ -72,7 +73,7 @@ optimizeTerm opts builtinSemanticsVariant term =
 termOptimizer
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => OptimizeOpts name a
+  => OptimizeOpts name uni fun a
   -> BuiltinSemanticsVariant fun
   -> Term name uni fun a
   -> OptimizerT name uni fun a m (Term name uni fun a)
@@ -108,6 +109,7 @@ termOptimizer opts builtinSemanticsVariant =
         >=> runStage ForceDelayStage
         >=> runStage CaseOfCaseStage
         >=> runStage CaseReduceStage
+        >=> runStage ConstantFoldingStage
         >=> runStage InlineStage
 
     certifiedOnly = _ooCertifiedOptsOnly opts
@@ -144,6 +146,11 @@ termOptimizer opts builtinSemanticsVariant =
             if _ooApplyToCase opts then applyToCase else pure
           LetFloatOutStage ->
             letFloatOut
+          ConstantFoldingStage ->
+            evaluateBuiltinsPass
+              (_ooPreserveLogging opts)
+              (_ooBuiltinsInfo opts)
+              (_ooBuiltinCostModel opts)
 
     caseOfCase'
       :: Term name uni fun a

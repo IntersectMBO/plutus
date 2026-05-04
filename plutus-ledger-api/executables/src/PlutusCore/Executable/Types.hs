@@ -101,7 +101,7 @@ data OptimiseOptions name a
       PrintMode
       Certifier
       CertifierOutputMode
-      (UPLC.OptimizeOpts name a)
+      (UPLC.OptimizeOpts name UPLC.DefaultUni UPLC.DefaultFun a)
       OptimiseEvalOpts
 data PrintOptions = PrintOptions Input Output PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
