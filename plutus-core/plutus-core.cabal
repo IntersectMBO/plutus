@@ -235,6 +235,7 @@ library
     UntypedPlutusCore.Transform.Certify.Hints
     UntypedPlutusCore.Transform.Certify.Trace
     UntypedPlutusCore.Transform.Cse
+    UntypedPlutusCore.Transform.EvaluateBuiltins
     UntypedPlutusCore.Transform.FloatDelay
     UntypedPlutusCore.Transform.ForceCaseDelay
     UntypedPlutusCore.Transform.ForceDelay
@@ -282,6 +283,7 @@ library
     PlutusCore.Pretty.Readable
     PlutusCore.Pretty.Utils
     Universe.Core
+    UntypedPlutusCore.Analysis.Builtins
     UntypedPlutusCore.Analysis.Definitions
     UntypedPlutusCore.Analysis.Usages
     UntypedPlutusCore.Core.Instance
