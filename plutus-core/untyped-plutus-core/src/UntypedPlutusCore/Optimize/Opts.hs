@@ -17,6 +17,8 @@ module UntypedPlutusCore.Optimize.Opts
   , ooBuiltinCostModel
   , defaultOptimizeOpts
   , CseWhichSubterms (..)
+  , BuiltinsInfo (..)
+  , biSemanticsVariant
   ) where
 
 import Control.Lens.TH (makeLenses)

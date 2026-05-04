@@ -10,7 +10,7 @@ import PlutusCore.Default (BuiltinSemanticsVariant (..), DefaultFun)
 import PlutusCore.Executable.Types
 import UntypedPlutusCore qualified as UPLC
 
-import Control.Lens ((^.))
+import Control.Lens ((&), (.~), (^.))
 import Data.Maybe
 import Options.Applicative
 
@@ -286,8 +286,10 @@ optimizeOpts = do
           <> help
             "Run only those optimisation passes which are certified to preserve the functional behavior of the original program."
       )
-  _ooBuiltinsInfo <- undefined
-  _ooBuiltinCostModel <- undefined
+  _ooBuiltinsInfo <-
+    (\v -> UPLC.defaultOptimizeOpts ^. UPLC.ooBuiltinsInfo & UPLC.biSemanticsVariant .~ v)
+      <$> builtinSemanticsVariant
+  let _ooBuiltinCostModel = UPLC.defaultOptimizeOpts ^. UPLC.ooBuiltinCostModel
   pure UPLC.OptimizeOpts {..}
 
 optimiseEvalOpts :: Parser OptimiseEvalOpts
