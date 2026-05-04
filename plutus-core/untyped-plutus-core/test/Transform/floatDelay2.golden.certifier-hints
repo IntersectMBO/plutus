@@ -16,24 +16,24 @@ NoHints
 -- Certifier hints #6 (Right CaseReduce) --
 NoHints
 
--- Certifier hints #7 (Right Inline) --
-InlApply
-  InlLam
+-- Certifier hints #7 (Left ConstantFolding) --
+NoHints
+
+-- Certifier hints #8 (Right Inline) --
+InlDrop
+  InlApply
     InlApply
-      InlApply
-        InlBuiltin
-        InlForce
-          InlVar
+      InlBuiltin
       InlForce
-        InlVar
-  InlDelay
-    InlApply
-      InlApply
-        InlBuiltin
-        InlCon
-      InlCon
+        InlExpand
+          InlDelay
+            InlCon
+    InlForce
+      InlExpand
+        InlDelay
+          InlCon
 
 
--- Certifier hints #8 (Right ApplyToCase) --
+-- Certifier hints #9 (Right ApplyToCase) --
 NoHints
 

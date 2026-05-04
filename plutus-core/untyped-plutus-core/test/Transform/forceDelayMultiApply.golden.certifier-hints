@@ -16,7 +16,10 @@ NoHints
 -- Certifier hints #6 (Right CaseReduce) --
 NoHints
 
--- Certifier hints #7 (Right Inline) --
+-- Certifier hints #7 (Left ConstantFolding) --
+NoHints
+
+-- Certifier hints #8 (Right Inline) --
 InlLam
   InlDrop
     InlDrop
@@ -35,6 +38,6 @@ InlLam
               InlCon
 
 
--- Certifier hints #8 (Right ApplyToCase) --
+-- Certifier hints #9 (Right ApplyToCase) --
 NoHints
 
