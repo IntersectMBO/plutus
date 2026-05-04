@@ -957,6 +957,7 @@ test-suite uplc-evaluator-integration-tests
     , bytestring
     , directory
     , filepath
+    , fsnotify            >=0.4
     , process
     , string-interpolate
     , tasty
