@@ -6,16 +6,13 @@ module Transform.EvaluateBuiltins.Spec where
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BS8
-import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
-import Data.Text.Encoding (encodeUtf8)
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (mkConstant, mkIterApp)
-import PlutusCore.Pretty (Render (render), prettyPlcReadableSimple)
 import PlutusCore.Quote (freshName, runQuote)
 import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.Golden (goldenVsString)
+import Transform.Simplify.Lib (goldenVsPretty)
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Transform.EvaluateBuiltins (evaluateBuiltinsPass)
 import UntypedPlutusCore.Transform.Optimizer (evalOptimizer)
@@ -42,16 +39,9 @@ test_evaluateBuiltins =
         ]
 
 goldenVsEvaluated :: Bool -> String -> Term Name DefaultUni DefaultFun () -> TestTree
-goldenVsEvaluated conservative name term =
-  goldenVsString
-    name
-    ("untyped-plutus-core/test/Transform/EvaluateBuiltins/" ++ name ++ ".golden.uplc")
-    . pure
-    . BSL.fromStrict
-    . encodeUtf8
-    . render
-    . prettyPlcReadableSimple
-    $ runEvaluateBuiltins conservative term
+goldenVsEvaluated conservative name =
+  goldenVsPretty ".golden.uplc" ("EvaluateBuiltins/" ++ name)
+    . runEvaluateBuiltins conservative
 
 runEvaluateBuiltins
   :: Bool
