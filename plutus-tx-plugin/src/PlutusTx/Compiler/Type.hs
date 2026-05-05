@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -15,6 +17,7 @@ module PlutusTx.Compiler.Type
   , getConstructors
   , getMatch
   , getMatchInstantiated
+  , splitGhcName
   ) where
 
 import PlutusTx.Compiler.Binders
@@ -41,9 +44,16 @@ import PlutusCore.Name.Unique qualified as PLC
 import Control.Monad.Extra
 import Control.Monad.Reader
 
+import Data.ByteString qualified
 import Data.List (sortBy)
+import Data.Map (Map)
+import Data.Map qualified as Map
+import Data.Maybe
+import Data.Ratio qualified
 import Data.Set qualified as Set
+import Data.Text qualified
 import Data.Traversable
+import Language.Haskell.TH qualified as TH
 
 -- Types
 
@@ -88,11 +98,12 @@ compileType t = traceCompilation 2 ("Compiling type:" GHC.<+> GHC.ppr t) $ do
         throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
     (GHC.splitFunTy_maybe -> Just r) -> case r of
       (_t, _m, i, o) -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
-    (GHC.splitTyConApp_maybe -> Just (tc, ts)) ->
+    (GHC.splitTyConApp_maybe -> Just (tc, ts)) -> do
+      checkUnsupportedTyCon tc
       PIR.mkIterTyApp
         <$> compileTyCon tc
         -- Ignore 'RuntimeRep' type arguments to type constructors, see Note [Runtime reps]
-        <*> (traverse (fmap (annMayInline,) . compileType) (GHC.dropRuntimeRepArgs ts))
+        <*> traverse (fmap (annMayInline,) . compileType) (GHC.dropRuntimeRepArgs ts)
     (GHC.splitAppTy_maybe -> Just (t1, t2)) ->
       PIR.TyApp annMayInline <$> compileType t1 <*> compileType t2
     (GHC.splitForAllTyCoVar_maybe -> Just (tv, tpe)) ->
@@ -103,6 +114,51 @@ compileType t = traceCompilation 2 ("Compiling type:" GHC.<+> GHC.ppr t) $ do
     -- I think it's safe to ignore the coercion here
     (GHC.splitCastTy_maybe -> Just (tpe, _)) -> compileType tpe
     _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
+
+type Module = String
+type TyCon = String
+type UseThisInstead = Maybe String
+
+checkUnsupportedTyCon
+  :: CompilingDefault uni fun m ann => GHC.TyCon -> m ()
+checkUnsupportedTyCon tc
+  | (Just modu, occ) <- splitGhcName name
+  , Just alt <- Map.lookup (modu, occ) unsupportedTypes =
+      throwSd UnsupportedError (formatMsg alt)
+  | otherwise = pure ()
+  where
+    name = GHC.getName tc
+    formatMsg = \case
+      Nothing ->
+        "Type" GHC.<+> GHC.ppr tc GHC.<+> "is not supported in Plinth"
+      Just alt ->
+        "Type"
+          GHC.<+> GHC.ppr tc
+          GHC.<+> "is not supported in Plinth; use"
+          GHC.<+> GHC.text alt
+          GHC.<+> "instead"
+
+splitGhcName :: GHC.Name -> (Maybe Module, String)
+splitGhcName name = (modu, occ)
+  where
+    modu = fmap (GHC.moduleNameString . GHC.moduleName) (GHC.nameModule_maybe name)
+    occ = GHC.occNameString (GHC.nameOccName name)
+{-# INLINE splitGhcName #-}
+
+unsupportedTypes :: Map (Module, TyCon) UseThisInstead
+unsupportedTypes =
+  Map.fromList
+    . mapMaybe
+      ( \(name, alt) -> do
+          modu <- TH.nameModule name
+          pure ((modu, TH.nameBase name), alt)
+      )
+    $ [ (''Prelude.Float, Just "Integer or PlutusTx.Ratio.Rational")
+      , (''Prelude.Double, Just "Integer or PlutusTx.Ratio.Rational")
+      , (''Data.Ratio.Ratio, Just "PlutusTx.Ratio.Rational")
+      , (''Data.Text.Text, Just "BuiltinString")
+      , (''Data.ByteString.ByteString, Just "BuiltinByteString")
+      ]
 
 {- Note [Occurrences of recursive names]
 When we compile recursive types/terms, we need to process their definitions before we can produce
