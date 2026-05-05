@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
@@ -355,6 +356,26 @@ stageViolationError tc =
     GHC.$+$ ""
     GHC.$+$ ghcStrictnessNote
 
+integerCaseError :: GHC.SDoc
+integerCaseError =
+  "Cannot pattern match on a value of type 'Integer'."
+    GHC.$+$ ""
+    GHC.$+$ "This usually happens when pattern matching on an integer literal,"
+    GHC.$+$ "for example:"
+    GHC.$+$ ""
+    GHC.$+$ "  f 42 = ..."
+    GHC.$+$ "  f n  = ..."
+    GHC.$+$ ""
+    GHC.$+$ "Plinth does not support pattern matching on 'Integer'. Use equality"
+    GHC.$+$ "from 'PlutusTx.Prelude' instead, for example:"
+    GHC.$+$ ""
+    GHC.$+$ "  import PlutusTx.Prelude ((==))"
+    GHC.$+$ ""
+    GHC.$+$ "  f n | n == 42   = ..."
+    GHC.$+$ "      | otherwise = ..."
+    GHC.$+$ ""
+    GHC.$+$ ghcStrictnessNote
+
 -- | Get the constructors of the given 'TyCon' as PLC terms.
 getConstructors :: CompilingDefault uni fun m ann => GHC.TyCon -> m [PIRTerm uni fun]
 getConstructors tc = do
@@ -383,9 +404,10 @@ getMatch tc = do
     Just match -> pure match
     Nothing ->
       throwSd UnsupportedError $
-        if isOpaqueBuiltinTyCon tc
-          then stageViolationError tc
-          else "Cannot case on a value on type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
+        if
+          | tc == GHC.integerTyCon -> integerCaseError
+          | isOpaqueBuiltinTyCon tc -> stageViolationError tc
+          | otherwise -> "Cannot case on a value on type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 {-| Get the matcher of the given 'Type' (which must be equal to a type constructor application)
 as a PLC term instantiated for the type constructor argument types. -}
