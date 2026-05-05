@@ -61,7 +61,12 @@ import Data.Proxy
 import Prelude as Haskell
 
 {-| Get a Plutus Core term corresponding to the given value. Allows configuring
-PIR and UPLC optimization options. -}
+PIR and UPLC optimization options.
+
+Note: PlutusTx targets only 'UPLC.DefaultUni'\/'UPLC.DefaultFun', which is why
+this module uses those types explicitly rather than type parameters.
+'defaultOptimizeOpts' and 'defaultUniUnserializableConstants' are likewise
+specific to 'DefaultUni'\/'DefaultFun'. -}
 safeLiftWith
   :: forall a m
    . ( Lift.Lift UPLC.DefaultUni a

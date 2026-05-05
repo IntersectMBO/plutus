@@ -16,7 +16,7 @@ import UntypedPlutusCore.Optimize qualified as UPLC
 import UntypedPlutusCore.Optimize.Opts
 
 import Control.Lens (view)
-import Control.Monad.Reader (MonadReader)
+import Control.Monad.Reader (MonadReader, ask)
 
 -- | Compile a PLC term to UPLC, and optimize it.
 compileTerm
@@ -29,7 +29,7 @@ compileTerm t = do
   builtinSemanticsVariant <- view (ooBuiltinsInfo . biSemanticsVariant)
   let erased = eraseTerm t
   renamed <- rename erased
-  optimizeOpts <- view id
+  optimizeOpts <- ask
   UPLC.optimizeTerm optimizeOpts builtinSemanticsVariant renamed
 
 -- | Compile a PLC program to UPLC, and optimize it.
@@ -53,7 +53,7 @@ compileProgramWithTrace (Program a v t) = do
   builtinSemanticsVariant <- view (ooBuiltinsInfo . biSemanticsVariant)
   let erased = eraseTerm t
   renamedProgram <- UPLC.Program a v <$> rename erased
-  optimizeOpts <- view id
+  optimizeOpts <- ask
   UPLC.optimizeProgramWithTrace
     optimizeOpts
     builtinSemanticsVariant

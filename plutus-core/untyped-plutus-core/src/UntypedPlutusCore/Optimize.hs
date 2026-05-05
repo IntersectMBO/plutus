@@ -109,8 +109,8 @@ termOptimizer opts builtinSemanticsVariant =
         >=> runStage ForceDelayStage
         >=> runStage CaseOfCaseStage
         >=> runStage CaseReduceStage
-        >=> runStage ConstantFoldingStage
         >=> runStage InlineStage
+        >=> runStage ConstantFoldingStage
 
     certifiedOnly = _ooCertifiedOptsOnly opts
 

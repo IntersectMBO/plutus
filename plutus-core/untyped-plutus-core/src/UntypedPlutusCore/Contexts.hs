@@ -26,7 +26,7 @@ splitAppCtx :: Term nam uni fun a -> (Term nam uni fun a, AppCtx nam uni fun a)
 splitAppCtx = go AppCtxEnd
   where
     go appCtx = \case
-      Apply ann function argument' -> go (AppCtxTerm ann argument' appCtx) function
+      Apply ann function arg -> go (AppCtxTerm ann arg appCtx) function
       Force ann forcedTerm -> go (AppCtxType ann appCtx) forcedTerm
       term -> (term, appCtx)
 
@@ -39,13 +39,6 @@ fillAppCtx term = \case
   AppCtxEnd -> term
   AppCtxTerm ann arg ctx -> fillAppCtx (Apply ann term arg) ctx
   AppCtxType ann ctx -> fillAppCtx (Force ann term) ctx
-
-dropAppCtx :: Int -> AppCtx name uni fun a -> AppCtx name uni fun a
-dropAppCtx i ctx | i <= 0 = ctx
-dropAppCtx i ctx = case ctx of
-  AppCtxEnd -> ctx
-  AppCtxTerm _ _ ctx' -> dropAppCtx (i - 1) ctx'
-  AppCtxType _ ctx' -> dropAppCtx (i - 1) ctx'
 
 lengthContext :: AppCtx name uni fun a -> Int
 lengthContext = go 0
@@ -62,7 +55,7 @@ appendAppCtx
 appendAppCtx ctx1 ctx2 = go ctx1
   where
     go AppCtxEnd = ctx2
-    go (AppCtxTerm arg ann ctx') = AppCtxTerm arg ann $ go ctx'
+    go (AppCtxTerm ann arg ctx') = AppCtxTerm ann arg $ go ctx'
     go (AppCtxType ann ctx') = AppCtxType ann $ go ctx'
 
 instance Semigroup (AppCtx name uni fun a) where

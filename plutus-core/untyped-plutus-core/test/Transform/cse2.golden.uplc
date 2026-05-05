@@ -1,5 +1,5 @@
 force
   (force
      (case
-        (constr 0 [False, (delay (addInteger 3 3)), (delay 3)])
+        (constr 0 [False, (delay ((\cse -> addInteger cse cse) 3)), (delay 3)])
         [ifThenElse]))
