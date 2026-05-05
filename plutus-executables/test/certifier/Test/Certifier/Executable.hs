@@ -25,13 +25,13 @@ loadUplc path = UPLC._progTerm . void . snd <$> parseInput (FileInput path)
 
 simplify
   :: Term Name DefaultUni DefaultFun ()
-  -> SimplifierTrace Name DefaultUni DefaultFun ()
+  -> OptimizerTrace Name DefaultUni DefaultFun ()
 simplify =
   runQuote
     . fmap snd
-    . runSimplifierT
-    . termSimplifier
-      defaultSimplifyOpts
+    . runOptimizerT
+    . termOptimizer
+      defaultOptimizeOpts
       DefaultFunSemanticsVariantE
 
 loadAndMakeCert :: String -> IO FilePath

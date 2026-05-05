@@ -24,11 +24,11 @@ import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import Data.Char (isSpace)
 
+import Plinth.Plugin ()
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx
 import PlutusTx.Builtins as Tx
 import PlutusTx.List qualified as List
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PLC hiding (Semigroup (..), check)
 import Prelude qualified as Haskell
 

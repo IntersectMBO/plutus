@@ -106,7 +106,7 @@ safeLiftWith f g v x = do
       ucOpts =
         ( g
             . ( if v == PLC.plcVersion100
-                  then set (PLC.coSimplifyOpts . UPLC.soApplyToCase) False
+                  then set (PLC.coOptimizeOpts . UPLC.ooApplyToCase) False
                   else id
               )
         )
@@ -164,9 +164,9 @@ safeLiftUnopt
 safeLiftUnopt =
   safeLiftWith
     (set coMaxSimplifierIterations 0)
-    ( set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) 0
-        . set (PLC.coSimplifyOpts . UPLC.soMaxCseIterations) 0
-        . set (PLC.coSimplifyOpts . UPLC.soApplyToCase) False
+    ( set (PLC.coOptimizeOpts . UPLC.ooMaxSimplifierIterations) 0
+        . set (PLC.coOptimizeOpts . UPLC.ooMaxCseIterations) 0
+        . set (PLC.coOptimizeOpts . UPLC.ooApplyToCase) False
     )
 
 {-| Get a Plutus Core program corresponding to the given value, applying default PIR/UPLC

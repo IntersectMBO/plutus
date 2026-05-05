@@ -23,13 +23,13 @@ import System.FilePath ((</>))
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
 import FFI.CostInfo
-import FFI.SimplifierTrace (Trace, mkFfiSimplifierTrace, toEvalResult)
+import FFI.OptimizerTrace (Trace, mkFfiOptimizerTrace, toEvalResult)
 import FFI.Untyped (UTerm)
 import MAlonzo.Code.Certifier (runCertifierMain)
 import PlutusLedgerApi.Common
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
-import UntypedPlutusCore.Transform.Simplifier
+import UntypedPlutusCore.Transform.Optimizer
 
 type CertName = String
 type CertDir = FilePath
@@ -78,7 +78,7 @@ runCertifier = runExceptT
 
 -- | Run the Agda certifier on the simplification trace, if requested
 mkCertifier
-  :: SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  :: OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -- ^ The trace produced by the simplification process
   -> CertName
   -- ^ The name of the certificate to be produced
@@ -90,7 +90,7 @@ mkCertifier
      ]
   -> Certifier Bool
 mkCertifier simplTrace certName certOutput costs = do
-  let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
+  let rawAgdaTrace = mkFfiOptimizerTrace simplTrace
       costs' :: [EvalResult]
       costs' = uncurry toEvalResult <$> reverse costs
   case runCertifierMain rawAgdaTrace costs' of
@@ -217,7 +217,6 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
        \\nopen import VerifiedCompilation\
        \\nopen import VerifiedCompilation.Certificate\
        \\nopen import VerifiedCompilation.Trace\
-       \\nopen import Untyped\
        \\nopen import RawU\
        \\nopen import Builtin\
        \\nopen import Data.Unit\
@@ -299,7 +298,7 @@ mkCertificateModule certModule agdaTrace imports =
     <> unlines imports
     <> "\n"
     <> "\n\
-       \\nasts : List (SimplifierTag × Hints × Untyped × Untyped)\
+       \\nasts : List (OptTag × Hints × Untyped × Untyped)\
        \\nasts = "
     <> agdaTrace
     <> "\n\
@@ -324,7 +323,8 @@ mkAgdaLib name =
           <> "\ndepend:\
              \\n  standard-library-2.3\
              \\n  plutus-metatheory\
-             \\ninclude: src"
+             \\ninclude: src\
+             \\nflags: --polarity"
    in (name <> ".agda-lib", contents)
 
 mkAgdaCertificateProject

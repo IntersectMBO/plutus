@@ -50,7 +50,7 @@ import PlutusTx.Plugin.Boilerplate (removeBoilerplateOpts)
 import PlutusTx.Plugin.Utils qualified
 import PlutusTx.Trace
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Transform.Simplifier (SimplifierTrace)
+import UntypedPlutusCore.Transform.Optimizer (OptimizerTrace)
 
 import GHC.ByteCode.Types qualified as GHC
 import GHC.Core.Coercion.Opt qualified as GHC
@@ -529,15 +529,11 @@ compileMarkedExprs expr = do
       inner
         | markerName == GHC.idName fid ->
             compileMarkedExprOrDefer (decodeSrcSpan (GHC.unpackFS fs_locStr)) codeTy inner
-    GHC.App
-      ( GHC.App
-          (stripAnchors anchorGhcName -> (mLoc, GHC.Var fid))
-          (snd . stripAnchors anchorGhcName -> GHC.Type codeTy)
-        )
-      -- code to be compiled
-      inner
-        | markerName == GHC.idName fid ->
-            compileMarkedExprOrDefer mLoc codeTy inner
+    GHC.App (GHC.App fnExpr tyExpr) inner
+      | (stripAnchors anchorGhcName -> GHC.Var fid) <- fnExpr
+      , (stripAnchors anchorGhcName -> GHC.Type codeTy) <- tyExpr
+      , markerName == GHC.idName fid ->
+          compileMarkedExprOrDefer (getAnchorSrcSpan anchorGhcName fnExpr) codeTy inner
     e@(GHC.Var fid)
       | markerName == GHC.idName fid ->
           throwError . NoContext . InvalidMarkerError . GHC.showSDocUnsafe $ GHC.ppr e
@@ -658,10 +654,9 @@ compileMarkedExpr mLoc codeTy origE = do
           , ccDebugTraceOn = _posDumpCompilationTrace opts
           , ccRewriteRules = makeRewriteRules opts
           , ccSafeToInline = False
-          , ccCurrentLoc = Nothing
+          , ccCurrentLoc = mLoc
           , ccPackageName = packageName
           , ccModuleName = moduleNameStr
-          , ccSourceLoc = mLoc
           }
       st = CompileState 0 mempty
   -- See Note [Occurrence analysis]
@@ -790,6 +785,9 @@ runCompiler opts expr = do
             (opts ^. posInlineFix)
           & set (PIR.ccOpts . PIR.coInlineHints) hints
           & set
+            (PIR.ccOpts . PIR.coInlineUnconditionalGrowth)
+            (opts ^. posInlineUnconditionalGrowth . to fromIntegral)
+          & set
             (PIR.ccOpts . PIR.coInlineCallsiteGrowth)
             (opts ^. posInlineCallsiteGrowth . to fromIntegral)
           & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
@@ -805,30 +803,36 @@ runCompiler opts expr = do
       plcOpts =
         PLC.defaultCompilationOpts
           & set
-            (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)
+            (PLC.coOptimizeOpts . UPLC.ooMaxSimplifierIterations)
             (opts ^. posMaxSimplifierIterationsUPlc)
           & set
-            (PLC.coSimplifyOpts . UPLC.soCseWhichSubterms)
+            (PLC.coOptimizeOpts . UPLC.ooCseWhichSubterms)
             (opts ^. posCseWhichSubterms)
           & set
-            (PLC.coSimplifyOpts . UPLC.soMaxCseIterations)
+            (PLC.coOptimizeOpts . UPLC.ooMaxCseIterations)
             (opts ^. posMaxCseIterations)
           & set
-            (PLC.coSimplifyOpts . UPLC.soConservativeOpts)
+            (PLC.coOptimizeOpts . UPLC.ooConservativeOpts)
             (opts ^. posConservativeOpts)
-          & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
+          & set (PLC.coOptimizeOpts . UPLC.ooInlineHints) hints
           & set
-            (PLC.coSimplifyOpts . UPLC.soInlineConstants)
+            (PLC.coOptimizeOpts . UPLC.ooInlineConstants)
             (opts ^. posInlineConstants)
           & set
-            (PLC.coSimplifyOpts . UPLC.soInlineCallsiteGrowth)
+            (PLC.coOptimizeOpts . UPLC.ooInlineUnconditionalGrowth)
+            (opts ^. posInlineUnconditionalGrowth . to fromIntegral)
+          & set
+            (PLC.coOptimizeOpts . UPLC.ooInlineCallsiteGrowth)
             (opts ^. posInlineCallsiteGrowth . to fromIntegral)
           & set
-            (PLC.coSimplifyOpts . UPLC.soPreserveLogging)
+            (PLC.coOptimizeOpts . UPLC.ooPreserveLogging)
             (opts ^. posPreserveLogging)
           & set
-            (PLC.coSimplifyOpts . UPLC.soApplyToCase)
+            (PLC.coOptimizeOpts . UPLC.ooApplyToCase)
             (opts ^. posApplyToCase)
+          & set
+            (PLC.coOptimizeOpts . UPLC.ooCertifiedOptsOnly)
+            (opts ^. posCertifiedOptsOnly)
 
   -- GHC.Core -> Pir translation.
   pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
@@ -863,7 +867,7 @@ runCompiler opts expr = do
     Nothing -> pure ()
     Just certifyPath -> do
       packageName <- asks ccPackageName
-      mLoc <- asks ccSourceLoc
+      mLoc <- asks ccCurrentLoc
       liftIO $
         generateCertificate packageName moduleName mLoc opts simplTrace certifyPath
 
@@ -897,7 +901,7 @@ generateCertificate
   -> String
   -> Maybe GHC.RealSrcSpan
   -> PluginOptions
-  -> SimplifierTrace PLC.Name PLC.DefaultUni PLC.DefaultFun a
+  -> OptimizerTrace PLC.Name PLC.DefaultUni PLC.DefaultFun a
   -> String
   -> IO ()
 generateCertificate packageName moduleName mLoc opts simplTrace certifyPath = do
@@ -984,14 +988,21 @@ stripTicks = \case
   GHC.Tick _ e -> stripTicks e
   e -> e
 
-{-| Strip a single @anchor@ application (and any surrounding ticks),
-returning the decoded source span if present. -}
-stripAnchors :: GHC.Name -> GHC.CoreExpr -> (Maybe GHC.RealSrcSpan, GHC.CoreExpr)
+-- | Strip a single @anchor@ application (and any surrounding ticks).
+stripAnchors :: GHC.Name -> GHC.CoreExpr -> GHC.CoreExpr
 stripAnchors marker = \case
   GHC.Tick _ e -> stripAnchors marker e
-  GHC.App (GHC.App (GHC.App (GHC.Var f) (GHC.Type (GHC.LitTy (GHC.StrTyLit locFs)))) _codeTy) code
-    | GHC.getName f == marker -> (decodeSrcSpan (GHC.unpackFS locFs), code)
-  other -> (Nothing, other)
+  GHC.App (GHC.App (GHC.App (GHC.Var f) (GHC.Type _)) _codeTy) code
+    | GHC.getName f == marker -> code
+  other -> other
+
+-- | Decode the source span carried by an @anchor@ application, if any.
+getAnchorSrcSpan :: GHC.Name -> GHC.CoreExpr -> Maybe GHC.RealSrcSpan
+getAnchorSrcSpan marker = \case
+  GHC.Tick _ e -> getAnchorSrcSpan marker e
+  GHC.App (GHC.App (GHC.App (GHC.Var f) (GHC.Type (GHC.LitTy (GHC.StrTyLit locFs)))) _codeTy) _code
+    | GHC.getName f == marker -> decodeSrcSpan (GHC.unpackFS locFs)
+  _ -> Nothing
 
 -- | Helper to avoid doing too much construction of Core ourselves
 mkCompiledCode :: forall a. BS.ByteString -> BS.ByteString -> BS.ByteString -> CompiledCode a

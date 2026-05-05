@@ -173,7 +173,7 @@ def cmd_build(args: argparse.Namespace) -> int:
     print(f"--- cabal build {' '.join(targets)} ---")
     result = subprocess.run(
         ["cabal", "build", *targets,
-         f"--ghc-options=-fplugin-opt PlutusTx.Plugin:certify={cert_dir}"],
+         f"--ghc-options=\"-fplugin-opt=Plinth.Plugin:certify={cert_dir}\""],
     )
 
     if result.returncode != 0:

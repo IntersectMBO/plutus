@@ -11,11 +11,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 -- CSE is very unstable and produces different output, likely depending on the version of either
 -- @unordered-containers@ or @hashable@.
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
 
 module AssocMap.Properties1 where
 

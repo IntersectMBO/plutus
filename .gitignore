@@ -119,3 +119,4 @@ TestCert.*
 worktrees
 .local
 .claude
+agda-certificates

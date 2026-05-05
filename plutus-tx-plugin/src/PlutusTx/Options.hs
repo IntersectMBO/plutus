@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -72,6 +71,7 @@ data PluginOptions = PluginOptions
   , _posCoverageBoolean :: Bool
   , _posRelaxedFloatin :: Bool
   , _posCaseOfCaseConservative :: Bool
+  , _posInlineUnconditionalGrowth :: Int
   , _posInlineCallsiteGrowth :: Int
   , _posInlineConstants :: Bool
   , _posInlineFix :: Bool
@@ -86,6 +86,8 @@ data PluginOptions = PluginOptions
   {-^ @Nothing@: certification disabled.
   @Just ""@: certify, placing output next to source files.
   @Just path@: certify, placing all output under the given directory. -}
+  , _posCertifiedOptsOnly :: Bool
+  , _posPreserveSourceLocations :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -216,9 +218,15 @@ pluginOptions =
     , let k = "dump-uplc"
           desc = "Dump Untyped Plutus Core"
        in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+    , let k = "inline-unconditional-growth"
+          desc =
+            "Sets the inlining threshold for unconditional inlining. `n` allows unconditional "
+              <> "inlining if the AST size grows by at most `n` at each variable occurrence "
+              <> "(i.e., the size of the binding's RHS is at most `n+1`)."
+       in (k, PluginOption typeRep (readOption k) posInlineUnconditionalGrowth desc [])
     , let k = "inline-callsite-growth"
           desc =
-            "Sets the inlining threshold for callsites. 0 disables inlining a binding at a "
+            "Sets the inlining threshold for callsite inlining. 0 disables inlining a binding at a "
               <> "callsite if it increases the AST size; `n` allows inlining if the AST size grows by "
               <> "no more than `n`. Keep in mind that doing so does not mean the final program "
               <> "will be bigger, since inlining can often unlock further optimizations."
@@ -268,7 +276,7 @@ pluginOptions =
           desc = "Set the max iterations for the PIR simplifier"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsPir desc [])
     , let k = "max-simplifier-iterations-uplc"
-          desc = "Set the max iterations for the UPLC simplifier"
+          desc = "Set the max iterations for the UPLC optimizer"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsUPlc desc [])
     , let k = "max-cse-iterations"
           desc = "Set the max iterations for CSE"
@@ -337,6 +345,16 @@ pluginOptions =
               <> "When used without a value, certificates are placed next to source files. "
               <> "When given a directory path (certify=DIR), all certificates are placed there."
        in (k, PluginOption typeRep (optionalStringOption k) posCertify desc [])
+    , let k = "certified-opts-only"
+          desc =
+            "Run only those optimisation passes which are certified to preserve the functional "
+              <> "behavior of the original program."
+       in (k, PluginOption typeRep (setTrue k) posCertifiedOptsOnly desc [])
+    , let k = "preserve-source-locations"
+          desc =
+            "Try to preserve source locations for use in error messages. "
+              <> "This is an experimental feature."
+       in (k, PluginOption typeRep (setTrue k) posPreserveSourceLocations desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -397,9 +415,9 @@ defaultPluginOptions =
     , _posVerbosity = Quiet
     , _posDatatypes = PIR.defaultDatatypeCompilationOpts
     , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
-    , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
-    , _posMaxCseIterations = view UPLC.soMaxCseIterations UPLC.defaultSimplifyOpts
-    , _posCseWhichSubterms = view UPLC.soCseWhichSubterms UPLC.defaultSimplifyOpts
+    , _posMaxSimplifierIterationsUPlc = view UPLC.ooMaxSimplifierIterations UPLC.defaultOptimizeOpts
+    , _posMaxCseIterations = view UPLC.ooMaxCseIterations UPLC.defaultOptimizeOpts
+    , _posCseWhichSubterms = view UPLC.ooCseWhichSubterms UPLC.defaultOptimizeOpts
     , _posDoSimplifierUnwrapCancel = True
     , _posDoSimplifierBeta = True
     , _posDoSimplifierInline = True
@@ -413,6 +431,7 @@ defaultPluginOptions =
     , _posCoverageBoolean = False
     , _posRelaxedFloatin = True
     , _posCaseOfCaseConservative = False
+    , _posInlineUnconditionalGrowth = 1
     , _posInlineCallsiteGrowth = 5
     , _posInlineConstants = True
     , _posInlineFix = True
@@ -420,6 +439,8 @@ defaultPluginOptions =
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
     , _posCertify = Nothing
+    , _posCertifiedOptsOnly = False
+    , _posPreserveSourceLocations = False
     }
 
 processOne
@@ -462,6 +483,6 @@ toKeyValue opt = case List.elemIndex '=' opt of
      in (Text.pack lhs, Just (Text.pack (drop 1 rhs)))
 
 {-| Parses the arguments that were given to ghc at commandline as
- "-fplugin-opt PlutusTx.Plugin:opt" or "-fplugin-opt PlutusTx.Plugin:opt=val" -}
+ "-fplugin-opt Plinth.Plugin:opt" or "-fplugin-opt Plinth.Plugin:opt=val" -}
 parsePluginOptions :: [GHC.CommandLineOption] -> Validation ParseErrors PluginOptions
 parsePluginOptions = fmap (foldl' (flip ($)) defaultPluginOptions) . processAll . fmap toKeyValue

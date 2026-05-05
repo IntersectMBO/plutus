@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\revAppend xs -> force revAppend xs [])
-      ((\s -> s s)
+      ((\s -> s s (delay (\x -> x)))
          (\s arg ->
             delay
               (\l r ->
@@ -9,5 +9,4 @@
                    l
                    [ (\x xs ->
                         force (s s (delay (\x -> x))) xs (force mkCons x r))
-                   , r ]))
-         (delay (\x -> x)))))
+                   , r ])))))

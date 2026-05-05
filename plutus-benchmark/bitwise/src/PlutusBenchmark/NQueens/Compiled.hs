@@ -1,17 +1,17 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.NQueens.Compiled
   ( nqueensCompiled
   , dimAsData
   ) where
 
+import Plinth.Plugin ()
 import PlutusBenchmark.NQueens (nqueens)
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude
 import PlutusTx.TH (compile)
 

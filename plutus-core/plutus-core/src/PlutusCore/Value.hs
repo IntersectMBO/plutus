@@ -34,6 +34,7 @@ module PlutusCore.Value
   , valueContains
   , unionValue
   , valueData
+  , valueDataMaxSize
   , unValueData
   ) where
 
@@ -449,7 +450,7 @@ unionValue vA vB
 {-# INLINEABLE unionValue #-}
 
 valueDataMaxSize :: Int
-valueDataMaxSize = 40000
+valueDataMaxSize = 40_000
 
 {-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
 This is the denotation of @ValueData@ in Plutus V1, V2 and V3. -}

@@ -21,6 +21,7 @@ import PlutusIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
+import PlutusIR.AstSize qualified as PIR
 import PlutusIR.Purity (EvalTerm (..), Purity (..), isPure, termEvaluationOrder, unEvalOrder)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
@@ -66,6 +67,8 @@ data InlineInfo tyname name uni fun ann = InlineInfo
   -- ^ the semantics variant.
   , _iiInlineConstants :: Bool
   -- ^ should we inline constants?
+  , _iiInlineUnconditionalGrowth :: AstSize
+  -- ^ inline threshold for unconditional inlining
   , _iiInlineCallsiteGrowth :: AstSize
   -- ^ inline threshold for callsite inlining
   }
@@ -392,33 +395,6 @@ costIsAcceptable = \case
   TyInst {} -> False
   Let {} -> False
 
--- See Note [Inlining criteria]
-{-| Is the size increase (in the AST) of inlining a variable whose RHS is
-the given term acceptable? -}
-sizeIsAcceptable :: Bool -> Term tyname name uni fun ann -> Bool
-sizeIsAcceptable inlineConstants = \case
-  Builtin {} -> True
-  Var {} -> True
-  Error {} -> True
-  LamAbs {} -> False
-  TyAbs {} -> False
-  -- Inlining constructors of size 1 or 0 seems okay
-  Constr _ _ _ es -> case es of
-    [] -> True
-    [e] -> sizeIsAcceptable inlineConstants e
-    _ -> False
-  -- Cases are pretty big, due to the case branches
-  Case {} -> False
-  -- Arguably we could allow these two, but they're uncommon anyway
-  IWrap {} -> False
-  Unwrap {} -> False
-  -- Inlining constants is deemed acceptable if the 'inlineConstants'
-  -- flag is turned on, see Note [Inlining constants].
-  Constant {} -> inlineConstants
-  Apply {} -> False
-  TyInst {} -> False
-  Let {} -> False
-
 -- | Is this an utterly trivial type which might as well be inlined?
 trivialType :: Type tyname uni ann -> Bool
 trivialType = \case
@@ -452,7 +428,10 @@ shouldUnconditionallyInline safe s n rhs body = preUnconditional ||^ postUncondi
     postUnconditional = do
       isBindingPure <- isTermBindingPure s rhs
       inlineConstants <- view iiInlineConstants
-      pure $
-        (safe || isBindingPure)
-          && sizeIsAcceptable inlineConstants rhs
-          && costIsAcceptable rhs
+      unconditionalGrowth <- view iiInlineUnconditionalGrowth
+      let costOk = costIsAcceptable rhs
+          sizeOk = PIR.termAstSize rhs <= 1 + unconditionalGrowth
+          constantsOk = case rhs of
+            Constant {} -> inlineConstants
+            _ -> True
+      pure $ (safe || isBindingPure) && costOk && sizeOk && constantsOk

@@ -5,7 +5,7 @@ import Control.DeepSeq (force)
 import Control.Exception (evaluate)
 import Control.Monad
 import Criterion.Main
-import FFI.SimplifierTrace
+import FFI.OptimizerTrace
 import FFI.Untyped (UTerm)
 import MAlonzo.Code.Certifier (runCertifierMain)
 

@@ -5,10 +5,11 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.V3.Data.ScriptContexts where
 
+import Plinth.Plugin ()
 import PlutusLedgerApi.Data.V1 qualified as PlutusTx
 import PlutusLedgerApi.Data.V3
   ( PubKeyHash (..)
@@ -60,7 +61,6 @@ import PlutusTx qualified
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Data.List qualified as List
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
 {-| A very crude deterministic generator for 'ScriptContext's with size

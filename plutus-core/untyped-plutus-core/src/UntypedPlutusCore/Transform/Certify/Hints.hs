@@ -19,7 +19,6 @@ data Inline
   | InlCase Inline [Inline]
   | InlExpand Inline
   | InlDrop Inline
-  | InlLamDrop Inline
   deriving stock (Generic)
   deriving anyclass (NFData)
 

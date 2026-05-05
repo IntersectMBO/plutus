@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 {-| Check how many Ed25519 signature verifications we can perform within the
    limits specified in the protocol parameters. -}
@@ -17,11 +17,11 @@ import PlutusBenchmark.Common
 
 import System.IO (Handle)
 
+import Plinth.Plugin ()
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusTx qualified as Tx
 import PlutusTx.List qualified as List
-import PlutusTx.Plugin ()
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusTx.IsData (toData, unstableMakeIsData)

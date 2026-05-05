@@ -9,4 +9,6 @@
               , (\x xs ->
                    case
                      (equalsInteger 0 ds)
-                     [((\x -> s s x) (subtractInteger ds 1) xs), x]) ]))))
+                     [ ((\x -> case (constr 0 [s, x, xs]) [s])
+                          (subtractInteger ds 1))
+                     , x ]) ]))))

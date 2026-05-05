@@ -13,12 +13,13 @@ import UntypedPlutusCore.AstSize as Export
 import UntypedPlutusCore.Check.Scope as Export
 import UntypedPlutusCore.Core as Export
 import UntypedPlutusCore.DeBruijn as Export
+import UntypedPlutusCore.Optimize as Export
 import UntypedPlutusCore.Parser as Parser (parseScoped)
-import UntypedPlutusCore.Simplify as Export
 import UntypedPlutusCore.Subst as Export
 
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
+import PlutusPrelude (getAnn)
 import PlutusCore.Name.Unique as Export
 
 import Control.Monad.Except
@@ -41,4 +42,4 @@ applyTerm
   => Term name uni fun a
   -> Term name uni fun a
   -> Term name uni fun a
-applyTerm t1 t2 = Apply (termAnn t1 <> termAnn t2) t1 t2
+applyTerm t1 t2 = Apply (getAnn t1 <> getAnn t2) t1 t2

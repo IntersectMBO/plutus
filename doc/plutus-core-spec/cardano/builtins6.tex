@@ -78,20 +78,22 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
             % Without \relax the [ at the start of the next line is regarded as an argument to \\
             [x_{k+1}, \ldots, x_n]  & \text{if $1  \leq k \leq n-1$} \\ \relax
             []                     &\text{if $k \geq n$}\\
-        \end{array}\right.$} &  & \\
+        \end{array}\right.$}
+        & No & \\
     \TT{lengthOfArray} 
       & $[\forall a_\#, \arrayOf{a_\#}] \to \ty{integer}$ 
       & $[] \mapsto 0$
         \newline 
         $[x_1,\ldots,x_n] \mapsto n\ (n \geq 1)$ 
-      & 
+      & No 
       & \ref{note:array-semantics}\\
     \TT{listToArray} 
       & $[\forall a_\#, \listOf{a_\#}] \to \arrayOf{a_\#}$ 
       & $[] \mapsto []$
         \newline 
         $[x_1,\ldots,x_n] \mapsto [x_1,\ldots,x_n]\ (n \geq 1)$
-      & & \ref{note:array-semantics}\\
+      & No
+      & \ref{note:array-semantics}\\
     \TT{indexArray} 
       & $[\forall a_\#, \arrayOf{a_\#}, \ty{integer}]$ \text{$\;\;\; \to \ty{a_\#}$}
       &  $([x_1,\ldots,x_n], k)$
@@ -109,14 +111,16 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
       \text{\: $ \to \ty{bls12\_381\_G1\_element}$}
       & $([n_1, \ldots, n_k],[a_1, \ldots, a_l])$
       \newline
-      \text{$\: \mapsto n_1a_1+\cdots+n_ra_r$ \ where $r=\min(k,l)$} &  No & \ref{note:msm-semantics}\\[2mm]
+      \text{$\: \mapsto n_1a_1+\cdots+n_ra_r$ \ where $r=\min(k,l)$}
+      & No & \ref{note:msm-semantics}\\[2mm]
     \TT{bls12\_381\_G2\_multiScalarMul}  &
     $[ \listOf{\ty{integer}}$,
       \text{\; ${\listOf{\ty{bls12\_381\_G2\_element}}} ]$}
       \text{\;\; $ \to \ty{bls12\_381\_G2\_element}$}
       & $([n_1, \ldots, n_k],[a_1, \ldots, a_l])$
       \newline
-      \text{$\: \mapsto n_1a_1+\cdots+n_ra_r$ \ where $r=\min(k,l)$} &  No & \ref{note:msm-semantics}\\[2mm]
+      \text{$\: \mapsto n_1a_1+\cdots+n_ra_r$ \ where $r=\min(k,l)$}
+      & No & \ref{note:msm-semantics}\\[2mm]
 \hline
 \end{longtable}
 

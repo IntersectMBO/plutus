@@ -1,9 +1,9 @@
 (program
    1.1.0
    (\d ->
-      case
-        ((\tup ->
-            case
+      (\tup ->
+         case
+           (case
               (equalsInteger 1 (case tup [(\l r -> l)]))
               [ False
               , (case
@@ -18,8 +18,8 @@
                              , (\ds -> constr 1 []) ]
                              args) ])
                    [(\ds -> True), False]) ])
-           (unConstrData
-              (force headList
-                 (force tailList
-                    (force tailList (case (unConstrData d) [(\l r -> r)]))))))
-        [((\x -> error) (force trace "PT5" (constr 0 []))), ()]))
+           [((\x -> error) (force trace "PT5" (constr 0 []))), ()])
+        (unConstrData
+           (force headList
+              (force tailList
+                 (force tailList (case (unConstrData d) [(\l r -> r)])))))))

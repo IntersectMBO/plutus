@@ -2,9 +2,8 @@
    1.1.0
    ((\go xs ->
        go
-         ((\s -> s s)
-            (\s xs -> case xs [(\x xs -> force mkCons x (s s xs)), xs])
-            xs)
+         ((\s -> s s xs)
+            (\s xs -> case xs [(\x xs -> force mkCons x (s s xs)), xs]))
          [])
       ((\s -> s s)
          (\s l xs ->

@@ -11,59 +11,112 @@ module VerifiedCompilation.UCSE where
 ## Imports
 
 ```
-open import Untyped.Equality using (DecEq; _≟_; decPointwise)
-open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
-open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
-open import Relation.Nullary using (_×-dec_)
-open import Data.Product using (_,_)
+open import VerifiedCompilation.UntypedViews
+open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation)
 import Relation.Binary as Binary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
-open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
+open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; Let_In_)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Data.Nat using (ℕ; suc)
 open import Data.Fin using (Fin; suc; zero)
-open import Data.Empty using (⊥)
-open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped.RenamingSubstitution using (_[_])
-open import Untyped.Purity using (Pure; isPure?)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; DecidableCE; cseT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; DecidableCE; CseT; isProof?)
+open import Data.Bool.Base using (Bool; false; true)
+open import Data.List hiding ([_])
+open import Untyped.Strictness
+
 ```
-## Translation Relation
+## Description
 
 This module is required to certify that an application of CSE doesn't break the
 semantics; we are explicitly not evaluating whether the particular choice of
 sub-expression was a "good" choice.
 
-As such, this Translation Relation primarily checks that substituting the expression
-back in would yield the original expression.
+The `UCSE` translation relation has a single constructor `cse`. A term `x` translates
+to `Let e In x'` when:
+
+1. Substituting `e` back into `x'` yields a term that `UCSE`-translates from `x`,
+   so the transformation is locally invertible up to further CSE steps.
+
+2. `zero` (the variable bound by the `let`) lies on an execution path through `x'`,
+   as witnessed by `∈↓`, a predicate that holds when a variable lies
+   on at least one execution path through a term. This guarantees soundness: the
+   transformed term is no less strict than the original.
 
 ```
-data UCSE : Relation where
-  cse : {X : ℕ} {x' : suc X ⊢} {x e : X ⊢}
-    -- TODO: This should ensure that the term that is moved
-    -- is still evaluated. The Haskell does this by never moving
-    -- across ƛ , delay, or case.
-    → Translation UCSE x (x' [ e ])
-    → UCSE x ((ƛ x') · e)
 
-UntypedCSE : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
+private variable
+  n : ℕ
+
+data UCSE : Relation where
+  cse : {x' : suc n ⊢} {x e : n ⊢}
+    → zero ∈↓ x'
+    → Translation UCSE x (x' [ e ])
+    → UCSE x (Let e In x')
+
+UntypedCSE : (ast : n ⊢) → (ast' : n ⊢) → Set
 UntypedCSE = Translation UCSE
 
 ```
 
 ## Decision Procedure
 
+`isUCSE?` decides `UCSE` by checking that the output is a `let`-binding, that `zero`
+occurs on an execution path through the body, and that the result of back-substitution
+is accepted by `isUntypedCSE?`.
+
 ```
 
-isUntypedCSE? : {X : ℕ} → DecidableCE (Translation UCSE {X})
+isUntypedCSE? : DecidableCE (Translation UCSE {n})
 
 {-# TERMINATING #-}
-isUCSE? : {X : ℕ} → DecidableCE (UCSE {X})
-isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast'
-... | no ¬match = ce (λ { (cse pt) → ¬match (isapp (islambda (isterm _)) (isterm _))}) cseT ast ast'
-... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ]))
-...   | ce ¬p t b a = ce (λ { (cse pt) → ¬p pt}) t b a
-...   | proof p = proof (cse p)
-isUntypedCSE? = translation? cseT isUCSE?
+isUCSE? : DecidableCE (UCSE {n})
+
+isUCSE? ast₁ ast₂ with (Let? ⋯ In? ⋯) ast₂ 
+... | no ¬letMatch = ce (λ { (cse x x₁) → ¬letMatch inhabitant}) CseT ast₁ ast₂
+... | yes (Let! match! rhs In! match! body) with zero ∈↓? body
+...   | no ¬onPath = ce (λ { (cse x x₁) → ¬onPath x }) CseT ast₁ ast₂
+...   | yes onPath with (isUntypedCSE? ast₁ (body [ rhs ]))
+...     | ce ¬isCSE tag t₁ t₂ = ce (λ { (cse x x₁) → ¬isCSE x₁ }) tag t₁ t₂
+...     | proof isCSE = proof (cse onPath isCSE)
+
+isUntypedCSE? = translation? CseT isUCSE?
+```
+
+## Tests
+
+A few unit tests which check that the decision procedure works as expected.
+
+The third test shows that the strictness condition catches an unsound transformation.
+
+```
+
+M₁ : 1 ⊢
+M₁ = constr 0 [] · constr 0 []
+
+N₁ : 1 ⊢
+N₁ = Let constr 0 [] In ` zero · ` zero
+
+_ : isProof? (isUntypedCSE? M₁ N₁) ≡ true
+_ = refl
+
+M₂ : 1 ⊢
+M₂ = Let constr 0 [] In ` zero
+
+N₂ : 1 ⊢
+N₂ = Let constr 0 [] In ` zero
+
+_ : isProof? (isUntypedCSE? M₂ N₂) ≡ true
+_ = refl
+
+M₃ : 1 ⊢
+M₃ = constr 0 []
+
+N₃ : 1 ⊢
+N₃ = Let error In constr 0 []
+
+_ : isProof? (isUntypedCSE? M₃ N₃) ≡ false
+_ = refl
+
 ```

@@ -349,7 +349,7 @@ runOptimiseSingle
   -> PrintMode
   -> Certifier
   -> CertifierOutputMode
-  -> UPLC.SimplifyOpts UPLC.Name SrcSpan
+  -> UPLC.OptimizeOpts UPLC.Name SrcSpan
   -> OptimiseEvalOpts
   -> IO ()
 runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts = do
@@ -363,7 +363,7 @@ runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts = do
           Nothing -> []
           Just args ->
             let evalCtx = mkDefaultEvalCtx def
-             in evalSimplifierTrace evalCtx simplificationTrace args
+             in evalOptimizerTrace evalCtx simplificationTrace args
         certDir = cert <> "-" <> show time
         certOutput = case certifierOutput of
           CertBasic -> BasicOutput
@@ -377,7 +377,7 @@ runOptimiseBlueprint
   -> Format
   -> Certifier
   -> CertifierOutputMode
-  -> UPLC.SimplifyOpts UPLC.Name SrcSpan
+  -> UPLC.OptimizeOpts UPLC.Name SrcSpan
   -> OptimiseEvalOpts
   -> IO ()
 runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
@@ -398,7 +398,7 @@ runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
           margs <- loadBlueprintArgs eopts validatorName
           let costs = case margs of
                 Nothing -> []
-                Just args -> evalSimplifierTrace evalCtx simplTrace args
+                Just args -> evalOptimizerTrace evalCtx simplTrace args
               certDir = cert <> "-" <> validatorName <> "-" <> show time
               certOutput = case certifierOutput of
                 CertBasic -> BasicOutput
@@ -411,20 +411,20 @@ runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
 optimiseProgram
   :: forall m name a
    . (UPLC.HasUnique name UPLC.TermUnique, Monad m, Ord name, Typeable name)
-  => UPLC.SimplifyOpts name a
+  => UPLC.OptimizeOpts name a
   -> UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
   -> m
        ( UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
-       , UPLC.SimplifierTrace name UPLC.DefaultUni UPLC.DefaultFun a
+       , UPLC.OptimizerTrace name UPLC.DefaultUni UPLC.DefaultFun a
        )
 optimiseProgram opts prog = PLC.runQuoteT $ do
   renamed <- PLC.rename prog
   let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
       defaultBuiltinSemanticsVariant = def
-  UPLC.simplifyProgramWithTrace opts defaultBuiltinSemanticsVariant renamed
+  UPLC.optimizeProgramWithTrace opts defaultBuiltinSemanticsVariant renamed
 
 execCertifier
-  :: UPLC.SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  :: UPLC.OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -> CertName
   -> CertifierOutput
   -> [ ( Maybe
@@ -481,7 +481,7 @@ loadArgs kind = case kind of
 
 {-| Load args from a dir.
 
-It tries to load the first arg from the file named "1", second from "2", and so on,
+It tries to load the first arg from the file named "0", second from "1", and so on,
 until the file doesn't exist.
 
 The args can be either @Program@s or @Data@ objects, depending on `EvalArgKind`. -}
@@ -493,7 +493,7 @@ loadArgsFromDir
   -> IO (Maybe [UplcTermNDB ()])
 loadArgsFromDir baseDir title argKind = do
   let dir = baseDir </> title
-  paths <- collectArgFiles dir 1
+  paths <- collectArgFiles dir 0
   if null paths
     then pure Nothing
     else Just <$> loadArgs argKind paths

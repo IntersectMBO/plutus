@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=3 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=3 #-}
 
 module PlutusTx.Ratio
   ( -- * Type

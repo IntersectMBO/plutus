@@ -6,12 +6,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
 
 module Plugin.Errors.Spec where
 
@@ -20,10 +20,9 @@ import Test.Tasty.Extras
 import PlutusCore.Test (goldenUPlc)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
-import PlutusTx.Plugin.Utils (plc)
+import PlutusTx.Plugin.Utils (plinthc)
 import PlutusTx.Test ()
 
-import Data.Proxy
 import Data.String
 
 -- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
@@ -57,21 +56,21 @@ errors =
       ]
 
 machInt :: CompiledCode Int
-machInt = plc (Proxy @"machInt") (1 :: Int)
+machInt = plinthc (1 :: Int)
 
 negativeInt :: CompiledCode Integer
-negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)
+negativeInt = plinthc (-1 :: Integer)
 
 caseInt :: CompiledCode (Integer -> Bool)
-caseInt = plc (Proxy @"caseInt") (\(i :: Integer) -> case i of IS _ -> True; _ -> False)
+caseInt = plinthc (\(i :: Integer) -> case i of IS _ -> True; _ -> False)
 
 stringLiteral :: CompiledCode String
-stringLiteral = plc (Proxy @"stringLiteral") ("hello" :: String)
+stringLiteral = plinthc ("hello" :: String)
 
 newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 
 recursiveNewtype :: CompiledCode (RecursiveNewtype)
-recursiveNewtype = plc (Proxy @"recursiveNewtype") (RecursiveNewtype [])
+recursiveNewtype = plinthc (RecursiveNewtype [])
 
 evenDirectLocal :: Integer -> Bool
 evenDirectLocal n = if Builtins.equalsInteger n 0 then True else oddDirectLocal (Builtins.subtractInteger n 1)
@@ -83,13 +82,13 @@ oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal
 
 -- FIXME: these seem to only get unfoldings when they're in a separate module, even with the simplifier pass
 mutualRecursionUnfoldingsLocal :: CompiledCode Bool
-mutualRecursionUnfoldingsLocal = plc (Proxy @"mutualRecursionUnfoldingsLocal") (evenDirectLocal 4)
+mutualRecursionUnfoldingsLocal = plinthc (evenDirectLocal 4)
 
 literalCaseBs :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
-literalCaseBs = plc (Proxy @"literalCaseBs") (\x -> case x of "abc" -> ""; x -> x)
+literalCaseBs = plinthc (\x -> case x of "abc" -> ""; x -> x)
 
 literalAppendBs :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
-literalAppendBs = plc (Proxy @"literalAppendBs") (\x -> Builtins.appendByteString "hello" x)
+literalAppendBs = plinthc (\x -> Builtins.appendByteString "hello" x)
 
 data AType = AType
 
@@ -100,24 +99,24 @@ instance Eq AType where
   AType == AType = True
 
 literalCaseOther :: CompiledCode (AType -> AType)
-literalCaseOther = plc (Proxy @"literalCaseOther") (\x -> case x of "abc" -> ""; x -> x)
+literalCaseOther = plinthc (\x -> case x of "abc" -> ""; x -> x)
 
 -- Tests for literal ranges (and the corresponding methods in GHC.Enum). These
 -- should all fail with informative error messages.
 rangeEnumFromTo :: CompiledCode [Integer]
-rangeEnumFromTo = plc (Proxy @"rangeEnumFromTo") [1 .. 50]
+rangeEnumFromTo = plinthc [1 .. 50]
 
 rangeEnumFromThenTo :: CompiledCode [Integer]
-rangeEnumFromThenTo = plc (Proxy @"rangeEnumFromThenTo") [1, 7 .. 50]
+rangeEnumFromThenTo = plinthc [1, 7 .. 50]
 
 rangeEnumFrom :: CompiledCode [Integer]
-rangeEnumFrom = plc (Proxy @"rangeEnumFrom") [1 ..]
+rangeEnumFrom = plinthc [1 ..]
 
 rangeEnumFromThen :: CompiledCode [Integer]
-rangeEnumFromThen = plc (Proxy @"rangeEnumFromThen") [1, 5 ..]
+rangeEnumFromThen = plinthc [1, 5 ..]
 
 toBuiltinUsed :: CompiledCode (Integer -> Integer)
-toBuiltinUsed = plc (Proxy @"toBuiltinUsed") Builtins.toBuiltin
+toBuiltinUsed = plinthc Builtins.toBuiltin
 
 fromBuiltinUsed :: CompiledCode (Integer -> Integer)
-fromBuiltinUsed = plc (Proxy @"fromBuiltinUsed") Builtins.fromBuiltin
+fromBuiltinUsed = plinthc Builtins.fromBuiltin

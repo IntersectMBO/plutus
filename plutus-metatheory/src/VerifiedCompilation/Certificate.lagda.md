@@ -45,13 +45,13 @@ variable
 
 data CertResult (P : Set 𝓁) : Set (suc 𝓁) where
   proof : (p : P) → CertResult P
-  ce : (¬p : ¬ P) → {X X' : Set} → SimplifierTag → X → X' → CertResult P
-  abort : {X X' : Set} → SimplifierTag → X → X' → CertResult P
+  ce : (¬p : ¬ P) → {X X' : Set} → OptTag → X → X' → CertResult P
+  abort : {X X' : Set} → OptTag → X → X' → CertResult P
 
 -- | Result of a decision procedure: either a proof or a counterexample
 data ProofOrCE (P : Set 𝓁) : Set (suc 𝓁) where
   proof : (p : P) → ProofOrCE P
-  ce : (¬p : ¬ P) → {X X' : Set} → SimplifierTag → X → X' → ProofOrCE P
+  ce : (¬p : ¬ P) → {X X' : Set} → OptTag → X → X' → ProofOrCE P
 
 isProof? : {P : Set 𝓁} → ProofOrCE P → Bool
 isProof? (proof _) = true
@@ -63,7 +63,7 @@ isCE? = not ∘ isProof?
 -- | Result of a checking procedure: either a proof or a failure
 data Proof? (P : Set 𝓁) : Set (suc 𝓁) where
   proof : (p : P) → Proof? P
-  abort : {X X' : Set} → SimplifierTag → X → X' → Proof? P
+  abort : {X X' : Set} → OptTag → X → X' → Proof? P
 
 infixl 1 _>>=_
 
@@ -94,7 +94,7 @@ decider f x y with f x y
 ... | proof p = proof p
 ... | ce ¬p tag a b = ce ¬p tag a b
 
-decToPCE : {X : Set} {P : Set} → SimplifierTag → Dec P → {before after : X} → ProofOrCE P
+decToPCE : {X : Set} {P : Set} → OptTag → Dec P → {before after : X} → ProofOrCE P
 decToPCE _ (yes p) = proof p
 decToPCE tag (no ¬p) {before} {after} = ce ¬p tag before after
 
@@ -102,12 +102,12 @@ pceToDec : {P : Set} → ProofOrCE P → Dec P
 pceToDec (proof p) = yes p
 pceToDec (ce ¬p _ _ _) = no ¬p
 
-matchOrCE : {X X' : Set} {𝓁 : Level} → {P : X → X' → Set 𝓁} → SimplifierTag → Binary.Decidable P → DecidableCE P
+matchOrCE : {X X' : Set} {𝓁 : Level} → {P : X → X' → Set 𝓁} → OptTag → Binary.Decidable P → DecidableCE P
 matchOrCE tag P a b with P a b
 ... | yes p = proof p
 ... | no ¬p = ce ¬p tag a b
 
-pcePointwise : {X X' : Set} {𝓁 : Level} {P : X → X' → Set 𝓁} → SimplifierTag → DecidableCE P → DecidableCE (Pointwise P)
+pcePointwise : {X X' : Set} {𝓁 : Level} {P : X → X' → Set 𝓁} → OptTag → DecidableCE P → DecidableCE (Pointwise P)
 pcePointwise tag isP? [] [] = proof Pointwise.[]
 pcePointwise {X = X} tag isP? [] (y ∷ ys) = ce (λ ()) {X = List X} tag [] ys
 pcePointwise {X' = X'} tag isP? (x ∷ xs) [] = ce (λ ()) {X' = List X'} tag xs []

@@ -5,12 +5,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.Coop.Scripts where
 
+import Plinth.Plugin ()
 import PlutusTx
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude
 import Prelude ()
 

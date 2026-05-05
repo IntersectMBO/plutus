@@ -26,11 +26,11 @@ import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import Prelude qualified as Haskell
 
+import Plinth.Plugin ()
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
 import PlutusTx.Builtins (divideInteger, modInteger)
 import PlutusTx.List
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx hiding (even)
 
 ---------------- Extras ----------------

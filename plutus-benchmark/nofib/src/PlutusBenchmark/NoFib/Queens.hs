@@ -13,7 +13,7 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.NoFib.Queens where
 
@@ -28,10 +28,10 @@ import Prelude qualified as Haskell
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
+import Plinth.Plugin ()
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
 import PlutusTx.List as List hiding (sortBy)
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as TxPrelude hiding (abs)
 
 -----------------------------
