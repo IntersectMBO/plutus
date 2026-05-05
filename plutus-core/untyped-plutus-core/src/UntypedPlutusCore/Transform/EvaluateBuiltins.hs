@@ -61,7 +61,7 @@ evaluateBuiltins preserveLogging binfo costModel =
     eval _ _ = Nothing
 
     processTerm :: Term name uni fun a -> Term name uni fun a
-    -- See Note [Ctx splitting in a recursive pass]
+    -- See Note [Context splitting in a recursive pass]
     processTerm t@(splitAppCtx -> (Builtin x bn, argCtx)) =
       let runtime = toBuiltinRuntime costModel (toBuiltinMeaning (binfo ^. biSemanticsVariant) bn)
        in case eval runtime argCtx of

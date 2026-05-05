@@ -1,6 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TupleSections #-}
 
 module UntypedPlutusCore.Contexts where
 
@@ -40,30 +39,6 @@ fillAppCtx term = \case
   AppCtxTerm ann arg ctx -> fillAppCtx (Apply ann term arg) ctx
   AppCtxType ann ctx -> fillAppCtx (Force ann term) ctx
 
-lengthContext :: AppCtx name uni fun a -> Int
-lengthContext = go 0
-  where
-    go acc = \case
-      AppCtxEnd -> acc
-      AppCtxTerm _ _ ctx -> go (acc + 1) ctx
-      AppCtxType _ ctx -> go (acc + 1) ctx
-
-appendAppCtx
-  :: AppCtx name uni fun a
-  -> AppCtx name uni fun a
-  -> AppCtx name uni fun a
-appendAppCtx ctx1 ctx2 = go ctx1
-  where
-    go AppCtxEnd = ctx2
-    go (AppCtxTerm ann arg ctx') = AppCtxTerm ann arg $ go ctx'
-    go (AppCtxType ann ctx') = AppCtxType ann $ go ctx'
-
-instance Semigroup (AppCtx name uni fun a) where
-  (<>) = appendAppCtx
-
-instance Monoid (AppCtx name uni fun a) where
-  mempty = AppCtxEnd
-
 data Saturation = Oversaturated | Undersaturated | Saturated
 
 -- | Do the given arguments saturate the given arity?
@@ -82,14 +57,3 @@ saturates (AppCtxType {}) (TermParam : _) = Nothing
 -- Arguments left - undersaturated
 saturates (AppCtxTerm {}) [] = Just Oversaturated
 saturates (AppCtxType {}) [] = Just Oversaturated
-
-{- Note [Ctx splitting in a recursive pass]
-When writing a recursive pass that processes the whole program, you must be
-a bit cautious when using a Ctx split. The context split may traverse
-part of the program, which will _also_ be traversed by the main recursive
-traversal. This can lead to quadratic runtime.
-
-This is usually okay for something like 'splitApplication', since it is
-quadratic in the longest application in the program, which is usually not
-significantly long.
--}

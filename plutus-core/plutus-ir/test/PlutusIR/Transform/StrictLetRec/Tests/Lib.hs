@@ -92,7 +92,7 @@ compileTplcProgramOrFail
 compileTplcProgramOrFail plcProgram =
   handlePirErrorByFailing @SrcSpan =<< do
     TPLC.compileProgram plcProgram
-      & flip runReaderT TPLC.defaultOptimizeOpts
+      & flip runReaderT TPLC.defaultCompilationOpts
       & runQuoteT
       & runExceptT
 

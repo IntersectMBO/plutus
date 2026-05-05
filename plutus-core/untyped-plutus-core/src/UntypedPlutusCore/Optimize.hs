@@ -13,10 +13,12 @@ module UntypedPlutusCore.Optimize
   , module UntypedPlutusCore.Transform.Optimizer
   ) where
 
+import PlutusCore.Builtin (CostingPart)
 import PlutusCore.Compiler.Types
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Default.Builtins
 import PlutusCore.Name.Unique
+import UntypedPlutusCore.Analysis.Builtins (BuiltinsInfo, biSemanticsVariant)
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.Optimize.Opts as Opts
 import UntypedPlutusCore.Transform.ApplyToCase (applyToCase)
@@ -31,7 +33,9 @@ import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 import UntypedPlutusCore.Transform.LetFloatOut (letFloatOut)
 import UntypedPlutusCore.Transform.Optimizer
 
+import Control.Lens ((&), (.~))
 import Control.Monad
+import Data.Default.Class (def)
 import Data.Either (isRight)
 import Data.List as List (foldl')
 import Data.Typeable
@@ -40,7 +44,7 @@ import Data.Vector.Orphans ()
 optimizeProgram
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => OptimizeOpts name uni fun a
+  => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
   -> Program name uni fun a
   -> m (Program name uni fun a)
@@ -50,7 +54,7 @@ optimizeProgram opts builtinSemanticsVariant (Program a v t) =
 optimizeProgramWithTrace
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => OptimizeOpts name uni fun a
+  => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
   -> Program name uni fun a
   -> m (Program name uni fun a, OptimizerTrace name uni fun a)
@@ -63,7 +67,7 @@ optimizeProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
 optimizeTerm
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => OptimizeOpts name uni fun a
+  => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
   -> Term name uni fun a
   -> m (Term name uni fun a)
@@ -73,7 +77,7 @@ optimizeTerm opts builtinSemanticsVariant term =
 termOptimizer
   :: forall name uni fun m a
    . Compiling m uni fun name a
-  => OptimizeOpts name uni fun a
+  => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
   -> Term name uni fun a
   -> OptimizerT name uni fun a m (Term name uni fun a)
@@ -147,10 +151,13 @@ termOptimizer opts builtinSemanticsVariant =
           LetFloatOutStage ->
             letFloatOut
           ConstantFoldingStage ->
-            evaluateBuiltinsPass
-              (_ooPreserveLogging opts)
-              (_ooBuiltinsInfo opts)
-              (_ooBuiltinCostModel opts)
+            case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
+              (Just Refl, Just Refl) ->
+                evaluateBuiltinsPass
+                  (_ooPreserveLogging opts)
+                  ((def :: BuiltinsInfo PLC.DefaultUni DefaultFun) & biSemanticsVariant .~ builtinSemanticsVariant)
+                  (def :: CostingPart PLC.DefaultUni DefaultFun)
+              _ -> pure
 
     caseOfCase'
       :: Term name uni fun a

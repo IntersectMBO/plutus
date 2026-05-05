@@ -36,14 +36,18 @@ import PlutusTx.Lift.TH (LiftError (..), makeLift, makeTypeable)
 
 import PlutusIR
 import PlutusIR qualified as PIR
+import PlutusIR.Analysis.Builtins as PIR
 import PlutusIR.Compiler
 import PlutusIR.Compiler.Definitions
 import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Error qualified as PIR
 import PlutusIR.MkPir qualified as PIR
+import PlutusIR.Transform.RewriteRules as PIR
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Compiler qualified as PLC
+import PlutusCore.Pretty
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function qualified as PLC
 import PlutusCore.Version qualified as PLC
@@ -55,36 +59,38 @@ import Control.Lens hiding (lifted)
 import Control.Monad (void)
 import Control.Monad.Except (ExceptT, MonadError, modifyError, runExceptT)
 import Control.Monad.Reader (runReaderT)
+import Data.Default.Class
+import Data.Hashable
 import Data.Proxy
 
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
 {-| Get a Plutus Core term corresponding to the given value. Allows configuring
-PIR and UPLC optimization options.
-
-Note: PlutusTx targets only 'UPLC.DefaultUni'\/'UPLC.DefaultFun', which is why
-this module uses those types explicitly rather than type parameters.
-'defaultOptimizeOpts' and 'defaultUniUnserializableConstants' are likewise
-specific to 'DefaultUni'\/'DefaultFun'. -}
+PIR and UPLC optimization options. -}
 safeLiftWith
-  :: forall a m
-   . ( Lift.Lift UPLC.DefaultUni a
-     , MonadError (PIR.Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) m
+  :: forall a uni fun m
+   . ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , PrettyUni uni
+     , Pretty fun
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
      )
   => (PIR.CompilationOpts () -> PIR.CompilationOpts ())
   -- ^ Modifier of PIR compilation options
-  -> ( PLC.OptimizeOpts Name UPLC.DefaultUni UPLC.DefaultFun (Provenance ())
-       -> PLC.OptimizeOpts Name UPLC.DefaultUni UPLC.DefaultFun (Provenance ())
-     )
+  -> (PLC.CompilationOpts Name fun (Provenance ()) -> PLC.CompilationOpts Name fun (Provenance ()))
   -- ^ Modifier of UPLC compilation options
   -> PLC.Version
   -> a
-  -> m
-       ( PIR.Term PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-       , UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-       )
+  -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLiftWith f g v x = do
   pir <- liftQuote $ runDefT () $ Lift.lift x
   tcConfig <- modifyError (PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig $ Original ()
@@ -100,11 +106,11 @@ safeLiftWith f g v x = do
       ucOpts =
         ( g
             . ( if v == PLC.plcVersion100
-                  then set UPLC.ooApplyToCase False
+                  then set (PLC.coOptimizeOpts . UPLC.ooApplyToCase) False
                   else id
               )
         )
-          PLC.defaultOptimizeOpts
+          PLC.defaultCompilationOpts
   plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
   uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
   UPLC.Program _ _ db <-
@@ -114,77 +120,115 @@ safeLiftWith f g v x = do
 {-| Get a Plutus Core term corresponding to the given value, applying default PIR/UPLC
 optimizations. -}
 safeLift
-  :: forall a m
-   . ( Lift.Lift UPLC.DefaultUni a
-     , MonadError (PIR.Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) m
+  :: forall a uni fun m
+   . ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , PrettyUni uni
+     , Pretty fun
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
      )
   => PLC.Version
   -> a
-  -> m
-       ( PIR.Term PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-       , UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-       )
+  -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLift = safeLiftWith id id
 
 {-| Like `safeLift` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
 safeLiftUnopt
-  :: forall a m
-   . ( Lift.Lift UPLC.DefaultUni a
-     , MonadError (PIR.Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) m
+  :: forall a uni fun m
+   . ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , PrettyUni uni
+     , Pretty fun
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
      )
   => PLC.Version
   -> a
-  -> m
-       ( PIR.Term PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-       , UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-       )
+  -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLiftUnopt =
   safeLiftWith
     (set coMaxSimplifierIterations 0)
-    ( set UPLC.ooMaxSimplifierIterations 0
-        . set UPLC.ooMaxCseIterations 0
-        . set UPLC.ooApplyToCase False
+    ( set (PLC.coOptimizeOpts . UPLC.ooMaxSimplifierIterations) 0
+        . set (PLC.coOptimizeOpts . UPLC.ooMaxCseIterations) 0
+        . set (PLC.coOptimizeOpts . UPLC.ooApplyToCase) False
     )
 
 {-| Get a Plutus Core program corresponding to the given value, applying default PIR/UPLC
 optimizations. -}
 safeLiftProgram
-  :: ( Lift.Lift UPLC.DefaultUni a
-     , MonadError (PIR.Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) m
+  :: ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , PrettyUni uni
+     , Pretty fun
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
      )
   => PLC.Version
   -> a
-  -> m
-       ( PIR.Program PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-       , UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-       )
+  -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 safeLiftProgram v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLift v x
 
 {-| Like `safeLiftProgram` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
 safeLiftProgramUnopt
-  :: ( Lift.Lift UPLC.DefaultUni a
-     , MonadError (PIR.Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) m
+  :: ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , PrettyUni uni
+     , Pretty fun
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
      )
   => PLC.Version
   -> a
-  -> m
-       ( PIR.Program PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-       , UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-       )
+  -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 safeLiftProgramUnopt v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLiftUnopt v x
 
 safeLiftCode
-  :: ( Lift.Lift UPLC.DefaultUni a
-     , MonadError (PIR.Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) m
+  :: ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , PrettyUni uni
+     , Pretty fun
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
      )
-  => PLC.Version -> a -> m (CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a)
+  => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
 safeLiftCode v =
   fmap
     ( \(pir, uplc) ->
@@ -195,11 +239,21 @@ safeLiftCode v =
 {-| Like `safeLiftCode` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
 safeLiftCodeUnopt
-  :: ( Lift.Lift UPLC.DefaultUni a
-     , MonadError (PIR.Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) m
+  :: ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , PrettyUni uni
+     , Pretty fun
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
      )
-  => PLC.Version -> a -> m (CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a)
+  => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
 safeLiftCodeUnopt v =
   fmap
     ( \(pir, uplc) ->
@@ -208,7 +262,8 @@ safeLiftCodeUnopt v =
     . safeLiftProgramUnopt v
 
 unsafely
-  :: ExceptT (Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) Quote a -> a
+  :: ThrowableBuiltins uni fun
+  => ExceptT (Error uni fun (Provenance ())) Quote a -> a
 unsafely ma = runQuote $ do
   run <- runExceptT ma
   case run of
@@ -219,44 +274,76 @@ unsafely ma = runQuote $ do
 occur as exceptions and ignoring fresh names. The default PIR/UPLC optimizations
 are applied. -}
 lift
-  :: Lift.Lift UPLC.DefaultUni a
+  :: ( Lift.Lift uni a
+     , ThrowableBuiltins uni fun
+     , PLC.Typecheckable uni fun
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , PLC.CaseBuiltin uni
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
+     )
   => PLC.Version
   -> a
-  -> ( PIR.Term PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-     , UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-     )
+  -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 lift v a = unsafely $ safeLift v a
 
 {-| Like `lift` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
 liftUnopt
-  :: Lift.Lift UPLC.DefaultUni a
+  :: ( Lift.Lift uni a
+     , ThrowableBuiltins uni fun
+     , PLC.Typecheckable uni fun
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , PLC.CaseBuiltin uni
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
+     )
   => PLC.Version
   -> a
-  -> ( PIR.Term PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-     , UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-     )
+  -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 liftUnopt v a = unsafely $ safeLiftUnopt v a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgram
-  :: Lift.Lift UPLC.DefaultUni a
+  :: ( Lift.Lift uni a
+     , ThrowableBuiltins uni fun
+     , PLC.Typecheckable uni fun
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , PLC.CaseBuiltin uni
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
+     )
   => PLC.Version
   -> a
-  -> ( PIR.Program PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-     , UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-     )
+  -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 liftProgram v x = unsafely $ safeLiftProgram v x
 
 {-| Like `liftProgram` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
 liftProgramUnopt
-  :: Lift.Lift UPLC.DefaultUni a
+  :: ( Lift.Lift uni a
+     , ThrowableBuiltins uni fun
+     , PLC.Typecheckable uni fun
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , PLC.CaseBuiltin uni
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
+     )
   => PLC.Version
   -> a
-  -> ( PIR.Program PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-     , UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-     )
+  -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 liftProgramUnopt v x = unsafely $ safeLiftProgram v x
 
 -- | Get a Plutus Core program in the default universe with the default version, corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
@@ -280,28 +367,68 @@ liftProgramDefUnopt = liftProgramUnopt PLC.latestVersion
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode
-  :: Lift.Lift UPLC.DefaultUni a
-  => PLC.Version -> a -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a
+  :: ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , ThrowableBuiltins uni fun
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
+     )
+  => PLC.Version -> a -> CompiledCodeIn uni fun a
 liftCode v x = unsafely $ safeLiftCode v x
 
 {-| Like `liftCode` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
 liftCodeUnopt
-  :: Lift.Lift UPLC.DefaultUni a
-  => PLC.Version -> a -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a
+  :: ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , ThrowableBuiltins uni fun
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
+     )
+  => PLC.Version -> a -> CompiledCodeIn uni fun a
 liftCodeUnopt v x = unsafely $ safeLiftCodeUnopt v x
 
 -- | Get a Plutus Core program with the default version, corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCodeDef
-  :: Lift.Lift UPLC.DefaultUni a
-  => a -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a
+  :: ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , ThrowableBuiltins uni fun
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
+     )
+  => a -> CompiledCodeIn uni fun a
 liftCodeDef = liftCode PLC.latestVersion
 
 {-| Like `liftCodeDef` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
 liftCodeDefUnopt
-  :: Lift.Lift UPLC.DefaultUni a
-  => a -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a
+  :: ( Lift.Lift uni a
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , ThrowableBuiltins uni fun
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
+     )
+  => a -> CompiledCodeIn uni fun a
 liftCodeDefUnopt = liftCodeUnopt PLC.latestVersion
 
 {- Note [Checking the type of a term with Typeable]
@@ -318,13 +445,21 @@ iff the original term has the given type. We opt for `(\x : <the type> -> x) ter
 
 -- | Check that PLC term has the given type.
 typeCheckAgainst
-  :: forall a m
-   . ( Lift.Typeable UPLC.DefaultUni a
-     , MonadError (PIR.Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) m
+  :: forall a uni fun m
+   . ( Lift.Typeable uni a
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
+     , PLC.GEq uni
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , PrettyUni uni
+     , Pretty fun
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
      )
   => Proxy a
-  -> PLC.Program PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
+  -> PLC.Program PLC.TyName PLC.Name uni fun ()
   -> m ()
 typeCheckAgainst p (PLC.Program _ v plcTerm) = do
   -- See Note [Checking the type of a term with Typeable]
@@ -350,18 +485,28 @@ typeCheckAgainst p (PLC.Program _ v plcTerm) = do
 
 -- | Try to interpret a PLC program as a 'CompiledCodeIn' of the given type. Returns successfully iff the program has the right type.
 typeCode
-  :: forall a m
-   . ( Lift.Typeable UPLC.DefaultUni a
-     , MonadError (PIR.Error UPLC.DefaultUni UPLC.DefaultFun (Provenance ())) m
+  :: forall a uni fun m
+   . ( Lift.Typeable uni a
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
+     , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , PrettyUni uni
+     , Pretty fun
+     , Default (PLC.CostingPart uni fun)
+     , Default (PIR.BuiltinsInfo uni fun)
+     , Default (PIR.RewriteRules uni fun)
+     , Hashable fun
      )
   => Proxy a
-  -> PLC.Program PLC.TyName PLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
-  -> m (CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a)
+  -> PLC.Program PLC.TyName PLC.Name uni fun ()
+  -> m (CompiledCodeIn uni fun a)
 typeCode p prog = do
   _ <- typeCheckAgainst p prog
   compiled <-
-    flip runReaderT PLC.defaultOptimizeOpts $
+    flip runReaderT PLC.defaultCompilationOpts $
       PLC.compileProgram prog
   db <-
     modifyError (PLCError . PLC.FreeVariableErrorE) $

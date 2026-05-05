@@ -44,6 +44,7 @@ import PlutusIR.Transform.RewriteRules
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, splitExtension, (</>))
 
+import Data.Hashable
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 
@@ -70,16 +71,23 @@ instance
   toTPlc = asIfThrown . fmap void . compileWithOpts id
 
 instance
-  ( Pretty a
+  ( PLC.GEq uni
+  , uni `PLC.Everywhere` Eq
+  , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin uni
+  , PLC.PrettyUni uni
+  , Pretty fun
+  , Hashable fun
+  , Pretty a
   , Typeable a
   , Ord a
   , PLC.AnnInline a
   , PLC.AnnCase a
+  , Default (PLC.CostingPart uni fun)
+  , Default (BuiltinsInfo uni fun)
+  , Default (RewriteRules uni fun)
   )
-  => ToUPlc
-       (PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a)
-       PLC.DefaultUni
-       PLC.DefaultFun
+  => ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
   toUPlc = toTPlc >=> toUPlc
 

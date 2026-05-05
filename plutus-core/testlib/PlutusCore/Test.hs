@@ -63,6 +63,7 @@ import PlutusPrelude
 
 import PlutusCore qualified as TPLC
 import PlutusCore.Annotation
+import PlutusCore.Builtin
 import PlutusCore.Check.Scoping
 import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.DeBruijn
@@ -84,6 +85,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Either.Extras
+import Data.Hashable
 import Data.Kind qualified as GHC
 import Data.Text (Text)
 import Hedgehog
@@ -186,15 +188,19 @@ instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
   toUPlc = pure
 
 instance
-  ToUPlc
-    (TPLC.Program TPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ())
-    UPLC.DefaultUni
-    UPLC.DefaultFun
+  ( TPLC.Typecheckable uni fun
+  , CaseBuiltin uni
+  , Hashable fun
+  , TPLC.GEq uni
+  , TPLC.Closed uni
+  , TPLC.Everywhere uni Eq
+  )
+  => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun
   where
   toUPlc =
     pure
       . TPLC.runQuote
-      . flip runReaderT UPLC.defaultOptimizeOpts
+      . flip runReaderT TPLC.defaultCompilationOpts
       . TPLC.compileProgram
 
 instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where

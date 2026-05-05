@@ -142,6 +142,7 @@ library
     , base16-bytestring
     , bytestring
     , containers
+    , data-default-class
     , deepseq
     , deriving-compat
     , extra

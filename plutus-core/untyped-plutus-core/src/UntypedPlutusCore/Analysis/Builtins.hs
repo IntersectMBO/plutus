@@ -74,6 +74,5 @@ defaultUniUnserializableConstants = \case
   Some (ValueOf DefaultUniBLS12_381_MlResult _) -> True
   _ -> False
 
-{- Note [Unserializable constants]
-See Note [Unserializable constants] in PlutusIR.Analysis.Builtins.
+{- See Note [Unserializable constants] in PlutusIR.Analysis.Builtins.
 -}

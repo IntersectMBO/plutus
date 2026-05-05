@@ -349,7 +349,7 @@ runOptimiseSingle
   -> PrintMode
   -> Certifier
   -> CertifierOutputMode
-  -> UPLC.OptimizeOpts UPLC.Name UPLC.DefaultUni UPLC.DefaultFun SrcSpan
+  -> UPLC.OptimizeOpts UPLC.Name SrcSpan
   -> OptimiseEvalOpts
   -> IO ()
 runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts = do
@@ -377,7 +377,7 @@ runOptimiseBlueprint
   -> Format
   -> Certifier
   -> CertifierOutputMode
-  -> UPLC.OptimizeOpts UPLC.Name UPLC.DefaultUni UPLC.DefaultFun SrcSpan
+  -> UPLC.OptimizeOpts UPLC.Name SrcSpan
   -> OptimiseEvalOpts
   -> IO ()
 runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
@@ -411,7 +411,7 @@ runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
 optimiseProgram
   :: forall m name a
    . (UPLC.HasUnique name UPLC.TermUnique, Monad m, Ord name, Typeable name)
-  => UPLC.OptimizeOpts name UPLC.DefaultUni UPLC.DefaultFun a
+  => UPLC.OptimizeOpts name a
   -> UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
   -> m
        ( UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a

@@ -13,12 +13,8 @@ module UntypedPlutusCore.Optimize.Opts
   , ooInlineCallsiteGrowth
   , ooPreserveLogging
   , ooCertifiedOptsOnly
-  , ooBuiltinsInfo
-  , ooBuiltinCostModel
   , defaultOptimizeOpts
   , CseWhichSubterms (..)
-  , BuiltinsInfo (..)
-  , biSemanticsVariant
   ) where
 
 import Control.Lens.TH (makeLenses)
@@ -26,11 +22,8 @@ import Data.Default.Class
 
 import PlutusCore.Annotation (InlineHints (..))
 import PlutusCore.AstSize
-import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Default
 import PlutusCore.Pretty
 import Prettyprinter (viaShow)
-import UntypedPlutusCore.Analysis.Builtins
 
 -- | Which subterms should be considered as candidates for CSE?
 data CseWhichSubterms = AllSubterms | ExcludeWorkFree
@@ -39,7 +32,7 @@ data CseWhichSubterms = AllSubterms | ExcludeWorkFree
 instance Pretty CseWhichSubterms where
   pretty = viaShow
 
-data OptimizeOpts name uni fun a = OptimizeOpts
+data OptimizeOpts name a = OptimizeOpts
   { _ooMaxSimplifierIterations :: Int
   , _ooMaxCseIterations :: Int
   , _ooCseWhichSubterms :: CseWhichSubterms
@@ -51,13 +44,12 @@ data OptimizeOpts name uni fun a = OptimizeOpts
   , _ooPreserveLogging :: Bool
   , _ooApplyToCase :: Bool
   , _ooCertifiedOptsOnly :: Bool
-  , _ooBuiltinsInfo :: BuiltinsInfo uni fun
-  , _ooBuiltinCostModel :: PLC.CostingPart uni fun
   }
+  deriving stock (Show)
 
 $(makeLenses ''OptimizeOpts)
 
-defaultOptimizeOpts :: OptimizeOpts name DefaultUni DefaultFun a
+defaultOptimizeOpts :: OptimizeOpts name a
 defaultOptimizeOpts =
   OptimizeOpts
     { _ooMaxSimplifierIterations = 12
@@ -71,6 +63,4 @@ defaultOptimizeOpts =
     , _ooPreserveLogging = True
     , _ooApplyToCase = True
     , _ooCertifiedOptsOnly = False
-    , _ooBuiltinsInfo = def
-    , _ooBuiltinCostModel = def
     }

@@ -126,7 +126,7 @@ compileProgram = curry $ \case
     compileProgram sng1 (SPlc n2 a2)
       -- PLC.compileProgram subsumes uplcOptimise
       >=> ( PLC.runQuoteT
-              . flip runReaderT UPLC.defaultOptimizeOpts
+              . flip runReaderT PLC.defaultCompilationOpts
               . plcToUplcViaName n2 PLC.compileProgram
           )
       >=> pure
