@@ -8,6 +8,7 @@
 
 module PlutusTx.Plugin.Utils where
 
+import Data.Proxy
 import GHC.TypeLits
 import PlutusTx.Code
 import PlutusTx.Utils
@@ -25,6 +26,15 @@ a Proxy to avoid this.
 -- This needs to be defined here so we can reference it in the TH functions.
 -- If we inline this then we won't be able to find it later!
 
+-- | Marker recognised by the plugin. Carries the splice's source location at
+-- the type level so the plugin can decode it; emitted by TH 'compile'.
+plc :: forall (loc :: Symbol) a. Proxy loc -> a -> CompiledCode a
+plc _ _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx")
+{-# OPAQUE plc #-}
+
+-- | Direct (non-TH) marker, recognised by the plugin alongside 'plc' but
+-- without a source-location annotation. Used by callers that already have a
+-- @CompiledCode@-shaped expression and don't go through TH 'compile'.
 plinthc :: forall a. a -> CompiledCode a
 plinthc _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx")
 {-# OPAQUE plinthc #-}

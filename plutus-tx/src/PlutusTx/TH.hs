@@ -8,10 +8,11 @@ module PlutusTx.TH
   , loadFromFile
   ) where
 
+import Data.Proxy
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Syntax qualified as TH
 import PlutusTx.Code
-import PlutusTx.Plugin.Utils
+import PlutusTx.Plugin.Utils (plc)
 
 -- We do not use qualified import because the whole module contains off-chain code
 import Control.Monad.IO.Class
@@ -49,9 +50,11 @@ compileUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
 compileUntyped e = do
   TH.addCorePlugin "Plinth.Plugin"
   loc <- TH.location
-  -- Encode the splice site so the plugin can read it back via 'decodeSrcSpan'
-  -- and tag certificates / diagnostics with the original source location.
-  -- Format must stay in sync with PlutusTx.Compiler.Expr.encodeSrcSpan.
+  -- Carry the splice's source location as a value-level @String@ so the user
+  -- module needs no extra extensions (a type-level @Symbol@ encoded via
+  -- @anchor \@\"…\"@ would force @TypeApplications@/@DataKinds@ on every call
+  -- site). Encoding must stay in sync with
+  -- PlutusTx.Compiler.Expr.{encode,decode}SrcSpan.
   let locStr =
         intercalate "\0"
           [ TH.loc_filename loc
@@ -60,7 +63,6 @@ compileUntyped e = do
           , show (fst (TH.loc_end loc))
           , show (snd (TH.loc_end loc))
           ]
-      locTy = TH.litT (TH.strTyLit locStr)
   -- See Note [Typed TH]
-  [|anchor @($locTy) (plinthc $(e))|]
+  [|plc (Proxy :: Proxy $(TH.litT $ TH.strTyLit locStr)) $(e)|]
 

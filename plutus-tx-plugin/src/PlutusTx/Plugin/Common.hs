@@ -103,6 +103,11 @@ data PluginCtx = PluginCtx
   { pcOpts :: PluginOptions
   , pcFamEnvs :: GHC.FamInstEnvs
   , pcMarkerName :: GHC.Name
+  -- ^ Primary marker (currently 'plc'), recognised by the location-bearing
+  -- pattern at the head of 'compileMarkedExprs'.
+  , pcPlinthcName :: GHC.Name
+  -- ^ Secondary, location-less marker ('plinthc'); recognised by the
+  -- existing two-App pattern that previously held the primary slot.
   , pcAnchorName :: GHC.Name
   , pcModuleName :: GHC.ModuleName
   , pcModuleModBreaks :: Maybe GHC.ModBreaks
@@ -359,10 +364,11 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
   p_fam_env <- GHC.getPackageFamInstEnv
   -- See Note [Marker resolution]
   maybeMarkerName <- GHC.thNameToGhcName markerTHName
+  maybePlinthcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.plinthc
   maybeanchorGhcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.anchor
-  case (maybeMarkerName, maybeanchorGhcName) of
+  case (maybeMarkerName, maybePlinthcName, maybeanchorGhcName) of
     -- See Note [Marker resolution]
-    (Just markerName, Just anchorGhcName) -> do
+    (Just markerName, Just plinthcName, Just anchorGhcName) -> do
       hscEnv <- GHC.getHscEnv
       let thisModule = GHC.mg_module guts
           pkgName = getPackageName hscEnv thisModule
@@ -371,6 +377,7 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
               { pcOpts = opts
               , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
               , pcMarkerName = markerName
+              , pcPlinthcName = plinthcName
               , pcAnchorName = anchorGhcName
               , pcModuleName = GHC.moduleName thisModule
               , pcModuleModBreaks = GHC.mg_modBreaks guts
@@ -507,6 +514,7 @@ into PLC literals. -}
 compileMarkedExprs :: GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
 compileMarkedExprs expr = do
   markerName <- asks pcMarkerName
+  plinthcName <- asks pcPlinthcName
   anchorGhcName <- asks pcAnchorName
   case expr of
     -- This clause is for the `plc` marker. It can be removed when we remove `plc`.
@@ -532,10 +540,10 @@ compileMarkedExprs expr = do
     GHC.App (GHC.App fnExpr tyExpr) inner
       | (stripAnchors anchorGhcName -> GHC.Var fid) <- fnExpr
       , (stripAnchors anchorGhcName -> GHC.Type codeTy) <- tyExpr
-      , markerName == GHC.idName fid ->
+      , plinthcName == GHC.idName fid ->
           compileMarkedExprOrDefer (getAnchorSrcSpan anchorGhcName fnExpr) codeTy inner
     e@(GHC.Var fid)
-      | markerName == GHC.idName fid ->
+      | markerName == GHC.idName fid Prelude.|| plinthcName == GHC.idName fid ->
           throwError . NoContext . InvalidMarkerError . GHC.showSDocUnsafe $ GHC.ppr e
     GHC.App e a -> GHC.App <$> compileMarkedExprs e <*> compileMarkedExprs a
     GHC.Lam b e -> GHC.Lam b <$> compileMarkedExprs e
