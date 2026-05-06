@@ -50,6 +50,7 @@ showCertifiedOptTag letFloatOutT = "Float bindings outwards"
 
 showUncertifiedOptTag : UncertifiedOptTag → String
 showUncertifiedOptTag caseOfCaseT = "Case-of-Case"
+showUncertifiedOptTag constantFoldingT = "Constant Folding"
 
 showTag : OptTag → String
 showTag (inj₁ tag) = showUncertifiedOptTag tag ++ "  ⚠ (certifier unavailable)"

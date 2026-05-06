@@ -10,8 +10,10 @@ module UntypedPlutusCore.Core.Plated
   , termConstantsDeep
   , termSubtermsDeep
   , termUniquesDeep
+  , _Constant
   ) where
 
+import PlutusCore qualified as PLC
 import PlutusCore.Core (HasUniques)
 import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core.Type
@@ -78,3 +80,7 @@ termSubtermsDeep = cosmosOf termSubterms
 -- | Get all the transitive child 'Unique's of the given 'Term'.
 termUniquesDeep :: HasUniques (Term name uni fun ann) => Fold (Term name uni fun ann) Unique
 termUniquesDeep = termSubtermsDeep . termUniques
+
+-- | View a term as a constant.
+_Constant :: Prism' (Term name uni fun a) (a, PLC.Some (PLC.ValueOf uni))
+_Constant = prism' (uncurry Constant) (\case Constant a v -> Just (a, v); _ -> Nothing)

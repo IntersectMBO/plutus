@@ -21,6 +21,9 @@ InlDelay
   InlCon
 
 
--- Certifier hints #8 (Right ApplyToCase) --
+-- Certifier hints #8 (Left ConstantFolding) --
+NoHints
+
+-- Certifier hints #9 (Right ApplyToCase) --
 NoHints
 
