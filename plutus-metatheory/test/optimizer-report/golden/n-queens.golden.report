@@ -1,5 +1,5 @@
 === UPLC optimization report ===
-Pass                     size    ΔSize             CPU            ΔCPU             Mem            ΔMem
+Pass                     Size    ΔSize             CPU            ΔCPU             Mem            ΔMem
 ------------------------------------------------------------------------------------------------------
 <initial>                3565             288404181782                      1752469055                
 FloatDelay               3573       +8    288404181782               0      1752469055               0

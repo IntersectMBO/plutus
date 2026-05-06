@@ -77,7 +77,7 @@ header False =
     passColW
     "Pass"
     sizeColW
-    "size"
+    "Size"
     sizeColW
     "ΔSize"
 header True =
@@ -86,7 +86,7 @@ header True =
     passColW
     "Pass"
     sizeColW
-    "size"
+    "Size"
     sizeColW
     "ΔSize"
     cpuColW
