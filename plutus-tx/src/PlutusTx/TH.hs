@@ -8,7 +8,6 @@ module PlutusTx.TH
   , loadFromFile
   ) where
 
-import Data.Proxy
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Syntax qualified as TH
 import PlutusTx.Code

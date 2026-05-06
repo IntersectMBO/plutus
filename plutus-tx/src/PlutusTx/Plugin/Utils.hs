@@ -8,7 +8,6 @@
 
 module PlutusTx.Plugin.Utils where
 
-import Data.Proxy
 import GHC.TypeLits
 import PlutusTx.Code
 import PlutusTx.Utils
