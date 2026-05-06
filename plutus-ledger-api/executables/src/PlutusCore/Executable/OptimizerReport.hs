@@ -100,7 +100,7 @@ header True =
 
 formatEntry :: Bool -> Maybe ReportEntry -> ReportEntry -> String
 formatEntry withCosts mPrev cur =
-  let name = maybe "<initial>" id (rePassName cur)
+  let name = fromMaybe "<initial>" (rePassName cur)
       sz = reAstSize cur
       dSz = case mPrev of
         Just p -> showSigned (sz - reAstSize p)
