@@ -13,12 +13,14 @@ import Control.Monad
 import Control.Monad.Except (ExceptT (..), runExceptT, throwError)
 import Control.Monad.IO.Class (liftIO)
 import Data.Foldable
+import Data.List.Extra (replace)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromMaybe)
 import Data.Text.IO qualified as T
+import Paths_plutus_metatheory (getDataFileName)
 import System.Directory (createDirectory)
-import System.FilePath ((</>))
+import System.FilePath (takeBaseName, (</>))
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
 import FFI.CostInfo
@@ -314,7 +316,6 @@ data AgdaCertificateProject = AgdaCertificateProject
   { mainModule :: (FilePath, String)
   , astModules :: [(FilePath, String)]
   , agdalib :: (FilePath, String)
-  , readme :: (FilePath, String)
   }
 
 mkAgdaLib :: String -> (FilePath, String)
@@ -329,50 +330,6 @@ mkAgdaLib name =
              \\nflags: --polarity"
    in (name <> ".agda-lib", contents)
 
-mkReadme :: String -> (FilePath, String)
-mkReadme name =
-  let contents =
-        "# Certificate: "
-          <> name
-          <> "\n\
-             \\n\
-             \This directory contains a machine-verifiable Agda certificate that\n\
-             \proves the Plutus optimizer correctly transformed a program.\n\
-             \Type-checking this project with Agda verifies the certificate.\n\
-             \\n\
-             \## Dependencies\n\
-             \\n\
-             \- [Agda](https://agda.readthedocs.io/) 2.8.0\n\
-             \- [Agda standard library](https://github.com/agda/agda-stdlib) 2.3\n\
-             \- [plutus-metatheory](https://github.com/IntersectMBO/plutus/tree/master/plutus-metatheory)\n\
-             \\n\
-             \## Type-checking\n\
-             \\n\
-             \### Using Nix (recommended)\n\
-             \\n\
-             \Enter the development shell provided by the `plutus` repository, `cd` into the root of the certificate project, \n\
-             \and use the bundled Agda wrapper that includes all required libraries:\n\
-             \\n\
-             \```\n\
-             \nix develop\n\
-             \agda-with-stdlib-and-metatheory src/"
-          <> name
-          <> ".agda\n\
-             \```\n\
-             \\n\
-             \### Without Nix\n\
-             \\n\
-             \Ensure Agda 2.8.0 is installed and that both `standard-library-2.3`\n\
-             \and `plutus-metatheory` are registered in your `$AGDA_DIR/libraries`\n\
-             \file (see `plutus-metatheory/AGDA.md` for guidance), then run:\n\
-             \\n\
-             \```\n\
-             \agda src/"
-          <> name
-          <> ".agda\n\
-             \```\n"
-   in ("README.md", contents)
-
 mkAgdaCertificateProject
   :: Certificate
   -> AgdaCertificateProject
@@ -381,8 +338,7 @@ mkAgdaCertificateProject cert =
       mainModule = mkCertificateFile cert
       astModules = fmap mkAgdaAstFile (certReprAsts cert)
       agdalib = mkAgdaLib name
-      readme = mkReadme name
-   in AgdaCertificateProject {mainModule, astModules, agdalib, readme}
+   in AgdaCertificateProject {mainModule, astModules, agdalib}
 
 writeCertificateProject
   :: CertDir
@@ -394,17 +350,18 @@ writeCertificateProject
     { mainModule
     , astModules
     , agdalib
-    , readme
     } =
     liftIO $ do
       let (mainModulePath, mainModuleContents) = mainModule
           (agdalibPath, agdalibContents) = agdalib
-          (readmePath, readmeContents) = readme
+          certName = takeBaseName mainModulePath
       createDirectory certDir
       createDirectory (certDir </> "src")
       writeFile (certDir </> "src" </> mainModulePath) mainModuleContents
       writeFile (certDir </> agdalibPath) agdalibContents
-      writeFile (certDir </> readmePath) readmeContents
+      templatePath <- getDataFileName "data/certificate-README.md"
+      readmeTemplate <- readFile templatePath
+      writeFile (certDir </> "README.md") (replace "{{NAME}}" certName readmeTemplate)
       traverse_
         ( \(path, contents) ->
             writeFile (certDir </> "src" </> path) contents

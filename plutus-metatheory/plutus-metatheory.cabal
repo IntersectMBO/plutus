@@ -13,6 +13,7 @@ maintainer:    james.chapman@iohk.io
 category:      Development
 build-type:    Simple
 data-files:
+  data/certificate-README.md
   plutus-metatheory.agda-lib
   README.md
   src/**/*.lagda.md
