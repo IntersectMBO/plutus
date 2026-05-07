@@ -103,11 +103,9 @@ data PluginCtx = PluginCtx
   { pcOpts :: PluginOptions
   , pcFamEnvs :: GHC.FamInstEnvs
   , pcMarkerName :: GHC.Name
-  -- ^ Primary marker (currently 'plc'), recognised by the location-bearing
-  -- pattern at the head of 'compileMarkedExprs'.
-  , pcPlinthcName :: GHC.Name
-  -- ^ Secondary, location-less marker ('plinthc'); recognised by the
-  -- existing two-App pattern that previously held the primary slot.
+  -- ^ Plugin marker ('plinthc'). Always reached anchor-wrapped: TH 'compile'
+  -- emits @anchor \@\"loc\" plinthc@, and direct uses are auto-anchored by
+  -- the typecheck plugin.
   , pcAnchorName :: GHC.Name
   , pcModuleName :: GHC.ModuleName
   , pcModuleModBreaks :: Maybe GHC.ModBreaks
@@ -364,11 +362,10 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
   p_fam_env <- GHC.getPackageFamInstEnv
   -- See Note [Marker resolution]
   maybeMarkerName <- GHC.thNameToGhcName markerTHName
-  maybePlinthcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.plinthc
   maybeanchorGhcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.anchor
-  case (maybeMarkerName, maybePlinthcName, maybeanchorGhcName) of
+  case (maybeMarkerName, maybeanchorGhcName) of
     -- See Note [Marker resolution]
-    (Just markerName, Just plinthcName, Just anchorGhcName) -> do
+    (Just markerName, Just anchorGhcName) -> do
       hscEnv <- GHC.getHscEnv
       let thisModule = GHC.mg_module guts
           pkgName = getPackageName hscEnv thisModule
@@ -377,7 +374,6 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
               { pcOpts = opts
               , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
               , pcMarkerName = markerName
-              , pcPlinthcName = plinthcName
               , pcAnchorName = anchorGhcName
               , pcModuleName = GHC.moduleName thisModule
               , pcModuleModBreaks = GHC.mg_modBreaks guts
@@ -514,36 +510,25 @@ into PLC literals. -}
 compileMarkedExprs :: GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
 compileMarkedExprs expr = do
   markerName <- asks pcMarkerName
-  plinthcName <- asks pcPlinthcName
   anchorGhcName <- asks pcAnchorName
   case expr of
-    -- This clause is for the `plc` marker. It can be removed when we remove `plc`.
-    GHC.App
-      ( GHC.App
-          ( GHC.App
-              ( GHC.App
-                  -- function id
-                  -- sometimes GHCi sticks ticks around this for some reason
-                  (stripTicks -> (GHC.Var fid))
-                  -- first type argument, must be a string literal type
-                  (GHC.Type (GHC.isStrLitTy -> Just fs_locStr))
-                )
-              -- second type argument
-              (GHC.Type codeTy)
-            )
-          _
-        )
-      -- value argument
-      inner
-        | markerName == GHC.idName fid ->
-            compileMarkedExprOrDefer (decodeSrcSpan (GHC.unpackFS fs_locStr)) codeTy inner
     GHC.App (GHC.App fnExpr tyExpr) inner
       | (stripAnchors anchorGhcName -> GHC.Var fid) <- fnExpr
       , (stripAnchors anchorGhcName -> GHC.Type codeTy) <- tyExpr
-      , plinthcName == GHC.idName fid ->
-          compileMarkedExprOrDefer (getAnchorSrcSpan anchorGhcName fnExpr) codeTy inner
+      , markerName == GHC.idName fid -> do
+          loc <- case getAnchorSrcSpan anchorGhcName fnExpr of
+            Just sp -> pure sp
+            Nothing ->
+              GHC.pprPanic
+                "compileMarkedExprs"
+                ( GHC.text
+                    "plinthc occurrence is not anchored; \
+                    \TH 'compile' should always wrap it with 'anchor', \
+                    \and direct uses are auto-anchored by the typecheck plugin"
+                )
+          compileMarkedExprOrDefer loc codeTy inner
     e@(GHC.Var fid)
-      | markerName == GHC.idName fid Prelude.|| plinthcName == GHC.idName fid ->
+      | markerName == GHC.idName fid ->
           throwError . NoContext . InvalidMarkerError . GHC.showSDocUnsafe $ GHC.ppr e
     GHC.App e a -> GHC.App <$> compileMarkedExprs e <*> compileMarkedExprs a
     GHC.Lam b e -> GHC.Lam b <$> compileMarkedExprs e
@@ -565,7 +550,7 @@ if a compilation error happens and the 'defer-errors' option is turned on,
 the compilation error is suppressed and the original hs expression is replaced with a
 haskell runtime-error expression. -}
 compileMarkedExprOrDefer
-  :: Maybe GHC.RealSrcSpan
+  :: GHC.RealSrcSpan
   -> GHC.Type
   -> GHC.CoreExpr
   -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
@@ -594,7 +579,7 @@ emitRuntimeError codeTy e = do
 and return a core expression which evaluates to the compiled plc AST as a serialized bytestring,
 to be injected back to the Haskell program. -}
 compileMarkedExpr
-  :: Maybe GHC.RealSrcSpan
+  :: GHC.RealSrcSpan
   -> GHC.Type
   -> GHC.CoreExpr
   -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
@@ -662,7 +647,7 @@ compileMarkedExpr mLoc codeTy origE = do
           , ccDebugTraceOn = _posDumpCompilationTrace opts
           , ccRewriteRules = makeRewriteRules opts
           , ccSafeToInline = False
-          , ccCurrentLoc = mLoc
+          , ccCurrentLoc = Just mLoc
           , ccPackageName = packageName
           , ccModuleName = moduleNameStr
           }
@@ -875,9 +860,11 @@ runCompiler opts expr = do
     Nothing -> pure ()
     Just certifyPath -> do
       packageName <- asks ccPackageName
-      mLoc <- asks ccCurrentLoc
+      -- 'ccCurrentLoc' is seeded with the marker's anchored 'RealSrcSpan' in
+      -- 'compileMarkedExpr' and only ever refined; it can never be Nothing here.
+      loc <- fromJust <$> asks ccCurrentLoc
       liftIO $
-        generateCertificate packageName moduleName mLoc opts simplTrace certifyPath
+        generateCertificate packageName moduleName loc opts simplTrace certifyPath
 
   dbP <-
     liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
@@ -907,34 +894,28 @@ runCompiler opts expr = do
 generateCertificate
   :: String
   -> String
-  -> Maybe GHC.RealSrcSpan
+  -> GHC.RealSrcSpan
   -> PluginOptions
   -> OptimizerTrace PLC.Name PLC.DefaultUni PLC.DefaultFun a
   -> String
   -> IO ()
-generateCertificate packageName moduleName mLoc opts simplTrace certifyPath = do
+generateCertificate packageName moduleName loc opts simplTrace certifyPath = do
   absCertifyPath <-
     if null certifyPath
       then pure ""
       else makeAbsolute certifyPath
   let sanitise c = if c == '.' Prelude.|| c == '-' then '_' else c
       certName = map sanitise packageName ++ "_" ++ map sanitise moduleName
-      locTag = case mLoc of
-        Just sp ->
-          let line = show (GHC.srcSpanStartLine sp)
-              col = show (GHC.srcSpanStartCol sp)
-           in ":" ++ line ++ ":" ++ col
-        Nothing -> ":unknown-location"
+      line = show (GHC.srcSpanStartLine loc)
+      col = show (GHC.srcSpanStartCol loc)
+      locTag = ":" ++ line ++ ":" ++ col
       certDirName =
         packageName ++ "_" ++ moduleName ++ locTag ++ ".agda-cert"
       certDir
         | null absCertifyPath =
             -- No path given: place next to the source file
-            case mLoc of
-              Just sp ->
-                let sourceFile = GHC.unpackFS (GHC.srcSpanFile sp)
-                 in takeDirectory sourceFile </> certDirName
-              Nothing -> certDirName
+            let sourceFile = GHC.unpackFS (GHC.srcSpanFile loc)
+             in takeDirectory sourceFile </> certDirName
         | otherwise =
             -- Path given: place all certificates under that directory
             absCertifyPath </> certDirName
@@ -989,12 +970,6 @@ makeByteStringLiteral bs = do
   let upioed = GHC.mkCoreApps (GHC.Var upio) [GHC.Type (GHC.mkTyConTy bsTc), upaled]
 
   pure upioed
-
--- | Strips all enclosing 'GHC.Tick's off an expression.
-stripTicks :: GHC.CoreExpr -> GHC.CoreExpr
-stripTicks = \case
-  GHC.Tick _ e -> stripTicks e
-  e -> e
 
 -- | Strip a single @anchor@ application (and any surrounding ticks).
 stripAnchors :: GHC.Name -> GHC.CoreExpr -> GHC.CoreExpr

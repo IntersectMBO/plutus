@@ -26,5 +26,5 @@ plugin =
               if opts ^. posPreserveSourceLocations then injectAnchors else pure
         maybeInjectAnchors env >>= injectUnsupportedMarkers >>= addInlineables
     , GHC.pluginRecompile = GHC.flagRecompile
-    , GHC.installCoreToDos = installCorePlugin 'plc
+    , GHC.installCoreToDos = installCorePlugin 'plinthc
     }
