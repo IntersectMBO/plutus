@@ -891,7 +891,7 @@ compileHaskellList = buildList . strip
           | otherwise = err
         consume _ = err
        in
-        consume li >>= traverse (compileExpr)
+        consume li >>= traverse compileExpr
     buildList _ = err
 
 traceExprMsg :: Maybe GHC.RealSrcSpan -> GHC.SDoc
