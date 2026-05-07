@@ -158,8 +158,7 @@ outAddress = lens txOutAddress s
   where
     s tx a = tx {txOutAddress = a}
 
-{-| The value of a transaction output.
-| TODO: Compute address again -}
+-- | The value of a transaction output.
 outValue :: Lens' TxOut Value
 outValue = lens txOutValue s
   where
