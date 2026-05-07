@@ -898,28 +898,28 @@ generateCertificate
 generateCertificate packageName moduleName opts simplTrace certifyPath = do
   absCertifyPath <-
     if null certifyPath then pure "" else makeAbsolute certifyPath
-  hash <- replicateM 6 $ do
-    i <- randomRIO (0, length alphabet - 1)
-    pure $ alphabet !! i
-  let sanitise c = if c == '.' Prelude.|| c == '-' then '_' else c
-      certName = map sanitise packageName ++ "_" ++ map sanitise moduleName
-      certDirName = certName ++ "-" ++ hash ++ ".agda-cert"
-      certDir
-        | null absCertifyPath = certDirName
-        | otherwise = absCertifyPath </> certDirName
-  createDirectoryIfMissing True certDir
-  let verbose = opts ^. posVerbosity Prelude./= Quiet
-  result <- runCertifier $ mkCertifier simplTrace certName (ProjectOutput certDir) []
+  hash <- replicateM 6 $ (alphabet !!) <$> randomRIO (0, length alphabet - 1)
+  let dir = certDir hash absCertifyPath
+      verbose = opts ^. posVerbosity Prelude./= Quiet
+  createDirectoryIfMissing True dir
+  result <- runCertifier $ mkCertifier simplTrace certName (ProjectOutput dir) []
   case result of
     Right _ -> do
-      writeFile (certDir </> "plinth-certifier-PASS.txt") ""
+      writeFile (dir </> "plinth-certifier-PASS.txt") ""
       when verbose $
-        hPutStrLn stderr $ "Certifier result: PASS — " ++ certDir
+        hPutStrLn stderr $ "Certifier result: PASS — " ++ dir
     Left err -> do
       let errMsg = prettyCertifierError err
-      writeFile (certDir </> "plinth-certifier-FAIL.txt") (errMsg ++ "\n")
-      hPutStrLn stderr $ "Certifier result: FAIL — " ++ certDir ++ "\n" ++ errMsg
+      writeFile (dir </> "plinth-certifier-FAIL.txt") (errMsg ++ "\n")
+      hPutStrLn stderr $ "Certifier result: FAIL — " ++ dir ++ "\n" ++ errMsg
   where
+    certName = map sanitise packageName ++ "_" ++ map sanitise moduleName
+      where
+        sanitise c = if c == '.' Prelude.|| c == '-' then '_' else c
+    certDir hash absCertifyPath
+      | null absCertifyPath = name
+      | otherwise           = absCertifyPath </> name
+      where name = certName ++ "-" ++ hash ++ ".agda-cert"
     alphabet :: [Char]
     alphabet = ['a' .. 'z'] ++ ['0' .. '9']
 
