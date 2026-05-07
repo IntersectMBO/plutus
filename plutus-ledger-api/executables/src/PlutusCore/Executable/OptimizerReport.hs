@@ -28,7 +28,7 @@ data ReportEntry = ReportEntry
   -- ^ `Nothing` for the first entry, `Just` for all other entries.
   , reAstSize :: Integer
   , reCost :: Maybe (Either String ExBudget)
-  -- ^ `Nothing` means evaluation wans't requested.  `Left` means evaluation failed.
+  -- ^ `Nothing` means evaluation wasn't requested.  `Left` means evaluation failed.
   }
 
 type OptimizerReport = [ReportEntry]
