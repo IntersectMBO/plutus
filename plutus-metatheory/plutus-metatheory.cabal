@@ -13,7 +13,6 @@ maintainer:    james.chapman@iohk.io
 category:      Development
 build-type:    Simple
 data-files:
-  data/certificate-README.md
   plutus-metatheory.agda-lib
   README.md
   src/**/*.lagda.md
@@ -81,6 +80,7 @@ library
     , deepseq
     , directory
     , extra
+    , file-embed
     , filepath
     , mtl
     , optparse-applicative

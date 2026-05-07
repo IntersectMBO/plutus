@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module Certifier
@@ -12,13 +13,13 @@ module Certifier
 import Control.Monad
 import Control.Monad.Except (ExceptT (..), runExceptT, throwError)
 import Control.Monad.IO.Class (liftIO)
+import Data.FileEmbed (embedStringFile)
 import Data.Foldable
 import Data.List.Extra (replace)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromMaybe)
 import Data.Text.IO qualified as T
-import Paths_plutus_metatheory (getDataFileName)
 import System.Directory (createDirectory)
 import System.FilePath (takeBaseName, (</>))
 
@@ -359,8 +360,7 @@ writeCertificateProject
       createDirectory (certDir </> "src")
       writeFile (certDir </> "src" </> mainModulePath) mainModuleContents
       writeFile (certDir </> agdalibPath) agdalibContents
-      templatePath <- getDataFileName "data/certificate-README.md"
-      readmeTemplate <- readFile templatePath
+      let readmeTemplate = $(embedStringFile "file-embed/certificate-README.md")
       writeFile (certDir </> "README.md") (replace "{{NAME}}" certName readmeTemplate)
       traverse_
         ( \(path, contents) ->
