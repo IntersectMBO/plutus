@@ -38,7 +38,6 @@ import PlutusTx.Compiler.Compat qualified as Compat
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Expr
 import PlutusTx.Compiler.Types
-import PlutusTx.Compiler.Utils (getPackageName)
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
 import PlutusTx.List qualified
@@ -50,7 +49,6 @@ import PlutusTx.Plugin.Boilerplate (removeBoilerplateOpts)
 import PlutusTx.Plugin.Utils qualified
 import PlutusTx.Trace
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Transform.Optimizer (OptimizerTrace)
 
 import GHC.ByteCode.Types qualified as GHC
 import GHC.Core.Coercion.Opt qualified as GHC
@@ -94,18 +92,19 @@ import Data.Text qualified as Text
 import GHC.Num.Integer qualified
 import Language.Haskell.TH.Syntax as TH hiding (lift)
 import Prettyprinter qualified as PP
-import System.Directory (makeAbsolute)
-import System.FilePath (takeDirectory, (</>))
+import System.Directory (createDirectoryIfMissing, makeAbsolute)
+import System.FilePath ((</>))
 import System.IO (hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
+import System.Random (randomRIO)
+
+import PlutusTx.Compiler.Utils (getPackageName)
+import UntypedPlutusCore.Transform.Optimizer (OptimizerTrace)
 
 data PluginCtx = PluginCtx
   { pcOpts :: PluginOptions
   , pcFamEnvs :: GHC.FamInstEnvs
   , pcMarkerName :: GHC.Name
-  -- ^ Plugin marker ('plinthc'). Always reached anchor-wrapped: TH 'compile'
-  -- emits @anchor \@\"loc\" plinthc@, and direct uses are auto-anchored by
-  -- the typecheck plugin.
   , pcAnchorName :: GHC.Name
   , pcModuleName :: GHC.ModuleName
   , pcModuleModBreaks :: Maybe GHC.ModBreaks
@@ -368,7 +367,6 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
     (Just markerName, Just anchorGhcName) -> do
       hscEnv <- GHC.getHscEnv
       let thisModule = GHC.mg_module guts
-          pkgName = getPackageName hscEnv thisModule
           pctx =
             PluginCtx
               { pcOpts = opts
@@ -377,7 +375,7 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
               , pcAnchorName = anchorGhcName
               , pcModuleName = GHC.moduleName thisModule
               , pcModuleModBreaks = GHC.mg_modBreaks guts
-              , pcPackageName = pkgName
+              , pcPackageName = getPackageName hscEnv thisModule
               }
       -- start looking for marker calls from the top-level binds
       GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
@@ -512,21 +510,33 @@ compileMarkedExprs expr = do
   markerName <- asks pcMarkerName
   anchorGhcName <- asks pcAnchorName
   case expr of
-    GHC.App (GHC.App fnExpr tyExpr) inner
-      | (stripAnchors anchorGhcName -> GHC.Var fid) <- fnExpr
-      , (stripAnchors anchorGhcName -> GHC.Type codeTy) <- tyExpr
-      , markerName == GHC.idName fid -> do
-          loc <- case getAnchorSrcSpan anchorGhcName fnExpr of
-            Just sp -> pure sp
-            Nothing ->
-              GHC.pprPanic
-                "compileMarkedExprs"
-                ( GHC.text
-                    "plinthc occurrence is not anchored; \
-                    \TH 'compile' should always wrap it with 'anchor', \
-                    \and direct uses are auto-anchored by the typecheck plugin"
+    -- This clause is for the `plc` marker. It can be removed when we remove `plc`.
+    GHC.App
+      ( GHC.App
+          ( GHC.App
+              ( GHC.App
+                  -- function id
+                  -- sometimes GHCi sticks ticks around this for some reason
+                  (stripTicks -> (GHC.Var fid))
+                  -- first type argument, must be a string literal type
+                  (GHC.Type (GHC.isStrLitTy -> Just fs_locStr))
                 )
-          compileMarkedExprOrDefer loc codeTy inner
+              -- second type argument
+              (GHC.Type codeTy)
+            )
+          _
+        )
+      -- value argument
+      inner
+        | markerName == GHC.idName fid -> compileMarkedExprOrDefer (show fs_locStr) codeTy inner
+    GHC.App
+      ( GHC.App
+          (stripCoreAnchors anchorGhcName -> (GHC.Var fid))
+          (stripCoreAnchors anchorGhcName -> GHC.Type codeTy)
+        )
+      -- code to be compiled
+      inner
+        | markerName == GHC.idName fid -> compileMarkedExprOrDefer "" codeTy inner
     e@(GHC.Var fid)
       | markerName == GHC.idName fid ->
           throwError . NoContext . InvalidMarkerError . GHC.showSDocUnsafe $ GHC.ppr e
@@ -539,7 +549,7 @@ compileMarkedExprs expr = do
       alts' <- mapM expAlt alts
       pure $ GHC.Case e' b t alts'
     GHC.Cast e c -> flip GHC.Cast c <$> compileMarkedExprs e
-    GHC.Tick tick e -> GHC.Tick tick <$> compileMarkedExprs e
+    GHC.Tick t e -> GHC.Tick t <$> compileMarkedExprs e
     e@(GHC.Coercion _) -> pure e
     e@(GHC.Lit _) -> pure e
     e@(GHC.Var _) -> pure e
@@ -550,13 +560,10 @@ if a compilation error happens and the 'defer-errors' option is turned on,
 the compilation error is suppressed and the original hs expression is replaced with a
 haskell runtime-error expression. -}
 compileMarkedExprOrDefer
-  :: GHC.RealSrcSpan
-  -> GHC.Type
-  -> GHC.CoreExpr
-  -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
-compileMarkedExprOrDefer mLoc codeTy origE = do
+  :: String -> GHC.Type -> GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
+compileMarkedExprOrDefer locStr codeTy origE = do
   opts <- asks pcOpts
-  let compileAct = compileMarkedExpr mLoc codeTy origE
+  let compileAct = compileMarkedExpr locStr codeTy origE
   if _posDeferErrors opts
     -- TODO: we could perhaps move this catchError to the "runExceptT" module-level, but
     -- it leads to uglier code and difficulty of handling other pure errors
@@ -579,11 +586,8 @@ emitRuntimeError codeTy e = do
 and return a core expression which evaluates to the compiled plc AST as a serialized bytestring,
 to be injected back to the Haskell program. -}
 compileMarkedExpr
-  :: GHC.RealSrcSpan
-  -> GHC.Type
-  -> GHC.CoreExpr
-  -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
-compileMarkedExpr mLoc codeTy origE = do
+  :: String -> GHC.Type -> GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.CoreExpr
+compileMarkedExpr _locStr codeTy origE = do
   flags <- GHC.getDynFlags
   famEnvs <- asks pcFamEnvs
   opts <- asks pcOpts
@@ -647,9 +651,6 @@ compileMarkedExpr mLoc codeTy origE = do
           , ccDebugTraceOn = _posDumpCompilationTrace opts
           , ccRewriteRules = makeRewriteRules opts
           , ccSafeToInline = False
-          , ccCurrentLoc = Just mLoc
-          , ccPackageName = packageName
-          , ccModuleName = moduleNameStr
           }
       st = CompileState 0 mempty
   -- See Note [Occurrence analysis]
@@ -657,7 +658,7 @@ compileMarkedExpr mLoc codeTy origE = do
 
   ((pirP, uplcP), covIdx) <-
     runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
-      runCompiler opts origE'
+      runCompiler packageName moduleNameStr opts origE'
 
   -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
   bsPir <- makeByteStringLiteral $ flat pirP
@@ -687,11 +688,12 @@ runCompiler
      , MonadError (CompileError uni fun Ann) m
      , MonadIO m
      )
-  => PluginOptions
+  => String
+  -> String
+  -> PluginOptions
   -> GHC.CoreExpr
   -> m (PIRProgram uni fun, UPLCProgram uni fun)
-runCompiler opts expr = do
-  moduleName <- asks ccModuleName
+runCompiler packageName moduleName opts expr = do
   GHC.DynFlags {GHC.extensions = extensions} <- asks ccFlags
   let
     enabledExtensions =
@@ -858,13 +860,8 @@ runCompiler opts expr = do
   (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
   case opts ^. posCertify of
     Nothing -> pure ()
-    Just certifyPath -> do
-      packageName <- asks ccPackageName
-      -- 'ccCurrentLoc' is seeded with the marker's anchored 'RealSrcSpan' in
-      -- 'compileMarkedExpr' and only ever refined; it can never be Nothing here.
-      loc <- fromJust <$> asks ccCurrentLoc
-      liftIO $
-        generateCertificate packageName moduleName loc opts simplTrace certifyPath
+    Just certifyPath ->
+      liftIO $ generateCertificate packageName moduleName opts simplTrace certifyPath
 
   dbP <-
     liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
@@ -894,43 +891,37 @@ runCompiler opts expr = do
 generateCertificate
   :: String
   -> String
-  -> GHC.RealSrcSpan
   -> PluginOptions
   -> OptimizerTrace PLC.Name PLC.DefaultUni PLC.DefaultFun a
   -> String
   -> IO ()
-generateCertificate packageName moduleName loc opts simplTrace certifyPath = do
+generateCertificate packageName moduleName opts simplTrace certifyPath = do
   absCertifyPath <-
-    if null certifyPath
-      then pure ""
-      else makeAbsolute certifyPath
+    if null certifyPath then pure "" else makeAbsolute certifyPath
+  hash <- replicateM 6 $ do
+    i <- randomRIO (0, length alphabet - 1)
+    pure $ alphabet !! i
   let sanitise c = if c == '.' Prelude.|| c == '-' then '_' else c
       certName = map sanitise packageName ++ "_" ++ map sanitise moduleName
-      line = show (GHC.srcSpanStartLine loc)
-      col = show (GHC.srcSpanStartCol loc)
-      locTag = ":" ++ line ++ ":" ++ col
-      certDirName =
-        packageName ++ "_" ++ moduleName ++ locTag ++ ".agda-cert"
+      certDirName = certName ++ "-" ++ hash ++ ".agda-cert"
       certDir
-        | null absCertifyPath =
-            -- No path given: place next to the source file
-            let sourceFile = GHC.unpackFS (GHC.srcSpanFile loc)
-             in takeDirectory sourceFile </> certDirName
-        | otherwise =
-            -- Path given: place all certificates under that directory
-            absCertifyPath </> certDirName
+        | null absCertifyPath = certDirName
+        | otherwise = absCertifyPath </> certDirName
+  createDirectoryIfMissing True certDir
   let verbose = opts ^. posVerbosity Prelude./= Quiet
   result <- runCertifier $ mkCertifier simplTrace certName (ProjectOutput certDir) []
   case result of
     Right _ -> do
       writeFile (certDir </> "plinth-certifier-PASS.txt") ""
       when verbose $
-        hPutStrLn stderr $
-          "Certifier result: PASS — " ++ certDir
+        hPutStrLn stderr $ "Certifier result: PASS — " ++ certDir
     Left err -> do
       let errMsg = prettyCertifierError err
       writeFile (certDir </> "plinth-certifier-FAIL.txt") (errMsg ++ "\n")
       hPutStrLn stderr $ "Certifier result: FAIL — " ++ certDir ++ "\n" ++ errMsg
+  where
+    alphabet :: [Char]
+    alphabet = ['a' .. 'z'] ++ ['0' .. '9']
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.
 thNameToGhcNameOrFail :: TH.Name -> PluginM uni fun GHC.Name
@@ -971,21 +962,18 @@ makeByteStringLiteral bs = do
 
   pure upioed
 
--- | Strip a single @anchor@ application (and any surrounding ticks).
-stripAnchors :: GHC.Name -> GHC.CoreExpr -> GHC.CoreExpr
-stripAnchors marker = \case
-  GHC.Tick _ e -> stripAnchors marker e
-  GHC.App (GHC.App (GHC.App (GHC.Var f) (GHC.Type _)) _codeTy) code
-    | GHC.getName f == marker -> code
-  other -> other
+-- | Strips all enclosing 'GHC.Tick's off an expression.
+stripTicks :: GHC.CoreExpr -> GHC.CoreExpr
+stripTicks = \case
+  GHC.Tick _ e -> stripTicks e
+  e -> e
 
--- | Decode the source span carried by an @anchor@ application, if any.
-getAnchorSrcSpan :: GHC.Name -> GHC.CoreExpr -> Maybe GHC.RealSrcSpan
-getAnchorSrcSpan marker = \case
-  GHC.Tick _ e -> getAnchorSrcSpan marker e
-  GHC.App (GHC.App (GHC.App (GHC.Var f) (GHC.Type (GHC.LitTy (GHC.StrTyLit locFs)))) _codeTy) _code
-    | GHC.getName f == marker -> decodeSrcSpan (GHC.unpackFS locFs)
-  _ -> Nothing
+stripCoreAnchors :: GHC.Name -> GHC.CoreExpr -> GHC.CoreExpr
+stripCoreAnchors marker = \case
+  GHC.Tick _ e -> stripCoreAnchors marker e
+  GHC.App (GHC.App (GHC.App (GHC.Var f) _locTy) _codeTy) code
+    | GHC.getName f == marker -> stripCoreAnchors marker code
+  other -> other
 
 -- | Helper to avoid doing too much construction of Core ourselves
 mkCompiledCode :: forall a. BS.ByteString -> BS.ByteString -> BS.ByteString -> CompiledCode a

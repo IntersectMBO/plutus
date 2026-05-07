@@ -12,12 +12,19 @@ import GHC.TypeLits
 import PlutusTx.Code
 import PlutusTx.Utils
 
+{- Note [plc and Proxy]
+It would be nice to use TypeApplications instead of passing a Proxy to plc.
+However, this means we need to create a type application in the TH-generated code which calls it.
+As of recent versions of GHC, this causes an error in the module where the splice appears if it
+doesn't have TypeApplications enabled.
+
+Generally we want to avoid forcing users to enable language extensions, so we use
+a Proxy to avoid this.
+-}
+
 -- This needs to be defined here so we can reference it in the TH functions.
 -- If we inline this then we won't be able to find it later!
 
--- | Marker recognised by the plugin. The TH 'compile' wraps it with
--- @anchor \@\"…\"@ to attach the splice's source location; direct (non-TH)
--- callers can use it bare and rely on the typecheck plugin to anchor it.
 plinthc :: forall a. a -> CompiledCode a
 plinthc _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx")
 {-# OPAQUE plinthc #-}

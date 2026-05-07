@@ -11,12 +11,11 @@ module PlutusTx.TH
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Syntax qualified as TH
 import PlutusTx.Code
-import PlutusTx.Plugin.Utils (anchor, plinthc)
+import PlutusTx.Plugin.Utils
 
 -- We do not use qualified import because the whole module contains off-chain code
 import Control.Monad.IO.Class
 import Data.ByteString qualified as BS
-import Data.List (intercalate)
 import Prelude
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
@@ -48,19 +47,5 @@ going to typecheck, and the result is always a 'CompiledCode', so that's also fi
 compileUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
 compileUntyped e = do
   TH.addCorePlugin "Plinth.Plugin"
-  loc <- TH.location
-  -- Carry the splice's source location at the type level via an explicit
-  -- @anchor@. Encoding must stay in sync with
-  -- PlutusTx.Compiler.Expr.{encode,decode}SrcSpan.
-  -- let locStr =
-  --       intercalate "\0"
-  --         [ TH.loc_filename loc
-  --         , show (fst (TH.loc_start loc))
-  --         , show (snd (TH.loc_start loc))
-  --         , show (fst (TH.loc_end loc))
-  --         , show (snd (TH.loc_end loc))
-  --         ]
-  --     locTy = TH.litT (TH.strTyLit locStr)
   -- See Note [Typed TH]
   [|plinthc $(e)|]
-

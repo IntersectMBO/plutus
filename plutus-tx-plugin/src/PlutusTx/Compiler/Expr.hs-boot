@@ -11,7 +11,7 @@ import GHC.Plugins qualified as GHC
 compileDataConRef :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRTerm uni fun)
 compileExpr
   :: CompilingDefault uni fun m ann
-  => GHC.CoreExpr -> m (PIRTerm uni fun)
+  => Maybe GHC.RealSrcSpan -> GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExprWithDefs
   :: CompilingDefault uni fun m ann
   => GHC.CoreExpr -> m (PIRTerm uni fun)

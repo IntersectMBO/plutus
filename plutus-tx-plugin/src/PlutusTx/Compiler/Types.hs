@@ -68,9 +68,6 @@ data CompileContext uni fun = CompileContext
   , ccDebugTraceOn :: Bool
   , ccRewriteRules :: PIR.RewriteRules uni fun
   , ccSafeToInline :: Bool
-  , ccCurrentLoc :: Maybe GHC.RealSrcSpan
-  , ccPackageName :: String
-  , ccModuleName :: String
   }
 
 data CompileState = CompileState

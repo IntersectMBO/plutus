@@ -1,10 +1,8 @@
 ### Added
 
-- Source location tracking for the Agda certifier: the plugin now embeds
-  `RealSrcSpan` information in `CompileContext` (`ccCurrentLoc`) and passes
-  it through to certificate generation via `ReaderT` instead of invasive
-  function parameters.
 - `certify` plugin option to trigger Agda certificate generation for compiled
-  Plutus scripts.
+  Plutus scripts. Each certificate is written to a directory named
+  `<package>_<module>-<hash>.agda-cert`, where `<hash>` is a random 6-char
+  alphanumeric tag.
 - `generateCertificate` top-level function that invokes the certifier with
-  package name, module name, and source location metadata.
+  package and module names.

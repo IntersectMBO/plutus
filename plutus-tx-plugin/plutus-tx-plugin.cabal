@@ -97,6 +97,7 @@ library
     , plutus-metatheory      ^>=1.63
     , plutus-tx              ^>=1.63
     , prettyprinter
+    , random
     , template-haskell
     , text
     , uniplate

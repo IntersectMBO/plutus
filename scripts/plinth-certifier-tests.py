@@ -166,6 +166,9 @@ def cmd_build(args: argparse.Namespace) -> int:
     if args.clean:
         print("--- cabal clean ---")
         subprocess.run(["cabal", "clean"])
+        if cert_dir.exists():
+            print(f"--- removing {cert_dir} ---")
+            shutil.rmtree(cert_dir)
         print()
 
     cert_dir.mkdir(parents=True, exist_ok=True)
