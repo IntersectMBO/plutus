@@ -26,6 +26,13 @@ uplc optimize -i MyValidator.uplc -o MyValidator-opt.uplc
 By default, both input and output files use the textual format.
 If `-i` or `-o` is omitted, `uplc` reads from stdin and writes to stdout, so it fits naturally into shell pipelines.
 
+## The optimization report
+
+Running `uplc optimize` prints an _optimization report_ to stderr.
+The report lists each pass that ran, in order, and shows the AST size before and after every pass, along with the size delta.
+When evaluation is enabled (see below), each row additionally shows the CPU and memory cost at that stage and the deltas against the previous stage.
+When `--certify --certifier-report` is used, the same per-pass numbers are also included in the certifier report file.
+
 ## Input and output formats
 
 `uplc` has always supported textual and flat-encoded scripts, but two recent additions make it much easier to plug into existing toolchains:
@@ -106,10 +113,8 @@ Report filenames and project directories have the validator's title appended aut
 ## Evaluating before and after each optimization
 
 The `--eval*` flags supply arguments to the script and run it on the CEK machine at every stage of the optimization pipeline, recording the execution cost at each step.
-
-> :pushpin: **NOTE**
->
-> The `--eval*` flags currently only have effect when used with `--certify`, and the costs are only recorded in the certifier report when the certifier output mode is `--certifier-report`. Supporting evaluation independently of certification is planned future work.
+The CPU and memory cost at every stage are then shown alongside AST sizes in the optimization report.
+When `--certify --certifier-report` is used, the same per-pass costs are also included in the certifier report file.
 
 For a single script:
 

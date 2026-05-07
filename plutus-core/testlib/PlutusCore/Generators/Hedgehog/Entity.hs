@@ -195,11 +195,10 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0
       -> TypeRep r
       -> GenT (QuoteT m) (TermOf (Plain Term uni fun) r)
     go context depth tr
-      -- FIXME: should be using 'variables' but this is now the same as 'recursive'
       | depth == 0 = choiceDef (liftT $ genBase tr) []
-      | depth == 1 = choiceDef (liftT $ genBase tr) $ variables ++ recursive
-      | depth == 2 = Gen.frequency $ stopOrDeeper ++ map (3,) variables ++ map (5,) recursive
-      | depth == 3 = Gen.frequency $ stopOrDeeper ++ map (3,) recursive
+      | depth == 1 = choiceDef (liftT $ genBase tr) variables
+      | depth == 2 = Gen.frequency $ stopOrDeeper ++ map (5,) variables
+      | depth == 3 = Gen.frequency $ stopOrDeeper ++ map (3,) variables
       | otherwise = Gen.frequency stopOrDeeper
       where
         stopOrDeeper = [(1, liftT $ genBase tr), (5, lambdaApply)]
@@ -209,10 +208,8 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0
         -- Generate arguments for functions recursively or return a variable.
         proceed (DenotationContextMember denotation) =
           fmap iterAppValueToTermOf . hoistSupply builtinGens $ genIterAppValue denotation
-        -- A list of variables generators.
+        -- Context lookup: terms of the right type already in scope.
         variables = map proceed $ lookupInContext tr context
-        -- A list of recursive generators.
-        recursive = map proceed $ lookupInContext tr context
         -- Generate a lambda and immediately apply it to a generated argument of a generated type.
         lambdaApply = withTypedBuiltinGen (Proxy @fun) $ \argTr -> do
           -- Generate a name for the name representing the argument.

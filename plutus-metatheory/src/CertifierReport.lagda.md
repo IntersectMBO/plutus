@@ -46,10 +46,11 @@ showCertifiedOptTag inlineT = "Inlining"
 showCertifiedOptTag cseT = "Common Subexpression Elimination"
 showCertifiedOptTag applyToCaseT = "Transform multi-argument applications into case-constr form"
 showCertifiedOptTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
+showCertifiedOptTag letFloatOutT = "Float bindings outwards"
 
 showUncertifiedOptTag : UncertifiedOptTag → String
 showUncertifiedOptTag caseOfCaseT = "Case-of-Case"
-showUncertifiedOptTag letFloatOutT = "Float bindings outwards"
+showUncertifiedOptTag constantFoldingT = "Constant Folding"
 
 showTag : OptTag → String
 showTag (inj₁ tag) = showUncertifiedOptTag tag ++ "  ⚠ (certifier unavailable)"
@@ -151,6 +152,7 @@ numSites inlineT p = numSitesInline p
 numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
 numSites {M = M} caseReduceT p = numSitesCaseReduce (CR.sound {M = M} p)
+numSites letFloatOutT p = 0
 
 showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
 showSites (inj₁ _) _ = ""

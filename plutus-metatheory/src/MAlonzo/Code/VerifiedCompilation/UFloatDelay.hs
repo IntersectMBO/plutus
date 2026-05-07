@@ -541,7 +541,7 @@ d_isFloatDelay'63'_488 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0)
-      (coe MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_28)
+      (coe MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_30)
       (coe d_isFlD'63'_492)
 -- VerifiedCompilation.UFloatDelay.isFlD?
 d_isFlD'63'_492 ::
@@ -697,7 +697,7 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                                                                                                 v38)
                                                                                                                                                                              (coe
                                                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_28
+                                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_30
                                                                                                                                                                                 v1
                                                                                                                                                                                 v2)
                                                                                                                                                                _ -> MAlonzo.RTE.mazUnreachableError)
@@ -726,7 +726,7 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                   v21)
                                                                                                (coe
                                                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                                  MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_28
+                                                                                                  MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_30
                                                                                                   v1
                                                                                                   v2)
                                                                                  _ -> MAlonzo.RTE.mazUnreachableError))
@@ -741,7 +741,7 @@ d_isFlD'63'_492 v0 v1 v2
                        seq (coe v5)
                        (coe
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                          MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_28 v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Trace.d_FloatDelayT_30 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UFloatDelay..extendedlambda8
 d_'46'extendedlambda8_508 ::

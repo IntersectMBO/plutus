@@ -76,7 +76,7 @@ arbitraryScalar =
     , (4, choose (-b, b))
     ]
   where
-    b = (2 :: Integer) ^ (10000 :: Integer)
+    b = (2 :: Integer) ^ (2047 :: Integer)
 
 -- Scalar inputs for the multiScalarMul functions, which enforce a bound.
 arbitraryMsmScalar :: Gen Integer

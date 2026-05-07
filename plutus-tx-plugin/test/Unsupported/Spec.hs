@@ -12,6 +12,8 @@ module Unsupported.Spec where
 
 import Test.Tasty.Extras
 
+import Data.ByteString qualified as BS
+import Data.Text qualified as Text
 import Plinth.Plugin
 import PlutusTx.Code
 import PlutusTx.List qualified as List
@@ -25,6 +27,9 @@ tests =
     testNestedGhc
       [ goldenUPlcReadable "ord" ord
       , goldenUPlcReadable "eq" eq
+      , goldenUPlcReadable "dbl" dbl
+      , goldenUPlcReadable "text" text
+      , goldenUPlcReadable "bytestring" bytestring
       , goldenUPlcReadable "io" io
       ]
 
@@ -38,6 +43,15 @@ eq =
         (x PlutusTx.+ y)
           Prelude.== (x PlutusTx.- y)
     )
+
+dbl :: CompiledCode (Double -> Double)
+dbl = plinthc (\x -> x)
+
+text :: CompiledCode (Text.Text -> Text.Text)
+text = plinthc (\x -> x)
+
+bytestring :: CompiledCode (BS.ByteString -> BS.ByteString)
+bytestring = plinthc (\x -> x)
 
 io :: CompiledCode (Integer -> Integer -> Integer)
 io =

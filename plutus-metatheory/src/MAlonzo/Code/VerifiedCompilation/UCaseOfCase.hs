@@ -560,7 +560,7 @@ d_isCaseOfCase'63'_256 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0)
-      (coe MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_40)
+      (coe MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_46)
       (coe d_isCoC'63'_264)
 -- VerifiedCompilation.UCaseOfCase.isCoC?
 d_isCoC'63'_264 ::
@@ -671,7 +671,7 @@ d_isCoC'63'_264 v0 v1 v2
                                                                                                                                                                                                  = coe
                                                                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_304
                                                                                                                                                                                                      (coe
-                                                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_40)
+                                                                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_46)
                                                                                                                                                                                                      (coe
                                                                                                                                                                                                         d_isCaseOfCase'63'_256
                                                                                                                                                                                                         (coe
@@ -688,7 +688,7 @@ d_isCoC'63'_264 v0 v1 v2
                                                                                                                                                                                                            = coe
                                                                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_304
                                                                                                                                                                                                                (coe
-                                                                                                                                                                                                                  MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_40)
+                                                                                                                                                                                                                  MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_46)
                                                                                                                                                                                                                (coe
                                                                                                                                                                                                                   d_isCaseOfCase'63'_256
                                                                                                                                                                                                                   (coe
@@ -705,7 +705,7 @@ d_isCoC'63'_264 v0 v1 v2
                                                                                                                                                                                                                      = coe
                                                                                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_304
                                                                                                                                                                                                                          (coe
-                                                                                                                                                                                                                            MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_40)
+                                                                                                                                                                                                                            MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_46)
                                                                                                                                                                                                                          (coe
                                                                                                                                                                                                                             d_isCaseOfCase'63'_256
                                                                                                                                                                                                                             (coe
@@ -754,7 +754,7 @@ d_isCoC'63'_264 v0 v1 v2
                                                                                                                                                                                v40)
                                                                                                                                                                             (coe
                                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                                                                                                               MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_40
+                                                                                                                                                                               MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_46
                                                                                                                                                                                (coe
                                                                                                                                                                                   MAlonzo.Code.Untyped.C_case_40
                                                                                                                                                                                   (coe
@@ -826,7 +826,7 @@ d_isCoC'63'_264 v0 v1 v2
                        seq (coe v5)
                        (coe
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                          MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_40 v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_46 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UCaseOfCase..extendedlambda4
 d_'46'extendedlambda4_280 ::
