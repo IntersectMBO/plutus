@@ -52,15 +52,15 @@ compileUntyped e = do
   -- Carry the splice's source location at the type level via an explicit
   -- @anchor@. Encoding must stay in sync with
   -- PlutusTx.Compiler.Expr.{encode,decode}SrcSpan.
-  let locStr =
-        intercalate "\0"
-          [ TH.loc_filename loc
-          , show (fst (TH.loc_start loc))
-          , show (snd (TH.loc_start loc))
-          , show (fst (TH.loc_end loc))
-          , show (snd (TH.loc_end loc))
-          ]
-      locTy = TH.litT (TH.strTyLit locStr)
+  -- let locStr =
+  --       intercalate "\0"
+  --         [ TH.loc_filename loc
+  --         , show (fst (TH.loc_start loc))
+  --         , show (snd (TH.loc_start loc))
+  --         , show (fst (TH.loc_end loc))
+  --         , show (snd (TH.loc_end loc))
+  --         ]
+  --     locTy = TH.litT (TH.strTyLit locStr)
   -- See Note [Typed TH]
-  [|anchor @($locTy) plinthc $(e)|]
+  [|plinthc $(e)|]
 
