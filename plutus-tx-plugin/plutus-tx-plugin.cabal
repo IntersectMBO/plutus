@@ -83,12 +83,13 @@ library
     , base16-bytestring
     , bytestring
     , containers
+    , directory
     , either
     , extra
+    , filepath
     , ghc
     , ghc-boot
     , lens
-    , megaparsec
     , mtl
     , plutus-core            ^>=1.63
     , plutus-core:flat
@@ -96,6 +97,8 @@ library
     , plutus-metatheory      ^>=1.63
     , plutus-tx              ^>=1.63
     , prettyprinter
+    , random
+    , regex-tdfa
     , template-haskell
     , text
     , uniplate

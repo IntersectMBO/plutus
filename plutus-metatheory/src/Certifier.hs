@@ -16,8 +16,9 @@ import Data.Foldable
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromMaybe)
+import Data.Text qualified as Text
 import Data.Text.IO qualified as T
-import System.Directory (createDirectory)
+import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
 
 import FFI.AgdaUnparse (AgdaUnparse (..), renderAgdaUnparse)
@@ -35,7 +36,8 @@ type CertName = String
 type CertDir = FilePath
 
 data CertifierError
-  = InvalidCertificate CertDir
+  = -- | Certificate dir + certifier report
+    InvalidCertificate CertDir String
   | InvalidCompilerOutput
   | ValidationError CertName
 
@@ -48,12 +50,15 @@ data CertifierOutput
     ProjectOutput CertDir
 
 prettyCertifierError :: CertifierError -> String
-prettyCertifierError (InvalidCertificate certDir) =
+prettyCertifierError (InvalidCertificate certDir report) =
   "\n\nInvalid certificate: "
     <> certDir
     <> "\nThe compilation was not successfully certified. \
        \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
-       \and attach the faulty certificate.\n"
+       \and attach the faulty certificate.\n\
+       \Certifier report:\n"
+    <> report
+    <> "\n"
 prettyCertifierError InvalidCompilerOutput =
   "\n\nInvalid compiler output: \
   \\nThe certifier was not able to process the trace produced by the compiler. \
@@ -91,19 +96,13 @@ mkCertifier simplTrace certName certOutput costs = do
       costs' = uncurry toEvalResult <$> reverse costs
   case runCertifierMain rawAgdaTrace costs' of
     Just (passed, report) -> do
-      liftIO . putStrLn $
-        "Certifier result: "
-          <> if passed then "PASS" else "FAIL"
       case certOutput of
         BasicOutput -> pure ()
-        ReportOutput file -> liftIO $ do
-          T.writeFile file report
-          putStrLn $ "Report written to " <> file
+        ReportOutput file -> liftIO $ T.writeFile file report
         ProjectOutput certDir -> do
           let cert = mkAgdaCertificateProject $ mkCertificate certName rawAgdaTrace
           writeCertificateProject certDir cert
-          liftIO . putStrLn $ "Certificate produced in " <> certDir
-          unless passed . throwError $ InvalidCertificate certDir
+          unless passed . throwError $ InvalidCertificate certDir (Text.unpack report)
       pure passed
     Nothing -> throwError InvalidCompilerOutput
 
@@ -353,8 +352,8 @@ writeCertificateProject
     liftIO $ do
       let (mainModulePath, mainModuleContents) = mainModule
           (agdalibPath, agdalibContents) = agdalib
-      createDirectory certDir
-      createDirectory (certDir </> "src")
+      createDirectoryIfMissing True certDir
+      createDirectoryIfMissing True (certDir </> "src")
       writeFile (certDir </> "src" </> mainModulePath) mainModuleContents
       writeFile (certDir </> agdalibPath) agdalibContents
       traverse_
