@@ -97,6 +97,7 @@ import System.FilePath ((</>))
 import System.IO (hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Random (randomRIO)
+import Text.Regex.TDFA ((=~))
 
 import PlutusTx.Compiler.Utils (getPackageName)
 import UntypedPlutusCore.Transform.Optimizer (OptimizerTrace)
@@ -913,9 +914,17 @@ generateCertificate packageName moduleName opts simplTrace certifyPath = do
       writeFile (dir </> "plinth-certifier-FAIL.txt") (errMsg ++ "\n")
       hPutStrLn stderr $ "Certifier result: FAIL — " ++ dir ++ "\n" ++ errMsg
   where
-    certName = map sanitise packageName ++ "_" ++ map sanitise moduleName
+    certName = collapseDigitUnderscores (map sanitise packageName ++ "_" ++ map sanitise moduleName)
       where
-        sanitise c = if c == '.' Prelude.|| c == '-' then '_' else c
+        sanitise '.' = '_'
+        sanitise '-' = '_'
+        sanitise c   = c
+        -- Agda parses `_` in identifiers as a mixfix hole, so module names like
+        -- `BLS12_381` are rejected. Collapse any underscore between two digits.
+        collapseDigitUnderscores s =
+          case s =~ ("([0-9])_([0-9])" :: String) :: (String, String, String, [String]) of
+            (before, _, after, [a, b]) -> before ++ a ++ b ++ collapseDigitUnderscores after
+            _                          -> s
     certDir hash absCertifyPath
       | null absCertifyPath = name
       | otherwise           = absCertifyPath </> name

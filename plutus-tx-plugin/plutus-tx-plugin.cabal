@@ -98,6 +98,7 @@ library
     , plutus-tx              ^>=1.63
     , prettyprinter
     , random
+    , regex-tdfa
     , template-haskell
     , text
     , uniplate
