@@ -20,12 +20,13 @@ import Data.Text.IO qualified as T
 import System.Directory (createDirectory)
 import System.FilePath ((</>))
 
-import FFI.AgdaUnparse (AgdaUnparse (..))
+import FFI.AgdaUnparse (AgdaUnparse (..), renderAgdaUnparse)
 import FFI.CostInfo
 import FFI.OptimizerTrace (Trace, mkFfiOptimizerTrace, toEvalResult)
 import FFI.Untyped (UTerm)
 import MAlonzo.Code.Certifier (runCertifierMain)
 import PlutusLedgerApi.Common
+import Prettyprinter (pretty)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Transform.Optimizer
@@ -200,7 +201,7 @@ mkAstModuleName Ast {equivClass} =
 
 mkAgdaAstFile :: Ast -> (FilePath, String)
 mkAgdaAstFile ast =
-  let agdaAst = agdaUnparse (term . astTermWithId $ ast)
+  let agdaAst = renderAgdaUnparse (term . astTermWithId $ ast)
       agdaId = equivClass ast
       agdaModuleName = mkAstModuleName ast
       agdaIdStr = "ast" <> show agdaId
@@ -218,7 +219,6 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
        \\nopen import VerifiedCompilation\
        \\nopen import VerifiedCompilation.Certificate\
        \\nopen import VerifiedCompilation.Trace\
-       \\nopen import Untyped\
        \\nopen import RawU\
        \\nopen import Builtin\
        \\nopen import Data.Unit\
@@ -247,13 +247,13 @@ mkAgdaOpenImport agdaModuleName =
 newtype AgdaVar = AgdaVar String
 
 instance AgdaUnparse AgdaVar where
-  agdaUnparse (AgdaVar var) = var
+  agdaUnparse (AgdaVar var) = pretty var
 
 mkCertificateFile :: Certificate -> (FilePath, String)
 mkCertificateFile Certificate {certName, certTrace, certReprAsts} =
   let imports = fmap (mkAgdaOpenImport . mkAstModuleName) certReprAsts
       agdaTrace =
-        agdaUnparse $
+        renderAgdaUnparse $
           ( \(st, (hints, (ast1, ast2))) ->
               ( st
               ,
@@ -325,7 +325,8 @@ mkAgdaLib name =
           <> "\ndepend:\
              \\n  standard-library-2.3\
              \\n  plutus-metatheory\
-             \\ninclude: src"
+             \\ninclude: src\
+             \\nflags: --polarity"
    in (name <> ".agda-lib", contents)
 
 mkAgdaCertificateProject

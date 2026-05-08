@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.Ed25519.Compiled
   ( checkValidCompiled
@@ -12,10 +12,10 @@ module PlutusBenchmark.Ed25519.Compiled
   , pkAsData
   ) where
 
+import Plinth.Plugin ()
 import PlutusBenchmark.Ed25519 (checkValid)
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude
 import PlutusTx.TH (compile)
 

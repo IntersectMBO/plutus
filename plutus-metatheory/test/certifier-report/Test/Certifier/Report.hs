@@ -8,6 +8,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Default.Builtins
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Executable.Eval (evalCounting, evalOptimizerTrace, mkDefaultEvalCtx)
+import PlutusCore.Executable.OptimizerReport
 import PlutusCore.Quote
 import PlutusLedgerApi.Common
 import PlutusPrelude (def, unsafeFromRight)
@@ -98,8 +99,8 @@ data Algorithm
   | Fc
 Tx.makeLift ''Algorithm
 
-testNQueens :: IO TestTree
-testNQueens = withTempFile $ \actual -> pure $ goldenVsFile name golden actual $ do
+testNQueensCertifierReport :: IO TestTree
+testNQueensCertifierReport = withTempFile $ \actual -> pure $ goldenVsFile name golden actual $ do
   trace <- loadFrom $ name <.> "uplc"
   let costs =
         evalOptimizerTrace
@@ -113,5 +114,23 @@ testNQueens = withTempFile $ \actual -> pure $ goldenVsFile name golden actual $
     name = "n-queens"
     golden = "test" </> "certifier-report" </> "golden" </> name <.> "golden.report"
 
+testNQueensOptimizerReport :: IO TestTree
+testNQueensOptimizerReport = withTempFile $ \actual -> pure $ goldenVsFile name golden actual $ do
+  trace <- loadFrom $ name <.> "uplc"
+  let costs =
+        evalOptimizerTrace
+          evalCtx
+          trace
+          [ snd $ lift PLC.latestVersion (5 :: Integer)
+          , snd $ lift PLC.latestVersion Fc
+          ]
+  withFile actual WriteMode $ \h -> printReport h (buildReport trace costs)
+  where
+    name = "n-queens"
+    golden = "test" </> "optimizer-report" </> "golden" </> name <.> "golden.report"
+
 tests :: IO TestTree
-tests = testNQueens
+tests =
+  testGroup "uplc report tests"
+    <$> sequenceA
+      [testNQueensCertifierReport, testNQueensOptimizerReport]

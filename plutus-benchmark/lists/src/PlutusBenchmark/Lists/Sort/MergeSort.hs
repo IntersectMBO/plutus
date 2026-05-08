@@ -1,16 +1,16 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 
 -- | Simple merge sort implementation
 module PlutusBenchmark.Lists.Sort.MergeSort where
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
+import Plinth.Plugin ()
 import PlutusTx qualified as Tx
 import PlutusTx.List
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 
 merge :: [Integer] -> [Integer] -> [Integer]

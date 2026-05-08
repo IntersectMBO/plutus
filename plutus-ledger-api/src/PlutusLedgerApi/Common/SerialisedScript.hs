@@ -23,6 +23,7 @@ module PlutusLedgerApi.Common.SerialisedScript
   ) where
 
 import PlutusCore
+import PlutusCore.Default (defaultUniSize)
 import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
@@ -199,12 +200,28 @@ scriptCBORDecoder
 scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
   let available = builtinsAvailableIn ll pv
+
       availableArr :: UArray DefaultFun Bool
       availableArr = runSTUArray $ do
         arr <- newArray (minBound, maxBound) False
         mapM_ (\f -> writeArray arr f True) available
         return arr
-      flatDecoder = UPLC.decodeProgram checkBuiltin
+
+      flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin checkConstr
+
+      maxBounds = maxBoundsByPV pv
+      maxBoundHeader = mbHeader maxBounds
+      maxBoundConstr = mbConstr maxBounds
+
+      checkConstant (Some (ValueOf uni _))
+        | defaultUniSize uni <= maxBoundHeader = Nothing
+        | otherwise =
+            Just $
+              "Constant of type "
+                ++ show (pretty uni)
+                ++ " is not available in protocol version "
+                ++ show (pretty pv)
+
       checkBuiltin f | availableArr ! f = Nothing
       checkBuiltin f =
         Just $
@@ -214,6 +231,16 @@ scriptCBORDecoder ll pv =
             ++ show (pretty ll)
             ++ " at and protocol version "
             ++ show (pretty pv)
+
+      checkConstr n
+        | n <= maxBoundConstr = Nothing
+        | otherwise =
+            Just $
+              "constr with "
+                ++ show n
+                ++ " fields is not available in protocol version "
+                ++ show (pretty pv)
+
    in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <-

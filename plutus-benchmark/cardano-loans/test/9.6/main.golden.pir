@@ -1,4 +1,16 @@
 (let
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
+    ~defaultBody : Tuple2 bytestring bytestring
+      = error {Tuple2 bytestring bytestring}
+    ~defaultBody : Tuple2 bytestring bytestring
+      = error {Tuple2 bytestring bytestring}
+    ~defaultBody : Tuple2 bytestring bytestring
+      = error {Tuple2 bytestring bytestring}
+    ~defaultBody : Tuple2 bytestring bytestring
+      = error {Tuple2 bytestring bytestring}
+    ~defaultBody : Tuple2 bytestring bytestring
+      = error {Tuple2 bytestring bytestring}
     data Unit | Unit_match where
       Unit : Unit
     data Credential | Credential_match where
@@ -16,8 +28,6 @@
       NoOutputDatum : OutputDatum
       OutputDatum : data -> OutputDatum
       OutputDatumHash : bytestring -> OutputDatum
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
   in
   letrec
     data (List :: * -> *) a | List_match where
@@ -11802,10 +11812,7 @@
                                                             integer)
                                                          (default_arg10 :
                                                             Rational) ->
-                                                          error
-                                                            {Tuple2
-                                                               bytestring
-                                                               bytestring})
+                                                          defaultBody)
                                                        (\(ds :
                                                             Tuple2
                                                               bytestring
@@ -11853,10 +11860,7 @@
                                                                     bytestring
                                                                     bytestring)
                                                                  Rational)) ->
-                                                          error
-                                                            {Tuple2
-                                                               bytestring
-                                                               bytestring}))
+                                                          defaultBody))
                                                     {integer}
                                                     (\(a : bytestring)
                                                       (b : bytestring) ->
@@ -11906,10 +11910,7 @@
                                                                integer)
                                                             (default_arg10 :
                                                                Rational) ->
-                                                             error
-                                                               {Tuple2
-                                                                  bytestring
-                                                                  bytestring})
+                                                             defaultBody)
                                                           (\(ds :
                                                                Tuple2
                                                                  bytestring
@@ -11957,10 +11958,7 @@
                                                                        bytestring
                                                                        bytestring)
                                                                     Rational)) ->
-                                                             error
-                                                               {Tuple2
-                                                                  bytestring
-                                                                  bytestring}))
+                                                             defaultBody))
                                                        {integer}
                                                        (\(a : bytestring)
                                                          (b : bytestring) ->
@@ -12076,10 +12074,7 @@
                                                           Rational))
                                                   (default_arg9 : integer)
                                                   (default_arg10 : Rational) ->
-                                                   error
-                                                     {Tuple2
-                                                        bytestring
-                                                        bytestring})
+                                                   defaultBody)
                                                 (\(default_arg0 :
                                                      Tuple2
                                                        bytestring
@@ -12099,10 +12094,7 @@
                                                        (Tuple2
                                                           bytestring
                                                           bytestring)) ->
-                                                   error
-                                                     {Tuple2
-                                                        bytestring
-                                                        bytestring})
+                                                   defaultBody)
                                                 (\(ds :
                                                      Tuple2
                                                        bytestring
@@ -12360,10 +12352,7 @@
                                                                       integer)
                                                                    (default_arg10 :
                                                                       Rational) ->
-                                                                    error
-                                                                      {Tuple2
-                                                                         bytestring
-                                                                         bytestring})
+                                                                    defaultBody)
                                                                  (\(default_arg0 :
                                                                       Tuple2
                                                                         bytestring
@@ -12385,10 +12374,7 @@
                                                                         (Tuple2
                                                                            bytestring
                                                                            bytestring)) ->
-                                                                    error
-                                                                      {Tuple2
-                                                                         bytestring
-                                                                         bytestring})
+                                                                    defaultBody)
                                                                  (\(ds :
                                                                       Tuple2
                                                                         bytestring
@@ -12470,10 +12456,7 @@
                                                                          integer)
                                                                       (default_arg10 :
                                                                          Rational) ->
-                                                                       error
-                                                                         {Tuple2
-                                                                            bytestring
-                                                                            bytestring})
+                                                                       defaultBody)
                                                                     (\(default_arg0 :
                                                                          Tuple2
                                                                            bytestring
@@ -12495,10 +12478,7 @@
                                                                            (Tuple2
                                                                               bytestring
                                                                               bytestring)) ->
-                                                                       error
-                                                                         {Tuple2
-                                                                            bytestring
-                                                                            bytestring})
+                                                                       defaultBody)
                                                                     (\(ds :
                                                                          Tuple2
                                                                            bytestring

@@ -245,6 +245,15 @@ optimizeOpts = do
       ( long "opt-no-inline-constants"
           <> help "Disable constant inlining"
       )
+  _ooInlineUnconditionalGrowth <-
+    option
+      (AstSize <$> auto)
+      ( long "opt-inline-unconditional-growth"
+          <> metavar "INT"
+          <> value (UPLC.defaultOptimizeOpts ^. UPLC.ooInlineUnconditionalGrowth)
+          <> showDefault
+          <> help "Maximum allowed AST growth for unconditional inlining"
+      )
   _ooInlineCallsiteGrowth <-
     option
       (AstSize <$> auto)
@@ -252,7 +261,7 @@ optimizeOpts = do
           <> metavar "INT"
           <> value (UPLC.defaultOptimizeOpts ^. UPLC.ooInlineCallsiteGrowth)
           <> showDefault
-          <> help "Maximum allowed AST growth at call sites for inlining"
+          <> help "Maximum allowed AST growth for callsite inlining"
       )
   _ooPreserveLogging <-
     switch
@@ -285,9 +294,12 @@ optimiseEvalOpts =
     <$> switch
       ( long "eval"
           <> help
-            "Evaluate the program (using the CEK machine) to measure execution \
-            \cost. With --certify, costs are included in the report for every \
-            \optimisation pass. Use --eval-apply or --eval-args-dir to supply arguments, if any."
+            "Evaluate the program (using the CEK machine) at every stage of \
+            \the optimization pipeline.  CPU and memory costs are then shown \
+            \in the optimization report, alongside AST sizes, for every pass. \
+            \With --certify, the same costs and sizes are also recorded in the \
+            \certifier report.  Use --eval-apply or --eval-args-dir to supply \
+            \arguments, if any."
       )
     <*> many
       ( strOption

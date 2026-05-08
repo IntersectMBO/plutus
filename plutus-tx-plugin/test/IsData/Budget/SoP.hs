@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=SumsOfProducts #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=SumsOfProducts #-}
 
 module IsData.Budget.SoP where
 

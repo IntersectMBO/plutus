@@ -1,16 +1,16 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.Lists.Sum.Compiled where
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
+import Plinth.Plugin ()
 import PlutusTx qualified as Tx
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude
 
 import Prelude (($!))

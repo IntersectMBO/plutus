@@ -1,4 +1,31 @@
 
+<a id='changelog-1.63.0.0'></a>
+# 1.63.0.0 — 2026-05-01
+
+## Fixed
+
+- Fixed `SrcSpan` annotations on inner `Apply`/`TyInst` nodes from the PLC, PIR, and
+  UPLC parsers. Parser error messages and tooling that reads annotations off parsed
+  terms will now point to the specific argument involved.
+
+<a id='changelog-1.62.0.0'></a>
+# 1.62.0.0 — 2026-04-24
+
+## Added
+
+- A new UPLC optimization pass that floats bindings outwards. This can unlock further
+  optimizations, such as case-constr and force-delay cancellation.
+
+- Added a new command line option `--certified-opts-only` which disables those optimization passes which are not certified.
+
+- A new plugin flag `inline-unconditional-growth`, and a new UPLC executable flag
+  `opt-inline-unconditional-growth`.
+  They control the aggressiveness of unconditional inlining.
+
+## Changed
+
+- Improved the CSE pass to make it see through bindings.
+
 <a id='changelog-1.61.0.0'></a>
 # 1.61.0.0 — 2026-04-02
 

@@ -11,6 +11,9 @@ open import VerifiedCompilation
 open import VerifiedCompilation.Certificate
 open import VerifiedCompilation.UntypedTranslation
 open import VerifiedCompilation.UInline
+open import VerifiedCompilation.UCaseReduce as CR
+open import Untyped.Relation.Binary.Modular hiding (_+_)
+open import Untyped.Relation.Binary.Core renaming (Pointwise to PW)
 open import Untyped
 open import Untyped.RenamingSubstitution using (Sub)
 open import Utils as U using (_×_; _,_; Either; either; inj₁; inj₂)
@@ -42,11 +45,12 @@ showCertifiedOptTag forceCaseDelayT = "Float Force into Case Branches"
 showCertifiedOptTag inlineT = "Inlining"
 showCertifiedOptTag cseT = "Common Subexpression Elimination"
 showCertifiedOptTag applyToCaseT = "Transform multi-argument applications into case-constr form"
+showCertifiedOptTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
+showCertifiedOptTag letFloatOutT = "Float bindings outwards"
 
 showUncertifiedOptTag : UncertifiedOptTag → String
 showUncertifiedOptTag caseOfCaseT = "Case-of-Case"
-showUncertifiedOptTag letFloatOutT = "Float bindings outwards"
-showUncertifiedOptTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
+showUncertifiedOptTag constantFoldingT = "Constant Folding"
 
 showTag : OptTag → String
 showTag (inj₁ tag) = showUncertifiedOptTag tag ++ "  ⚠ (certifier unavailable)"
@@ -113,6 +117,33 @@ numSitesInline (case r rs) = numSitesInline r + numSitesInlineᵖʷ rs
 numSitesInlineᵖʷ Pointwise.[] = 0
 numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖʷ xs
 
+numSitesCaseReduce :
+  ∀ {X} {M N : X ⊢}
+  → M CR.~ N
+  → ℕ
+numSitesCaseReduce* :
+  ∀ {X} {Ms Ns : List (X ⊢)}
+  → PW _~_ Ms Ns
+  → ℕ
+
+numSitesCaseReduce (cr-reduction _)                = 1
+numSitesCaseReduce (cr-trans p q)                  = numSitesCaseReduce p + numSitesCaseReduce q
+numSitesCaseReduce (cr-sym p)                      = numSitesCaseReduce p
+numSitesCaseReduce (cr-refl)                       = 0
+numSitesCaseReduce (cr-compat (compat-varF n))     = 0
+numSitesCaseReduce (cr-compat (compat-lambdaF p))  = numSitesCaseReduce p
+numSitesCaseReduce (cr-compat (compat-applyF p q)) = numSitesCaseReduce p + numSitesCaseReduce q
+numSitesCaseReduce (cr-compat (compat-forceF p))   = numSitesCaseReduce p
+numSitesCaseReduce (cr-compat (compat-delayF p))   = numSitesCaseReduce p
+numSitesCaseReduce (cr-compat (compat-conF))       = 0
+numSitesCaseReduce (cr-compat (compat-constrF ps)) = numSitesCaseReduce* ps
+numSitesCaseReduce (cr-compat (compat-caseF p qs)) = numSitesCaseReduce p + numSitesCaseReduce* qs
+numSitesCaseReduce (cr-compat (compat-builtinF))   = 0
+numSitesCaseReduce (cr-compat (compat-errorF))     = 0
+
+numSitesCaseReduce* [] = 0
+numSitesCaseReduce* (x ∷ xs) = numSitesCaseReduce x + numSitesCaseReduce* xs
+
 numSites : {M N : 0 ⊢} (tag : CertifiedOptTag) → RelationOf (inj₂ tag) M N → ℕ
 numSites forceDelayT p = numSites′ p
 numSites floatDelayT p = numSites′ p
@@ -120,6 +151,8 @@ numSites cseT p = numSites′ p
 numSites inlineT p = numSitesInline p
 numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
+numSites {M = M} caseReduceT p = numSitesCaseReduce (CR.sound {M = M} p)
+numSites letFloatOutT p = 0
 
 showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
 showSites (inj₁ _) _ = ""

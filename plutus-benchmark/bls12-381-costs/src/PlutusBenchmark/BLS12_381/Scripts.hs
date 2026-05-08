@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 {-| Approximations of the sort of computations involving BLS12-381 primitives
  that one might wish to perform on the chain.  Real on-chain code will have
@@ -42,11 +42,11 @@ module PlutusBenchmark.BLS12_381.Scripts
   )
 where
 
+import Plinth.Plugin ()
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusLedgerApi.V1.Bytes qualified as P (bytes, fromHex)
 import PlutusTx qualified as Tx
 import PlutusTx.List qualified as List
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx hiding ((<>))
 import UntypedPlutusCore qualified as UPLC
 

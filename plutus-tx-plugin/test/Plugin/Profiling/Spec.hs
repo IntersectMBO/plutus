@@ -5,14 +5,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=3 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=3 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:profile-all #-}
 
 {-# HLINT ignore "Eta reduce" #-}
 {-# HLINT ignore "Use guards" #-}
@@ -25,14 +25,13 @@ module Plugin.Profiling.Spec where
 
 import Test.Tasty.Extras
 
+import Plinth.Plugin (plinthc)
 import PlutusCore.Test (ToUPlc (toUPlc), goldenUEvalLogs)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
-import PlutusTx.Plugin (plc)
 import PlutusTx.Test (goldenPirReadable)
 
 import Data.Functor.Identity
-import Data.Proxy (Proxy (Proxy))
 import Prelude
 
 profiling :: TestNested
@@ -43,36 +42,36 @@ profiling =
       , goldenUEvalLogs
           "fib4"
           [ toUPlc fibTest
-          , toUPlc $ plc (Proxy @"4") (4 :: Integer)
+          , toUPlc $ plinthc (4 :: Integer)
           ]
       , goldenUEvalLogs
           "fact4"
           [ toUPlc factTest
-          , toUPlc $ plc (Proxy @"4") (4 :: Integer)
+          , toUPlc $ plinthc (4 :: Integer)
           ]
       , goldenPirReadable "addInt" addIntTest
       , goldenUEvalLogs
           "addInt3"
           [ toUPlc addIntTest
-          , toUPlc $ plc (Proxy @"3") (3 :: Integer)
+          , toUPlc $ plinthc (3 :: Integer)
           ]
       , goldenUEvalLogs
           "letInFun"
           [ toUPlc letInFunTest
-          , toUPlc $ plc (Proxy @"1") (1 :: Integer)
-          , toUPlc $ plc (Proxy @"4") (4 :: Integer)
+          , toUPlc $ plinthc (1 :: Integer)
+          , toUPlc $ plinthc (4 :: Integer)
           ]
       , goldenUEvalLogs
           "letInFunMoreArg"
           [ toUPlc letInFunMoreArgTest
-          , toUPlc $ plc (Proxy @"1") (1 :: Integer)
-          , toUPlc $ plc (Proxy @"4") (4 :: Integer)
-          , toUPlc $ plc (Proxy @"5") (5 :: Integer)
+          , toUPlc $ plinthc (1 :: Integer)
+          , toUPlc $ plinthc (4 :: Integer)
+          , toUPlc $ plinthc (5 :: Integer)
           ]
       , goldenUEvalLogs
           "letRecInFun"
           [ toUPlc letRecInFunTest
-          , toUPlc $ plc (Proxy @"3") (3 :: Integer)
+          , toUPlc $ plinthc (3 :: Integer)
           ]
       , goldenPirReadable "idCode" idTest
       , goldenUEvalLogs "id" [toUPlc idTest]
@@ -80,8 +79,8 @@ profiling =
       , goldenUEvalLogs
           "typeclass"
           [ toUPlc typeclassTest
-          , toUPlc $ plc (Proxy @"1") (1 :: Integer)
-          , toUPlc $ plc (Proxy @"4") (4 :: Integer)
+          , toUPlc $ plinthc (1 :: Integer)
+          , toUPlc $ plinthc (4 :: Integer)
           ]
       , goldenUEvalLogs "argMismatch1" [toUPlc argMismatch1]
       , goldenUEvalLogs "argMismatch2" [toUPlc argMismatch2]
@@ -94,7 +93,7 @@ fact n =
     else Builtins.multiplyInteger n (fact (Builtins.subtractInteger n 1))
 
 factTest :: CompiledCode (Integer -> Integer)
-factTest = plc (Proxy @"fact") fact
+factTest = plinthc fact
 
 fib :: Integer -> Integer
 fib n =
@@ -110,30 +109,30 @@ fib n =
 
 fibTest :: CompiledCode (Integer -> Integer)
 -- not using case to avoid literal cases
-fibTest = plc (Proxy @"fib") fib
+fibTest = plinthc fib
 
 addInt :: Integer -> Integer -> Integer
 addInt x = Builtins.addInteger x
 
 addIntTest :: CompiledCode (Integer -> Integer -> Integer)
-addIntTest = plc (Proxy @"addInt") addInt
+addIntTest = plinthc addInt
 
 -- \x y -> let f z = z + 1 in f x + f y
 letInFunTest :: CompiledCode (Integer -> Integer -> Integer)
-letInFunTest = plc (Proxy @"letInFun") do
+letInFunTest = plinthc do
   \(x :: Integer) (y :: Integer) ->
     let f z = Builtins.addInteger z 1 in Builtins.addInteger (f x) (f y)
 
 -- \x y z -> let f n = n + 1 in z * (f x + f y)
 letInFunMoreArgTest :: CompiledCode (Integer -> Integer -> Integer -> Integer)
-letInFunMoreArgTest = plc (Proxy @"letInFun") do
+letInFunMoreArgTest = plinthc do
   \(x :: Integer) (y :: Integer) (z :: Integer) ->
     let f n = Builtins.addInteger n 1
      in Builtins.multiplyInteger z (Builtins.addInteger (f x) (f y))
 
 -- Try a recursive function so it definitely won't be inlined
 letRecInFunTest :: CompiledCode (Integer -> Integer)
-letRecInFunTest = plc (Proxy @"letRecInFun") do
+letRecInFunTest = plinthc do
   \(x :: Integer) ->
     let f n =
           if Builtins.equalsInteger n 0
@@ -142,14 +141,14 @@ letRecInFunTest = plc (Proxy @"letRecInFun") do
      in f x
 
 idTest :: CompiledCode Integer
-idTest = plc (Proxy @"id") do
+idTest = plinthc do
   id (id (1 :: Integer))
 
 swap :: (a, b) -> (b, a)
 swap (a, b) = (b, a)
 
 swapTest :: CompiledCode (Integer, Bool)
-swapTest = plc (Proxy @"swap") (swap (True, 1))
+swapTest = plinthc (swap (True, 1))
 
 -- Two method typeclasses definitely get dictionaries,
 -- rather than just being passed as single functions
@@ -169,7 +168,7 @@ useTypeclass a b = Builtins.addInteger (methodA a b) (methodB a b)
 
 -- Check that typeclass methods get traces
 typeclassTest :: CompiledCode (Integer -> Integer -> Integer)
-typeclassTest = plc (Proxy @"typeclass") do
+typeclassTest = plinthc do
   \(x :: Integer) (y :: Integer) -> useTypeclass x y
 
 newtypeFunction :: a -> Identity (a -> a)
@@ -177,7 +176,7 @@ newtypeFunction _ = Identity (\a -> a)
 {-# INLINEABLE newtypeFunction #-}
 
 argMismatch1 :: CompiledCode Integer
-argMismatch1 = plc (Proxy @"argMismatch1") do
+argMismatch1 = plinthc do
   runIdentity (newtypeFunction 1) 1
 
 obscuredFunction :: (a -> a -> a) -> a -> a -> a
@@ -185,5 +184,5 @@ obscuredFunction f a = f a
 {-# INLINEABLE obscuredFunction #-}
 
 argMismatch2 :: CompiledCode Integer
-argMismatch2 = plc (Proxy @"argMismatch2") do
+argMismatch2 = plinthc do
   obscuredFunction (\a _ -> a) 1 2

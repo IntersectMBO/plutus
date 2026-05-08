@@ -2,17 +2,17 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.V1.Data.ScriptContexts where
 
+import Plinth.Plugin ()
 import PlutusLedgerApi.Data.V1
 import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Data.List qualified as Data.List
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
 {-| A very crude deterministic generator for 'ScriptContext's with size

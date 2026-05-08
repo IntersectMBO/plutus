@@ -147,7 +147,8 @@ simplifierIteration suffix = do
   preserveLogging <- view (ccOpts . coPreserveLogging)
   rules <- view ccRewriteRules
   ic <- view (ccOpts . coInlineConstants)
-  thresh <- view (ccOpts . coInlineCallsiteGrowth)
+  threshUnconditional <- view (ccOpts . coInlineUnconditionalGrowth)
+  threshCallsite <- view (ccOpts . coInlineCallsiteGrowth)
 
   pure $
     P.NamedPass ("simplifier" ++ suffix) $
@@ -160,7 +161,8 @@ simplifierIteration suffix = do
             StrictifyBindings.strictifyBindingsPass tcconfig binfo
         , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $
             EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
-        , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC thresh ic tcconfig hints binfo
+        , mwhen (opts ^. coDoSimplifierInline) $
+            Inline.inlinePassSC threshUnconditional threshCallsite ic tcconfig hints binfo
         , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
         , DeadCase.deadCasePassSC tcconfig
         ]

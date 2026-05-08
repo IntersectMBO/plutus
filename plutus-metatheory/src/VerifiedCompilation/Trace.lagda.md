@@ -23,12 +23,15 @@ We enumerate the known passes and partition them into two categories:
 - those which are not yet (fully) implemented in the certifier 
 - those which are implemented in the certifier and we know they are correct.
 
+### IMPORTANT
+The order of the constructors in both their Agda definitions and in the "COMPILE"
+pragmas MUST be the same as the order of their counterparts in
+`UntypedPlutusCore.Transform.Certify.Trace`.
 ```
 
 data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
-  letFloatOutT : UncertifiedOptTag
-  caseReduceT : UncertifiedOptTag
+  constantFoldingT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
@@ -37,6 +40,8 @@ data CertifiedOptTag : Set where
   inlineT : CertifiedOptTag
   cseT : CertifiedOptTag
   applyToCaseT : CertifiedOptTag
+  caseReduceT : CertifiedOptTag
+  letFloatOutT : CertifiedOptTag
 
 OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
 
@@ -52,16 +57,36 @@ CseT : OptTag
 CseT = Utils.inj₂ cseT
 ApplyToCaseT : OptTag
 ApplyToCaseT = Utils.inj₂ applyToCaseT
+LetFloatOutT : OptTag
+LetFloatOutT = Utils.inj₂ letFloatOutT
+CaseReduceT : OptTag
+CaseReduceT = Utils.inj₂ caseReduceT
 
 CaseOfCaseT : OptTag
 CaseOfCaseT = Utils.inj₁ caseOfCaseT
-LetFloatOutT : OptTag
-LetFloatOutT = Utils.inj₁ letFloatOutT
-CaseReduceT : OptTag
-CaseReduceT = Utils.inj₁ caseReduceT
+ConstantFoldingT : OptTag
+ConstantFoldingT = Utils.inj₁ constantFoldingT
 
-{-# COMPILE GHC CertifiedOptTag = data CertifiedOptStage (FloatDelay | ForceDelay | ForceCaseDelay | Inline | CSE | ApplyToCase) #-}
-{-# COMPILE GHC UncertifiedOptTag = data UncertifiedOptStage (CaseOfCase | LetFloatOut | CaseReduce) #-}
+{-# COMPILE GHC
+  CertifiedOptTag
+    = data CertifiedOptStage
+      ( FloatDelay
+      | ForceDelay
+      | ForceCaseDelay
+      | Inline
+      | CSE
+      | ApplyToCase
+      | CaseReduce
+      | LetFloatOut
+      )
+#-}
+{-# COMPILE GHC
+  UncertifiedOptTag
+    = data UncertifiedOptStage
+      ( CaseOfCase
+      | ConstantFolding
+      )
+#-}
 ```
 
 ## Hints

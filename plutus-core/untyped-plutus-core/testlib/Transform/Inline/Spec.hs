@@ -166,6 +166,7 @@ runInlineM preserveLogging m = result
         , _iiHints = InlineHints \_ann _name -> MayInline
         , _iiBuiltinSemanticsVariant = def
         , _iiInlineConstants = True
+        , _iiInlineUnconditionalGrowth = AstSize 3
         , _iiInlineCallsiteGrowth = AstSize 1_000_000
         , _iiPreserveLogging = preserveLogging
         }

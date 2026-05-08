@@ -73,7 +73,7 @@ logWithBudgetEmitter = EmitterMode $ \getBudget -> do
 
 {-| Emits log and, when script evaluation fails, call trace.
 
-This requires script to be compiled with `PlutusTx.Plugin:profile-all` turned on because this relies
+This requires script to be compiled with `Plinth.Plugin:profile-all` turned on because this relies
 on compiler-generated trace calls that notifies entrance and exit of a function call. These traces
 that mark entrance and exit are ordinary traces like "-> rob:Example.hs:3:1-3:15" and "<-
 bob:Example.hs:1:1-1:13" with "->" and "<-" prefixies, where "bob" and "rob" is the name

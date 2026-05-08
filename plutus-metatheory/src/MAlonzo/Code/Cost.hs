@@ -362,19 +362,19 @@ d_isMonoidExBudget_80
 -- Cost.builtinCost
 d_builtinCost_96 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
-  MAlonzo.Code.Cost.Model.T_BuiltinModel_66 ->
+  MAlonzo.Code.Cost.Model.T_BuiltinModel_68 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 -> T_ExBudget_52
 d_builtinCost_96 v0 v1 v2
   = coe
       C_mkExBudget_62
       (coe
-         MAlonzo.Code.Cost.Model.d_runModel_102
+         MAlonzo.Code.Cost.Model.d_runModel_104
          (coe MAlonzo.Code.Builtin.d_arity_304 (coe v0))
-         (coe MAlonzo.Code.Cost.Model.d_costingCPU_74 (coe v1)) (coe v2))
+         (coe MAlonzo.Code.Cost.Model.d_costingCPU_76 (coe v1)) (coe v2))
       (coe
-         MAlonzo.Code.Cost.Model.d_runModel_102
+         MAlonzo.Code.Cost.Model.d_runModel_104
          (coe MAlonzo.Code.Builtin.d_arity_304 (coe v0))
-         (coe MAlonzo.Code.Cost.Model.d_costingMem_76 (coe v1)) (coe v2))
+         (coe MAlonzo.Code.Cost.Model.d_costingMem_78 (coe v1)) (coe v2))
 -- Cost.CostModel
 d_CostModel_104 :: ()
 d_CostModel_104 = erased
@@ -423,14 +423,14 @@ d_cekMachineCostFunction_106 v0 v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.exBudgetCategoryCost
 d_exBudgetCategoryCost_126 ::
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
     (MAlonzo.Code.Builtin.T_Builtin_2 ->
-     MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
+     MAlonzo.Code.Cost.Model.T_BuiltinModel_68) ->
   MAlonzo.Code.Cost.Base.T_ExBudgetCategory_34 -> T_ExBudget_52
 d_exBudgetCategoryCost_126 v0 v1
   = case coe v0 of
-      MAlonzo.Code.Utils.C__'44'__442 v2 v3
+      MAlonzo.Code.Utils.C__'44'__450 v2 v3
         -> case coe v1 of
              MAlonzo.Code.Cost.Base.C_BStep_36 v4
                -> coe d_cekMachineCostFunction_106 (coe v2) (coe v4)
@@ -444,10 +444,10 @@ d_exBudgetCategoryCost_126 v0 v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.machineParameters
 d_machineParameters_140 ::
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
     (MAlonzo.Code.Builtin.T_Builtin_2 ->
-     MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
+     MAlonzo.Code.Cost.Model.T_BuiltinModel_68) ->
   MAlonzo.Code.Cost.Base.T_MachineParameters_46
 d_machineParameters_140 v0
   = coe
@@ -511,28 +511,28 @@ d_lookup_158 v0 v1
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Cost.εT
 d_εT_178 ::
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Data.Tree.AVL.T_Tree_266 T_ExBudget_52
 d_εT_178
   = coe
-      MAlonzo.Code.Utils.C__'44'__442
+      MAlonzo.Code.Utils.C__'44'__450
       (coe MAlonzo.Code.Data.Tree.AVL.Map.du_empty_210)
       (coe d_ε'8364'_68)
 -- Cost._∙T_
 d__'8729'T__180 ::
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Data.Tree.AVL.T_Tree_266 T_ExBudget_52 ->
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Data.Tree.AVL.T_Tree_266 T_ExBudget_52 ->
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Data.Tree.AVL.T_Tree_266 T_ExBudget_52
 d__'8729'T__180 v0 v1
   = case coe v0 of
-      MAlonzo.Code.Utils.C__'44'__442 v2 v3
+      MAlonzo.Code.Utils.C__'44'__450 v2 v3
         -> case coe v1 of
-             MAlonzo.Code.Utils.C__'44'__442 v4 v5
+             MAlonzo.Code.Utils.C__'44'__450 v4 v5
                -> coe
-                    MAlonzo.Code.Utils.C__'44'__442
+                    MAlonzo.Code.Utils.C__'44'__450
                     (coe
                        MAlonzo.Code.Data.Tree.AVL.Map.du_unionWith_244
                        MAlonzo.Code.Data.String.Properties.d_'60''45'strictTotalOrder'45''8776'_76
@@ -580,16 +580,16 @@ d_isMonoidTallyingBudget_206
       (coe MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased erased)
 -- Cost.tallyingCekMachineCost
 d_tallyingCekMachineCost_212 ::
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
     (MAlonzo.Code.Builtin.T_Builtin_2 ->
-     MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
+     MAlonzo.Code.Cost.Model.T_BuiltinModel_68) ->
   MAlonzo.Code.Cost.Base.T_ExBudgetCategory_34 ->
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Data.Tree.AVL.T_Tree_266 T_ExBudget_52
 d_tallyingCekMachineCost_212 v0 v1
   = coe
-      MAlonzo.Code.Utils.C__'44'__442
+      MAlonzo.Code.Utils.C__'44'__450
       (coe
          MAlonzo.Code.Data.Tree.AVL.Map.du_singleton_212
          (d_mkKeyFromExBudgetCategory_150 (coe v1))
@@ -597,10 +597,10 @@ d_tallyingCekMachineCost_212 v0 v1
       (coe d_exBudgetCategoryCost_126 (coe v0) (coe v1))
 -- Cost.tallyingMachineParameters
 d_tallyingMachineParameters_220 ::
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Cost.Raw.T_HCekMachineCosts_4
     (MAlonzo.Code.Builtin.T_Builtin_2 ->
-     MAlonzo.Code.Cost.Model.T_BuiltinModel_66) ->
+     MAlonzo.Code.Cost.Model.T_BuiltinModel_68) ->
   MAlonzo.Code.Cost.Base.T_MachineParameters_46
 d_tallyingMachineParameters_220 v0
   = coe
@@ -609,12 +609,12 @@ d_tallyingMachineParameters_220 v0
       (coe d__'8729'T__180) (coe d_isMonoidTallyingBudget_206)
 -- Cost.tallyingReport
 d_tallyingReport_224 ::
-  MAlonzo.Code.Utils.T__'215'__428
+  MAlonzo.Code.Utils.T__'215'__436
     MAlonzo.Code.Data.Tree.AVL.T_Tree_266 T_ExBudget_52 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_tallyingReport_224 v0
   = case coe v0 of
-      MAlonzo.Code.Utils.C__'44'__442 v1 v2
+      MAlonzo.Code.Utils.C__'44'__450 v1 v2
         -> coe
              MAlonzo.Code.Data.String.Base.d__'43''43'__20
              (d_countingReport_144 (coe v2))

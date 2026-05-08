@@ -7,10 +7,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-preserve-logging #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-preserve-logging #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:target-version=1.0.0 #-}
 
 module PlutusBenchmark.Marlowe.Scripts.Semantics
   ( -- * Types
@@ -28,6 +28,7 @@ module PlutusBenchmark.Marlowe.Scripts.Semantics
   ) where
 
 import GHC.Generics (Generic)
+import Plinth.Plugin ()
 import PlutusBenchmark.Marlowe.Core.V1.Semantics as Semantics
   ( MarloweData (..)
   , MarloweParams (MarloweParams, rolesCurrency)
@@ -66,7 +67,6 @@ import PlutusLedgerApi.V2.Tx
 import PlutusTx (CompiledCode, makeIsDataIndexed, makeLift, unsafeFromBuiltinData)
 import PlutusTx.Foldable (foldMap)
 import PlutusTx.List (all, any, elem, filter, find, null)
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude
   ( AdditiveGroup ((-))
   , AdditiveMonoid (zero)

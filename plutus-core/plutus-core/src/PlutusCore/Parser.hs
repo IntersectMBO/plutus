@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 
 -- | Parsers for PLC terms in DefaultUni.
 module PlutusCore.Parser
@@ -13,7 +12,7 @@ module PlutusCore.Parser
   ) where
 
 import PlutusCore.Annotation
-import PlutusCore.Core (Program (..), Term (..), Type)
+import PlutusCore.Core (HasAnn (..), Program (..), Term (..), Type)
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (..), ParserErrorBundle)
 import PlutusCore.MkPlc (mkIterApp, mkIterInst)
@@ -24,6 +23,7 @@ import PlutusCore.Parser.Type as Export
 import PlutusCore.Quote (MonadQuote)
 import PlutusCore.Version
 
+import Control.Arrow ((&&&))
 import Control.Monad (when)
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
@@ -49,8 +49,9 @@ lamTerm = withSpan $ \sp ->
 
 appTerm :: Parser PTerm
 appTerm = withSpan $ \sp ->
-  -- TODO: should not use the same `sp` for all arguments.
-  inBrackets $ mkIterApp <$> term <*> (fmap (sp,) <$> some term)
+    inBrackets $
+      setAnn sp <$>
+        (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
 
 conTerm :: Parser PTerm
 conTerm = withSpan $ \sp ->
@@ -62,8 +63,9 @@ builtinTerm = withSpan $ \sp ->
 
 tyInstTerm :: Parser PTerm
 tyInstTerm = withSpan $ \sp ->
-  -- TODO: should not use the same `sp` for all arguments.
-  inBraces $ mkIterInst <$> term <*> (fmap (sp,) <$> many pType)
+    inBraces $
+      setAnn sp <$>
+        (mkIterInst <$> term <*> (fmap (getAnn &&& id) <$> many pType))
 
 unwrapTerm :: Parser PTerm
 unwrapTerm = withSpan $ \sp ->

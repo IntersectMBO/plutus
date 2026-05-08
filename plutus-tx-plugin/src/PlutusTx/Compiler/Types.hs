@@ -91,7 +91,7 @@ instance Pretty Verbosity where
 
 -- | Profiling options. @All@ profiles everything. @None@ is the default.
 data ProfileOpts
-  = All -- set this with -fplugin-opt PlutusTx.Plugin:profile-all
+  = All -- set this with -fplugin-opt Plinth.Plugin:profile-all
   | None
   deriving stock (Eq, Show)
 
@@ -106,18 +106,18 @@ data CoverageOpts = CoverageOpts {unCoverageOpts :: Set CoverageType}
 activeCoverageTypes :: CompileOptions -> Set CoverageType
 activeCoverageTypes = unCoverageOpts . coCoverage
 
-{-| Option `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-all #-\}` enables all these
+{-| Option `{\-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:coverage-all #-\}` enables all these
 See Note [Adding more coverage annotations].
 See Note [Coverage order] -}
 data CoverageType
   = {-| Check that all source locations that we can identify in GHC Core have been covered.
     For this to work at all we need `{\-# OPTIONS_GHC -g #-\}`
-    turn on with `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-location #-\}` -}
+    turn on with `{\-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:coverage-location #-\}` -}
     LocationCoverage
   | {-| Check that every boolean valued expression that isn't `True` or `False` for which
     we know the source location have been covered. For this to work at all we need
     `{\-# OPTIONS_GHC -g #-\}` turn on with
-    `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-boolean #-\}` -}
+    `{\-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:coverage-boolean #-\}` -}
     BooleanCoverage
   deriving stock (Ord, Eq, Show, Enum, Bounded)
 

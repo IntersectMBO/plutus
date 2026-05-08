@@ -15,7 +15,10 @@ certified.
 
 This means that these passes are formalized as part of the certifier,
 and adding a new pass constructor to this type means that it is expected
-the pass will be also certified in the same PR. -}
+the pass will be also certified in the same PR.
+
+WARNING: the order of the constructors MUST be the same as the order
+of their counterparts in 'VerifiedCompilation.Trace'. -}
 data CertifiedOptStage
   = FloatDelay
   | ForceDelay
@@ -23,11 +26,16 @@ data CertifiedOptStage
   | Inline
   | CSE
   | ApplyToCase
+  | CaseReduce
+  | LetFloatOut
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
 {-| Datatype which represents optimization passes which are not yet
 certified.
+
+WARNING: the order of the constructors MUST be the same as the order
+of their counterparts in 'VerifiedCompilation.Trace'.
 
 IMPORTANT: if you add a new pass, or modify an existing pass, without
 also modifying the certifier in the same PR, you must add/move its
@@ -35,8 +43,7 @@ corresponding constructor to this type. Please also open an issue
 at https://github.com/IntersectMBO/plutus/issues. -}
 data UncertifiedOptStage
   = CaseOfCase
-  | LetFloatOut
-  | CaseReduce
+  | ConstantFolding
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -52,7 +59,7 @@ pattern ForceCaseDelayStage :: OptStage
 pattern ForceCaseDelayStage = Right ForceCaseDelay
 
 pattern CaseReduceStage :: OptStage
-pattern CaseReduceStage = Left CaseReduce
+pattern CaseReduceStage = Right CaseReduce
 
 pattern InlineStage :: OptStage
 pattern InlineStage = Right Inline
@@ -67,7 +74,10 @@ pattern CaseOfCaseStage :: OptStage
 pattern CaseOfCaseStage = Left CaseOfCase
 
 pattern LetFloatOutStage :: OptStage
-pattern LetFloatOutStage = Left LetFloatOut
+pattern LetFloatOutStage = Right LetFloatOut
+
+pattern ConstantFoldingStage :: OptStage
+pattern ConstantFoldingStage = Left ConstantFolding
 
 {-# COMPLETE
   FloatDelayStage
@@ -79,6 +89,7 @@ pattern LetFloatOutStage = Left LetFloatOut
   , ApplyToCaseStage
   , CaseOfCaseStage
   , LetFloatOutStage
+  , ConstantFoldingStage
   #-}
 
 data Optimization name uni fun a

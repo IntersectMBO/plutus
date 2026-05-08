@@ -6,15 +6,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.NoFib.Clausify where
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
+import Plinth.Plugin ()
 import PlutusTx qualified as Tx
 import PlutusTx.List qualified as List
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Plutus
 import Prelude qualified as Haskell
 
