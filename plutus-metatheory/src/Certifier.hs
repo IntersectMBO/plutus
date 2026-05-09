@@ -16,25 +16,28 @@ import Data.Foldable
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromMaybe)
+import Data.Text qualified as Text
 import Data.Text.IO qualified as T
-import System.Directory (createDirectory)
+import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
 
-import FFI.AgdaUnparse (AgdaUnparse (..))
+import FFI.AgdaUnparse (AgdaUnparse (..), renderAgdaUnparse)
 import FFI.CostInfo
-import FFI.SimplifierTrace (Trace, mkFfiSimplifierTrace, toEvalResult)
+import FFI.OptimizerTrace (Trace, mkFfiOptimizerTrace, toEvalResult)
 import FFI.Untyped (UTerm)
 import MAlonzo.Code.Certifier (runCertifierMain)
 import PlutusLedgerApi.Common
+import Prettyprinter (pretty)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
-import UntypedPlutusCore.Transform.Simplifier
+import UntypedPlutusCore.Transform.Optimizer
 
 type CertName = String
 type CertDir = FilePath
 
 data CertifierError
-  = InvalidCertificate CertDir
+  = -- | Certificate dir + certifier report
+    InvalidCertificate CertDir String
   | InvalidCompilerOutput
   | ValidationError CertName
 
@@ -47,12 +50,15 @@ data CertifierOutput
     ProjectOutput CertDir
 
 prettyCertifierError :: CertifierError -> String
-prettyCertifierError (InvalidCertificate certDir) =
+prettyCertifierError (InvalidCertificate certDir report) =
   "\n\nInvalid certificate: "
     <> certDir
     <> "\nThe compilation was not successfully certified. \
        \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
-       \and attach the faulty certificate.\n"
+       \and attach the faulty certificate.\n\
+       \Certifier report:\n"
+    <> report
+    <> "\n"
 prettyCertifierError InvalidCompilerOutput =
   "\n\nInvalid compiler output: \
   \\nThe certifier was not able to process the trace produced by the compiler. \
@@ -73,7 +79,7 @@ runCertifier = runExceptT
 
 -- | Run the Agda certifier on the simplification trace, if requested
 mkCertifier
-  :: SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  :: OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -- ^ The trace produced by the simplification process
   -> CertName
   -- ^ The name of the certificate to be produced
@@ -85,24 +91,18 @@ mkCertifier
      ]
   -> Certifier Bool
 mkCertifier simplTrace certName certOutput costs = do
-  let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
+  let rawAgdaTrace = mkFfiOptimizerTrace simplTrace
       costs' :: [EvalResult]
       costs' = uncurry toEvalResult <$> reverse costs
   case runCertifierMain rawAgdaTrace costs' of
     Just (passed, report) -> do
-      liftIO . putStrLn $
-        "Certifier result: "
-          <> if passed then "PASS" else "FAIL"
       case certOutput of
         BasicOutput -> pure ()
-        ReportOutput file -> liftIO $ do
-          T.writeFile file report
-          putStrLn $ "Report written to " <> file
+        ReportOutput file -> liftIO $ T.writeFile file report
         ProjectOutput certDir -> do
           let cert = mkAgdaCertificateProject $ mkCertificate certName rawAgdaTrace
           writeCertificateProject certDir cert
-          liftIO . putStrLn $ "Certificate produced in " <> certDir
-          unless passed . throwError $ InvalidCertificate certDir
+          unless passed . throwError $ InvalidCertificate certDir (Text.unpack report)
       pure passed
     Nothing -> throwError InvalidCompilerOutput
 
@@ -200,7 +200,7 @@ mkAstModuleName Ast {equivClass} =
 
 mkAgdaAstFile :: Ast -> (FilePath, String)
 mkAgdaAstFile ast =
-  let agdaAst = agdaUnparse (term . astTermWithId $ ast)
+  let agdaAst = renderAgdaUnparse (term . astTermWithId $ ast)
       agdaId = equivClass ast
       agdaModuleName = mkAstModuleName ast
       agdaIdStr = "ast" <> show agdaId
@@ -218,7 +218,6 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
        \\nopen import VerifiedCompilation\
        \\nopen import VerifiedCompilation.Certificate\
        \\nopen import VerifiedCompilation.Trace\
-       \\nopen import Untyped\
        \\nopen import RawU\
        \\nopen import Builtin\
        \\nopen import Data.Unit\
@@ -247,13 +246,13 @@ mkAgdaOpenImport agdaModuleName =
 newtype AgdaVar = AgdaVar String
 
 instance AgdaUnparse AgdaVar where
-  agdaUnparse (AgdaVar var) = var
+  agdaUnparse (AgdaVar var) = pretty var
 
 mkCertificateFile :: Certificate -> (FilePath, String)
 mkCertificateFile Certificate {certName, certTrace, certReprAsts} =
   let imports = fmap (mkAgdaOpenImport . mkAstModuleName) certReprAsts
       agdaTrace =
-        agdaUnparse $
+        renderAgdaUnparse $
           ( \(st, (hints, (ast1, ast2))) ->
               ( st
               ,
@@ -300,7 +299,7 @@ mkCertificateModule certModule agdaTrace imports =
     <> unlines imports
     <> "\n"
     <> "\n\
-       \\nasts : List (SimplifierTag × Hints × Untyped × Untyped)\
+       \\nasts : List (OptTag × Hints × Untyped × Untyped)\
        \\nasts = "
     <> agdaTrace
     <> "\n\
@@ -325,7 +324,8 @@ mkAgdaLib name =
           <> "\ndepend:\
              \\n  standard-library-2.3\
              \\n  plutus-metatheory\
-             \\ninclude: src"
+             \\ninclude: src\
+             \\nflags: --polarity"
    in (name <> ".agda-lib", contents)
 
 mkAgdaCertificateProject
@@ -352,8 +352,8 @@ writeCertificateProject
     liftIO $ do
       let (mainModulePath, mainModuleContents) = mainModule
           (agdalibPath, agdalibContents) = agdalib
-      createDirectory certDir
-      createDirectory (certDir </> "src")
+      createDirectoryIfMissing True certDir
+      createDirectoryIfMissing True (certDir </> "src")
       writeFile (certDir </> "src" </> mainModulePath) mainModuleContents
       writeFile (certDir </> agdalibPath) agdalibContents
       traverse_

@@ -1,6 +1,6 @@
-CPU:               641_520_937
-Memory:              3_105_801
-AST Size:                   48
-Flat Size:                  57
+CPU:               640_176_937
+Memory:              3_097_401
+AST Size:                  118
+Flat Size:                 136
 
 (con integer 42)

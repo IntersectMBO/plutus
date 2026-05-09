@@ -296,14 +296,11 @@ compileDataConRef dc = do
   dcs <- getDataCons tc
   constrs <- getConstructors tc
 
-  -- TODO: this is inelegant
-  index <- case elemIndex dc dcs of
-    Just i -> pure i
+  case lookup dc (zip dcs constrs) of
+    Just constr -> pure constr
     Nothing ->
       throwPlain $
         CompilationError "Data constructor not in the type constructor's list of constructors"
-
-  pure $ constrs !! index
   where
     tc = GHC.dataConTyCon dc
 
@@ -1269,7 +1266,7 @@ compileExpr mloc e = do
             ( -- If the head of the application is an `AsData` matcher, propagate the
               -- `annIsAsDataMatcher` annotation to the whole application.
               -- See Note [Compiling AsData Matchers and Their Invocations]
-              if annIsAsDataMatcher (PIR.termAnn l')
+              if annIsAsDataMatcher (PIR.getAnn l')
                 then fmap (\ann -> ann {annIsAsDataMatcher = True})
                 else id
             )
@@ -1281,7 +1278,7 @@ compileExpr mloc e = do
         -- otherwise it's a normal application
         l `GHC.App` arg -> do
           l' <- compileExpr Nothing l
-          let isAsDataMatcher = annIsAsDataMatcher (PIR.termAnn l')
+          let isAsDataMatcher = annIsAsDataMatcher (PIR.getAnn l')
           fmap
             ( -- If the head of the application is an `AsData` matcher, propagate the
               -- `annIsAsDataMatcher` annotation to the whole application.

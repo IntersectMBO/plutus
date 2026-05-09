@@ -141,11 +141,11 @@ computeCek !ctx !env (Delay _ body) = do
 -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
 computeCek !ctx !env (Force _ body) = do
   stepAndMaybeSpend BForce
-  pure $ Computing (FrameForce (termAnn body) ctx) env body
+  pure $ Computing (FrameForce (getAnn body) ctx) env body
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
 computeCek !ctx !env (Apply _ fun arg) = do
   stepAndMaybeSpend BApply
-  pure $ Computing (FrameAwaitFunTerm (termAnn fun) env arg ctx) env fun
+  pure $ Computing (FrameAwaitFunTerm (getAnn fun) env arg ctx) env fun
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
@@ -184,7 +184,7 @@ returnCek (FrameForce _ ctx) fun = forceEvaluate ctx fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
 returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg ctx) fun =
   -- MAYBE: perhaps it is worth here to merge the _funAnn with argAnn
-  pure $ Computing (FrameAwaitArg (termAnn arg) fun ctx) argVarEnv arg
+  pure $ Computing (FrameAwaitArg (getAnn arg) fun ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
 -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1878):
 -- add rule for VBuiltin once it's in the specification.
@@ -399,7 +399,7 @@ cekStateContext f = \case
 
 cekStateAnn :: CekState uni fun ann -> Maybe ann
 cekStateAnn = \case
-  Computing _ _ t -> pure $ termAnn t
+  Computing _ _ t -> pure $ getAnn t
   Returning ctx _ -> contextAnn ctx
   _ -> empty
 

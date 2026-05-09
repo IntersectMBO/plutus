@@ -1,1 +1,1 @@
-ByteString -> IntegerCostedLiterally -> ByteString
+ByteString -> Int -> ByteString

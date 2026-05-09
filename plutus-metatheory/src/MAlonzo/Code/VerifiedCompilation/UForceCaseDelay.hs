@@ -27,6 +27,7 @@ import qualified MAlonzo.Code.Data.List.Relation.Unary.All
 import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.Utils
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
 import qualified MAlonzo.Code.VerifiedCompilation.Trace
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
@@ -148,7 +149,7 @@ du_go_76 v0
 d_FCD_84 a0 a1 a2 = ()
 data T_FCD_84
   = C_isFCD_86 MAlonzo.Code.Data.List.Relation.Unary.All.T_All_44
-               MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12
+               MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8
                MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48
 -- VerifiedCompilation.UForceCaseDelay.ForceCaseDelay
 d_ForceCaseDelay_92 ::
@@ -164,9 +165,9 @@ d_isForceCaseDelay'63'_94 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isForceCaseDelay'63'_94 v0
   = coe
-      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
+      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_160
       (coe v0)
-      (coe MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10)
+      (coe MAlonzo.Code.VerifiedCompilation.Trace.d_ForceCaseDelayT_34)
       (coe d_isFCD'63'_96)
 -- VerifiedCompilation.UForceCaseDelay.isFCD?
 d_isFCD'63'_96 ::
@@ -270,7 +271,7 @@ d_isFCD'63'_96 v0 v1 v2
                                                                                                                                                   = coe
                                                                                                                                                       MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_304
                                                                                                                                                       (coe
-                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10)
+                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.Trace.d_ForceCaseDelayT_34)
                                                                                                                                                       (coe
                                                                                                                                                          d_isForceCaseDelay'63'_94
                                                                                                                                                          (coe
@@ -297,16 +298,14 @@ d_isFCD'63'_96 v0 v1 v2
                                                                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v36 v37 v38
                                                                                                                                                    -> coe
                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                                                                                        (coe
-                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10)
+                                                                                                                                                        MAlonzo.Code.VerifiedCompilation.Trace.d_ForceCaseDelayT_34
                                                                                                                                                         v1
                                                                                                                                                         v2
                                                                                                                                                  _ -> MAlonzo.RTE.mazUnreachableError)
                                                                                                                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v34 v35 v36
                                                                                                                                          -> coe
                                                                                                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                                                                              (coe
-                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10)
+                                                                                                                                              MAlonzo.Code.VerifiedCompilation.Trace.d_ForceCaseDelayT_34
                                                                                                                                               v1
                                                                                                                                               v2
                                                                                                                                        _ -> MAlonzo.RTE.mazUnreachableError)
@@ -317,8 +316,7 @@ d_isFCD'63'_96 v0 v1 v2
                                                                                                                                 v28)
                                                                                                                              (coe
                                                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                                                                (coe
-                                                                                                                                   MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10)
+                                                                                                                                MAlonzo.Code.VerifiedCompilation.Trace.d_ForceCaseDelayT_34
                                                                                                                                 v1
                                                                                                                                 v2)
                                                                                                                _ -> MAlonzo.RTE.mazUnreachableError)))
@@ -329,8 +327,7 @@ d_isFCD'63'_96 v0 v1 v2
                                                                                  seq (coe v18)
                                                                                  (coe
                                                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                                                                                    (coe
-                                                                                       MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10)
+                                                                                    MAlonzo.Code.VerifiedCompilation.Trace.d_ForceCaseDelayT_34
                                                                                     v1 v2)
                                                                    _ -> MAlonzo.RTE.mazUnreachableError)))
                                                    _ -> MAlonzo.RTE.mazUnreachableError
@@ -342,8 +339,7 @@ d_isFCD'63'_96 v0 v1 v2
                        seq (coe v5)
                        (coe
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                          (coe MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_10)
-                          v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Trace.d_ForceCaseDelayT_34 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UForceCaseDelay..extendedlambda1
 d_'46'extendedlambda1_112 ::
@@ -380,11 +376,13 @@ d_'46'extendedlambda4_228 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
+  MAlonzo.Code.Utils.T_Either_6
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
@@ -401,12 +399,14 @@ d_'46'extendedlambda5_280 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
+  MAlonzo.Code.Utils.T_Either_6
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
+  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_8 ->
   MAlonzo.Code.Data.List.Relation.Unary.All.T_All_44 ->
   T_FCD_84 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda5_280 = erased

@@ -102,6 +102,9 @@ module PlutusPrelude
   , showText
   , Default (def)
 
+    -- * Annotations
+  , HasAnn (..)
+
     -- * Lists
   , zipExact
   , allSame
@@ -160,6 +163,16 @@ import GHC.Natural (Natural)
 import Prettyprinter
 import Text.PrettyBy.Default
 import Text.PrettyBy.Internal
+
+-- | Types that have an outermost annotation.
+class HasAnn f where
+  -- | Get the outermost annotation.
+  getAnn :: f a -> a
+  -- | Modify the outermost annotation.
+  modifyAnn :: (a -> a) -> f a -> f a
+  -- | Set the outermost annotation.
+  setAnn :: a -> f a -> f a
+  setAnn = modifyAnn . const
 
 infixr 2 ?
 infixl 4 <<$>>, <<*>>

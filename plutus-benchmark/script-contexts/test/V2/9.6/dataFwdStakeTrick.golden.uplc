@@ -9,22 +9,22 @@
                     (equalsData obsScriptCred wdrlAtZero)
                     [ (case
                          (equalsData obsScriptCred wdrlAtOne)
-                         [ (case
-                              ((\s -> s s)
-                                 (\s xs ->
-                                    case
-                                      xs
-                                      [ (\x xs ->
-                                           case
-                                             (equalsData
-                                                obsScriptCred
-                                                (case x [(\l r -> l)]))
-                                             [(s s xs), True])
-                                      , False ])
-                                 rest)
-                              [ ((\x -> error)
-                                   (force trace "not found" (constr 0 [])))
-                              , (constr 0 []) ])
+                         [ ((\s ->
+                               case
+                                 (s s rest)
+                                 [ ((\x -> error)
+                                      (force trace "not found" (constr 0 [])))
+                                 , (constr 0 []) ])
+                              (\s xs ->
+                                 case
+                                   xs
+                                   [ (\x xs ->
+                                        case
+                                          (equalsData
+                                             obsScriptCred
+                                             (case x [(\l r -> l)]))
+                                          [(s s xs), True])
+                                   , False ]))
                          , (constr 0 []) ])
                     , (constr 0 []) ])
                  (case (force headList rest) [(\l r -> l)]))

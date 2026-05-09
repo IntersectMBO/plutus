@@ -342,8 +342,12 @@ BUILTIN writeBits (base $ V-con s $ V-con ps $ V-con u) with writeBITS s (toList
 BUILTIN replicateByte (base  $ V-con l $ V-con w) with replicateBYTE l w
 ... | just r = inj₂ (V-con r)
 ... | nothing  = inj₁ (con (ne (^ (atomic aBytestring))))
-BUILTIN shiftByteString (base $ V-con s $ V-con i) = inj₂ (V-con (shiftBYTESTRING s i))
-BUILTIN rotateByteString (base $ V-con s $ V-con i) = inj₂ (V-con (rotateBYTESTRING s i))
+BUILTIN shiftByteString (base $ V-con s $ V-con i) with shiftBYTESTRING s i
+... | just r = inj₂ (V-con r)
+... | nothing = inj₁ (con (ne (^ (atomic aBytestring))))
+BUILTIN rotateByteString (base $ V-con s $ V-con i) with rotateBYTESTRING s i
+... | just r = inj₂ (V-con r)
+... | nothing = inj₁ (con (ne (^ (atomic aBytestring))))
 BUILTIN countSetBits (base $ V-con  s) = inj₂ (V-con (countSetBITS s))
 BUILTIN findFirstSetBit (base $ V-con s) = inj₂ (V-con (findFirstSetBIT s))
 BUILTIN expModInteger (base  $ V-con b $ V-con e $ V-con m) with expModINTEGER b e m

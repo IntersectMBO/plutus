@@ -6,6 +6,7 @@ module PlutusTx.Plugin.Unsupported where
 
 import PlutusTx.Compiler.Compat qualified as Compat
 import PlutusTx.Compiler.Expr
+import PlutusTx.Compiler.Type (splitGhcName)
 import PlutusTx.Eq qualified
 import PlutusTx.Ord qualified
 import PlutusTx.Plugin.Utils qualified
@@ -79,13 +80,6 @@ renderGhcName :: GHC.Name -> String
 renderGhcName = GHC.showSDocUnsafe . GHC.pprName
 {-# INLINE renderGhcName #-}
 
-splitGhcName :: GHC.Name -> (Maybe Module, String)
-splitGhcName name = (modu, occ)
-  where
-    modu = fmap (GHC.moduleNameString . GHC.moduleName) (GHC.nameModule_maybe name)
-    occ = GHC.occNameString (GHC.nameOccName name)
-{-# INLINE splitGhcName #-}
-
 unsupportedBaseClasses :: Map (Module, Class) UseThisInstead
 unsupportedBaseClasses =
   Map.fromList
@@ -102,9 +96,7 @@ unsupportedMarkerModule, unsupportedMarkerName :: String
 unsupportedMarkerModule = fromJust $ TH.nameModule 'PlutusTx.Plugin.Utils.unsupported
 unsupportedMarkerName = TH.nameBase 'PlutusTx.Plugin.Utils.unsupported
 
-injectUnsupportedMarkers
-  :: GHC.TcGblEnv
-  -> GHC.TcM GHC.TcGblEnv
+injectUnsupportedMarkers :: GHC.TcGblEnv -> GHC.TcM GHC.TcGblEnv
 injectUnsupportedMarkers env = do
   hscEnv <- GHC.getTopEnv
   findResult <-

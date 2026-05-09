@@ -8,22 +8,21 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 
 module Optimization.Spec where
 
 import Test.Tasty.Extras
 
-import Data.Proxy
+import Plinth.Plugin (plinthc)
 import PlutusCore.Test
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
-import PlutusTx.Plugin (plc)
 import PlutusTx.TH (compile)
 import PlutusTx.Test
 
@@ -62,8 +61,7 @@ maybeFun =
 -- Features a nested field which is also defined with AsData
 matchAsData :: CompiledCode (MaybeD Integer -> Integer)
 matchAsData =
-  plc
-    (Proxy @"matchAsData")
+  plinthc
     ( \case
         JustD a _ -> a
         NothingD -> 1
@@ -71,6 +69,5 @@ matchAsData =
 
 unsafeDeconstructData :: CompiledCode (Builtins.BuiltinData -> Maybe (Integer, Integer))
 unsafeDeconstructData =
-  plc
-    (Proxy @"deconstructData")
+  plinthc
     (\(d :: Builtins.BuiltinData) -> IsData.unsafeFromBuiltinData d)

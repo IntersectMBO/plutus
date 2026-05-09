@@ -16,12 +16,12 @@ module Main (main) where
 
 import Prelude qualified as Haskell
 
+import Plinth.Plugin ()
 import PlutusBenchmark.Common (benchTermCek, mkMostRecentEvalCtx)
 import PlutusCore
 import PlutusCore.Pretty qualified as PP
 import PlutusLedgerApi.Common (EvaluationContext)
 import PlutusTx qualified as Tx
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 import UntypedPlutusCore as UPLC
 

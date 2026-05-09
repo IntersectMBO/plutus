@@ -15,11 +15,11 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:conservative-optimisation #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-remove-trace #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:preserve-logging #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:conservative-optimisation #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-remove-trace #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:preserve-logging #-}
 
 module LinearVesting.Validator
   ( VestingDatum (..)
@@ -179,14 +179,16 @@ valueOf valueData cs tn =
 {-# INLINE getScriptHashFromAddress #-}
 getScriptHashFromAddress :: BI.BuiltinData -> BI.BuiltinByteString
 getScriptHashFromAddress addr =
-  BI.unsafeDataAsB (BI.head (BI.snd (BI.unsafeDataAsConstr (BI.head (BI.snd (BI.unsafeDataAsConstr addr))))))
+  BI.unsafeDataAsB
+    (BI.head (BI.snd (BI.unsafeDataAsConstr (BI.head (BI.snd (BI.unsafeDataAsConstr addr))))))
 
 -- No credential tag check needed: the extracted hash is verified
 -- against txInfoSignatories, which the ledger validates.
 {-# INLINE getPubKeyHashFromAddress #-}
 getPubKeyHashFromAddress :: BI.BuiltinData -> BI.BuiltinByteString
 getPubKeyHashFromAddress addr =
-  BI.unsafeDataAsB (BI.head (BI.snd (BI.unsafeDataAsConstr (BI.head (BI.snd (BI.unsafeDataAsConstr addr))))))
+  BI.unsafeDataAsB
+    (BI.head (BI.snd (BI.unsafeDataAsConstr (BI.head (BI.snd (BI.unsafeDataAsConstr addr))))))
 
 {-# INLINE getSpendingInfo #-}
 getSpendingInfo :: BI.BuiltinData -> BI.BuiltinPair BI.BuiltinData BI.BuiltinData

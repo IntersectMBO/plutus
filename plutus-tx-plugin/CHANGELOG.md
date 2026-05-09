@@ -1,4 +1,24 @@
 
+<a id='changelog-1.63.0.0'></a>
+# 1.63.0.0 — 2026-05-01
+
+## Removed
+
+- Removed `PlutusTx.Plugin` and `plc`.
+  Use `Plinth.Plugin` and `plinthc` instead.
+
+<a id='changelog-1.62.0.0'></a>
+# 1.62.0.0 — 2026-04-24
+
+## Added
+
+- Added a new plugin option `certified-opts-only` which disables those optimisation passes which are not certified to preserve the functional behavior of the original program.
+
+## Changed
+
+- The plugin now automatically inserts INLINEABLE pragmas.
+  Requires compiling with `plinthc` or `plc` instead of `compile`.
+
 <a id='changelog-1.61.0.0'></a>
 # 1.61.0.0 — 2026-04-02
 

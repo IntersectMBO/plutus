@@ -5,12 +5,6 @@ letrec
 in
 let
   !addInteger : integer -> integer -> integer = addInteger
-  ~addInteger : integer -> integer -> integer
-    = \(x : integer) ->
-        let
-          !x : integer = x
-        in
-        \(y : integer) -> let !y : integer = y in addInteger x y
   ~lengthStrict : all a. List a -> integer
     = /\a ->
         letrec

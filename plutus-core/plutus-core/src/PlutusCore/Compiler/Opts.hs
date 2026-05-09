@@ -2,7 +2,7 @@
 
 module PlutusCore.Compiler.Opts
   ( CompilationOpts (..)
-  , coSimplifyOpts
+  , coOptimizeOpts
   , coBuiltinSemanticsVariant
   , defaultCompilationOpts
   ) where
@@ -10,10 +10,10 @@ module PlutusCore.Compiler.Opts
 import Control.Lens (makeLenses)
 import Data.Default.Class (Default (def))
 import PlutusCore.Builtin.Meaning (BuiltinSemanticsVariant)
-import UntypedPlutusCore.Simplify.Opts (SimplifyOpts, defaultSimplifyOpts)
+import UntypedPlutusCore.Optimize.Opts (OptimizeOpts, defaultOptimizeOpts)
 
 data CompilationOpts name fun a = CompilationOpts
-  { _coSimplifyOpts :: SimplifyOpts name a
+  { _coOptimizeOpts :: OptimizeOpts name a
   , _coBuiltinSemanticsVariant :: BuiltinSemanticsVariant fun
   }
 
@@ -22,6 +22,6 @@ $(makeLenses ''CompilationOpts)
 defaultCompilationOpts :: Default (BuiltinSemanticsVariant fun) => CompilationOpts name fun a
 defaultCompilationOpts =
   CompilationOpts
-    { _coSimplifyOpts = defaultSimplifyOpts
+    { _coOptimizeOpts = defaultOptimizeOpts
     , _coBuiltinSemanticsVariant = def
     }

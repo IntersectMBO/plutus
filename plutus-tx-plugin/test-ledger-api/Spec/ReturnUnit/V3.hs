@@ -7,7 +7,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=SumsOfProducts #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=SumsOfProducts #-}
 
 module Spec.ReturnUnit.V3 where
 

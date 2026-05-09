@@ -282,6 +282,9 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
+  , "test-cases/uplc/evaluation/builtin/semantics/appendString"
+  , "test-cases/uplc/evaluation/builtin/semantics/encodeUtf8"
+  , "test-cases/uplc/evaluation/builtin/semantics/equalsString/equalsString-02"
   , -- These "constant casing" tests fail because Agda metatheory does not yet
     -- implement casing on constant values.
     -- TODO: remove these tests once casing on constant is added to Agda metatheory.

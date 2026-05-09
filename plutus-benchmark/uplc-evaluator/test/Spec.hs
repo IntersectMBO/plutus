@@ -21,13 +21,16 @@ import TestHelpers
   ( EvalError (..)
   , EvalResult (..)
   , TimingSample (..)
+  , defaultWaitMs
+  , errorPath
   , readErrorJsonOrFail
   , readResultJson
   , readResultJsonOrFail
+  , resultPath
   , submitProgram
   , submitProgramFlat
-  , waitForError
   , waitForErrorOrFail
+  , waitForFile
   , waitForResult
   , waitForResultOrFail
   )
@@ -70,8 +73,7 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
 
                   -- Verify program_id matches submitted UUID
@@ -129,9 +131,8 @@ main = withUtf8 do
                   let flatBytes = "\x01\x00\x00\x00\x01\x00\x00\x00" -- 8 bytes of binary data
                   submitProgramFlat handle jobId flatBytes
 
-                  -- Wait for error (5 second timeout)
                   -- Expected: MVP validates text content, flat binary won't have "(program" prefix
-                  path <- waitForErrorOrFail handle jobId 5000
+                  path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
 
                   -- Verify program_id matches submitted UUID
@@ -173,8 +174,7 @@ main = withUtf8 do
                   let emptyProgram = ""
                   submitProgram handle jobId emptyProgram
 
-                  -- Wait for error (5 second timeout)
-                  path <- waitForErrorOrFail handle jobId 5000
+                  path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
 
                   -- Verify program_id matches submitted UUID
@@ -203,8 +203,7 @@ main = withUtf8 do
                   let invalidProgram = "not a valid program"
                   submitProgram handle jobId invalidProgram
 
-                  -- Wait for error (5 second timeout)
-                  path <- waitForErrorOrFail handle jobId 5000
+                  path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches submitted UUID
                   let expectedId = T.pack (UUID.toString jobId)
@@ -231,8 +230,7 @@ main = withUtf8 do
                   let invalidProgram = "program 1.0.0 (con integer 42)"
                   submitProgram handle jobId invalidProgram
 
-                  -- Wait for error (5 second timeout)
-                  path <- waitForErrorOrFail handle jobId 5000
+                  path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches submitted UUID
                   let expectedId = T.pack (UUID.toString jobId)
@@ -260,12 +258,11 @@ main = withUtf8 do
                   -- Service will extract "not-a-uuid" as the job ID (first 36 chars of base name)
                   let expectedJobId = "not-a-uuid"
                       errorFilename = expectedJobId ++ ".error.json"
-                      errorPath = shOutputDir handle </> errorFilename
+                      errorFilePath = shOutputDir handle </> errorFilename
 
-                  -- Wait for error file (5 second timeout)
                   path <-
                     maybe (assertFailure "Timeout waiting for error.json") pure
-                      =<< waitForFileWithTimeout errorPath 5000
+                      =<< waitForFile errorFilePath defaultWaitMs
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches truncated filename
                   eeProgramId evalError @?= T.pack expectedJobId
@@ -294,12 +291,11 @@ main = withUtf8 do
                   -- Service will extract "job-123" as the job ID
                   let expectedJobId = "job-123"
                       errorFilename = expectedJobId ++ ".error.json"
-                      errorPath = shOutputDir handle </> errorFilename
+                      errorFilePath = shOutputDir handle </> errorFilename
 
-                  -- Wait for error file (5 second timeout)
                   path <-
                     maybe (assertFailure "Timeout waiting for error.json") pure
-                      =<< waitForFileWithTimeout errorPath 5000
+                      =<< waitForFile errorFilePath defaultWaitMs
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches truncated filename
                   eeProgramId evalError @?= T.pack expectedJobId
@@ -328,12 +324,11 @@ main = withUtf8 do
                   -- Service will extract "12345" as the job ID
                   let expectedJobId = "12345"
                       errorFilename = expectedJobId ++ ".error.json"
-                      errorPath = shOutputDir handle </> errorFilename
+                      errorFilePath = shOutputDir handle </> errorFilename
 
-                  -- Wait for error file (5 second timeout)
                   path <-
                     maybe (assertFailure "Timeout waiting for error.json") pure
-                      =<< waitForFileWithTimeout errorPath 5000
+                      =<< waitForFile errorFilePath defaultWaitMs
                   evalError <- readErrorJsonOrFail path
                   -- Verify program_id matches truncated filename
                   eeProgramId evalError @?= T.pack expectedJobId
@@ -362,8 +357,7 @@ main = withUtf8 do
                   let program = "(program 1.0.0 [ (con integer 42) (con integer 1) ])"
                   submitProgram handle jobId program
 
-                  -- Wait for error (5 second timeout)
-                  path <- waitForErrorOrFail handle jobId 5000
+                  path <- waitForErrorOrFail handle jobId
                   evalError <- readErrorJsonOrFail path
 
                   -- Verify program_id matches submitted UUID
@@ -406,36 +400,18 @@ main = withUtf8 do
                   writeFile jsonPath program
                   writeFile configPath program
 
-                  -- Wait 2 seconds to ensure service has time to process (if it were to)
+                  -- Give the service enough time to process (if it were to)
                   threadDelay 2000000 -- 2 seconds in microseconds
 
-                  -- Verify none of these produced result or error files
-                  result1 <- waitForResult handle jobId1 100 -- Short timeout, should already exist if processed
-                  result2 <- waitForResult handle jobId2 100
-                  result3 <- waitForResult handle jobId3 100
-                  error1 <- waitForError handle jobId1 100
-                  error2 <- waitForError handle jobId2 100
-                  error3 <- waitForError handle jobId3 100
-
-                  -- All should be Nothing (not processed)
-                  case result1 of
-                    Just _ -> assertFailure ".txt file should not be processed"
-                    Nothing -> return ()
-                  case result2 of
-                    Just _ -> assertFailure ".json file should not be processed"
-                    Nothing -> return ()
-                  case result3 of
-                    Just _ -> assertFailure ".uplc.config file should not be processed"
-                    Nothing -> return ()
-                  case error1 of
-                    Just _ -> assertFailure ".txt file should not produce error"
-                    Nothing -> return ()
-                  case error2 of
-                    Just _ -> assertFailure ".json file should not produce error"
-                    Nothing -> return ()
-                  case error3 of
-                    Just _ -> assertFailure ".uplc.config file should not produce error"
-                    Nothing -> return ()
+                  -- None of these should have produced result or error files
+                  let assertNotProcessed jobId label = do
+                        r <- doesFileExist (resultPath handle jobId)
+                        assertBool (label ++ " should not be processed") (not r)
+                        e <- doesFileExist (errorPath handle jobId)
+                        assertBool (label ++ " should not produce error") (not e)
+                  assertNotProcessed jobId1 ".txt file"
+                  assertNotProcessed jobId2 ".json file"
+                  assertNotProcessed jobId3 ".uplc.config file"
             , testCase "Valid .uplc.txt file is processed alongside ignored files" do
                 execPath <- findEvaluatorExecutable
                 withEvaluatorService execPath \handle -> do
@@ -454,17 +430,15 @@ main = withUtf8 do
                   writeFile ignoredPath program
 
                   -- Wait for the valid file to be processed
-                  path <-
-                    maybe (assertFailure "Valid .uplc.txt file should be processed") pure
-                      =<< waitForResult handle validJobId 5000
+                  path <- waitForResultOrFail handle validJobId
                   result <- readResultJsonOrFail path
                   erStatus result @?= "success"
 
-                  -- Verify the ignored file was not processed
-                  ignoredResult <- waitForResult handle ignoredJobId 100
-                  case ignoredResult of
-                    Just _ -> assertFailure "File with wrong extension should not be processed"
-                    Nothing -> return ()
+                  -- The ignored file should not have been processed by now
+                  ignoredExists <- doesFileExist (resultPath handle ignoredJobId)
+                  assertBool
+                    "File with wrong extension should not be processed"
+                    (not ignoredExists)
             ]
         , testGroup
             "Measurement Data Validation"
@@ -478,8 +452,7 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify timing_samples array has 10-20 entries
                   let samples = erTimingSamples result
@@ -523,8 +496,7 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify we have timing samples
                   let samples = erTimingSamples result
@@ -568,7 +540,7 @@ main = withUtf8 do
                       submitProgram handle jobId program
 
                       -- Wait for result (should succeed, not produce validation error)
-                      path <- waitForResultOrFail handle jobId 5000
+                      path <- waitForResultOrFail handle jobId
                       result <- readResultJsonOrFail path
                       -- Verify program_id matches submitted UUID
                       erProgramId result @?= T.pack uuidText
@@ -594,7 +566,7 @@ main = withUtf8 do
                       submitProgram handle jobId program
 
                       -- Wait for result (should succeed, not produce validation error)
-                      path <- waitForResultOrFail handle jobId 5000
+                      path <- waitForResultOrFail handle jobId
                       result <- readResultJsonOrFail path
                       -- Verify status is "success" (not validation error)
                       erStatus result @?= "success"
@@ -620,9 +592,9 @@ main = withUtf8 do
                   submitProgram handle jobId3 program
 
                   -- Wait for all results
-                  result1Path <- waitForResult handle jobId1 5000
-                  result2Path <- waitForResult handle jobId2 5000
-                  result3Path <- waitForResult handle jobId3 5000
+                  result1Path <- waitForResult handle jobId1
+                  result2Path <- waitForResult handle jobId2
+                  result3Path <- waitForResult handle jobId3
 
                   -- Verify all succeeded
                   case (result1Path, result2Path, result3Path) of
@@ -665,8 +637,7 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   erStatus result @?= "success"
 
@@ -718,8 +689,7 @@ main = withUtf8 do
                   -- Submit all 5 programs simultaneously
                   mapM_ (\jobId -> submitProgram handle jobId program) jobIds
 
-                  -- Wait for all results (5 second timeout each)
-                  paths <- mapM (\jobId -> waitForResultOrFail handle jobId 5000) jobIds
+                  paths <- mapM (\jobId -> waitForResultOrFail handle jobId) jobIds
                   results <- mapM readResultJsonOrFail paths
                   -- Verify we got exactly 5 results
                   length results @?= 5
@@ -770,8 +740,7 @@ main = withUtf8 do
                   let program = "   (program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
                   erStatus result @?= "success"
@@ -791,8 +760,7 @@ main = withUtf8 do
                   let program = "\n\n(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
                   erStatus result @?= "success"
@@ -812,8 +780,7 @@ main = withUtf8 do
                   let program = "\t(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
                   erStatus result @?= "success"
@@ -833,8 +800,7 @@ main = withUtf8 do
                   let program = " \t\n  \t(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
                   erStatus result @?= "success"
@@ -857,8 +823,7 @@ main = withUtf8 do
                   let program = "(program 1.0.0 (con integer 42))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
                   erStatus result @?= "success"
@@ -883,8 +848,7 @@ main = withUtf8 do
                     |]
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
                   erStatus result @?= "success"
@@ -911,8 +875,7 @@ main = withUtf8 do
                     |]
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
                   erStatus result @?= "success"
@@ -932,8 +895,7 @@ main = withUtf8 do
                   let program = "(program 1.1.0 (constr 0 (con integer 42) (con bool True)))"
                   submitProgram handle jobId program
 
-                  -- Wait for result (5 second timeout)
-                  path <- waitForResultOrFail handle jobId 5000
+                  path <- waitForResultOrFail handle jobId
                   result <- readResultJsonOrFail path
                   -- Verify status is "success"
                   erStatus result @?= "success"
@@ -946,21 +908,3 @@ main = withUtf8 do
             ]
         ]
     )
-
-{-| Helper function to wait for a file to appear with timeout
-Used for non-UUID based filenames where we can't use the standard helpers -}
-waitForFileWithTimeout :: FilePath -> Int -> IO (Maybe FilePath)
-waitForFileWithTimeout filepath timeoutMs = go 0
-  where
-    timeoutUs = timeoutMs * 1000
-    pollIntervalUs = 50000
-    go elapsedUs = do
-      exists <- doesFileExist filepath
-      if exists
-        then return (Just filepath)
-        else
-          if elapsedUs >= timeoutUs
-            then return Nothing
-            else do
-              threadDelay pollIntervalUs
-              go (elapsedUs + pollIntervalUs)

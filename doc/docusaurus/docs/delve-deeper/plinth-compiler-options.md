@@ -12,8 +12,8 @@ Do NOT modify by hand.
 --->
 
 ``` haskell
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-uplc #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=3 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:dump-uplc #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=3 #-}
 ```
 
 For each boolean option, you can add a `no-` prefix to switch it off, such as `no-typecheck`, `no-simplifier-beta`.
@@ -21,6 +21,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |Option|Value Type|Default|Description|
 |-|-|-|-|
 |`apply-to-case`|Bool|True|Run the apply-to-case pass, turning multi-argument applications into case-constr form.|
+|`certified-opts-only`|Bool|False|Run only those optimisation passes which are certified to preserve the functional behavior of the original program.|
 |`certify`|Maybe [Char]||Produce a certificate for the compiled program, with the given name. This certificate provides evidence that the compiler optimizations have preserved the functional behavior of the original program. Currently, this is only supported for the UPLC compilation pipeline.|
 |`conservative-optimisation`|Bool|False|When conservative optimisation is used, only the optimisations that never make the program worse (in terms of cost or size) are employed. Implies `no-relaxed-float-in`, `no-inline-constants`, `no-inline-fix`, `no-simplifier-evaluate-builtins`, and `preserve-logging`.|
 |`context-level`|Int|1|Set context level for error messages.|
@@ -34,15 +35,17 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`dump-pir`|Bool|False|Dump Plutus IR|
 |`dump-tplc`|Bool|False|Dump Typed Plutus Core|
 |`dump-uplc`|Bool|False|Dump Untyped Plutus Core|
-|`inline-callsite-growth`|Int|5|Sets the inlining threshold for callsites. 0 disables inlining a binding at a callsite if it increases the AST size; `n` allows inlining if the AST size grows by no more than `n`. Keep in mind that doing so does not mean the final program will be bigger, since inlining can often unlock further optimizations.|
+|`inline-callsite-growth`|Int|5|Sets the inlining threshold for callsite inlining. 0 disables inlining a binding at a callsite if it increases the AST size; `n` allows inlining if the AST size grows by no more than `n`. Keep in mind that doing so does not mean the final program will be bigger, since inlining can often unlock further optimizations.|
 |`inline-constants`|Bool|True|Always inline constants. Inlining constants always reduces script costs slightly, but may increase script sizes if a large constant is used more than once. Implied by `no-conservative-optimisation`.|
 |`inline-fix`|Bool|True|Always inline fixed point combinators. This is generally preferable as it often enables further optimization, though it may increase script size.|
+|`inline-unconditional-growth`|Int|1|Sets the inlining threshold for unconditional inlining. `n` allows unconditional inlining if the AST size grows by at most `n` at each variable occurrence (i.e., the size of the binding's RHS is at most `n+1`).|
 |`max-cse-iterations`|Int|4|Set the max iterations for CSE|
 |`max-simplifier-iterations-pir`|Int|12|Set the max iterations for the PIR simplifier|
-|`max-simplifier-iterations-uplc`|Int|12|Set the max iterations for the UPLC simplifier|
+|`max-simplifier-iterations-uplc`|Int|12|Set the max iterations for the UPLC optimizer|
 |`optimize`|Bool|True|Run optimization passes such as simplification and floating let-bindings.|
 |`pedantic`|Bool|False|Run type checker after each compilation pass|
 |`preserve-logging`|Bool|True|Turn off optimisations that may alter (i.e., add, remove or change the order of) trace messages. Implied by `conservative-optimisation`.|
+|`preserve-source-locations`|Bool|False|Try to preserve source locations for use in error messages. This is an experimental feature.|
 |`profile-all`|ProfileOpts|None|Set profiling options to All, which adds tracing when entering and exiting a term.|
 |`relaxed-float-in`|Bool|True|Use a more aggressive float-in pass, which often leads to reduced costs but may occasionally lead to slightly increased costs. Implied by `no-conservative-optimisation`.|
 |`remove-trace`|Bool|False|Eliminate calls to `trace` from Plutus Core|

@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 {-|
 Transform multi-argument applications into case-constr form.
 
@@ -15,11 +17,12 @@ module UntypedPlutusCore.Transform.ApplyToCase (applyToCase) where
 
 import Control.Lens (over)
 import Data.Vector qualified as V
+import PlutusPrelude (getAnn)
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (ApplyToCase)
-  , SimplifierT
-  , recordSimplification
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimization
+  , pattern ApplyToCaseStage
   )
 
 minArgs :: Int
@@ -29,16 +32,16 @@ minArgs = 3
 applyToCase
   :: Monad m
   => Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 applyToCase term = do
   let result = processTerm term
-  recordSimplification term ApplyToCase result
+  recordOptimization term ApplyToCaseStage result
   pure result
 
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm t = case splitApplication t of
   (fun, args)
     | length args >= minArgs ->
-        let ann = termAnn t
+        let ann = getAnn t
          in Case ann (Constr ann 0 (processTerm . snd <$> args)) (V.singleton (processTerm fun))
   _ -> over termSubterms processTerm t

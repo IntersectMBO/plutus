@@ -4,7 +4,7 @@ import Certifier.Common (loadFrom, testScripts)
 import Control.DeepSeq (force)
 import Control.Exception (evaluate)
 import Control.Monad
-import FFI.SimplifierTrace
+import FFI.OptimizerTrace
 import FFI.Untyped (UTerm)
 import MAlonzo.Code.Certifier (runCertifierMain)
 import Test.Tasty (defaultMain, testGroup)

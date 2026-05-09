@@ -52,9 +52,9 @@ mkDefaultEvalCtx semvar =
 
 {-| Evaluate all ASTs in the trace, each applied to the given arguments arguments,
 in counting mode. Returns @(Maybe error, budget)@. -}
-evalSimplifierTrace
+evalOptimizerTrace
   :: EvaluationContext
-  -> SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  -> OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -> [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()]
   -- ^ Arguments to apply to each AST before evaluation
   -> [ ( Maybe
@@ -62,7 +62,7 @@ evalSimplifierTrace
        , ExBudget
        )
      ]
-evalSimplifierTrace evalCtx trace args =
+evalOptimizerTrace evalCtx trace args =
   first (either Just (const Nothing)) . evalCounting evalCtx newestPV
     <$> appliedTerms
   where

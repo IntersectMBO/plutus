@@ -296,7 +296,7 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{unListData}               & $[\ty{data}] \to \listOf{\ty{data}} $                          & $\proj_L$ & Yes & \\[2mm]
     \TT{unIData}                  & $[\ty{data}] \to \ty{integer} $                                & $\proj_I$ & Yes & \\[2mm]
     \TT{unBData}                  & $[\ty{data}] \to \ty{bytestring} $                             & $\proj_B$ & Yes & \\[2mm]
-    \TT{equalsData}               & $[\ty{data}, \ty{data}] \to \ty{bool} $                        & $ = $ & & \\[2mm]
+    \TT{equalsData}               & $[\ty{data}, \ty{data}] \to \ty{bool} $                        & $ = $ & No & \\[2mm]
     \TT{mkPairData}               & $[\ty{data}, \ty{data}]$ \text{\;\; $\to \pairOf{\ty{data}}{\ty{data}}$}  & $(x,y) \mapsto (x,y) $ & No & \\[2mm]
     \TT{mkNilData}                & $[\ty{unit}] \to \listOf{\ty{data}} $                       & $() \mapsto []$ & No & \\[2mm]
     \TT{mkNilPairData}            & $[\ty{unit}] $ \text{$\;\; \to \listOf{\pairOf{\ty{data}}{\ty{data}}} $}   & $() \mapsto []$ & No & \\[2mm]

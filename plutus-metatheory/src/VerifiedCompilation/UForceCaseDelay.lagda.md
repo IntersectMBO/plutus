@@ -17,7 +17,7 @@ module VerifiedCompilation.UForceCaseDelay where
 open import Data.Nat using (ℕ)
 open import Untyped 
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; DecidableCE; forceCaseDelayT; isProof?; isCE?)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; DecidableCE; ForceCaseDelayT; isProof?; isCE?)
 open import Data.List using (List; _∷_; [])
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
@@ -112,18 +112,18 @@ isForceCaseDelay? : DecidableCE (ForceCaseDelay {n})
 {-# TERMINATING #-}
 isFCD? : DecidableCE (FCD {n})
 isFCD? t t' with isForce? (isCase? isTerm? allTerms?) t 
-... | no ¬matchLHS = ce (λ { (isFCD p1 p2 p3) → ¬matchLHS (isforce (iscase (isterm _) (allterms _))) } ) forceCaseDelayT t t'
+... | no ¬matchLHS = ce (λ { (isFCD p1 p2 p3) → ¬matchLHS (isforce (iscase (isterm _) (allterms _))) } ) ForceCaseDelayT t t'
 ... | yes (isforce (iscase (isterm scrut) (allterms alts))) with isCase? isTerm? allTerms? t'
-... | no ¬matchRHS = ce (λ { (isFCD p1 p2 p3) → ¬matchRHS (iscase (isterm _) (allterms _)) } ) forceCaseDelayT t t'
+... | no ¬matchRHS = ce (λ { (isFCD p1 p2 p3) → ¬matchRHS (iscase (isterm _) (allterms _)) } ) ForceCaseDelayT t t'
 ... | yes (iscase (isterm scrut') (allterms alts')) with all? isBranch? alts
-... | no ¬areBranches = ce (λ { (isFCD p1 p2 p3) → ¬areBranches p1 } ) forceCaseDelayT t t'
+... | no ¬areBranches = ce (λ { (isFCD p1 p2 p3) → ¬areBranches p1 } ) ForceCaseDelayT t t'
 ... | yes areBranches with isForceCaseDelay? scrut scrut'
-... | ce ¬fcdScrut tag lhs rhs = ce (λ { (isFCD p1 p2 p3) → ¬fcdScrut p2 } ) forceCaseDelayT t t'
-... | proof fcdScrut with pcePointwise forceCaseDelayT isForceCaseDelay? (removeDelay alts) alts'
-... | ce ¬fcdAlts tag lhs rhs = ce (λ { (isFCD p1 p2 p3) → ¬fcdAlts p3 } ) forceCaseDelayT t t'
+... | ce ¬fcdScrut tag lhs rhs = ce (λ { (isFCD p1 p2 p3) → ¬fcdScrut p2 } ) ForceCaseDelayT t t'
+... | proof fcdScrut with pcePointwise ForceCaseDelayT isForceCaseDelay? (removeDelay alts) alts'
+... | ce ¬fcdAlts tag lhs rhs = ce (λ { (isFCD p1 p2 p3) → ¬fcdAlts p3 } ) ForceCaseDelayT t t'
 ... | proof fcdAlts = proof (isFCD areBranches fcdScrut fcdAlts)
 
-isForceCaseDelay? = translation? forceCaseDelayT isFCD?
+isForceCaseDelay? = translation? ForceCaseDelayT isFCD?
 
 ```
 

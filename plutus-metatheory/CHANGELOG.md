@@ -1,4 +1,32 @@
 
+<a id='changelog-1.63.0.0'></a>
+# 1.63.0.0 — 2026-05-01
+
+## Removed
+
+- Temporarily disabled the CSE certifier pass due to the discovery of bugs in the specification.
+
+## Added
+
+- Certifier for the case-reduce pass
+
+- Certifier for the LetFloatOut pass
+
+## Fixed
+
+- Fixed the CSE translation relation in the certifier and re-enabled it.
+
+<a id='changelog-1.62.0.0'></a>
+# 1.62.0.0 — 2026-04-24
+
+## Removed
+
+- Temporarily disabled the CaseReduce certifier pass due to the discovery of bugs in the specification.
+
+## Fixed
+
+- The certifier reports now include the number of optimization sites for the force-case-delay pass as well.
+
 <a id='changelog-1.61.0.0'></a>
 # 1.61.0.0 — 2026-04-02
 

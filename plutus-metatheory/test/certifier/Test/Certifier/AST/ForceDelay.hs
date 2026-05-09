@@ -298,7 +298,7 @@ lastAbsBreakAfter = runQuote $ do
 
 successItems
   :: [ ( String
-       , SimplifierStage
+       , OptStage
        , Term Name PLC.DefaultUni PLC.DefaultFun ()
        , Term Name PLC.DefaultUni PLC.DefaultFun ()
        )
@@ -306,26 +306,26 @@ successItems
 successItems =
   [
     ( "Simple one lambda"
-    , ForceDelay
+    , ForceDelayStage
     , simpleSuccessBefore
     , simpleSuccessAfter
     )
   ,
     ( "Nested"
-    , ForceDelay
+    , ForceDelayStage
     , nestedBefore
     , nestedAfter
     )
   ,
     ( "ifThenElse"
-    , ForceDelay
+    , ForceDelayStage
     , ifThenElseSuccessBefore
     , ifThenElseSuccessAfter
     )
   ]
 failItems
   :: [ ( String
-       , SimplifierStage
+       , OptStage
        , Term Name PLC.DefaultUni PLC.DefaultFun ()
        , Term Name PLC.DefaultUni PLC.DefaultFun ()
        )
@@ -333,43 +333,43 @@ failItems
 failItems =
   [
     ( "Simple extra delay"
-    , ForceDelay
+    , ForceDelayStage
     , simpleFailBefore
     , simpleFailAfter
     )
   ,
     ( "Simple force break"
-    , ForceDelay
+    , ForceDelayStage
     , simpleForceBreakBefore
     , simpleForceBreakAfter
     )
   ,
     ( "Simple app break"
-    , ForceDelay
+    , ForceDelayStage
     , simpleAppBreakBefore
     , simpleAppBreakAfter
     )
   ,
     ( "App term break"
-    , ForceDelay
+    , ForceDelayStage
     , appTermBreakBefore
     , appTermBreakAfter
     )
   ,
     ( "Lambda break"
-    , ForceDelay
+    , ForceDelayStage
     , lambdaBreakBefore
     , lambdaBreakAfter
     )
   ,
     ( "Last delay break"
-    , ForceDelay
+    , ForceDelayStage
     , lastDelayBreakBefore
     , lastDelayBreakAfter
     )
   ,
     ( "Last abs break"
-    , ForceDelay
+    , ForceDelayStage
     , lastAbsBreakBefore
     , lastAbsBreakAfter
     )

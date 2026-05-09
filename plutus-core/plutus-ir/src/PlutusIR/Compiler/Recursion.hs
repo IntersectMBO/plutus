@@ -91,7 +91,7 @@ mkFixpoint bs = do
     case PIR.mkFunctionDef p name ty term of
       Just fun -> pure fun
       Nothing ->
-        lift $ throwError $ CompilationError (PLC.typeAnn ty) "Recursive values must be of function type"
+        lift $ throwError $ CompilationError (PLC.getAnn ty) "Recursive values must be of function type"
 
   inlineFix <- view (ccOpts . coInlineConstants)
 

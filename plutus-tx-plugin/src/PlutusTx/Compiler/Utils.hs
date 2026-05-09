@@ -105,3 +105,25 @@ tyConsOfBind = \case
 
 tyConsOfAlt :: GHC.CoreAlt -> GHC.UniqSet GHC.TyCon
 tyConsOfAlt (GHC.Alt _ vars e) = foldMap tyConsOfBndr vars <> tyConsOfExpr e
+
+{-| Get the package name for the module being compiled.
+Tries 'lookupUnit' first (works for installed packages), then
+'thisPackageName' from DynFlags (works for home library units),
+and finally falls back to stripping the version from the unit ID string. -}
+getPackageName :: GHC.HscEnv -> GHC.Module -> String
+getPackageName hscEnv thisModule =
+  let unitState = GHC.hsc_units hscEnv
+      unit = GHC.moduleUnit thisModule
+   in case GHC.lookupUnit unitState unit of
+        Just unitInfo -> GHC.unitPackageNameString unitInfo
+        Nothing -> case GHC.thisPackageName (GHC.hsc_dflags hscEnv) of
+          Just n -> n
+          Nothing -> stripVersion (GHC.unitString unit)
+  where
+    -- Extract "foo-bar" from "foo-bar-1.2.3-inplace-component"
+    stripVersion s = go [] s
+    go acc [] = reverse acc
+    go acc ('-' : rest@(c : _))
+      | c >= '0', c <= '9' = reverse acc
+      | otherwise = go ('-' : acc) rest
+    go acc (c : rest) = go (c : acc) rest
