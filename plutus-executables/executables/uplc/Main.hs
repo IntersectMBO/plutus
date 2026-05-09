@@ -6,11 +6,22 @@ module Main (main) where
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
 import PlutusCore.Data (Data)
-import PlutusCore.Default (BuiltinSemanticsVariant (..))
-import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
+import PlutusCore.Default
+  ( BuiltinSemanticsVariant (..)
+  )
+import PlutusCore.Evaluation.Machine.ExBudget
+  ( ExBudget (..)
+  , ExRestrictingBudget (..)
+  )
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Executable.AstIO (UplcTermNDB, toDeBruijnTermUPLC)
+import PlutusCore.Evaluation.Machine.ExMemory
+  ( ExCPU (..)
+  , ExMemory (..)
+  )
+import PlutusCore.Executable.AstIO
+  ( UplcTermNDB
+  , toDeBruijnTermUPLC
+  )
 import PlutusCore.Executable.Blueprint
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Eval
@@ -24,32 +35,57 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
-import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
+import Codec.Serialise
+  ( DeserialiseFailure
+  , deserialiseOrFail
+  )
 import Control.DeepSeq (force)
 import Control.Exception (evaluate)
-import Control.Monad.Except (runExcept, tryError)
+import Control.Monad.Except
+  ( runExcept
+  , tryError
+  )
 import Control.Monad.Extra (whenJust)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.ST (RealWorld)
-import Criterion (benchmarkWith, whnf)
+import Criterion
+  ( benchmarkWith
+  , whnf
+  )
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as BSL
-import Data.IORef (newIORef, readIORef)
+import Data.IORef
+  ( newIORef
+  , readIORef
+  )
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Data.Text.IO qualified as T
-import Data.Time.Clock.System (SystemTime, getSystemTime, systemNanoseconds, systemSeconds)
+import Data.Time.Clock.System
+  ( SystemTime
+  , getSystemTime
+  , systemNanoseconds
+  , systemSeconds
+  )
 import Options.Applicative
 import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
 import System.Console.Haskeline qualified as Repl
 import System.Directory.Extra (doesFileExist)
-import System.Exit (ExitCode (..), exitFailure, exitWith)
+import System.Exit
+  ( ExitCode (..)
+  , exitFailure
+  , exitWith
+  )
 import System.FilePath
-import System.IO (hPrint, hPutStrLn, stderr)
+import System.IO
+  ( hPrint
+  , hPutStrLn
+  , stderr
+  )
 import System.Mem (performGC)
 import Text.Printf (printf)
 import Text.Read (readMaybe)
@@ -656,10 +692,10 @@ toNanos t = fromIntegral (systemSeconds t) * 1000000000 + fromIntegral (systemNa
 
 formatNs :: Integer -> String
 formatNs ns
-  | ns < 1000 = show ns ++ "ns"
-  | ns < 1000000 = printf "%.3f\xb5s" (fromIntegral ns / 1000 :: Double)
-  | ns < 1000000000 = printf "%.3fms" (fromIntegral ns / 1000000 :: Double)
-  | otherwise = printf "%.3fs" (fromIntegral ns / 1000000000 :: Double)
+  | ns < 1000 = printf "%d ns" ns
+  | ns < 1000000 = printf "%.3f \xb5s" (fromIntegral ns / 1000 :: Double)
+  | ns < 1000000000 = printf "%.3f ms" (fromIntegral ns / 1000000 :: Double)
+  | otherwise = printf "%.3f s" (fromIntegral ns / 1000000000 :: Double)
 
 runEval :: EvalOptions -> IO ()
 runEval
