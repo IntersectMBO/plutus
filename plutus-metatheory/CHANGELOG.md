@@ -1,4 +1,15 @@
 
+<a id='changelog-1.64.0.0'></a>
+# 1.64.0.0 — 2026-05-11
+
+## Changed
+
+- `InvalidCertificate` error now includes the certifier report text for better
+  diagnostics.
+- Use `createDirectoryIfMissing` instead of `createDirectory` to avoid failures
+  when certificate directories already exist.
+- Removed noisy console output from `runCertifier` (result and path messages).
+
 <a id='changelog-1.63.0.0'></a>
 # 1.63.0.0 — 2026-05-01
 
