@@ -243,7 +243,7 @@
             \(c : integer -> a -> a) (n : a) ->
               case
                 (all dead. a)
-                (case bool (lessThanEqualsInteger x 0) [True, False])
+                (lessThanInteger 0 x)
                 [(/\dead -> n), (/\dead -> c x n)]
                 {all dead. dead})
             (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)

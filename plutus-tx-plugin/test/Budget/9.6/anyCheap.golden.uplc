@@ -28,5 +28,4 @@
       (\s ds ->
          case
            ds
-           [ False
-           , (\x xs -> case (lessThanEqualsInteger 10 x) [True, (s s xs)]) ])))
+           [False, (\x xs -> case (lessThanInteger x 10) [(s s xs), True])])))

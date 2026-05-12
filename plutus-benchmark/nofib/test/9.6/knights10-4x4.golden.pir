@@ -46,8 +46,6 @@
           `$fEqChessSet_$c==`
           (\(x : ChessSet) (y : ChessSet) -> y)
           (\(x : ChessSet) (y : ChessSet) -> x)
-    !ifThenElse : all a. bool -> a -> a -> a
-      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
     !v : Ord integer
       = CConsOrd
           {integer}
@@ -66,10 +64,8 @@
                {all dead. dead})
           (\(x : integer) (y : integer) -> lessThanInteger x y)
           (\(x : integer) (y : integer) -> lessThanEqualsInteger x y)
-          (\(x : integer) (y : integer) ->
-             ifThenElse {bool} (lessThanEqualsInteger x y) False True)
-          (\(x : integer) (y : integer) ->
-             ifThenElse {bool} (lessThanInteger x y) False True)
+          (\(x : integer) (y : integer) -> lessThanInteger y x)
+          (\(x : integer) (y : integer) -> lessThanEqualsInteger y x)
           (\(x : integer) (y : integer) ->
              case
                (all dead. integer)
@@ -437,7 +433,7 @@
               = \(a : integer) ->
                   case
                     (all dead. List integer)
-                    (ifThenElse {bool} (lessThanEqualsInteger a b) False True)
+                    (lessThanInteger b a)
                     [ (/\dead -> Cons {integer} a (go (addInteger 1 a)))
                     , (/\dead -> Nil {integer}) ]
                     {all dead. dead}
@@ -605,7 +601,7 @@
                    (ipv : List (Tuple2 integer integer)) ->
                     case
                       (all dead. bool)
-                      (ifThenElse {bool} (lessThanInteger x 1) False True)
+                      (lessThanEqualsInteger 1 x)
                       [ (/\dead -> False)
                       , (/\dead ->
                            case
@@ -615,11 +611,7 @@
                              , (/\dead ->
                                   case
                                     (all dead. bool)
-                                    (ifThenElse
-                                       {bool}
-                                       (lessThanInteger y 1)
-                                       False
-                                       True)
+                                    (lessThanEqualsInteger 1 y)
                                     [ (/\dead -> False)
                                     , (/\dead ->
                                          case

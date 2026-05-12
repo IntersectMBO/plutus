@@ -30,8 +30,6 @@ letrec
                     {all dead. dead}))
 in
 let
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   data (These :: * -> * -> *) a b | These_match where
     That : b -> These a b
     These : a -> b -> These a b
@@ -97,23 +95,11 @@ letrec
                                       x
                                       {bool}
                                       (\(b : integer) ->
-                                         ifThenElse
-                                           {bool}
-                                           (lessThanInteger 0 b)
-                                           False
-                                           True)
+                                         lessThanEqualsInteger b 0)
                                       (\(a : integer) (b : integer) ->
-                                         ifThenElse
-                                           {bool}
-                                           (lessThanInteger a b)
-                                           False
-                                           True)
+                                         lessThanEqualsInteger b a)
                                       (\(a : integer) ->
-                                         ifThenElse
-                                           {bool}
-                                           (lessThanInteger a 0)
-                                           False
-                                           True))
+                                         lessThanEqualsInteger 0 a))
                                    [(/\dead -> False), (/\dead -> go xs)]
                                    {all dead. dead}))
                        {all dead. dead}

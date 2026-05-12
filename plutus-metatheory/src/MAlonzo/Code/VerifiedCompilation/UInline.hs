@@ -297,7 +297,7 @@ d_checkPointwise_304 ::
   Integer ->
   T__'8605'_28 ->
   T__'8605'_28 ->
-  [MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50] ->
+  [MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54] ->
   (MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   T__'8829'__102 ->
@@ -308,7 +308,7 @@ d_checkPointwise_304 v0 v1 v2 v3 v4 v5 v6 v7
   = let v8
           = coe
               MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
-              MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_36 v6 v7 in
+              MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_38 v6 v7 in
     coe
       (case coe v3 of
          []
@@ -358,19 +358,19 @@ d_check_316 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T__'8829'__102 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_Proof'63'_66
 d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
   = let v8
           = coe
               MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
-              MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_36 v4 v7 in
+              MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_38 v4 v7 in
     coe
       (case coe v4 of
          MAlonzo.Code.Untyped.C_'96'_18 v9
            -> case coe v6 of
-                MAlonzo.Code.VerifiedCompilation.Trace.C_var_52
+                MAlonzo.Code.VerifiedCompilation.Trace.C_var_56
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_'96'_18 v10
                          -> let v11
@@ -385,7 +385,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                       -> let v15
                                                = coe
                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
-                                                   MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_36
+                                                   MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_38
                                                    v4 v7 in
                                          coe
                                            (case coe v13 of
@@ -418,7 +418,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                                                     MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
                                                                                       -> coe
                                                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
-                                                                                           MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_36
+                                                                                           MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_38
                                                                                            v4 v4
                                                                                     _ -> MAlonzo.RTE.mazUnreachableError)
                                                                           _ -> coe v15
@@ -428,7 +428,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                               _ -> coe v15)
                                     _ -> MAlonzo.RTE.mazUnreachableError))
                        _ -> coe v8
-                MAlonzo.Code.VerifiedCompilation.Trace.C_expand_54 v10
+                MAlonzo.Code.VerifiedCompilation.Trace.C_expand_58 v10
                   -> coe
                        MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__88
                        (coe
@@ -444,7 +444,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
            -> case coe v5 of
                 C_'9633'_106
                   -> case coe v6 of
-                       MAlonzo.Code.VerifiedCompilation.Trace.C_ƛ_56 v10
+                       MAlonzo.Code.VerifiedCompilation.Trace.C_ƛ_60 v10
                          -> case coe v7 of
                               MAlonzo.Code.Untyped.C_ƛ_20 v11
                                 -> coe
@@ -469,7 +469,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                          -> case coe v2 of
                               C__'183'__34 v16 v17
                                 -> case coe v6 of
-                                     MAlonzo.Code.VerifiedCompilation.Trace.C_ƛ_56 v18
+                                     MAlonzo.Code.VerifiedCompilation.Trace.C_ƛ_60 v18
                                        -> case coe v7 of
                                             MAlonzo.Code.Untyped.C_ƛ_20 v19
                                               -> coe
@@ -537,7 +537,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                 _ -> MAlonzo.RTE.mazUnreachableError
          MAlonzo.Code.Untyped.C__'183'__22 v9 v10
            -> case coe v6 of
-                MAlonzo.Code.VerifiedCompilation.Trace.C__'183'__58 v11 v12
+                MAlonzo.Code.VerifiedCompilation.Trace.C__'183'__62 v11 v12
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C__'183'__22 v13 v14
                          -> coe
@@ -559,7 +559,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_72
                                               (coe C__'183'__250 v15 v16)))))
                        _ -> coe v8
-                MAlonzo.Code.VerifiedCompilation.Trace.C__'183''8595'_60 v11
+                MAlonzo.Code.VerifiedCompilation.Trace.C__'183''8595'_64 v11
                   -> coe
                        MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__88
                        (coe
@@ -574,7 +574,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                 _ -> coe v8
          MAlonzo.Code.Untyped.C_force_24 v9
            -> case coe v6 of
-                MAlonzo.Code.VerifiedCompilation.Trace.C_force_62 v10
+                MAlonzo.Code.VerifiedCompilation.Trace.C_force_66 v10
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_force_24 v11
                          -> coe
@@ -591,7 +591,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                 _ -> coe v8
          MAlonzo.Code.Untyped.C_delay_26 v9
            -> case coe v6 of
-                MAlonzo.Code.VerifiedCompilation.Trace.C_delay_64 v10
+                MAlonzo.Code.VerifiedCompilation.Trace.C_delay_68 v10
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_delay_26 v11
                          -> coe
@@ -608,7 +608,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                 _ -> coe v8
          MAlonzo.Code.Untyped.C_con_28 v9
            -> case coe v6 of
-                MAlonzo.Code.VerifiedCompilation.Trace.C_con_66
+                MAlonzo.Code.VerifiedCompilation.Trace.C_con_70
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_con_28 v10
                          -> let v11
@@ -627,14 +627,14 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                seq (coe v13)
                                                (coe
                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
-                                                  MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_36
+                                                  MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_38
                                                   v4 v7)
                                  _ -> MAlonzo.RTE.mazUnreachableError)
                        _ -> coe v8
                 _ -> coe v8
          MAlonzo.Code.Untyped.C_constr_34 v9 v10
            -> case coe v6 of
-                MAlonzo.Code.VerifiedCompilation.Trace.C_constr_72 v11
+                MAlonzo.Code.VerifiedCompilation.Trace.C_constr_76 v11
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_constr_34 v12 v13
                          -> let v14
@@ -669,14 +669,14 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                seq (coe v16)
                                                (coe
                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
-                                                  MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_36
+                                                  MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_38
                                                   v4 v7)
                                  _ -> MAlonzo.RTE.mazUnreachableError)
                        _ -> coe v8
                 _ -> coe v8
          MAlonzo.Code.Untyped.C_case_40 v9 v10
            -> case coe v6 of
-                MAlonzo.Code.VerifiedCompilation.Trace.C_case_74 v11 v12
+                MAlonzo.Code.VerifiedCompilation.Trace.C_case_78 v11 v12
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_case_40 v13 v14
                          -> coe
@@ -701,7 +701,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                 _ -> coe v8
          MAlonzo.Code.Untyped.C_builtin_44 v9
            -> case coe v6 of
-                MAlonzo.Code.VerifiedCompilation.Trace.C_builtin_68
+                MAlonzo.Code.VerifiedCompilation.Trace.C_builtin_72
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_builtin_44 v10
                          -> let v11
@@ -752,7 +752,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                                 seq (coe v16)
                                                                 (coe
                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
-                                                                   MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_36
+                                                                   MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_38
                                                                    v4 v7)
                                                   _ -> MAlonzo.RTE.mazUnreachableError)
                                         else (let v14
@@ -776,7 +776,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                                  seq (coe v16)
                                                                  (coe
                                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_abort_78
-                                                                    MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_36
+                                                                    MAlonzo.Code.VerifiedCompilation.Trace.d_InlineT_38
                                                                     v4 v7)
                                                    _ -> MAlonzo.RTE.mazUnreachableError))
                                  _ -> MAlonzo.RTE.mazUnreachableError)
@@ -784,7 +784,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                 _ -> coe v8
          MAlonzo.Code.Untyped.C_error_46
            -> case coe v6 of
-                MAlonzo.Code.VerifiedCompilation.Trace.C_error_70
+                MAlonzo.Code.VerifiedCompilation.Trace.C_error_74
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_error_46
                          -> coe
@@ -795,7 +795,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UInline.top-check
 d_top'45'check_718 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_Proof'63'_66
@@ -885,7 +885,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
       C_'96'_230
         -> coe
              MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
-             (coe MAlonzo.Code.VerifiedCompilation.Trace.C_var_52) erased
+             (coe MAlonzo.Code.VerifiedCompilation.Trace.C_var_56) erased
       C_'96''8595'_234 v14
         -> case coe v5 of
              MAlonzo.Code.Untyped.C_'96'_18 v15
@@ -898,7 +898,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                        MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v17 v18
                          -> coe
                               MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
-                              (coe MAlonzo.Code.VerifiedCompilation.Trace.C_expand_54 (coe v17))
+                              (coe MAlonzo.Code.VerifiedCompilation.Trace.C_expand_58 (coe v17))
                               erased
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -923,7 +923,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                                    -> coe
                                         MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                         (coe
-                                           MAlonzo.Code.VerifiedCompilation.Trace.C_ƛ_56 (coe v15))
+                                           MAlonzo.Code.VerifiedCompilation.Trace.C_ƛ_60 (coe v15))
                                         erased
                                  _ -> MAlonzo.RTE.mazUnreachableError))
                     _ -> MAlonzo.RTE.mazUnreachableError
@@ -962,7 +962,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                                                      -> coe
                                                           MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                                           (coe
-                                                             MAlonzo.Code.VerifiedCompilation.Trace.C_ƛ_56
+                                                             MAlonzo.Code.VerifiedCompilation.Trace.C_ƛ_60
                                                              (coe v27))
                                                           erased
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1027,7 +1027,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                                           -> coe
                                                MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                                (coe
-                                                  MAlonzo.Code.VerifiedCompilation.Trace.C__'183'__58
+                                                  MAlonzo.Code.VerifiedCompilation.Trace.C__'183'__62
                                                   (coe v24) (coe v26))
                                                erased
                                         _ -> MAlonzo.RTE.mazUnreachableError
@@ -1048,7 +1048,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                          -> coe
                               MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                               (coe
-                                 MAlonzo.Code.VerifiedCompilation.Trace.C__'183''8595'_60 (coe v19))
+                                 MAlonzo.Code.VerifiedCompilation.Trace.C__'183''8595'_64 (coe v19))
                               erased
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -1067,7 +1067,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                                 -> coe
                                      MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                      (coe
-                                        MAlonzo.Code.VerifiedCompilation.Trace.C_force_62 (coe v18))
+                                        MAlonzo.Code.VerifiedCompilation.Trace.C_force_66 (coe v18))
                                      erased
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
@@ -1087,7 +1087,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                                 -> coe
                                      MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                      (coe
-                                        MAlonzo.Code.VerifiedCompilation.Trace.C_delay_64 (coe v18))
+                                        MAlonzo.Code.VerifiedCompilation.Trace.C_delay_68 (coe v18))
                                      erased
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
@@ -1095,11 +1095,11 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
       C_con_266
         -> coe
              MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
-             (coe MAlonzo.Code.VerifiedCompilation.Trace.C_con_66) erased
+             (coe MAlonzo.Code.VerifiedCompilation.Trace.C_con_70) erased
       C_builtin_270
         -> coe
              MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
-             (coe MAlonzo.Code.VerifiedCompilation.Trace.C_builtin_68) erased
+             (coe MAlonzo.Code.VerifiedCompilation.Trace.C_builtin_72) erased
       C_constr_280 v15
         -> case coe v5 of
              MAlonzo.Code.Untyped.C_constr_34 v16 v17
@@ -1115,7 +1115,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                                 -> coe
                                      MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                      (coe
-                                        MAlonzo.Code.VerifiedCompilation.Trace.C_constr_72
+                                        MAlonzo.Code.VerifiedCompilation.Trace.C_constr_76
                                         (coe v21))
                                      erased
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1143,7 +1143,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                                           -> coe
                                                MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                                (coe
-                                                  MAlonzo.Code.VerifiedCompilation.Trace.C_case_74
+                                                  MAlonzo.Code.VerifiedCompilation.Trace.C_case_78
                                                   (coe v24) (coe v26))
                                                erased
                                         _ -> MAlonzo.RTE.mazUnreachableError
@@ -1157,7 +1157,7 @@ d_complete_806 v0 v1 v2 v3 v4 v5 v6 v7
                 seq (coe v6)
                 (coe
                    MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
-                   (coe MAlonzo.Code.VerifiedCompilation.Trace.C_error_70) erased))
+                   (coe MAlonzo.Code.VerifiedCompilation.Trace.C_error_74) erased))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.UInline._.e′
 d_e'8242'_818 ::
@@ -1179,7 +1179,7 @@ d_e'8242'_864 ::
   MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Inline_224 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_e'8242'_864 = erased
@@ -1191,7 +1191,7 @@ d_e'8242'_898 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Inline_224 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_e'8242'_898 = erased
@@ -1207,7 +1207,7 @@ d_e'8242'_940 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Inline_224 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_e'8242'_940 = erased
@@ -1223,7 +1223,7 @@ d_e'8242'_982 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Inline_224 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_e'8242'_982 = erased
@@ -1241,9 +1241,9 @@ d_e'8243'_1036 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Inline_224 ->
   T_Inline_224 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_e'8243'_1036 = erased
@@ -1259,7 +1259,7 @@ d_e'8242'_1082 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Inline_224 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_e'8242'_1082 = erased
@@ -1271,7 +1271,7 @@ d_e'8242'_1120 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Inline_224 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   T__'8605'_28 ->
   T__'8605'_28 ->
@@ -1285,7 +1285,7 @@ d_e'8242'_1158 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_Inline_224 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   T__'8605'_28 ->
   T__'8605'_28 ->
@@ -1321,7 +1321,7 @@ d_e'8242'_1232 ::
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
-  [MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50] ->
+  [MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54] ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   T__'8605'_28 ->
   T__'8605'_28 ->
@@ -1339,9 +1339,9 @@ d_e'8243'_1290 ::
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   T_Inline_224 ->
   MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  [MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50] ->
+  [MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54] ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   T__'8605'_28 ->
   T__'8605'_28 ->
@@ -1361,9 +1361,9 @@ d_e'8243'_1356 ::
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   T_Inline_224 ->
   MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  [MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_50] ->
+  [MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54] ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_e'8243'_1356 = erased

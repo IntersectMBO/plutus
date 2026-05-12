@@ -1,1 +1,1 @@
-(program 1.1.0 (\xs -> force mkCons 42 xs))
+(program 1.1.0 ((\forced xs -> forced 42 xs) (force mkCons)))

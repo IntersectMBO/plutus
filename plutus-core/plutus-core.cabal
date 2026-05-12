@@ -242,6 +242,7 @@ library
     UntypedPlutusCore.Transform.Inline
     UntypedPlutusCore.Transform.LetFloatOut
     UntypedPlutusCore.Transform.Optimizer
+    UntypedPlutusCore.Transform.PolyBuiltin
 
   other-modules:
     Data.Aeson.Flatten

@@ -22,8 +22,6 @@
             defaultBody
     ~defaultBody : Tuple2 (List integer) (List integer) = fail ()
     ~defaultBody : Tuple2 (List integer) (List integer) = fail ()
-    !ifThenElse : all a. bool -> a -> a -> a
-      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
     data Ordering | Ordering_match where
       EQ : Ordering
       GT : Ordering
@@ -59,10 +57,8 @@
                {all dead. dead})
           (\(x : integer) (y : integer) -> lessThanInteger x y)
           (\(x : integer) (y : integer) -> lessThanEqualsInteger x y)
-          (\(x : integer) (y : integer) ->
-             ifThenElse {bool} (lessThanEqualsInteger x y) False True)
-          (\(x : integer) (y : integer) ->
-             ifThenElse {bool} (lessThanInteger x y) False True)
+          (\(x : integer) (y : integer) -> lessThanInteger y x)
+          (\(x : integer) (y : integer) -> lessThanEqualsInteger y x)
           (\(x : integer) (y : integer) ->
              case
                (all dead. integer)

@@ -1,7 +1,7 @@
-CPU:                21_540_429
-Memory:                111_210
-AST Size:                  109
-Flat Size:                 278
+CPU:                21_364_429
+Memory:                110_110
+AST Size:                  115
+Flat Size:                 283
 
 (con
   (list (pair data data))

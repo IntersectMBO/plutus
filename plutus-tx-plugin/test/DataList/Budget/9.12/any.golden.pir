@@ -7,7 +7,7 @@ letrec
           [ (\(x : data) (eta : list data) ->
                case
                  (all dead. bool)
-                 (case bool (lessThanInteger (unIData x) 8) [True, False])
+                 (lessThanEqualsInteger 8 (unIData x))
                  [(/\dead -> go eta), (/\dead -> True)]
                  {all dead. dead})
           , False ]

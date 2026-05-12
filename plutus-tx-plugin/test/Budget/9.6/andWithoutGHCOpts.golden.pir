@@ -14,8 +14,6 @@
         (a -> a -> a) ->
         (a -> a -> a) ->
         Ord a
-    !ifThenElse : all a. bool -> a -> a -> a
-      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
     !`$fOrdInteger` : Ord integer
       = CConsOrd
           {integer}
@@ -34,10 +32,8 @@
                {all dead. dead})
           (\(x : integer) (y : integer) -> lessThanInteger x y)
           (\(x : integer) (y : integer) -> lessThanEqualsInteger x y)
-          (\(x : integer) (y : integer) ->
-             ifThenElse {bool} (lessThanEqualsInteger x y) False True)
-          (\(x : integer) (y : integer) ->
-             ifThenElse {bool} (lessThanInteger x y) False True)
+          (\(x : integer) (y : integer) -> lessThanInteger y x)
+          (\(x : integer) (y : integer) -> lessThanEqualsInteger y x)
           (\(x : integer) (y : integer) ->
              case
                (all dead. integer)

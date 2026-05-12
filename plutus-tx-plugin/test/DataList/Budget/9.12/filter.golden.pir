@@ -13,7 +13,7 @@ letrec
              in
              case
                (all dead. (\a -> list data) integer)
-               (case bool (lessThanInteger h 8) [True, False])
+               (lessThanEqualsInteger 8 h)
                [ (/\dead -> go eta)
                , (/\dead ->
                     let

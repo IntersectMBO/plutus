@@ -1189,10 +1189,19 @@ Pass 132: Constant Folding  ⚠ (certifier unavailable)
 
 
 ──────────────────────────────────────────────────────
-Pass 133: Transform multi-argument applications into case-constr form  ✅
+Pass 133: Hoist Polymorphic Builtins  ⚠ (certifier unavailable)
 ──────────────────────────────────────────────────────
   Program Size: 1756 (before)
-  Program Size: 1738 (after)
+  Program Size: 1759 (after)
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
-  Execution Cost: CPU = 115517029782, MEM = 671924355 (after)
+  Execution Cost: CPU = 117353845782, MEM = 683404455 (after)
+
+
+──────────────────────────────────────────────────────
+Pass 134: Transform multi-argument applications into case-constr form  ✅
+──────────────────────────────────────────────────────
+  Program Size: 1759 (before)
+  Program Size: 1741 (after)
+  Execution Cost: CPU = 117353845782, MEM = 683404455 (before)
+  Execution Cost: CPU = 115517093782, MEM = 671924755 (after)
   Optimization sites: 15

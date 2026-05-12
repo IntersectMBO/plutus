@@ -28,7 +28,7 @@ import Data.Either.Validation
 import Data.Foldable (toList)
 #else
 import Data.Foldable (foldl', toList)
-#endif 
+#endif
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -65,6 +65,7 @@ data PluginOptions = PluginOptions
   , _posDoSimplifierStrictifyBindings :: Bool
   , _posDoSimplifierRemoveDeadBindings :: Bool
   , _posApplyToCase :: Bool
+  , _posHoistPolyBuiltins :: Bool
   , _posProfile :: ProfileOpts
   , _posCoverageAll :: Bool
   , _posCoverageLocation :: Bool
@@ -307,6 +308,9 @@ pluginOptions =
     , let k = "apply-to-case"
           desc = "Run the apply-to-case pass, turning multi-argument applications into case-constr form."
        in (k, PluginOption typeRep (setTrue k) posApplyToCase desc [])
+    , let k = "hoist-polymorphic-builtins"
+          desc = "Run the hoist-polymorphic-builtins pass, reducing the number of forces."
+       in (k, PluginOption typeRep (setTrue k) posHoistPolyBuiltins desc [])
     , let k = "profile-all"
           desc = "Set profiling options to All, which adds tracing when entering and exiting a term."
        in (k, PluginOption typeRep (flag (const All) k) posProfile desc [])
@@ -425,6 +429,7 @@ defaultPluginOptions =
     , _posDoSimplifierStrictifyBindings = True
     , _posDoSimplifierRemoveDeadBindings = True
     , _posApplyToCase = True
+    , _posHoistPolyBuiltins = True
     , _posProfile = None
     , _posCoverageAll = False
     , _posCoverageLocation = False
