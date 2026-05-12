@@ -5,6 +5,7 @@
 -- The plugin uses non-conservative optimizations by default and they remove some traces.
 -- We disable them to make sure that traces are removed by the 'remove-traces' compiler flag.
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:conservative-optimisation #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-hoist-polymorphic-builtins #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:remove-trace #-}
 
 module Plugin.NoTrace.WithoutTraces where

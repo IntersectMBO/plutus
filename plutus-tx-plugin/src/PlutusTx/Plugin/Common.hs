@@ -827,6 +827,9 @@ runCompiler packageName moduleName opts expr = do
             (PLC.coOptimizeOpts . UPLC.ooApplyToCase)
             (opts ^. posApplyToCase)
           & set
+            (PLC.coOptimizeOpts . UPLC.ooHoistPolyBuiltins)
+            (opts ^. posHoistPolyBuiltins)
+          & set
             (PLC.coOptimizeOpts . UPLC.ooCertifiedOptsOnly)
             (opts ^. posCertifiedOptsOnly)
 
@@ -908,7 +911,8 @@ generateCertificate packageName moduleName opts simplTrace certifyPath = do
     Right _ -> do
       writeFile (dir </> "plinth-certifier-PASS.txt") ""
       when verbose $
-        hPutStrLn stderr $ "Certifier result: PASS — " ++ dir
+        hPutStrLn stderr $
+          "Certifier result: PASS — " ++ dir
     Left err -> do
       let errMsg = prettyCertifierError err
       writeFile (dir </> "plinth-certifier-FAIL.txt") (errMsg ++ "\n")
@@ -918,17 +922,18 @@ generateCertificate packageName moduleName opts simplTrace certifyPath = do
       where
         sanitise '.' = '_'
         sanitise '-' = '_'
-        sanitise c   = c
+        sanitise c = c
         -- Agda parses `_` in identifiers as a mixfix hole, so module names like
         -- `BLS12_381` are rejected. Collapse any underscore between two digits.
         collapseDigitUnderscores s =
           case s =~ ("([0-9])_([0-9])" :: String) :: (String, String, String, [String]) of
             (before, _, after, [a, b]) -> before ++ a ++ b ++ collapseDigitUnderscores after
-            _                          -> s
+            _ -> s
     certDir hash absCertifyPath
       | null absCertifyPath = name
-      | otherwise           = absCertifyPath </> name
-      where name = certName ++ "-" ++ hash ++ ".agda-cert"
+      | otherwise = absCertifyPath </> name
+      where
+        name = certName ++ "-" ++ hash ++ ".agda-cert"
     alphabet :: [Char]
     alphabet = ['a' .. 'z'] ++ ['0' .. '9']
 

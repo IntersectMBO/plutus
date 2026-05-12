@@ -551,5 +551,5 @@ d_decide_312 v0 v1 v2
                        seq (coe v5)
                        (coe
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                          MAlonzo.Code.VerifiedCompilation.Trace.d_LetFloatOutT_42 v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Trace.d_LetFloatOutT_44 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)

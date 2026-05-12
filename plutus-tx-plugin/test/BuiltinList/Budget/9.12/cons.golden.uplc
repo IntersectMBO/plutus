@@ -1,1 +1,1 @@
-(program 1.1.0 (\xs -> force mkCons 0 xs))
+(program 1.1.0 ((\forced xs -> forced 0 xs) (force mkCons)))

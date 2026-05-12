@@ -1196,3 +1196,12 @@ Pass 133: Transform multi-argument applications into case-constr form  ✅
   Execution Cost: CPU = 117353781782, MEM = 683404055 (before)
   Execution Cost: CPU = 115517029782, MEM = 671924355 (after)
   Optimization sites: 15
+
+──────────────────────────────────────────────────────
+Pass 134: Hoist Polymorphic Builtins  ⚠ (certifier unavailable)
+──────────────────────────────────────────────────────
+  Program Size: 1738 (before)
+  Program Size: 1741 (after)
+  Execution Cost: CPU = 115517029782, MEM = 671924355 (before)
+  Execution Cost: CPU = 115517093782, MEM = 671924755 (after)
+

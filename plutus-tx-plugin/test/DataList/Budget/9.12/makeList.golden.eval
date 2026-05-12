@@ -1,6 +1,6 @@
-CPU:                 1_159_083
-Memory:                  5_892
-AST Size:                   46
-Flat Size:                  54
+CPU:                 1_175_083
+Memory:                  5_992
+AST Size:                   48
+Flat Size:                  56
 
 (con (list data) [I 1, I 2, I 3])

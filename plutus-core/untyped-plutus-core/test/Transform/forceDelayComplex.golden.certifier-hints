@@ -53,3 +53,6 @@ NoHints
 -- Certifier hints #9 (Right ApplyToCase) --
 NoHints
 
+-- Certifier hints #10 (Left PolyBuiltin) --
+NoHints
+

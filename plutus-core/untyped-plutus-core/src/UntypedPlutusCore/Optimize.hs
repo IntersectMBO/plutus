@@ -32,6 +32,7 @@ import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 import UntypedPlutusCore.Transform.LetFloatOut (letFloatOut)
 import UntypedPlutusCore.Transform.Optimizer
+import UntypedPlutusCore.Transform.PolyBuiltin (polyBuiltin)
 
 import Control.Lens ((&), (.~))
 import Control.Monad
@@ -85,6 +86,7 @@ termOptimizer opts builtinSemanticsVariant =
   simplifyNTimes (_ooMaxSimplifierIterations opts)
     >=> runStage CseStage
     >=> runStage ApplyToCaseStage
+    >=> runStage PolyBuiltinStage
   where
     -- Run the simplifier @n@ times
     simplifyNTimes
@@ -158,6 +160,7 @@ termOptimizer opts builtinSemanticsVariant =
                   ((def :: BuiltinsInfo PLC.DefaultUni DefaultFun) & biSemanticsVariant .~ builtinSemanticsVariant)
                   (def :: CostingPart PLC.DefaultUni DefaultFun)
               _ -> pure
+          PolyBuiltinStage -> if _ooHoistPolyBuiltins opts then polyBuiltinStep else pure
 
     caseOfCase'
       :: Term name uni fun a
@@ -176,3 +179,10 @@ termOptimizer opts builtinSemanticsVariant =
         _ -> pure
 
     cseTimes = if _ooConservativeOpts opts then 0 else _ooMaxCseIterations opts
+
+    polyBuiltinStep
+      :: Term name uni fun a
+      -> OptimizerT name uni fun a m (Term name uni fun a)
+    polyBuiltinStep = case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
+      (Just Refl, Just Refl) -> polyBuiltin builtinSemanticsVariant
+      _ -> pure

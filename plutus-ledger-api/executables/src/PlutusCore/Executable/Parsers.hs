@@ -278,6 +278,13 @@ optimizeOpts = do
       ( long "opt-no-apply-to-case"
           <> help "Disable apply-to-case optimization"
       )
+  _ooHoistPolyBuiltins <-
+    flag
+      True
+      False
+      ( long "opt-no-hoist-polymorphic-builtins"
+          <> help "Disable hoist-polymorphic-builtins optimization"
+      )
   _ooCertifiedOptsOnly <-
     flag
       False

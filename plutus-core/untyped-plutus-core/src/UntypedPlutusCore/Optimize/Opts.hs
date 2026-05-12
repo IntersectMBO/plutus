@@ -3,6 +3,7 @@
 module UntypedPlutusCore.Optimize.Opts
   ( OptimizeOpts (..)
   , ooApplyToCase
+  , ooHoistPolyBuiltins
   , ooMaxSimplifierIterations
   , ooMaxCseIterations
   , ooCseWhichSubterms
@@ -43,6 +44,7 @@ data OptimizeOpts name a = OptimizeOpts
   , _ooInlineCallsiteGrowth :: AstSize
   , _ooPreserveLogging :: Bool
   , _ooApplyToCase :: Bool
+  , _ooHoistPolyBuiltins :: Bool
   , _ooCertifiedOptsOnly :: Bool
   }
   deriving stock (Show)
@@ -62,5 +64,6 @@ defaultOptimizeOpts =
     , _ooInlineCallsiteGrowth = 5
     , _ooPreserveLogging = True
     , _ooApplyToCase = True
+    , _ooHoistPolyBuiltins = True
     , _ooCertifiedOptsOnly = False
     }

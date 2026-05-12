@@ -20,7 +20,7 @@ open Maybe
 ```
 ## Pass tags
 We enumerate the known passes and partition them into two categories:
-- those which are not yet (fully) implemented in the certifier 
+- those which are not yet (fully) implemented in the certifier
 - those which are implemented in the certifier and we know they are correct.
 
 ### IMPORTANT
@@ -32,6 +32,7 @@ pragmas MUST be the same as the order of their counterparts in
 data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
   constantFoldingT : UncertifiedOptTag
+  polyBuiltinT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
@@ -66,6 +67,8 @@ CaseOfCaseT : OptTag
 CaseOfCaseT = Utils.inj₁ caseOfCaseT
 ConstantFoldingT : OptTag
 ConstantFoldingT = Utils.inj₁ constantFoldingT
+PolyBuiltinT : OptTag
+PolyBuiltinT = Utils.inj₁ polyBuiltinT
 
 {-# COMPILE GHC
   CertifiedOptTag
@@ -85,6 +88,7 @@ ConstantFoldingT = Utils.inj₁ constantFoldingT
     = data UncertifiedOptStage
       ( CaseOfCase
       | ConstantFolding
+      | PolyBuiltin
       )
 #-}
 ```

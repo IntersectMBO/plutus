@@ -2497,7 +2497,7 @@ d_decide_526 v0 v1 v2
                        seq (coe v5)
                        (coe
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                          MAlonzo.Code.VerifiedCompilation.Trace.d_CaseReduceT_44 v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Trace.d_CaseReduceT_46 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UCaseReduce.case-reduce-refines
 d_case'45'reduce'45'refines_550 ::
@@ -3292,5 +3292,5 @@ du_decide'45''126'_604 v0 v1 v2
                        seq (coe v5)
                        (coe
                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
-                          MAlonzo.Code.VerifiedCompilation.Trace.d_CaseReduceT_44 v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Trace.d_CaseReduceT_46 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
