@@ -3,8 +3,8 @@
    (\xs ->
       (\any ->
          constr 0
-           [ (any (\v -> case (lessThanInteger v 8) [True, False]) xs)
-           , (any (\v -> case (lessThanInteger v 12) [True, False]) xs) ])
+           [ (any (\v -> lessThanEqualsInteger 8 v) xs)
+           , (any (\v -> lessThanEqualsInteger 12 v) xs) ])
         (\p ->
            (\s -> s s)
              (\s xs ->

@@ -10,8 +10,8 @@
                      (s s t)
                      [ (\ipv ipv ->
                           case
-                            (lessThanInteger (unIData h) 8)
-                            [ (constr 0 [(forced h ipv), ipv])
-                            , (constr 0 [ipv, (forced h ipv)]) ]) ])
+                            (lessThanEqualsInteger 8 (unIData h))
+                            [ (constr 0 [ipv, (forced h ipv)])
+                            , (constr 0 [(forced h ipv), ipv]) ]) ])
               , (constr 0 [[], []]) ]))
       (force mkCons)))

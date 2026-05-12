@@ -525,7 +525,7 @@
       = \(a : integer) (b : integer) ->
           case
             (all dead. List integer)
-            (case bool (lessThanEqualsInteger a b) [True, False])
+            (lessThanInteger b a)
             [ (/\dead -> Cons {integer} a (interval (addInteger 1 a) b))
             , (/\dead -> Nil {integer}) ]
             {all dead. dead}

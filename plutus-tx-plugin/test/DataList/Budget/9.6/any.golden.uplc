@@ -6,5 +6,5 @@
             case
               ds
               [ (\x eta ->
-                   case (lessThanInteger (unIData x) 8) [True, (s s eta)])
+                   case (lessThanEqualsInteger 8 (unIData x)) [(s s eta), True])
               , False ]))))

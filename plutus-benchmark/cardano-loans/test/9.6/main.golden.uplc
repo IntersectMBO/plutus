@@ -6453,8 +6453,8 @@
                                                         , (s s xs) ]) ]) ]) ])))
                         (\x ->
                            case
-                             (lessThanEqualsInteger x 0)
-                             [(constr 1 [x, (constr 0 [])]), (constr 0 [])]))
+                             (lessThanInteger 0 x)
+                             [(constr 0 []), (constr 1 [x, (constr 0 [])])]))
                      (\f ->
                         (\go eta -> go eta)
                           ((\s -> s s)

@@ -20,7 +20,7 @@ letrec
              /\dead ->
                case
                  (all dead. Maybe integer)
-                 (case bool (lessThanEqualsInteger 1 x) [True, False])
+                 (lessThanInteger x 1)
                  [(/\dead -> go xs), (/\dead -> Just {integer} x)]
                  {all dead. dead})
           {all dead. dead}

@@ -30,6 +30,4 @@
            ds
            [ (constr 1 [])
            , (\x xs ->
-                case
-                  (lessThanEqualsInteger 10 x)
-                  [(constr 0 [x]), (s s xs)]) ])))
+                case (lessThanInteger x 10) [(s s xs), (constr 0 [x])]) ])))

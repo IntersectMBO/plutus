@@ -747,31 +747,31 @@ program
                                                                                                                                                                                                                           [  ])
                                                                                                                                                                                                                      , (constr 1
                                                                                                                                                                                                                           [ cse
-                                                                                                                                                                                                                          , cse ]) ])
+                                                                                                                                                                                                                          , (constr 1
+                                                                                                                                                                                                                               [ (unsafeRatio
+                                                                                                                                                                                                                                    4
+                                                                                                                                                                                                                                    5)
+                                                                                                                                                                                                                               , (constr 0
+                                                                                                                                                                                                                                    [  ]) ]) ]) ])
                                                                                                                                                                                                                 , (constr 0
                                                                                                                                                                                                                      [  ]) ]) ]) ]))
-                                                                                                                                                                                                (constr 1
-                                                                                                                                                                                                   [ (cse
-                                                                                                                                                                                                        4)
-                                                                                                                                                                                                   , (constr 0
-                                                                                                                                                                                                        [  ]) ]))
-                                                                                                                                                                                             (constr 3
-                                                                                                                                                                                                [ (constr 1
-                                                                                                                                                                                                     [ cse
-                                                                                                                                                                                                     , (constr 1
-                                                                                                                                                                                                          [ (constr 0
-                                                                                                                                                                                                               [ (constr 0
-                                                                                                                                                                                                                    [  ])
-                                                                                                                                                                                                               , (constr 1
-                                                                                                                                                                                                                    [ cse
-                                                                                                                                                                                                                    , (constr 1
-                                                                                                                                                                                                                         [ (unsafeRatio
-                                                                                                                                                                                                                              4
-                                                                                                                                                                                                                              5)
-                                                                                                                                                                                                                         , (constr 0
-                                                                                                                                                                                                                              [  ]) ]) ]) ])
-                                                                                                                                                                                                          , (constr 0
-                                                                                                                                                                                                               [  ]) ]) ]) ]))
+                                                                                                                                                                                                (constr 3
+                                                                                                                                                                                                   [ (constr 1
+                                                                                                                                                                                                        [ cse
+                                                                                                                                                                                                        , (constr 1
+                                                                                                                                                                                                             [ (constr 0
+                                                                                                                                                                                                                  [ (constr 0
+                                                                                                                                                                                                                       [  ])
+                                                                                                                                                                                                                  , (constr 1
+                                                                                                                                                                                                                       [ cse
+                                                                                                                                                                                                                       , cse ]) ])
+                                                                                                                                                                                                             , (constr 0
+                                                                                                                                                                                                                  [  ]) ]) ]) ]))
+                                                                                                                                                                                             (constr 1
+                                                                                                                                                                                                [ (cse
+                                                                                                                                                                                                     4)
+                                                                                                                                                                                                , (constr 0
+                                                                                                                                                                                                     [  ]) ]))
                                                                                                                                                                                           (constr 3
                                                                                                                                                                                              [ (constr 1
                                                                                                                                                                                                   [ cse
@@ -924,17 +924,13 @@ program
                                                                  x
                                                                  y)
                                                           , (\x y ->
-                                                               case
-                                                                 (lessThanEqualsInteger
-                                                                    x
-                                                                    y)
-                                                                 [True, False])
+                                                               lessThanInteger
+                                                                 y
+                                                                 x)
                                                           , (\x y ->
-                                                               case
-                                                                 (lessThanInteger
-                                                                    x
-                                                                    y)
-                                                                 [True, False])
+                                                               lessThanEqualsInteger
+                                                                 y
+                                                                 x)
                                                           , (\x y ->
                                                                case
                                                                  (lessThanEqualsInteger
@@ -1043,16 +1039,15 @@ program
                                                                         ds
                                                                         [ (\n'
                                                                             d' ->
-                                                                             case
-                                                                               (lessThanEqualsInteger
-                                                                                  (multiplyInteger
-                                                                                     n
-                                                                                     d')
+                                                                             (\x ->
+                                                                                lessThanInteger
                                                                                   (multiplyInteger
                                                                                      n'
-                                                                                     d))
-                                                                               [ True
-                                                                               , False ]) ]) ])
+                                                                                     d)
+                                                                                  x)
+                                                                               (multiplyInteger
+                                                                                  n
+                                                                                  d')) ]) ])
                                                           , (\ds ds ->
                                                                case
                                                                  ds
@@ -1061,16 +1056,15 @@ program
                                                                         ds
                                                                         [ (\n'
                                                                             d' ->
-                                                                             case
-                                                                               (lessThanInteger
-                                                                                  (multiplyInteger
-                                                                                     n
-                                                                                     d')
+                                                                             (\x ->
+                                                                                lessThanEqualsInteger
                                                                                   (multiplyInteger
                                                                                      n'
-                                                                                     d))
-                                                                               [ True
-                                                                               , False ]) ]) ])
+                                                                                     d)
+                                                                                  x)
+                                                                               (multiplyInteger
+                                                                                  n
+                                                                                  d')) ]) ])
                                                           , (\x y ->
                                                                case
                                                                  x

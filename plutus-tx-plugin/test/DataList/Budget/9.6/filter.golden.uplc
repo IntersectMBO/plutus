@@ -9,9 +9,9 @@
                  [ (\x eta ->
                       (\h ->
                          case
-                           (lessThanInteger h 8)
-                           [ ((\nt -> forced (iData h) nt) (s s eta))
-                           , (s s eta) ])
+                           (lessThanEqualsInteger 8 h)
+                           [ (s s eta)
+                           , ((\nt -> forced (iData h) nt) (s s eta)) ])
                         (unIData x))
                  , [] ])))
       (force mkCons)))

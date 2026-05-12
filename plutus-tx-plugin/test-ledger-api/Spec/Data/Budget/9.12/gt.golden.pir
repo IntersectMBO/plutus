@@ -48,8 +48,6 @@ let
         {integer}
         `$fToDataInteger_$ctoBuiltinData`
         `$fToDataInteger_$ctoBuiltinData`
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !`$fUnsafeFromDataThese_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> These a b
     = /\a b ->
@@ -103,12 +101,9 @@ letrec
                    {integer}
                    k'
                    {bool}
-                   (\(b : integer) ->
-                      ifThenElse {bool} (lessThanInteger 0 b) False True)
-                   (\(a : integer) (b : integer) ->
-                      ifThenElse {bool} (lessThanInteger a b) False True)
-                   (\(a : integer) ->
-                      ifThenElse {bool} (lessThanInteger a 0) False True))
+                   (\(b : integer) -> lessThanEqualsInteger b 0)
+                   (\(a : integer) (b : integer) -> lessThanEqualsInteger b a)
+                   (\(a : integer) -> lessThanEqualsInteger 0 a))
                  [ (/\dead -> \(ds : list (pair data data)) -> False)
                  , (/\dead -> go) ]
                  {all dead. dead})
