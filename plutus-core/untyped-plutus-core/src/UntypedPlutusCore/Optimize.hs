@@ -85,8 +85,8 @@ termOptimizer
 termOptimizer opts builtinSemanticsVariant =
   simplifyNTimes (_ooMaxSimplifierIterations opts)
     >=> runStage CseStage
-    >=> runStage ApplyToCaseStage
     >=> runStage PolyBuiltinStage
+    >=> runStage ApplyToCaseStage
   where
     -- Run the simplifier @n@ times
     simplifyNTimes

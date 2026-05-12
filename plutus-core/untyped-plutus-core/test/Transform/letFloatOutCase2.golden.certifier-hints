@@ -31,9 +31,9 @@ InlLam
 -- Certifier hints #8 (Left ConstantFolding) --
 NoHints
 
--- Certifier hints #9 (Right ApplyToCase) --
+-- Certifier hints #9 (Left PolyBuiltin) --
 NoHints
 
--- Certifier hints #10 (Left PolyBuiltin) --
+-- Certifier hints #10 (Right ApplyToCase) --
 NoHints
 
