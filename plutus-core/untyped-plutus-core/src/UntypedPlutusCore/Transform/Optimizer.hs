@@ -12,6 +12,8 @@ module UntypedPlutusCore.Transform.Optimizer
   , pattern Trace.ApplyToCaseStage
   , pattern Trace.CaseOfCaseStage
   , pattern Trace.LetFloatOutStage
+  , pattern Trace.ConstantFoldingStage
+  , pattern Trace.PolyBuiltinStage
   , Trace.OptimizerTrace (..)
   , Trace.Optimization (..)
   , runOptimizerT

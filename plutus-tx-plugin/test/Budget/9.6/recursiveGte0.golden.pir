@@ -32,7 +32,4 @@ in
 let
   !ls : List integer = go 1000
 in
-recursiveAll
-  {integer}
-  (\(v : integer) -> case bool (lessThanInteger v 0) [True, False])
-  ls
+recursiveAll {integer} (\(v : integer) -> lessThanEqualsInteger 0 v) ls

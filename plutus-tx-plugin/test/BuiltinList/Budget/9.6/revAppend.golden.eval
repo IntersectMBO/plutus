@@ -1,6 +1,6 @@
-CPU:                 4_819_720
-Memory:                 26_020
-AST Size:                   47
-Flat Size:                  58
+CPU:                 4_723_720
+Memory:                 25_420
+AST Size:                   50
+Flat Size:                  60
 
 (con (list integer) [10,9,8,7,6,5,4,3,2,1,1,2,3,4,5,6,7,8,9,10])

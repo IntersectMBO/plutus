@@ -1,7 +1,9 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 
 module UntypedPlutusCore.Contexts where
 
+import PlutusCore.Arity
 import UntypedPlutusCore.Core (Term (..))
 import UntypedPlutusCore.Core.Instance.Eq ()
 
@@ -23,7 +25,7 @@ splitAppCtx :: Term nam uni fun a -> (Term nam uni fun a, AppCtx nam uni fun a)
 splitAppCtx = go AppCtxEnd
   where
     go appCtx = \case
-      Apply ann function argument -> go (AppCtxTerm ann argument appCtx) function
+      Apply ann function arg -> go (AppCtxTerm ann arg appCtx) function
       Force ann forcedTerm -> go (AppCtxType ann appCtx) forcedTerm
       term -> (term, appCtx)
 
@@ -36,3 +38,22 @@ fillAppCtx term = \case
   AppCtxEnd -> term
   AppCtxTerm ann arg ctx -> fillAppCtx (Apply ann term arg) ctx
   AppCtxType ann ctx -> fillAppCtx (Force ann term) ctx
+
+data Saturation = Oversaturated | Undersaturated | Saturated
+
+-- | Do the given arguments saturate the given arity?
+saturates :: AppCtx name uni fun a -> Arity -> Maybe Saturation
+-- Exactly right
+saturates AppCtxEnd [] = Just Saturated
+-- Parameters left - undersaturated
+saturates AppCtxEnd _ = Just Undersaturated
+-- Match a term parameter to a term arg
+saturates (AppCtxTerm _ _ ctx) (TermParam : arities) = saturates ctx arities
+-- Match a type parameter to a type arg
+saturates (AppCtxType _ ctx) (TypeParam : arities) = saturates ctx arities
+-- Param/arg mismatch
+saturates (AppCtxTerm {}) (TypeParam : _) = Nothing
+saturates (AppCtxType {}) (TermParam : _) = Nothing
+-- Arguments left - undersaturated
+saturates (AppCtxTerm {}) [] = Just Oversaturated
+saturates (AppCtxType {}) [] = Just Oversaturated

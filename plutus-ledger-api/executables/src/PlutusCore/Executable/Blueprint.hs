@@ -13,7 +13,7 @@ import PlutusLedgerApi.Common
 
 import Data.Aeson (Value (..))
 import Data.Aeson qualified as Aeson
-import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePretty', keyOrder)
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KM
 import Data.ByteString.Lazy qualified as BSL
@@ -79,10 +79,38 @@ getPlutusVersion _ = error "Blueprint: top-level value is not an object"
 writeBlueprint :: Output -> Value -> [UplcProg ann] -> IO ()
 writeBlueprint outp original optimisedProgs =
   let updated = updateValidators original optimisedProgs
+      cfg = defConfig {confCompare = keyOrder blueprintKeyOrder, confIndent = Spaces 2}
+      bytes = encodePretty' cfg updated
    in case outp of
-        FileOutput file -> BSL.writeFile file (encodePretty updated)
-        StdOutput -> BSL.putStr (encodePretty updated)
+        FileOutput file -> BSL.writeFile file bytes
+        StdOutput -> BSL.putStr bytes
         NoOutput -> pure ()
+
+-- | Key order in a typical blueprint compiled from Aiken.
+blueprintKeyOrder :: [Text]
+blueprintKeyOrder =
+  [ "preamble"
+  , "title"
+  , "description"
+  , "name"
+  , "version"
+  , "plutusVersion"
+  , "compiler"
+  , "license"
+  , "validators"
+  , "datum"
+  , "schema"
+  , "$ref"
+  , "redeemer"
+  , "parameters"
+  , "compiledCode"
+  , "hash"
+  , "definitions"
+  , "dataType"
+  , "anyOf"
+  , "index"
+  , "fields"
+  ]
 
 updateValidators :: Value -> [UplcProg ann] -> Value
 updateValidators top@(Object obj) optimisedProgs =

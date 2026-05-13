@@ -278,6 +278,13 @@ optimizeOpts = do
       ( long "opt-no-apply-to-case"
           <> help "Disable apply-to-case optimization"
       )
+  _ooHoistPolyBuiltins <-
+    flag
+      True
+      False
+      ( long "opt-no-hoist-polymorphic-builtins"
+          <> help "Disable hoist-polymorphic-builtins optimization"
+      )
   _ooCertifiedOptsOnly <-
     flag
       False
@@ -294,9 +301,12 @@ optimiseEvalOpts =
     <$> switch
       ( long "eval"
           <> help
-            "Evaluate the program (using the CEK machine) to measure execution \
-            \cost. With --certify, costs are included in the report for every \
-            \optimisation pass. Use --eval-apply or --eval-args-dir to supply arguments, if any."
+            "Evaluate the program (using the CEK machine) at every stage of \
+            \the optimization pipeline.  CPU and memory costs are then shown \
+            \in the optimization report, alongside AST sizes, for every pass. \
+            \With --certify, the same costs and sizes are also recorded in the \
+            \certifier report.  Use --eval-apply or --eval-args-dir to supply \
+            \arguments, if any."
       )
     <*> many
       ( strOption

@@ -6,6 +6,4 @@
            ds
            [ (constr 1 [])
            , (\x xs ->
-                case
-                  (lessThanEqualsInteger 1 x)
-                  [(constr 0 [x]), (s s xs)]) ])))
+                case (lessThanInteger x 1) [(s s xs), (constr 0 [x])]) ])))

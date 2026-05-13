@@ -20,7 +20,7 @@ open Maybe
 ```
 ## Pass tags
 We enumerate the known passes and partition them into two categories:
-- those which are not yet (fully) implemented in the certifier 
+- those which are not yet (fully) implemented in the certifier
 - those which are implemented in the certifier and we know they are correct.
 
 ### IMPORTANT
@@ -31,7 +31,8 @@ pragmas MUST be the same as the order of their counterparts in
 
 data UncertifiedOptTag : Set where
   caseOfCaseT : UncertifiedOptTag
-  letFloatOutT : UncertifiedOptTag
+  constantFoldingT : UncertifiedOptTag
+  polyBuiltinT : UncertifiedOptTag
 
 data CertifiedOptTag : Set where
   floatDelayT : CertifiedOptTag
@@ -41,6 +42,7 @@ data CertifiedOptTag : Set where
   cseT : CertifiedOptTag
   applyToCaseT : CertifiedOptTag
   caseReduceT : CertifiedOptTag
+  letFloatOutT : CertifiedOptTag
 
 OptTag = Utils.Either UncertifiedOptTag CertifiedOptTag
 
@@ -56,13 +58,17 @@ CseT : OptTag
 CseT = Utils.inj₂ cseT
 ApplyToCaseT : OptTag
 ApplyToCaseT = Utils.inj₂ applyToCaseT
+LetFloatOutT : OptTag
+LetFloatOutT = Utils.inj₂ letFloatOutT
+CaseReduceT : OptTag
+CaseReduceT = Utils.inj₂ caseReduceT
 
 CaseOfCaseT : OptTag
 CaseOfCaseT = Utils.inj₁ caseOfCaseT
-LetFloatOutT : OptTag
-LetFloatOutT = Utils.inj₁ letFloatOutT
-CaseReduceT : OptTag
-CaseReduceT = Utils.inj₂ caseReduceT
+ConstantFoldingT : OptTag
+ConstantFoldingT = Utils.inj₁ constantFoldingT
+PolyBuiltinT : OptTag
+PolyBuiltinT = Utils.inj₁ polyBuiltinT
 
 {-# COMPILE GHC
   CertifiedOptTag
@@ -74,13 +80,15 @@ CaseReduceT = Utils.inj₂ caseReduceT
       | CSE
       | ApplyToCase
       | CaseReduce
+      | LetFloatOut
       )
 #-}
 {-# COMPILE GHC
   UncertifiedOptTag
     = data UncertifiedOptStage
       ( CaseOfCase
-      | LetFloatOut
+      | ConstantFolding
+      | PolyBuiltin
       )
 #-}
 ```

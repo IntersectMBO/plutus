@@ -83,6 +83,7 @@ act-event.json
 .history/
 .virtualenv
 .vscode/
+.claude/
 .hsenv
 TAGS
 .DS_Store
@@ -118,3 +119,4 @@ TestCert.*
 worktrees
 .local
 .claude
+agda-certificates

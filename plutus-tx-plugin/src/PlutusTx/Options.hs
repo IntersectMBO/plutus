@@ -29,7 +29,6 @@ import Data.Foldable (toList)
 #else
 import Data.Foldable (foldl', toList)
 #endif
-import Control.Applicative (many, optional, (<|>))
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -40,7 +39,6 @@ import Data.Text qualified as Text
 import Data.Type.Equality
 import GHC.Plugins qualified as GHC
 import Prettyprinter
-import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
 import Text.Read (readMaybe)
 import Type.Reflection
 
@@ -67,6 +65,7 @@ data PluginOptions = PluginOptions
   , _posDoSimplifierStrictifyBindings :: Bool
   , _posDoSimplifierRemoveDeadBindings :: Bool
   , _posApplyToCase :: Bool
+  , _posHoistPolyBuiltins :: Bool
   , _posProfile :: ProfileOpts
   , _posCoverageAll :: Bool
   , _posCoverageLocation :: Bool
@@ -85,6 +84,9 @@ data PluginOptions = PluginOptions
     _posRemoveTrace :: Bool
   , _posDumpCompilationTrace :: Bool
   , _posCertify :: Maybe String
+  {-^ @Nothing@: certification disabled.
+  @Just ""@: certify, placing output next to source files.
+  @Just path@: certify, placing all output under the given directory. -}
   , _posCertifiedOptsOnly :: Bool
   , _posPreserveSourceLocations :: Bool
   }
@@ -306,6 +308,9 @@ pluginOptions =
     , let k = "apply-to-case"
           desc = "Run the apply-to-case pass, turning multi-argument applications into case-constr form."
        in (k, PluginOption typeRep (setTrue k) posApplyToCase desc [])
+    , let k = "hoist-polymorphic-builtins"
+          desc = "Run the hoist-polymorphic-builtins pass, reducing the number of forces."
+       in (k, PluginOption typeRep (setTrue k) posHoistPolyBuiltins desc [])
     , let k = "profile-all"
           desc = "Set profiling options to All, which adds tracing when entering and exiting a term."
        in (k, PluginOption typeRep (flag (const All) k) posProfile desc [])
@@ -337,16 +342,13 @@ pluginOptions =
        in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
     , let k = "certify"
           desc =
-            "Produce a certificate for the compiled program, with the given name. "
+            "Produce Agda certificate projects for compiled programs. "
               <> "This certificate provides evidence that the compiler optimizations have "
               <> "preserved the functional behavior of the original program. "
-              <> "Currently, this is only supported for the UPLC compilation pipeline."
-          p =
-            optional $ do
-              firstC <- upperChar
-              rest <- many (alphaNumChar <|> char '_' <|> char '\\')
-              pure (firstC : rest)
-       in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
+              <> "Currently, this is only supported for the UPLC compilation pipeline. "
+              <> "When used without a value, certificates are placed next to source files. "
+              <> "When given a directory path (certify=DIR), all certificates are placed there."
+       in (k, PluginOption typeRep (optionalStringOption k) posCertify desc [])
     , let k = "certified-opts-only"
           desc =
             "Run only those optimisation passes which are certified to preserve the functional "
@@ -364,6 +366,14 @@ flag f k = maybe (Success f) (Failure . UnexpectedValue k)
 
 setTrue :: OptionKey -> Maybe OptionValue -> Validation ParseError (Bool -> Bool)
 setTrue = flag (const True)
+
+{-| An option that takes an optional string value.
+Without a value: sets to @Just ""@. With a value: sets to @Just (Text.unpack v)@. -}
+optionalStringOption
+  :: OptionKey -> Maybe OptionValue -> Validation ParseError (Maybe String -> Maybe String)
+optionalStringOption _k = \case
+  Nothing -> Success $ const (Just "")
+  Just v -> Success $ const (Just (Text.unpack v))
 
 plcParserOption :: PLC.Parser a -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
 plcParserOption p k = \case
@@ -419,6 +429,7 @@ defaultPluginOptions =
     , _posDoSimplifierStrictifyBindings = True
     , _posDoSimplifierRemoveDeadBindings = True
     , _posApplyToCase = True
+    , _posHoistPolyBuiltins = True
     , _posProfile = None
     , _posCoverageAll = False
     , _posCoverageLocation = False

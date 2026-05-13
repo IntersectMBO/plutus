@@ -1,1 +1,1 @@
-Integer -> Integer -> BuiltinResult Integer
+CInteger -> CInteger -> BuiltinResult Integer

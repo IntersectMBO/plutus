@@ -23,6 +23,7 @@ module PlutusLedgerApi.Common.SerialisedScript
   ) where
 
 import PlutusCore
+import PlutusCore.Default (defaultUniSize)
 import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
@@ -198,17 +199,39 @@ scriptCBORDecoder
 scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
   let availableBuiltins = builtinsAvailableIn ll pv
-      flatDecoder = UPLC.decodeProgram checkBuiltin
+      maxBounds = maxBoundsByPV pv
+      maxBoundHeader = mbHeader maxBounds
+      maxBoundConstr = mbConstr maxBounds
+      flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin checkConstr
+
+      checkConstant (Some (ValueOf uni _))
+        | defaultUniSize uni <= maxBoundHeader = Nothing
+        | otherwise =
+            Just $
+              "Constant of type "
+                ++ show (pretty uni)
+                ++ " is not available in protocol version "
+                ++ show (pretty pv)
       -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
-      checkBuiltin f | f `Set.member` availableBuiltins = Nothing
-      checkBuiltin f =
-        Just $
-          "Builtin function "
-            ++ show f
-            ++ " is not available in language "
-            ++ show (pretty ll)
-            ++ " at and protocol version "
-            ++ show (pretty pv)
+      checkBuiltin f
+        | f `Set.member` availableBuiltins = Nothing
+        | otherwise =
+            Just $
+              "Builtin function "
+                ++ show f
+                ++ " is not available in language "
+                ++ show (pretty ll)
+                ++ " at and protocol version "
+                ++ show (pretty pv)
+
+      checkConstr n
+        | n <= maxBoundConstr = Nothing
+        | otherwise =
+            Just $
+              "constr with "
+                ++ show n
+                ++ " fields is not available in protocol version "
+                ++ show (pretty pv)
    in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <-

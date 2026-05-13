@@ -1,1 +1,0 @@
-Text -> Text -> BuiltinResult Bool

@@ -7,9 +7,10 @@ import UntypedPlutusCore.Core.Type
 -- | A term definition as a variable.
 type UTermDef name uni fun ann = Def (UVarDecl name ann) (Term name uni fun ann)
 
--- | Make a 'Var' referencing the given 'VarDecl'.
-mkVar :: ann -> UVarDecl name ann -> Term name uni fun ann
-mkVar ann = Var ann . _uvarDeclName
+{-| Make a 'Var' referencing the given 'UVarDecl'.
+The @ann@ is propagated from the 'UVarDecl' to the 'Var'. -}
+mkVar :: UVarDecl name ann -> Term name uni fun ann
+mkVar uvd = Var (_uvarDeclAnn uvd) (_uvarDeclName uvd)
 
 -- | Lambda abstract a list of names.
 mkIterLamAbs

@@ -128,8 +128,6 @@ program
                               go expectedPredValues))
             in
             go ds
-    !ifThenElse : all a. bool -> a -> a -> a
-      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   in
   letrec
     !euclid : integer -> integer -> integer
@@ -211,14 +209,9 @@ program
                       (\(x : integer) (y : integer) -> lessThanInteger x y)
                       (\(x : integer) (y : integer) ->
                          lessThanEqualsInteger x y)
+                      (\(x : integer) (y : integer) -> lessThanInteger y x)
                       (\(x : integer) (y : integer) ->
-                         ifThenElse
-                           {bool}
-                           (lessThanEqualsInteger x y)
-                           False
-                           True)
-                      (\(x : integer) (y : integer) ->
-                         ifThenElse {bool} (lessThanInteger x y) False True)
+                         lessThanEqualsInteger y x)
                       (\(x : integer) (y : integer) ->
                          case
                            (all dead. integer)
@@ -318,13 +311,8 @@ program
                                 (\(n' : integer) (d' : integer) ->
                                    let
                                      !x : integer = multiplyInteger n d'
-                                     !y : integer = multiplyInteger n' d
                                    in
-                                   ifThenElse
-                                     {bool}
-                                     (lessThanEqualsInteger x y)
-                                     False
-                                     True)))
+                                   lessThanInteger (multiplyInteger n' d) x)))
                       (\(ds : Rational) (ds : Rational) ->
                          Rational_match
                            ds
@@ -336,13 +324,10 @@ program
                                 (\(n' : integer) (d' : integer) ->
                                    let
                                      !x : integer = multiplyInteger n d'
-                                     !y : integer = multiplyInteger n' d
                                    in
-                                   ifThenElse
-                                     {bool}
-                                     (lessThanInteger x y)
-                                     False
-                                     True)))
+                                   lessThanEqualsInteger
+                                     (multiplyInteger n' d)
+                                     x)))
                       (\(x : Rational) (y : Rational) ->
                          Rational_match
                            x
@@ -380,8 +365,10 @@ program
                      !bl : list data = unListData eta
                      !bl' : list data = tailList {data} bl
                    in
-                   ifThenElse
-                     {Unit -> Rational}
+                   (let
+                       a = Unit -> Rational
+                     in
+                     \(b : bool) (x : a) (y : a) -> case a b [y, x])
                      (nullList {data} (tailList {data} bl'))
                      (\(ds : Unit) ->
                         unsafeRatio

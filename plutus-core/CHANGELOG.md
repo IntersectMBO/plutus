@@ -1,4 +1,20 @@
 
+<a id='changelog-1.64.0.0'></a>
+# 1.64.0.0 — 2026-05-11
+
+## Added
+
+- The UPLC optimizer now also simplifies terms by evaluating builtins.
+
+<a id='changelog-1.63.0.0'></a>
+# 1.63.0.0 — 2026-05-01
+
+## Fixed
+
+- Fixed `SrcSpan` annotations on inner `Apply`/`TyInst` nodes from the PLC, PIR, and
+  UPLC parsers. Parser error messages and tooling that reads annotations off parsed
+  terms will now point to the specific argument involved.
+
 <a id='changelog-1.62.0.0'></a>
 # 1.62.0.0 — 2026-04-24
 

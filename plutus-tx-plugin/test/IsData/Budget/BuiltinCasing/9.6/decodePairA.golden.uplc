@@ -1,13 +1,14 @@
 (program
    1.1.0
-   (\d ->
-      case
-        (case
-           (unConstrData d)
-           [ (\index args ->
-                case
-                  index
-                  [ (\ds -> constr 0 [(unIData (force headList ds))])
-                  , (\ds -> constr 1 [(unIData (force headList ds))]) ]
-                  args) ])
-        [(\x -> x), (\x -> addInteger 1 x)]))
+   ((\forced d ->
+       case
+         (case
+            (unConstrData d)
+            [ (\index args ->
+                 case
+                   index
+                   [ (\ds -> constr 0 [(unIData (forced ds))])
+                   , (\ds -> constr 1 [(unIData (forced ds))]) ]
+                   args) ])
+         [(\x -> x), (\x -> addInteger 1 x)])
+      (force headList)))

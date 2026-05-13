@@ -19,7 +19,7 @@ letrec
     = \(x : integer) (lim : integer) ->
         case
           (all dead. List integer)
-          (case bool (lessThanEqualsInteger x lim) [True, False])
+          (lessThanInteger lim x)
           [ (/\dead ->
                Cons
                  {integer}

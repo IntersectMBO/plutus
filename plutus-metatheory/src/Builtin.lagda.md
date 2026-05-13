@@ -534,8 +534,8 @@ postulate
   readBIT                     : ByteString -> Int -> Maybe Bool
   writeBITS                   : ByteString -> List Int -> Bool -> Maybe ByteString
   replicateBYTE               : Int -> Int -> Maybe ByteString
-  shiftBYTESTRING             : ByteString -> Int -> ByteString
-  rotateBYTESTRING            : ByteString -> Int -> ByteString
+  shiftBYTESTRING             : ByteString -> Int -> Maybe ByteString
+  rotateBYTESTRING            : ByteString -> Int -> Maybe ByteString
   countSetBITS                : ByteString -> Int
   findFirstSetBIT             : ByteString -> Int
   RIPEMD-160                  : ByteString → ByteString
@@ -659,8 +659,18 @@ postulate
 -- it to a Word8.  We have to replicate this behaviour here. -}
 {-# COMPILE GHC replicateBYTE = \n w8 ->
         case toIntegralSized w8 of { Nothing -> Nothing; Just w -> builtinResultToMaybe $ Bitwise.replicateByte n w } #-}
-{-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteString #-}
-{-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteString #-}
+-- {-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteString #-}
+-- {-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteString #-}
+{-# COMPILE GHC shiftBYTESTRING = \s i ->
+        if fromIntegral (minBound :: Int) <= i
+        && i <= fromIntegral (maxBound :: Int)
+        then Just $ Bitwise.shiftByteString s i
+        else Nothing #-}
+{-# COMPILE GHC rotateBYTESTRING = \s i ->
+        if fromIntegral (minBound :: Int) <= i
+        && i <= fromIntegral (maxBound :: Int)
+        then Just $ Bitwise.rotateByteString s i
+        else Nothing #-}
 {-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
 {-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
 

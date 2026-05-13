@@ -27,6 +27,7 @@ data CertifiedOptStage
   | CSE
   | ApplyToCase
   | CaseReduce
+  | LetFloatOut
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -42,7 +43,8 @@ corresponding constructor to this type. Please also open an issue
 at https://github.com/IntersectMBO/plutus/issues. -}
 data UncertifiedOptStage
   = CaseOfCase
-  | LetFloatOut
+  | ConstantFolding
+  | PolyBuiltin
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -73,7 +75,13 @@ pattern CaseOfCaseStage :: OptStage
 pattern CaseOfCaseStage = Left CaseOfCase
 
 pattern LetFloatOutStage :: OptStage
-pattern LetFloatOutStage = Left LetFloatOut
+pattern LetFloatOutStage = Right LetFloatOut
+
+pattern ConstantFoldingStage :: OptStage
+pattern ConstantFoldingStage = Left ConstantFolding
+
+pattern PolyBuiltinStage :: OptStage
+pattern PolyBuiltinStage = Left PolyBuiltin
 
 {-# COMPLETE
   FloatDelayStage
@@ -85,6 +93,8 @@ pattern LetFloatOutStage = Left LetFloatOut
   , ApplyToCaseStage
   , CaseOfCaseStage
   , LetFloatOutStage
+  , ConstantFoldingStage
+  , PolyBuiltinStage
   #-}
 
 data Optimization name uni fun a

@@ -13,24 +13,30 @@ module UntypedPlutusCore.Optimize
   , module UntypedPlutusCore.Transform.Optimizer
   ) where
 
+import PlutusCore.Builtin (CostingPart)
 import PlutusCore.Compiler.Types
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Default.Builtins
 import PlutusCore.Name.Unique
+import UntypedPlutusCore.Analysis.Builtins (BuiltinsInfo, biSemanticsVariant)
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.Optimize.Opts as Opts
 import UntypedPlutusCore.Transform.ApplyToCase (applyToCase)
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.Cse
+import UntypedPlutusCore.Transform.EvaluateBuiltins (evaluateBuiltinsPass)
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
 import UntypedPlutusCore.Transform.ForceCaseDelay (forceCaseDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 import UntypedPlutusCore.Transform.LetFloatOut (letFloatOut)
 import UntypedPlutusCore.Transform.Optimizer
+import UntypedPlutusCore.Transform.PolyBuiltin (polyBuiltin)
 
+import Control.Lens ((&), (.~))
 import Control.Monad
+import Data.Default.Class (def)
 import Data.Either (isRight)
 import Data.List as List (foldl')
 import Data.Typeable
@@ -79,6 +85,7 @@ termOptimizer
 termOptimizer opts builtinSemanticsVariant =
   simplifyNTimes (_ooMaxSimplifierIterations opts)
     >=> runStage CseStage
+    >=> runStage PolyBuiltinStage
     >=> runStage ApplyToCaseStage
   where
     -- Run the simplifier @n@ times
@@ -109,6 +116,7 @@ termOptimizer opts builtinSemanticsVariant =
         >=> runStage CaseOfCaseStage
         >=> runStage CaseReduceStage
         >=> runStage InlineStage
+        >=> runStage ConstantFoldingStage
 
     certifiedOnly = _ooCertifiedOptsOnly opts
 
@@ -144,6 +152,15 @@ termOptimizer opts builtinSemanticsVariant =
             if _ooApplyToCase opts then applyToCase else pure
           LetFloatOutStage ->
             letFloatOut
+          ConstantFoldingStage ->
+            case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
+              (Just Refl, Just Refl) ->
+                evaluateBuiltinsPass
+                  (_ooPreserveLogging opts)
+                  ((def :: BuiltinsInfo PLC.DefaultUni DefaultFun) & biSemanticsVariant .~ builtinSemanticsVariant)
+                  (def :: CostingPart PLC.DefaultUni DefaultFun)
+              _ -> pure
+          PolyBuiltinStage -> if _ooHoistPolyBuiltins opts then polyBuiltinStep else pure
 
     caseOfCase'
       :: Term name uni fun a
@@ -162,3 +179,10 @@ termOptimizer opts builtinSemanticsVariant =
         _ -> pure
 
     cseTimes = if _ooConservativeOpts opts then 0 else _ooMaxCseIterations opts
+
+    polyBuiltinStep
+      :: Term name uni fun a
+      -> OptimizerT name uni fun a m (Term name uni fun a)
+    polyBuiltinStep = case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
+      (Just Refl, Just Refl) -> polyBuiltin builtinSemanticsVariant
+      _ -> pure

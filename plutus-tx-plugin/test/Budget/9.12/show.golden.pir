@@ -216,16 +216,12 @@ letrec
                    (acc eta))
           {all dead. dead}
 in
-let
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
-in
 letrec
   !`$dmenumFromTo_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer) (lim : integer) ->
         case
           (all dead. List integer)
-          (ifThenElse {bool} (lessThanEqualsInteger x lim) False True)
+          (lessThanInteger lim x)
           [ (/\dead ->
                Cons
                  {integer}
@@ -364,13 +360,7 @@ let
            (go (`$dmenumFromTo_$cenumFromTo` 0 17) (Nil {string})))
         b
   !d : integer
-    = trace
-        {integer}
-        (case
-           string
-           (ifThenElse {bool} (lessThanEqualsInteger c 0) False True)
-           ["False", "True"])
-        c
+    = trace {integer} (case string (lessThanInteger 0 c) ["False", "True"]) c
   !e : integer
     = trace
         {integer}

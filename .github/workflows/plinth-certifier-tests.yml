@@ -1,0 +1,46 @@
+# This workflow builds all packages with Agda certification enabled,
+# then type-checks each generated certificate to verify that compiler
+# optimizations preserve program semantics.
+#
+# Runs daily at 02:00 UTC and can be triggered manually.
+
+name: "Plinth Certifier Tests"
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  certify:
+    name: Build and verify Agda certificates
+    runs-on: [self-hosted, plutus-runner]
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run certifier tests
+        run: |
+          nix develop --no-warn-dirty --accept-flake-config --command \
+            python3 scripts/plinth-certifier-tests.py run -o agda-certificates
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: certifier-results
+          path: agda-certificates/__results__.txt
+          if-no-files-found: warn
+
+      - name: Upload certificate logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: certifier-logs
+          path: |
+            agda-certificates/**/plinth-certifier-FAIL.txt
+            agda-certificates/**/agda-check-FAIL.log
+          if-no-files-found: warn

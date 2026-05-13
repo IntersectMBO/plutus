@@ -14,6 +14,7 @@ import PlutusCore.Executable.AstIO (UplcTermNDB, toDeBruijnTermUPLC)
 import PlutusCore.Executable.Blueprint
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Eval
+import PlutusCore.Executable.OptimizerReport
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
@@ -354,22 +355,23 @@ runOptimiseSingle
   -> IO ()
 runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
-  (simplified, simplificationTrace) <- optimiseProgram sopts prog
+  (simplified, optimizerTrace) <- optimiseProgram sopts prog
   writeProgram outp ofmt mode simplified
   margs <- loadArgsIfEval eopts
+  let costs = case margs of
+        Nothing -> []
+        Just args ->
+          let evalCtx = mkDefaultEvalCtx def
+           in evalOptimizerTrace evalCtx optimizerTrace args
+  printReport stderr (buildReport optimizerTrace costs)
   whenJust mcert $ \cert -> do
     time <- systemNanoseconds <$> getSystemTime
-    let costs = case margs of
-          Nothing -> []
-          Just args ->
-            let evalCtx = mkDefaultEvalCtx def
-             in evalOptimizerTrace evalCtx simplificationTrace args
-        certDir = cert <> "-" <> show time
+    let certDir = cert <> "-" <> show time
         certOutput = case certifierOutput of
           CertBasic -> BasicOutput
           CertReport file -> ReportOutput file
           CertProject -> ProjectOutput certDir
-    execCertifier simplificationTrace cert certOutput costs
+    execCertifier optimizerTrace cert certOutput costs
 
 runOptimiseBlueprint
   :: Input
@@ -391,22 +393,24 @@ runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
       let optimised = map (void . fst) optimisedWithTrace
           evalCtx = mkDefaultEvalCtx def
       writeBlueprint outp blueprint optimised
-      whenJust mcert $ \cert -> do
-        time <- systemNanoseconds <$> getSystemTime
-        for_ (zip validators (snd <$> optimisedWithTrace)) $ \(validator, simplTrace) -> do
-          let validatorName = T.unpack (bvTitle validator)
-          margs <- loadBlueprintArgs eopts validatorName
-          let costs = case margs of
-                Nothing -> []
-                Just args -> evalOptimizerTrace evalCtx simplTrace args
-              certDir = cert <> "-" <> validatorName <> "-" <> show time
+      time <- systemNanoseconds <$> getSystemTime
+      for_ (zip validators (snd <$> optimisedWithTrace)) $ \(validator, optTrace) -> do
+        let validatorName = T.unpack (bvTitle validator)
+        margs <- loadBlueprintArgs eopts validatorName
+        let costs = case margs of
+              Nothing -> []
+              Just args -> evalOptimizerTrace evalCtx optTrace args
+        T.hPutStrLn stderr ("\n--- " <> bvTitle validator <> " ---")
+        printReport stderr (buildReport optTrace costs)
+        whenJust mcert $ \cert -> do
+          let certDir = cert <> "-" <> validatorName <> "-" <> show time
               certOutput = case certifierOutput of
                 CertBasic -> BasicOutput
                 CertReport file ->
                   let (fileBase, fileExt) = splitExtension file
                    in ReportOutput (fileBase <> "-" <> validatorName <.> fileExt)
                 CertProject -> ProjectOutput certDir
-          execCertifier simplTrace cert certOutput costs
+          execCertifier optTrace cert certOutput costs
 
 optimiseProgram
   :: forall m name a
@@ -433,13 +437,13 @@ execCertifier
        )
      ]
   -> IO ()
-execCertifier simplificationTrace cert out costs = do
-  result <- runCertifier $ mkCertifier simplificationTrace cert out costs
+execCertifier optimizerTrace cert out costs = do
+  result <- runCertifier $ mkCertifier optimizerTrace cert out costs
   case result of
     Left err -> do
       putStrLn $ prettyCertifierError err
       case err of
-        InvalidCertificate _ -> exitWith $ ExitFailure 1
+        InvalidCertificate _ _ -> exitWith $ ExitFailure 1
         InvalidCompilerOutput -> exitWith $ ExitFailure 2
         ValidationError _ -> exitWith $ ExitFailure 3
     -- TODO: Only Right True is success
@@ -481,7 +485,7 @@ loadArgs kind = case kind of
 
 {-| Load args from a dir.
 
-It tries to load the first arg from the file named "1", second from "2", and so on,
+It tries to load the first arg from the file named "0", second from "1", and so on,
 until the file doesn't exist.
 
 The args can be either @Program@s or @Data@ objects, depending on `EvalArgKind`. -}
@@ -493,7 +497,7 @@ loadArgsFromDir
   -> IO (Maybe [UplcTermNDB ()])
 loadArgsFromDir baseDir title argKind = do
   let dir = baseDir </> title
-  paths <- collectArgFiles dir 1
+  paths <- collectArgFiles dir 0
   if null paths
     then pure Nothing
     else Just <$> loadArgs argKind paths

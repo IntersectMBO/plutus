@@ -1,1 +1,3 @@
-(program 1.1.0 (\ds -> (\x -> error) (force trace "PT23" (constr 0 []))))
+(program
+   1.1.0
+   ((\forced ds -> (\x -> error) (forced "PT23" (constr 0 []))) (force trace)))

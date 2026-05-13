@@ -124,7 +124,7 @@ prodN arity = runQuote $ do
     pure $ TyVarDecl () tn $ Type ()
 
   resultType <- liftQuote $ freshTyName "r"
-  let caseType = mkIterTyFun () (fmap (mkTyVar ()) tyVars) (TyVar () resultType)
+  let caseType = mkIterTyFun () (fmap mkTyVar tyVars) (TyVar () resultType)
   pure $
     -- \T_1 .. T_n
     mkIterTyLam tyVars $
@@ -151,10 +151,10 @@ prodNConstructor arity = runQuote $ do
 
   args <- for [0 .. (arity - 1)] $ \i -> do
     n <- liftQuote $ freshName $ "arg_" <> showText i
-    pure $ VarDecl () n $ mkTyVar () $ tyVars !! i
+    pure $ VarDecl () n $ mkTyVar $ tyVars !! i
 
   caseArg <- liftQuote $ freshName "case"
-  let caseTy = mkIterTyFun () (fmap (mkTyVar ()) tyVars) (TyVar () resultType)
+  let caseTy = mkIterTyFun () (fmap mkTyVar tyVars) (TyVar () resultType)
   pure $
     -- /\T_1 .. T_n
     mkIterTyAbs tyVars $
@@ -181,12 +181,12 @@ prodNAccessor arity index = runQuote $ do
     tn <- liftQuote $ freshTyName $ "t_" <> showText i
     pure $ TyVarDecl () tn $ Type ()
 
-  let tupleTy = mkIterTyAppNoAnn (prodN arity) (fmap (mkTyVar ()) tyVars)
-      selectedTy = mkTyVar () $ tyVars !! index
+  let tupleTy = mkIterTyAppNoAnn (prodN arity) (fmap mkTyVar tyVars)
+      selectedTy = mkTyVar $ tyVars !! index
 
   args <- for [0 .. (arity - 1)] $ \i -> do
     n <- liftQuote $ freshName $ "arg_" <> showText i
-    pure $ VarDecl () n $ mkTyVar () $ tyVars !! i
+    pure $ VarDecl () n $ mkTyVar $ tyVars !! i
   let selectedArg = mkVar $ args !! index
 
   tupleArg <- liftQuote $ freshName "tuple"

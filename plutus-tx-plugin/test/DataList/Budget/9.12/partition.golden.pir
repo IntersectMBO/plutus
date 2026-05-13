@@ -20,7 +20,7 @@ in
                (\(ipv : list data) (ipv : list data) ->
                   case
                     (all dead. Tuple (list data) (list data))
-                    (case bool (lessThanInteger (unIData h) 8) [True, False])
+                    (lessThanEqualsInteger 8 (unIData h))
                     [ (/\dead ->
                          Tuple2
                            {list data}

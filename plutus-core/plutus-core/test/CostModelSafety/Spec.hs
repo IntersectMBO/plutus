@@ -24,15 +24,13 @@ check that the cost is strictly positive. -}
 module CostModelSafety.Spec (test_costModelSafety)
 where
 
-import PlutusCore (DefaultUni)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
-import PlutusCore.Default ()
-import PlutusCore.Default.Builtins
+import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
@@ -41,6 +39,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount
   , IntegerCostedLiterally
   , NumBytesCostedAsNumWords
+  , TextCostedByByteLength
   , ValueMaxDepth
   , ValueTotalSize
   )
@@ -59,7 +58,10 @@ import Data.List.Extra (enumerate)
 import Data.Text (Text)
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
-import Data.Word (Word8)
+import Data.Word
+  ( Word64
+  , Word8
+  )
 import GHC.Natural
 import Test.Tasty
   ( TestTree
@@ -136,11 +138,15 @@ smallConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @Natural) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @Int) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @Word8) = SomeConst (0 :: Integer)
+  | Just HRefl <- eqTypeRep tr (typeRep @Word64) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = SomeConst (0 :: Integer)
+  | Just HRefl <- eqTypeRep tr (typeRep @CInteger) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @Bool) = SomeConst False
   | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeConst $ BS.pack []
+  | Just HRefl <- eqTypeRep tr (typeRep @CByteString) = SomeConst $ BS.pack []
   | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeConst ("" :: Text)
+  | Just HRefl <- eqTypeRep tr (typeRep @TextCostedByByteLength) = SomeConst ("" :: Text)
   | Just HRefl <- eqTypeRep tr (typeRep @Data) = SomeConst $ I 0
   | Just HRefl <- eqTypeRep tr (typeRep @DataNodeCount) = SomeConst $ I 0
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G1.Element) =

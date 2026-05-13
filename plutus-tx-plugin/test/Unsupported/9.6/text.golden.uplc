@@ -1,0 +1,1 @@
+Error: Unsupported feature: Type Data.Text.Internal.Text is not supported in Plinth; use BuiltinString instead
