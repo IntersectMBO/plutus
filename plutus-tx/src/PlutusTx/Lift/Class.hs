@@ -119,7 +119,7 @@ instance Typeable uni (->) where
     b <- PLC.liftQuote $ PLC.freshTyName "b"
     let tvda = TyVarDecl () a (Type ())
         tvdb = TyVarDecl () b (Type ())
-    pure $ mkIterTyLam [tvda, tvdb] $ TyFun () (mkTyVar () tvda) (mkTyVar () tvdb)
+    pure $ mkIterTyLam [tvda, tvdb] $ TyFun () (mkTyVar tvda) (mkTyVar tvdb)
 
 -- Primitives
 

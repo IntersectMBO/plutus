@@ -386,7 +386,7 @@ mkDatatypeType opts r d@(Datatype ann tn tvs _ _) = do
 
 -- | The type of a datatype-value is of the form `[TyCon tyarg1 tyarg2 ... tyargn]`
 mkDatatypeValueType :: a -> Datatype TyName Name uni a -> Type TyName uni a
-mkDatatypeValueType ann (Datatype _ tn tvs _ _) = PIR.mkIterTyApp (PIR.mkTyVar ann tn) $ (ann,) . PIR.mkTyVar ann <$> tvs
+mkDatatypeValueType ann (Datatype _ tn tvs _ _) = PIR.mkIterTyApp (PIR.mkTyVar tn) $ (ann,) . PIR.mkTyVar <$> tvs
 
 -- Constructors
 
@@ -484,7 +484,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
           PIR.mkIterLamAbs argsAndTypes $
             -- See Note [Recursive datatypes]
             -- wrap
-            wrap ann dty (fmap (PIR.mkTyVar ann) tvs) constrBody
+            wrap ann dty (fmap PIR.mkTyVar tvs) constrBody
   pure $ fmap (\a -> DatatypeComponent Constructor a) constr
 
 -- Destructors
@@ -515,7 +515,7 @@ mkDestructor opts dty d@(Datatype ann _ tvs _ constrs) = do
   -- This term appears *outside* the scope of the abstraction for the datatype, so we need to put in the Scott-encoded type here
   -- see Note [Abstract data types]
   -- dty t_1 .. t_n
-  let appliedReal = PIR.mkIterTyApp (getType dty) (fmap ((ann,) . PIR.mkTyVar ann) tvs)
+  let appliedReal = PIR.mkIterTyApp (getType dty) (fmap ((ann,) . PIR.mkTyVar) tvs)
 
   xn <- safeFreshName "x"
 

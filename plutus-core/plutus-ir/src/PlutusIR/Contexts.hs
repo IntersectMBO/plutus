@@ -167,7 +167,7 @@ splitNormalDatatypeMatch vinfo matcherName args
       splitAppContext (length tyvars) args
   , Just tvs <- extractTyArgs vars =
       let
-        scrutTy = mkIterTyApp (mkTyVar () (void tyname)) $ ((),) . void <$> tvs
+        scrutTy = mkIterTyApp (mkTyVar (void tyname)) $ ((),) . void <$> tvs
         sm = SplitMatchContext vars (scrut, scrutTy, scrutAnn) (resTy, resTyAnn) branches
        in
         Just sm
