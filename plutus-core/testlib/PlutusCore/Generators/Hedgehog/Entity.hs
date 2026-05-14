@@ -110,9 +110,9 @@ instance
 runPlcT :: Monad m => TypedBuiltinGenT (Plain Term uni fun) m -> PlcGenT uni fun m a -> GenT m a
 runPlcT genTb = hoistSupply $ BuiltinGensT genTb
 
--- | Get a 'TermOf' out of an 'IterAppValue'.
-iterAppValueToTermOf :: IterAppValue uni fun head arg r -> TermOf (Plain Term uni fun) r
-iterAppValueToTermOf (IterAppValue term _ y) = TermOf term y
+-- | Get a 'TermWith' out of an 'IterAppValue'.
+iterAppValueToTermWith :: IterAppValue uni fun head arg r -> TermWith (Plain Term uni fun) r
+iterAppValueToTermWith (IterAppValue term _ y) = TermWith term y
 
 {-| Add to the 'ByteString' representation of a 'Name' its 'Unique'
 without any additional symbols inbetween. -}
@@ -165,7 +165,7 @@ genIterAppValue (Denotation object embed meta scheme) = result
     go (TypeSchemeArrow schB) term args f = do
       -- Another argument is required.
       BuiltinGensT genTb <- ask
-      TermOf v x <- liftT $ genTb typeRep -- Get a Haskell and the corresponding PLC values.
+      TermWith v x <- liftT $ genTb typeRep -- Get a Haskell and the corresponding PLC values.
       let term' = Apply () term v -- Apply the term to the PLC value.
           args' = args . (v :) -- Append the PLC value to the spine.
           y = f x -- Apply the Haskell function to the generated argument.
@@ -193,7 +193,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0
       :: DenotationContext (Plain Term uni fun)
       -> Int
       -> TypeRep r
-      -> GenT (QuoteT m) (TermOf (Plain Term uni fun) r)
+      -> GenT (QuoteT m) (TermWith (Plain Term uni fun) r)
     go context depth tr
       | depth == 0 = choiceDef (liftT $ genBase tr) []
       | depth == 1 = choiceDef (liftT $ genBase tr) variables
@@ -207,7 +207,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0
         builtinGens = BuiltinGensT (flip Gen.subterm id . go context (depth - 1))
         -- Generate arguments for functions recursively or return a variable.
         proceed (DenotationContextMember denotation) =
-          fmap iterAppValueToTermOf . hoistSupply builtinGens $ genIterAppValue denotation
+          fmap iterAppValueToTermWith . hoistSupply builtinGens $ genIterAppValue denotation
         -- Context lookup: terms of the right type already in scope.
         variables = map proceed $ lookupInContext tr context
         -- Generate a lambda and immediately apply it to a generated argument of a generated type.
@@ -217,22 +217,22 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0
           -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
           let argTy = toTypeAst argTr
           -- Generate the argument.
-          TermOf arg x <- go context (depth - 1) argTr
+          TermWith arg x <- go context (depth - 1) argTr
           -- Generate the body of the lambda abstraction adding the new variable to the context.
-          TermOf body y <- go (insertVariable name argTr x context) (depth - 1) tr
+          TermWith body y <- go (insertVariable name argTr x context) (depth - 1) tr
           -- Assemble the term.
           let term = Apply () (LamAbs () name argTy body) arg
-          return $ TermOf term y
+          return $ TermWith term y
 
 {-| Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 There are still like a half of terms that fail with out-of-bounds errors being evaluated. -}
 genTermLoose :: Monad m => TypedBuiltinGenT (Plain Term DefaultUni DefaultFun) m
 genTermLoose = genTerm genTypedBuiltinDef typedBuiltins 4
 
-{-| Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
-attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation. -}
+{-| Generate a 'TypedBuiltin' and a 'TermWith' of the corresponding type,
+attach the 'TypedBuiltin' to the value part of the 'TermWith' and pass that to a continuation. -}
 withAnyTermLoose
   :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
-  => (forall a. KnownType (Plain Term uni fun) a => TermOf (Plain Term uni fun) a -> GenT m c)
+  => (forall a. KnownType (Plain Term uni fun) a => TermWith (Plain Term uni fun) a -> GenT m c)
   -> GenT m c
 withAnyTermLoose k = withTypedBuiltinGen (Proxy @DefaultFun) $ \tr -> genTermLoose tr >>= k

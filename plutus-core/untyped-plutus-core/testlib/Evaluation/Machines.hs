@@ -54,9 +54,9 @@ testMachine
      )
   -> TestTree
 testMachine machine eval =
-  testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
+  testGroup machine $ fromInterestingTermGens $ \name genTermWithTbv ->
     testPropertyNamed name (fromString name) . withTests 99 . property $ do
-      TermOf term val <- forAllWith mempty genTermOfTbv
+      TermWith term val <- forAllWith mempty genTermWithTbv
       let resExp = makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
       case splitStructuralOperational . eval $ eraseTerm term of
         Left err -> fail $ show err
