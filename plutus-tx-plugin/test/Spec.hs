@@ -22,6 +22,7 @@ import IsData.Spec qualified as IsData
 import Lift.Spec qualified as Lift
 import List.Spec qualified as List
 import Optimization.Spec qualified as Optimization
+import Options.Spec qualified as Options
 import Plugin.Spec qualified as Plugin
 import Recursion.Spec qualified as Recursion
 import ShortCircuit.Spec qualified as ShortCircuit
@@ -62,6 +63,7 @@ tests =
     , Inline.tests
     , Recursion.tests
     , Optimization.tests
+    , embed Options.tests
     , Strictness.tests
     , Blueprint.Tests.tests
     , AssocMap.goldenTests

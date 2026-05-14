@@ -1,0 +1,7 @@
+PlutusTx.Plugin: failed to parse options:
+Cannot parse value "notaversion" for option "target-version": none:1:1:
+  |
+1 | notaversion
+  | ^
+unexpected 'n'
+expecting integer

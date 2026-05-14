@@ -166,6 +166,7 @@ test-suite plutus-tx-plugin-tests
     List.Semantics
     List.Spec
     Optimization.Spec
+    Options.Spec
     Plugin.Basic.Spec
     Plugin.Coverage.Spec
     Plugin.Data.Spec
@@ -205,6 +206,7 @@ test-suite plutus-tx-plugin-tests
     , bytestring
     , containers
     , deepseq
+    , either
     , filepath
     , hedgehog
     , lens
