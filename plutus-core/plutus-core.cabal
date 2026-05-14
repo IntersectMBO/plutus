@@ -101,6 +101,7 @@ library
     Data.Version.Extras
     PlutusCore
     PlutusCore.Analysis.Definitions
+    PlutusCore.Analysis.Usages
     PlutusCore.Annotation
     PlutusCore.Arity
     PlutusCore.AstSize
