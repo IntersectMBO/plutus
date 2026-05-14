@@ -63,7 +63,7 @@ tests =
     , Inline.tests
     , Recursion.tests
     , Optimization.tests
-    , embed Options.tests
+    , Options.tests
     , Strictness.tests
     , Blueprint.Tests.tests
     , AssocMap.goldenTests
