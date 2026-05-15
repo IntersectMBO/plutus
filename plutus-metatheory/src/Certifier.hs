@@ -18,21 +18,23 @@ import Data.Foldable
 import Data.List.Extra (replace)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
-import Data.Maybe (fromMaybe)
+import Data.List.NonEmptySep as NES
 import Data.Text qualified as Text
 import Data.Text.IO qualified as T
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath (takeBaseName, (</>))
+import Text.Printf (printf)
 
 import FFI.AgdaUnparse (AgdaUnparse (..), renderAgdaUnparse)
 import FFI.CostInfo
-import FFI.OptimizerTrace (Trace, mkFfiOptimizerTrace, toEvalResult)
+import FFI.OptimizerTrace
 import FFI.Untyped (UTerm)
 import MAlonzo.Code.Certifier (runCertifierMain)
 import PlutusLedgerApi.Common
 import Prettyprinter (pretty)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
+import UntypedPlutusCore.Transform.Certify.Hints (Hints)
 import UntypedPlutusCore.Transform.Optimizer
 
 type CertName = String
@@ -109,213 +111,153 @@ mkCertifier simplTrace certName certOutput costs = do
       pure passed
     Nothing -> throwError InvalidCompilerOutput
 
-type EquivClass = Int
-
-data TermWithId = TermWithId
-  { termId :: Int
-  , term :: UTerm
-  }
-
-data Ast = Ast
-  { equivClass :: EquivClass
-  , astTermWithId :: TermWithId
-  }
-
-getTermId :: Ast -> Int
-getTermId Ast {astTermWithId = TermWithId {termId}} = termId
-
 data Certificate = Certificate
   { certName :: String
-  , certTrace :: Trace Ast
-  , certReprAsts :: [Ast]
+  , certTrace :: Trace UTerm
   }
 
 mkCertificate :: String -> Trace UTerm -> Certificate
 mkCertificate certName rawTrace =
-  let traceWithIds = addIds rawTrace
-      allTermWithIds = extractTermWithIds traceWithIds
-      groupedAsts = findEquivClasses allTermWithIds
-      allAsts = groupedAsts >>= NE.toList
-      certTrace = mkAstTrace allAsts traceWithIds
-      certReprAsts = getRepresentatives groupedAsts
+  let trace' = dedup rawTrace
    in Certificate
         { certName
-        , certTrace
-        , certReprAsts
+        , certTrace = trace'
         }
   where
-    addIds
-      :: Trace UTerm
-      -> Trace TermWithId
-    addIds = go 0
-      where
-        go
-          :: Int
-          -> Trace UTerm
-          -> Trace TermWithId
-        go _ [] = []
-        go id' ((stage, (hints, (before, after))) : rest) =
-          let beforeWithId = TermWithId id' before
-              afterWithId = TermWithId (id' + 1) after
-           in (stage, (hints, (beforeWithId, afterWithId))) : go (id' + 2) rest
+    dedup :: Trace UTerm -> Trace UTerm
+    dedup (Singleton x) = Singleton x
+    dedup (Cons x sep xs)
+      -- If subsequent ASTs are equal, drop the pass
+      | x == NES.head xs = dedup xs
+      | otherwise = Cons x sep (dedup xs)
 
-    extractTermWithIds
-      :: Trace TermWithId
-      -> [TermWithId]
-    extractTermWithIds = concatMap (\(_, (_, (before, after))) -> [before, after])
+{-| Module name with string components, e.g.
+  "Data" :| ["List", "NonEmpty"] -}
+type ModuleName = NonEmpty String
 
-    findEquivClasses :: [TermWithId] -> [NonEmpty Ast]
-    findEquivClasses =
-      go 0 . NE.groupBy (\x y -> term x == term y)
-      where
-        go :: EquivClass -> [NonEmpty TermWithId] -> [NonEmpty Ast]
-        go _ [] = []
-        go cl (ts : rest) =
-          let asts = fmap (\t -> Ast {astTermWithId = t, equivClass = cl}) ts
-           in asts : go (cl + 1) rest
+moduleIdent :: ModuleName -> String
+moduleIdent = fold . NE.intersperse "."
 
-    getRepresentatives :: [NonEmpty Ast] -> [Ast]
-    getRepresentatives = fmap NE.head
+moduleFileName :: ModuleName -> FilePath
+moduleFileName m = foldr (</>) "" m ++ ".agda"
 
-    errorMessage :: String
-    errorMessage =
-      "Internal error: could not find AST.\
-      \ This is an issue in the certifier, please open a bug report at\
-      \ https://github.com/IntersectMBO/plutus/issues"
+-- | Drops the last component of the module to obtain its directory
+moduleDir :: ModuleName -> String
+moduleDir m = foldr (</>) "" (NE.init m)
 
-    mkAstTrace
-      :: [Ast]
-      -> Trace TermWithId
-      -> Trace Ast
-    mkAstTrace _ [] = []
-    mkAstTrace allAsts ((stage, (hints, (rawBefore, rawAfter))) : rest) =
-      let processedBefore =
-            fromMaybe (error errorMessage) $
-              find (\ast -> getTermId ast == termId rawBefore) allAsts
-          processedAfter =
-            fromMaybe (error errorMessage) $
-              find (\ast -> getTermId ast == termId rawAfter) allAsts
-       in (stage, (hints, (processedBefore, processedAfter))) : mkAstTrace allAsts rest
+{-| Module name in agda, for a given equivalence class. Each list element is a module segment that is to be
+separated by "." (agda identifier) or by "/" (files) -}
+mkAstModuleName :: Int -> ModuleName
+mkAstModuleName n =
+  ("Pass" <> printf "%03d" n) :| ["AST"]
 
-mkAstModuleName :: Ast -> String
-mkAstModuleName Ast {equivClass} =
-  "Ast" <> show equivClass
+mkAgdaAstFile :: Int -> UTerm -> Maybe Hints -> (ModuleName, String)
+mkAgdaAstFile n pre mHints =
+  ( modName
+  , unlines $
+      [ "module " <> moduleIdent modName <> " where"
+      , ""
+      , "open import Data.Unit"
+      , "open import Data.Nat"
+      , "open import Data.Integer"
+      , "open import Data.Maybe"
+      , "open import Data.Bool.Base using (Bool; false; true)"
+      , "open import Data.List using (List; _∷_; [])"
+      , ""
+      , "open import RawU"
+      , "open import Builtin"
+      , "open import Utils"
+      , ""
+      , "open import Untyped using (_⊢)"
+      , "open import VerifiedCompilation using (checkScope)"
+      , "open import VerifiedCompilation.Trace"
+      , ""
+      , "raw : Untyped"
+      , "raw = " <> renderAgdaUnparse pre
+      , ""
+      , "ast : 0 ⊢"
+      , "ast = to-witness-T (checkScope raw) tt"
+      ]
+        ++ case mHints of
+          Just hints ->
+            [ ""
+            , "hints : Hints"
+            , "hints = " <> renderAgdaUnparse hints
+            ]
+          Nothing -> []
+  )
+  where
+    modName = mkAstModuleName n
 
-mkAgdaAstFile :: Ast -> (FilePath, String)
-mkAgdaAstFile ast =
-  let agdaAst = renderAgdaUnparse (term . astTermWithId $ ast)
-      agdaId = equivClass ast
-      agdaModuleName = mkAstModuleName ast
-      agdaIdStr = "ast" <> show agdaId
-      agdaAstTy = agdaIdStr <> " : Untyped"
-      agdaAstDef = agdaIdStr <> " = " <> agdaAst
-      agdaAstFile = agdaModuleName <> ".agda"
-   in (agdaAstFile, mkAstModule agdaModuleName agdaAstTy agdaAstDef)
-
-mkAstModule :: String -> String -> String -> String
-mkAstModule agdaIdStr agdaAstTy agdaAstDef =
-  "module "
-    <> agdaIdStr
-    <> " where\
-       \\n\
-       \\nopen import VerifiedCompilation\
-       \\nopen import VerifiedCompilation.Certificate\
-       \\nopen import VerifiedCompilation.Trace\
-       \\nopen import RawU\
-       \\nopen import Builtin\
-       \\nopen import Data.Unit\
-       \\nopen import Data.Nat\
-       \\nopen import Data.Integer\
-       \\nopen import Utils\
-       \\nimport Agda.Builtin.Bool\
-       \\nimport Relation.Nullary\
-       \\nimport VerifiedCompilation.UntypedTranslation\
-       \\nopen import Agda.Builtin.Maybe\
-       \\nopen import Data.Empty using (⊥)\
-       \\nopen import Data.Bool.Base using (Bool; false; true)\
-       \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
-       \\n\
-       \\n"
-    <> agdaAstTy
-    <> "\n\
-       \\n"
-    <> agdaAstDef
-    <> "\n"
-
-mkAgdaOpenImport :: String -> String
-mkAgdaOpenImport agdaModuleName =
-  "open import " <> agdaModuleName
+mkAgdaImport :: Bool -> ModuleName -> String
+mkAgdaImport open moduleName =
+  openModifier open ("import " <> moduleIdent moduleName)
+  where
+    openModifier True str = "open " <> str
+    openModifier False str = str
 
 newtype AgdaVar = AgdaVar String
 
 instance AgdaUnparse AgdaVar where
   agdaUnparse (AgdaVar var) = pretty var
 
-mkCertificateFile :: Certificate -> (FilePath, String)
-mkCertificateFile Certificate {certName, certTrace, certReprAsts} =
-  let imports = fmap (mkAgdaOpenImport . mkAstModuleName) certReprAsts
-      agdaTrace =
-        renderAgdaUnparse $
-          ( \(st, (hints, (ast1, ast2))) ->
-              ( st
-              ,
-                ( hints
-                ,
-                  ( AgdaVar $ "ast" <> (show . equivClass) ast1
-                  , AgdaVar $ "ast" <> (show . equivClass) ast2
-                  )
-                )
-              )
-          )
-            <$> certTrace
-      certFile = certName <> ".agda"
-   in (certFile, mkCertificateModule certName agdaTrace imports)
+mkCertificateFile :: Certificate -> String
+mkCertificateFile Certificate {certName, certTrace} =
+  unlines $
+    [ "module " <> certName <> " where"
+    , ""
+    , "open import VerifiedCompilation.Trace"
+    , "open import Untyped using (_⊢)"
+    , "open import Utils hiding (List; _>>=_)"
+    , "open import VerifiedCompilation"
+    , "open import Data.Unit"
+    , ""
+    ]
+      ++ map (mkAgdaImport False) astImports
+      ++ [ ""
+         , "trace : Trace (0 ⊢)"
+         , "trace ="
+         ]
+      ++ map ("  " ++) (printTrace traceExpr)
+      ++ [ ""
+         , "certificate : Certificate trace"
+         , "certificate = cert trace (certify trace) tt"
+         , ""
+         ]
+  where
+    astImports :: [ModuleName]
+    astImports = map mkAstModuleName [0 .. length certTrace - 1]
 
-mkCertificateModule :: String -> String -> [String] -> String
-mkCertificateModule certModule agdaTrace imports =
-  "module "
-    <> certModule
-    <> " where\
-       \\n\
-       \\nopen import Certifier\
-       \\nopen import VerifiedCompilation\
-       \\nopen import VerifiedCompilation.Certificate hiding (_>>=_)\
-       \\nopen import VerifiedCompilation.Trace\
-       \\nopen import Untyped\
-       \\nopen import RawU\
-       \\nopen import Builtin\
-       \\nopen import Data.Unit\
-       \\nopen import Data.Nat\
-       \\nopen import Data.Integer\
-       \\nopen import Data.Maybe\
-       \\nopen import Data.List\
-       \\nopen import Utils hiding (List; _>>=_)\
-       \\nimport Agda.Builtin.Bool\
-       \\nimport Relation.Nullary\
-       \\nimport VerifiedCompilation.UntypedTranslation\
-       \\nopen import Agda.Builtin.List using (_∷_; [])\
-       \\nopen import Agda.Builtin.Maybe\
-       \\nopen import Data.Empty using (⊥)\
-       \\nopen import Data.Bool.Base using (Bool; false; true)\
-       \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
-       \\n"
-    <> unlines imports
-    <> "\n"
-    <> "\n\
-       \\nasts : List (OptTag × Hints × Untyped × Untyped)\
-       \\nasts = "
-    <> agdaTrace
-    <> "\n\
-       \\nasts_trace : Trace (0 ⊢)\
-       \\nasts_trace = to-witness-T (toTrace asts >>= checkScopeᵗ) tt\
-       \\n\
-       \\ncertificate : Certificate asts_trace\
-       \\ncertificate = cert asts_trace (certify asts_trace) tt\
-       \\n"
+    -- replace hints and asts by agda variables that point to the right module
+    traceExpr :: NonEmptySep (OptStage, AgdaVar) AgdaVar
+    traceExpr = go 0 certTrace
+      where
+        go n (Singleton _) = Singleton (moduleVar n "ast")
+        go n (Cons _ (stage, _) xs) =
+          Cons
+            (moduleVar n "ast")
+            (stage, moduleVar n "hints")
+            (go (n + 1) xs)
+
+    moduleVar :: Int -> String -> AgdaVar
+    moduleVar n x =
+      AgdaVar $
+        moduleIdent (mkAstModuleName n)
+          <> "."
+          <> x
+
+-- Ad-hoc pretty printing so it can be printed over multiple lines
+printTrace :: NonEmptySep (OptStage, AgdaVar) AgdaVar -> [String]
+printTrace (Singleton x) = ["singleton" ++ " " ++ renderAgdaUnparse x]
+printTrace (Cons x (stage, y) xs) =
+  [ renderAgdaUnparse x
+  , "  ∷[ " ++ renderAgdaUnparse stage ++ " , " ++ renderAgdaUnparse y ++ " ]"
+  ]
+    ++ printTrace xs
 
 data AgdaCertificateProject = AgdaCertificateProject
   { mainModule :: (FilePath, String)
-  , astModules :: [(FilePath, String)]
+  , astModules :: [(ModuleName, String)]
   , agdalib :: (FilePath, String)
   }
 
@@ -337,9 +279,17 @@ mkAgdaCertificateProject
 mkAgdaCertificateProject cert =
   let name = certName cert
       mainModule = mkCertificateFile cert
-      astModules = fmap mkAgdaAstFile (certReprAsts cert)
+      astModules = astModuleFiles 0 (certTrace cert)
       agdalib = mkAgdaLib name
-   in AgdaCertificateProject {mainModule, astModules, agdalib}
+   in AgdaCertificateProject
+        { mainModule = (certName cert <> ".agda", mainModule)
+        , astModules
+        , agdalib
+        }
+  where
+    astModuleFiles :: Int -> Trace UTerm -> [(ModuleName, String)]
+    astModuleFiles n (Singleton x) = [mkAgdaAstFile n x Nothing]
+    astModuleFiles n (Cons x (_, h) xs) = mkAgdaAstFile n x (Just h) : astModuleFiles (n + 1) xs
 
 writeCertificateProject
   :: CertDir
@@ -358,12 +308,14 @@ writeCertificateProject
           certName = takeBaseName mainModulePath
       createDirectoryIfMissing True certDir
       createDirectoryIfMissing True (certDir </> "src")
+      for_ astModules $ \(modName, _) -> do
+        createDirectoryIfMissing True (certDir </> "src" </> moduleDir modName)
       writeFile (certDir </> "src" </> mainModulePath) mainModuleContents
       writeFile (certDir </> agdalibPath) agdalibContents
       let readmeTemplate = $(embedStringFile "file-embed/certificate-README.md")
       writeFile (certDir </> "README.md") (replace "{{NAME}}" certName readmeTemplate)
       traverse_
-        ( \(path, contents) ->
-            writeFile (certDir </> "src" </> path) contents
+        ( \(modName, contents) ->
+            writeFile (certDir </> "src" </> moduleFileName modName) contents
         )
         astModules
