@@ -1,1 +1,1 @@
-CByteString -> Int64 -> BuiltinResult Bool
+CByteString -> Int -> BuiltinResult Bool
