@@ -24,7 +24,6 @@ check that the cost is strictly positive. -}
 module CostModelSafety.Spec (test_costModelSafety)
 where
 
-import Data.Int (Int64)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -138,7 +137,6 @@ smallConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @Integer) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @Natural) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @Int) = SomeConst (0 :: Integer)
-  | Just HRefl <- eqTypeRep tr (typeRep @Int64) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @Word8) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @Word64) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = SomeConst (0 :: Integer)

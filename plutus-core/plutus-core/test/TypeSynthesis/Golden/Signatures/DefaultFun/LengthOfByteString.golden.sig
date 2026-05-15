@@ -1,1 +1,1 @@
-ByteString -> BuiltinResult Int64
+ByteString -> BuiltinResult Int

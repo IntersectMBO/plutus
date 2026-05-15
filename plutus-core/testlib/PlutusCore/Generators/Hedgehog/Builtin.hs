@@ -34,7 +34,6 @@ import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Value (Value)
 
 import Data.ByteString qualified as BS
-import Data.Int (Int64)
 import Data.Kind qualified as GHC
 import Data.Text (Text)
 import Data.Type.Equality
@@ -109,7 +108,6 @@ genConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @()) = genArbitraryBuiltin @()
   | Just HRefl <- eqTypeRep tr (typeRep @Integer) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @Int) = genArbitraryBuiltin @Integer
-  | Just HRefl <- eqTypeRep tr (typeRep @Int64) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @Word8) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @Word64) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @Natural) = genArbitraryBuiltin @Integer

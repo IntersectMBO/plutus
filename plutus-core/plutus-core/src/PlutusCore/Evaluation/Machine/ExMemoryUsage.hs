@@ -29,7 +29,6 @@ import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 
 import Data.ByteString qualified as BS
-import Data.Int (Int64)
 import Data.Map.Strict qualified as Map
 import Data.Proxy
 import Data.SatInt
@@ -341,10 +340,6 @@ instance ExMemoryUsage TextCostedByByteLength where
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
-  memoryUsage _ = singletonRose 1
-  {-# INLINE memoryUsage #-}
-
-instance ExMemoryUsage Int64 where
   memoryUsage _ = singletonRose 1
   {-# INLINE memoryUsage #-}
 
