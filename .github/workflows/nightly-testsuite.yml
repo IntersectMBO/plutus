@@ -9,7 +9,7 @@ on:
   schedule:
     - cron: 0 0 * * *
 
-  workflow_dispatch: 
+  workflow_dispatch:
     inputs:
       hedgehog-tests:
         description: Number of tests to run (--hedgehog-tests XXXXX)
@@ -17,15 +17,15 @@ on:
         default: "100000"
 
       quickcheck-tests:
-        description: 'Number of QuickCheck tests to run per property'
+        description: Number of QuickCheck tests to run per property
         required: false
-        default: '100000'
+        default: "100000"
       quickcheck-max-size:
-        description: 'Max QuickCheck size parameter'
+        description: Max QuickCheck size parameter
         required: false
-        default: '500'
+        default: "500"
 
-env: 
+env:
   HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 100000 }}
   QUICKCHECK_TESTS: ${{ github.event.inputs.quickcheck-tests || 100000 }}
   QUICKCHECK_MAX_SIZE: ${{ github.event.inputs.quickcheck-max-size || 500 }}
