@@ -33,7 +33,6 @@ import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Type.Equality
@@ -119,7 +118,7 @@ data PluginOption
   }
 
 data ParseError
-  = CannotParseValue !OptionKey !OptionValue !SomeTypeRep
+  = CannotParseValue !OptionKey !OptionValue !Text
   | UnexpectedValue !OptionKey !OptionValue
   | MissingValue !OptionKey
   | UnrecognisedOption !OptionKey ![OptionKey]
@@ -137,13 +136,13 @@ instance Exception ParseErrors
 
 renderParseError :: ParseError -> Text
 renderParseError = \case
-  CannotParseValue k v tr ->
+  CannotParseValue k v detail ->
     "Cannot parse value "
       <> Text.pack (show v)
       <> " for option "
       <> Text.pack (show k)
-      <> " into type "
-      <> Text.pack (show tr)
+      <> ": "
+      <> detail
   UnexpectedValue k v ->
     "Option "
       <> Text.pack (show k)
@@ -379,15 +378,14 @@ plcParserOption :: PLC.Parser a -> OptionKey -> Maybe OptionValue -> Validation 
 plcParserOption p k = \case
   Just t -> case PLC.runQuoteT $ PLC.parse p "none" t of
     Right v -> Success $ const v
-    -- TODO: use the error
-    Left (_e :: PLC.ParserErrorBundle) -> Failure $ CannotParseValue k t (someTypeRep (Proxy @Int))
+    Left (e :: PLC.ParserErrorBundle) -> Failure $ CannotParseValue k t (Text.pack (show e))
   Nothing -> Failure $ MissingValue k
 
 readOption :: Read a => OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
 readOption k = \case
   Just v
     | Just i <- readMaybe (Text.unpack v) -> Success $ const i
-    | otherwise -> Failure $ CannotParseValue k v (someTypeRep (Proxy @Int))
+    | otherwise -> Failure $ CannotParseValue k v "could not parse value"
   Nothing -> Failure $ MissingValue k
 
 -- | Obtain an option value of type @a@ from an `Int`.
@@ -400,7 +398,7 @@ fromReadOption
 fromReadOption k f = \case
   Just v
     | Just i <- readMaybe (Text.unpack v) -> const <$> f i
-    | otherwise -> Failure $ CannotParseValue k v (someTypeRep (Proxy @Int))
+    | otherwise -> Failure $ CannotParseValue k v "expected Int"
   Nothing -> Failure $ MissingValue k
 
 defaultPluginOptions :: PluginOptions
