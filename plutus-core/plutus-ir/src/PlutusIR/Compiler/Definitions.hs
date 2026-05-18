@@ -309,30 +309,29 @@ lookupOrDefineTerm name mdef = do
       defineTerm name def deps
       pure $ mkVar (PLC.defVar def)
 
-lookupType :: MonadDefs key uni fun ann m => ann -> key -> m (Maybe (Type TyName uni ann))
-lookupType x name = do
+lookupType :: MonadDefs key uni fun ann m => key -> m (Maybe (Type TyName uni ann))
+lookupType name = do
   DefState {_typeDefs = tys, _datatypeDefs = dtys, _aliases = as} <- liftDef $ DefT get
   pure $ case Map.lookup name tys of
     Just (def, _) ->
-      Just $ if Set.member name as then PLC.defVal def else mkTyVar x $ PLC.defVar def
+      Just $ if Set.member name as then PLC.defVal def else mkTyVar $ PLC.defVar def
     Nothing -> case Map.lookup name dtys of
-      Just (def, _) -> Just $ mkTyVar x $ PLC.defVar def
+      Just (def, _) -> Just $ mkTyVar $ PLC.defVar def
       Nothing -> Nothing
 
 lookupOrDefineType
   :: MonadDefs key uni fun ann m
-  => ann
-  -> key
+  => key
   -> m (TypeDef TyName uni ann, Set.Set key)
   -> m (Type TyName uni ann)
-lookupOrDefineType x name mdef = do
-  mTy <- lookupType x name
+lookupOrDefineType name mdef = do
+  mTy <- lookupType name
   case mTy of
     Just ty -> pure ty
     Nothing -> do
       (def, deps) <- mdef
       defineType name def deps
-      pure $ mkTyVar x $ PLC.defVar def
+      pure $ mkTyVar $ PLC.defVar def
 
 lookupConstructors
   :: MonadDefs key uni fun ann m

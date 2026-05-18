@@ -410,12 +410,12 @@ remainderInteger x y = fromOpaque (BI.remainderInteger (toOpaque x) (toOpaque y)
 
 -- | Check whether one 'Integer' is greater than another.
 greaterThanInteger :: Integer -> Integer -> Bool
-greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y) False True
+greaterThanInteger x y = BI.lessThanInteger y x
 {-# INLINEABLE greaterThanInteger #-}
 
 -- | Check whether one 'Integer' is greater than or equal to another.
 greaterThanEqualsInteger :: Integer -> Integer -> Bool
-greaterThanEqualsInteger x y = BI.ifThenElse (BI.lessThanInteger x y) False True
+greaterThanEqualsInteger x y = BI.lessThanEqualsInteger y x
 {-# INLINEABLE greaterThanEqualsInteger #-}
 
 -- | Check whether one 'Integer' is less than another.

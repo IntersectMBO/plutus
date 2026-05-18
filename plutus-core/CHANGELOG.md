@@ -1,4 +1,11 @@
 
+<a id='changelog-1.64.0.0'></a>
+# 1.64.0.0 — 2026-05-11
+
+## Added
+
+- The UPLC optimizer now also simplifies terms by evaluating builtins.
+
 <a id='changelog-1.63.0.0'></a>
 # 1.63.0.0 — 2026-05-01
 

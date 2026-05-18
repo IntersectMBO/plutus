@@ -54,29 +54,29 @@ d_hl_8
        Data.Text.Text)
 -- CertifierReport.showCertifiedOptTag
 d_showCertifiedOptTag_10 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_showCertifiedOptTag_10 v0
   = case coe v0 of
-      MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_12
+      MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_14
         -> coe ("Float Delay" :: Data.Text.Text)
-      MAlonzo.Code.VerifiedCompilation.Trace.C_forceDelayT_14
+      MAlonzo.Code.VerifiedCompilation.Trace.C_forceDelayT_16
         -> coe ("Force-Delay Cancellation" :: Data.Text.Text)
-      MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_16
+      MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_18
         -> coe ("Float Force into Case Branches" :: Data.Text.Text)
-      MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_18
+      MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_20
         -> coe ("Inlining" :: Data.Text.Text)
-      MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_20
+      MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_22
         -> coe ("Common Subexpression Elimination" :: Data.Text.Text)
-      MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_22
+      MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_24
         -> coe
              ("Transform multi-argument applications into case-constr form"
               ::
               Data.Text.Text)
-      MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_24
+      MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_26
         -> coe
              ("Case-Constr and Case-Constant Cancellation" :: Data.Text.Text)
-      MAlonzo.Code.VerifiedCompilation.Trace.C_letFloatOutT_26
+      MAlonzo.Code.VerifiedCompilation.Trace.C_letFloatOutT_28
         -> coe ("Float bindings outwards" :: Data.Text.Text)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.showUncertifiedOptTag
@@ -89,12 +89,14 @@ d_showUncertifiedOptTag_12 v0
         -> coe ("Case-of-Case" :: Data.Text.Text)
       MAlonzo.Code.VerifiedCompilation.Trace.C_constantFoldingT_8
         -> coe ("Constant Folding" :: Data.Text.Text)
+      MAlonzo.Code.VerifiedCompilation.Trace.C_polyBuiltinT_10
+        -> coe ("Hoist Polymorphic Builtins" :: Data.Text.Text)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.showTag
 d_showTag_14 ::
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_showTag_14 v0
   = case coe v0 of
@@ -805,34 +807,34 @@ d_numSitesCaseReduce'42'_186 v0 v1 v2 v3
 d_numSites_222 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
   AgdaAny -> Integer
 d_numSites_222 v0 v1 v2 v3
   = case coe v2 of
-      MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_12
+      MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_14
         -> coe du_numSites'8242'_26 v0 v1 v3
-      MAlonzo.Code.VerifiedCompilation.Trace.C_forceDelayT_14
+      MAlonzo.Code.VerifiedCompilation.Trace.C_forceDelayT_16
         -> coe du_numSites'8242'_26 v0 v1 v3
-      MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_16
+      MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_18
         -> coe du_numSites'8242'_26 v0 v1 v3
-      MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_18
+      MAlonzo.Code.VerifiedCompilation.Trace.C_inlineT_20
         -> coe
              d_numSitesInline_140 (coe (0 :: Integer)) erased
              (coe MAlonzo.Code.VerifiedCompilation.UInline.C_'9633'_32)
              (coe MAlonzo.Code.VerifiedCompilation.UInline.C_'9633'_32)
              (coe MAlonzo.Code.VerifiedCompilation.UInline.C_'9633'_106)
              (coe v0) (coe v1) (coe v3)
-      MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_20
+      MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_22
         -> coe du_numSites'8242'_26 v0 v1 v3
-      MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_22
+      MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_24
         -> coe du_numSites'8242'_26 v0 v1 v3
-      MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_24
+      MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_26
         -> coe
              d_numSitesCaseReduce_178 (coe (0 :: Integer)) (coe v0) (coe v1)
              (coe
                 MAlonzo.Code.VerifiedCompilation.UCaseReduce.du_sound_568
                 (coe (0 :: Integer)) (coe v0))
-      MAlonzo.Code.VerifiedCompilation.Trace.C_letFloatOutT_26
+      MAlonzo.Code.VerifiedCompilation.Trace.C_letFloatOutT_28
         -> coe (0 :: Integer)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.showSites
@@ -841,7 +843,7 @@ d_showSites_248 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_showSites_248 v0 v1 v2 v3
   = case coe v2 of
@@ -907,11 +909,11 @@ d_termSize'7510''695'_260 v0 v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.showEvalResult
 d_showEvalResult_282 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_138 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_142 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_showEvalResult_282 v0
   = case coe v0 of
-      MAlonzo.Code.VerifiedCompilation.Trace.C_success_140 v1 v2
+      MAlonzo.Code.VerifiedCompilation.Trace.C_success_144 v1 v2
         -> coe
              MAlonzo.Code.Data.String.Base.d__'43''43'__20
              (d_'8649'__2 (coe ("Execution Cost: CPU = " :: Data.Text.Text)))
@@ -922,7 +924,7 @@ d_showEvalResult_282 v0
                    MAlonzo.Code.Data.String.Base.d__'43''43'__20
                    (", MEM = " :: Data.Text.Text)
                    (coe MAlonzo.Code.Data.Nat.Show.d_show_56 v2)))
-      MAlonzo.Code.VerifiedCompilation.Trace.C_failure_142 v1 v2 v3
+      MAlonzo.Code.VerifiedCompilation.Trace.C_failure_146 v1 v2 v3
         -> coe
              MAlonzo.Code.Data.String.Base.d__'43''43'__20
              (d_'8649'__2 (coe ("Evaluation FAILED: " :: Data.Text.Text)))
@@ -943,7 +945,7 @@ d_showEvalResult_282 v0
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.showCostPair
 d_showCostPair_294 ::
-  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_138] ->
+  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_142] ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_showCostPair_294 v0
   = let v1 = "" :: Data.Text.Text in
@@ -977,13 +979,13 @@ du_tail_302 v0
 -- CertifierReport.reportPasses
 d_reportPasses_312 ::
   Integer ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_Trace_84 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_Trace_88 ->
   AgdaAny ->
-  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_138] ->
+  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_142] ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_reportPasses_312 v0 v1 v2 v3
   = case coe v1 of
-      MAlonzo.Code.VerifiedCompilation.Trace.C_step_88 v4 v5 v6 v7
+      MAlonzo.Code.VerifiedCompilation.Trace.C_step_92 v4 v5 v6 v7
         -> case coe v2 of
              MAlonzo.Code.Utils.C__'44'__450 v8 v9
                -> coe
@@ -1026,7 +1028,7 @@ d_reportPasses_312 v0 v1 v2 v3
                                                         (d_termSize_256
                                                            (coe (0 :: Integer))
                                                            (coe
-                                                              MAlonzo.Code.VerifiedCompilation.Trace.d_head_94
+                                                              MAlonzo.Code.VerifiedCompilation.Trace.d_head_98
                                                               (coe v7))))
                                                      (coe
                                                         MAlonzo.Code.Data.String.Base.d__'43''43'__20
@@ -1045,7 +1047,7 @@ d_reportPasses_312 v0 v1 v2 v3
                                                                     (d_showSites_248
                                                                        (coe v6)
                                                                        (coe
-                                                                          MAlonzo.Code.VerifiedCompilation.Trace.d_head_94
+                                                                          MAlonzo.Code.VerifiedCompilation.Trace.d_head_98
                                                                           (coe v7))
                                                                        (coe v4) (coe v8))
                                                                     (coe
@@ -1062,7 +1064,7 @@ d_reportPasses_312 v0 v1 v2 v3
                                                                              (coe
                                                                                 v3))))))))))))))))))))
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.VerifiedCompilation.Trace.C_done_90 v4
+      MAlonzo.Code.VerifiedCompilation.Trace.C_done_94 v4
         -> coe ("" :: Data.Text.Text)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.reportFailure
@@ -1117,7 +1119,7 @@ d_makeReport_334 ::
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.T_Error_2
     MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
-  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_138] ->
+  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_142] ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_makeReport_334 v0 v1
   = coe

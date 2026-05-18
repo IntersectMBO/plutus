@@ -143,11 +143,10 @@ The @ann@ is propagated from the 'VarDecl' to the 'Var'. -}
 mkVar :: TermLike term tyname name uni fun => VarDecl tyname name uni ann -> term ann
 mkVar v = var (_varDeclAnn v) (_varDeclName v)
 
--- TODO: also propagate @ann@ for 'mkTyVar', and UPLC's 'mkVar'.
-
--- | Make a 'TyVar' referencing the given 'TyVarDecl'.
-mkTyVar :: ann -> TyVarDecl tyname ann -> Type tyname uni ann
-mkTyVar ann = TyVar ann . _tyVarDeclName
+{-| Make a 'TyVar' referencing the given 'TyVarDecl'.
+The @ann@ is propagated from the 'TyVarDecl' to the 'TyVar'. -}
+mkTyVar :: TyVarDecl tyname ann -> Type tyname uni ann
+mkTyVar tvd = TyVar (_tyVarDeclAnn tvd) (_tyVarDeclName tvd)
 
 -- | A definition. Pretty much just a pair with more descriptive names.
 data Def var val = Def

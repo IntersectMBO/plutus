@@ -12,13 +12,14 @@ import Control.Monad
 import Data.Bits
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
-import Data.List as List (foldl')
+import Data.List as List (foldl', unfoldr)
 import Data.Text (Text)
 import Data.Word (Word64)
 
 import Hedgehog qualified as H
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
+import Hedgehog.Internal.Seed qualified as Seed
 import Hedgehog.Internal.Tree qualified as T
 import System.IO.Unsafe (unsafePerformIO)
 import System.Random (StdGen, randomR)
@@ -77,9 +78,12 @@ makeSizedIntegers g (n : ns) =
 makeSizedByteString :: H.Seed -> Int -> ByteString
 makeSizedByteString seed n = genSample seed (G.bytes (R.singleton (8 * n)))
 
--- FIXME: this is terrible
+-- | Infinite stream of independent seeds derived from a root seed.
+splitSeeds :: H.Seed -> [H.Seed]
+splitSeeds = unfoldr (Just . Seed.split)
+
 makeSizedByteStrings :: H.Seed -> [Int] -> [ByteString]
-makeSizedByteStrings seed l = map (makeSizedByteString seed) l
+makeSizedByteStrings seed sizes = zipWith makeSizedByteString (splitSeeds seed) sizes
 
 -- TODO: don't use Hedgehog's 'sample' below: it silently resizes the generator
 -- to size 30, so listOfByteStringsOfLength and listOfByteStrings are biased
@@ -105,7 +109,8 @@ makeSizedTextString :: H.Seed -> Int -> Text
 makeSizedTextString seed n = genSample seed (G.text (R.singleton (2 * n)) G.unicode)
 
 makeSizedTextStrings :: H.Seed -> [Integer] -> [Text]
-makeSizedTextStrings seed sizes = fmap (makeSizedTextString seed . fromInteger) sizes
+makeSizedTextStrings seed sizes =
+  zipWith makeSizedTextString (splitSeeds seed) (fmap fromInteger sizes)
 
 {-| Generate a valid UTF-8 bytestring with memory usage approximately n for
    benchmarking decodeUtf8.  We use the 'unicode' generator beacuse that gives
@@ -115,7 +120,8 @@ makeSizedUtf8ByteString :: H.Seed -> Int -> ByteString
 makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton (2 * n)) G.unicode)
 
 makeSizedUtf8ByteStrings :: H.Seed -> [Integer] -> [ByteString]
-makeSizedUtf8ByteStrings seed sizes = (makeSizedUtf8ByteString seed . fromInteger) <$> sizes
+makeSizedUtf8ByteStrings seed sizes =
+  zipWith makeSizedUtf8ByteString (splitSeeds seed) (fmap fromInteger sizes)
 
 ---------------- Data (QuickCheck) ----------------
 

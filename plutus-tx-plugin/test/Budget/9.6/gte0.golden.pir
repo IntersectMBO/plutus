@@ -14,7 +14,7 @@ letrec
           (\(x : integer) (xs : List integer) ->
              case
                (all dead. bool)
-               (case bool (lessThanInteger x 0) [True, False])
+               (lessThanEqualsInteger 0 x)
                [(/\dead -> False), (/\dead -> go xs)]
                {all dead. dead})
 in

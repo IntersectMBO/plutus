@@ -1,1 +1,2 @@
-(\xxx -> 1) ((\s -> s s) (\s -> force trace "hello" (\z -> s s z)))
+(\forced -> (\xxx -> 1) ((\s -> s s) (\s -> forced "hello" (\z -> s s z))))
+  (force trace)

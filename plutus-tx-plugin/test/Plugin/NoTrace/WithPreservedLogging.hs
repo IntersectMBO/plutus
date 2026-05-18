@@ -3,6 +3,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-conservative-optimisation #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-hoist-polymorphic-builtins #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:preserve-logging #-}
 
 module Plugin.NoTrace.WithPreservedLogging where

@@ -399,10 +399,7 @@ in
                            (\(x : integer) ->
                               case
                                 (all dead. Maybe integer)
-                                (case
-                                   bool
-                                   (lessThanEqualsInteger x 0)
-                                   [True, False])
+                                (lessThanInteger 0 x)
                                 [ (/\dead -> Nothing {integer})
                                 , (/\dead -> Just {integer} x) ]
                                 {all dead. dead})

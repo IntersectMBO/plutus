@@ -44,6 +44,7 @@ at https://github.com/IntersectMBO/plutus/issues. -}
 data UncertifiedOptStage
   = CaseOfCase
   | ConstantFolding
+  | PolyBuiltin
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -79,6 +80,9 @@ pattern LetFloatOutStage = Right LetFloatOut
 pattern ConstantFoldingStage :: OptStage
 pattern ConstantFoldingStage = Left ConstantFolding
 
+pattern PolyBuiltinStage :: OptStage
+pattern PolyBuiltinStage = Left PolyBuiltin
+
 {-# COMPLETE
   FloatDelayStage
   , ForceDelayStage
@@ -90,6 +94,7 @@ pattern ConstantFoldingStage = Left ConstantFolding
   , CaseOfCaseStage
   , LetFloatOutStage
   , ConstantFoldingStage
+  , PolyBuiltinStage
   #-}
 
 data Optimization name uni fun a

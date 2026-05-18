@@ -195,7 +195,7 @@ compileTyCon tc
         "Recursive newtypes, use data:" GHC.<+> GHC.ppr tcName
       -- See Note [Dependency tracking]
       modifyCurDeps (\d -> Set.insert lexName d)
-      maybeDef <- PIR.lookupType annMayInline lexName
+      maybeDef <- PIR.lookupType lexName
       case maybeDef of
         Just ty -> pure ty
         -- See Note [Dependency tracking]
@@ -206,7 +206,7 @@ compileTyCon tc
               -- See Note [Coercions and newtypes]
               -- See Note [Occurrences of recursive names]
               -- We do this for dependency tracking, we won't use it due to the blackholing
-              PIR.defineType lexName (PIR.Def tvd (PIR.mkTyVar annMayInline tvd)) mempty
+              PIR.defineType lexName (PIR.Def tvd (PIR.mkTyVar tvd)) mempty
               -- Type variables are in scope for the rhs of the alias
               alias <-
                 mkIterTyLamScoped (GHC.tyConTyVars tc) $
@@ -238,7 +238,7 @@ compileTyCon tc
                 let datatype = PIR.Datatype annMayInline tvd tvs matchName constructors
 
                 PIR.modifyDatatypeDef @_ @uni lexName (const $ PIR.Def tvd datatype)
-              pure $ PIR.mkTyVar annMayInline tvd
+              pure $ PIR.mkTyVar tvd
 
 {- Note [Case expressions and laziness]
 PLC is strict, but users *do* expect that, e.g. they can write an if expression and have it be

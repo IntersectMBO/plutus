@@ -1,4 +1,23 @@
 
+<a id='changelog-1.64.0.0'></a>
+# 1.64.0.0 — 2026-05-11
+
+## Added
+
+- `certify` plugin option to trigger Agda certificate generation for compiled
+  Plutus scripts. Each certificate is written to a directory named
+  `<package>_<module>-<hash>.agda-cert`, where `<hash>` is a random 6-char
+  alphanumeric tag.
+- `generateCertificate` top-level function that invokes the certifier with
+  package and module names.
+
+- Detailed error message for unsupported casing on Integer.
+
+## Changed
+
+- Improved error reporting for a few unsupported types: `Float`, `Double`,
+  `Ratio`, `Text`, `ByteString`.
+
 <a id='changelog-1.63.0.0'></a>
 # 1.63.0.0 — 2026-05-01
 

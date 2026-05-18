@@ -99,32 +99,26 @@ liveBinding
   :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, MonadQuote m)
   => Binding TyName name uni fun a
   -> m (Maybe (Binding TyName name uni fun a))
-liveBinding =
-  let
-    -- TODO: HasUnique instances for VarDecl and TyVarDecl?
-    liveVarDecl (VarDecl _ n _) = live n
-    liveTyVarDecl (TyVarDecl _ n _) = live n
-   in
-    \case
-      b@(TermBind _ _ d _) -> do
-        l <- liveVarDecl d
-        pure $ if l then Just b else Nothing
-      b@(TypeBind _ d _) -> do
-        l <- liveTyVarDecl d
-        pure $ if l then Just b else Nothing
-      b@(DatatypeBind x (Datatype _ d _ destr constrs)) -> do
-        dtypeLive <- liveTyVarDecl d
-        destrLive <- live destr
-        constrsLive <- traverse liveVarDecl constrs
-        let termLive = or (destrLive : constrsLive)
-        case (dtypeLive, termLive) of
-          -- At least one term-level part is live, keep the whole thing
-          (_, True) -> pure $ Just b
-          -- Nothing is live, remove the whole thing
-          (False, False) -> pure Nothing
-          -- See Note [Dependencies for datatype bindings, and pruning them]
-          -- Datatype is live but no term-level parts are, replace with a trivial type binding
-          (True, False) -> Just . TypeBind x d <$> mkTypeOfKind (_tyVarDeclKind d)
+liveBinding = \case
+  b@(TermBind _ _ d _) -> do
+    l <- live d
+    pure $ if l then Just b else Nothing
+  b@(TypeBind _ d _) -> do
+    l <- live d
+    pure $ if l then Just b else Nothing
+  b@(DatatypeBind x (Datatype _ d _ destr constrs)) -> do
+    dtypeLive <- live d
+    destrLive <- live destr
+    constrsLive <- traverse live constrs
+    let termLive = or (destrLive : constrsLive)
+    case (dtypeLive, termLive) of
+      -- At least one term-level part is live, keep the whole thing
+      (_, True) -> pure $ Just b
+      -- Nothing is live, remove the whole thing
+      (False, False) -> pure Nothing
+      -- See Note [Dependencies for datatype bindings, and pruning them]
+      -- Datatype is live but no term-level parts are, replace with a trivial type binding
+      (True, False) -> Just . TypeBind x d <$> mkTypeOfKind (_tyVarDeclKind d)
 
 {-| Given a kind, make a type (any type!) of that kind.
 Generates things of the form 'unit -> unit -> ... -> unit' -}
