@@ -155,6 +155,8 @@ module PlutusLedgerApi.Data.V2
   , V1.upperBound
   , V1.strictLowerBound
   , V1.strictUpperBound
+  , V1.inclusiveLowerBound
+  , V1.inclusiveUpperBound
 
     -- *** Association maps
   , Map

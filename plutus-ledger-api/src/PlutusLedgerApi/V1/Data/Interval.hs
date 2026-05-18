@@ -51,6 +51,8 @@ module PlutusLedgerApi.V1.Data.Interval
   , upperBound
   , strictLowerBound
   , strictUpperBound
+  , inclusiveLowerBound
+  , inclusiveUpperBound
   , mapInterval
   ) where
 
