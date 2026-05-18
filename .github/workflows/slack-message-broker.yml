@@ -131,7 +131,6 @@ jobs:
 
               const checkRunWatchlist = [
                 "ci/hydra-build:aarch64-darwin.required",
-                "ci/hydra-build:x86_64-darwin.required",
                 "ci/hydra-build:x86_64-linux.required",
                 "ci/eval"
               ];
