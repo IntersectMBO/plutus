@@ -590,7 +590,6 @@ library plutus-ir
 
   other-modules:
     PlutusIR.Analysis.Definitions
-    PlutusIR.Analysis.Usages
     PlutusIR.Compiler.Error
     PlutusIR.Compiler.Lower
     PlutusIR.Compiler.Recursion

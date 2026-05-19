@@ -11,11 +11,12 @@ module PlutusIR.Transform.DeadCase
   ) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Analysis.Usages qualified as Usages
 import PlutusCore.Annotation
 import PlutusCore.Name.Unique
 import PlutusIR
-import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Pass
+import PlutusIR.Subst (termUsages)
 import PlutusIR.Transform.Rename ()
 import PlutusIR.TypeCheck qualified as TC
 
@@ -55,7 +56,7 @@ processTerm
 processTerm = \case
   Case a _resTy _scrut [LamAbs _ x _ (LamAbs _ y _ body)]
     | annIsSafeToDrop a
-    , let usages = Usages.termUsages body
+    , let usages = termUsages body
     , Usages.getUsageCount x usages == 0
     , Usages.getUsageCount y usages == 0 ->
         body
