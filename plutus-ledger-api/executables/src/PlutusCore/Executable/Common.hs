@@ -457,7 +457,7 @@ toTypedTermExample term = TypedTermExample ty term
 getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())]
 getInteresting =
   sequence $ Gen.fromInterestingTermGens $ \name gen -> do
-    Gen.TermOf term _ <- Gen.getSampleTermValue gen
+    Gen.TermWith term _ <- Gen.getSampleTermValue gen
     pure (T.pack name, term)
 
 simpleExamples :: [(ExampleName, SomeTypedExample)]

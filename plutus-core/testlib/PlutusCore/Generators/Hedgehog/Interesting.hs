@@ -7,7 +7,7 @@
 -- | Sample generators used for tests.
 module PlutusCore.Generators.Hedgehog.Interesting
   ( TermGen
-  , TermOf (..)
+  , TermWith (..)
   , genOverapplication
   , factorial
   , genFactorial
@@ -46,7 +46,7 @@ import Hedgehog.Range qualified as Range
 import Type.Reflection
 
 -- | The type of terms-and-their-values generators.
-type TermGen a = Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a)
+type TermGen a = Gen (TermWith (Term TyName Name DefaultUni DefaultFun ()) a)
 
 {-| Generates application of a builtin that returns a function, immediately saturated afterwards.
 
@@ -56,8 +56,8 @@ genOverapplication :: TermGen Integer
 genOverapplication = do
   let typedInteger = typeRep
       integer = toTypeAst typedInteger
-  TermOf ti i <- genTypedBuiltinDef typedInteger
-  TermOf tj j <- genTypedBuiltinDef typedInteger
+  TermWith ti i <- genTypedBuiltinDef typedInteger
+  TermWith tj j <- genTypedBuiltinDef typedInteger
   let term =
         mkIterAppNoAnn
           (TyInst () (Builtin () IfThenElse) . TyFun () integer $ TyFun () integer integer)
@@ -67,7 +67,7 @@ genOverapplication = do
           , ti
           , tj
           ]
-  return . TermOf term $ if i < j then i + j else i - j
+  return . TermWith term $ if i < j then i + j else i - j
 
 {-| @\i -> product [1 :: Integer .. i]@ as a PLC term.
 
@@ -141,7 +141,7 @@ genFactorial = do
   let m = 10
   iv <- Gen.integral $ Range.linear 1 m
   let term = Apply () factorial (mkConstant @Integer () iv)
-  return . TermOf term $ Prelude.product [1 .. iv]
+  return . TermWith term $ Prelude.product [1 .. iv]
 
 {-| Generate a term that computes the ith Fibonacci number and return it
 along with the corresponding 'Integer' computed on the Haskell side. -}
@@ -150,7 +150,7 @@ genNaiveFib = do
   let fibs = scanl (+) 0 $ 1 : fibs
       m = 16
   iv <- Gen.integral $ Range.linear 0 m
-  return . TermOf (naiveFib iv) $ fibs `genericIndex` iv
+  return . TermWith (naiveFib iv) $ fibs `genericIndex` iv
 
 {-| Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'Nat'),
 turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'FoldNat')
@@ -159,11 +159,11 @@ along with the original 'Integer' -}
 genNatRoundtrip :: TermGen Integer
 genNatRoundtrip = do
   let typedInt = typeRep
-  TermOf _ iv <-
-    Gen.filter ((>= 0) . _termOfValue) $
+  TermWith _ iv <-
+    Gen.filter ((>= 0) . _termWithValue) $
       genTypedBuiltinDef @(Term TyName Name DefaultUni DefaultFun ()) typedInt
   let term = apply () natToInteger $ metaIntegerToNat iv
-  return $ TermOf term iv
+  return $ TermWith term iv
 
 -- | @sumNat@ as a PLC term.
 natSum :: Term TyName Name DefaultUni DefaultFun ()
@@ -192,10 +192,10 @@ genScottListSum = do
   let typedInt = typeRep
       intS = toTypeAst typedInt
   ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinDef typedInt
-  let list = metaListToScottList intS $ Prelude.map _termOfTerm ps
+  let list = metaListToScottList intS $ Prelude.map _termWithTerm ps
       term = apply () ScottList.sum list
-  let haskSum = Prelude.sum $ Prelude.map _termOfValue ps
-  return $ TermOf term haskSum
+  let haskSum = Prelude.sum $ Prelude.map _termWithValue ps
+  return $ TermWith term haskSum
 
 {-| Generate a @boolean@ and two @integer@s and check whether @if b then i1 else i2@
 means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'. -}
@@ -203,39 +203,39 @@ genIfIntegers :: TermGen Integer
 genIfIntegers = do
   let typedInt = typeRep
       int = toTypeAst typedInt
-  TermOf b bv <- genTermLoose typeRep
-  TermOf i iv <- genTermLoose typedInt
-  TermOf j jv <- genTermLoose typedInt
+  TermWith b bv <- genTermLoose typeRep
+  TermWith i iv <- genTermLoose typedInt
+  TermWith j jv <- genTermLoose typedInt
   let instConst = Apply () $ mkIterInstNoAnn Function.const [int, unit]
       value = if bv then iv else jv
       term =
         mkIterAppNoAnn
           (TyInst () ifThenElse int)
           [b, instConst i, instConst j]
-  return $ TermOf term value
+  return $ TermWith term value
 
 -- | Check that builtins can be partially applied.
 genApplyAdd1 :: TermGen Integer
 genApplyAdd1 = do
   let typedInt = typeRep
       int = toTypeAst typedInt
-  TermOf i iv <- genTermLoose typedInt
-  TermOf j jv <- genTermLoose typedInt
+  TermWith i iv <- genTermLoose typedInt
+  TermWith j jv <- genTermLoose typedInt
   let term =
         mkIterAppNoAnn
           (mkIterInstNoAnn applyFun [int, int])
           [ Apply () (Builtin () AddInteger) i
           , j
           ]
-  return . TermOf term $ iv + jv
+  return . TermWith term $ iv + jv
 
 -- | Check that builtins can be partially applied.
 genApplyAdd2 :: TermGen Integer
 genApplyAdd2 = do
   let typedInt = typeRep
       int = toTypeAst typedInt
-  TermOf i iv <- genTermLoose typedInt
-  TermOf j jv <- genTermLoose typedInt
+  TermWith i iv <- genTermLoose typedInt
+  TermWith j jv <- genTermLoose typedInt
   let term =
         mkIterAppNoAnn
           (mkIterInstNoAnn applyFun [int, TyFun () int int])
@@ -243,15 +243,15 @@ genApplyAdd2 = do
           , i
           , j
           ]
-  return . TermOf term $ iv + jv
+  return . TermWith term $ iv + jv
 
 -- | Check that division by zero results in 'Error'.
 genDivideByZero :: TermGen (BuiltinResult Integer)
 genDivideByZero = do
   op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
-  TermOf i _ <- genTermLoose $ typeRep @Integer
+  TermWith i _ <- genTermLoose $ typeRep @Integer
   let term = mkIterAppNoAnn (Builtin () op) [i, mkConstant @Integer () 0]
-  return $ TermOf term builtinResultFailure
+  return $ TermWith term builtinResultFailure
 
 -- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
 genDivideByZeroDrop :: TermGen (BuiltinResult Integer)
@@ -259,14 +259,14 @@ genDivideByZeroDrop = do
   op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
   let typedInt = typeRep
       int = toTypeAst typedInt
-  TermOf i iv <- genTermLoose typedInt
+  TermWith i iv <- genTermLoose typedInt
   let term =
         mkIterAppNoAnn
           (mkIterInstNoAnn Function.const [int, int])
           [ mkConstant @Integer () iv
           , mkIterAppNoAnn (Builtin () op) [i, mkConstant @Integer () 0]
           ]
-  return $ TermOf term builtinResultFailure
+  return $ TermWith term builtinResultFailure
 
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens
