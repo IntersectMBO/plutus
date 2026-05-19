@@ -612,7 +612,6 @@ library plutus-ir
     , mmorph
     , monoidal-containers
     , mtl
-    , multiset
     , parser-combinators   >=0.4.0
     , plutus-core          ^>=1.64
     , plutus-core:flat
