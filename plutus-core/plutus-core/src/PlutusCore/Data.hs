@@ -273,6 +273,7 @@ decodeListOf decoder =
   CBOR.decodeListLenOrIndef >>= \case
     Nothing -> decodeSequenceLenIndef (flip (:)) [] reverse decoder
     Just n -> decodeSequenceLenN (flip (:)) [] reverse n decoder
+{-# INLINE decodeListOf #-}
 
 decodeMap :: Decoder s Data
 decodeMap =
