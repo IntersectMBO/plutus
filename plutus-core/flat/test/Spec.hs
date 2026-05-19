@@ -883,6 +883,7 @@ prop_common_unsigned n _ = let n2 :: h = fromIntegral n
 -- b1 = BLOB UTF8 (preAligned (List255 [97,98,99]))
 -- -- b1 = BLOB (preAligned (UTF8 (List255 [97,98,99])))
 
+#if !MIN_VERSION_QuickCheck(2,18,0)
 -- Arbitrary instances for Semigroup wrappers not provided by QuickCheck.
 -- QuickCheck provides: Identity, Dual, Sum, Product, All, Any, Alt, Fixed,
 -- Monoid.First, Monoid.Last. But not these Semigroup wrappers:
@@ -901,6 +902,7 @@ instance Arbitrary a => Arbitrary (Semigroup.First a) where
 instance Arbitrary a => Arbitrary (Semigroup.Last a) where
   arbitrary = Semigroup.Last <$> arbitrary
   shrink (Semigroup.Last x) = Semigroup.Last <$> shrink x
+#endif
 
 -- | PreAligned roundtrip: the filler may change after re-encoding,
 -- so we only check the inner value survives.
