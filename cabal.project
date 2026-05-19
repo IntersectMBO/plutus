@@ -104,67 +104,24 @@ if impl (ghc >= 9.14)
     location: https://github.com/snowleopard/alga
     tag: d4e43fb42db05413459fb2df493361d5a666588a
 
-if impl (ghc >= 9.14)
-  constraints:
-    , brick >= 2.10
-    , quickcheck-instances >= 0.4
-    , string-interpolate >= 0.3
-
+-- cabal-allow-newer begin
+if impl(ghc >= 9.14)
   allow-newer:
-    -- https://github.com/IntersectMBO/plutus/issues/7597
-    , aeson:OneTuple
-    , aeson:containers
-    , aeson:data-fix
-    , aeson:indexed-traversable
-    , aeson:QuickCheck
-    , aeson:scientific
-    , aeson:semialign
-    , aeson:template-haskell
-    , aeson:text-iso8601
-    , aeson:these
-    , aeson:time
-    , aeson:time-compat
-    , binary-orphans:base
-    , boring:base
+    , binary:containers
+    , canonical-json:containers
     , cborg:base
     , cborg:containers
-    , cborg:ghc-prim
     , config-ini:containers
-    , hedgehog-fn:hedgehog
+    , dependent-map:containers
+    , dictionary-sharing:containers
     , hedgehog-quickcheck:QuickCheck
-    , indexed-traversable:base
-    , indexed-traversable:containers
-    , indexed-traversable-instances:base
-    , microstache:base
-    , microstache:containers
-    , quickcheck-instances:QuickCheck
-    , quickcheck-instances:base
+    , ordered-containers:containers
     , serialise:base
     , serialise:containers
     , serialise:time
-    , semialign:base
-    , semialign:containers
-    , these:base
-    , string-interpolate:template-haskell
-    , tree-diff:base
-    , tree-diff:containers
-    , tree-diff:QuickCheck
+    , tree-diff:time
     , turtle:containers
     , turtle:time
-    , universe-base:base
-    , universe-base:containers
-    , uuid-types:bytestring
-    , uuid-types:template-haskell
     , with-utf8:base
-    , bin:base
-    , bin:QuickCheck
-    , dec:base
-    , fin:base
-    , fin:QuickCheck
-    , ral:base
-    , ral:QuickCheck
-    , constraints-extras:template-haskell
-    , dependent-map:containers
-    , dictionary-sharing:containers
-    , ordered-containers:containers
-    , nonempty-vector:base
+-- cabal-allow-newer end
+
