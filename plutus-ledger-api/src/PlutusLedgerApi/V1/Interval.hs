@@ -37,6 +37,8 @@ module PlutusLedgerApi.V1.Interval
   , upperBound
   , strictLowerBound
   , strictUpperBound
+  , inclusiveLowerBound
+  , inclusiveUpperBound
   ) where
 
 import Control.DeepSeq (NFData)
