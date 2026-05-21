@@ -11,6 +11,8 @@ The above transformation is performed if:
 
     * @arg@ is essentially work-free.
 
+    * @arg@ is pure.
+
 This achieves a similar effect to Plutonomy's "Split Delay" optimization. The difference
 is that Split Delay simply splits the @Delay@ argument into multiple arguments, turning the
 above example into @(\m -> (\n -> ...Force n...Force n...) (Delay m)) arg@, and then relies
@@ -56,11 +58,13 @@ Why is this optimization performed on UPLC, not PIR?
 module UntypedPlutusCore.Transform.FloatDelay (floatDelay) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin (BuiltinSemanticsVariant)
 import PlutusCore.Name.Unique qualified as PLC
 import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Name.UniqueSet qualified as USet
 import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..))
+import UntypedPlutusCore.Purity (isPure, isWorkFree)
 import UntypedPlutusCore.Transform.Optimizer
   ( OptimizerT
   , recordOptimization
@@ -69,18 +73,21 @@ import UntypedPlutusCore.Transform.Optimizer
 
 import Control.Lens (forOf, forOf_, transformOf)
 import Control.Monad.Trans.Writer.CPS (Writer, execWriter, runWriter, tell)
+import PlutusCore.Builtin.Meaning (ToBuiltinMeaning)
 
 floatDelay
   :: ( PLC.MonadQuote m
      , PLC.Rename (Term name uni fun a)
      , PLC.HasUnique name PLC.TermUnique
+     , ToBuiltinMeaning uni fun
      )
-  => Term name uni fun a
+  => BuiltinSemanticsVariant fun
+  -> Term name uni fun a
   -> OptimizerT name uni fun a m (Term name uni fun a)
-floatDelay term = do
+floatDelay semvar term = do
   result <-
     PLC.rename term >>= \t ->
-      pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t
+      pure . uncurry (flip simplifyBodies) $ simplifyArgs semvar (unforcedVars t) t
   recordOptimization term FloatDelayStage result
   return result
 
@@ -103,17 +110,21 @@ unforcedVars = execWriter . go
 the names of variables whose corresponding arguments are modified. -}
 simplifyArgs
   :: forall name uni fun a
-   . PLC.HasUnique name PLC.TermUnique
-  => PLC.UniqueSet PLC.TermUnique
+   . ( PLC.HasUnique name PLC.TermUnique
+     , ToBuiltinMeaning uni fun
+     )
+  => BuiltinSemanticsVariant fun
+  -> PLC.UniqueSet PLC.TermUnique
   -- ^ The set of variables returned by `unforcedVars`.
   -> Term name uni fun a
   -> (Term name uni fun a, PLC.UniqueMap PLC.TermUnique a)
-simplifyArgs blacklist = runWriter . go
+simplifyArgs semvar blacklist = runWriter . go
   where
     go :: Term name uni fun ann -> Writer (PLC.UniqueMap PLC.TermUnique ann) (Term name uni fun ann)
     go = \case
       Apply appAnn (LamAbs lamAnn n lamBody) (Delay delayAnn arg)
-        | isEssentiallyWorkFree arg
+        | isPure semvar arg
+        , isWorkFree semvar arg
         , n `USet.notMemberByName` blacklist -> do
             tell (UMap.singletonByName n delayAnn)
             (Apply appAnn . LamAbs lamAnn n <$> go lamBody) <*> go arg
@@ -129,23 +140,3 @@ simplifyBodies whitelist = transformOf termSubterms $ \case
   var@(Var _ n)
     | Just ann <- UMap.lookupName n whitelist -> Delay ann var
   t -> t
-
-{-| Whether evaluating the given `Term` is pure and essentially work-free
-(barring the CEK machine overhead). -}
-
---- This should be the erased version of 'PlutusIR.Transform.LetFloat.isEssentiallyWorkFree'.
-isEssentiallyWorkFree :: Term name uni fun a -> Bool
-isEssentiallyWorkFree = \case
-  LamAbs {} -> True
-  Constant {} -> True
-  Delay {} -> True
-  Constr {} -> True
-  Builtin {} -> True
-  Var {} -> False
-  Force {} -> False
-  -- Unsaturated builtin applications should also be essentially work-free,
-  -- but this is currently not implemented for UPLC.
-  -- `UntypedPlutusCore.Transform.Inline.isPure` has the same problem.
-  Apply {} -> False
-  Case {} -> False
-  Error {} -> False
