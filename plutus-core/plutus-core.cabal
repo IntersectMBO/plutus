@@ -101,6 +101,7 @@ library
     Data.Version.Extras
     PlutusCore
     PlutusCore.Analysis.Definitions
+    PlutusCore.Analysis.Usages
     PlutusCore.Annotation
     PlutusCore.Arity
     PlutusCore.AstSize
@@ -589,7 +590,6 @@ library plutus-ir
 
   other-modules:
     PlutusIR.Analysis.Definitions
-    PlutusIR.Analysis.Usages
     PlutusIR.Compiler.Error
     PlutusIR.Compiler.Lower
     PlutusIR.Compiler.Recursion
@@ -612,7 +612,6 @@ library plutus-ir
     , mmorph
     , monoidal-containers
     , mtl
-    , multiset
     , parser-combinators   >=0.4.0
     , plutus-core          ^>=1.64
     , plutus-core:flat
