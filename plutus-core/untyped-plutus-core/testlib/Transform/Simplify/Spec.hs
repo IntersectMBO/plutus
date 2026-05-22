@@ -116,6 +116,22 @@ floatDelay3 = runQuote $ do
       lam = LamAbs () a body
   pure $ Apply () lam (Delay () (mkConstant @Integer () 1))
 
+{-| The 'Delay' should not be floated into the lambda because the argument to the 'Delay' is
+not pure. -}
+floatDelay4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+floatDelay4 = runQuote $ do
+  a <- freshName "a"
+  let body =
+        Case
+          ()
+          (Constr () 0 [])
+          $ V.fromList
+            [ mkConstant @Integer () 1
+            , Force () (Var () a)
+            ]
+      lam = LamAbs () a body
+  pure $ Apply () lam (Delay () (Constr () 0 [Error ()]))
+
 basicInline :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 basicInline = runQuote $ do
   n <- freshName "a"
@@ -626,6 +642,7 @@ testSimplifyInputs =
   , ("floatDelay1", floatDelay1)
   , ("floatDelay2", floatDelay2)
   , ("floatDelay3", floatDelay3)
+  , ("floatDelay4", floatDelay4)
   , ("interveningLambda", interveningLambda)
   , ("basicInline", basicInline)
   , ("callsiteInline", callsiteInline)

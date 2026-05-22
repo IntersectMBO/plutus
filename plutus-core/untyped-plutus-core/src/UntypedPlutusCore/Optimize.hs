@@ -127,7 +127,7 @@ termOptimizer opts builtinSemanticsVariant =
         certified = isRight stage'
         action = case stage' of
           FloatDelayStage ->
-            floatDelay
+            floatDelay builtinSemanticsVariant
           ForceCaseDelayStage ->
             forceCaseDelay
           ForceDelayStage ->
