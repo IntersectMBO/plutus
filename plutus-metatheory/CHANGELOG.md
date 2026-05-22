@@ -1,4 +1,11 @@
 
+<a id='changelog-1.65.0.0'></a>
+# 1.65.0.0 — 2026-05-21
+
+## Added
+
+- The certifier now includes a README.md inside each generated Agda project, describing how to typecheck the certificate.
+
 <a id='changelog-1.64.0.0'></a>
 # 1.64.0.0 — 2026-05-11
 

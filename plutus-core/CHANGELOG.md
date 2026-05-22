@@ -1,4 +1,12 @@
 
+<a id='changelog-1.65.0.0'></a>
+# 1.65.0.0 — 2026-05-21
+
+## Added
+
+- A new UPLC optimization that hoists forced polymorphic builtins, which can reduce
+  the number of forces.
+
 <a id='changelog-1.64.0.0'></a>
 # 1.64.0.0 — 2026-05-11
 
