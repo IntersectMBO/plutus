@@ -44,10 +44,10 @@
     "image-size": "1.2.1",
     "estree-util-value-to-estree": "3.3.3",
     "http-proxy-middleware": "2.0.9",
-    "webpack-dev-server": "5.2.1",
+    "webpack-dev-server": "5.2.4",
     "brace-expansion": "1.1.13",
     "on-headers": "1.1.0",
-    "mermaid": "11.10.0",
+    "mermaid": "11.15.0",
     "js-yaml": "3.14.2",
     "node-forge": "1.4.0",
     "mdast-util-to-hast": "13.2.1",
@@ -64,7 +64,9 @@
     "picomatch": "2.3.2",
     "postcss": "8.5.10",
     "uuid": "14.0.0",
-    "follow-redirects": "1.16.0"
+    "follow-redirects": "1.16.0",
+    "@babel/plugin-transform-modules-systemjs": "7.29.4",
+    "fast-uri": "3.1.2"
   },
   "browserslist": {
     "production": [
