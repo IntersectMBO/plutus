@@ -43,11 +43,10 @@ import Control.Lens
 import Control.Monad (unless, when)
 import Control.Monad.Error.Lens
 import Control.Monad.Except (MonadError)
+import Data.Array.Unboxed ((!))
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short
 import Data.Coerce
-import Data.Array.ST (newArray, runSTUArray, writeArray)
-import Data.Array.Unboxed (UArray, (!))
 import GHC.Generics
 import NoThunks.Class
 import Prettyprinter
@@ -199,13 +198,7 @@ scriptCBORDecoder
   -> CBOR.Decoder s ScriptNamedDeBruijn
 scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
-  let available = builtinsAvailableIn ll pv
-
-      availableArr :: UArray DefaultFun Bool
-      availableArr = runSTUArray $ do
-        arr <- newArray (minBound, maxBound) False
-        mapM_ (\f -> writeArray arr f True) available
-        return arr
+  let availableBuiltins = builtinsAvailableIn ll pv
 
       flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin checkConstr
 
@@ -222,7 +215,7 @@ scriptCBORDecoder ll pv =
                 ++ " is not available in protocol version "
                 ++ show (pretty pv)
 
-      checkBuiltin f | availableArr ! f = Nothing
+      checkBuiltin f | availableBuiltins ! f = Nothing
       checkBuiltin f =
         Just $
           "Builtin function "

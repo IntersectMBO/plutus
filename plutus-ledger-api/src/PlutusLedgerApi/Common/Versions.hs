@@ -24,6 +24,7 @@ module PlutusLedgerApi.Common.Versions
   , plcVersionsAvailableIn
   , builtinsIntroducedIn
   , builtinsAvailableIn
+  , builtinsAvailableInAsSet
   , batch1
   , batch2
   , batch3
@@ -40,6 +41,9 @@ import PlutusLedgerApi.Common.ProtocolVersions
 import PlutusPrelude
 
 import Codec.Serialise.Class (Serialise)
+import Control.Monad (forM_, when)
+import Data.Array.ST (newArray, runSTUArray, writeArray)
+import Data.Array.Unboxed (UArray, accumArray, range, (!))
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import NoThunks.Class (NoThunks)
@@ -129,6 +133,22 @@ collectUpTo m thisPv =
   fold $ -- ie, iterated `union`
     Map.elems $
       Map.takeWhileAntitone (<= thisPv) m
+
+{-| Build a @UArray DefaultFun Bool@ from a list of builtin functions: each
+index in the list is set to @True@, every other index is @False@. Used to
+represent a set of builtins for fast O(1) membership lookup. -}
+toBuiltinArr :: [DefaultFun] -> UArray DefaultFun Bool
+toBuiltinArr fs = accumArray (||) False (minBound, maxBound) [(f, True) | f <- fs]
+
+{-| Element-wise OR over a list of builtin-availability arrays. The result has
+@True@ at index @f@ iff at least one of the input arrays has @True@ at @f@. -}
+unionBuiltinArrs :: [UArray DefaultFun Bool] -> UArray DefaultFun Bool
+unionBuiltinArrs arrs = runSTUArray $ do
+  acc <- newArray (minBound, maxBound) False
+  forM_ arrs $ \arr ->
+    forM_ (range (minBound, maxBound)) $ \i ->
+      when (arr ! i) $ writeArray acc i True
+  pure acc
 
 {- Batches of builtins which were introduced in the same hard fork (but perhaps
    not for all LLs): see the Plutus Core specification and
@@ -307,32 +327,49 @@ batch6 =
   builtins are added.  It is not necessary to add entries for protocol versions
   where no new builtins are added.  See Note [New builtins/language versions and
   protocol versions] -}
-builtinsIntroducedIn :: PlutusLedgerLanguage -> Map.Map MajorProtocolVersion (Set.Set DefaultFun)
+builtinsIntroducedIn
+  :: PlutusLedgerLanguage -> Map.Map MajorProtocolVersion (UArray DefaultFun Bool)
 builtinsIntroducedIn =
   \case
     PlutusV1 ->
       Map.fromList
-        [ (alonzoPV, Set.fromList batch1)
-        , (vanRossemPV, Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+        [ (alonzoPV, toBuiltinArr batch1)
+        , (vanRossemPV, toBuiltinArr (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
         ]
     PlutusV2 ->
       Map.fromList
-        [ (vasilPV, Set.fromList (batch1 ++ batch2))
-        , (valentinePV, Set.fromList batch3)
-        , (plominPV, Set.fromList batch4b)
-        , (vanRossemPV, Set.fromList (batch4a ++ batch5 ++ batch6))
+        [ (vasilPV, toBuiltinArr (batch1 ++ batch2))
+        , (valentinePV, toBuiltinArr batch3)
+        , (plominPV, toBuiltinArr batch4b)
+        , (vanRossemPV, toBuiltinArr (batch4a ++ batch5 ++ batch6))
         ]
     PlutusV3 ->
       Map.fromList
-        [ (changPV, Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
-        , (plominPV, Set.fromList batch5)
-        , (vanRossemPV, Set.fromList batch6)
+        [ (changPV, toBuiltinArr (batch1 ++ batch2 ++ batch3 ++ batch4))
+        , (plominPV, toBuiltinArr batch5)
+        , (vanRossemPV, toBuiltinArr batch6)
         ]
 
-{-| Return a set containing the builtins which are available in a given LL in a
-given PV.  All builtins are available in all LLs from `vanRossemPV` onwards. -}
-builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
-builtinsAvailableIn = collectUpTo . builtinsIntroducedIn
+{-| Return a @UArray DefaultFun Bool@ marking which builtins are available in a
+given LL in a given PV.  All builtins are available in all LLs from
+`vanRossemPV` onwards. The returned array is indexed by 'DefaultFun' for O(1)
+membership lookup. -}
+builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> UArray DefaultFun Bool
+builtinsAvailableIn ll pv =
+  unionBuiltinArrs $
+    Map.elems $
+      Map.takeWhileAntitone (<= pv) $
+        builtinsIntroducedIn ll
+
+{-| The set of builtins available for a given LL in a given PV.  This is the
+@Set@ view of 'builtinsAvailableIn' (which itself returns a
+@UArray DefaultFun Bool@ for O(1) membership lookup), provided for callers
+that prefer to work with @Set@. -}
+builtinsAvailableInAsSet
+  :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
+builtinsAvailableInAsSet ll pv =
+  let arr = builtinsAvailableIn ll pv
+   in Set.fromList [f | f <- range (minBound, maxBound), arr ! f]
 
 {-| A map indicating which Plutus Core versions were introduced in which
 'MajorProtocolVersion' and 'PlutusLedgerLanguage'. Each version should appear at most once.

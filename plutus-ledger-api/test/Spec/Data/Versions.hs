@@ -433,7 +433,7 @@ testBuiltinAvailabilityCompatibility =
                   ++ " @PV"
                   ++ show pv
               )
-              $ builtinsAvailableIn ll pv == builtinsAvailableIn_old ll pv
+              $ builtinsAvailableInAsSet ll pv == builtinsAvailableIn_old ll pv
           | pv <- [shelleyPV .. plominPV]
           , ll <- Set.toList (ledgerLanguagesAvailableIn pv)
           ]
