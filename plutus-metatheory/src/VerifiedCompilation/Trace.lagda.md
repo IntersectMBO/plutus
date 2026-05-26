@@ -123,49 +123,34 @@ data Hints : Set where
 
 ## Compiler traces
 
+A `NonEmptySep S A` is a non-empty list of values of type `A`, separated by
+values of type `S`. 
+```
+
+data NonEmptySep (S A : Set) : Set where
+  cons : A → S → NonEmptySep S A → NonEmptySep S A
+  singleton : A → NonEmptySep S A
+
+{-# FOREIGN GHC import qualified Data.List.NonEmptySep as NES #-}
+{-# COMPILE GHC NonEmptySep = data NES.NonEmptySep (NES.Cons | NES.Singleton) #-}
+
+pattern _∷[_]_ x y xs = cons x y xs
+infixr 5 _∷[_]_
+
+-- Get the first term in the trace
+head : ∀{S A} → NonEmptySep S A → A
+head (singleton x) = x
+head (cons x _ _) = x
+```
+
 A `Trace A` is a sequence of optimisation transformations applied to terms of
-type `A`. Each transition is labeled with a `OptTag` that contains
+AST type `A`. Each transition is labeled with a `OptTag` and `Hints` that have
 information about which pass was performed.
 
 ```
-
-data Trace (A : Set) : Set where
-  -- One step in the pipeline, with its pass and input term
-  step : OptTag → Hints → A → Trace A → Trace A
-  -- Final AST in the trace
-  done : A → Trace A
-
--- Get the first term in the trace
-head : ∀{A} → Trace A → A
-head (done x) = x
-head (step _ _ x _) = x
-
-```
-
-`Dump` is the structure that is currently dumped on the Haskell side. We can convert it in a `Trace` using `toTrace`
-
-```
-
-
--- The current trace structure dumped from Haskell
-Dump : Set
-Dump = List (OptTag × Hints × Untyped × Untyped)
-
---
--- Since there is duplication in the dump, i.e. it is of the form
---
---     [(_ , x , y) ; (_ , y , z) ; (_ , z , w) ...]
---
--- This conversion entirely ignores the duplicated terms.
--- FIXME: just dump the Trace structure directly from
--- Haskell, this function won't be necessary
-toTrace : Dump → Maybe (Trace Untyped)
-toTrace [] = nothing
-toTrace (x ∷ xs) = just (go x xs)
-  where
-    go : OptTag × Hints × Untyped × Untyped → Dump → Trace Untyped
-    go (pass , hints , x , y) [] = step pass hints x (done y)
-    go (pass , hints , x , y) ((pass' , hints' , _ , z) ∷ xs) = step pass hints x (go (pass' , hints' , y , z) xs)
+-- An optimizer trace, parametrized by the AST type
+Trace : Set → Set
+Trace A = NonEmptySep (OptTag × Hints) A
 ```
 
 `EvalResult` is used to report script execution costs, before and after an optimisation (or optimisations).

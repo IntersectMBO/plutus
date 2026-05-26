@@ -97,6 +97,7 @@ library
   exposed-modules: Paths_plutus_metatheory
   exposed-modules:
     Certifier
+    Data.List.NonEmptySep
     FFI.AgdaUnparse
     FFI.CostInfo
     FFI.OptimizerTrace

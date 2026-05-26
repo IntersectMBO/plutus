@@ -205,8 +205,8 @@ reportPasses :
   (r : Certificate t)
   → List EvalResult
   → String
-reportPasses _ (done _) _ _ = ""
-reportPasses n (step tag _ x trace) (p , proofs) costs =
+reportPasses _ (singleton _) _ _ = ""
+reportPasses n (cons x (tag , _) trace) (p , proofs) costs =
   hl ++
   "Pass " ++ showℕ n ++ ": " ++ showTag tag ++
   hl ++
