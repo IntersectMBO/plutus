@@ -10,11 +10,12 @@
 module PlutusIR.Transform.LetFloatIn (floatTerm, floatTermPass, floatTermPassSC) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Analysis.Usages qualified as Usages
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
-import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Purity
+import PlutusIR.Subst (termUsages)
 import PlutusIR.Transform.Rename ()
 
 import Control.Lens hiding (Strict)
@@ -227,7 +228,7 @@ floatTerm
   -> Term tyname name uni fun a
   -> Term tyname name uni fun a
 floatTerm binfo relaxed t0 =
-  fmap fst $ floatTermInner (Usages.termUsages t0) (termVarInfo t0) t0
+  fmap fst $ floatTermInner (termUsages t0) (termVarInfo t0) t0
   where
     floatTermInner
       :: Usages.Usages

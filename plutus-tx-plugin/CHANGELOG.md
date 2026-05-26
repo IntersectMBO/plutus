@@ -1,4 +1,20 @@
 
+<a id='changelog-1.65.0.0'></a>
+# 1.65.0.0 — 2026-05-21
+
+## Added
+
+- A new plugin flag `hoist-polymorphic-builtins` that controls whether to run the optimization
+  that hoists forced polymorphic built-in functions (on by default).
+
+## Changed
+
+- `CannotParseValue` plugin-option parse error now carries a human-readable
+  detail string instead of a placeholder `SomeTypeRep`. Errors produced by
+  `plcParserOption` include the underlying parser error message (source
+  position and explanation), so failures to parse option values are no
+  longer reported as "into type Int".
+
 <a id='changelog-1.64.0.0'></a>
 # 1.64.0.0 — 2026-05-11
 

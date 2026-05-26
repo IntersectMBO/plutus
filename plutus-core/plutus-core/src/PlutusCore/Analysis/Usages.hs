@@ -1,15 +1,11 @@
 {-# LANGUAGE FlexibleContexts #-}
 
--- | Functions for computing variable usage inside terms and types.
-module PlutusIR.Analysis.Usages (termUsages, typeUsages, Usages, getUsageCount, allUsed) where
+-- | Functions for computing variable usage inside types.
+module PlutusCore.Analysis.Usages (typeUsages, Usages, getUsageCount, allUsed) where
 
-import PlutusPrelude ((<^>))
-
-import PlutusIR
-import PlutusIR.Subst
-
-import PlutusCore qualified as PLC
+import PlutusCore.Core
 import PlutusCore.Name.Unique qualified as PLC
+import PlutusCore.Subst (tvTy)
 
 import Control.Lens
 
@@ -27,13 +23,6 @@ getUsageCount n = MSet.occur (n ^. PLC.unique . coerced)
 allUsed :: Usages -> Set.Set PLC.Unique
 allUsed = MSet.toSet
 
-termUsages
-  :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-  => Term tyname name uni fun a
-  -> Usages
-termUsages = multiSetOf (vTerm . PLC.theUnique <^> tvTerm . PLC.theUnique)
-
--- TODO: move to plutus-core
 typeUsages
   :: PLC.HasUnique tyname PLC.TypeUnique
   => Type tyname uni a

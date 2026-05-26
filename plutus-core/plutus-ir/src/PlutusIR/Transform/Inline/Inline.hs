@@ -11,18 +11,19 @@ in the paper 'Secrets of the GHC Inliner'.
 module PlutusIR.Transform.Inline.Inline (inline, inlinePass, inlinePassSC, InlineHints (..)) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Analysis.Usages qualified as Usages
 import PlutusCore.Annotation
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 import PlutusIR
 import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
 import PlutusIR.AstSize (AstSize, termAstSize)
 import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
 import PlutusIR.MkPir (mkLet)
 import PlutusIR.Pass
+import PlutusIR.Subst (termUsages)
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
@@ -221,7 +222,7 @@ inline threshUnconditional threshCallsite ic hints binfo t =
         }
     vinfo = VarInfo.termVarInfo t
     usgs :: Usages.Usages
-    usgs = Usages.termUsages t
+    usgs = termUsages t
    in
     liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
