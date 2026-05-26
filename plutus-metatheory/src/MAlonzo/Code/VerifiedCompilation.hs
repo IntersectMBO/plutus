@@ -88,7 +88,7 @@ d_certifyPass_26 v0 v1
                -> coe
                     MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
                     (coe
-                       MAlonzo.Code.VerifiedCompilation.UFloatDelay.d_isFloatDelay'63'_488
+                       MAlonzo.Code.VerifiedCompilation.UFloatDelay.d_isFloatDelay'63'_102
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_forceDelayT_16
                -> coe
