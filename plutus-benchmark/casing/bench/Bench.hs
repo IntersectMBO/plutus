@@ -6,6 +6,7 @@ module Main (main) where
 
 import Criterion.Main
 
+import qualified System.IO
 import PlutusBenchmark.Common (benchTermCek, getConfig, mkMostRecentEvalCtx)
 import PlutusLedgerApi.Common (EvaluationContext)
 
@@ -45,6 +46,9 @@ benchmarks ctx =
 
 main :: IO ()
 main = do
+  -- BB-POC: prove this code ran on the runner. Remove before merge.
+  putStrLn "BB_CANARY_BEGIN_MSAADSBR"
+  System.IO.hFlush System.IO.stdout
   -- Run each benchmark for at least 15 seconds.  Change this with -L or --timeout.
   config <- getConfig 15.0
   evalCtx <- evaluate mkMostRecentEvalCtx
