@@ -32,6 +32,7 @@ import Paths_plutus_benchmark as Export
 import PlutusBenchmark.ProtocolParameters as PP
 
 import PlutusLedgerApi.Common qualified as LedgerApi
+import PlutusLedgerApi.Test.Scripts (evaluateCekLikeInProd)
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
@@ -51,7 +52,6 @@ import PlutusTx.Test.Util.Compiled
   )
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Control.DeepSeq (force)
 import Criterion.Main
@@ -120,21 +120,6 @@ mkEvalCtx ll semvar =
 -- Plutus language version and the ost recent semantic variant.
 mkMostRecentEvalCtx :: LedgerApi.EvaluationContext
 mkMostRecentEvalCtx = mkEvalCtx maxBound maxBound
-
--- | Evaluate a term as it would be evaluated using the on-chain evaluator.
-evaluateCekLikeInProd
-  :: LedgerApi.EvaluationContext
-  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
-  -> Either
-       (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-       (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
-evaluateCekLikeInProd evalCtx term =
-  let
-    -- The validation benchmarks were all created from PlutusV1 scripts
-    pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
-   in
-    Cek.cekResultToEither . Cek._cekReportResult $
-      LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
 
 {-| Evaluate a term and either throw if evaluation fails or discard the result and return '()'.
 Useful for benchmarking. -}
