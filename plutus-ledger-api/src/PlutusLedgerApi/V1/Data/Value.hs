@@ -402,31 +402,38 @@ assetClassValueOf :: Value -> AssetClass -> Integer
 assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 {-# INLINEABLE assetClassValueOf #-}
 
--- | Combine two 'Value' maps, assumes the well-definedness of the two maps.
-unionVal :: Value -> Value -> Map CurrencySymbol (Map TokenName (These Integer Integer))
-unionVal (Value l) (Value r) =
-  let
-    combined = Map.union l r
-    unThese k = case k of
-      This a -> Map.map This a
-      That b -> Map.map That b
-      These a b -> Map.union a b
-   in
-    Map.map unThese combined
-{-# INLINEABLE unionVal #-}
+{- Note [Fused unionWith]
+The previous implementation built an intermediate of type
+@Map CurrencySymbol (Map TokenName (These Integer Integer))@ via a separate
+@unionVal@ helper, then re-walked the result in 'unionWith' to flatten each
+@These@ into a plain @Integer@ by applying @f@. That was three full outer
+passes — @Map.union@, @Map.map unThese@ (yielding inner maps of @These Integer
+Integer@), then @Map.map (Map.map collapse)@ — for a single conceptual merge.
+
+This fused version drops the intermediate stage of inner-@These@ wrapping:
+'fuseInners' walks the outer @Map.union@ result once and, for each currency
+symbol, either applies @f@ in place against a single inner side or merges
+both inner sides via @Map.map collapse (Map.union innerL innerR)@. The
+@Map TokenName (These Integer Integer)@ shape is gone; the outer 'Map.map'
+runs once, not twice. -}
 
 {-| Combine two 'Value' maps with the argument function.
 Assumes the well-definedness of the two maps. -}
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
-unionWith f ls rs =
-  let
-    combined = unionVal ls rs
-    unThese k' = case k' of
+unionWith f (Value mapL) (Value mapR) =
+  Value (Map.map fuseInners (Map.union mapL mapR))
+  where
+    fuseInners :: These (Map TokenName Integer) (Map TokenName Integer) -> Map TokenName Integer
+    fuseInners = \case
+      This innerL -> Map.map (\v -> f v 0) innerL
+      That innerR -> Map.map (\v -> f 0 v) innerR
+      These innerL innerR -> Map.map collapseInner (Map.union innerL innerR)
+
+    collapseInner :: These Integer Integer -> Integer
+    collapseInner = \case
       This a -> f a 0
       That b -> f 0 b
       These a b -> f a b
-   in
-    Value (Map.map (Map.map unThese) combined)
 {-# INLINEABLE unionWith #-}
 
 {-| Convert a 'Value' to a simple list, keeping only the non-zero amounts.
@@ -452,28 +459,29 @@ isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 {-# INLINEABLE isZero #-}
 
-{-| Checks whether a predicate holds for all the values in a 'Value'
-union. Assumes the well-definedness of the two underlying 'Map's. -}
-checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
-checkPred f l r =
-  let
-    inner :: Map TokenName (These Integer Integer) -> Bool
-    inner = Map.all f
-   in
-    Map.all inner (unionVal l r)
-{-# INLINEABLE checkPred #-}
-
 {-| Check whether a binary relation holds for value pairs of two 'Value' maps,
-  supplying 0 where a key is only present in one of them. -}
+  supplying 0 where a key is only present in one of them.
+
+Mirrors 'unionWith' (see Note [Fused unionWith]): a single outer 'Map.union'
+plus one outer 'Map.all'. For currency symbols present in both 'Value's,
+the inner check runs over the inner 'Map.union'. For currency symbols
+present on only one side, the inner check applies the relation against
+@0@ on the missing side. -}
 checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
-checkBinRel f l r =
-  let
-    unThese k' = case k' of
+checkBinRel f (Value mapL) (Value mapR) =
+  Map.all checkInners (Map.union mapL mapR)
+  where
+    checkInners :: These (Map TokenName Integer) (Map TokenName Integer) -> Bool
+    checkInners = \case
+      This innerL -> Map.all (\v -> f v 0) innerL
+      That innerR -> Map.all (\v -> f 0 v) innerR
+      These innerL innerR -> Map.all collapseInner (Map.union innerL innerR)
+
+    collapseInner :: These Integer Integer -> Bool
+    collapseInner = \case
       This a -> f a 0
       That b -> f 0 b
       These a b -> f a b
-   in
-    checkPred unThese l r
 {-# INLINEABLE checkBinRel #-}
 
 {-| Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
