@@ -25,9 +25,10 @@ open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
 open import Type.RenamingSubstitution using (weaken;ren;_[_];sub-cons;Sub;sub;sub∅;sub-cong)
 open import Builtin using (signature)
-open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;mkCtx⋆)
-open _/_⊢⋆
+open import Builtin.Signature using (Sig;sig;_⊢♯;_⊢⋆;mkCtx⋆)
+open _⊢⋆
 open import Builtin.Constant.Type
+open import Data.Sum using (_⊎_;inj₁;inj₂)
 
 import Declarative as Syn
 import Algorithmic as Norm
@@ -146,11 +147,11 @@ helper (_⊢♯.list x) = cong ne (cong (^ list ·_) (helper x))
 helper (_⊢♯.array x) = cong ne (cong (^ array ·_) (helper x))
 helper (_⊢♯.pair x y) = cong ne (cong₂ (λ x y → ^ pair · x · y) (helper x) (helper y))
 
-mkTy-lem : ∀ {n⋆ n♯}(t : n⋆ / n♯ ⊢⋆) → Norm.mkTy t ≡ nf (Syn.mkTy t)
-mkTy-lem (` x) = refl
-mkTy-lem (x ↑) = cong con (helper x)
+mkTy-lem : ∀ {n⋆ n♯}(t : n⋆ ⊢⋆ ⊎ n♯ ⊢♯) → Norm.mkTy t ≡ nf (Syn.mkTy t)
+mkTy-lem (inj₁ (` x)) = refl
+mkTy-lem (inj₂ x) = cong con (helper x)
 
-sig2type⇒-lem : ∀{n⋆ n♯}{algRes}{synRes} (args : List (n⋆ / n♯ ⊢⋆)) → (algRes ≡ nf synRes) →
+sig2type⇒-lem : ∀{n⋆ n♯}{algRes}{synRes} (args : List (n⋆ ⊢⋆ ⊎ n♯ ⊢♯)) → (algRes ≡ nf synRes) →
                           Norm.sig2type⇒ args algRes ≡ nf (Syn.sig2type⇒ args synRes)
 sig2type⇒-lem [] p = p
 sig2type⇒-lem (x ∷ args) p = sig2type⇒-lem args (cong₂ _⇒_ (mkTy-lem x) p)

@@ -32,6 +32,7 @@ open import Builtin.Constant.AtomicType using (AtomicTyCon;⟦_⟧at)
 open AtomicTyCon
 open import Builtin.Constant.Type using (TyCon)
 open TyCon
+open import Data.Sum using (_⊎_; inj₁; inj₂)
 ```
 
 ## Argument Types and Built-in Compatible Types
@@ -75,18 +76,15 @@ data _⊢♯ : ℕ → Set where
         -------
       → n♯ ⊢♯
 
--- argument types are either a variable of kind * or a builtin compatible type
-data _/_⊢⋆ : ℕ → ℕ → Set where
+data _⊢⋆ : ℕ → Set where
   -- a type variable of kind *
-  ` : ∀ {n⋆ n♯} →
+  ` : ∀ {n⋆} →
       Fin n⋆
       --------
-    → n⋆ / n♯ ⊢⋆
-  -- a builtin compatible type
-  _↑ : ∀ {n⋆ n♯} →
-        n♯ ⊢♯
-       -------
-     → n⋆ / n♯ ⊢⋆
+    → n⋆ ⊢⋆
+
+_↑ : ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ ⊢⋆ ⊎ n♯ ⊢♯
+_↑ = inj₂
 
 pattern integer              = atomic aInteger
 pattern bytestring           = atomic aBytestring
@@ -106,7 +104,7 @@ of kind ♯ and kind *  that may appear.
 ```
 
 Args : ℕ → ℕ → Set
-Args n⋆ n♯ = List⁺ (n⋆ / n♯ ⊢⋆)
+Args n⋆ n♯ = List⁺ (n⋆ ⊢⋆ ⊎ n♯ ⊢♯)
 
 ```
 
@@ -115,7 +113,7 @@ A Universe for return types.
 ```
 data _/_⊢r⋆ : ℕ → ℕ → Set where
   argtype : ∀ {n⋆ n♯} →
-      n⋆ / n♯ ⊢⋆
+      n⋆ ⊢⋆ ⊎ n♯ ⊢♯
       --------
     → n⋆ / n♯ ⊢r⋆
 
@@ -141,7 +139,7 @@ record Sig : Set where
      -- list of arguments
     args : Args fv⋆ fv♯
      -- type of result
-    result : fv⋆ / fv♯ ⊢⋆
+    result : fv⋆ ⊢⋆ ⊎ fv♯ ⊢♯
 
 open Sig
 
@@ -226,9 +224,9 @@ module FromSig (Ty : Ctx⋆ → Kind → Set)
     ⊢♯2TyNe♯ (array x)   = ^ array · ne (⊢♯2TyNe♯ x)
     ⊢♯2TyNe♯ (pair x y) = ((^ pair) · ne (⊢♯2TyNe♯ x)) · ne (⊢♯2TyNe♯ y)
 
-    mkTy : ∀{n⋆ n♯} → n⋆ / n♯ ⊢⋆ → Ty (mkCtx⋆ n⋆ n♯) *
-    mkTy (` x) = ne (var (fin⋆2∋⋆ x))
-    mkTy (x ↑) = mkCon (ne (⊢♯2TyNe♯ x))
+    mkTy : ∀{n⋆ n♯} → n⋆ ⊢⋆ ⊎ n♯ ⊢♯ → Ty (mkCtx⋆ n⋆ n♯) *
+    mkTy (inj₁ (` x)) = ne (var (fin⋆2∋⋆ x))
+    mkTy (inj₂ x) = mkCon (ne (⊢♯2TyNe♯ x))
 ```
 
  `sig2type⇒` takes a list of arguments and a result type, and produces
@@ -239,7 +237,7 @@ module FromSig (Ty : Ctx⋆ → Kind → Set)
 
 ```
     sig2type⇒ : ∀{n⋆ n♯}
-              → List (n⋆ / n♯ ⊢⋆)
+              → List (n⋆ ⊢⋆ ⊎ n♯ ⊢♯)
               → Ty (mkCtx⋆ n⋆ n♯) * → Ty (mkCtx⋆ n⋆ n♯) *
     sig2type⇒ [] r = r
     sig2type⇒ (a ∷ as) r = sig2type⇒ as (mkTy a ⇒ r)
@@ -307,7 +305,7 @@ Every type obtained from a Signature σ using sig2type is a SigType.
              -- Additionally we could ask for the following condition to hold
              --  → (pn : n⋆ + n♯ ≡ tt)
                → {pt : tt ∔ 0 ≣ tt}
-               → (as : List (n⋆ / n♯ ⊢⋆))
+               → (as : List (n⋆ ⊢⋆ ⊎ n♯ ⊢♯))
                → ∀ {am at}(pa : length as ∔ am ≣ at)
                → {A : Ty (mkCtx⋆ n⋆ n♯) *} → (σA : SigTy pt pa A)
                → SigTy pt (start at) (sig2type⇒ as A)
@@ -348,5 +346,4 @@ Every type obtained from a Signature σ using sig2type is a SigType.
         → SigTy pt pa A
         → SigTy pt' pa' A'
     convSigTy {pt = pt} {pt'} {pa = pa} {pa'} refl sty rewrite unique∔ pt pt' | unique∔ pa pa' = sty
--- -}
 ```

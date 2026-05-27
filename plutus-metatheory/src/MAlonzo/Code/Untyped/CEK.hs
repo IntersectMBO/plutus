@@ -6203,7 +6203,7 @@ d_ival_988 v0
   = coe
       d_V'45'I_258 (coe v0) (coe (0 :: Integer))
       (coe
-         MAlonzo.Code.Builtin.Signature.d_fv_96
+         MAlonzo.Code.Builtin.Signature.d_fv_94
          (coe MAlonzo.Code.Builtin.d_signature_298 (coe v0)))
       (coe MAlonzo.Code.Utils.C_start_192) (coe (0 :: Integer))
       (coe
@@ -6214,7 +6214,7 @@ d_ival_988 v0
          (coe
             MAlonzo.Code.Data.List.NonEmpty.Base.d_tail_32
             (coe
-               MAlonzo.Code.Builtin.Signature.d_args_86
+               MAlonzo.Code.Builtin.Signature.d_args_84
                (coe MAlonzo.Code.Builtin.d_signature_298 (coe v0)))))
       (coe MAlonzo.Code.Utils.C_start_192) (coe C_base_94)
 -- Untyped.CEK.pushValueFrames
