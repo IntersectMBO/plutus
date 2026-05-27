@@ -53,3 +53,4 @@ evaluateCekLikeInProd evalCtx term =
    in
     Cek.cekResultToEither . Cek._cekReportResult $
       evaluateTerm Cek.restrictingEnormous pv Quiet evalCtx term
+{-# INLINE evaluateCekLikeInProd #-}
