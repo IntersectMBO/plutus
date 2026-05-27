@@ -45,15 +45,20 @@ benchSameTwoByteStrings name =
   where
     inputs = smallerByteStrings150 seedA
 
--- Here we benchmark different pairs of bytestrings elementwise.  This is used
--- to get times for off-diagonal comparisons, which we expect to be roughly
--- constant since the equality test returns quickly in that case.
+{- Here we benchmark different pairs of bytestrings elementwise.  This is used to
+ get times for off-diagonal comparisons, which we expect to be roughly constant
+ since the equality test returns quickly in that case.  We want the inputs to be
+ of different sizes so that we can recognise the corresponding data in the R
+ code; an alternative (perhaps better) would be to save the results under a
+ different name (`EqualsByteString2` or something similar), but that would
+ require some quite large changes.
+-}
 benchDifferentByteStringsElementwise :: DefaultFun -> Benchmark
 benchDifferentByteStringsElementwise name =
   createTwoTermBuiltinBenchElementwise name [] $ zip inputs1 inputs2
   where
     inputs1 = smallerByteStrings150 seedA
-    inputs2 = smallerByteStrings150 seedB
+    inputs2 = fmap (BS.cons 0x0F) (smallerByteStrings150 seedB)
 
 -- This is constant, even for large inputs
 benchIndexByteString :: StdGen -> Benchmark
