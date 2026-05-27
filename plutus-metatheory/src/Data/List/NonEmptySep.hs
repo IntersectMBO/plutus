@@ -14,16 +14,8 @@ import Prelude hiding (head)
 data NonEmptySep sep a
   = Cons a sep (NonEmptySep sep a)
   | Singleton a
-  deriving (Show, Generic)
+  deriving (Show, Generic, Functor, Foldable)
   deriving anyclass (NFData)
-
-instance Functor (NonEmptySep sep) where
-  fmap f (Singleton x) = Singleton (f x)
-  fmap f (Cons x y xs) = Cons (f x) y (fmap f xs)
-
-instance Foldable (NonEmptySep sep) where
-  foldr f e (Singleton a) = f a e
-  foldr f e (Cons x _ xs) = f x (foldr f e xs)
 
 fromList :: ([(a, sep)], a) -> NonEmptySep sep a
 fromList ([], x) = Singleton x
