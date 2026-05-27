@@ -1,0 +1,1 @@
+(program 1.1.0 (\bd -> case (constr 0 [#, #, (unValueData bd)]) [lookupCoin]))
