@@ -14,11 +14,13 @@ open import Relation.Nullary using (Dec; yes; no; ¬_; _×-dec_; does)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 open import Data.List using (List; _∷_; [])
+open import Data.List.Relation.Unary.All using (All; _∷_; [])
 open import Data.Fin using (Fin; suc; zero)
 open import Data.Nat using (ℕ; suc; zero)
 open import Data.Maybe using (just; nothing)
-open import Data.Product using (_,_)
+open import Data.Product using (_×_; _,_)
 open import Data.Empty using (⊥)
+open import Data.Unit using (⊤; tt)
 
 open import Untyped using (_⊢)
 open import RawU using (TmCon)
@@ -524,3 +526,67 @@ Terms with force/delay have to be transformed:
   _ : does (dec-RemoveFD M-pre M-pre) ≡ false
   _ = refl
 ```
+
+## Folding
+
+```
+sum : List RelationT → @++ Relation → Relation
+sum []       = Empty
+sum (F ∷ Fs) = F + sum Fs
+```
+
+```
+const₂ : ∀ {i j k} {A : Set i} {B : Set j} {C : Set k} → C → (A → B → C)
+const₂ x _ _ = x
+
+
+AlgCase : Relation → RelationT → Set
+AlgCase R F = ∀ {X} → {M N : X ⊢} → F R M N → R M N
+
+-- TODO better name
+alg :
+    ∀ {X} {M N : X ⊢} {R : Relation} {Fs : List RelationT}
+    → All (AlgCase R) Fs
+    → sum Fs R M N
+    → R M N
+alg {Fs = []} _ ()
+alg {Fs = (F ∷ Fs)} (f ∷ fs) (inl FMN) = f FMN
+alg {Fs = (F ∷ Fs)} (f ∷ fs) (inr FsMN) = alg {Fs = Fs} fs FsMN
+
+```
+
+```
+-- RelFunctorial : RelationT → Set₁
+-- RelFunctorial F =
+--   ∀ {X} {R S : Relation} {M N : X ⊢}
+--   → R ⊆ S
+--   → F R M N
+--   → F S M N
+-- 
+-- 
+-- {-# TERMINATING #-}
+-- fold :
+--   ∀ {X} {M N : X ⊢} {R : Relation} (Fs : List RelationT)
+--   → All (AlgCase R) Fs
+--   → All RelFunctorial Fs
+--   → Fix (sum Fs) M N
+--   → R M N
+-- fold [] alg rmaps (fix ())
+-- fold (F ∷ Fs) (algF ∷ algFs) (rmap ∷ rmaps) (fix (inl FMN)) =
+--   algF (rmap (fold (F ∷ Fs) (algF ∷ algFs)) rmaps FMN)
+-- fold (F ∷ Fs) (algF ∷ algFs) (rmap ∷ rmaps) (fix (inr FsMN)) =
+--   alg algFs (rmap (fold (F ∷ Fs) (algF ∷ algFs) (rmap ∷ rmaps)) FsMN)
+-- 
+-- x : Set₁
+-- x = All AlgCase (const₂ ℕ) (Symmetry ∷ CompatLambda ∷ [])
+```
+
+normalizing `x` gives
+
+```text
+{X : ℕ} {M N : X ⊢} →
+( {X = X₁ : ℕ} {M = M₁ : X₁ ⊢} {N = N₁ : X₁ ⊢} → Symmetry (λ _ _ → ℕ) M₁ N₁ → ℕ)
+× {X = X₁ : ℕ} {M = M₁ : X₁ ⊢} {N = N₁ : X₁ ⊢} → CompatLambda (λ _ _ → ℕ) M₁ N₁ → ℕ
+× ⊤
+```
+
