@@ -1,0 +1,18 @@
+CPU:                 3_951_025
+Memory:                  2_306
+AST Size:                   17
+Flat Size:                 312
+
+(con
+  data
+  (Map
+     [ (B #, Map [(B #, I 2000000)])
+     , ( B #706f6c6963795f30315f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f
+     , Map
+         [ ( B #746f6b656e5f30315f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f
+         , I 84 ) ] )
+     , ( B #706f6c6963795f30325f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f
+     , Map
+         [ ( B #746f6b656e5f30325f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f
+         , I 14 ) ] ) ])
+)
