@@ -567,17 +567,18 @@ modelFun <- function(path) {
     ## See Note [Backward compatibility for costing functions].
     equalsByteStringModel <- {
         fname <- "EqualsByteString"
-        data.on.diagonal <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem == y_mem) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, data.on.diagonal)
+        filtered <- filter(data, name == fname)
+        data.on.diagonal <- filter(filtered, x_mem == y_mem)
+        if (nrow(data.on.diagonal) == 0) {
+            stop ("No on-diagonal data found for ", fname)
+        }
+        m <- lm(t ~ x_mem, discard.overhead (data.on.diagonal))
 
-        data.off.diagonal <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem != y_mem) %>%
-            discard.overhead ()
-        constant <- mean(data.off.diagonal$t)
+        data.off.diagonal <- filter(filtered, x_mem != y_mem)
+        if (nrow(data.off.diagonal) == 0) {
+            stop ("No off-diagonal data found for ", fname)
+        }
+        constant <- mean(discard.overhead(data.off.diagonal)$t)
 
         mk.result(m, "linear_on_diagonal", constant=constant)
     }
