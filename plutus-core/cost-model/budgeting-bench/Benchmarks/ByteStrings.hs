@@ -22,8 +22,8 @@ integerLength = fromIntegral . BS.length
 -- constant.
 smallerByteStrings8x8 :: H.Seed -> H.Seed -> ([BS.ByteString], [BS.ByteString])
 smallerByteStrings8x8 seed1 seed2 =
-  ( makeSizedByteStrings seed1 $ fmap (20 *) [1 .. 8]
-  , makeSizedByteStrings seed2 $ fmap (\n -> 20 * n + 5) [1 .. 8]
+  ( makeSizedByteStrings seed1 $ fmap (200 *) [1 .. 8]
+  , makeSizedByteStrings seed2 $ fmap (\n -> 200 * n + 100) [1 .. 8]
   )
 
 -- Arguments for single-argument benchmarks: 150 entries.

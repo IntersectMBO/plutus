@@ -593,7 +593,8 @@ modelFun <- function(path) {
         mk.result(m, "min_size")
     }
 
-    lessThanEqualsByteStringModel <- lessThanByteStringModel  ## Check this!
+    lessThanEqualsByteStringModel <- lessThanByteStringModel
+    ## Experiments show that the behaivour of these functions is identical.
 
 
     ###### Hashing functions #####

@@ -149,8 +149,8 @@ benchDifferentSizedTextStrings :: DefaultFun -> Benchmark
 benchDifferentSizedTextStrings name =
   createTwoTermBuiltinBench name [] inputs1 inputs2
   where
-    inputs1 = makeSizedTextStrings seedA $ fmap (600 *) [1 .. 8]
-    inputs2 = makeSizedTextStrings seedB $ fmap (\n -> 600 * n + 100) [1 .. 8]
+    inputs1 = makeSizedTextStrings seedA $ fmap (1200 *) [1 .. 8]
+    inputs2 = makeSizedTextStrings seedB $ fmap (\n -> 1200 * n + 600) [1 .. 8]
 
 -- Benchmark times for a function applied to equal arguments.  This is used for
 -- benchmarking EqualsString on the diagonal.  Copy the string here, because
