@@ -152,17 +152,17 @@ extG g nothing  = 0
 
 extricateUList : {n : ℕ} → L.List (n ⊢) → List Untyped
 extricateU : {n : ℕ} → n ⊢ → Untyped
-extricateU (` x)         = UVar (toℕ x)
-extricateU (ƛ t)         = ULambda (extricateU t)
-extricateU (t · u)       = UApp (extricateU t) (extricateU u)
-extricateU (force t)     = UForce (extricateU t)
-extricateU (delay t)     = UDelay (extricateU t)
-extricateU (con c)       = UCon (tmCon2TagCon c)
-extricateU (builtin b)   = UBuiltin b
-extricateU error         = UError
-extricateU (constr i L.[]) = UConstr i []
-extricateU (constr i (x L.∷ xs)) = UConstr i (extricateU x ∷ extricateUList xs)
-extricateU (case x xs)   = UCase (extricateU x) (extricateUList xs)
+extricateU (` x)         = ` (toℕ x)
+extricateU (ƛ t)         = ƛ (extricateU t)
+extricateU (t · u)       = _·_ (extricateU t) (extricateU u)
+extricateU (force t)     = force (extricateU t)
+extricateU (delay t)     = delay (extricateU t)
+extricateU (con c)       = con (tmCon2TagCon c)
+extricateU (builtin b)   = builtin b
+extricateU error         = error
+extricateU (constr i L.[]) = constr i []
+extricateU (constr i (x L.∷ xs)) = constr i (extricateU x ∷ extricateUList xs)
+extricateU (case x xs)   = case (extricateU x) (extricateUList xs)
 
 extricateUList L.[] = []
 extricateUList (x L.∷ xs) = extricateU x ∷ extricateUList xs
@@ -177,19 +177,19 @@ extG' g (suc n) = fmap just (g n)
 
 scopeCheckUList : {n : ℕ} → List Untyped → Either ScopeError (L.List (n ⊢))
 scopeCheckU : {n : ℕ} → Untyped → Either ScopeError (n ⊢)
-scopeCheckU (UVar x)     = fmap ` (maybeToEither deBError (natToFin x))
-scopeCheckU (ULambda t)  = fmap ƛ (scopeCheckU t)
-scopeCheckU (UApp t u)   = do
+scopeCheckU (` x)     = fmap ` (maybeToEither deBError (natToFin x))
+scopeCheckU (ƛ t)  = fmap ƛ (scopeCheckU t)
+scopeCheckU (_·_ t u)   = do
   t ← scopeCheckU t
   u ← scopeCheckU u
   return (t · u)
-scopeCheckU (UCon c)       = return (con (tagCon2TmCon c))
-scopeCheckU UError         = return error
-scopeCheckU (UBuiltin b)   = return (builtin b)
-scopeCheckU (UDelay t)     = fmap delay (scopeCheckU t)
-scopeCheckU (UForce t)     = fmap force (scopeCheckU t)
-scopeCheckU (UConstr i ts) = fmap (constr i) (scopeCheckUList ts)
-scopeCheckU (UCase t ts)   = do
+scopeCheckU (con c)       = return (con (tagCon2TmCon c))
+scopeCheckU error         = return error
+scopeCheckU (builtin b)   = return (builtin b)
+scopeCheckU (delay t)     = fmap delay (scopeCheckU t)
+scopeCheckU (force t)     = fmap force (scopeCheckU t)
+scopeCheckU (constr i ts) = fmap (constr i) (scopeCheckUList ts)
+scopeCheckU (case t ts)   = do
                  u  ← scopeCheckU t
                  us ← scopeCheckUList ts
                  return (case u us)
@@ -210,14 +210,14 @@ Used to compare outputs in testing
 
 ```
 decUTm : (t t' : Untyped) → Bool
-decUTm (UVar x) (UVar x') = does (x Data.Nat.≟ x)
-decUTm (ULambda t) (ULambda t') = decUTm t t'
-decUTm (UApp t u) (UApp t' u') = decUTm t t' ∧ decUTm u u'
-decUTm (UCon c) (UCon c') = decTagCon c c'
-decUTm UError UError = true
-decUTm (UBuiltin b) (UBuiltin b') = does (decBuiltin b b')
-decUTm (UDelay t) (UDelay t') = decUTm t t'
-decUTm (UForce t) (UForce t') = decUTm t t'
+decUTm (` x) (` x') = does (x Data.Nat.≟ x)
+decUTm (ƛ t) (ƛ t') = decUTm t t'
+decUTm (_·_ t u) (_·_ t' u') = decUTm t t' ∧ decUTm u u'
+decUTm (con c) (con c') = decTagCon c c'
+decUTm error error = true
+decUTm (builtin b) (builtin b') = does (decBuiltin b b')
+decUTm (delay t) (delay t') = decUTm t t'
+decUTm (force t) (force t') = decUTm t t'
 decUTm _ _ = false
 ```
 

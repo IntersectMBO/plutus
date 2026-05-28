@@ -110,6 +110,26 @@ data InlineHints : Set where
   error   : InlineHints
   constr  : List InlineHints → InlineHints
   case    : InlineHints → List InlineHints → InlineHints
+  -- _·↓_ : InlineHints → InlineHints → InlineHints
+  -- identity : InlineHints -- size optimization
+
+```
+replay would be a partial function.
+
+instead, well-formed inline hints
+```
+
+-- 
+-- this would require some sort of environment of terms/hints
+-- data InlineTrace {X} : X ⊢ → Set where
+--   var     : ∀ {x} → InlineTrace (` x)
+--   expand  : InlineTrace → InlineTrace
+--   ƛ       : InlineTrace → InlineTrace
+--   _·_     : InlineTrace → InlineTrace → InlineTrace
+--   _·↓     : InlineTrace → InlineTrace
+
+-- replay : ∀ {X} (M : X ⊢) → InlineTrace M → X ⊢
+-- replay = ?
 
 data Hints : Set where
   inline : InlineHints → Hints

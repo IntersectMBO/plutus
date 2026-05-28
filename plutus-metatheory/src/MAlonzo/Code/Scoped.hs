@@ -853,7 +853,7 @@ d_scopeCheckTm_686 v0 v1 v2
       MAlonzo.Code.Raw.C_con_44 v3
         -> coe
              MAlonzo.Code.Utils.C_inj'8322'_14
-             (coe C_con_538 (coe MAlonzo.Code.RawU.d_tagCon2TmCon_256 (coe v3)))
+             (coe C_con_538 (coe MAlonzo.Code.RawU.d_tagCon2TmCon_276 (coe v3)))
       MAlonzo.Code.Raw.C_error_46 v3
         -> coe
              MAlonzo.Code.Utils.du_fmap_292
@@ -1064,7 +1064,7 @@ d_extricateScope_828 v0 v1 v2
       C_con_538 v3
         -> coe
              MAlonzo.Code.Raw.C_con_44
-             (coe MAlonzo.Code.RawU.d_tmCon2TagCon_368 (coe v3))
+             (coe MAlonzo.Code.RawU.d_tmCon2TagCon_388 (coe v3))
       C_error_540 v3
         -> coe
              MAlonzo.Code.Raw.C_error_46

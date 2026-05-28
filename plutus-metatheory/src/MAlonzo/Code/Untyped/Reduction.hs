@@ -2312,7 +2312,7 @@ d_refl'45''8773'_1320 v0
 d_integer_1322 :: MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
 d_integer_1322
   = coe
-      MAlonzo.Code.RawU.du_tag2TyTag_232
+      MAlonzo.Code.RawU.du_tag2TyTag_252
       (coe MAlonzo.Code.RawU.C_integer_30)
 -- Untyped.Reduction.con-integer
 d_con'45'integer_1326 ::

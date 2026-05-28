@@ -446,41 +446,42 @@ data T_TmCon_202
 -- RawU.Untyped
 d_Untyped_208 = ()
 type T_Untyped_208 = UTerm
-pattern C_UVar_210 a0 = UVar a0
-pattern C_ULambda_212 a0 = ULambda a0
-pattern C_UApp_214 a0 a1 = UApp a0 a1
-pattern C_UCon_216 a0 = UCon a0
-pattern C_UError_218 = UError
-pattern C_UBuiltin_220 a0 = UBuiltin a0
-pattern C_UDelay_222 a0 = UDelay a0
-pattern C_UForce_224 a0 = UForce a0
-pattern C_UConstr_226 a0 a1 = UConstr a0 a1
-pattern C_UCase_228 a0 a1 = UCase a0 a1
-check_UVar_210 :: Integer -> T_Untyped_208
-check_UVar_210 = UVar
-check_ULambda_212 :: T_Untyped_208 -> T_Untyped_208
-check_ULambda_212 = ULambda
-check_UApp_214 :: T_Untyped_208 -> T_Untyped_208 -> T_Untyped_208
-check_UApp_214 = UApp
-check_UCon_216 :: T_TagCon_106 -> T_Untyped_208
-check_UCon_216 = UCon
-check_UError_218 :: T_Untyped_208
-check_UError_218 = UError
-check_UBuiltin_220 ::
+pattern C_'96'_210 a0 = UVar a0
+pattern C_ƛ_212 a0 = ULambda a0
+pattern C__'183'__214 a0 a1 = UApp a0 a1
+pattern C_con_216 a0 = UCon a0
+pattern C_error_218 = UError
+pattern C_builtin_220 a0 = UBuiltin a0
+pattern C_delay_222 a0 = UDelay a0
+pattern C_force_224 a0 = UForce a0
+pattern C_constr_226 a0 a1 = UConstr a0 a1
+pattern C_case_228 a0 a1 = UCase a0 a1
+check_'96'_210 :: Integer -> T_Untyped_208
+check_'96'_210 = UVar
+check_ƛ_212 :: T_Untyped_208 -> T_Untyped_208
+check_ƛ_212 = ULambda
+check__'183'__214 ::
+  T_Untyped_208 -> T_Untyped_208 -> T_Untyped_208
+check__'183'__214 = UApp
+check_con_216 :: T_TagCon_106 -> T_Untyped_208
+check_con_216 = UCon
+check_error_218 :: T_Untyped_208
+check_error_218 = UError
+check_builtin_220 ::
   MAlonzo.Code.Builtin.T_Builtin_2 -> T_Untyped_208
-check_UBuiltin_220 = UBuiltin
-check_UDelay_222 :: T_Untyped_208 -> T_Untyped_208
-check_UDelay_222 = UDelay
-check_UForce_224 :: T_Untyped_208 -> T_Untyped_208
-check_UForce_224 = UForce
-check_UConstr_226 ::
+check_builtin_220 = UBuiltin
+check_delay_222 :: T_Untyped_208 -> T_Untyped_208
+check_delay_222 = UDelay
+check_force_224 :: T_Untyped_208 -> T_Untyped_208
+check_force_224 = UForce
+check_constr_226 ::
   Integer ->
   MAlonzo.Code.Utils.T_List_454 T_Untyped_208 -> T_Untyped_208
-check_UConstr_226 = UConstr
-check_UCase_228 ::
+check_constr_226 = UConstr
+check_case_228 ::
   T_Untyped_208 ->
   MAlonzo.Code.Utils.T_List_454 T_Untyped_208 -> T_Untyped_208
-check_UCase_228 = UCase
+check_case_228 = UCase
 cover_Untyped_208 :: UTerm -> ()
 cover_Untyped_208 x
   = case x of
@@ -494,16 +495,50 @@ cover_Untyped_208 x
       UForce _ -> ()
       UConstr _ _ -> ()
       UCase _ _ -> ()
+-- RawU.UVar
+d_UVar_230 :: Integer -> T_Untyped_208
+d_UVar_230 = coe C_'96'_210
+-- RawU.ULambda
+d_ULambda_232 :: T_Untyped_208 -> T_Untyped_208
+d_ULambda_232 = coe C_ƛ_212
+-- RawU.UApp
+d_UApp_234 :: T_Untyped_208 -> T_Untyped_208 -> T_Untyped_208
+d_UApp_234 = coe C__'183'__214
+-- RawU.UCon
+d_UCon_236 :: T_TagCon_106 -> T_Untyped_208
+d_UCon_236 = coe C_con_216
+-- RawU.UError
+d_UError_238 :: T_Untyped_208
+d_UError_238 = coe C_error_218
+-- RawU.UBuiltin
+d_UBuiltin_240 :: MAlonzo.Code.Builtin.T_Builtin_2 -> T_Untyped_208
+d_UBuiltin_240 = coe C_builtin_220
+-- RawU.UDelay
+d_UDelay_242 :: T_Untyped_208 -> T_Untyped_208
+d_UDelay_242 = coe C_delay_222
+-- RawU.UForce
+d_UForce_244 :: T_Untyped_208 -> T_Untyped_208
+d_UForce_244 = coe C_force_224
+-- RawU.UConstr
+d_UConstr_246 ::
+  Integer ->
+  MAlonzo.Code.Utils.T_List_454 T_Untyped_208 -> T_Untyped_208
+d_UConstr_246 = coe C_constr_226
+-- RawU.UCase
+d_UCase_248 ::
+  T_Untyped_208 ->
+  MAlonzo.Code.Utils.T_List_454 T_Untyped_208 -> T_Untyped_208
+d_UCase_248 = coe C_case_228
 -- RawU.tag2TyTag
-d_tag2TyTag_232 ::
+d_tag2TyTag_252 ::
   () ->
   T_Tag_28 AgdaAny ->
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
-d_tag2TyTag_232 ~v0 v1 = du_tag2TyTag_232 v1
-du_tag2TyTag_232 ::
+d_tag2TyTag_252 ~v0 v1 = du_tag2TyTag_252 v1
+du_tag2TyTag_252 ::
   T_Tag_28 AgdaAny ->
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
-du_tag2TyTag_232 v0
+du_tag2TyTag_252 v0
   = case coe v0 of
       C_integer_30
         -> coe
@@ -532,15 +567,15 @@ du_tag2TyTag_232 v0
       C_pair_46 v3 v4
         -> coe
              MAlonzo.Code.Builtin.Signature.C_pair_24
-             (coe du_tag2TyTag_232 (coe v3)) (coe du_tag2TyTag_232 (coe v4))
+             (coe du_tag2TyTag_252 (coe v3)) (coe du_tag2TyTag_252 (coe v4))
       C_list_50 v2
         -> coe
              MAlonzo.Code.Builtin.Signature.C_list_16
-             (coe du_tag2TyTag_232 (coe v2))
+             (coe du_tag2TyTag_252 (coe v2))
       C_array_54 v2
         -> coe
              MAlonzo.Code.Builtin.Signature.C_array_20
-             (coe du_tag2TyTag_232 (coe v2))
+             (coe du_tag2TyTag_252 (coe v2))
       C_bls12'45'381'45'g1'45'element_56
         -> coe
              MAlonzo.Code.Builtin.Signature.C_atomic_12
@@ -558,14 +593,14 @@ du_tag2TyTag_232 v0
                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_24)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- RawU.tagLemma
-d_tagLemma_246 ::
+d_tagLemma_266 ::
   () ->
   T_Tag_28 (T_Esc_24 AgdaAny) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_tagLemma_246 = erased
+d_tagLemma_266 = erased
 -- RawU.tagCon2TmCon
-d_tagCon2TmCon_256 :: T_TagCon_106 -> T_TmCon_202
-d_tagCon2TmCon_256 v0
+d_tagCon2TmCon_276 :: T_TagCon_106 -> T_TmCon_202
+d_tagCon2TmCon_276 v0
   = case coe v0 of
       C_tagCon_110 v2 v3
         -> case coe v2 of
@@ -618,21 +653,21 @@ d_tagCon2TmCon_256 v0
                        C_tmCon_206
                        (coe
                           MAlonzo.Code.Builtin.Signature.C_pair_24
-                          (coe du_tag2TyTag_232 (coe v6)) (coe du_tag2TyTag_232 (coe v7)))
+                          (coe du_tag2TyTag_252 (coe v6)) (coe du_tag2TyTag_252 (coe v7)))
                        (coe v3))
              C_list_50 v5
                -> coe
                     C_tmCon_206
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_list_16
-                       (coe du_tag2TyTag_232 (coe v5)))
+                       (coe du_tag2TyTag_252 (coe v5)))
                     (coe v3)
              C_array_54 v5
                -> coe
                     C_tmCon_206
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_array_20
-                       (coe du_tag2TyTag_232 (coe v5)))
+                       (coe du_tag2TyTag_252 (coe v5)))
                     (coe v3)
              C_bls12'45'381'45'g1'45'element_56
                -> coe
@@ -661,10 +696,10 @@ d_tagCon2TmCon_256 v0
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- RawU.tyTag2Tag
-d_tyTag2Tag_310 ::
+d_tyTag2Tag_330 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_tyTag2Tag_310 v0
+d_tyTag2Tag_330 v0
   = case coe v0 of
       MAlonzo.Code.Builtin.Signature.C_atomic_12 v2
         -> case coe v2 of
@@ -703,7 +738,7 @@ d_tyTag2Tag_310 v0
                     (coe C_bls12'45'381'45'mlresult_60)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.Signature.C_list_16 v2
-        -> let v3 = d_tyTag2Tag_310 (coe v2) in
+        -> let v3 = d_tyTag2Tag_330 (coe v2) in
            coe
              (case coe v3 of
                 MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v4 v5
@@ -712,7 +747,7 @@ d_tyTag2Tag_310 v0
                        (coe C_list_50 v5)
                 _ -> MAlonzo.RTE.mazUnreachableError)
       MAlonzo.Code.Builtin.Signature.C_array_20 v2
-        -> let v3 = d_tyTag2Tag_310 (coe v2) in
+        -> let v3 = d_tyTag2Tag_330 (coe v2) in
            coe
              (case coe v3 of
                 MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v4 v5
@@ -721,9 +756,9 @@ d_tyTag2Tag_310 v0
                        (coe C_array_54 v5)
                 _ -> MAlonzo.RTE.mazUnreachableError)
       MAlonzo.Code.Builtin.Signature.C_pair_24 v2 v3
-        -> let v4 = d_tyTag2Tag_310 (coe v2) in
+        -> let v4 = d_tyTag2Tag_330 (coe v2) in
            coe
-             (let v5 = d_tyTag2Tag_310 (coe v3) in
+             (let v5 = d_tyTag2Tag_330 (coe v3) in
               coe
                 (case coe v4 of
                    MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v6 v7
@@ -736,13 +771,13 @@ d_tyTag2Tag_310 v0
                    _ -> MAlonzo.RTE.mazUnreachableError))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- RawU.tyTagLemma
-d_tyTagLemma_358 ::
+d_tyTagLemma_378 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_tyTagLemma_358 = erased
+d_tyTagLemma_378 = erased
 -- RawU.tmCon2TagCon
-d_tmCon2TagCon_368 :: T_TmCon_202 -> T_TagCon_106
-d_tmCon2TagCon_368 v0
+d_tmCon2TagCon_388 :: T_TmCon_202 -> T_TagCon_106
+d_tmCon2TagCon_388 v0
   = case coe v0 of
       C_tmCon_206 v1 v2
         -> case coe v1 of
@@ -775,7 +810,7 @@ d_tmCon2TagCon_368 v0
                     (coe
                        C_list_50
                        (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
-                          (coe d_tyTag2Tag_310 (coe v4))))
+                          (coe d_tyTag2Tag_330 (coe v4))))
                     v2
              MAlonzo.Code.Builtin.Signature.C_array_20 v4
                -> coe
@@ -783,7 +818,7 @@ d_tmCon2TagCon_368 v0
                     (coe
                        C_array_54
                        (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
-                          (coe d_tyTag2Tag_310 (coe v4))))
+                          (coe d_tyTag2Tag_330 (coe v4))))
                     v2
              MAlonzo.Code.Builtin.Signature.C_pair_24 v4 v5
                -> coe
@@ -793,9 +828,9 @@ d_tmCon2TagCon_368 v0
                        (coe
                           C_pair_46
                           (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
-                             (coe d_tyTag2Tag_310 (coe v4)))
+                             (coe d_tyTag2Tag_330 (coe v4)))
                           (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
-                             (coe d_tyTag2Tag_310 (coe v5))))
+                             (coe d_tyTag2Tag_330 (coe v5))))
                        v2)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError

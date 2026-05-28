@@ -204,21 +204,47 @@ this time the meaning is given by the semantic function ⟦_⟧tag.
 data TmCon : Set where
   tmCon : (t : TyTag) → ⟦ t ⟧tag → TmCon
 
+infixl 7 _·_
+
 data Untyped : Set where
-  UVar : ℕ → Untyped
-  ULambda : Untyped → Untyped
-  UApp : Untyped → Untyped → Untyped
-  UCon : TagCon → Untyped
-  UError : Untyped
-  UBuiltin : Builtin → Untyped
-  UDelay : Untyped → Untyped
-  UForce : Untyped → Untyped
-  UConstr : ℕ → List Untyped → Untyped
-  UCase : Untyped → List Untyped → Untyped
+  ` : ℕ → Untyped
+  ƛ : Untyped → Untyped
+  _·_ : Untyped → Untyped → Untyped
+  con : TagCon → Untyped
+  error : Untyped
+  builtin : Builtin → Untyped
+  delay : Untyped → Untyped
+  force : Untyped → Untyped
+  constr : ℕ → List Untyped → Untyped
+  case : Untyped → List Untyped → Untyped
 
 {-# FOREIGN GHC import FFI.Untyped #-}
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce | UConstr | UCase) #-}
+```
 
+Synonyms for the haskell pretty printer:
+
+```
+UVar : ℕ → Untyped
+UVar = `
+ULambda : Untyped → Untyped
+ULambda = ƛ
+UApp : Untyped → Untyped → Untyped
+UApp = _·_
+UCon : TagCon → Untyped
+UCon = con
+UError : Untyped
+UError = error
+UBuiltin : Builtin → Untyped
+UBuiltin = builtin
+UDelay : Untyped → Untyped
+UDelay = delay
+UForce : Untyped → Untyped
+UForce = force
+UConstr : ℕ → List Untyped → Untyped
+UConstr = constr
+UCase : Untyped → List Untyped → Untyped
+UCase = case
 ```
 
 ## Conversion between universe representations
