@@ -16,6 +16,16 @@ import Hedgehog qualified as H
 integerLength :: BS.ByteString -> Integer
 integerLength = fromIntegral . BS.length
 
+-- Arguments for off-diagonal pairs when we expect the time to be constant.
+-- Benchmark the function over and 8x8 grid with no two sizes equal.  We can
+-- inspect the results visualyl to make sure that the time is (approximately)
+-- constant.
+smallerByteStrings8x8 :: H.Seed -> H.Seed -> ([BS.ByteString], [BS.ByteString])
+smallerByteStrings8x8 seed1 seed2 =
+  ( makeSizedByteStrings seed1 $ fmap (20 *) [1 .. 8]
+  , makeSizedByteStrings seed2 $ fmap (\n -> 20 * n + 5) [1 .. 8]
+  )
+
 -- Arguments for single-argument benchmarks: 150 entries.
 -- Note that the length is eight times the size.
 smallerByteStrings150 :: H.Seed -> [BS.ByteString]
@@ -53,12 +63,11 @@ benchSameTwoByteStrings name =
  different name (`EqualsByteString2` or something similar), but that would
  require some quite large changes.
 -}
-benchDifferentByteStringsElementwise :: DefaultFun -> Benchmark
-benchDifferentByteStringsElementwise name =
-  createTwoTermBuiltinBenchElementwise name [] $ zip inputs1 inputs2
+benchDifferentSizedByteStrings :: DefaultFun -> Benchmark
+benchDifferentSizedByteStrings name =
+  createTwoTermBuiltinBench name [] inputs1 inputs2
   where
-    inputs1 = smallerByteStrings150 seedA
-    inputs2 = fmap (BS.cons 0x0F) (smallerByteStrings150 seedB)
+    (inputs1, inputs2) = smallerByteStrings8x8 seedA seedB
 
 -- This is constant, even for large inputs
 benchIndexByteString :: StdGen -> Benchmark
@@ -121,7 +130,7 @@ makeBenchmarks gen =
   , benchIndexByteString gen
   , benchSliceByteString
   ]
-    <> [benchDifferentByteStringsElementwise EqualsByteString]
+    <> [benchDifferentSizedByteStrings EqualsByteString]
     <> ( benchSameTwoByteStrings
            <$> [EqualsByteString, LessThanEqualsByteString, LessThanByteString]
        )
