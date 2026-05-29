@@ -1,0 +1,13 @@
+CPU:                 1_344_398
+Memory:                    844
+AST Size:                    6
+Flat Size:                 156
+
+(con
+  value
+  [ (#, [(#, 1000000)])
+  , ( #706f6c6963795f30315f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f
+  , [(#746f6b656e5f30315f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f, 42)] )
+  , ( #706f6c6963795f30325f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f
+  , [(#746f6b656e5f30325f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f, 7)] ) ]
+)
