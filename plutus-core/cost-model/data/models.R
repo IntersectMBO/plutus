@@ -444,6 +444,23 @@ modelFun <- function(path) {
         return (mk.result(m, "linear_in_u"))
    }
 
+   linearOnDiagonal <- function (fname) {
+        filtered <- filter(data, name == fname)
+        data.on.diagonal <- filter(filtered, x_mem == y_mem)
+        if (nrow(data.on.diagonal) == 0) {
+            stop ("No on-diagonal data found for ", fname)
+        }
+        m <- lm(t ~ x_mem, discard.overhead (data.on.diagonal))
+
+        data.off.diagonal <- filter(filtered, x_mem != y_mem)
+        if (nrow(data.off.diagonal) == 0) {
+            stop ("No off-diagonal data found for ", fname)
+        }
+        constant <- mean(discard.overhead(data.off.diagonal)$t)
+
+        mk.result(m, "linear_on_diagonal", constant=constant)
+    }
+
     ##### Integers #####
 
     addIntegerModel <- {
@@ -563,22 +580,9 @@ modelFun <- function(path) {
     indexByteStringModel    <- constantModel ("IndexByteString")     ## Constant-time array access
 
     ## NOTE: We could also use const_off_diagonal here, but we have to keep
-    ## linear _on_diagonal for backward compatibility for the time being.
+    ## linear_on_diagonal for backward compatibility for the time being.
     ## See Note [Backward compatibility for costing functions].
-    equalsByteStringModel <- {
-        fname <- "EqualsByteString"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem == y_mem) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-
-        constant <- min(filtered$t)
-        ## FIXME.  The `constant` value above is the off-diagonal cost, which we
-        ## don't collect benchmarking data for.  Collect some data and infer it.
-
-        mk.result(m, "linear_on_diagonal", constant=constant)
-    }
+    equalsByteStringModel <- linearOnDiagonal ("EqualsByteString")
 
     lessThanByteStringModel <- {
         fname <- "LessThanByteString"
@@ -589,7 +593,8 @@ modelFun <- function(path) {
         mk.result(m, "min_size")
     }
 
-    lessThanEqualsByteStringModel <- lessThanByteStringModel  ## Check this!
+    lessThanEqualsByteStringModel <- lessThanByteStringModel
+    ## Experiments show that the behaivour of these functions is identical.
 
 
     ###### Hashing functions #####
@@ -630,23 +635,9 @@ modelFun <- function(path) {
     }
 
     ## NOTE: We could also use const_off_diagonal here, but we have to keep
-    ## linear _on_diagonal for backward compatibility for the time being.
+    ## linear_on_diagonal for backward compatibility for the time being.
     ## See Note [Backward compatibility for costing functions].
-    equalsStringModel <- {
-        fname <- "EqualsString"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem == y_mem) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-
-        constant <- min(filtered$t)
-        ## FIXME.  The `constant` value above is the off-diagonal cost, which
-        ## we don't collect benchmarking data for.  We might want to collect
-        ## some data and infer it.
-
-        mk.result(m, "linear_on_diagonal", constant=constant)
-    }
+    equalsStringModel <- linearOnDiagonal ("EqualsString")
 
     decodeUtf8Model <- linearInX ("DecodeUtf8")
     encodeUtf8Model <- linearInX ("EncodeUtf8")
