@@ -402,13 +402,6 @@ assetClassValueOf :: Value -> AssetClass -> Integer
 assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 {-# INLINEABLE assetClassValueOf #-}
 
-{- Note [Single-pass unionWith]
-'Map.union' tags each currency symbol with a 'These' recording which side(s)
-hold it. 'fuseInners' consumes that tag in one outer 'Map.map': against an
-implicit @0@ on the absent side, or — when both sides hold the symbol — over
-the inner @Map.union innerL innerR@. The merge therefore touches each level
-once and never materialises a @Map TokenName (These Integer Integer)@. -}
-
 {-| Combine two 'Value' maps with the argument function.
 Assumes the well-definedness of the two maps. -}
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
@@ -454,9 +447,8 @@ isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 {-| Check whether a binary relation holds for value pairs of two 'Value' maps,
   supplying 0 where a key is only present in one of them.
 
-Shares the structure of 'unionWith' (see Note [Single-pass unionWith]), with
-'Map.all' in place of 'Map.map': the walk short-circuits on the first pair
-that fails @f@, applying the relation against @0@ on whichever side is absent. -}
+Walks the outer 'Map.union' with 'Map.all', short-circuiting on the first pair
+that fails @f@. -}
 checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
 checkBinRel f (Value mapL) (Value mapR) =
   Map.all checkInners (Map.union mapL mapR)
