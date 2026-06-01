@@ -16,7 +16,20 @@ date.
 
 \subsubsection{Built-in type operators}
 \label{sec:built-in-type-operators-6}
-The sixth batch adds type operators defined in Table~\ref{table:built-in-type-operators-6}. 
+The sixth batch adds types and type operators defined in Tables~\ref{table:built-in-types-6} and \ref{table:built-in-type-operators-6}. 
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|p{2cm}|l|}
+        \hline
+        Type & Denotation & Concrete Syntax\\
+        \hline
+        $\ty{value}$ & - & -\\
+        \hline
+    \end{tabular}
+    \caption{Atomic types, Batch 6}
+    \label{table:built-in-types-6}
+\end{table}
 
 \begin{table}[H]
   \centering
@@ -45,7 +58,7 @@ Some valid constant expressions are thus:
 
 \subsubsection{Built-in functions}
 \label{sec:built-in-functions-6}
-The sixth batch of built-in types is defined in Table~\ref{table:built-in-type-operators-6}.
+The sixth batch of built-in types and type operations are defined in Tables~\ref{table:built-in-types-6} and \ref{table:built-in-type-operators-6}.
 Operations are defined in Table~\ref{table:built-in-functions-6}.
 
 \setlength{\LTleft}{-23mm}  % Shift the table left a bit to centre it on the page
@@ -122,6 +135,18 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
       \text{$\: \mapsto n_1a_1+\cdots+n_ra_r$ \ where $r=\min(k,l)$}
       & No & \ref{note:msm-semantics}\\[2mm]
 \hline
+  \TT{insertCoin} & $[ \ty{bytestring}, \ty{bytestring}, $
+                       $\text{\:  \ty{integer}, \ty{value} ]}$ $\to \ty{value}$  &- &- &- \\[2mm]
+  \TT{lookupCoin} & $[ \ty{bytestring}, \ty{bytestring}, $
+                       $\text{\: \ty{value} ]}$ $\to \ty{integer}$ &- &- &- \\[2mm]
+  \TT{unionValue} & $[ \ty{value}, \ty{value} ] \to \ty{value}$ &- &- &- \\[2mm]
+  \TT{valueContains} & $[ \ty{value}, \ty{value} ] \to \ty{bool}$ &- &- &- \\[2mm]
+  \TT{valueData} & $[ \ty{value} ] \to \ty{data}$ &- &- &- \\[2mm]
+  \TT{unValueData} & $[ \ty{data} ] \to \ty{value}$ &- &- &- \\[2mm]
+  \TT{scaleValue} & $[ \ty{integer}, \ty{value} ] \to \ty{value}$ &- &- &- \\[2mm]
+\hline
+
+
 \end{longtable}
 
 \note{Modular Exponentiation.}
