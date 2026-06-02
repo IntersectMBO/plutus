@@ -100,11 +100,6 @@ jobs:
         env:
           SCRIPT_REF: ${{ inputs.script_ref || github.ref_name }}
         run: |
-          # Validate the ref before handing it to git. It must look like a normal
-          # branch/tag/sha and must not be parseable as a command-line option
-          # (no leading '-'), to prevent git argument injection on the self-hosted
-          # runner. Defence in depth: --end-of-options stops option parsing, and
-          # 'checkout <tree-ish> -- <path>' keeps the path from being misread.
           if ! printf '%s' "$SCRIPT_REF" | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9._/-]*$'; then
             echo "::error::Invalid script_ref '$SCRIPT_REF' (must match ^[A-Za-z0-9_][A-Za-z0-9._/-]*\$)"
             exit 1

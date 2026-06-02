@@ -95,11 +95,6 @@ jobs:
             const isCheckRunEvent = eventName === "check_run";
 
 
-            // The check_run / workflow_run payloads only carry a *minimal* pull
-            // request object (url, id, number, head, base) with no `draft` field,
-            // so we must fetch the PR to learn whether it is a draft. Fork PRs are
-            // not included in these arrays at all (the array is empty), in which
-            // case we treat it as non-draft and let the notification through.
             async function isDraftPullRequest() {
               const event = isWorkflowRunEvent ? context.payload.workflow_run
                           : isCheckRunEvent ? context.payload.check_run
