@@ -43,6 +43,7 @@ jobs:
               const newFiles = (process.env.ADDED_FILES || "").trim().split(' ');
               // We check that added_files is the singleton array containing the empty string.
               // This is likely an output-format quirk of step-security/changed-files.
+              if (newFiles.length === 1 && newFiles[0] === "") {
                 return [];
               } else {
                 return newFiles;
