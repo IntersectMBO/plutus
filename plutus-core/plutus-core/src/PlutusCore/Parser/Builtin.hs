@@ -93,12 +93,19 @@ conArray uniA = Vector.fromList <$> conList uniA
 conValue :: Parser PLC.Value
 conValue = do
   keys <- traverse validateKeys =<< conList knownUni
+  checkAscending "Currency symbols" (map fst keys)
+  mapM_ (\(_, toks) -> checkAscending "Token names" (map fst toks)) keys
   case Value.fromList keys of
     PlutusCore.Builtin.Result.BuiltinSuccess v -> pure v
     PlutusCore.Builtin.Result.BuiltinSuccessWithLogs _logs v -> pure v
     PlutusCore.Builtin.Result.BuiltinFailure logs _trace ->
       fail $ "Failed to construct Value: " <> show logs
   where
+    checkAscending _ [] = pure ()
+    checkAscending _ [_] = pure ()
+    checkAscending label (x : y : rest)
+      | x < y = checkAscending label (y : rest)
+      | otherwise = fail $ label <> " in value constant must be strictly ascending"
     validateToken (token, amt) = do
       tk <-
         maybe

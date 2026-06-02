@@ -75,6 +75,30 @@ parseValueValid = do
       \, [ ( #6161616161616161616161616161616161616161616161616161616161616161\
       \    , -100 ) ] ) ])"
 
+parseValueAscendingCurrencies :: Assertion
+parseValueAscendingCurrencies =
+  expectParserSuccess "(con value [ ( #01, [ ( #01, 1 ) ] ), ( #02, [ ( #01, 1 ) ] ) ])"
+
+parseValueNonAscendingCurrencies :: Assertion
+parseValueNonAscendingCurrencies =
+  expectParserFailure "(con value [ ( #02, [ ( #01, 1 ) ] ), ( #01, [ ( #01, 1 ) ] ) ])"
+
+parseValueEqualCurrencies :: Assertion
+parseValueEqualCurrencies =
+  expectParserFailure "(con value [ ( #01, [ ( #01, 1 ) ] ), ( #01, [ ( #02, 1 ) ] ) ])"
+
+parseValueAscendingTokens :: Assertion
+parseValueAscendingTokens =
+  expectParserSuccess "(con value [ ( #01, [ ( #01, 1 ), ( #02, 1 ) ] ) ])"
+
+parseValueNonAscendingTokens :: Assertion
+parseValueNonAscendingTokens =
+  expectParserFailure "(con value [ ( #01, [ ( #02, 1 ), ( #01, 1 ) ] ) ])"
+
+parseValueEqualTokens :: Assertion
+parseValueEqualTokens =
+  expectParserFailure "(con value [ ( #01, [ ( #01, 1 ), ( #01, 2 ) ] ) ])"
+
 tests :: TestTree
 tests =
   testGroup
@@ -93,14 +117,32 @@ tests =
         "parser of Value should succeed"
         parseValueValid
     , testCase
+        "parser of Value should succeed with ascending currency symbols"
+        parseValueAscendingCurrencies
+    , testCase
+        "parser of Value should fail with non-ascending currency symbols"
+        parseValueNonAscendingCurrencies
+    , testCase
+        "parser of Value should fail with equal (non-strictly-ascending) currency symbols"
+        parseValueEqualCurrencies
+    , testCase
+        "parser of Value should succeed with ascending token names"
+        parseValueAscendingTokens
+    , testCase
+        "parser of Value should fail with non-ascending token names"
+        parseValueNonAscendingTokens
+    , testCase
+        "parser of Value should fail with equal (non-strictly-ascending) token names"
+        parseValueEqualTokens
+    , testCase
         "multi-arg application has per-argument spans on inner nodes"
         multiArgSpans
     ]
 
--- | Test that inner Apply nodes get per-argument spans, not the bracket span.
--- For @[ (con integer 1) (con integer 2) (con integer 3) ]@, the outer Apply
--- should have the bracket span, but the inner Apply should have the span of
--- its argument @(con integer 2)@, NOT the bracket span.
+{-| Test that inner Apply nodes get per-argument spans, not the bracket span.
+For @[ (con integer 1) (con integer 2) (con integer 3) ]@, the outer Apply
+should have the bracket span, but the inner Apply should have the span of
+its argument @(con integer 2)@, NOT the bracket span. -}
 multiArgSpans :: Assertion
 multiArgSpans = do
   let code = "[ (con integer 1) (con integer 2) (con integer 3) ]"
@@ -110,7 +152,8 @@ multiArgSpans = do
       case parsed of
         Apply outerAnn (Apply innerAnn _ _) _ -> do
           -- outer should have the bracket span (col 1 to col 52)
-          assertBool "outer span should start at col 1"
+          assertBool
+            "outer span should start at col 1"
             (srcSpanSCol outerAnn == 1)
           -- inner should NOT have the same span as outer
           assertBool
