@@ -623,12 +623,15 @@ appear a little complex.  In Section~\ref{sec:built-in-value-type} we defined a
 concrete representation of a $\ty{value}$ as an element of $(\B^* \times
 (\B^*\times \Z)^*)^*$, consisting of an outer list of pairs of bytestrings and
 inner lists, where an inner list is a list of pairs of bytestrings and integers,
-ie a list of elements of $I = \B^*\times \Z$.  To encode a \texttt{value} we
-convert it to the concrete representation and then encode that: inner lists are
-encoded using the standard list encoding (see Section~\ref{sec:flat:lists}) for
-lists with elements in $\B^*\times \Z$ and outer lists are encoded using the
-standard list encoding for lists with elements in $\B^* \times I$.  The decoder
-reverses this process.
+ie a list of elements of $I = \B^*\times \Z$.  To encode a \texttt{value} $v$we
+convert it to the concrete representation $\flatten{v}$ and then encode that:
+inner lists are encoded using the standard list encoding (see
+Section~\ref{sec:flat:lists}) for lists with elements in $\B^*\times \Z$ and
+outer lists are encoded using the standard list encoding for lists with elements
+in $\B^* \times I$.  The decoder reverses this process, but note that we use the
+$\uparrow$ operation, which fails if it finds a bytestring with length greater
+than 32 or an integer value which is zero or lies outside the range $[-2^{127},
+  2^{127}-1]$.
 
 \subsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and

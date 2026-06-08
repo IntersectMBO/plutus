@@ -204,7 +204,14 @@ of bytes).  In practice \texttt{value}s will be implemented as some finite data
 structure in which only a finite number of currency and token identifiers
 appear, but for specification purposes it is convenient to allow
 a \texttt{value} to contain \textit{all} identifiers, but with only a finite
-number of quantities nonzero.
+number of quantities nonzero.  In practice we only allow values $v$ such that
+for $c, t \in \B$ with $v(c,t) \neq 0$, it is the case that $\length(c) \leq
+32$, $\length(t) \leq 32$ and $-2^{127} \leq q \leq 2^{127}-1$.  We will call
+such values \textit{small values}; none of the built-in functions we provide
+allow a non-small value to be created, and non-small values will also cause a
+failure during deserialisation fromt the \texttt{flat} format (see
+Appendix~\ref{appendix:flat-serialisation}) and during parsing of textual UPLC.
+
 
 \begin{table}[H]
   \centering
@@ -220,7 +227,7 @@ number of quantities nonzero.
 \end{table}
 
 \noindent To obtain a syntactic representation of the abstract \texttt{value}
-we define aconcrete ``flattened'' form which represents a \texttt{value} as a nested
+we define a concrete ``flattened'' form which represents a \texttt{value} as a nested
 association list.  Given $v \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$, let
 $$C_v
 = \{c \in \B^*: \text{there exists $t \in \B^*$ with $v(c,t) \neq 0\}$.}
@@ -265,7 +272,7 @@ Conversely, given a list
  \item $c_1 < c_2 < \cdots <c_n$
  \item $k_i \geq 1$ for $1 \leq i \leq n$
  \item $t_{i1} < t_{i2} < \cdots < t_{ik_i}$ for $1 \leq i \leq n$
- \item $q_{ij} \neq 0$ for all $i$ and $j$
+ \item $q \in [-2^{127}, 2^{127}-1]\setminus 0$ for all $i$ and $j$
 \end{itemize}
 (we call a list satisfying these conditions a \textit{well-formed} list)
 we can define a map $\unflatten{l} \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ by
@@ -287,12 +294,12 @@ $$
 $$
 
 \noindent
-We have $\unflatten{\flatten{v}} = v$ for all $v$ and
+We have $\unflatten{\flatten{v}} = v$ for all small values $v$ and
 $\flatten{\unflatten{l}} = l$ for all well-formed $l$, the latter because
-well-formed lists are a canonical representation of the function $\unflatten{l}$.
-Without the restrictions we could permute the entries of the lists and add
-currencies with empty token lists or tokens with zero quantities to obtain
-different representations of the same function.
+well-formed lists are a canonical representation of the function
+$\unflatten{}$.  Without the restrictions we could permute the entries of the
+lists and add currencies with empty token lists or tokens with zero quantities
+to obtain different representations of the same function.
 
 \paragraph{Concrete syntax.}
 In the concrete syntax, constants of type \texttt{value} are represented
@@ -505,16 +512,16 @@ map, and the quantities are all nonzero.
 
 \note{Semantics of \texttt{unValueData}.}
 \label{note:unValueData-semantics}
-The \texttt{unValueData} function is the inverse of \texttt{valueData}.
-It takes a \texttt{data} object as input and returns a \texttt{value} object.
-The function requires its input to consist of a single outer \texttt{Map} whose
+The \texttt{unValueData} function is the inverse of \texttt{valueData}.  It
+takes a \texttt{data} object as input and returns a \texttt{value} object.  The
+function requires its input to consist of a single outer \texttt{Map} whose
 entries are pairs of (\texttt{B}, \texttt{Map}) pairs, with each inner map
 containing a list of (\texttt{B}, \texttt{I}) pairs.  The keys in the outer map
-and all of the inner maps must be strictly ascending according to the
-lexicographic ordering on bytestrings, and all quantities (the \texttt{I}
-entries) must be nonzero and lie in the interval $[-2^{127}, 2^{127}-1]$.
-The outer map is allowed to be empty (representing the empty value)
-but the inner maps must all be nonempty.
+and all of the inner maps must be at most 32 bytes long and they must be
+strictly ascending according to the lexicographic ordering on bytestrings, and
+all quantities (the \texttt{I} entries) must be nonzero and lie in the interval
+$[-2^{127}, 2^{127}-1]$.  The outer map is allowed to be empty (representing the
+empty value) but the inner maps must all be nonempty.
 
 \medskip
 \noindent
@@ -539,7 +546,7 @@ Formally, if $d$ is a data object then if $d$ is of the form
 \noindent and define 
 
 $$
-\mathsf{unValueData}(d) = \unflatten{l}
+\mathsf{unValueData}(d) = \unflatten{l},
 $$
 remembering that $\unflatten{l} = \errorX$ if $l$ is not well formed.
 If the \texttt{data} object $d$ is not of the expected form (involving
