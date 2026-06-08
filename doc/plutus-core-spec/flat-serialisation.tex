@@ -138,6 +138,19 @@ closed interval of integers $\{n \in \Z : a \leq n \leq b\}$.  Note that $n$
 here is a variable (not a fixed label) so we are defining whole families of
 encoders $\E_1, \E_2, \E_3, \ldots$ and decoders $\D_1, \D_2, \D_3\ldots$.
 
+\subsection{Pairs}
+\label{sec:flat:pairs}
+Given sets $X$ and $Y$ for which we have defined encoders $\E_X$ and $\E_Y$, we
+define an encoder for elements of $X \times Y$ by composing the individual encoders:
+$$
+\E_{X \times Y} (s, (x,y)) = \E_Y(\E_X(s,x), y)
+$$
+Similarly, if we have decoders $\D_X$ and $D_Y$ for $X$ and $Y$ we define
+
+$$
+\D_{X \times Y} (s) = (s'', (x,y)) \quad \text{if $\D_X(s) = (s', x)$ and $\D_Y(s') = (s'', y)$}.
+$$
+
 
 \subsection{Lists}
 \label{sec:flat:lists}
@@ -424,7 +437,7 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{0011} \cdot s)  &= (s'', \Apply{t_1}{t_2}) &&\quad \text{if}\ \Dterm(s) = (s', t_1)
                                                   &&\ \text{and}\ \Dterm(s') = (s'', t_2) \\
   \Dterm(\bits{0100} \cdot s)  &= (s'', \Const{tn}{c}) &&\quad \text{if}\ \Dtype(s) = (s', \tn)
-                                                           &&\ \text{and}\ \dConstant{\tn}(s') =(s'', c) \\
+                                                           &&\ \text{and}\ \Dconstant{\tn}(s') =(s'', c) \\
   \Dterm(\bits{0101} \cdot s)  &= (s', \Force{t})  &&\quad \text{if}\ \Dterm(s) = (s', t) \\
   \Dterm(\bits{0110} \cdot s)  &= (s, \Error)  && \\
   \Dterm(\bits{0111} \cdot s)  &= (s', \Builtin{b}) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
@@ -541,27 +554,36 @@ already defined:
   & \Econstant{\arrayOf{\tn}}(s,a)                 &&= \Earray^{\tn}_{\mathsf{constant}}(s, a) \\
   & \Econstant{\pairOf{\tn_1}{\tn_2}}(s,(c_1,c_2)) &&= \Econstant{\tn_2}(\Econstant{\tn_1}(s, c_1), c_2)\\
   & \Econstant{\ty{data}}(s,d)                     &&= \E_{\B^*}(s, \eData(d))\\
-  & \Econstant{\ty{value}}(s,v)                    &&= ??????????
+  & \Econstant{\ty{value}}(s,v)                    &&= \Elist_{\B^* \times I^*}(s, \flatten{v})
+                                                     \quad\text{where $I = \B^* \times \Z$ and $\E_{I^*} = \Elist_I$}
 \end{alignat*}
+% The encoder/decoder for `value` are slightly complicated because we've got
+% inner lists of (bytestring, integer) pairs and we have to define a separate
+% encoder/decoder for them.  We can't just say that we always use the standard
+% list encoding for lists/sequences X^* because for example we've defined the
+% set of all bytestrings to be \B^* and there's a special encoding for them that
+% isn't just encoding a list of bytes.
 
 \begin{alignat*}{3}
-  &\dConstant{\ty{integer}}(s)              &&= \D_{\Z}(s) \\
-  &\dConstant{\ty{bytestring}}(s)           &&= \D_{\B^*}(s) \\
-  &\dConstant{\ty{string}}(s)               &&= \D_{\U^*}(s) \\
-  &\dConstant{\ty{unit}}(s)                 &&= s  \\
-  &\dConstant{\ty{bool}}(\bits{0} \cdot s)  &&= (s, \texttt{False}) \\
-  &\dConstant{\ty{bool}}(\bits{1} \cdot s)  &&= (s, \texttt{True}) \\
-  &\dConstant{\listOf{\tn}}(s)              &&= \Dlist^{\tn}_{\mathsf{constant}}(s) \\
-  &\dConstant{\arrayOf{\tn}}(s)             &&= \Darray^{\tn}_{\mathsf{constant}}(s) \\
-  &\dConstant{\pairOf{\tn_1}{\tn_2}}(s)     &&= (s'', (c_1, c_2))
+  &\Dconstant{\ty{integer}}(s)              &&= \D_{\Z}(s) \\
+  &\Dconstant{\ty{bytestring}}(s)           &&= \D_{\B^*}(s) \\
+  &\Dconstant{\ty{string}}(s)               &&= \D_{\U^*}(s) \\
+  &\Dconstant{\ty{unit}}(s)                 &&= s  \\
+  &\Dconstant{\ty{bool}}(\bits{0} \cdot s)  &&= (s, \texttt{False}) \\
+  &\Dconstant{\ty{bool}}(\bits{1} \cdot s)  &&= (s, \texttt{True}) \\
+  &\Dconstant{\listOf{\tn}}(s)              &&= \Dlist^{\tn}_{\mathsf{constant}}(s) \\
+  &\Dconstant{\arrayOf{\tn}}(s)             &&= \Darray^{\tn}_{\mathsf{constant}}(s) \\
+  &\Dconstant{\pairOf{\tn_1}{\tn_2}}(s)     &&= (s'', (c_1, c_2))
   && \begin{cases}
-       \text{if}  & \dConstant{\tn_1}(s) = (s', c_1) \\
-       \text{and} & \dConstant{\tn_2}(s') = (s'', c_2)
+       \text{if}  & \Dconstant{\tn_1}(s) = (s', c_1) \\
+       \text{and} & \Dconstant{\tn_2}(s') = (s'', c_2)
      \end{cases}\\
-  &\dConstant{\ty{data}}(s)                  &&= (s', d) &&
+  &\Dconstant{\ty{data}}(s)                 &&= (s', d) &&
                                            \text{if $\D_{\B*}(s) = (s', t)$
-                                            and $\dData(t) = (t', d)$ for some $t'$}.\\
-  & \dConstant{\ty{value}}(s)               &&= ??????????
+                                            and $\dData(t) = (t', d)$ for some $t'$}\\
+& \Dconstant{\ty{value}}(s)                 && = (s', \unflatten{x})
+                                             &&\text{if $\Dlist_{\B^* \times I^*} = (s',l)$
+                                             where $I=\B^* \times \Z$ and $\D_{I^*} = \Dlist_I$}.
 \end{alignat*}
 
 \paragraph{Units.} The unit value \texttt{(con unit ())} does not have
@@ -594,6 +616,19 @@ Decoding can similarly be performed indirectly by using
 \texttt{bls12\_381\_G1\_uncompress} and \texttt{bls12\_381\_G2\_uncompress} on
 bytestring constants during program execution.
 
+
+\paragraph{The \texttt{value} type}
+The definitions of the encoder and decoder for the \texttt{value} type may
+appear a little complex.  In Section~\ref{sec:built-in-value-type} we defined a
+concrete representation of a $\ty{value}$ as an element of $(\B^* \times
+(\B^*\times \Z)^*)^*$, consisting of an outer list of pairs of bytestrings and
+inner lists, where an inner list is a list of pairs of bytestrings and integers,
+ie a list of elements of $I = \B^*\times \Z$.  To encode a \texttt{value} we
+convert it to the concrete representation and then encode that: inner lists are
+encoded using the standard list encoding (see Section~\ref{sec:flat:lists}) for
+lists with elements in $\B^*\times \Z$ and outer lists are encoded using the
+standard list encoding for lists with elements in $\B^* \times I$.  The decoder
+reverses this process.
 
 \subsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and

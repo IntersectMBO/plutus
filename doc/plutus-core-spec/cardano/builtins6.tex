@@ -26,7 +26,6 @@ The sixth batch of built-in types and functions provides
 \label{sec:built-in-type-operators-6}
 The \texttt{array} type operator is described in \ref{table:array-type-operator}.
 
-
 \begin{table}[H]
   \centering
     \begin{tabular}{|l|p{14mm}|l|l|}
@@ -180,7 +179,9 @@ efficient implementation.
 
 \newcommand{\BB}{\mathtt{B}\;}
 \newcommand{\II}{\mathtt{I}\;}
-
+\newcommand{\flatten}[1]{\ensuremath{#1}\text{\textdownarrow}}
+\newcommand{\unflatten}[1]{\ensuremath{#1}\text{\textuparrow}}
+% If you use \downarrow and \uparrow there's too much space before them.
 
 \subsubsection{The built-in \texttt{value} type}
 \label{sec:built-in-value-type}
@@ -218,15 +219,15 @@ number of quantities nonzero.
     \label{table:built-in-value-type}
 \end{table}
 
-\noindent To obtain a syntactic representation of the abstract \texttt{value} we define a
-concrete ``flattened'' form which represents a \texttt{value} as a nested
+\noindent To obtain a syntactic representation of the abstract \texttt{value}
+we define aconcrete ``flattened'' form which represents a \texttt{value} as a nested
 association list.  Given $v \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$, let
 $$C_v
 = \{c \in \B^*: \text{there exists $t \in \B^*$ with $v(c,t) \neq 0\}$.}
 $$
 \noindent
 Since $v$ is finitely supported this set is finite, and since the set $\B^*$ of
-all bytestrings is totally ordered (lexicogrphically), we can write
+all bytestrings is totally ordered (lexicographically), we can write
 $$
  C_v = \{c_1, \ldots, c_n\}\ \text{with $c_1 < c_2 < \cdots < c_n$}
 $$
@@ -239,22 +240,23 @@ each of these sets is nonempty and we can write
 $$
    T_v(i) = \{t_{i1}, t_{i2}, \ldots, t_{ik_i}\}\ \text{with $t_{i1} < t_{i2} < \cdots < t_{ik_i}$}
 $$
-\noindent with $k_i \geq 1$ for $1 \leq i \leq n$. We now define $v\!\downarrow \in (\B^* \times (\B^* \times \Z)^*)^*$ by
+\noindent with $k_i \geq 1$ for $1 \leq i \leq n$. We now define $\flatten{v} \in (\B^* \times (\B^* \times \Z)^*)^*$ by
 \begin{align*}
- v\!\!\downarrow =
+ \flatten{v} =
  [&(c_1, [(t_{11}, v(c_1, t_{11})), (t_{12}, v(c_1, t_{12})), \ldots, (t_{1k_1}, v(c_1, t_{1k_1}))],\\
   &(c_2, [(t_{21}, v(c_2, t_{21})), (t_{22}, v(c_2, t_{22})), \ldots, (t_{2k_2}, v(c_2, t_{2k_2}))],\\
   &\ldots,\\
   &(c_n, [(t_{n1}, v(c_n, t_{n1})), (t_{n2}, v(c_n, t_{n2})), \ldots, (t_{nk_n}, v(c_n, t_{nk_n}))]]
-\end{align*}
+\end{align*}%
+\nomenclature[Ya]{$\flatten{v}$}{Concrete representation of a \texttt{value} $v$ using nested association lists}
 
 \noindent
 Conversely, given a list
 \begin{align*}
- l =  [&(c_1, [(t_{11}, q_{11}), (t_{12}, q_{12}), \ldots, (t_{1k_1}, q_{1k_1})],\\
-       &(c_2, [(t_{21}, q_{21}), (t_{22}, q_{22}), \ldots, (t_{2k_2}, q_{2k_2})],\\
+ l =  [&(c_1, [(t_{11}, q_{11}), (t_{12}, q_{12}), \ldots, (t_{1k_1}, q_{1k_1})]),\\
+       &(c_2, [(t_{21}, q_{21}), (t_{22}, q_{22}), \ldots, (t_{2k_2}, q_{2k_2})]),\\
        &\ldots,\\
-       &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})]]
+       &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})])]
 \end{align*}
 
 \noindent in $(B^* \times (B^* \times \Z)^*)^*$ with
@@ -266,26 +268,28 @@ Conversely, given a list
  \item $q_{ij} \neq 0$ for all $i$ and $j$
 \end{itemize}
 (we call a list satisfying these conditions a \textit{well-formed} list)
-we can define a map $l\!\uparrow \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ by
+we can define a map $\unflatten{l} \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ by
 $$
-  l\!\uparrow(c,t) =
+  \unflatten{l}(c,t) =
   \left\{\begin{array}{ll}
   q_{ij} & \text{if $c=c_i$ for some $i$ and $t=t_{ij}$ for some $i$ and $j$}\\
   0 &\text{otherwise.}
   \end{array}\right.
-$$
+$$%
+\nomenclature[Yb]{$\unflatten{l}$}{A nested list $l$ converted into a \texttt{value}}
+
 \noindent
 This function is well defined because the well-formedness requirements ensure
 that a given pair $(c,t)$ appears at most once in the nested list.  If $l$ is
 not well-formed then we put
 $$
- l\!\uparrow = \errorX.
+ \unflatten{l} = \errorX.
 $$
 
 \noindent
-We have $v\!\!\downarrow\!\uparrow = v$ for all $v$ and
-$l \!\uparrow\!\downarrow = l$ for all well-formed $l$, the latter because
-well-formed lists are a canonical representation of the function $l\!\uparrow$.
+We have $\unflatten{\flatten{v}} = v$ for all $v$ and
+$\flatten{\unflatten{l}} = l$ for all well-formed $l$, the latter because
+well-formed lists are a canonical representation of the function $\unflatten{l}$.
 Without the restrictions we could permute the entries of the lists and add
 currencies with empty token lists or tokens with zero quantities to obtain
 different representations of the same function.
@@ -295,10 +299,10 @@ In the concrete syntax, constants of type \texttt{value} are represented
 by strings of the form of the form
 \begin{align*}
  \mathtt{[}
-  & \text{\texttt{($C_1$, [($T_{11}$, $Q_{11}$), ($T_{12}$, $Q_{12}$), $\ldots$, ($T_{1k_1}$, $Q_{1k_1}$)],}}\\
-  & \text{\texttt{($C_2$, [($T_{21}$, $Q_{21}$), ($T_{22}$, $Q_{22}$), $\ldots$, ($T_{2k_2}$, $Q_{2k_2}$)],}}\\
+  & \text{\texttt{($C_1$, [($T_{11}$, $Q_{11}$), ($T_{12}$, $Q_{12}$), $\ldots$, ($T_{1k_1}$, $Q_{1k_1}$)]),}}\\
+  & \text{\texttt{($C_2$, [($T_{21}$, $Q_{21}$), ($T_{22}$, $Q_{22}$), $\ldots$, ($T_{2k_2}$, $Q_{2k_2}$)]),}}\\
   & \text{\texttt{$\ldots$,}} \\
-  & \text{\texttt{($C_n$, [($T_{n1}$, $Q_{n1}$), ($T_{n2}$, $Q_{n2}$), $\ldots$, ($T_{nk_n}$, $Q_{nk_n}$)]]}}
+  & \text{\texttt{($C_n$, [($T_{n1}$, $Q_{n1}$), ($T_{n2}$, $Q_{n2}$), $\ldots$, ($T_{nk_n}$, $Q_{nk_n}$)])]}}
 \end{align*}
 
 \noindent where each $C_i$ and $T_i$ are literal bytestrings \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*}
@@ -310,18 +314,19 @@ each currency must be in strictly ascending order.
 \noindent
 The denotation of the associated \texttt{value} is 
 \begin{align*}
- [
+ \unflatten{[
   & (\denote{C_1}, [(\denote{T_{11}}, \denote{Q_{11}}), (\denote{T_{12}}, \denote{Q_{12}}),
-      \ldots, (\denote{T_{1k_1}}, \denote{Q_{1k_1}})],\\
+      \ldots, (\denote{T_{1k_1}}, \denote{Q_{1k_1}})]),\\
   & (\denote{C_2}, [(\denote{T_{21}}, \denote{Q_{21}}), (\denote{T_{22}}, \denote{Q_{22}}),
-      \ldots, (\denote{T_{2k_2}}, \denote{Q_{2k_2}})],\\
+      \ldots, (\denote{T_{2k_2}}, \denote{Q_{2k_2}})]),\\
   & \ldots, \\
   & (\denote{C_n}, [(\denote{T_{n1}}, \denote{Q_{n1}}), (\denote{T_{n2}}, \denote{Q_{n2}}),
-      \ldots, (\denote{T_{nk_n}}, \denote{Q_{nk_n}})]]\!\uparrow \,\in\, \mathsf{FinSup}(\B^* \times \B^*, \Z)
+      \ldots, (\denote{T_{nk_n}}, \denote{Q_{nk_n}})])]}
+  \in \mathsf{FinSup}(\B^* \times \B^*, \Z)
 \end{align*}
 
 \noindent More intuitively (but less precisely), this maps every pair $(C_i, T_{ij})$
-occuring in the constant to $Q_{ij}$ and everything else to 0.
+occurring in the constant to $Q_{ij}$ and everything else to 0.
 
 \medskip
 \noindent
@@ -481,20 +486,20 @@ map, and the quantities are all nonzero.
 \noindent Formally, given a value $v$ with
 
 \begin{align*}
- v\!\!\downarrow =
- [&(c_1, [(t_{11}, q_{11}), (t_{12}, q_{12}), \ldots, (t_{1k_1}, q_{1k_1})],\\
-  &(c_2, [(t_{21}, q_{21}), (t_{22}, q_{22}), \ldots, (t_{2k_2}, q_{2k_2})],\\
+ \flatten{v}=
+ [&(c_1, [(t_{11}, q_{11}), (t_{12}, q_{12}), \ldots, (t_{1k_1}, q_{1k_1})]),\\
+  &(c_2, [(t_{21}, q_{21}), (t_{22}, q_{22}), \ldots, (t_{2k_2}, q_{2k_2})]),\\
   &\ldots,\\
-  &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})]]
+  &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})])]
 \end{align*}
 
 \noindent we let 
 \begin{align*}
  \mathsf{valueData}(v) = \mathtt{Map}\,[
- &(\BB c_1, \mathtt{Map}\,[(\BB t_{11}, \II q_{11}), (\BB t_{12}, \II q_{12}), \ldots, (\BB t_{1k_1}, \II q_{1k_1})],\\
- &(\BB c_2, \mathtt{Map}\,[(\BB t_{21}, \II q_{21}), (\BB t_{22}, \II q_{22}), \ldots, (\BB t_{2k_2}, \II q_{2k_2})],\\
+ &(\BB c_1, \mathtt{Map}\,[(\BB t_{11}, \II q_{11}), (\BB t_{12}, \II q_{12}), \ldots, (\BB t_{1k_1}, \II q_{1k_1})]),\\
+ &(\BB c_2, \mathtt{Map}\,[(\BB t_{21}, \II q_{21}), (\BB t_{22}, \II q_{22}), \ldots, (\BB t_{2k_2}, \II q_{2k_2})]),\\
  &\ldots,\\
- &(\BB c_n, \mathtt{Map}\,[(\BB t_{n1}, \II q_{n1}), (\BB t_{n2}, \II q_{n2}), \ldots, (\BB t_{nk_n}, \II q_{nk_n})]].
+ &(\BB c_n, \mathtt{Map}\,[(\BB t_{n1}, \II q_{n1}), (\BB t_{n2}, \II q_{n2}), \ldots, (\BB t_{nk_n}, \II q_{nk_n})])].
 \end{align*}
 
 
@@ -517,26 +522,26 @@ Formally, if $d$ is a data object then if $d$ is of the form
 
 \begin{align*}
 \mathtt{Map}\,[
- &(\BB c_1, \mathtt{Map}\,[(\BB t_{11}, \II q_{11})), (\BB t_{12}, \II q_{12})), \ldots, (\BB t_{1k_1}, \II q_{1k_1}))],\\
- &(\BB c_2, \mathtt{Map}\,[(\BB t_{21}, \II q_{21})), (\BB t_{22}, \II q_{22})), \ldots, (\BB t_{2k_2}, \II q_{2k_2}))],\\
+ &(\BB c_1, \mathtt{Map}\,[(\BB t_{11}, \II q_{11}), (\BB t_{12}, \II q_{12}), \ldots, (\BB t_{1k_1}, \II q_{1k_1})]),\\
+ &(\BB c_2, \mathtt{Map}\,[(\BB t_{21}, \II q_{21}), (\BB t_{22}, \II q_{22}), \ldots, (\BB t_{2k_2}, \II q_{2k_2})]),\\
  &\ldots,\\
- &(\BB c_n, \mathtt{Map}\,[(\BB t_{n1}, \II q_{n1})), (\BB t_{n2}, \II q_{n2})), \ldots, (\BB t_{nk_n}, \II q_{nk_n}))]],
+ &(\BB c_n, \mathtt{Map}\,[(\BB t_{n1}, \II q_{n1}), (\BB t_{n2}, \II q_{n2}), \ldots, (\BB t_{nk_n}, \II q_{nk_n})])],
 \end{align*}
 
 \noindent then let 
 \begin{align*}
   l = [
-  &(c_1, [(t_{11}, q_{11})), (t_{12}, q_{12})), \ldots, (t_{1k_1}, q_{1k_1}))],\\
-  &(c_2, [(t_{21}, q_{21})), (t_{22}, q_{22})), \ldots, (t_{2k_2}, q_{2k_2}))],\\
+  &(c_1, [(t_{11}, q_{11}), (t_{12}, q_{12}), \ldots, (t_{1k_1}, q_{1k_1})]),\\
+  &(c_2, [(t_{21}, q_{21}), (t_{22}, q_{22}), \ldots, (t_{2k_2}, q_{2k_2})]),\\
   &\ldots,\\
-  &(c_n, [(t_{n1}, q_{n1})), (t_{n2}, q_{n2})), \ldots, (t_{nk_n}, q_{nk_n}))]]
+  &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})])]
 \end{align*}
 \noindent and define 
 
 $$
-\mathsf{unValueData}(d) = l\!\uparrow,
+\mathsf{unValueData}(d) = \unflatten{l}
 $$
-remembering that $l\!\uparrow = \errorX$ if $l$ is not well formed.
+remembering that $\unflatten{l} = \errorX$ if $l$ is not well formed.
 If the \texttt{data} object $d$ is not of the expected form (involving
 nested \texttt{Map}s) then also we let $\mathsf{unValueData}(d) = \errorX$.
 
