@@ -825,34 +825,6 @@ instance
   {-# INLINE readKnown #-}
 
 deriving newtype instance
-  KnownTypeAst tyname DefaultUni CInteger
-
-instance
-  KnownBuiltinTypeIn DefaultUni term Integer
-  => MakeKnownIn DefaultUni term CInteger
-  where
-  makeKnown (CInteger i)
-    | i > maxBoundInteger || i < minBoundInteger =
-        BuiltinFailure
-          (pure "Integer out of bounds")
-          BuiltinEvaluationFailure
-    | otherwise = makeKnown i
-  {-# INLINE makeKnown #-}
-
-instance
-  KnownBuiltinTypeIn DefaultUni term Integer
-  => ReadKnownIn DefaultUni term CInteger
-  where
-  readKnown term =
-    inline readKnownConstant term >>= oneShot \(i :: Integer) ->
-      if i > maxBoundInteger || i < minBoundInteger
-        then
-          throwError . operationalUnliftingError $
-            "Integer out of bounds"
-        else pure $ CInteger i
-  {-# INLINE readKnown #-}
-
-deriving newtype instance
   KnownTypeAst tyname DefaultUni CByteString
 instance
   KnownBuiltinTypeIn DefaultUni term ByteString

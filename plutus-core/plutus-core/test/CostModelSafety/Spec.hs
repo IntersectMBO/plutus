@@ -141,7 +141,6 @@ smallConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @Word64) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = SomeConst (0 :: Integer)
-  | Just HRefl <- eqTypeRep tr (typeRep @CInteger) = SomeConst (0 :: Integer)
   | Just HRefl <- eqTypeRep tr (typeRep @Bool) = SomeConst False
   | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeConst $ BS.pack []
   | Just HRefl <- eqTypeRep tr (typeRep @CByteString) = SomeConst $ BS.pack []

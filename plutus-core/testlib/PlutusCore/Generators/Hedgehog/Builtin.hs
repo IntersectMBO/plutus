@@ -113,7 +113,6 @@ genConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @Natural) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = genArbitraryBuiltin @Integer
-  | Just HRefl <- eqTypeRep tr (typeRep @CInteger) = genArbitraryBuiltin @Integer
   | Just HRefl <- eqTypeRep tr (typeRep @Bool) = genArbitraryBuiltin @Bool
   | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = genArbitraryBuiltin @BS.ByteString
   | Just HRefl <- eqTypeRep tr (typeRep @CByteString) = genArbitraryBuiltin @BS.ByteString

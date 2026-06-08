@@ -104,11 +104,10 @@ genTypedBuiltinDef
   => TypedBuiltinGenT term m
 genTypedBuiltinDef =
   updateTypedBuiltinGen @Integer genInteger $
-    updateTypedBuiltinGen (CInteger <$> genInteger) $
-      updateTypedBuiltinGen genByteString $
-        updateTypedBuiltinGen (CByteString <$> genByteString) $
-          updateTypedBuiltinGen Gen.bool $
-            genTypedBuiltinFail
+    updateTypedBuiltinGen genByteString $
+      updateTypedBuiltinGen (CByteString <$> genByteString) $
+        updateTypedBuiltinGen Gen.bool $
+          genTypedBuiltinFail
   where
     genInteger = Gen.integral $ Range.linearFrom 0 0 10
     genByteString = genLowerBytes (Range.linear 0 10)

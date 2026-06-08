@@ -1088,111 +1088,55 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     => BuiltinSemanticsVariant DefaultFun
     -> DefaultFun
     -> BuiltinMeaning val BuiltinCostModel
-  toBuiltinMeaning semvar AddInteger
-    | ensurable semvar =
-        let addIntegerD :: CInteger -> CInteger -> Integer
-            addIntegerD (CInteger x) (CInteger y) = x + y
-            {-# INLINE addIntegerD #-}
-         in makeBuiltinMeaning
-              addIntegerD
-              (runCostingFunTwoArguments . paramAddInteger)
-    | otherwise =
-        let addIntegerD :: Integer -> Integer -> Integer
-            addIntegerD = (+)
-            {-# INLINE addIntegerD #-}
-         in makeBuiltinMeaning
-              addIntegerD
-              (runCostingFunTwoArguments . paramAddInteger)
-  toBuiltinMeaning semvar SubtractInteger
-    | ensurable semvar =
-        let subtractIntegerD :: CInteger -> CInteger -> Integer
-            subtractIntegerD (CInteger x) (CInteger y) = x - y
-            {-# INLINE subtractIntegerD #-}
-         in makeBuiltinMeaning
-              subtractIntegerD
-              (runCostingFunTwoArguments . paramSubtractInteger)
-    | otherwise =
-        let subtractIntegerD :: Integer -> Integer -> Integer
-            subtractIntegerD = (-)
-            {-# INLINE subtractIntegerD #-}
-         in makeBuiltinMeaning
-              subtractIntegerD
-              (runCostingFunTwoArguments . paramSubtractInteger)
-  toBuiltinMeaning semvar MultiplyInteger
-    | ensurable semvar =
-        let multiplyIntegerD :: CInteger -> CInteger -> Integer
-            multiplyIntegerD (CInteger x) (CInteger y) = x * y
-            {-# INLINE multiplyIntegerD #-}
-         in makeBuiltinMeaning
-              multiplyIntegerD
-              (runCostingFunTwoArguments . paramMultiplyInteger)
-    | otherwise =
-        let multiplyIntegerD :: Integer -> Integer -> Integer
-            multiplyIntegerD = (*)
-            {-# INLINE multiplyIntegerD #-}
-         in makeBuiltinMeaning
-              multiplyIntegerD
-              (runCostingFunTwoArguments . paramMultiplyInteger)
-  toBuiltinMeaning semvar DivideInteger
-    | ensurable semvar =
-        let divideIntegerD :: CInteger -> CInteger -> BuiltinResult Integer
-            divideIntegerD (CInteger x) (CInteger y) = nonZeroSecondArg div x y
-            {-# INLINE divideIntegerD #-}
-         in makeBuiltinMeaning
-              divideIntegerD
-              (runCostingFunTwoArguments . paramDivideInteger)
-    | otherwise =
-        let divideIntegerD :: Integer -> Integer -> BuiltinResult Integer
-            divideIntegerD = nonZeroSecondArg div
-            {-# INLINE divideIntegerD #-}
-         in makeBuiltinMeaning
-              divideIntegerD
-              (runCostingFunTwoArguments . paramDivideInteger)
-  toBuiltinMeaning semvar QuotientInteger
-    | ensurable semvar =
-        let quotientIntegerD :: CInteger -> CInteger -> BuiltinResult Integer
-            quotientIntegerD (CInteger x) (CInteger y) = nonZeroSecondArg quot x y
-            {-# INLINE quotientIntegerD #-}
-         in makeBuiltinMeaning
-              quotientIntegerD
-              (runCostingFunTwoArguments . paramQuotientInteger)
-    | otherwise =
-        let quotientIntegerD :: Integer -> Integer -> BuiltinResult Integer
-            quotientIntegerD = nonZeroSecondArg quot
-            {-# INLINE quotientIntegerD #-}
-         in makeBuiltinMeaning
-              quotientIntegerD
-              (runCostingFunTwoArguments . paramQuotientInteger)
-  toBuiltinMeaning semvar RemainderInteger
-    | ensurable semvar =
-        let remainderIntegerD :: CInteger -> CInteger -> BuiltinResult Integer
-            remainderIntegerD (CInteger x) (CInteger y) = nonZeroSecondArg rem x y
-            {-# INLINE remainderIntegerD #-}
-         in makeBuiltinMeaning
-              remainderIntegerD
-              (runCostingFunTwoArguments . paramRemainderInteger)
-    | otherwise =
-        let remainderIntegerD :: Integer -> Integer -> BuiltinResult Integer
-            remainderIntegerD = nonZeroSecondArg rem
-            {-# INLINE remainderIntegerD #-}
-         in makeBuiltinMeaning
-              remainderIntegerD
-              (runCostingFunTwoArguments . paramRemainderInteger)
-  toBuiltinMeaning semvar ModInteger
-    | ensurable semvar =
-        let modIntegerD :: CInteger -> CInteger -> BuiltinResult Integer
-            modIntegerD (CInteger x) (CInteger y) = nonZeroSecondArg mod x y
-            {-# INLINE modIntegerD #-}
-         in makeBuiltinMeaning
-              modIntegerD
-              (runCostingFunTwoArguments . paramModInteger)
-    | otherwise =
-        let modIntegerD :: Integer -> Integer -> BuiltinResult Integer
-            modIntegerD = nonZeroSecondArg mod
-            {-# INLINE modIntegerD #-}
-         in makeBuiltinMeaning
-              modIntegerD
-              (runCostingFunTwoArguments . paramModInteger)
+  toBuiltinMeaning _semvar AddInteger =
+    let addIntegerD :: Integer -> Integer -> Integer
+        addIntegerD = (+)
+        {-# INLINE addIntegerD #-}
+     in makeBuiltinMeaning
+          addIntegerD
+          (runCostingFunTwoArguments . paramAddInteger)
+  toBuiltinMeaning _semvar SubtractInteger =
+    let subtractIntegerD :: Integer -> Integer -> Integer
+        subtractIntegerD = (-)
+        {-# INLINE subtractIntegerD #-}
+     in makeBuiltinMeaning
+          subtractIntegerD
+          (runCostingFunTwoArguments . paramSubtractInteger)
+  toBuiltinMeaning _semvar MultiplyInteger =
+    let multiplyIntegerD :: Integer -> Integer -> Integer
+        multiplyIntegerD = (*)
+        {-# INLINE multiplyIntegerD #-}
+     in makeBuiltinMeaning
+          multiplyIntegerD
+          (runCostingFunTwoArguments . paramMultiplyInteger)
+  toBuiltinMeaning _semvar DivideInteger =
+    let divideIntegerD :: Integer -> Integer -> BuiltinResult Integer
+        divideIntegerD = nonZeroSecondArg div
+        {-# INLINE divideIntegerD #-}
+     in makeBuiltinMeaning
+          divideIntegerD
+          (runCostingFunTwoArguments . paramDivideInteger)
+  toBuiltinMeaning _semvar QuotientInteger =
+    let quotientIntegerD :: Integer -> Integer -> BuiltinResult Integer
+        quotientIntegerD = nonZeroSecondArg quot
+        {-# INLINE quotientIntegerD #-}
+     in makeBuiltinMeaning
+          quotientIntegerD
+          (runCostingFunTwoArguments . paramQuotientInteger)
+  toBuiltinMeaning _semvar RemainderInteger =
+    let remainderIntegerD :: Integer -> Integer -> BuiltinResult Integer
+        remainderIntegerD = nonZeroSecondArg rem
+        {-# INLINE remainderIntegerD #-}
+     in makeBuiltinMeaning
+          remainderIntegerD
+          (runCostingFunTwoArguments . paramRemainderInteger)
+  toBuiltinMeaning _semvar ModInteger =
+    let modIntegerD :: Integer -> Integer -> BuiltinResult Integer
+        modIntegerD = nonZeroSecondArg mod
+        {-# INLINE modIntegerD #-}
+     in makeBuiltinMeaning
+          modIntegerD
+          (runCostingFunTwoArguments . paramModInteger)
   toBuiltinMeaning _semvar EqualsInteger =
     let equalsIntegerD :: Integer -> Integer -> Bool
         equalsIntegerD = (==)
@@ -1200,36 +1144,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           equalsIntegerD
           (runCostingFunTwoArguments . paramEqualsInteger)
-  toBuiltinMeaning semvar LessThanInteger
-    | ensurable semvar =
-        let lessThanIntegerD :: CInteger -> CInteger -> Bool
-            lessThanIntegerD (CInteger x) (CInteger y) = x < y
-            {-# INLINE lessThanIntegerD #-}
-         in makeBuiltinMeaning
-              lessThanIntegerD
-              (runCostingFunTwoArguments . paramLessThanInteger)
-    | otherwise =
-        let lessThanIntegerD :: Integer -> Integer -> Bool
-            lessThanIntegerD = (<)
-            {-# INLINE lessThanIntegerD #-}
-         in makeBuiltinMeaning
-              lessThanIntegerD
-              (runCostingFunTwoArguments . paramLessThanInteger)
-  toBuiltinMeaning semvar LessThanEqualsInteger
-    | ensurable semvar =
-        let lessThanEqualsIntegerD :: CInteger -> CInteger -> Bool
-            lessThanEqualsIntegerD (CInteger x) (CInteger y) = x <= y
-            {-# INLINE lessThanEqualsIntegerD #-}
-         in makeBuiltinMeaning
-              lessThanEqualsIntegerD
-              (runCostingFunTwoArguments . paramLessThanEqualsInteger)
-    | otherwise =
-        let lessThanEqualsIntegerD :: Integer -> Integer -> Bool
-            lessThanEqualsIntegerD = (<=)
-            {-# INLINE lessThanEqualsIntegerD #-}
-         in makeBuiltinMeaning
-              lessThanEqualsIntegerD
-              (runCostingFunTwoArguments . paramLessThanEqualsInteger)
+  toBuiltinMeaning _semvar LessThanInteger =
+    let lessThanIntegerD :: Integer -> Integer -> Bool
+        lessThanIntegerD = (<)
+        {-# INLINE lessThanIntegerD #-}
+     in makeBuiltinMeaning
+          lessThanIntegerD
+          (runCostingFunTwoArguments . paramLessThanInteger)
+  toBuiltinMeaning _semvar LessThanEqualsInteger =
+    let lessThanEqualsIntegerD :: Integer -> Integer -> Bool
+        lessThanEqualsIntegerD = (<=)
+        {-# INLINE lessThanEqualsIntegerD #-}
+     in makeBuiltinMeaning
+          lessThanEqualsIntegerD
+          (runCostingFunTwoArguments . paramLessThanEqualsInteger)
   -- Bytestrings
   toBuiltinMeaning semvar AppendByteString
     | ensurable semvar =
@@ -1258,8 +1186,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         {-# INLINE costingFun #-}
         consByteStringMeaning_V1
           | ensurable semvar =
-              let consByteStringD :: CInteger -> CByteString -> BS.ByteString
-                  consByteStringD (CInteger x) (CByteString xs) = BS.cons (fromIntegral x) xs
+              let consByteStringD :: Integer -> CByteString -> BS.ByteString
+                  consByteStringD x (CByteString xs) = BS.cons (fromIntegral x) xs
                   {-# INLINE consByteStringD #-}
                in makeBuiltinMeaning
                     consByteStringD
