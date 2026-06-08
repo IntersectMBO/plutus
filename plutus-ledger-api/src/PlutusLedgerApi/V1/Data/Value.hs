@@ -336,11 +336,18 @@ instance MeetSemiLattice Value where
 {-| Get the quantity of the given currency in the 'Value'.
 Assumes that the underlying map doesn't contain duplicate keys. -}
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
-valueOf value cur tn =
-  withCurrencySymbol cur value 0 \tokens ->
-    case Map.lookup tn tokens of
-      Nothing -> 0
-      Just v -> v
+valueOf (Value mp) (CurrencySymbol curBs) (TokenName tnBs) =
+  goOuter (Map.toBuiltinList mp)
+  where
+    goOuter = B.caseList' 0 \hd ->
+      if B.equalsByteString curBs (BI.unsafeDataAsB (BI.fst hd))
+        then \_ -> goInner (BI.unsafeDataAsMap (BI.snd hd))
+        else goOuter
+
+    goInner = B.caseList' 0 \hd ->
+      if B.equalsByteString tnBs (BI.unsafeDataAsB (BI.fst hd))
+        then \_ -> BI.unsafeDataAsI (BI.snd hd)
+        else goInner
 {-# INLINEABLE valueOf #-}
 
 {-| Apply a continuation function to the token quantities of the given currency

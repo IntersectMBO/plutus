@@ -30,16 +30,19 @@ jobs:
       - name: Enforce Label
         uses: actions/github-script@v7.1.0
         if: github.event.pull_request.draft == false
+        env:
+          ADDED_FILES: ${{ steps.changed-files.outputs.added_files }}
+          HAS_NO_CHANGELOG_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'No Changelog Required') }}
         with:
-          script: | 
+          script: |
             function shouldCheckChangelog() {
-              return !${{ contains(github.event.pull_request.labels.*.name, 'No Changelog Required') }};
+              return process.env.HAS_NO_CHANGELOG_LABEL !== "true";
             }
 
             function getNewChangelogFiles() {
-              const newFiles = '${{ steps.changed-files.outputs.added_files }}'.trim().split(' ');
+              const newFiles = (process.env.ADDED_FILES || "").trim().split(' ');
               // We check that added_files is the singleton array containing the empty string.
-              // This is probably a bug in tj-actions/changed-files
+              // This is likely an output-format quirk of step-security/changed-files.
               if (newFiles.length === 1 && newFiles[0] === "") {
                 return [];
               } else {
