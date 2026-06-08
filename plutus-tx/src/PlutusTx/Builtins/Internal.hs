@@ -1,9 +1,12 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
+
+#include "MachDeps.h"
 -- This ensures that we don't put *anything* about these functions into the interface
 -- file, otherwise GHC can be clever about the ones that are always error, even though
 -- they're OPAQUE!
@@ -250,9 +253,35 @@ consByteString n (BuiltinByteString b) = BuiltinByteString $ BS.cons (fromIntegr
 {-| Slices the given bytestring and never fails. The first integer marks the beginning index and the
   second marks the end. Indices are expected to be 0-indexed, and when the first integer is greater
   than the second, it returns an empty bytestring. -}
+#if WORD_SIZE_IN_BITS == 64
 sliceByteString :: BuiltinInteger -> BuiltinInteger -> BuiltinByteString -> BuiltinByteString
 sliceByteString start n (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral n) (BS.drop (fromIntegral start) b)
 {-# OPAQUE sliceByteString #-}
+#else
+-- On 32-bit platforms indices and lengths must be bounds-checked in 'Integer'
+-- space before narrowing to the platform 'Int', which would otherwise wrap.
+sliceByteString :: BuiltinInteger -> BuiltinInteger -> BuiltinByteString -> BuiltinByteString
+sliceByteString start n (BuiltinByteString b) = BuiltinByteString $ sliceByteStringInteger start n b
+{-# OPAQUE sliceByteString #-}
+
+boundedByteStringLength :: Integer -> Int
+boundedByteStringLength n
+  | n <= 0 = 0
+  | n > toInteger (maxBound :: Int) = maxBound
+  | otherwise = fromInteger n
+{-# OPAQUE boundedByteStringLength #-}
+
+sliceByteStringInteger :: Integer -> Integer -> BS.ByteString -> BS.ByteString
+sliceByteStringInteger start n b
+  | n <= 0 = BS.empty
+  | start >= inputLength = BS.empty
+  | start <= 0 = BS.take takeLength b
+  | otherwise = BS.take takeLength . BS.drop (fromInteger start) $ b
+  where
+    inputLength = toInteger $ BS.length b
+    takeLength = boundedByteStringLength n
+{-# OPAQUE sliceByteStringInteger #-}
+#endif
 
 -- | Returns the length of the provided bytestring.
 lengthOfByteString :: BuiltinByteString -> BuiltinInteger
@@ -262,7 +291,13 @@ lengthOfByteString (BuiltinByteString b) = toInteger $ BS.length b
 {-| Returns the n-th byte from the bytestring. Fails if the given index is not in the range @[0..j)@,
   where @j@ is the length of the bytestring. -}
 indexByteString :: BuiltinByteString -> BuiltinInteger -> BuiltinInteger
+#if WORD_SIZE_IN_BITS == 64
 indexByteString (BuiltinByteString b) i = toInteger $ BS.index b (fromInteger i)
+#else
+indexByteString (BuiltinByteString b) i
+  | i < 0 || i >= toInteger (BS.length b) = Haskell.error "indexByteString: index out of bounds"
+  | otherwise = toInteger . BS.index b $ fromInteger i
+#endif
 {-# OPAQUE indexByteString #-}
 
 -- | An empty bytestring.
@@ -672,7 +707,13 @@ listToArray (BuiltinList l) = BuiltinArray (Vector.fromList l)
 {-| Returns the n-th element from the array. Fails if the given index is not in the range @[0..j)@,
   where @j@ is the length of the array. -}
 indexArray :: BuiltinArray a -> BuiltinInteger -> a
+#if WORD_SIZE_IN_BITS == 64
 indexArray (BuiltinArray v) i = v Vector.! fromInteger i
+#else
+indexArray (BuiltinArray v) i
+  | i < 0 || i >= toInteger (Vector.length v) = Haskell.error "indexArray: index out of bounds"
+  | otherwise = v Vector.! fromInteger i
+#endif
 {-# OPAQUE indexArray #-}
 
 {-
@@ -1006,7 +1047,11 @@ readBit
   -> BuiltinInteger
   -> Bool
 readBit (BuiltinByteString bs) i =
+#if WORD_SIZE_IN_BITS == 64
   case Bitwise.readBit bs (fromIntegral i) of
+#else
+  case Bitwise.readBit bs i of
+#endif
     BuiltinFailure logs err ->
       traceAll (logs <> pure (display err)) $
         Haskell.error "readBit errored."
@@ -1136,7 +1181,13 @@ scaleValue c (BuiltinValue val) =
 {-# OPAQUE scaleValue #-}
 
 caseInteger :: Integer -> [a] -> a
+#if WORD_SIZE_IN_BITS == 64
 caseInteger i b = b !! fromIntegral i
+#else
+caseInteger i b
+  | i < 0 || i >= toInteger (length b) = Haskell.error "caseInteger: index out of bounds"
+  | otherwise = b !! fromInteger i
+#endif
 {-# OPAQUE caseInteger #-}
 
 {-| Case matching on a builtin pair. Continuation is needed here to make

@@ -1,8 +1,11 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnboxedTuples #-}
+
+#include "MachDeps.h"
 
 {-| Implementations for CIP-121, CIP-122 and CIP-123. Grouped because they all operate on
 'ByteString's, and require similar functionality. -}
@@ -57,7 +60,9 @@ import GHC.Exts
   , intToInt8#
   , isTrue#
   , neWord8#
+#if WORD_SIZE_IN_BITS == 64
   , quotInt#
+#endif
   , quotRemInt#
   , sizeofByteArray#
   , word2Int#
@@ -170,7 +175,16 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
           -- can then figure out the number of unused bytes (all-zero)
           -- by taking the quotient of the leading zero count by 8.
           let counted# = clz# (int2Word# i#)
+#if WORD_SIZE_IN_BITS == 64
               minLength = 8 - I# (quotInt# (word2Int# counted#) 8#)
+#else
+              -- `clz#` counts leading zeroes of the platform word, so the
+              -- unused byte count must be derived from the actual word size
+              -- rather than a hardcoded 8 bytes.
+              wordSizeInBits = Bits.finiteBitSize (0 :: Int)
+              bitLength = wordSizeInBits - I# (word2Int# counted#)
+              minLength = (bitLength + 7) `quot` 8
+#endif
            in if
                 | requestedLength == 0 -> Right (mkSmall minLength i#)
                 | requestedLength < minLength -> Left NotEnoughDigits
@@ -509,6 +523,7 @@ complementByteString bs = unsafeDupablePerformIO . BS.useAsCStringLen bs $ \(src
 {-# INLINEABLE complementByteString #-}
 
 -- | Bit read at index, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
+#if WORD_SIZE_IN_BITS == 64
 readBit :: ByteString -> Int -> BuiltinResult Bool
 readBit bs ix
   | ix < 0 = do
@@ -527,6 +542,30 @@ readBit bs ix
     len :: Int
     len = BS.length bs
 {-# INLINEABLE readBit #-}
+#else
+-- On 32-bit platforms the bit index must be bounds-checked in 'Integer'
+-- space before narrowing to the platform 'Int', which would otherwise wrap.
+readBit :: ByteString -> Integer -> BuiltinResult Bool
+readBit bs ix
+  | ix < 0 = do
+      emit "readBit: index out of bounds"
+      emit $ "Index: " <> (pack . show $ ix)
+      builtinResultFailure
+  | ix >= toInteger len * 8 = do
+      emit "readBit: index out of bounds"
+      emit $ "Index: " <> (pack . show $ ix)
+      builtinResultFailure
+  | otherwise = do
+      let (bigIxInteger, littleIxInteger) = ix `quotRem` 8
+      let bigIx = fromInteger bigIxInteger
+      let littleIx = fromInteger littleIxInteger
+      let flipIx = len - bigIx - 1
+      pure $ Bits.testBit (BS.index bs flipIx) littleIx
+  where
+    len :: Int
+    len = BS.length bs
+{-# INLINEABLE readBit #-}
+#endif
 
 -- | Bulk bit write, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 writeBits :: ByteString -> [Integer] -> Bool -> BuiltinResult ByteString

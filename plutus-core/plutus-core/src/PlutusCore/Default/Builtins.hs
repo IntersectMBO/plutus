@@ -14,6 +14,8 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#include "MachDeps.h"
+
 module PlutusCore.Default.Builtins where
 
 import PlutusPrelude
@@ -1065,6 +1067,36 @@ throw an "operational" evaluation error). Please respect the distinction when ad
 functions.
 -}
 
+#if WORD_SIZE_IN_BITS != 64
+-- On 32-bit platforms indices and lengths must be bounds-checked in
+-- 'Integer' space before narrowing to the platform 'Int', which would
+-- otherwise wrap. On 64-bit platforms the original denotations are
+-- compiled unchanged.
+boundedByteStringLength :: Integer -> Int
+boundedByteStringLength n
+  | n <= 0 = 0
+  | n > toInteger (maxBound :: Int) = maxBound
+  | otherwise = fromInteger n
+{-# INLINE boundedByteStringLength #-}
+
+sliceByteStringInteger :: Integer -> Integer -> BS.ByteString -> BS.ByteString
+sliceByteStringInteger start n xs
+  | n <= 0 = mempty
+  | start >= inputLength = mempty
+  | start <= 0 = BS.take takeLength xs
+  | otherwise = BS.take takeLength . BS.drop (fromInteger start) $ xs
+  where
+    inputLength = toInteger $ BS.length xs
+    takeLength = boundedByteStringLength n
+{-# INLINE sliceByteStringInteger #-}
+
+indexByteStringInteger :: BS.ByteString -> Integer -> BuiltinResult Word8
+indexByteStringInteger xs n
+  | n < 0 || n >= toInteger (BS.length xs) = fail "Index out of bounds"
+  | otherwise = pure . BS.index xs $ fromInteger n
+{-# INLINE indexByteStringInteger #-}
+#endif
+
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
   type CostingPart uni DefaultFun = BuiltinCostModel
 
@@ -1299,6 +1331,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantD -> consByteStringMeaning_V1
           DefaultFunSemanticsVariantE -> consByteStringMeaning_V2
   toBuiltinMeaning semvar SliceByteString
+#if WORD_SIZE_IN_BITS == 64
     | ensurable semvar =
         let sliceByteStringD :: Int -> Int -> CByteString -> BS.ByteString
             sliceByteStringD start n (CByteString xs) = BS.take n (BS.drop start xs)
@@ -1313,6 +1346,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
          in makeBuiltinMeaning
               sliceByteStringD
               (runCostingFunThreeArguments . paramSliceByteString)
+#else
+    | ensurable semvar =
+        let sliceByteStringD :: Integer -> Integer -> CByteString -> BS.ByteString
+            sliceByteStringD start n (CByteString xs) = sliceByteStringInteger start n xs
+            {-# INLINE sliceByteStringD #-}
+         in makeBuiltinMeaning
+              sliceByteStringD
+              (runCostingFunThreeArguments . paramSliceByteString)
+    | otherwise =
+        let sliceByteStringD :: Integer -> Integer -> BS.ByteString -> BS.ByteString
+            sliceByteStringD = sliceByteStringInteger
+            {-# INLINE sliceByteStringD #-}
+         in makeBuiltinMeaning
+              sliceByteStringD
+              (runCostingFunThreeArguments . paramSliceByteString)
+#endif
   toBuiltinMeaning _semvar LengthOfByteString =
     let lengthOfByteStringD :: BS.ByteString -> BuiltinResult Int
         lengthOfByteStringD = pure . BS.length
@@ -1321,6 +1370,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           lengthOfByteStringD
           (runCostingFunOneArgument . paramLengthOfByteString)
   toBuiltinMeaning semvar IndexByteString
+#if WORD_SIZE_IN_BITS == 64
     | ensurable semvar =
         let indexByteStringD :: CByteString -> Int -> BuiltinResult Word8
             indexByteStringD (CByteString xs) n =
@@ -1340,6 +1390,26 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
          in makeBuiltinMeaning
               indexByteStringD
               (runCostingFunTwoArguments . paramIndexByteString)
+#else
+    | ensurable semvar =
+        let indexByteStringD :: CByteString -> Integer -> BuiltinResult Word8
+            indexByteStringD (CByteString xs) n =
+              -- See Note [Structural vs operational errors within builtins].
+              -- The arguments are going to be printed in the "cause" part of the error
+              -- message, so we don't need to repeat them here.
+              indexByteStringInteger xs n
+            {-# INLINE indexByteStringD #-}
+         in makeBuiltinMeaning
+              indexByteStringD
+              (runCostingFunTwoArguments . paramIndexByteString)
+    | otherwise =
+        let indexByteStringD :: BS.ByteString -> Integer -> BuiltinResult Word8
+            indexByteStringD = indexByteStringInteger
+            {-# INLINE indexByteStringD #-}
+         in makeBuiltinMeaning
+              indexByteStringD
+              (runCostingFunTwoArguments . paramIndexByteString)
+#endif
   toBuiltinMeaning semvar EqualsByteString
     | ensurable semvar =
         let equalsByteStringD :: CByteString -> CByteString -> Bool
@@ -2174,6 +2244,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
   -- Bitwise operations
 
   toBuiltinMeaning semvar ReadBit
+#if WORD_SIZE_IN_BITS == 64
     | ensurable semvar =
         let readBitD :: CByteString -> Int -> BuiltinResult Bool
             readBitD (CByteString xs) = Bitwise.readBit xs
@@ -2188,6 +2259,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
          in makeBuiltinMeaning
               readBitD
               (runCostingFunTwoArguments . paramReadBit)
+#else
+    | ensurable semvar =
+        let readBitD :: CByteString -> Integer -> BuiltinResult Bool
+            readBitD (CByteString xs) = Bitwise.readBit xs
+            {-# INLINE readBitD #-}
+         in makeBuiltinMeaning
+              readBitD
+              (runCostingFunTwoArguments . paramReadBit)
+    | otherwise =
+        let readBitD :: BS.ByteString -> Integer -> BuiltinResult Bool
+            readBitD = Bitwise.readBit
+            {-# INLINE readBitD #-}
+         in makeBuiltinMeaning
+              readBitD
+              (runCostingFunTwoArguments . paramReadBit)
+#endif
   toBuiltinMeaning semvar WriteBits
     | ensurable semvar =
         let writeBitsD
@@ -2385,6 +2472,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         {-# INLINE listToArrayDenotation #-}
      in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . paramListToArray)
   toBuiltinMeaning _semvar IndexArray =
+#if WORD_SIZE_IN_BITS == 64
     let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int -> BuiltinResult (Opaque val a)
         indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
           case uni of
@@ -2392,6 +2480,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               case vec Vector.!? n of
                 Nothing -> fail "Array index out of bounds"
                 Just el -> pure $ fromValueOf arg el
+#else
+    let indexArrayDenotation :: SomeConstant uni (Vector a) -> Integer -> BuiltinResult (Opaque val a)
+        indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
+          case uni of
+            DefaultUniArray arg
+              | n < 0 || n >= toInteger (Vector.length vec) -> fail "Array index out of bounds"
+              | otherwise -> pure . fromValueOf arg $ vec Vector.! fromInteger n
+#endif
             _ ->
               -- See Note [Structural vs operational errors within builtins].
               -- The arguments are going to be printed in the "cause" part of the error
