@@ -12,19 +12,19 @@
 \label{sec:default-builtins-6}
 The sixth batch of built-in types and functions provides
 \begin{itemize}
-\item A modular exponentiation function (see CIP-0109~\cite{CIP-0109})
+\item A modular exponentiation function (see CIP-0109~\cite{CIP-0109}).
 \item A function to drop a specified number of items from the front of a built-in list (see CIP-0132~\cite{CIP-0132}).
 \item A built-in array type and functions for working with arrays (see CIP-0138)~\cite{CIP-0138})
 \item Two functions to provide efficient multi-scalar multiplication for the BLS12-381 elliptic curves (see CIP-0133~\cite{CIP-0133}).
 \item A built-in \texttt{value} type to represent quantities of currencies on the
       Cardano blockchain, together with a number of operations on values. These
       are described separately from the rest of the functions, in
-      Sections~\ref{sec:built-in-value-type} and \ref{sec:built-in-value-functions}. See CIP-0153~\cite{CIP-0153}
+      Sections~\ref{sec:built-in-value-type} and \ref{sec:built-in-value-functions}. See CIP-0153~\cite{CIP-0153}.
 \end{itemize}
 
 \subsubsection{The \texttt{array} type operator}
 \label{sec:built-in-type-operators-6}
-The \texttt{array} type operator is described in \ref{table:array-type-operator}.
+The \texttt{array} type operator is described in Table~\ref{table:array-type-operator}.
 
 \begin{table}[H]
   \centering
@@ -189,8 +189,8 @@ efficient implementation.
 \paragraph{Built-in \textsf{Values}.}
 The built-in \texttt{value} type represents the \textsf{Value} type used to
 represent quantities of currencies in Cardano's EUTXO model: see~\cite{EUTXOma};
-we provide a type to represent these and a number of operations for working with
-them, as proposed in CIP-0153~\cite{CIP-0153}.
+we provide a built-in type to represent these and a number of operations for
+working with them, as proposed in CIP-0153~\cite{CIP-0153}.
 
 A \texttt{value} involves a finite set of \textit{currency identifiers}, each of
 which has a finite number of associated \textit{token identifiers}, each of
@@ -266,7 +266,7 @@ Conversely, given a list
        &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})])]
 \end{align*}
 
-\noindent in $(B^* \times (B^* \times \Z)^*)^*$ with
+\noindent in $(\B^* \times (\B^* \times \Z)^*)^*$ with
 \begin{itemize}
  \item $n \geq 0$
  \item $c_1 < c_2 < \cdots <c_n$
@@ -312,8 +312,9 @@ by strings of the form of the form
   & \text{\texttt{($C_n$, [($T_{n1}$, $Q_{n1}$), ($T_{n2}$, $Q_{n2}$), $\ldots$, ($T_{nk_n}$, $Q_{nk_n}$)])]}}
 \end{align*}
 
-\noindent where each $C_i$ and $T_i$ are literal bytestrings \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*}
-with at most 32 pairs of hexadecimal digits and each $Q_i$ is a literal integer
+\noindent where each $C_i$ and $T_i$ are literal bytestrings
+described by the regular expression \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*} with at
+most 32 pairs of hexadecimal digits and each $Q_i$ is a non-zero literal integer
 in the range $[-2^{127}, 2^{127}-1]$. The currency IDs and the token IDs for
 each currency must be in strictly ascending order.
 
@@ -366,7 +367,7 @@ Table~\ref{table:built-in-value-functions}.  The inputs to most of these are
 restricted in size and to make it easier to specify them we introduce the sets
 $\B^*_{32}$ of bytestrings of length at most 32 and $Q$ of 128-bit integers:
 
-$$\B^*_{32} = \{[c_0, \ldots, \_{n-1}] \in \B^*: n \leq 32\}$$
+$$\B^*_{32} = \{[c_0, \ldots, c_{n-1}] \in \B^*: n \leq 32\}$$
 
 $$Q = \{n \in \Z: -2^{127} \leq n \leq 2^{127}-1\}.$$
 
@@ -445,7 +446,8 @@ in its inputs, provided that all of the added values are in the 127-bit range:  
         \errorX & \text{otherwise}\\
   \end{array}\right.
   $$
-where $(v+w)(c,t) = v(c,t)+w(c,t)$ for all $c$ and $t$.
+where $v+w \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ is defined by $(v+w)(c,t)
+= v(c,t)+w(c,t)$ for all $c$ and $t$.
 
 \note{Semantics of \texttt{valueContains}.}
 \label{note:valueContains-semantics}
@@ -472,11 +474,12 @@ by $n$, provided that all of the scaled values are in the 127-bit range:  its de
   \mathsf{scaleValue}(n,v) =
   \left\{
   \begin{array}{ll}
-        n*v & \text{if $nv(c,t) \in Q$ for all $c$ and $t$}\\
+        n*v & \text{if $(n*v)(c,t) \in Q$ for all $c$ and $t$}\\
         \errorX & \text{otherwise}\\
   \end{array}\right.
   $$
-  where $(n*v)(c,t) = n*v(c,t)$ for all $c$ and $t$.
+  where $n*v \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ is defined by
+  $(n*v)(c,t) = n*v(c,t)$ for all $c$ and $t$.
 
 \note{Semantics of \texttt{valueData}.}
 \label{note:valueData-semantics}
@@ -484,7 +487,7 @@ The \texttt{valueData} function converts a \texttt{value} object to an object
 of type \texttt{data} (see Section~\ref{sec:default-builtins-1}).  It returns
 a \texttt{Map} (the \textit{outer map}) containing a list of pairs, the first
 element of each pair being a \texttt{B} object containing a currency identifier,
-and the second element (an \textit{inner map})) containing a list of (token
+and the second element (an \textit{inner map}) containing a list of (token
 identifier, quantity) pairs.  The elements of the outer and inner maps are
 sorted lexicograpically by identifier, there are no repeated identifiers in any
 map, and the quantities are all nonzero.

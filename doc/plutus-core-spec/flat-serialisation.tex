@@ -617,13 +617,13 @@ Decoding can similarly be performed indirectly by using
 bytestring constants during program execution.
 
 
-\paragraph{The \texttt{value} type}
-The definitions of the encoder and decoder for the \texttt{value} type may
-appear a little complex.  In Section~\ref{sec:built-in-value-type} we defined a
-concrete representation of a $\ty{value}$ as an element of $(\B^* \times
-(\B^*\times \Z)^*)^*$, consisting of an outer list of pairs of bytestrings and
-inner lists, where an inner list is a list of pairs of bytestrings and integers,
-ie a list of elements of $I = \B^*\times \Z$.  To encode a \texttt{value} $v$we
+\paragraph{The \texttt{value} type.}
+The encoder and decoder for the \texttt{value} type use the concrete
+representation of a $\ty{value}$ as an element of $(\B^* \times (\B^*\times
+\Z)^*)^*$ described in Section~\ref{sec:built-in-value-type}, where a
+\texttt{value} is represented by an outer list of pairs of bytestrings and inner
+lists, an inner list being a list of pairs of bytestrings and integers, ie a
+list of elements of $I = \B^*\times \Z$.  To encode a \texttt{value} $v$ we
 convert it to the concrete representation $\flatten{v}$ and then encode that:
 inner lists are encoded using the standard list encoding (see
 Section~\ref{sec:flat:lists}) for lists with elements in $\B^*\times \Z$ and
