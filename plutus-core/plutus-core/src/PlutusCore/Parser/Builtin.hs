@@ -18,6 +18,7 @@ import PlutusCore.Pretty (display)
 import PlutusCore.Value qualified as PLC (Value)
 import PlutusCore.Value qualified as Value
 
+import Control.Monad (when)
 import Control.Monad.Combinators
 import Data.ByteString (ByteString, pack, unpack)
 import Data.Map.Strict qualified as Map
@@ -112,6 +113,7 @@ conValue = do
           (fail $ "Token name exceeds maximum length of 32 bytes: " <> show (unpack token))
           pure
           (Value.k token)
+      when (amt == 0) $ fail "Token quantity in value constant must be non-zero"
       qty <-
         maybe
           (fail $ "Token quantity out of signed 128-bit integer bounds: " <> show amt)
