@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wall #-}
 
@@ -15,10 +17,12 @@ import Control.Monad.Except (ExceptT (..), runExceptT, throwError)
 import Control.Monad.IO.Class (liftIO)
 import Data.FileEmbed (embedStringFile)
 import Data.Foldable
+import Data.List (intercalate)
 import Data.List.Extra (replace)
-import Data.List.NonEmpty (NonEmpty (..))
+import Data.List.NonEmpty (NonEmpty (..), cons)
 import Data.List.NonEmpty qualified as NE
 import Data.List.NonEmptySep as NES
+import Data.String
 import Data.Text qualified as Text
 import Data.Text.IO qualified as T
 import System.Directory (createDirectoryIfMissing)
@@ -135,27 +139,107 @@ mkCertificate certName rawTrace =
   "Data" :| ["List", "NonEmpty"] -}
 type ModuleName = NonEmpty String
 
-moduleIdent :: ModuleName -> String
-moduleIdent = fold . NE.intersperse "."
+-- | Convert module name to an Agda identifier
+toIdent :: ModuleName -> String
+toIdent = fold . NE.intersperse "."
 
-moduleFileName :: ModuleName -> FilePath
-moduleFileName m = foldr (</>) "" m ++ ".agda"
+-- | Convert module name to .agda filepath relative to the source directory
+toFilePath :: ModuleName -> FilePath
+toFilePath m = foldr (</>) "" m ++ ".agda"
 
 -- | Drops the last component of the module to obtain its directory
 moduleDir :: ModuleName -> String
 moduleDir m = foldr (</>) "" (NE.init m)
 
-{-| Module name in agda, for a given equivalence class. Each list element is a module segment that is to be
-separated by "." (agda identifier) or by "/" (files) -}
-mkAstModuleName :: Int -> ModuleName
-mkAstModuleName n =
-  ("Pass" <> printf "%03d" n) :| ["AST"]
+enclose :: String -> String -> String -> String
+enclose l r x = l ++ x ++ r
 
-mkAgdaAstFile :: Int -> UTerm -> Maybe Hints -> (ModuleName, String)
+data ImportHow = Open | Closed
+
+type Import = (ImportHow, ModuleName, [String])
+
+renderImport :: Import -> String
+renderImport (how, name, idents) =
+  renderHow ++ "import " ++ toIdent name ++ renderUsing
+  where
+    renderHow = case how of
+      Open -> "open "
+      Closed -> ""
+    renderUsing
+      | null idents = ""
+      | otherwise = " using (" ++ intercalate ", " idents ++ ")"
+
+{-| Module name in agda, for a given ast number and module name. Each list element is a module segment that is to be
+separated by "." (agda identifier) or by "/" (files) -}
+passModName :: String -> Int -> ModuleName
+passModName name n =
+  ("Pass" <> printf "%03d" n) :| [name]
+
+astModName :: Int -> ModuleName
+astModName n = passModName "AST" n
+
+proofModName :: Int -> ModuleName
+proofModName n = passModName "Proof" n
+
+proofFile :: Int -> UTerm -> Maybe (OptStage, Hints) -> (ModuleName, String)
+proofFile n _ Nothing = (proofModName n, [])
+proofFile n _ (Just (pass, _)) =
+  ( modName
+  , unlines $
+      [ "module " <> toIdent modName <> " where"
+      , ""
+      ]
+        ++ map renderImport imports
+        ++ [ ""
+           , "related : " ++ proofSig
+           , "related = " ++ proofExpr
+           ]
+  )
+  where
+    modName = proofModName n
+
+    preMod = astModName n
+    postMod = astModName (n + 1)
+
+    preTerm = toIdent preMod ++ ".ast"
+    postTerm = toIdent postMod ++ ".ast"
+    hints = toIdent preMod ++ ".hints"
+
+    proofSig :: String
+    proofSig =
+      unwords
+        ["RelationOf", renderAgdaUnparse pass, preTerm, postTerm]
+
+    proofExpr :: String
+    proofExpr =
+      unwords
+        [ "to-witness-T"
+        , enclose "(" ")" . unwords $
+            [ "certifyPass"
+            , renderAgdaUnparse pass
+            , hints
+            , preTerm
+            , postTerm
+            ]
+        , "tt"
+        ]
+
+    imports :: [(ImportHow, ModuleName, [String])]
+    imports =
+      [ (Closed, preMod, [])
+      , (Closed, postMod, [])
+      , (Open, "Data" :| ["Unit"], ["tt"])
+      , (Open, "VerifiedCompilation" :| [], [])
+      , (Open, "VerifiedCompilation" :| "Trace" : [], [])
+      , (Open, "VerifiedCompilation" :| "Certificate" : [], [])
+      , (Open, "Utils" :| [], [])
+      ]
+
+mkAgdaAstFile :: Int -> UTerm -> Maybe (OptStage, Hints) -> (ModuleName, String)
 mkAgdaAstFile n pre mHints =
   ( modName
   , unlines $
-      [ "module " <> moduleIdent modName <> " where"
+      [ "module " <> toIdent modName <> " where"
       , ""
       , "open import Data.Unit"
       , "open import Data.Nat"
@@ -179,7 +263,7 @@ mkAgdaAstFile n pre mHints =
       , "ast = to-witness-T (checkScope raw) tt"
       ]
         ++ case mHints of
-          Just hints ->
+          Just (_, hints) ->
             [ ""
             , "hints : Hints"
             , "hints = " <> renderAgdaUnparse hints
@@ -187,16 +271,13 @@ mkAgdaAstFile n pre mHints =
           Nothing -> []
   )
   where
-    modName = mkAstModuleName n
-
-mkAgdaImport :: Bool -> ModuleName -> String
-mkAgdaImport open moduleName =
-  openModifier open ("import " <> moduleIdent moduleName)
-  where
-    openModifier True str = "open " <> str
-    openModifier False str = str
+    modName = astModName n
 
 newtype AgdaVar = AgdaVar String
+  deriving (IsString)
+
+qualify :: ModuleName -> AgdaVar -> AgdaVar
+qualify modName (AgdaVar x) = AgdaVar (toIdent modName ++ "." ++ x)
 
 instance AgdaUnparse AgdaVar where
   agdaUnparse (AgdaVar var) = pretty var
@@ -213,7 +294,7 @@ mkCertificateFile Certificate {certName, certTrace} =
     , "open import Data.Unit"
     , ""
     ]
-      ++ map (mkAgdaImport False) astImports
+      ++ map renderImport (astImports ++ proofImports)
       ++ [ ""
          , "trace : Trace (0 ⊢)"
          , "trace ="
@@ -221,30 +302,41 @@ mkCertificateFile Certificate {certName, certTrace} =
       ++ map ("  " ++) (printTrace traceExpr)
       ++ [ ""
          , "certificate : Certificate trace"
-         , "certificate = cert trace (certify trace) tt"
-         , ""
+         , "certificate = "
+         , renderProof proofExpr
          ]
   where
-    astImports :: [ModuleName]
-    astImports = map mkAstModuleName [0 .. length certTrace - 1]
+    astImports :: [Import]
+    astImports = map (\n -> (Closed, astModName n, [])) [0 .. length certTrace - 1]
 
-    -- replace hints and asts by agda variables that point to the right module
+    proofImports :: [Import]
+    proofImports = map (\n -> (Closed, proofModName n, [])) [0 .. length certTrace - 2]
+
+    -- Replace hints and ASTs in the trace by agda variables that point to the right definition
     traceExpr :: NonEmptySep (OptStage, AgdaVar) AgdaVar
     traceExpr = go 0 certTrace
       where
-        go n (Singleton _) = Singleton (moduleVar n "ast")
+        go n (Singleton _) = Singleton (qualify (astModName n) (AgdaVar "ast"))
         go n (Cons _ (stage, _) xs) =
           Cons
-            (moduleVar n "ast")
-            (stage, moduleVar n "hints")
+            (qualify (astModName n) "ast")
+            (stage, qualify (astModName n) "hints")
             (go (n + 1) xs)
 
-    moduleVar :: Int -> String -> AgdaVar
-    moduleVar n x =
-      AgdaVar $
-        moduleIdent (mkAstModuleName n)
-          <> "."
-          <> x
+    -- Non-empty list of variables that point to the proofs per pass
+    proofExpr :: NonEmpty AgdaVar
+    proofExpr = go 0 certTrace
+      where
+        go _ (Singleton _) = AgdaVar "tt" :| []
+        go n (Cons _ _ xs) = cons (qualify (proofModName n) (AgdaVar "related")) (go (n + 1) xs)
+
+-- Print the imported proofs as a big product
+renderProof :: NonEmpty AgdaVar -> String
+renderProof (AgdaVar x :| xs) =
+  unlines $
+    [("  ( " ++ x)]
+      ++ map (\(AgdaVar p) -> "  , " ++ p) xs
+      ++ [("  )")]
 
 -- Ad-hoc pretty printing so it can be printed over multiple lines
 printTrace :: NonEmptySep (OptStage, AgdaVar) AgdaVar -> [String]
@@ -258,8 +350,20 @@ printTrace (Cons x (stage, y) xs) =
 data AgdaCertificateProject = AgdaCertificateProject
   { mainModule :: (FilePath, String)
   , astModules :: [(ModuleName, String)]
+  , proofModNames :: [(ModuleName, String)]
   , agdalib :: (FilePath, String)
   }
+
+{-| For each term in the trace, create module contents using the given
+function, which is also passed the index in the trace. -}
+traceToFiles
+  :: (Int -> UTerm -> Maybe (OptStage, Hints) -> (ModuleName, String))
+  -> Trace UTerm
+  -> [(ModuleName, String)]
+traceToFiles f t = go 0 t
+  where
+    go n (Singleton x) = [f n x Nothing]
+    go n (Cons x (o, h) xs) = f n x (Just (o, h)) : go (n + 1) xs
 
 mkAgdaLib :: String -> (FilePath, String)
 mkAgdaLib name =
@@ -279,17 +383,15 @@ mkAgdaCertificateProject
 mkAgdaCertificateProject cert =
   let name = certName cert
       mainModule = mkCertificateFile cert
-      astModules = astModuleFiles 0 (certTrace cert)
+      astModules = traceToFiles mkAgdaAstFile (certTrace cert)
+      proofModNames = traceToFiles proofFile (certTrace cert)
       agdalib = mkAgdaLib name
    in AgdaCertificateProject
         { mainModule = (certName cert <> ".agda", mainModule)
         , astModules
+        , proofModNames
         , agdalib
         }
-  where
-    astModuleFiles :: Int -> Trace UTerm -> [(ModuleName, String)]
-    astModuleFiles n (Singleton x) = [mkAgdaAstFile n x Nothing]
-    astModuleFiles n (Cons x (_, h) xs) = mkAgdaAstFile n x (Just h) : astModuleFiles (n + 1) xs
 
 writeCertificateProject
   :: CertDir
@@ -300,6 +402,7 @@ writeCertificateProject
   AgdaCertificateProject
     { mainModule
     , astModules
+    , proofModNames
     , agdalib
     } =
     liftIO $ do
@@ -308,14 +411,13 @@ writeCertificateProject
           certName = takeBaseName mainModulePath
       createDirectoryIfMissing True certDir
       createDirectoryIfMissing True (certDir </> "src")
-      for_ astModules $ \(modName, _) -> do
+
+      -- directory per AST in trace
+      for_ (astModules ++ proofModNames) $ \(modName, contents) -> do
         createDirectoryIfMissing True (certDir </> "src" </> moduleDir modName)
+        writeFile (certDir </> "src" </> toFilePath modName) contents
+
       writeFile (certDir </> "src" </> mainModulePath) mainModuleContents
       writeFile (certDir </> agdalibPath) agdalibContents
       let readmeTemplate = $(embedStringFile "file-embed/certificate-README.md")
       writeFile (certDir </> "README.md") (replace "{{NAME}}" certName readmeTemplate)
-      traverse_
-        ( \(modName, contents) ->
-            writeFile (certDir </> "src" </> moduleFileName modName) contents
-        )
-        astModules
