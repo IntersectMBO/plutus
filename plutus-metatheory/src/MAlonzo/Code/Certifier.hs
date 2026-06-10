@@ -104,7 +104,7 @@ d_runCertifierMain_10 v0 v1
                           MAlonzo.Code.Utils.C__'44'__450
                           (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                           (coe
-                             MAlonzo.Code.CertifierReport.d_makeReport_334 (coe v2) (coe v1)))
+                             MAlonzo.Code.CertifierReport.d_makeReport_290 (coe v2) (coe v1)))
                 MAlonzo.Code.VerifiedCompilation.C_abort_10 v4
                   -> coe
                        MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
@@ -112,7 +112,7 @@ d_runCertifierMain_10 v0 v1
                           MAlonzo.Code.Utils.C__'44'__450
                           (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                           (coe
-                             MAlonzo.Code.CertifierReport.d_makeReport_334 (coe v2) (coe v1)))
+                             MAlonzo.Code.CertifierReport.d_makeReport_290 (coe v2) (coe v1)))
                 _ -> MAlonzo.RTE.mazUnreachableError
          MAlonzo.Code.Utils.C_inj'8322'_14 v3
            -> coe
@@ -123,5 +123,5 @@ d_runCertifierMain_10 v0 v1
                       MAlonzo.Code.Utils.C__'44'__450
                       (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)
                       (coe
-                         MAlonzo.Code.CertifierReport.d_makeReport_334 (coe v2) (coe v1))))
+                         MAlonzo.Code.CertifierReport.d_makeReport_290 (coe v2) (coe v1))))
          _ -> MAlonzo.RTE.mazUnreachableError)
