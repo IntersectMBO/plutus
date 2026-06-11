@@ -48,11 +48,17 @@ or type operators applied to built-in-compatible type.
 The type of built-in-compatible types (_⊢♯) is indexed by the number of
 distinct type variables of kind ♯.
 ```
+data ∀ₜ : ℕ → Set where
+  ∀̬ : ∀ {n}
+    → Fin n
+    --------
+    → ∀ₜ n
+
 -- Builtin compatible types of kind ♯
 data _⊢♯ : ℕ → Set where
   -- a type variable
-  ` : ∀ {n♯} →
-      Fin n♯
+  ` : ∀ {n♯}
+    → ∀ₜ n♯
       --------
     → n♯ ⊢♯
 
@@ -78,8 +84,8 @@ data _⊢♯ : ℕ → Set where
 
 data _⊢⋆ : ℕ → Set where
   -- a type variable of kind *
-  ` : ∀ {n⋆} →
-      Fin n⋆
+  ` : ∀ {n⋆}
+    → ∀ₜ n⋆
       --------
     → n⋆ ⊢⋆
 
@@ -104,7 +110,7 @@ of kind ♯ and kind *  that may appear.
 ```
 
 Args : ℕ → ℕ → Set
-Args n⋆ n♯ = List⁺ (n⋆ ⊢⋆ ⊎ n♯ ⊢♯)
+Args n⋆ n♯ = List⁺ (∀ₜ n⋆ ⊎ ∀ₜ n♯ ⊎ n⋆ ⊢⋆ ⊎ n♯ ⊢♯) 
 
 ```
 
@@ -218,15 +224,21 @@ module FromSig (Ty : Ctx⋆ → Kind → Set)
 
 ```
     ⊢♯2TyNe♯ : ∀{n⋆ n♯} → n♯ ⊢♯ → TyNe (mkCtx⋆ n⋆ n♯) ♯
-    ⊢♯2TyNe♯ (` x) =  var (fin♯2∋⋆ x)
+    ⊢♯2TyNe♯ (` (∀̬ x)) =  var (fin♯2∋⋆ x)
     ⊢♯2TyNe♯ (atomic x) = ^ (atomic x)
     ⊢♯2TyNe♯ (list x)   = ^ list · ne (⊢♯2TyNe♯ x)
     ⊢♯2TyNe♯ (array x)   = ^ array · ne (⊢♯2TyNe♯ x)
     ⊢♯2TyNe♯ (pair x y) = ((^ pair) · ne (⊢♯2TyNe♯ x)) · ne (⊢♯2TyNe♯ y)
 
-    mkTy : ∀{n⋆ n♯} → n⋆ ⊢⋆ ⊎ n♯ ⊢♯ → Ty (mkCtx⋆ n⋆ n♯) *
-    mkTy (inj₁ (` x)) = ne (var (fin⋆2∋⋆ x))
-    mkTy (inj₂ x) = mkCon (ne (⊢♯2TyNe♯ x))
+    mkTy : ∀{n⋆ n♯} → ∀ₜ n⋆ ⊎ ∀ₜ n♯ ⊎ n⋆ ⊢⋆ ⊎ n♯ ⊢♯ → Ty (mkCtx⋆ n⋆ n♯) *
+    mkTy (inj₁ (∀̬ x)) = {!   !}
+    mkTy (inj₂ (inj₁ (∀̬ x))) = {!   !}
+    mkTy (inj₂ (inj₂ (inj₁ (` (∀̬ x))))) = ne (var (fin⋆2∋⋆ x))
+    mkTy (inj₂ (inj₂ (inj₂ x))) = mkCon (ne (⊢♯2TyNe♯ x))
+
+    mkResTy : ∀{n⋆ n♯} → n⋆ ⊢⋆ ⊎ n♯ ⊢♯ → Ty (mkCtx⋆ n⋆ n♯) *
+    mkResTy (inj₁ (` (∀̬ x))) = ne (var (fin⋆2∋⋆ x))
+    mkResTy (inj₂ x) = mkCon (ne (⊢♯2TyNe♯ x))
 ```
 
  `sig2type⇒` takes a list of arguments and a result type, and produces
@@ -237,7 +249,7 @@ module FromSig (Ty : Ctx⋆ → Kind → Set)
 
 ```
     sig2type⇒ : ∀{n⋆ n♯}
-              → List (n⋆ ⊢⋆ ⊎ n♯ ⊢♯)
+              → List (∀ₜ n⋆ ⊎ ∀ₜ n♯ ⊎ n⋆ ⊢⋆ ⊎ n♯ ⊢♯)
               → Ty (mkCtx⋆ n⋆ n♯) * → Ty (mkCtx⋆ n⋆ n♯) *
     sig2type⇒ [] r = r
     sig2type⇒ (a ∷ as) r = sig2type⇒ as (mkTy a ⇒ r)
@@ -256,7 +268,7 @@ module FromSig (Ty : Ctx⋆ → Kind → Set)
 
 ```
     sig2type : Sig → Ty ∅ *
-    sig2type (sig fv⋆ fv♯ as res) = sig2typeΠ (sig2type⇒ (toList as) (mkTy res))
+    sig2type (sig fv⋆ fv♯ as res) = sig2typeΠ (sig2type⇒ (toList as) (mkResTy res))
 ```
 
 ### Types originating from a Signature
@@ -305,7 +317,7 @@ Every type obtained from a Signature σ using sig2type is a SigType.
              -- Additionally we could ask for the following condition to hold
              --  → (pn : n⋆ + n♯ ≡ tt)
                → {pt : tt ∔ 0 ≣ tt}
-               → (as : List (n⋆ ⊢⋆ ⊎ n♯ ⊢♯))
+               → (as : List (∀ₜ n⋆ ⊎ ∀ₜ n♯ ⊎ n⋆ ⊢⋆ ⊎ n♯ ⊢♯))
                → ∀ {am at}(pa : length as ∔ am ≣ at)
                → {A : Ty (mkCtx⋆ n⋆ n♯) *} → (σA : SigTy pt pa A)
                → SigTy pt (start at) (sig2type⇒ as A)
@@ -325,7 +337,7 @@ Every type obtained from a Signature σ using sig2type is a SigType.
     -- From a signature obtain a signature type
     sig2SigTy : (σ : Sig) → SigTy (start (fv σ)) (start (args♯ σ)) (sig2type σ)
     sig2SigTy (sig n⋆ n♯ as r) =
-                sig2SigTyΠ refl (alldone (n⋆ + n♯)) (sig2SigTy⇒ (toList as) (alldone (length⁺ as)) (bresult (mkTy r)))
+                sig2SigTyΠ refl (alldone (n⋆ + n♯)) (sig2SigTy⇒ (toList as) (alldone (length⁺ as)) (bresult (mkResTy r)))
 
     -- extract the concrete type from a signature type.
     sigTy2type : ∀{Φ tm tn tt an am at}{A : Ty Φ *} → {pt : tn ∔ tm ≣ tt} → {pa : an ∔ am ≣ at} → SigTy pt pa A → Ty Φ *
