@@ -49,6 +49,8 @@ tests =
       , goldenEvalCekLog "traceDirect" traceDirect
       , goldenEvalCekLog "tracePrelude" tracePrelude
       , goldenEvalCekLog "traceRepeatedly" traceRepeatedly
+      , goldenPir "ignoredUntypedLambdaArguments" ignoredUntypedLambdaArguments
+      , goldenPir "ignoredUntypedThreeLambdaArguments" ignoredUntypedThreeLambdaArguments
       , -- want to see the raw structure, so using Show
         nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
       ]
@@ -85,3 +87,9 @@ traceRepeatedly =
          in i3
         ||]
     )
+
+ignoredUntypedLambdaArguments :: CompiledCode (BuiltinData -> BuiltinData -> ())
+ignoredUntypedLambdaArguments = $$(compile [||\_ _ -> ()||])
+
+ignoredUntypedThreeLambdaArguments :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
+ignoredUntypedThreeLambdaArguments = $$(compile [||\_ _ _ -> ()||])

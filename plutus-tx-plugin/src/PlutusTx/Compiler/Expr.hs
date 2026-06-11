@@ -1750,9 +1750,10 @@ extractUnsupported markerName = \case
 
 compileExprWithDefs
   :: CompilingDefault uni fun m ann
-  => GHC.CoreExpr
+  => Maybe GHC.Type
+  -> GHC.CoreExpr
   -> m (PIRTerm uni fun)
-compileExprWithDefs e = do
+compileExprWithDefs mTargetTy e = do
   -- Order matters here. Generlly, Once that define types should go before anything that defines
   -- terms. Otherwise, type definitions might get ignored if they appear in types of term definitions.
   defineBoolType
@@ -1761,7 +1762,38 @@ compileExprWithDefs e = do
   defineBuiltinTerms
   defineIntegerNegate
   defineFix
-  compileExpr Nothing e
+  case mTargetTy of
+    Just targetTy | Just e' <- retargetLeadingAnyBinders targetTy e -> compileExpr Nothing e'
+    _ -> compileExpr Nothing e
+
+retargetLeadingAnyBinders :: GHC.Type -> GHC.CoreExpr -> Maybe GHC.CoreExpr
+retargetLeadingAnyBinders = go False . stripForAllTyCoVars
+  where
+    stripForAllTyCoVars t =
+      case GHC.splitForAllTyCoVar_maybe t of
+        Just (_tv, body) -> stripForAllTyCoVars body
+        Nothing -> t
+
+    go sawErasedLam targetTy e = case e of
+      GHC.Tick tick body -> GHC.Tick tick <$> go sawErasedLam targetTy body
+      GHC.Cast body co -> (`GHC.Cast` co) <$> go sawErasedLam targetTy body
+      GHC.Lam b body
+        | GHC.isTyVar b -> GHC.Lam b <$> go sawErasedLam targetTy body
+        | isAnyBinder b
+        , Just (_t, _m, domTy, codTy) <- GHC.splitFunTy_maybe targetTy ->
+            let b' = GHC.setVarType b domTy
+                body' = retagBinderUses b b' body
+             in GHC.Lam b' <$> go True codTy body'
+        | otherwise -> Nothing
+      _ -> if sawErasedLam then Just e else Nothing
+
+    isAnyBinder b =
+      case GHC.splitTyConApp_maybe (GHC.varType b) of
+        Just (tc, _) -> tc == GHC.anyTyCon
+        Nothing -> False
+
+    retagBinderUses old new body =
+      GHC.substExpr (GHC.extendIdSubst (GHC.mkEmptySubst (GHC.mkInScopeSet (GHC.exprFreeVars body))) old (GHC.Var new)) body
 
 {- Note [We always need DEFAULT]
 GHC can be clever and omit case alternatives sometimes, typically when the typechecker says a case

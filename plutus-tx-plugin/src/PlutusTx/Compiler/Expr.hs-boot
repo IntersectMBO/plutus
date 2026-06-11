@@ -14,4 +14,4 @@ compileExpr
   => Maybe GHC.RealSrcSpan -> GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExprWithDefs
   :: CompilingDefault uni fun m ann
-  => GHC.CoreExpr -> m (PIRTerm uni fun)
+  => Maybe GHC.Type -> GHC.CoreExpr -> m (PIRTerm uni fun)

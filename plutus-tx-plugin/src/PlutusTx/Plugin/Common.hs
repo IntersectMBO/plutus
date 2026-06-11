@@ -647,7 +647,7 @@ compileMarkedExpr _locStr codeTy origE = do
 
   ((pirP, uplcP), covIdx) <-
     runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
-      runCompiler moduleNameStr opts origE'
+      runCompiler moduleNameStr opts (targetTypeForExpr codeTy origE') origE'
 
   -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
   bsPir <- makeByteStringLiteral $ flat pirP
@@ -664,6 +664,33 @@ compileMarkedExpr _locStr codeTy origE = do
       `GHC.App` bsPir
       `GHC.App` covIdxFlat
 
+targetTypeForExpr :: GHC.Type -> GHC.CoreExpr -> Maybe GHC.Type
+targetTypeForExpr ty expr
+  | isFunctionReturningUnit ty' = if hasLeadingTermLambda expr then Just ty' else Nothing
+  | otherwise = Nothing
+  where
+    ty' = stripForAllTyCoVars ty
+
+    stripForAllTyCoVars t =
+      case GHC.splitForAllTyCoVar_maybe t of
+        Just (_tv, body) -> stripForAllTyCoVars body
+        Nothing -> t
+
+    isFunctionReturningUnit t =
+      case GHC.splitFunTy_maybe t of
+        Just (_mult, _vis, _dom, cod) -> isFunctionReturningUnit cod
+        Nothing -> case GHC.splitTyConApp_maybe t of
+          Just (tc, _) -> tc == GHC.unitTyCon
+          Nothing -> False
+
+    hasLeadingTermLambda = \case
+      GHC.Tick _ body -> hasLeadingTermLambda body
+      GHC.Cast body _ -> hasLeadingTermLambda body
+      GHC.Lam b body
+        | GHC.isTyVar b -> hasLeadingTermLambda body
+        | otherwise -> True
+      _ -> False
+
 {-| The GHC.Core to PIR to PLC compiler pipeline. Returns both the PIR and PLC output.
 It invokes the whole compiler chain:  Core expr -> PIR expr -> PLC expr -> UPLC expr. -}
 runCompiler
@@ -679,9 +706,10 @@ runCompiler
      )
   => String
   -> PluginOptions
+  -> Maybe GHC.Type
   -> GHC.CoreExpr
   -> m (PIRProgram uni fun, UPLCProgram uni fun)
-runCompiler moduleName opts expr = do
+runCompiler moduleName opts mTargetTy expr = do
   GHC.DynFlags {GHC.extensions = extensions} <- asks ccFlags
   let
     enabledExtensions =
@@ -818,7 +846,7 @@ runCompiler moduleName opts expr = do
             (opts ^. posCertifiedOptsOnly)
 
   -- GHC.Core -> Pir translation.
-  pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
+  pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs mTargetTy expr)
   let pirP = PIR.Program noProvenance plcVersion pirT
   when (opts ^. posDumpPir) . liftIO $
     dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
