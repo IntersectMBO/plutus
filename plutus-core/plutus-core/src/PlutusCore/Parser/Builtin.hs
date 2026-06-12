@@ -14,13 +14,13 @@ import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
 import PlutusCore.Name.Unique
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
-import PlutusCore.Pretty (display)
+import PlutusCore.Pretty (display, prettyBytes)
 import PlutusCore.Value qualified as PLC (Value)
 import PlutusCore.Value qualified as Value
 
 import Control.Monad (when)
 import Control.Monad.Combinators
-import Data.ByteString (ByteString, pack, unpack)
+import Data.ByteString (ByteString, pack)
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
@@ -90,13 +90,20 @@ conList uniA =
 conArray :: DefaultUni (Esc a) -> Parser (Vector a)
 conArray uniA = Vector.fromList <$> conList uniA
 
--- | Parser for values.
+{-| Parser for values.  This fails if the value isn't in canonical form, ie if
+there are any zero or out-of-bounds quantities or if any currency or token
+IDs are too big or if the currency IDs or token IDs aren't in strictly
+ascending order.  For simplicity these checks happen only after the value has
+been parsed, so the location will be inaccurate in general.  The error
+messages should be detailed enough to see what's causing any error though.
+There's some duplication of checks carried out by Value.fromList. -}
 conValue :: Parser PLC.Value
 conValue = do
-  keys <- traverse validateKeys =<< conList knownUni
-  checkAscending "Currency symbols" (map fst keys)
-  mapM_ (\(_, toks) -> checkAscending "Token names" (map fst toks)) keys
-  case Value.fromList keys of
+  nestedList <- traverse validateCurrencyEntry =<< conList knownUni
+  -- Note that bound checks are performed before the ID ordering checks.
+  checkAscending "Currency IDs" (map fst nestedList)
+  mapM_ (\(_, toks) -> checkAscending "Token IDs" (map fst toks)) nestedList
+  case Value.fromList nestedList of
     PlutusCore.Builtin.Result.BuiltinSuccess v -> pure v
     PlutusCore.Builtin.Result.BuiltinSuccessWithLogs _logs v -> pure v
     PlutusCore.Builtin.Result.BuiltinFailure logs _trace ->
@@ -106,11 +113,26 @@ conValue = do
     checkAscending _ [_] = pure ()
     checkAscending label (x : y : rest)
       | x < y = checkAscending label (y : rest)
-      | otherwise = fail $ label <> " in value constant must be strictly ascending"
-    validateToken (token, amt) = do
+      | otherwise =
+          fail $
+            label
+              <> " in value constant should be strictly ascending, but "
+              <> show (prettyBytes $ Value.unK x)
+              <> " >= "
+              <> show (prettyBytes $ Value.unK y)
+    validateCurrencyEntry (currency, tokens) = do
+      ck <-
+        maybe
+          (fail $ "Currency ID exceeds maximum length of 32 bytes: " <> show (prettyBytes currency))
+          pure
+          (Value.k currency)
+      when (null tokens) $ fail "Empty token map in value constant"
+      tks <- traverse validateTokenEntry tokens
+      pure (ck, tks)
+    validateTokenEntry (token, amt) = do
       tk <-
         maybe
-          (fail $ "Token name exceeds maximum length of 32 bytes: " <> show (unpack token))
+          (fail $ "Token ID exceeds maximum length of 32 bytes: " <> show (prettyBytes token))
           pure
           (Value.k token)
       when (amt == 0) $ fail "Token quantity in value constant must be non-zero"
@@ -120,14 +142,6 @@ conValue = do
           pure
           (Value.quantity amt)
       pure (tk, qty)
-    validateKeys (currency, tokens) = do
-      ck <-
-        maybe
-          (fail $ "Currency symbol exceeds maximum length of 32 bytes: " <> show (unpack currency))
-          pure
-          (Value.k currency)
-      tks <- traverse validateToken tokens
-      pure (ck, tks)
 
 -- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
