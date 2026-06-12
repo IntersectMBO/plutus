@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wall #-}
 
@@ -22,7 +21,6 @@ import Data.List.Extra (replace)
 import Data.List.NonEmpty (NonEmpty (..), cons)
 import Data.List.NonEmpty qualified as NE
 import Data.List.NonEmptySep as NES
-import Data.String
 import Data.Text qualified as Text
 import Data.Text.IO qualified as T
 import System.Directory (createDirectoryIfMissing)
@@ -274,7 +272,6 @@ mkAgdaAstFile n pre mHints =
     modName = astModName n
 
 newtype AgdaVar = AgdaVar String
-  deriving (IsString)
 
 qualify :: ModuleName -> AgdaVar -> AgdaVar
 qualify modName (AgdaVar x) = AgdaVar (toIdent modName ++ "." ++ x)
@@ -319,8 +316,8 @@ mkCertificateFile Certificate {certName, certTrace} =
         go n (Singleton _) = Singleton (qualify (astModName n) (AgdaVar "ast"))
         go n (Cons _ (stage, _) xs) =
           Cons
-            (qualify (astModName n) "ast")
-            (stage, qualify (astModName n) "hints")
+            (qualify (astModName n) (AgdaVar "ast"))
+            (stage, qualify (astModName n) (AgdaVar "hints"))
             (go (n + 1) xs)
 
     -- Non-empty list of variables that point to the proofs per pass
