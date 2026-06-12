@@ -3,7 +3,7 @@
   (con
     value
     [ ( #
-    , [ (#, 456)
+    , [ (#1234, 456)
       , ( #aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
       , 123 ) ] ) ]
   )
