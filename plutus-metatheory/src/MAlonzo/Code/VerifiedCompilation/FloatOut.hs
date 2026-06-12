@@ -540,7 +540,7 @@ d_decide_312 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
 d_decide_312 v0 v1 v2
   = let v3 = coe d_dec_304 v0 v1 v2 in
     coe
@@ -550,12 +550,12 @@ d_decide_312 v0 v1 v2
                 then case coe v5 of
                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v6
                          -> coe
-                              MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 (coe v6)
+                              MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 (coe v6)
                        _ -> MAlonzo.RTE.mazUnreachableError
                 else coe
                        seq (coe v5)
                        (coe
-                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                           MAlonzo.Code.VerifiedCompilation.Trace.d_LetFloatOutT_44 v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.FloatOut.numSites

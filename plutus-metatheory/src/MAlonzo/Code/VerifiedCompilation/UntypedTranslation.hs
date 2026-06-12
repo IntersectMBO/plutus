@@ -88,10 +88,10 @@ d_translation'63'_160 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38) ->
+   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
 d_translation'63'_160 v0 ~v1 v2 v3 v4 v5
   = du_translation'63'_160 v0 v2 v3 v4 v5
 du_translation'63'_160 ::
@@ -102,10 +102,10 @@ du_translation'63'_160 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38) ->
+   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
 du_translation'63'_160 v0 v1 v2 v3 v4
   = let v5
           = coe
@@ -131,13 +131,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                            (let v8 = coe v2 v0 v3 v4 in
                             coe
                               (case coe v8 of
-                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v9
+                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v9
                                    -> coe
-                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                         (coe C_istranslation_88 v9)
-                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v12 v13 v14
+                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v12 v13 v14
                                    -> coe
-                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v12 v13
+                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v12 v13
                                         v14
                                  _ -> MAlonzo.RTE.mazUnreachableError)))
                  _ -> MAlonzo.RTE.mazUnreachableError in
@@ -154,13 +154,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v11 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v11 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v12
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v12
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v12)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v15 v16 v17
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v15 v16 v17
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v15 v16 v17
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -186,7 +186,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                             then coe
                                                                    seq (coe v15)
                                                                    (coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe
                                                                          C_match_94 (coe C_var_22)))
                                                             else coe
@@ -194,15 +194,15 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                    (let v16 = coe v2 v0 v3 v4 in
                                                                     coe
                                                                       (case coe v16 of
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v17
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v17
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                 (coe
                                                                                    C_istranslation_88
                                                                                    v17)
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v20 v21 v22
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v20 v21 v22
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                                 v20 v21 v22
                                                                          _ -> MAlonzo.RTE.mazUnreachableError))
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -219,13 +219,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -241,13 +241,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -263,13 +263,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -285,13 +285,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -307,13 +307,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -329,13 +329,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -351,13 +351,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -373,13 +373,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -395,13 +395,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -419,13 +419,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v11 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v11 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v12
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v12
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v12)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v15 v16 v17
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v15 v16 v17
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v15 v16 v17
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -443,13 +443,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -469,21 +469,21 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                           (coe v1) (coe v2) (coe v7) (coe v9) in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_match_94 (coe C_ƛ_28 v14))
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> let v20 = coe v2 v0 v3 v4 in
                                                           coe
                                                             (case coe v20 of
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v21
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v21
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe C_istranslation_88 v21)
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v24 v25 v26
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v24 v25 v26
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                       v24 v25 v26
                                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -500,13 +500,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -522,13 +522,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -544,13 +544,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -566,13 +566,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -588,13 +588,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -610,13 +610,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -632,13 +632,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -654,13 +654,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -678,13 +678,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v12 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v12 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v13)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v16 v17 v18
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -702,13 +702,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -724,13 +724,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -749,7 +749,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                           (coe v2) (coe v8) (coe v11) in
                                                 coe
                                                   (case coe v15 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v16
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v16
                                                        -> let v17
                                                                 = coe
                                                                     du_translation'63'_160 (coe v0)
@@ -757,39 +757,39 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                     (coe v10) in
                                                           coe
                                                             (case coe v17 of
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v18
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v18
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe
                                                                          C_match_94
                                                                          (coe C_app_38 v18 v16))
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v21 v22 v23
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v21 v22 v23
                                                                  -> let v24 = coe v2 v0 v3 v4 in
                                                                     coe
                                                                       (case coe v24 of
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v25
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v25
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                 (coe
                                                                                    C_istranslation_88
                                                                                    v25)
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v28 v29 v30
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v28 v29 v30
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                                 v28 v29 v30
                                                                          _ -> MAlonzo.RTE.mazUnreachableError)
                                                                _ -> MAlonzo.RTE.mazUnreachableError)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v19 v20 v21
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v19 v20 v21
                                                        -> let v22 = coe v2 v0 v3 v4 in
                                                           coe
                                                             (case coe v22 of
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v23
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v23
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe C_istranslation_88 v23)
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v26 v27 v28
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v26 v27 v28
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                       v26 v27 v28
                                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -806,13 +806,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -828,13 +828,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -850,13 +850,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -872,13 +872,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v15 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v15 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v16
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v16
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v16)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v19 v20 v21
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v19 v20 v21
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v19 v20 v21
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -894,13 +894,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v15 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v15 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v16
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v16
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v16)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v19 v20 v21
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v19 v20 v21
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v19 v20 v21
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -916,13 +916,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -938,13 +938,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -962,13 +962,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v11 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v11 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v12
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v12
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v12)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v15 v16 v17
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v15 v16 v17
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v15 v16 v17
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -986,13 +986,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1008,13 +1008,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1030,13 +1030,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1055,21 +1055,21 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                           (coe v2) (coe v7) (coe v9) in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_match_94 (coe C_force_44 v14))
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> let v20 = coe v2 v0 v3 v4 in
                                                           coe
                                                             (case coe v20 of
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v21
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v21
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe C_istranslation_88 v21)
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v24 v25 v26
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v24 v25 v26
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                       v24 v25 v26
                                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1086,13 +1086,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1108,13 +1108,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1130,13 +1130,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1152,13 +1152,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1174,13 +1174,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1196,13 +1196,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1220,13 +1220,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v11 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v11 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v12
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v12
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v12)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v15 v16 v17
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v15 v16 v17
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v15 v16 v17
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -1244,13 +1244,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1266,13 +1266,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1288,13 +1288,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1310,13 +1310,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1335,21 +1335,21 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                           (coe v2) (coe v7) (coe v9) in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_match_94 (coe C_delay_50 v14))
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> let v20 = coe v2 v0 v3 v4 in
                                                           coe
                                                             (case coe v20 of
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v21
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v21
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe C_istranslation_88 v21)
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v24 v25 v26
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v24 v25 v26
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                       v24 v25 v26
                                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1366,13 +1366,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1388,13 +1388,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1410,13 +1410,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1432,13 +1432,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1454,13 +1454,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1478,13 +1478,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v11 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v11 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v12
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v12
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v12)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v15 v16 v17
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v15 v16 v17
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v15 v16 v17
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -1502,13 +1502,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1524,13 +1524,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1546,13 +1546,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1568,13 +1568,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1590,13 +1590,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1619,7 +1619,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                             then coe
                                                                    seq (coe v15)
                                                                    (coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe
                                                                          C_match_94 (coe C_con_54)))
                                                             else coe
@@ -1627,15 +1627,15 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                    (let v16 = coe v2 v0 v3 v4 in
                                                                     coe
                                                                       (case coe v16 of
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v17
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v17
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                 (coe
                                                                                    C_istranslation_88
                                                                                    v17)
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v20 v21 v22
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v20 v21 v22
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                                 v20 v21 v22
                                                                          _ -> MAlonzo.RTE.mazUnreachableError))
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1652,13 +1652,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1674,13 +1674,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1696,13 +1696,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1718,13 +1718,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -1742,13 +1742,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v12 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v12 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v13)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v16 v17 v18
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -1766,13 +1766,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -1788,13 +1788,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -1810,13 +1810,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v15 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v15 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v16
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v16
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v16)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v19 v20 v21
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v19 v20 v21
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v19 v20 v21
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -1832,13 +1832,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -1854,13 +1854,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -1876,13 +1876,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -1897,7 +1897,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v14
                                              -> let v15
                                                       = coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.du_decToPCE_234
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.du_decToPCE_246
                                                           (coe v1)
                                                           (coe
                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
@@ -1915,7 +1915,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                           (coe v3) (coe v4) in
                                                 coe
                                                   (case coe v15 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v16
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v16
                                                        -> let v17
                                                                 = coe
                                                                     du_decPointwiseTranslation'63'_172
@@ -1923,13 +1923,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                     (coe v8) (coe v11) in
                                                           coe
                                                             (case coe v17 of
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v18
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v18
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe
                                                                          C_match_94
                                                                          (coe C_constr_62 v18))
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v21 v22 v23
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v21 v22 v23
                                                                  -> let v24
                                                                           = coe
                                                                               v2 v0 v3
@@ -1939,29 +1939,29 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                                  (coe v11)) in
                                                                     coe
                                                                       (case coe v24 of
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v25
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v25
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                 (coe
                                                                                    C_istranslation_88
                                                                                    v25)
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v28 v29 v30
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v28 v29 v30
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                                 v28 v29 v30
                                                                          _ -> MAlonzo.RTE.mazUnreachableError)
                                                                _ -> MAlonzo.RTE.mazUnreachableError)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v19 v20 v21
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v19 v20 v21
                                                        -> let v22 = coe v2 v0 v3 v4 in
                                                           coe
                                                             (case coe v22 of
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v23
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v23
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe C_istranslation_88 v23)
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v26 v27 v28
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v26 v27 v28
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                       v26 v27 v28
                                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1978,13 +1978,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v15 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v15 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v16
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v16
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v16)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v19 v20 v21
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v19 v20 v21
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v19 v20 v21
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2000,13 +2000,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2022,13 +2022,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2046,13 +2046,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v12 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v12 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v13)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v16 v17 v18
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -2070,13 +2070,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2092,13 +2092,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2114,13 +2114,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v15 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v15 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v16
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v16
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v16)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v19 v20 v21
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v19 v20 v21
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v19 v20 v21
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2136,13 +2136,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2158,13 +2158,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2180,13 +2180,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2202,13 +2202,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v15 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v15 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v16
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v16
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v16)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v19 v20 v21
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v19 v20 v21
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v19 v20 v21
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2227,7 +2227,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                           (coe v2) (coe v7) (coe v10) in
                                                 coe
                                                   (case coe v15 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v16
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v16
                                                        -> let v17
                                                                 = coe
                                                                     du_decPointwiseTranslation'63'_172
@@ -2235,39 +2235,39 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                     (coe v8) (coe v11) in
                                                           coe
                                                             (case coe v17 of
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v18
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v18
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe
                                                                          C_match_94
                                                                          (coe C_case_72 v18 v16))
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v21 v22 v23
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v21 v22 v23
                                                                  -> let v24 = coe v2 v0 v3 v4 in
                                                                     coe
                                                                       (case coe v24 of
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v25
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v25
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                 (coe
                                                                                    C_istranslation_88
                                                                                    v25)
-                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v28 v29 v30
+                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v28 v29 v30
                                                                            -> coe
-                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                                 v28 v29 v30
                                                                          _ -> MAlonzo.RTE.mazUnreachableError)
                                                                _ -> MAlonzo.RTE.mazUnreachableError)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v19 v20 v21
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v19 v20 v21
                                                        -> let v22 = coe v2 v0 v3 v4 in
                                                           coe
                                                             (case coe v22 of
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v23
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v23
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                       (coe C_istranslation_88 v23)
-                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v26 v27 v28
+                                                               MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v26 v27 v28
                                                                  -> coe
-                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                       v26 v27 v28
                                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2284,13 +2284,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2306,13 +2306,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v9
@@ -2330,13 +2330,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v11 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v11 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v12
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v12
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v12)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v15 v16 v17
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v15 v16 v17
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v15 v16 v17
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -2354,13 +2354,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -2376,13 +2376,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -2398,13 +2398,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -2420,13 +2420,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -2442,13 +2442,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -2464,13 +2464,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -2486,13 +2486,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -2508,13 +2508,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v14 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v14 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v15
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v15
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v15)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v18 v19 v20
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v18 v19 v20
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v18 v19 v20
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -2577,7 +2577,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                              then coe
                                                                                     seq (coe v18)
                                                                                     (coe
-                                                                                       MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                       MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                        (coe
                                                                                           C_match_94
                                                                                           (coe
@@ -2592,15 +2592,15 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                                      coe
                                                                                        (case coe
                                                                                                v19 of
-                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v20
+                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v20
                                                                                             -> coe
-                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                                  (coe
                                                                                                     C_istranslation_88
                                                                                                     v20)
-                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v23 v24 v25
+                                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v23 v24 v25
                                                                                             -> coe
-                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                                                  v23
                                                                                                  v24
                                                                                                  v25
@@ -2621,7 +2621,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                               then coe
                                                                                      seq (coe v18)
                                                                                      (coe
-                                                                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                         (coe
                                                                                            C_match_94
                                                                                            (coe
@@ -2637,15 +2637,15 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                                                       coe
                                                                                         (case coe
                                                                                                 v19 of
-                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v20
+                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v20
                                                                                              -> coe
-                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                                                                   (coe
                                                                                                      C_istranslation_88
                                                                                                      v20)
-                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v23 v24 v25
+                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v23 v24 v25
                                                                                              -> coe
-                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                                                                   v23
                                                                                                   v24
                                                                                                   v25
@@ -2665,13 +2665,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v8
@@ -2689,13 +2689,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            -> let v10 = coe v2 v0 v3 v4 in
                                               coe
                                                 (case coe v10 of
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v11
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v11
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                           (coe C_istranslation_88 v11)
-                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v14 v15 v16
+                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v14 v15 v16
                                                      -> coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                           v14 v15 v16
                                                    _ -> MAlonzo.RTE.mazUnreachableError)
                                          _ -> coe v6
@@ -2713,13 +2713,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v7
@@ -2735,13 +2735,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v7
@@ -2757,13 +2757,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v7
@@ -2779,13 +2779,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v7
@@ -2801,13 +2801,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v7
@@ -2823,13 +2823,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v7
@@ -2845,13 +2845,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v7
@@ -2867,13 +2867,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v13 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v13 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v14
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v14
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v14)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v17 v18 v19
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v17 v18 v19
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v17 v18 v19
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v7
@@ -2889,13 +2889,13 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                              -> let v12 = coe v2 v0 v3 v4 in
                                                 coe
                                                   (case coe v12 of
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v13
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v13
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                             (coe C_istranslation_88 v13)
-                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v16 v17 v18
+                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v16 v17 v18
                                                        -> coe
-                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64
                                                             v16 v17 v18
                                                      _ -> MAlonzo.RTE.mazUnreachableError)
                                            _ -> coe v7
@@ -2909,7 +2909,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                       -> case coe v9 of
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v10
                                              -> coe
-                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                                   (coe C_match_94 (coe C_error_78))
                                            _ -> coe v7
                                     _ -> coe v7
@@ -2928,10 +2928,10 @@ d_decPointwiseTranslation'63'_172 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38) ->
+   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50) ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
 d_decPointwiseTranslation'63'_172 v0 ~v1 v2 v3 v4 v5
   = du_decPointwiseTranslation'63'_172 v0 v2 v3 v4 v5
 du_decPointwiseTranslation'63'_172 ::
@@ -2942,28 +2942,28 @@ du_decPointwiseTranslation'63'_172 ::
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
-   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38) ->
+   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50) ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
 du_decPointwiseTranslation'63'_172 v0 v1 v2 v3 v4
   = case coe v3 of
       []
         -> case coe v4 of
              []
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                    MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                     (coe
                        MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.C_'91''93'_56)
              (:) v5 v6
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v1 v3 v4
+                    MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v1 v3 v4
              _ -> MAlonzo.RTE.mazUnreachableError
       (:) v5 v6
         -> case coe v4 of
              []
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v1 v3 v4
+                    MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v1 v3 v4
              (:) v7 v8
                -> let v9
                         = coe
@@ -2976,22 +2976,22 @@ du_decPointwiseTranslation'63'_172 v0 v1 v2 v3 v4
                                (coe v6) (coe v8) in
                      coe
                        (case coe v9 of
-                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v11
+                          MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v11
                             -> case coe v10 of
-                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v12
+                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v12
                                    -> coe
-                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
+                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56
                                         (coe
                                            MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.C__'8759'__62
                                            v11 v12)
-                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v15 v16 v17
+                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v15 v16 v17
                                    -> coe
-                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v15 v16
+                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v15 v16
                                         v17
                                  _ -> MAlonzo.RTE.mazUnreachableError
-                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v14 v15 v16
+                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v14 v15 v16
                             -> coe
-                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v14 v15 v16
+                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_64 v14 v15 v16
                           _ -> MAlonzo.RTE.mazUnreachableError))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
