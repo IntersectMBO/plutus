@@ -491,6 +491,7 @@ library untyped-plutus-core-testlib
     Transform.CaseOfCase.Spec
     Transform.EvaluateBuiltins.Spec
     Transform.Inline.Spec
+    Transform.Lib
     Transform.Simplify.Lib
     Transform.Simplify.Spec
 
