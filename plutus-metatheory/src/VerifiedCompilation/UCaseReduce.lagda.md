@@ -38,7 +38,7 @@ open import Data.Maybe
 open import Data.List using (List; _∷_; []; [_])
 open import Data.Product
 open import Data.Unit using (tt)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Fin using (Fin)
 open import Data.Integer using (ℤ ; +_; -[1+_])
@@ -54,6 +54,8 @@ open import Untyped.Equality
 open import Untyped.Reduction using (iterApp)
 open import Untyped.Relation.Binary
 open import Untyped.Relation.Binary.Modular
+open import Untyped.Relation.Binary.Modular.Patterns
+open import Untyped.Relation.Binary.Modular.Structures
 open import Untyped.Transform
 open Untyped.Transform.Refines?
 open import Untyped.CEK using (lookup?)
@@ -151,14 +153,14 @@ Combining the reduction rules:
 Reduction : RelationT
 Reduction
   = CaseConstr
-  + CaseUnit
-  + CaseFalse₁
-  + CaseBool
-  + CaseInteger
-  + CaseCons₁
-  + CaseCons₂
-  + CaseNil
-  + CasePair
+  ⊕ CaseUnit
+  ⊕ CaseFalse₁
+  ⊕ CaseBool
+  ⊕ CaseInteger
+  ⊕ CaseCons₁
+  ⊕ CaseCons₂
+  ⊕ CaseNil
+  ⊕ CasePair
 ```
 
 The equivalence is closed under the reduction rules and compatibility
@@ -166,7 +168,7 @@ rules
 
 ```
 _~_ : Relation
-_~_ = Fix (Reduction + CompatTerm + Transitivity + Symmetry + Reflexivity)
+_~_ = Fix (Reduction ⊕ CompatTerm ⊕ Transitivity ⊕ Symmetry ⊕ Reflexivity)
 ```
 
 Pattern synonyms for constructors:
@@ -399,6 +401,37 @@ sound eq =
   cr-trans
     case-reduce-refines
     (cr-refl' eq)
+```
+
+## Counting optimization sites
+
+```
+numSitesCaseReduce :
+  ∀ {X} {M N : X ⊢}
+  → M ~ N
+  → ℕ
+numSitesCaseReduce* :
+  ∀ {X} {Ms Ns : List (X ⊢)}
+  → Pointwise _~_ Ms Ns
+  → ℕ
+
+numSitesCaseReduce (cr-reduction _)                = 1
+numSitesCaseReduce (cr-trans p q)                  = numSitesCaseReduce p + numSitesCaseReduce q
+numSitesCaseReduce (cr-sym p)                      = numSitesCaseReduce p
+numSitesCaseReduce (cr-refl)                       = 0
+numSitesCaseReduce (cr-compat (compat-varF n))     = 0
+numSitesCaseReduce (cr-compat (compat-lambdaF p))  = numSitesCaseReduce p
+numSitesCaseReduce (cr-compat (compat-applyF p q)) = numSitesCaseReduce p + numSitesCaseReduce q
+numSitesCaseReduce (cr-compat (compat-forceF p))   = numSitesCaseReduce p
+numSitesCaseReduce (cr-compat (compat-delayF p))   = numSitesCaseReduce p
+numSitesCaseReduce (cr-compat (compat-conF))       = 0
+numSitesCaseReduce (cr-compat (compat-constrF ps)) = numSitesCaseReduce* ps
+numSitesCaseReduce (cr-compat (compat-caseF p qs)) = numSitesCaseReduce p + numSitesCaseReduce* qs
+numSitesCaseReduce (cr-compat (compat-builtinF))   = 0
+numSitesCaseReduce (cr-compat (compat-errorF))     = 0
+
+numSitesCaseReduce* [] = 0
+numSitesCaseReduce* (x ∷ xs) = numSitesCaseReduce x + numSitesCaseReduce* xs
 ```
 
 ### Deciding `_~_`
