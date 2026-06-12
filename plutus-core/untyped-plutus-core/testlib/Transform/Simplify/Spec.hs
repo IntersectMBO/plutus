@@ -153,7 +153,10 @@ inlineImpure3 =
 to an impure term such as @error@. -}
 inlineImpure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlineImpure4 =
-  mkInlinePurityTest ([name "a"], force . force . force . delay $ delay (var "a"))
+  mkInlinePurityTest
+    ( [name "a"]
+    , force . force . force . delay . delay $ var "a"
+    )
 
 {-| @(\a -> f (a 0 1) (a 2)) (\x y -> g x y)@
 
