@@ -137,9 +137,8 @@ decodeTerm
   => Version
   -> (Some (ValueOf uni) -> Maybe String)
   -> (fun -> Maybe String)
-  -> (Int -> Maybe String)
   -> Get (Term name uni fun ann)
-decodeTerm version constantPred builtinPred constrPred = go
+decodeTerm version constantPred builtinPred = go
   where
     go = handleTerm =<< decodeTermTag
     handleTerm 0 = Var <$> decode <*> decode
@@ -172,12 +171,7 @@ decodeTerm version constantPred builtinPred constrPred = go
       Constr
         <$> decode
         <*> decode
-        <*> ( do
-                fields <- decodeListWith go
-                case constrPred (length fields) of
-                  Nothing -> pure fields
-                  Just e -> fail e
-            )
+        <*> decodeListWith go
     handleTerm 9 = do
       unless (version >= PLC.plcVersion110) $
         fail $
@@ -241,12 +235,11 @@ decodeProgram
      )
   => (Some (ValueOf uni) -> Maybe String)
   -> (fun -> Maybe String)
-  -> (Int -> Maybe String)
   -> Get (Program name uni fun ann)
-decodeProgram constantPred builtinPred constrPred = do
+decodeProgram constantPred builtinPred = do
   ann <- decode
   v <- decode
-  Program ann v <$> decodeTerm v constantPred builtinPred constrPred
+  Program ann v <$> decodeTerm v constantPred builtinPred
 
 sizeProgram
   :: forall name uni fun ann
@@ -301,6 +294,6 @@ instance
   => Flat (UnrestrictedProgram name uni fun ann)
   where
   encode (UnrestrictedProgram p) = encodeProgram p
-  decode = UnrestrictedProgram <$> decodeProgram (const Nothing) (const Nothing) (const Nothing)
+  decode = UnrestrictedProgram <$> decodeProgram (const Nothing) (const Nothing)
 
   size (UnrestrictedProgram p) = sizeProgram p

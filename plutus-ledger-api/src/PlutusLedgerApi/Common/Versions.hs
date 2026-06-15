@@ -363,12 +363,11 @@ plcVersionsAvailableIn = collectUpTo . plcVersionsIntroducedIn
 
 data MaxBounds = MaxBounds
   { mbHeader :: Int
-  , mbConstr :: Int
   }
 
 maxBoundsByPV :: MajorProtocolVersion -> MaxBounds
 maxBoundsByPV pv =
   if pv >= vanRossemPV
-    then MaxBounds {mbHeader = 32, mbConstr = 1024}
-    else MaxBounds {mbHeader = maxBound, mbConstr = maxBound}
+    then MaxBounds {mbHeader = 32}
+    else MaxBounds {mbHeader = maxBound}
 {-# INLINE maxBoundsByPV #-}

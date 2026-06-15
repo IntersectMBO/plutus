@@ -201,8 +201,7 @@ scriptCBORDecoder ll pv =
   let availableBuiltins = builtinsAvailableIn ll pv
       maxBounds = maxBoundsByPV pv
       maxBoundHeader = mbHeader maxBounds
-      maxBoundConstr = mbConstr maxBounds
-      flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin checkConstr
+      flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin
 
       checkConstant (Some (ValueOf uni _))
         | defaultUniSize uni <= maxBoundHeader = Nothing
@@ -222,15 +221,6 @@ scriptCBORDecoder ll pv =
                 ++ " is not available in language "
                 ++ show (pretty ll)
                 ++ " at and protocol version "
-                ++ show (pretty pv)
-
-      checkConstr n
-        | n <= maxBoundConstr = Nothing
-        | otherwise =
-            Just $
-              "constr with "
-                ++ show n
-                ++ " fields is not available in protocol version "
                 ++ show (pretty pv)
    in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
