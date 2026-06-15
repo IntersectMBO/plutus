@@ -4,15 +4,18 @@ module Harness
   ( ServiceHandle (..)
   , withEvaluatorService
   , findEvaluatorExecutable
+  , stopProcessBounded
   ) where
 
 import Control.Concurrent (threadDelay)
 import Control.Exception (bracket)
-import System.Directory (findExecutable, removeDirectoryRecursive)
+import System.Directory (findExecutable, removePathForcibly)
 import System.Exit (ExitCode (..))
 import System.IO (hPutStrLn, stderr)
 import System.IO.Temp (createTempDirectory, getCanonicalTemporaryDirectory)
+import System.Posix.Signals (sigKILL, signalProcess)
 import System.Process
+import System.Timeout (timeout)
 
 -- | Handle to a running evaluator service instance
 data ServiceHandle = ServiceHandle
@@ -74,20 +77,57 @@ withEvaluatorService executablePath action =
     stopService :: ServiceHandle -> IO ()
     stopService ServiceHandle {..} = do
       hPutStrLn stderr "Stopping uplc-evaluator service"
+      stopProcessBounded gracefulShutdownMicros shProcessHandle
 
-      -- Send SIGTERM for graceful shutdown
-      terminateProcess shProcessHandle
-
-      -- Wait for process to exit
-      exitCode <- waitForProcess shProcessHandle
-      case exitCode of
-        ExitSuccess -> hPutStrLn stderr "Service stopped successfully"
-        ExitFailure code -> hPutStrLn stderr $ "Service exited with code: " ++ show code
-
-      -- Clean up temporary directories
+      -- Clean up temporary directories. removePathForcibly tolerates the path
+      -- already being gone; an exception here fails the test loudly rather
+      -- than hanging.
       hPutStrLn stderr "Cleaning up temporary directories"
-      removeDirectoryRecursive shInputDir
-      removeDirectoryRecursive shOutputDir
+      removePathForcibly shInputDir
+      removePathForcibly shOutputDir
+
+-- | Grace period (microseconds) between SIGTERM and SIGKILL escalation.
+gracefulShutdownMicros :: Int
+gracefulShutdownMicros = 5000000 -- 5 seconds
+
+{- Note [Bounded service shutdown]
+'waitForProcess' with no timeout blocks until the child exits. If the child
+ignores or misses the SIGTERM from 'terminateProcess', that wait never returns,
+so teardown — and the whole test run — hangs (plutus-private#2257). We bound
+every blocking step instead:
+
+  1. SIGTERM, then wait up to the grace period.
+  2. On expiry, SIGKILL via the raw pid, then wait (bounded again) to reap.
+  3. If even that expires (a process wedged in uninterruptible disk sleep can
+     outlast SIGKILL), give up and leave it: the runner exits moments later and
+     init reaps the orphan. Blocking here would be strictly worse.
+
+This runs inside 'bracket''s cleanup, under interruptible 'mask'.
+'System.Timeout.timeout' relies on an async exception, and 'waitForProcess'
+blocks interruptibly on the threaded RTS (the suite is built with -threaded),
+so the timeout fires as intended.
+-}
+
+{-| Terminate a process without ever blocking indefinitely.
+See Note [Bounded service shutdown]. -}
+stopProcessBounded :: Int -> ProcessHandle -> IO ()
+stopProcessBounded graceMicros ph = do
+  terminateProcess ph
+  mExit <- timeout graceMicros (waitForProcess ph)
+  case mExit of
+    Just exitCode -> reportExit exitCode
+    Nothing -> do
+      hPutStrLn stderr "Service did not exit after SIGTERM; escalating to SIGKILL"
+      mPid <- getPid ph
+      mapM_ (signalProcess sigKILL) mPid
+      mExit' <- timeout graceMicros (waitForProcess ph)
+      case mExit' of
+        Just exitCode -> reportExit exitCode
+        Nothing -> hPutStrLn stderr "Service survived SIGKILL; abandoning it unreaped"
+  where
+    reportExit ExitSuccess = hPutStrLn stderr "Service stopped successfully"
+    reportExit (ExitFailure code) =
+      hPutStrLn stderr $ "Service exited with code: " ++ show code
 
 {-| Find the uplc-evaluator executable
 
