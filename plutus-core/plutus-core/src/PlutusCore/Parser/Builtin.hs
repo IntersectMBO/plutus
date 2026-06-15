@@ -91,10 +91,10 @@ conArray :: DefaultUni (Esc a) -> Parser (Vector a)
 conArray uniA = Vector.fromList <$> conList uniA
 
 {-| Parser for values.  This fails if the value isn't in canonical form, ie if
-there are any zero or out-of-bounds quantities or if any currency or token
-IDs are too big or if the currency IDs or token IDs aren't in strictly
-ascending order.  For simplicity these checks happen only after the value has
-been parsed, so the location will be inaccurate in general.  The error
+there are any zero or out-of-bounds quantities or if any currency or token IDs
+are too big or if the currency IDs or the token IDs for each currency aren't in
+strictly ascending order.  For simplicity these checks happen only after the
+value has been parsed, so the location will be inaccurate in general.  The error
 messages should be detailed enough to see what's causing any error though.
 There's some duplication of checks carried out by Value.fromList. -}
 conValue :: Parser PLC.Value
