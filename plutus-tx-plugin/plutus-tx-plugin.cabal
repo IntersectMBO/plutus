@@ -56,11 +56,24 @@ library
   hs-source-dirs:  src
   exposed-modules:
     Plinth.Plugin
+    PlutusTx.Plugin.Deriving.Via
     PlutusTx.Compiler.Error
     PlutusTx.Options
     PlutusTx.Plugin.Common
 
   other-modules:
+    Paths_plutus_tx_plugin
+    PlutusTx.Plugin.Deriving
+    PlutusTx.Plugin.Deriving.Constant.Module
+    PlutusTx.Plugin.Deriving.Generator.AsData
+    PlutusTx.Plugin.Deriving.Generator.Common
+    PlutusTx.Plugin.Deriving.Generator.Match
+    PlutusTx.Plugin.Deriving.Generator.Optics
+    PlutusTx.Plugin.Deriving.Hs
+    PlutusTx.Plugin.Deriving.Hsc
+    PlutusTx.Plugin.Deriving.Type.Constructor
+    PlutusTx.Plugin.Deriving.Type.Field
+    PlutusTx.Plugin.Deriving.Type.Type
     PlutusTx.Compiler.Binders
     PlutusTx.Compiler.Builtins
     PlutusTx.Compiler.Compat
@@ -76,6 +89,8 @@ library
     PlutusTx.PLCTypes
     PlutusTx.Plugin.Boilerplate
     PlutusTx.Plugin.Unsupported
+
+  autogen-modules:  Paths_plutus_tx_plugin
 
   build-depends:
     , array
@@ -242,8 +257,10 @@ test-suite frontend-plugin-tests
   hs-source-dirs: test-frontend-plugin
   main-is:        Spec.hs
   other-modules:
+    AsData.Spec
     Inlineable.Lib
     Inlineable.Spec
+    Match.Spec
     NoStrict.Spec
     Strict.Spec
 
@@ -254,6 +271,7 @@ test-suite frontend-plugin-tests
     , plutus-tx-plugin                 ^>=1.65
     , plutus-tx:plutus-tx-testlib
     , tasty
+    , tasty-hunit
 
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
 
