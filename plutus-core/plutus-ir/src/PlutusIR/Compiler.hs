@@ -178,12 +178,14 @@ recInlinePasses :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Pro
 recInlinePasses = do
   optimize <- view (ccOpts . coOptimize)
   tcconfig <- view ccTypeCheckConfig
+  binfo <- view ccBuiltinsInfo
+  inlineConstants <- view (ccOpts . coInlineConstants)
   pure $
     mwhen optimize $
       P.NamedPass "recursive inline" $
         fold
           [ RecSplit.recSplitPass tcconfig
-          , RecInline.recInlinePassSC tcconfig
+          , RecInline.recInlinePassSC binfo inlineConstants tcconfig
           , RecSplit.recSplitPass tcconfig
           ]
 
