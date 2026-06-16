@@ -1,11 +1,11 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 
 module PlutusCore.Parser.Builtin where
 
 import PlutusPrelude (Word8, reoption, void)
 
-import PlutusCore.Builtin.Result qualified
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Data
@@ -14,11 +14,10 @@ import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
 import PlutusCore.Name.Unique
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
-import PlutusCore.Pretty (display, prettyBytes)
+import PlutusCore.Pretty (display)
 import PlutusCore.Value qualified as PLC (Value)
 import PlutusCore.Value qualified as Value
 
-import Control.Monad (when)
 import Control.Monad.Combinators
 import Data.ByteString (ByteString, pack)
 import Data.Map.Strict qualified as Map
@@ -26,12 +25,31 @@ import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
-import Text.Megaparsec (customFailure, getSourcePos, takeWhileP)
+import Text.Megaparsec
+  ( customFailure
+  , getSourcePos
+  , takeWhileP
+  )
 import Text.Megaparsec.Char (char, hexDigitChar, string)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
 cachedBuiltin :: Map.Map T.Text DefaultFun
 cachedBuiltin = Map.fromList [(display fn, fn) | fn <- [minBound .. maxBound]]
+
+-- | Parser of constants whose type is in 'DefaultUni'.
+constant :: Parser (Some (ValueOf DefaultUni))
+constant = do
+  -- Parse the type tag.
+  SomeTypeIn (Kinded uni) <- defaultUni
+  -- Check it's of kind @*@, because a constant that we're about to parse can only be of type of
+  -- kind @*@.
+  Refl <- reoption $ checkStar uni
+  -- Parse the constant of the type represented by the type tag.
+  someValueOf uni <$> constantOf ExpectParensYes uni
+
+data ExpectParens
+  = ExpectParensYes
+  | ExpectParensNo
 
 -- | Parser for builtin functions. Atm the parser can only parse `DefaultFun`.
 builtinFunction :: Parser DefaultFun
@@ -89,59 +107,6 @@ conList uniA =
 -- | Parser for arrays.
 conArray :: DefaultUni (Esc a) -> Parser (Vector a)
 conArray uniA = Vector.fromList <$> conList uniA
-
-{-| Parser for values.  This fails if the value isn't in canonical form, ie if
-there are any zero or out-of-bounds quantities or if any currency or token IDs
-are too big or if the currency IDs or the token IDs for each currency aren't in
-strictly ascending order.  For simplicity these checks happen only after the
-value has been parsed, so the location will be inaccurate in general.  The error
-messages should be detailed enough to see what's causing any error though.
-There's some duplication of checks carried out by Value.fromList. -}
-conValue :: Parser PLC.Value
-conValue = do
-  nestedList <- traverse validateCurrencyEntry =<< conList knownUni
-  -- Note that bound checks are performed before the ID ordering checks.
-  checkAscending "Currency IDs" (map fst nestedList)
-  mapM_ (\(_, toks) -> checkAscending "Token IDs" (map fst toks)) nestedList
-  case Value.fromList nestedList of
-    PlutusCore.Builtin.Result.BuiltinSuccess v -> pure v
-    PlutusCore.Builtin.Result.BuiltinSuccessWithLogs _logs v -> pure v
-    PlutusCore.Builtin.Result.BuiltinFailure logs _trace ->
-      fail $ "Failed to construct Value: " <> show logs
-  where
-    checkAscending _ [] = pure ()
-    checkAscending _ [_] = pure ()
-    checkAscending label (x : y : rest)
-      | x < y = checkAscending label (y : rest)
-      | otherwise =
-          fail $
-            label
-              <> " in value constant should be strictly ascending, but "
-              <> show (prettyBytes $ Value.unK x)
-              <> " >= "
-              <> show (prettyBytes $ Value.unK y)
-    validateCurrencyEntry (currency, tokens) = do
-      ck <-
-        maybe
-          (fail $ "Currency ID exceeds maximum length of 32 bytes: " <> show (prettyBytes currency))
-          pure
-          (Value.k currency)
-      when (null tokens) $ fail "Empty token map in value constant"
-      tks <- traverse validateTokenEntry tokens
-      pure (ck, tks)
-    validateTokenEntry (token, amt) = do
-      tk <-
-        maybe
-          (fail $ "Token ID exceeds maximum length of 32 bytes: " <> show (prettyBytes token))
-          pure
-          (Value.k token)
-      when (amt == 0) $ fail "Token quantity in value constant must be non-zero"
-      qty <-
-        maybe
-          (fail $ "Token quantity out of signed 128-bit integer bounds: " <> show amt)
-          pure
-          (Value.quantity amt)
-      pure (tk, qty)
 
 -- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
@@ -204,17 +169,52 @@ constantOf expectParens uni =
     DefaultUniBLS12_381_MlResult ->
       fail "Constants of type bls12_381_mlresult are not supported"
 
--- | Parser of constants whose type is in 'DefaultUni'.
-constant :: Parser (Some (ValueOf DefaultUni))
-constant = do
-  -- Parse the type tag.
-  SomeTypeIn (Kinded uni) <- defaultUni
-  -- Check it's of kind @*@, because a constant that we're about to parse can only be of type of
-  -- kind @*@.
-  Refl <- reoption $ checkStar uni
-  -- Parse the constant of the type represented by the type tag.
-  someValueOf uni <$> constantOf ExpectParensYes uni
+{-| Parser for values.  This fails if the value isn't in canonical form, ie if
+there are any zero or out-of-bounds quantities or if any currency or token IDs
+are too big or if the currency IDs or the token IDs for each currency aren't in
+strictly ascending order.  To get accurate error positions we check the bounds
+in the parser, but the ordering check is deferred to Value.buildValueWith. -}
+conValue :: Parser PLC.Value
+conValue =
+  parseNestedList >>= Value.buildValueWith "Invalid literal value" pure pure
+  where
+    parseListWith :: Parser a -> Parser [a]
+    parseListWith parseEntry =
+      trailingWhitespace . inBrackets $ parseEntry `sepBy` symbol ","
 
-data ExpectParens
-  = ExpectParensYes
-  | ExpectParensNo
+    -- Parse a pair consising of a bytestring key and something else.
+    parsePair
+      :: String -- Error message if key is out of bounds.
+      -> Parser t -- Parser for second entry.
+      -> (t -> Bool) -- A predicate saying whether the second entry is empty in some sense.
+      -> String -- Error message if the second entry is empty.
+      -> (t -> Parser b) -- Possible further validity checks on the second entry.
+      -> Parser (Value.K, b)
+    parsePair msg1 parse2nd isEmpty msg2 f =
+      trailingWhitespace . inParens $ do
+        -- Try to parse a key; if that succeeds, use Value.k to convert it
+        -- to a K, failing with msg1 if that doesn't work.
+        k <- conBS >>= maybe (fail msg1) pure . Value.k
+        _ <- symbol ","
+        -- Now parse the second entry of the pair.  Fail if it's empty,
+        -- otherwise apply f and pair the result with the key.
+        x <- parse2nd
+        (k,)
+          <$> if isEmpty x
+            then fail msg2
+            else f x
+
+    parseNestedList :: Parser [(Value.K, [(Value.K, Value.Quantity)])]
+    parseNestedList =
+      parseListWith $
+        parsePair
+          "Currency ID too long"
+          (parseListWith parseInnerEntry)
+          null
+          "Empty token list not allowed"
+          pure
+
+    parseInnerEntry :: Parser (Value.K, Value.Quantity)
+    parseInnerEntry =
+      parsePair "Token ID too long" conInteger (== 0) "Token quantities of zero are not allowed" $
+        maybe (fail "Quantity out of bounds") pure . Value.quantity

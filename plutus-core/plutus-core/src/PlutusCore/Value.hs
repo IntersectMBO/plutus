@@ -36,12 +36,19 @@ module PlutusCore.Value
   , valueData
   , valueDataMaxSize
   , unValueData
+  , buildValueWith
   ) where
 
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.Serialise qualified as CBOR
 import Control.DeepSeq (NFData)
-import Control.Monad.Extra (replicateM, unless, when, whenJust, (>=>))
+import Control.Monad.Extra
+  ( replicateM
+  , unless
+  , when
+  , whenJust
+  , (>=>)
+  )
 import Data.Bifunctor
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
