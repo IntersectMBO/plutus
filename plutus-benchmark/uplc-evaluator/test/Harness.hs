@@ -97,7 +97,9 @@ so teardown — and the whole test run — hangs (plutus-private#2257). We bound
 every blocking step instead:
 
   1. SIGTERM, then wait up to the grace period.
-  2. On expiry, SIGKILL via the raw pid, then wait (bounded again) to reap.
+  2. On expiry, re-check the exit code (the wait may have been interrupted just
+     as the process exited); if still running, SIGKILL via the raw pid, then
+     wait (bounded again) to reap.
   3. If even that expires (a process wedged in uninterruptible disk sleep can
      outlast SIGKILL), give up and leave it: the runner exits moments later and
      init reaps the orphan. Blocking here would be strictly worse.
@@ -117,13 +119,19 @@ stopProcessBounded graceMicros ph = do
   case mExit of
     Just exitCode -> reportExit exitCode
     Nothing -> do
-      hPutStrLn stderr "Service did not exit after SIGTERM; escalating to SIGKILL"
-      mPid <- getPid ph
-      mapM_ (signalProcess sigKILL) mPid
-      mExit' <- timeout graceMicros (waitForProcess ph)
-      case mExit' of
+      -- The wait may have been interrupted by 'timeout' just as the process
+      -- exited, so confirm it is still running before escalating.
+      mExited <- getProcessExitCode ph
+      case mExited of
         Just exitCode -> reportExit exitCode
-        Nothing -> hPutStrLn stderr "Service survived SIGKILL; abandoning it unreaped"
+        Nothing -> do
+          hPutStrLn stderr "Service did not exit after SIGTERM; escalating to SIGKILL"
+          mPid <- getPid ph
+          mapM_ (signalProcess sigKILL) mPid
+          mExit' <- timeout graceMicros (waitForProcess ph)
+          case mExit' of
+            Just exitCode -> reportExit exitCode
+            Nothing -> hPutStrLn stderr "Service survived SIGKILL; abandoning it unreaped"
   where
     reportExit ExitSuccess = hPutStrLn stderr "Service stopped successfully"
     reportExit (ExitFailure code) =
