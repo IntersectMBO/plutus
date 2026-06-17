@@ -592,6 +592,26 @@ instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni te
 instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Word where
     readKnown term = fromIntegral @Word64 @Word <$> readKnown term
     {-# INLINE readKnown #-}
+#else
+-- On non-64-bit platforms (e.g. wasm32), UPLC evaluation is unsupported, but
+-- we still need these instances so that the builtin machinery compiles.
+deriving via AsInteger Int instance
+        KnownTypeAst tyname DefaultUni Int
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Int where
+    makeKnown = error "UPLC evaluation is not supported on non-64-bit platforms"
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Int where
+    readKnown = error "UPLC evaluation is not supported on non-64-bit platforms"
+    {-# INLINE readKnown #-}
+
+deriving via AsInteger Word instance
+        KnownTypeAst tyname DefaultUni Word
+instance KnownBuiltinTypeIn DefaultUni term Integer => MakeKnownIn DefaultUni term Word where
+    makeKnown = error "UPLC evaluation is not supported on non-64-bit platforms"
+    {-# INLINE makeKnown #-}
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Word where
+    readKnown = error "UPLC evaluation is not supported on non-64-bit platforms"
+    {-# INLINE readKnown #-}
 #endif
 
 deriving via

@@ -8,6 +8,7 @@
 -- | Types and their functions, and general utility (including heuristics) for inlining.
 module PlutusIR.Transform.Inline.Utils where
 
+import PlutusCore.Analysis.Usages qualified as Usages
 import PlutusCore.Annotation
 import PlutusCore.AstSize
 import PlutusCore.Builtin qualified as PLC
@@ -19,7 +20,6 @@ import PlutusCore.Rename
 import PlutusCore.Subst (typeSubstTyNamesM)
 import PlutusIR
 import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
 import PlutusIR.AstSize qualified as PIR
 import PlutusIR.Purity (EvalTerm (..), Purity (..), isPure, termEvaluationOrder, unEvalOrder)

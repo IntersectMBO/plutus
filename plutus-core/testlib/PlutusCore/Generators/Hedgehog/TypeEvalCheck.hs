@@ -104,10 +104,10 @@ typeEvalCheckBy
             (Term TyName Name uni fun ())
      )
   -- ^ An evaluator.
-  -> TermOf (Term TyName Name uni fun ()) a
-  -> TypeEvalCheckM uni fun (TermOf (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
-typeEvalCheckBy eval (TermOf term (x :: a)) =
-  TermOf term <$> do
+  -> TermWith (Term TyName Name uni fun ()) a
+  -> TypeEvalCheckM uni fun (TermWith (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
+typeEvalCheckBy eval (TermWith term (x :: a)) =
+  TermWith term <$> do
     let tyExpected = runQuote . normalizeType $ toTypeAst (Proxy @a)
         valExpected = makeKnownOrFail x
     tyActual <- runQuoteT $ modifyError (TypeEvalCheckErrorIllFormed . TypeErrorE) $ do
@@ -130,16 +130,16 @@ unsafeTypeEvalCheck
      , KnownTypeAst TyName uni a
      , MakeKnown (Term TyName Name uni fun ()) a
      )
-  => TermOf (Term TyName Name uni fun ()) a
-  -> TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
-unsafeTypeEvalCheck termOfTbv = do
-  let errOrRes = typeEvalCheckBy (evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def) termOfTbv
+  => TermWith (Term TyName Name uni fun ()) a
+  -> TermWith (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
+unsafeTypeEvalCheck termWithTbv = do
+  let errOrRes = typeEvalCheckBy (evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def) termWithTbv
   case errOrRes of
     Left err ->
       error $
         concat
           [ prettyPlcErrorString err
           , "\nin\n"
-          , render . prettyPlcClassicSimple $ _termOfTerm termOfTbv
+          , render . prettyPlcClassicSimple $ _termWithTerm termWithTbv
           ]
-    Right termOfTecr -> _termCheckResultValue <$> termOfTecr
+    Right termWithTecr -> _termCheckResultValue <$> termWithTecr

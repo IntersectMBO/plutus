@@ -99,7 +99,7 @@ test_names =
         (genTerm @DefaultFun)
         T.BindingRemovalNotOk
         T.PrerenameNo
-        (evalOptimizerT . floatDelay)
+        (evalOptimizerT . floatDelay maxBound)
     , T.test_scopingGood
         "force-delay"
         (genTerm @DefaultFun)

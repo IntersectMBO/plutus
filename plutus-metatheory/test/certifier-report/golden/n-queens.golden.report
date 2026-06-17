@@ -25,7 +25,7 @@ Pass 3: Float bindings outwards  ✅
   Program Size: 3504 (after)
   Execution Cost: CPU = 283210581782, MEM = 1720009055 (before)
   Execution Cost: CPU = 283210581782, MEM = 1720009055 (after)
-  Optimization sites: 0
+  Optimization sites: 2
 
 ──────────────────────────────────────────────────────
 Pass 4: Force-Delay Cancellation  ✅
@@ -97,7 +97,7 @@ Pass 11: Float bindings outwards  ✅
   Program Size: 3170 (after)
   Execution Cost: CPU = 264858581782, MEM = 1605309055 (before)
   Execution Cost: CPU = 264858581782, MEM = 1605309055 (after)
-  Optimization sites: 0
+  Optimization sites: 38
 
 ──────────────────────────────────────────────────────
 Pass 12: Force-Delay Cancellation  ✅
@@ -169,7 +169,7 @@ Pass 19: Float bindings outwards  ✅
   Program Size: 2527 (after)
   Execution Cost: CPU = 217316549782, MEM = 1308171355 (before)
   Execution Cost: CPU = 217316549782, MEM = 1308171355 (after)
-  Optimization sites: 0
+  Optimization sites: 31
 
 ──────────────────────────────────────────────────────
 Pass 20: Force-Delay Cancellation  ✅
@@ -313,7 +313,7 @@ Pass 35: Float bindings outwards  ✅
   Program Size: 1846 (after)
   Execution Cost: CPU = 118993781782, MEM = 693654055 (before)
   Execution Cost: CPU = 118993781782, MEM = 693654055 (after)
-  Optimization sites: 0
+  Optimization sites: 4
 
 ──────────────────────────────────────────────────────
 Pass 36: Force-Delay Cancellation  ✅
@@ -898,7 +898,7 @@ Pass 100: Float bindings outwards  ✅
   Program Size: 1773 (after)
   Execution Cost: CPU = 117353877782, MEM = 683404655 (before)
   Execution Cost: CPU = 117353877782, MEM = 683404655 (after)
-  Optimization sites: 0
+  Optimization sites: 1
 
 ──────────────────────────────────────────────────────
 Pass 101: Force-Delay Cancellation  ✅

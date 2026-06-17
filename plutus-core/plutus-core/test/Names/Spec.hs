@@ -28,7 +28,7 @@ import PlutusCore
   )
 import PlutusCore qualified
 import PlutusCore.Error qualified as PLC
-import PlutusCore.Generators.Hedgehog (TermOf (..), forAllNoShowT, forAllPretty, generalizeT)
+import PlutusCore.Generators.Hedgehog (TermWith (..), forAllNoShowT, forAllPretty, generalizeT)
 import PlutusCore.Generators.Hedgehog.AST as AST
   ( genName
   , genProgram
@@ -61,9 +61,9 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
-prop_DeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
+prop_DeBruijn :: Gen (TermWith (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
 prop_DeBruijn gen = property $ generalizeT do
-  TermOf body _ <- forAllNoShowT gen
+  TermWith body _ <- forAllNoShowT gen
   let
     forward = deBruijnTerm
     backward

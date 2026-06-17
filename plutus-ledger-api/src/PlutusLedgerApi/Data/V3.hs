@@ -225,6 +225,8 @@ module PlutusLedgerApi.Data.V3
   , V2.upperBound
   , V2.strictLowerBound
   , V2.strictUpperBound
+  , V2.inclusiveLowerBound
+  , V2.inclusiveUpperBound
 
     -- *** Ratio
   , Ratio.Rational

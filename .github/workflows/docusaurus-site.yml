@@ -45,11 +45,12 @@ jobs:
           target-folder: docs
           single-commit: true
 
-      - name: Build Preview Site 
+      - name: Build Preview Site
         if: github.event_name == 'pull_request' && github.event.action != 'closed'
         working-directory: doc/docusaurus
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}" 
           # These match the URL expected by rossjrw/pr-preview-action@v1.6.2:
           export DOCUSAURUS_URL="https://plutus.cardano.intersectmbo.org"
           export DOCUSAURUS_BASE_URL="/pr-preview/docs/pr-${PR_NUMBER}"

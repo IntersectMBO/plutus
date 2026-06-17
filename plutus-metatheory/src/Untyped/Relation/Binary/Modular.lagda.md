@@ -56,11 +56,11 @@ RelationT = @++ Relation → Relation
 ## Basic combinators for relation transformers
 
 ```
-infixr 5 _+_
+infixr 5 _⊕_
 
-data _+_ (F G : RelationT) (@++ R : Relation) : Relation where
-  inl : ∀ {X} {M N : X ⊢} → F R M N → (F + G) R M N
-  inr : ∀ {X} {M N : X ⊢} → G R M N → (F + G) R M N
+data _⊕_ (F G : RelationT) (@++ R : Relation) : Relation where
+  inl : ∀ {X} {M N : X ⊢} → F R M N → (F ⊕ G) R M N
+  inr : ∀ {X} {M N : X ⊢} → G R M N → (F ⊕ G) R M N
 
 Empty : RelationT
 Empty R M N = ⊥
@@ -174,59 +174,10 @@ Term-compatibility can be constructed by using compatibility rules of all constr
 ```
 CompatTerm : RelationT
 CompatTerm
-  = CompatVar + CompatLambda + CompatApply + CompatForce + CompatDelay
-  + CompatCon + CompatConstr + CompatCase + CompatBuiltin + CompatError + Empty
+  = CompatVar ⊕ CompatLambda ⊕ CompatApply ⊕ CompatForce ⊕ CompatDelay
+  ⊕ CompatCon ⊕ CompatConstr ⊕ CompatCase ⊕ CompatBuiltin ⊕ CompatError ⊕ Empty
 ```
 
-## Pattern synonyms
-
-Convenient synonyms for constructing/matching cases of `CompatTerm`
-
-```
--- TODO: solve this with metaprogramming or typeclasses
-pattern p0 p = inl p
-pattern p1 p = inr (p0 p)
-pattern p2 p = inr (p1 p)
-pattern p3 p = inr (p2 p)
-pattern p4 p = inr (p3 p)
-pattern p5 p = inr (p4 p)
-pattern p6 p = inr (p5 p)
-pattern p7 p = inr (p6 p)
-pattern p8 p = inr (p7 p)
-pattern p9 p = inr (p8 p)
-
-pattern compat-varF n     = p0 (`F n)
-pattern compat-lambdaF p  = p1 (ƛF p)
-pattern compat-applyF p q = p2 (p ·F q)
-pattern compat-forceF p   = p3 (forceF p)
-pattern compat-delayF p   = p4 (delayF p)
-pattern compat-conF       = p5 conF
-pattern compat-constrF p  = p6 (constrF p)
-pattern compat-caseF p q  = p7 (caseF p q)
-pattern compat-builtinF   = p8 builtinF
-pattern compat-errorF     = p9 errorF
-```
-
-
-## Structures
-
-If a relation has the `CompatTerm` rules, then it forms a `TermCompatible` structure.
-
-```
-CompatTerm-TermCompatible : ∀ {R : Relation} → CompatTerm R ⊆ R → TermCompatible R
-CompatTerm-TermCompatible inj = record
-  { compat-var     = inj (compat-varF _)
-  ; compat-ƛ       = λ RM → inj (compat-lambdaF RM)
-  ; compat-·       = λ RM RN → inj (compat-applyF RM RN)
-  ; compat-force   = λ RM → inj (compat-forceF RM)
-  ; compat-delay   = λ RM → inj (compat-delayF RM)
-  ; compat-constr  = λ RMS → inj (compat-constrF RMS)
-  ; compat-case    = λ RM RMS → inj (compat-caseF RM RMS)
-  ; compat-con     = inj compat-conF
-  ; compat-builtin = inj compat-builtinF
-  ; compat-error   = inj compat-errorF
-  }
-```
 
 
 ## Decision procedures
@@ -245,13 +196,13 @@ DecidableT F =
 ## Decision procedures for combinators
 
 ```
-infixr 5 _+-dec_
-_+-dec_ :
+infixr 5 _⊕-dec_
+_⊕-dec_ :
   ∀ {F G : RelationT}
   → DecidableT F
   → DecidableT G
-  → DecidableT (F + G)
-_+-dec_ F? G? R? M M'
+  → DecidableT (F ⊕ G)
+_⊕-dec_ F? G? R? M M'
   with F? R? M M'
 ... | yes P = yes (inl P)
 ... | no ¬P
@@ -377,16 +328,16 @@ compatError? R? M M'
 compatTerm? : DecidableT CompatTerm
 compatTerm?
   =     compatVar?
-  +-dec compatLam?
-  +-dec compatApply?
-  +-dec compatForce?
-  +-dec compatDelay?
-  +-dec compatCon?
-  +-dec compatConstr?
-  +-dec compatCase?
-  +-dec compatBuiltin?
-  +-dec compatError?
-  +-dec empty?
+  ⊕-dec compatLam?
+  ⊕-dec compatApply?
+  ⊕-dec compatForce?
+  ⊕-dec compatDelay?
+  ⊕-dec compatCon?
+  ⊕-dec compatConstr?
+  ⊕-dec compatCase?
+  ⊕-dec compatBuiltin?
+  ⊕-dec compatError?
+  ⊕-dec empty?
 ```
 
 
@@ -400,7 +351,7 @@ _<|>_ :
   ∀ {F G : RelationT} {R : Relation}
   → Refinement? (F R)
   → Refinement? (G R)
-  → Refinement? ((F + G) R)
+  → Refinement? ((F ⊕ G) R)
 (f <|> g) M
   with f M
 ... | just (N , RMN) = just (N , inl RMN)
@@ -477,24 +428,24 @@ the compatibility rules for force and delay)
 ```
   RemoveFD : Relation
   RemoveFD = Fix
-    ( ForceApply + DelayLambda
-    + CompatVar + CompatLambda + CompatApply
-    + CompatCon + CompatConstr + CompatCase
-    + CompatBuiltin + CompatError
+    ( ForceApply ⊕ DelayLambda
+    ⊕ CompatVar ⊕ CompatLambda ⊕ CompatApply
+    ⊕ CompatCon ⊕ CompatConstr ⊕ CompatCase
+    ⊕ CompatBuiltin ⊕ CompatError
     )
 
   dec-RemoveFD : DecidableRel RemoveFD
   dec-RemoveFD = Fix-dec
     (     dec-ForceApply
-    +-dec dec-DelayLambda
-    +-dec compatVar?
-    +-dec compatLam?
-    +-dec compatApply?
-    +-dec compatCon?
-    +-dec compatConstr?
-    +-dec compatCase?
-    +-dec compatBuiltin?
-    +-dec compatError?
+    ⊕-dec dec-DelayLambda
+    ⊕-dec compatVar?
+    ⊕-dec compatLam?
+    ⊕-dec compatApply?
+    ⊕-dec compatCon?
+    ⊕-dec compatConstr?
+    ⊕-dec compatCase?
+    ⊕-dec compatBuiltin?
+    ⊕-dec compatError?
     )
 ```
 
