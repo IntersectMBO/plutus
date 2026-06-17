@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Transform.EvaluateBuiltins.Spec where
@@ -6,12 +5,11 @@ module Transform.EvaluateBuiltins.Spec where
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BS8
-import Data.Text (Text)
 import PlutusCore qualified as PLC
-import PlutusCore.MkPlc (mkConstant, mkIterApp)
-import PlutusCore.Quote (freshName, runQuote)
+import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree, testGroup)
+import Transform.Lib (app, builtin, builtinTrue, con, force, ite, lam, text, var)
 import Transform.Simplify.Lib (goldenVsPretty)
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Transform.EvaluateBuiltins (evaluateBuiltinsPass)
@@ -39,8 +37,8 @@ test_evaluateBuiltins =
         ]
 
 goldenVsEvaluated :: Bool -> String -> Term Name DefaultUni DefaultFun () -> TestTree
-goldenVsEvaluated conservative name =
-  goldenVsPretty ".golden.uplc" ("EvaluateBuiltins/" ++ name)
+goldenVsEvaluated conservative testName =
+  goldenVsPretty ".golden.uplc" ("EvaluateBuiltins/" ++ testName)
     . runEvaluateBuiltins conservative
 
 runEvaluateBuiltins
@@ -50,73 +48,36 @@ runEvaluateBuiltins
 runEvaluateBuiltins conservative = evalOptimizer . evaluateBuiltinsPass conservative def def
 
 addIntegerTerm :: Term Name DefaultUni DefaultFun ()
-addIntegerTerm =
-  Apply
-    ()
-    (Apply () (Builtin () PLC.AddInteger) (mkConstant @Integer () 1))
-    (mkConstant @Integer () 2)
+addIntegerTerm = builtin PLC.AddInteger `app` con 1 `app` con 2
 
 ifThenElseTerm :: Term Name DefaultUni DefaultFun ()
-ifThenElseTerm =
-  mkIterApp
-    (Force () (Builtin () PLC.IfThenElse))
-    [ ((), mkConstant @Bool () True)
-    , ((), mkConstant @Integer () 1)
-    , ((), mkConstant @Integer () 2)
-    ]
+ifThenElseTerm = ite builtinTrue (con 1) (con 2)
 
 -- Used for both traceConservative (unchanged) and traceNonConservative (reduced to 1)
 traceTerm :: Term Name DefaultUni DefaultFun ()
-traceTerm =
-  Apply
-    ()
-    (Apply () (Force () (Builtin () PLC.Trace)) (mkConstant @Text () "hello"))
-    (mkConstant @Integer () 1)
+traceTerm = force (builtin PLC.Trace) `app` text "hello" `app` con 1
 
 -- Division by zero; evaluates to error so should be left in place
 failingBuiltinTerm :: Term Name DefaultUni DefaultFun ()
-failingBuiltinTerm =
-  Apply
-    ()
-    (Apply () (Builtin () PLC.DivideInteger) (mkConstant @Integer () 1))
-    (mkConstant @Integer () 0)
+failingBuiltinTerm = builtin PLC.DivideInteger `app` con 1 `app` con 0
 
 -- The variable argument prevents evaluation
 nonConstantArgTerm :: Term Name DefaultUni DefaultFun ()
-nonConstantArgTerm = runQuote $ do
-  x <- freshName "x"
-  pure $
-    Apply
-      ()
-      (Apply () (Builtin () PLC.AddInteger) (Var () x))
-      (mkConstant @Integer () 2)
+nonConstantArgTerm = builtin PLC.AddInteger `app` var "x" `app` con 2
 
 -- ifThenElse returns a function (lambda), then applied to an extra argument
 overApplicationTerm :: Term Name DefaultUni DefaultFun ()
-overApplicationTerm = runQuote $ do
-  x <- freshName "x"
-  pure $
-    Apply
-      ()
-      ( mkIterApp
-          (Force () (Builtin () PLC.IfThenElse))
-          [ ((), mkConstant @Bool () True)
-          , ((), LamAbs () x (mkConstant @Integer () 1))
-          , ((), LamAbs () x (mkConstant @Integer () 2))
-          ]
-      )
-      (mkConstant @Integer () 3)
+overApplicationTerm = ite builtinTrue (lam "x" (con 1)) (lam "x" (con 2)) `app` con 3
 
 -- Missing an argument, should be left unchanged
 underApplicationTerm :: Term Name DefaultUni DefaultFun ()
-underApplicationTerm =
-  Apply () (Builtin () PLC.AddInteger) (mkConstant @Integer () 1)
+underApplicationTerm = builtin PLC.AddInteger `app` con 1
 
 -- In both conservative and non-conservative mode: left unchanged because the
 -- result (a G2 element) is an unserializable constant
 uncompressBlsG2Term :: Term Name DefaultUni DefaultFun ()
 uncompressBlsG2Term =
-  Apply () (Builtin () PLC.Bls12_381_G2_uncompress) (mkConstant @BS.ByteString () blsG2Bytes)
+  builtin PLC.Bls12_381_G2_uncompress `app` mkConstant @BS.ByteString () blsG2Bytes
   where
     blsG2Bytes =
       decodeHex
@@ -128,14 +89,9 @@ uncompressBlsG2Term =
 -- (G1 elements) are unserializable, so we can't evaluate through them
 uncompressAndEqualBlsTerm :: Term Name DefaultUni DefaultFun ()
 uncompressAndEqualBlsTerm =
-  Apply
-    ()
-    ( Apply
-        ()
-        (Builtin () PLC.Bls12_381_G1_equal)
-        (Apply () (Builtin () PLC.Bls12_381_G1_uncompress) blsG1BytesTerm)
-    )
-    (Apply () (Builtin () PLC.Bls12_381_G1_uncompress) blsG1BytesTerm)
+  builtin PLC.Bls12_381_G1_equal
+    `app` (builtin PLC.Bls12_381_G1_uncompress `app` blsG1BytesTerm)
+    `app` (builtin PLC.Bls12_381_G1_uncompress `app` blsG1BytesTerm)
   where
     blsG1BytesTerm =
       mkConstant @BS.ByteString () $
