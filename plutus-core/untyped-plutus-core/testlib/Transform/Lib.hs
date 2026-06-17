@@ -3,8 +3,8 @@
 {-| Common UPLC term-construction helpers shared across the
 @Transform.*.Spec@ test modules.
 
-Variables are referred to by a textual hint: @var "x"@ is an occurrence, @lam "x"
-body@ a binder, and @name "x"@ the bare 'Name'. See Note [Names from textual hints]. -}
+Variables are referred to by name: @var "x"@ is an occurrence, @lam "x"
+body@ a binder, and @name "x"@ the bare 'Name'. See Note [Names from strings]. -}
 module Transform.Lib
   ( T
   , var
@@ -35,22 +35,18 @@ import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Name.Unique (Name (..), Unique (..))
 import UntypedPlutusCore.Core.Type (Term (..))
 
-{- Note [Names from textual hints]
-These test modules build UPLC terms purely, without threading a 'Quote' supply to
-allocate fresh uniques. A variable is identified entirely by a textual hint:
-'name' maps a hint to a 'Name' whose 'Unique' is derived deterministically (and
-injectively) from the hint text via 'uniqueFromText', and 'var' / 'lam' wrap
-'name' for occurrences and binders.
+{- Note [Names from strings]
+These test modules build UPLC terms purely, without using the 'Quote' monad to
+allocate fresh uniques. A variable is identified entirely by its name: 'name'
+maps a 'String' to a 'Name' whose 'Unique' is derived injectively from it via
+'uniqueFromText', and 'var' / 'lam' wrap 'name' for occurrences and binders.
 
-The invariant is: one hint denotes one variable. Terms built from the same hint
-share a 'Unique' and so are the same variable; distinct hints yield distinct
-variables. This is what lets a binder and its occurrences be written
-independently (@lam "a" (var "a")@) yet still refer to the same variable, and
-lets an assertion mention a free variable by hint (@isStrictIn (name "a") term@)
-with no plumbing.
+This lets a binder and its occurrences be written independently
+(@lam "a" (var "a")@) yet still refer to the same variable, and lets an assertion
+mention a free variable by name (@isStrictIn (name "a") term@) with no plumbing.
 
 The trade-off against 'QuoteT' is that freshness is no longer correct by
-construction: reusing one hint for two variables meant to differ silently aliases
+construction: reusing one name for two variables meant to differ silently aliases
 them, since 'Name' equality compares only the 'Unique'. For these small,
 hand-written test terms that is an acceptable price for dropping the monadic
 plumbing; where capture is a genuine concern, 'QuoteT' remains available.
@@ -61,21 +57,21 @@ Alternatives considered: an 'IsString' or 'IsLabel' instance for 'Name'
 read as if @x@ were a bound Haskell variable. The plain @String -> Name@ used
 here is the simplest: no orphan instance and no language extension at all.
 
-'uniqueFromText' is injective only on short ASCII hints, so it fails fast on
-non-ASCII characters or on hints long enough to overflow the 'Int' rather than
+'uniqueFromText' is injective only on short ASCII names, so it fails fast on
+non-ASCII characters or on names long enough to overflow the 'Int' rather than
 aliasing silently.
 -}
 
 -- | Convenient alias used throughout the test modules.
 type T = Term Name DefaultUni DefaultFun ()
 
-{-| A 'Var' occurrence of the variable with the given hint.
-See Note [Names from textual hints] -}
+{-| A 'Var' occurrence of the variable with the given name.
+See Note [Names from strings] -}
 var :: String -> T
 var = Var () . name
 
-{-| A lambda binding the variable with the given hint.
-See Note [Names from textual hints] -}
+{-| A lambda binding the variable with the given name.
+See Note [Names from strings] -}
 lam :: String -> T -> T
 lam = LamAbs () . name
 
@@ -129,18 +125,18 @@ text = mkConstant @Text () . Text.pack
 err :: T
 err = Error ()
 
--- | Build a 'Name' from a hint. See Note [Names from textual hints]
+-- | Build a 'Name' from a 'String'. See Note [Names from strings]
 name :: String -> Name
 name s = Name t (Unique (uniqueFromText t))
   where
     t = Text.pack s
 
-{-| Pack the hint's bytes big-endian into an 'Int' (> 7 bytes overflow).
-See Note [Names from textual hints] for the injectivity and fail-fast contract. -}
+{-| Pack the string's bytes big-endian into an 'Int' (> 7 bytes overflow).
+See Note [Names from strings] for the injectivity and fail-fast contract. -}
 uniqueFromText :: Text -> Int
 uniqueFromText t
   | Text.any ((> 127) . fromEnum) t =
-      error ("Transform.Lib: non-ASCII name hint: " <> show t)
+      error ("Transform.Lib: non-ASCII name: " <> show t)
   | Text.length t > 7 =
-      error ("Transform.Lib: name hint too long (would overflow Unique): " <> show t)
+      error ("Transform.Lib: name too long (would overflow Unique): " <> show t)
   | otherwise = Text.foldl' (\acc c -> acc * 256 + fromEnum c) 0 t
