@@ -494,6 +494,7 @@ library untyped-plutus-core-testlib
     Transform.Simplify.Lib
     Transform.Simplify.Spec
 
+  other-modules:      Transform.Lib
   build-depends:
     , base                             >=4.9   && <5
     , base16-bytestring

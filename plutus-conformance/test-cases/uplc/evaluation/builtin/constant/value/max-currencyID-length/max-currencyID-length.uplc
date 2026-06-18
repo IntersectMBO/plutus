@@ -2,7 +2,7 @@
   (con value
     [ (#aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
         [ (#, 123)
-        , (#, 456)
+        , (#00, 456)
         ]
       )
     ]
