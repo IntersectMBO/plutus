@@ -83,7 +83,6 @@ import System.Exit
 import System.FilePath
 import System.IO
   ( hPrint
-  , hPutStrLn
   , stderr
   )
 import System.Mem (performGC)
@@ -787,7 +786,7 @@ runTime (TimeOptions inp ifmt semvar n raw) = do
         loop (k - 1) ok (total + (toNanos t1 - toNanos t0))
   (lastOk, totalNs) <- loop count True 0
   let avgNs = totalNs `div` fromIntegral count
-  hPutStrLn stderr $
+  putStrLn $
     if raw
       then show avgNs
       else
