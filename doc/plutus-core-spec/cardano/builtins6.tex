@@ -423,7 +423,7 @@ $$Q = \{n \in \Z: -2^{127} \leq n \leq 2^{127}-1\}.$$
   \TT{scaleValue} & $[ \ty{integer}, \ty{value} ] \to \ty{value}$
                   & $\mathsf{scaleValue}$
                   & Yes & \ref{note:scaleValue-semantics} \\[2mm]
-  \TT{valueData} & $[ \ty{value} ] \to \ty{data}$ &  \textsf{valueData} & No & \ref{note:valueData-semantics} \\[2mm]
+  \TT{valueData} & $[ \ty{value} ] \to \ty{data}$ &  \textsf{valueData} & Yes & \ref{note:valueData-semantics} \\[2mm]
   \TT{unValueData} & $[ \ty{data} ] \to \ty{value}$ & \textsf{unValueData} & Yes & \ref{note:unValueData-semantics} \\[2mm]
 \hline
 \end{longtable}
@@ -488,14 +488,15 @@ by $n$, provided that all of the scaled values are in the 127-bit range:  its de
 
 \note{Semantics of \texttt{valueData}.}
 \label{note:valueData-semantics}
-The \texttt{valueData} function converts a \texttt{value} object to an object
-of type \texttt{data} (see Section~\ref{sec:default-builtins-1}).  It returns
+The \texttt{valueData} function converts a \texttt{value} object to an object of
+type \texttt{data} (see Section~\ref{sec:default-builtins-1}).  It returns
 a \texttt{Map} (the \textit{outer map}) containing a list of pairs, the first
 element of each pair being a \texttt{B} object containing a currency identifier,
 and the second element (an \textit{inner map}) containing a list of (token
 identifier, quantity) pairs.  The elements of the outer and inner maps are
 sorted lexicograpically by identifier, there are no repeated identifiers in any
-map, and the quantities are all nonzero.
+map, and the quantities are all nonzero.  The function fails if there are more
+than 40,000 token IDs in total in the input \texttt{value}.
 
 \medskip
 \noindent Formally, given a value $v$ with
@@ -508,9 +509,20 @@ map, and the quantities are all nonzero.
   &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})])]
 \end{align*}
 
-\noindent we let 
+\noindent we let
+$$
+ \mathsf{valueData}(v) =
+ \left\{
+ \begin{array}{ll}
+  m & \text{if $\Sigma_{i=1}^nk_i \leq 40000$}\\
+  \errorX & \text{otherwise}
+ \end{array}\right.
+$$
+\noindent
+where
+
 \begin{align*}
- \mathsf{valueData}(v) = \mathtt{Map}\,[
+ m = \mathtt{Map}\,[
  &(\BB c_1, \mathtt{Map}\,[(\BB t_{11}, \II q_{11}), (\BB t_{12}, \II q_{12}), \ldots, (\BB t_{1k_1}, \II q_{1k_1})]),\\
  &(\BB c_2, \mathtt{Map}\,[(\BB t_{21}, \II q_{21}), (\BB t_{22}, \II q_{22}), \ldots, (\BB t_{2k_2}, \II q_{2k_2})]),\\
  &\ldots,\\
