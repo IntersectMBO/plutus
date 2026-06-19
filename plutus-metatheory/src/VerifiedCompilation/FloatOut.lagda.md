@@ -29,25 +29,25 @@ open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; LetFloa
 data FloatApply (@++ R : Relation) : Relation where
   float-apply :
     ∀ {X} {M N K : X ⊢} {L N' : suc X ⊢}
-    → R M (let' K L)
+    → R M (let₁ K L)
     → R (weaken N) N'
     ----------------------------------------
-    → FloatApply R (M · N) (let' K (L · N'))
+    → FloatApply R (M · N) (let₁ K (L · N'))
 
 data FloatCase (@++ R : Relation) : Relation where
   float-case :
     ∀ {X} {M N : X ⊢} {L : suc X ⊢} {Ms Ms'}
-    → R M (let' N L)
+    → R M (let₁ N L)
     → Pointwise R (map weaken Ms) Ms'
     -----------------------------------------------
-    → FloatCase R (case M Ms) (let' N (case L Ms'))
+    → FloatCase R (case M Ms) (let₁ N (case L Ms'))
 
 data FloatForce (@++ R : Relation) : Relation where
   float-force :
     ∀ {X} {M N : X ⊢} {L : suc X ⊢}
-    → R M (let' N L)
+    → R M (let₁ N L)
     -------------------------------------------
-    → FloatForce R (force M) (let' N (force L))
+    → FloatForce R (force M) (let₁ N (force L))
 ```
 ## Full relation
 
@@ -65,32 +65,32 @@ FloatOut = Fix (CompatTerm ⊕ FloatApply ⊕ FloatCase ⊕ FloatForce ⊕ Empty
 apply-dec : DecidableT FloatApply
 apply-dec R? x y
   with (⋯ ·? ⋯) x
-    ×-dec (let'? ⋯ (⋯ ·? ⋯)) y
+    ×-dec (let₁? ⋯ (⋯ ·? ⋯)) y
 ... | no ¬P = no λ {(float-apply _ _) → ¬P inhabitant}
-... | yes (match! M ·! match! N , let'! (match! K) (match! L ·! match! N'))
-  with R? M (let' K L) ×-dec R? (weaken N) N'
+... | yes (match! M ·! match! N , let₁! (match! K) (match! L ·! match! N'))
+  with R? M (let₁ K L) ×-dec R? (weaken N) N'
 ... | no ¬P = no λ {(float-apply RMM' RNN') → ¬P (RMM' , RNN') }
 ... | yes (RMM' , RNN') = yes (float-apply RMM' RNN')
 
 case-dec : DecidableT FloatCase
 case-dec R? x y
   with (case? ⋯ ⋯) x
-     ×-dec (let'? ⋯ (case? ⋯ ⋯)) y
+     ×-dec (let₁? ⋯ (case? ⋯ ⋯)) y
 ... | no ¬P×Q = no λ {(float-case _ _) → ¬P×Q inhabitant}
 ... | yes ( case! (match! M) (match! Ms)
-          , let'! (match! N) (case! (match! L) (match! Ms'))
+          , let₁! (match! N) (case! (match! L) (match! Ms'))
           )
-  with R? M (let' N L)
+  with R? M (let₁ N L)
        ×-dec (pointwise? R? (map weaken Ms) Ms')
 ... | no ¬P×Q = no λ {(float-case RMM' RMsMs') → ¬P×Q (RMM' , RMsMs')}
 ... | yes (RMM' , RMsMs') = yes (float-case RMM' RMsMs')
 
 force-dec : DecidableT FloatForce
 force-dec R? x y
-  with (force? ⋯) x ×-dec (let'? ⋯ (force? ⋯)) y
+  with (force? ⋯) x ×-dec (let₁? ⋯ (force? ⋯)) y
 ... | no ¬P×Q = no λ {(float-force _) → ¬P×Q inhabitant}
-... | yes (force! (match! M) , let'! (match! M') (force! (match! N')))
-  with R? M (let' M' N')
+... | yes (force! (match! M) , let₁! (match! M') (force! (match! N')))
+  with R? M (let₁ M' N')
 ... | no ¬P = no λ {(float-force RMM') → ¬P RMM'}
 ... | yes RNN' = yes (float-force RNN')
 ```
@@ -161,8 +161,8 @@ Basic behaviour:
 
 ```
   M M' : 1 ⊢
-  M  = (let' id c) · c
-  M' = let' id (c · c)
+  M  = (let₁ id c) · c
+  M' = let₁ id (c · c)
 
   _ : does (dec M M') ≡ true
   _ = refl
@@ -171,8 +171,8 @@ Basic behaviour:
   _ = refl
 
   N N' : 0 ⊢
-  N  = force (let' id c)
-  N' = let' id (force c )
+  N  = force (let₁ id c)
+  N' = let₁ id (force c )
 
   _ : does (dec N N') ≡ true
   _ = refl
@@ -182,15 +182,15 @@ Floating out multiple levels:
 
 ```
   L L' : 0 ⊢
-  L  = force ( force (let' id c))
-  L' = let' (ƛ (` zero)) (force (force (constr 0 [])))
+  L  = force ( force (let₁ id c))
+  L' = let₁ (ƛ (` zero)) (force (force (constr 0 [])))
 
   LL' : does (dec L L') ≡ true
   LL' = refl
 
   H H' : 0 ⊢
-  H  = ((let' id c) · c) · c
-  H' = let' id (c · c · c)
+  H  = ((let₁ id c) · c) · c
+  H' = let₁ id (c · c · c)
 
   HH' : does (dec H H') ≡ true
   HH' = refl
@@ -200,8 +200,8 @@ Floating in multiple places
 
 ```
   K K' : 0 ⊢
-  K = force (let' id M)
-  K' = let' id (force M')
+  K = force (let₁ id M)
+  K' = let₁ id (force M')
 
   _ : does (dec K K') ≡ true
   _ = refl

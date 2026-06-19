@@ -28,6 +28,7 @@ data CertifiedOptStage
   | ApplyToCase
   | CaseReduce
   | LetFloatOut
+  | PolyBuiltin
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -44,7 +45,6 @@ at https://github.com/IntersectMBO/plutus/issues. -}
 data UncertifiedOptStage
   = CaseOfCase
   | ConstantFolding
-  | PolyBuiltin
   deriving stock (Show, Generic)
   deriving anyclass (NFData)
 
@@ -81,7 +81,7 @@ pattern ConstantFoldingStage :: OptStage
 pattern ConstantFoldingStage = Left ConstantFolding
 
 pattern PolyBuiltinStage :: OptStage
-pattern PolyBuiltinStage = Left PolyBuiltin
+pattern PolyBuiltinStage = Right PolyBuiltin
 
 {-# COMPLETE
   FloatDelayStage
