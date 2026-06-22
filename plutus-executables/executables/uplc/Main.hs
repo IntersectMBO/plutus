@@ -65,14 +65,13 @@ import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Data.Text.IO qualified as T
 import Data.Time.Clock.System
-  ( SystemTime
-  , getSystemTime
+  ( getSystemTime
   , systemNanoseconds
-  , systemSeconds
   )
 import Options.Applicative
 import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
+import System.CPUTime (getCPUTime)
 import System.Console.Haskeline qualified as Repl
 import System.Directory.Extra (doesFileExist)
 import System.Exit
@@ -668,26 +667,25 @@ runBenchmark :: BenchmarkOptions -> IO ()
 runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
   prog <- readProgram ifmt inp
   let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
-      cekparams = PLC.defaultCekParametersForVariant semvar
-      -- Extract an evaluation result
-      getResult = either (error . show) (const ()) . Cek.cekResultToEither . Cek._cekReportResult
-      cekEval = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
+      evalCtx = mkDefaultEvalCtx semvar
+      -- Evaluate the term the same way the 'time' subcommand (and production)
+      -- does, erroring on an unexpected failure.
+      cekEval = either (error . show) (const ()) . evaluateCekLikeInProd evalCtx
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
       -- we have to put them back to get an AST with NamedDeBruijn names.
-      !term =
+      term =
         fromRight (error "Unexpected open term in runBenchmark.")
           . runExcept @FreeVariableError
           $ UPLC.deBruijnTerm (UPLC._progTerm prog)
       -- Big names slow things down
-      !anonTerm = UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) term
-      -- Big annotations slow things down
+      anonTerm = UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) term
+      -- Big annotations slow things down.  Forcing this to NF here drives all
+      -- the preparatory work (de Bruijn conversion, name anonymisation, 'void')
+      -- to completion before benchmarking, so it isn't measured by Criterion.
       !unitAnnTerm = force (void anonTerm)
   benchmarkWith criterionConfig $! whnf cekEval unitAnnTerm
 
 ---------------- Evaluation ----------------
-
-toNanos :: SystemTime -> Integer
-toNanos t = fromIntegral (systemSeconds t) * 1000000000 + fromIntegral (systemNanoseconds t)
 
 formatNs :: Integer -> String
 formatNs ns
@@ -753,16 +751,20 @@ runEval
 runTime :: TimeOptions -> IO ()
 runTime (TimeOptions inp ifmt semvar n raw) = do
   prog <- readProgram ifmt inp
-  let term = void $ prog ^. UPLC.progTerm
-      count = fromIntegral (max 1 n) :: Int
+  let count = fromIntegral (max 1 n) :: Int
+      term = void $ prog ^. UPLC.progTerm
       -- Convert to anonymised de Bruijn before timing so that only pure
       -- CEK evaluation time is measured (not de Bruijn conversion or name
       -- traversal costs).
-      !dbTerm =
+      dbTerm =
         fromRight (error "time: term has free variables")
           . runExcept @FreeVariableError
           $ UPLC.deBruijnTerm term
-  !anonTerm <-
+  -- Fully evaluate the anonymised term to NF before timing.  This single
+  -- 'force' drives all the preparatory work (the 'void', the de Bruijn
+  -- conversion and the name anonymisation) to completion, since 'anonTerm'
+  -- depends on all of it; doing it here keeps it out of the timed loop.
+  anonTerm <-
     evaluate . force $
       UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) dbTerm
   let !evalCtx = mkDefaultEvalCtx semvar
@@ -776,16 +778,26 @@ runTime (TimeOptions inp ifmt semvar n raw) = do
   -- iteration's result term is reduced to a Bool and dropped before the next
   -- iteration begins.  replicateM would accumulate all N results in a list,
   -- keeping all N large terms live simultaneously.
+  --
+  -- We measure CPU time (getCPUTime) rather than wall-clock time
+  -- (getSystemTime): a CPU-time clock does not advance while the thread is
+  -- descheduled, so the measurement is immune to contention from co-runners
+  -- sharing the core.  In particular, running via 'cabal run' pins the
+  -- long-lived cabal supervisor to the same core, and its periodic wake-ups
+  -- would otherwise be charged to whichever evaluation happened to be in
+  -- progress, inflating the reported time (especially for inputs that take
+  -- longer to parse and so keep the process alive longer).
   let loop 0 lastOk !total = pure (lastOk, total)
       loop k _ !total = do
         term' <- readIORef termRef
-        t0 <- getSystemTime
+        t0 <- getCPUTime
         r <- evaluate (evaluateCekLikeInProd evalCtx term')
-        t1 <- getSystemTime
+        t1 <- getCPUTime
         let !ok = either (const False) (const True) r
-        loop (k - 1) ok (total + (toNanos t1 - toNanos t0))
-  (lastOk, totalNs) <- loop count True 0
-  let avgNs = totalNs `div` fromIntegral count
+        loop (k - 1) ok (total + (t1 - t0))
+  (lastOk, totalPs) <- loop count True 0
+  -- getCPUTime returns picoseconds; convert the total to nanoseconds.
+  let avgNs = totalPs `div` (1000 * fromIntegral count)
   putStrLn $
     if raw
       then show avgNs
