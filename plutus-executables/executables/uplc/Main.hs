@@ -120,8 +120,8 @@ data EvalOptions
       CekModel
       (BuiltinSemanticsVariant PLC.DefaultFun)
 
-data TimeOptions
-  = TimeOptions
+data TimeEvalOptions
+  = TimeEvalOptions
       Input
       Format
       (BuiltinSemanticsVariant PLC.DefaultFun)
@@ -154,7 +154,7 @@ data Command
   | Print PrintOptions
   | Example ExampleOptions
   | Eval EvalOptions
-  | Time TimeOptions
+  | TimeEval TimeEvalOptions
   | Dbg DbgOptions
   | DumpModel (BuiltinSemanticsVariant PLC.DefaultFun)
   | PrintBuiltinSignatures
@@ -200,9 +200,9 @@ evalOpts =
     <*> cekmodel
     <*> builtinSemanticsVariant
 
-timeOpts :: Parser TimeOptions
+timeOpts :: Parser TimeEvalOptions
 timeOpts =
-  TimeOptions
+  TimeEvalOptions
     <$> input
     <*> inputformat
     <*> builtinSemanticsVariant
@@ -382,7 +382,7 @@ plutusOpts =
       <> command
         "time"
         ( info
-            (Time <$> timeOpts)
+            (TimeEval <$> timeOpts)
             ( progDesc $
                 "Time the evaluation of an untyped Plutus Core program using the CEK machine.  "
                   ++ "For best results, bypass cabal and run the `uplc` binary directly; for example use `$(cabal list-bin uplc)`."
@@ -751,8 +751,8 @@ runEval
 
 ---------------- Timing ----------------
 
-runTime :: TimeOptions -> IO ()
-runTime (TimeOptions inp ifmt semvar n raw) = do
+runTimeEval :: TimeEvalOptions -> IO ()
+runTimeEval (TimeEvalOptions inp ifmt semvar n raw) = do
   prog <- readProgram ifmt inp
   let count = fromIntegral (max 1 n) :: Int
       term = void $ prog ^. UPLC.progTerm
@@ -890,7 +890,7 @@ main = do
     ApplyToCborData opts -> runApplyToCborData opts
     Benchmark opts -> runBenchmark opts
     Eval opts -> runEval opts
-    Time opts -> runTime opts
+    TimeEval opts -> runTimeEval opts
     Dbg opts -> runDbg opts
     Example opts -> runUplcPrintExample opts
     Optimise opts -> runOptimisations opts
