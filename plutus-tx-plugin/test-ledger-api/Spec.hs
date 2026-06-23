@@ -28,6 +28,7 @@ tests =
     , Spec.Data.ScriptContext.tests
     , Spec.Data.Value.test_EqValue
     , Spec.Data.Value.test_valueOf
+    , Spec.Data.Value.test_unionWith
     , Spec.Data.MintValue.V3.tests
     , Spec.Envelope.tests
     , Spec.ReturnUnit.V1.tests
