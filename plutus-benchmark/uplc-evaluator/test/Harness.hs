@@ -79,9 +79,6 @@ withEvaluatorService executablePath action =
       hPutStrLn stderr "Stopping uplc-evaluator service"
       stopProcessBounded gracefulShutdownMicros shProcessHandle
 
-      -- Clean up temporary directories. removePathForcibly tolerates the path
-      -- already being gone; an exception here fails the test loudly rather
-      -- than hanging.
       hPutStrLn stderr "Cleaning up temporary directories"
       removePathForcibly shInputDir
       removePathForcibly shOutputDir
@@ -91,23 +88,11 @@ gracefulShutdownMicros :: Int
 gracefulShutdownMicros = 5000000 -- 5 seconds
 
 {- Note [Bounded service shutdown]
-'waitForProcess' with no timeout blocks until the child exits. If the child
-ignores or misses the SIGTERM from 'terminateProcess', that wait never returns,
-so teardown — and the whole test run — hangs (plutus-private#2257). We bound
-every blocking step instead:
-
-  1. SIGTERM, then wait up to the grace period.
-  2. On expiry, re-check the exit code (the wait may have been interrupted just
-     as the process exited); if still running, SIGKILL via the raw pid, then
-     wait (bounded again) to reap.
-  3. If even that expires (a process wedged in uninterruptible disk sleep can
-     outlast SIGKILL), give up and leave it: the runner exits moments later and
-     init reaps the orphan. Blocking here would be strictly worse.
-
-This runs inside 'bracket''s cleanup, under interruptible 'mask'.
-'System.Timeout.timeout' relies on an async exception, and 'waitForProcess'
-blocks interruptibly on the threaded RTS (the suite is built with -threaded),
-so the timeout fires as intended.
+A plain 'waitForProcess' never returns if the child ignores SIGTERM, hanging
+teardown and the whole test run. Every wait is therefore bounded by a timeout,
+escalating SIGTERM -> SIGKILL and, as a last resort, abandoning the process
+unreaped rather than blocking. 'timeout' can interrupt 'waitForProcess' only
+because the suite is built with -threaded, where that wait is interruptible.
 -}
 
 {-| Terminate a process without ever blocking indefinitely.
@@ -119,8 +104,7 @@ stopProcessBounded graceMicros ph = do
   case mExit of
     Just exitCode -> reportExit exitCode
     Nothing -> do
-      -- The wait may have been interrupted by 'timeout' just as the process
-      -- exited, so confirm it is still running before escalating.
+      -- 'timeout' may have fired just as the process exited; re-check first.
       mExited <- getProcessExitCode ph
       case mExited of
         Just exitCode -> reportExit exitCode

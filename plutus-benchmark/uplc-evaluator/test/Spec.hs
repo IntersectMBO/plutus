@@ -69,14 +69,12 @@ main = withUtf8 do
                   outputExists <- doesDirectoryExist (shOutputDir handle)
                   assertBool "Output directory should exist" outputExists
             , testCase "Bounded teardown kills a SIGTERM-ignoring process" do
-                -- Regression test for plutus-private#2257: teardown waited on
-                -- the service with no timeout, so a process that ignored or
-                -- missed SIGTERM blocked teardown indefinitely.
+                -- Regression test: teardown used to wait on the service with no
+                -- timeout, so a process ignoring SIGTERM hung it indefinitely.
                 bash <-
                   maybe (assertFailure "bash not found in PATH") pure
                     =<< findExecutable "bash"
-                -- 'trap' makes bash ignore SIGTERM; 'exec' carries that
-                -- disposition into 'sleep', which then ignores SIGTERM too.
+                -- Ignore SIGTERM, then exec so 'sleep' inherits the ignore.
                 (_, _, _, ph) <-
                   createProcess (proc bash ["-c", "trap '' TERM; exec sleep 600"])
                 threadDelay 200000 -- let bash install the trap and exec
@@ -936,9 +934,9 @@ main = withUtf8 do
             ]
         ]
 
-{-| Per-test timeout safety net (plutus-private#2257): a wedged test fails in
-minutes instead of consuming the full CI wall clock. Applied only when no
-@--timeout@ was given, so it stays overridable from the command line. -}
+{-| Per-test timeout safety net: a wedged test fails in minutes instead of
+consuming the full CI wall clock. Applied only when no @--timeout@ was given,
+so it stays overridable. -}
 defaultTestTimeout :: Timeout -> Timeout
 defaultTestTimeout NoTimeout = mkTimeout 120000000 -- 120s
 defaultTestTimeout explicit = explicit

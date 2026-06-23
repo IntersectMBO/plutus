@@ -1,7 +1,7 @@
 # This workflow runs the plutus-core-test and plutus-ir-test test suites with a
 # large number of hedgehog tests, plus the uplc-evaluator integration tests
-# (the uplc-evaluator is a non-critical on-demand tool, so its tests run nightly
-# rather than gating every PR; see plutus-private#2257).
+# (a non-critical on-demand tool whose tests run nightly rather than gating
+# every PR).
 #
 # This workflow runs daily at midnight, and it can also be triggered manually.
 

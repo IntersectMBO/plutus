@@ -75,20 +75,9 @@ let
     //
     latex-documents;
 
-  # The uplc-evaluator is a non-critical, on-demand tool; its integration tests
-  # do not gate the correctness of the core compiler/evaluator and so need not
-  # run on every PR. We still BUILD the test executable on every PR (the
-  # `packages` jobs remain in `required`) and RUN the suite in the nightly
-  # testsuite workflow (.github/workflows/nightly-testsuite.yml). See
-  # plutus-private#2257. Only ghc96/ghc912 feed the x86_64-linux CI jobs.
-  without-uplc-evaluator-check = jobs: jobs // {
-    checks = removeAttrs jobs.checks
-      [ "plutus-benchmark:test:uplc-evaluator-integration-tests" ];
-  };
-
   project-variants-hydra-jobs = {
-    ghc96 = without-uplc-evaluator-check (project.flake { }).hydraJobs.ghc96;
-    ghc912 = without-uplc-evaluator-check (project.flake { }).hydraJobs.ghc912;
+    ghc96 = (project.flake { }).hydraJobs.ghc96;
+    ghc912 = (project.flake { }).hydraJobs.ghc912;
     ghc96-profiled = (project.flake { }).hydraJobs.ghc96-profiled;
     ghc912-profiled = (project.flake { }).hydraJobs.ghc912-profiled;
   };
