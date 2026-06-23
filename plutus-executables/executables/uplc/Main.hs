@@ -383,7 +383,10 @@ plutusOpts =
         "time"
         ( info
             (Time <$> timeOpts)
-            (progDesc "Time the evaluation of an untyped Plutus Core program using the CEK machine.")
+            ( progDesc $
+                "Time the evaluation of an untyped Plutus Core program using the CEK machine.  "
+                  ++ "For best results, bypass cabal and run the `uplc` binary directly; for example use `$(cabal list-bin uplc)`."
+            )
         )
       <> command
         "debug"
@@ -753,9 +756,6 @@ runTime (TimeOptions inp ifmt semvar n raw) = do
   prog <- readProgram ifmt inp
   let count = fromIntegral (max 1 n) :: Int
       term = void $ prog ^. UPLC.progTerm
-      -- Convert to anonymised de Bruijn before timing so that only pure
-      -- CEK evaluation time is measured (not de Bruijn conversion or name
-      -- traversal costs).
       dbTerm =
         fromRight (error "time: term has free variables")
           . runExcept @FreeVariableError
@@ -770,15 +770,8 @@ runTime (TimeOptions inp ifmt semvar n raw) = do
   let !evalCtx = mkDefaultEvalCtx semvar
   performGC
   -- Store the term in an IORef so GHC cannot CSE/share the result of
-  -- evaluateCekLikeInProd across iterations (call-by-need would otherwise
-  -- memoize the first result and return it instantly for every subsequent
-  -- call, making the average shrink as N grows).
+  -- evaluateCekLikeInProd across iterations.
   termRef <- newIORef anonTerm
-  -- Use a strict tail-recursive loop rather than replicateM so that each
-  -- iteration's result term is reduced to a Bool and dropped before the next
-  -- iteration begins.  replicateM would accumulate all N results in a list,
-  -- keeping all N large terms live simultaneously.
-  --
   -- We measure CPU time (getCPUTime) rather than wall-clock time
   -- (getSystemTime): a CPU-time clock does not advance while the thread is
   -- descheduled, so the measurement is immune to contention from co-runners
