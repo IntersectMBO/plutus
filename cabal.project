@@ -31,7 +31,7 @@ packages: cardano-constitution
           plutus-metatheory
           plutus-tx
           plutus-tx-plugin
-          doc/docusaurus/docusaurus-examples.cabal
+          doc/docusaurus
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
@@ -93,9 +93,15 @@ allow-newer:
   , inline-r:containers
   , inline-r:primitive
 
--- https://github.com/IntersectMBO/plutus/pull/7236
-constraints: setup.optparse-applicative >=0.19.0.0
-allow-newer: turtle:optparse-applicative
+constraints:
+  -- https://github.com/IntersectMBO/plutus/pull/7236
+  , setup.optparse-applicative >=0.19.0.0
+
+allow-newer:
+  , deriving-aeson:aeson
+  , microstache:aeson
+  , turtle:containers
+  , turtle:optparse-applicative
 
 if impl (ghc >= 9.14)
   -- https://github.com/snowleopard/alga/issues/322
@@ -104,24 +110,18 @@ if impl (ghc >= 9.14)
     location: https://github.com/snowleopard/alga
     tag: d4e43fb42db05413459fb2df493361d5a666588a
 
--- cabal-allow-newer begin
-if impl(ghc >= 9.14)
   allow-newer:
-    , binary:containers
     , canonical-json:containers
     , cborg:base
     , cborg:containers
     , config-ini:containers
     , dependent-map:containers
+    , dependent-sum:some
     , dictionary-sharing:containers
-    , hedgehog-quickcheck:QuickCheck
+    , monad-control:transformers-compat
     , ordered-containers:containers
     , serialise:base
     , serialise:containers
     , serialise:time
-    , tree-diff:time
-    , turtle:containers
     , turtle:time
     , with-utf8:base
--- cabal-allow-newer end
-

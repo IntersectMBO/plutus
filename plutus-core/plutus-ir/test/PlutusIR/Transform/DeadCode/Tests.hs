@@ -11,6 +11,7 @@ import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.DeadCode
 import PlutusPrelude
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty.ExpectedFailure (ignoreTest)
 import Test.Tasty.QuickCheck
 
@@ -41,7 +42,7 @@ test_deadCode =
 -- this test sometimes fails so ignoring it to make CI pass.
 typecheckRemoveDeadBindingsProp :: BuiltinSemanticsVariant DefaultFun -> Property
 typecheckRemoveDeadBindingsProp biVariant =
-  withMaxSuccess (3 * numTestsForPassProp)
+  BaseQC.withNumTests (3 * numTestsForPassProp)
     $ testPassProp
       runQuote
     $ \tc -> removeDeadBindingsPassSC tc (def {_biSemanticsVariant = biVariant})

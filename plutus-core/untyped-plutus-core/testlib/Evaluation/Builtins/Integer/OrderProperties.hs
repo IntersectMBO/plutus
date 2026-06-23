@@ -12,6 +12,7 @@ import Prelude hiding (and, not, or)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty (TestName, TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
@@ -19,7 +20,7 @@ numberOfTests :: Int
 numberOfTests = 200
 
 testProp :: Testable prop => TestName -> prop -> TestTree
-testProp s p = testProperty s $ withMaxSuccess numberOfTests p
+testProp s p = testProperty s $ BaseQC.withNumTests numberOfTests p
 
 {- Tests for standard properties of order relations.  In most of these we create
    totally random inputs and then create terms checking that the expected
