@@ -964,6 +964,7 @@ test-suite uplc-evaluator-integration-tests
     , tasty-hunit
     , temporary
     , text
+    , unix
     , uuid
     , with-utf8
 

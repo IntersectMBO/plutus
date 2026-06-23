@@ -4,15 +4,18 @@ module Harness
   ( ServiceHandle (..)
   , withEvaluatorService
   , findEvaluatorExecutable
+  , stopProcessBounded
   ) where
 
 import Control.Concurrent (threadDelay)
 import Control.Exception (bracket)
-import System.Directory (findExecutable, removeDirectoryRecursive)
+import System.Directory (findExecutable, removePathForcibly)
 import System.Exit (ExitCode (..))
 import System.IO (hPutStrLn, stderr)
 import System.IO.Temp (createTempDirectory, getCanonicalTemporaryDirectory)
+import System.Posix.Signals (sigKILL, signalProcess)
 import System.Process
+import System.Timeout (timeout)
 
 -- | Handle to a running evaluator service instance
 data ServiceHandle = ServiceHandle
@@ -74,20 +77,49 @@ withEvaluatorService executablePath action =
     stopService :: ServiceHandle -> IO ()
     stopService ServiceHandle {..} = do
       hPutStrLn stderr "Stopping uplc-evaluator service"
+      stopProcessBounded gracefulShutdownMicros shProcessHandle
 
-      -- Send SIGTERM for graceful shutdown
-      terminateProcess shProcessHandle
-
-      -- Wait for process to exit
-      exitCode <- waitForProcess shProcessHandle
-      case exitCode of
-        ExitSuccess -> hPutStrLn stderr "Service stopped successfully"
-        ExitFailure code -> hPutStrLn stderr $ "Service exited with code: " ++ show code
-
-      -- Clean up temporary directories
       hPutStrLn stderr "Cleaning up temporary directories"
-      removeDirectoryRecursive shInputDir
-      removeDirectoryRecursive shOutputDir
+      removePathForcibly shInputDir
+      removePathForcibly shOutputDir
+
+-- | Grace period (microseconds) between SIGTERM and SIGKILL escalation.
+gracefulShutdownMicros :: Int
+gracefulShutdownMicros = 5000000 -- 5 seconds
+
+{- Note [Bounded service shutdown]
+A plain 'waitForProcess' never returns if the child ignores SIGTERM, hanging
+teardown and the whole test run. Every wait is therefore bounded by a timeout,
+escalating SIGTERM -> SIGKILL and, as a last resort, abandoning the process
+unreaped rather than blocking. 'timeout' can interrupt 'waitForProcess' only
+because the suite is built with -threaded, where that wait is interruptible.
+-}
+
+{-| Terminate a process without ever blocking indefinitely.
+See Note [Bounded service shutdown]. -}
+stopProcessBounded :: Int -> ProcessHandle -> IO ()
+stopProcessBounded graceMicros ph = do
+  terminateProcess ph
+  mExit <- timeout graceMicros (waitForProcess ph)
+  case mExit of
+    Just exitCode -> reportExit exitCode
+    Nothing -> do
+      -- 'timeout' may have fired just as the process exited; re-check first.
+      mExited <- getProcessExitCode ph
+      case mExited of
+        Just exitCode -> reportExit exitCode
+        Nothing -> do
+          hPutStrLn stderr "Service did not exit after SIGTERM; escalating to SIGKILL"
+          mPid <- getPid ph
+          mapM_ (signalProcess sigKILL) mPid
+          mExit' <- timeout graceMicros (waitForProcess ph)
+          case mExit' of
+            Just exitCode -> reportExit exitCode
+            Nothing -> hPutStrLn stderr "Service survived SIGKILL; abandoning it unreaped"
+  where
+    reportExit ExitSuccess = hPutStrLn stderr "Service stopped successfully"
+    reportExit (ExitFailure code) =
+      hPutStrLn stderr $ "Service exited with code: " ++ show code
 
 {-| Find the uplc-evaluator executable
 
