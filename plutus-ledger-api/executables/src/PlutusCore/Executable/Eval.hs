@@ -78,13 +78,12 @@ evalOptimizerTrace evalCtx trace args =
       )
         <$> allASTs trace
 
-{-| Evaluate a term as it would be evaluated using the on-chain evaluator,
-at the most recent protocol version with restrictingEnormous budget mode
-(no budget tracking overhead). Suitable for timing. -}
-
 {- TODO: This is an exact copy of some code in `PlutusBenchmark.Common`.  Check
  if we can use this version in plutus-benchmark without affecting the
  benchmark results (initial experiments were unclear). -}
+{-| Evaluate a term as it would be evaluated using the on-chain evaluator,
+at the most recent protocol version with restrictingEnormous budget mode
+(no budget tracking overhead). Suitable for timing. -}
 evaluateCekLikeInProd
   :: EvaluationContext
   -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
