@@ -8,6 +8,7 @@ import PlutusIR.Parser
 import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.KnownCon qualified as KnownCon
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck
 
 test_knownCon :: TestTree
@@ -25,4 +26,4 @@ test_knownCon =
       ]
 
 prop_knownCon :: Property
-prop_knownCon = withMaxSuccess numTestsForPassProp $ testPassProp runQuote KnownCon.knownConPassSC
+prop_knownCon = BaseQC.withNumTests numTestsForPassProp $ testPassProp runQuote KnownCon.knownConPassSC

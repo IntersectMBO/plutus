@@ -20,9 +20,10 @@ import PlutusCore.Flat
 import PlutusCore.Flat.Bits (asBytes, bits)
 import PlutusCore.Generators.QuickCheck.Builtin ()
 import PlutusCore.Name.Unique (Name (..), TyName (..), Unique (..))
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck
+import Test.Tasty.QuickCheck hiding (Some)
 import Universe (Some (..), ValueOf (..))
 import UntypedPlutusCore.Core.Type
 
@@ -84,7 +85,7 @@ isCanonicalFlatEncodedByteString bs =
 test_canonicalEncoding :: forall a. (Arbitrary a, Flat a, Show a) => String -> Int -> TestTree
 test_canonicalEncoding s n =
   testProperty s $
-    withMaxSuccess n $
+    BaseQC.withNumTests n $
       forAll (arbitrary @a) (isCanonicalFlatEncodedByteString . flat @a)
 
 -- Data objects are encoded by first being converted to a bytestring using CBOR.
@@ -342,10 +343,10 @@ test_nonCanonicalByteStringDecoding =
    in testGroup
         "Non-canonical bytestring encodings decode succesfully"
         [ testProperty "Data via lazy bytestrings" $
-            withMaxSuccess 5000 $ forAll (arbitrary @Data) \d ->
+            BaseQC.withNumTests 5000 $ forAll (arbitrary @Data) \d ->
               Right d === unflat (flat (serialise d :: BSL.ByteString))
         , testProperty "Arbitrary lazy bytestrings" $
-            withMaxSuccess 10000 $
+            BaseQC.withNumTests 10000 $
               forAll (arbitrary @BSL.ByteString) \bs ->
                 Right (BSL.toStrict bs) === unflat (flat bs)
         , testCase "Explicit input 1" $ mkTest input1
