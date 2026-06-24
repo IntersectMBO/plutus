@@ -1,4 +1,11 @@
 
+<a id='changelog-1.66.0.0'></a>
+# 1.66.0.0 — 2026-06-09
+
+## Fixed
+
+- The UPLC `FloatDelay` compiler pass could produce unsound transformations, this is now fixed.
+
 <a id='changelog-1.65.0.0'></a>
 # 1.65.0.0 — 2026-05-21
 
