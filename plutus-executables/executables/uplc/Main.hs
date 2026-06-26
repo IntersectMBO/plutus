@@ -780,15 +780,16 @@ runTimeEval (TimeEvalOptions inp ifmt semvar n raw) = do
   -- would otherwise be charged to whichever evaluation happened to be in
   -- progress, inflating the reported time (especially for inputs that take
   -- longer to parse and so keep the process alive longer).
-  let loop 0 lastOk !total = pure (lastOk, total)
-      loop k _ !total = do
+  let loop 0 !total = pure total
+      loop k !total = do
         term' <- readIORef termRef
         t0 <- getCPUTime
         r <- evaluate (evaluateCekLikeInProd evalCtx term')
         t1 <- getCPUTime
-        let !ok = either (const False) (const True) r
-        loop (k - 1) ok (total + (t1 - t0))
-  (lastOk, totalPs) <- loop count True 0
+        case r of
+          Right _ -> loop (k - 1) (total + t1 - t0)
+          Left e -> putStrLn (show e) >> exitFailure
+  totalPs <- loop count 0
   -- getCPUTime returns picoseconds; convert the total to nanoseconds.
   let avgNs = totalPs `div` (1000 * fromIntegral count)
   putStrLn $
@@ -797,7 +798,6 @@ runTimeEval (TimeEvalOptions inp ifmt semvar n raw) = do
       else
         (if count > 1 then "Average evaluation time (" ++ show count ++ " runs): " else "Evaluation time: ")
           ++ formatNs avgNs
-  if lastOk then pure () else exitFailure
 
 ---------------- Debugging ----------------
 
