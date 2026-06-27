@@ -75,22 +75,22 @@ d_convSigTy_6 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  MAlonzo.Code.Builtin.Signature.T_SigTy_266 ->
-  MAlonzo.Code.Builtin.Signature.T_SigTy_266
+  MAlonzo.Code.Builtin.Signature.T_SigTy_264 ->
+  MAlonzo.Code.Builtin.Signature.T_SigTy_264
 d_convSigTy_6 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10 ~v11
               ~v12 ~v13 ~v14 v15
   = du_convSigTy_6 v15
 du_convSigTy_6 ::
-  MAlonzo.Code.Builtin.Signature.T_SigTy_266 ->
-  MAlonzo.Code.Builtin.Signature.T_SigTy_266
+  MAlonzo.Code.Builtin.Signature.T_SigTy_264 ->
+  MAlonzo.Code.Builtin.Signature.T_SigTy_264
 du_convSigTy_6 v0 = coe v0
 -- RawU._.sig2type
 d_sig2type_8 ::
-  MAlonzo.Code.Builtin.Signature.T_Sig_72 ->
+  MAlonzo.Code.Builtin.Signature.T_Sig_70 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 d_sig2type_8
   = coe
-      MAlonzo.Code.Builtin.Signature.du_sig2type_242
+      MAlonzo.Code.Builtin.Signature.du_sig2type_240
       (\ v0 v1 v2 -> coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v2)
       (coe
          (\ v0 v1 v2 v3 -> coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v3))
@@ -113,7 +113,7 @@ d_sigTy2type_10 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__188 ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__188 ->
-  MAlonzo.Code.Builtin.Signature.T_SigTy_266 ->
+  MAlonzo.Code.Builtin.Signature.T_SigTy_264 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 d_sigTy2type_10 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 v7 ~v8 ~v9 ~v10
   = du_sigTy2type_10 v7
@@ -129,7 +129,7 @@ d_'8866''9839'2TyNe'9839'_12 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Ne'8902'__6
 d_'8866''9839'2TyNe'9839'_12
   = coe
-      MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_186
+      MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_184
       (\ v0 v1 v2 -> coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v2)
       (coe
          (\ v0 v1 v2 v3 -> coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v3))

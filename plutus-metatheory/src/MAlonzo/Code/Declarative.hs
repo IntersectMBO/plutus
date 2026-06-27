@@ -22,6 +22,7 @@ import qualified MAlonzo.Code.Algorithmic
 import qualified MAlonzo.Code.Builtin
 import qualified MAlonzo.Code.Builtin.Signature
 import qualified MAlonzo.Code.Data.Fin.Base
+import qualified MAlonzo.Code.Data.Sum.Base
 import qualified MAlonzo.Code.Data.Vec.Base
 import qualified MAlonzo.Code.Type
 import qualified MAlonzo.Code.Type.BetaNBE
@@ -34,22 +35,22 @@ import qualified MAlonzo.Code.Utils.List
 d_mkTy_6 ::
   Integer ->
   Integer ->
-  MAlonzo.Code.Builtin.Signature.T__'47'_'8866''8902'_26 ->
+  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 ->
   MAlonzo.Code.Type.T__'8866''8902'__20
 d_mkTy_6
   = coe
-      MAlonzo.Code.Builtin.Signature.du_mkTy_204 (coe (\ v0 v1 v2 -> v2))
+      MAlonzo.Code.Builtin.Signature.du_mkTy_202 (coe (\ v0 v1 v2 -> v2))
       (coe (\ v0 v1 v2 v3 -> coe MAlonzo.Code.Type.C_'96'_22 v3))
       (\ v0 v1 v2 v3 v4 -> coe MAlonzo.Code.Type.C__'183'__30 v1 v3 v4)
       (coe (\ v0 v1 -> coe MAlonzo.Code.Type.C_'94'_34))
       (\ v0 v1 -> coe MAlonzo.Code.Type.C_con_36 v1)
 -- Declarative._.sig2type
 d_sig2type_8 ::
-  MAlonzo.Code.Builtin.Signature.T_Sig_72 ->
+  MAlonzo.Code.Builtin.Signature.T_Sig_70 ->
   MAlonzo.Code.Type.T__'8866''8902'__20
 d_sig2type_8
   = coe
-      MAlonzo.Code.Builtin.Signature.du_sig2type_242
+      MAlonzo.Code.Builtin.Signature.du_sig2type_240
       (coe (\ v0 v1 v2 -> v2))
       (coe (\ v0 v1 v2 v3 -> coe MAlonzo.Code.Type.C_'96'_22 v3))
       (\ v0 v1 v2 v3 v4 -> coe MAlonzo.Code.Type.C__'183'__30 v1 v3 v4)
@@ -65,18 +66,18 @@ d_sig2typeΠ_10 ::
   MAlonzo.Code.Type.T__'8866''8902'__20
 d_sig2typeΠ_10
   = coe
-      MAlonzo.Code.Builtin.Signature.du_sig2typeΠ_228
+      MAlonzo.Code.Builtin.Signature.du_sig2typeΠ_226
       (\ v0 v1 v2 -> coe MAlonzo.Code.Type.C_Π_24 v1 v2)
 -- Declarative._.sig2type⇒
 d_sig2type'8658'_12 ::
   Integer ->
   Integer ->
-  [MAlonzo.Code.Builtin.Signature.T__'47'_'8866''8902'_26] ->
+  [MAlonzo.Code.Data.Sum.Base.T__'8846'__30] ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
   MAlonzo.Code.Type.T__'8866''8902'__20
 d_sig2type'8658'_12
   = coe
-      MAlonzo.Code.Builtin.Signature.du_sig2type'8658'_214
+      MAlonzo.Code.Builtin.Signature.du_sig2type'8658'_212
       (coe (\ v0 v1 v2 -> v2))
       (coe (\ v0 v1 v2 v3 -> coe MAlonzo.Code.Type.C_'96'_22 v3))
       (\ v0 v1 v2 v3 v4 -> coe MAlonzo.Code.Type.C__'183'__30 v1 v3 v4)
@@ -91,7 +92,7 @@ d_'8866''9839'2TyNe'9839'_14 ::
   MAlonzo.Code.Type.T__'8866''8902'__20
 d_'8866''9839'2TyNe'9839'_14
   = coe
-      MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_186
+      MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_184
       (coe (\ v0 v1 v2 -> v2))
       (coe (\ v0 v1 v2 v3 -> coe MAlonzo.Code.Type.C_'96'_22 v3))
       (\ v0 v1 v2 v3 v4 -> coe MAlonzo.Code.Type.C__'183'__30 v1 v3 v4)
@@ -116,7 +117,7 @@ d_btype_42 v0 v1
       MAlonzo.Code.Type.RenamingSubstitution.d_sub'8709'_896 (coe v0)
       (coe MAlonzo.Code.Utils.C_'42'_778)
       (coe
-         MAlonzo.Code.Builtin.Signature.du_sig2type_242
+         MAlonzo.Code.Builtin.Signature.du_sig2type_240
          (coe (\ v2 v3 v4 -> v4))
          (coe (\ v2 v3 v4 v5 -> coe MAlonzo.Code.Type.C_'96'_22 v5))
          (\ v2 v3 v4 v5 v6 -> coe MAlonzo.Code.Type.C__'183'__30 v3 v5 v6)

@@ -100,7 +100,7 @@ d_sty2ty_84 v0
   = coe
       MAlonzo.Code.Type.BetaNormal.C_ne_20
       (coe
-         MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_186
+         MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_184
          (\ v1 v2 v3 -> coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v3)
          (coe
             (\ v1 v2 v3 v4 -> coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v4))

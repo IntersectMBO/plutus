@@ -23,6 +23,7 @@ import qualified MAlonzo.Code.Agda.Builtin.Sigma
 import qualified MAlonzo.Code.Algorithmic
 import qualified MAlonzo.Code.Builtin
 import qualified MAlonzo.Code.Builtin.Signature
+import qualified MAlonzo.Code.Data.Sum.Base
 import qualified MAlonzo.Code.Data.Vec.Base
 import qualified MAlonzo.Code.Declarative
 import qualified MAlonzo.Code.Type
@@ -179,7 +180,7 @@ d_helper_148 = erased
 d_mkTy'45'lem_176 ::
   Integer ->
   Integer ->
-  MAlonzo.Code.Builtin.Signature.T__'47'_'8866''8902'_26 ->
+  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_mkTy'45'lem_176 = erased
 -- Algorithmic.Completeness.sig2type⇒-lem
@@ -188,7 +189,7 @@ d_sig2type'8658''45'lem_192 ::
   Integer ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
-  [MAlonzo.Code.Builtin.Signature.T__'47'_'8866''8902'_26] ->
+  [MAlonzo.Code.Data.Sum.Base.T__'8846'__30] ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_sig2type'8658''45'lem_192 = erased
@@ -203,7 +204,7 @@ d_sig2typeΠ'45'lem_210 ::
 d_sig2typeΠ'45'lem_210 = erased
 -- Algorithmic.Completeness.sig2type-lem
 d_sig2type'45'lem_226 ::
-  MAlonzo.Code.Builtin.Signature.T_Sig_72 ->
+  MAlonzo.Code.Builtin.Signature.T_Sig_70 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_sig2type'45'lem_226 = erased
 -- Algorithmic.Completeness.btype-lem

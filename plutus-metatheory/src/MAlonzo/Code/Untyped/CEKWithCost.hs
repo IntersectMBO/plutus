@@ -140,12 +140,12 @@ du_argsizes_68 v0 v1
          (coe
             MAlonzo.Code.Utils.d_alldone_248
             (coe
-               MAlonzo.Code.Builtin.Signature.d_fv_96
+               MAlonzo.Code.Builtin.Signature.d_fv_94
                (coe MAlonzo.Code.Builtin.d_signature_298 (coe v0))))
          (coe
             MAlonzo.Code.Utils.d_alldone_248
             (coe
-               MAlonzo.Code.Builtin.Signature.d_args'9839'_92
+               MAlonzo.Code.Builtin.Signature.d_args'9839'_90
                (coe MAlonzo.Code.Builtin.d_signature_298 (coe v0))))
          (coe v1))
 -- Untyped.CEKWithCost.stepC

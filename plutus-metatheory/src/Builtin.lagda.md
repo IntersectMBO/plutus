@@ -36,11 +36,12 @@ open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
 import Utils as U
-open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
+open import Builtin.Signature using (Sig;sig;_⊢♯;_⊢⋆;Args;_↑)
                  using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯ renaming (pair to bpair; list to blist; array to barray)
-open _/_⊢⋆
+open _⊢⋆
 open import Builtin.Constant.AtomicType
+open import Data.Sum using (_⊎_;inj₁;inj₂)
 
 open import Utils.Reflection using (defDec;defShow;defEnum;defListConstructors)
 ```
@@ -202,11 +203,11 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     ∀A,a = (1 ,, 1)
 
     -- names for type variables of kind ⋆
-    A :  ∀{n⋆ n♯} → suc n⋆ / n♯ ⊢⋆
-    A = ` Z
+    A :  ∀{n⋆ n♯} → suc n⋆ ⊢⋆ ⊎ n♯ ⊢♯
+    A = inj₁ (` Z)
 
-    B :  ∀{n⋆ n♯} → suc (suc n⋆) / n♯ ⊢⋆
-    B = ` (S Z)
+    B :  ∀{n⋆ n♯} → suc (suc n⋆) ⊢⋆ ⊎ n♯ ⊢♯
+    B = inj₁ (` (S Z))
 
     -- names for type variables of kind ♯
     a : ∀{n♯} → suc n♯ ⊢♯
@@ -215,14 +216,14 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     b : ∀{n♯} → suc (suc n♯) ⊢♯
     b = ` (S Z)
 
-    pair : ∀{n⋆ n♯} → n♯ ⊢♯ → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
-    pair a b = (bpair a b) ↑
+    pair : ∀{n⋆ n♯} → n♯ ⊢♯ → n♯ ⊢♯ → n⋆ ⊢⋆ ⊎ n♯ ⊢♯
+    pair a b = bpair a b ↑
 
-    list :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
-    list a = (blist a) ↑
+    list :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ ⊢⋆ ⊎ n♯ ⊢♯
+    list a = blist a ↑
 
-    array :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
-    array a = (barray a) ↑
+    array :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ ⊢⋆ ⊎ n♯ ⊢♯
+    array a = barray a ↑
 ```
 
 ### Operators for constructing signatures
@@ -245,10 +246,10 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     ArgSet = Σ (ℕ × ℕ) (λ { (n⋆ ,, n♯) → Args n⋆ n♯})
 
     ArgTy : ArgSet → Set
-    ArgTy ((n⋆ ,, n♯) ,, _) = n⋆ / n♯ ⊢⋆
+    ArgTy ((n⋆ ,, n♯) ,, _) = n⋆ ⊢⋆ ⊎ n♯ ⊢♯
 
     infix 12 _[_
-    _[_ : (nn : ℕ × ℕ)  → proj₁ nn / proj₂ nn ⊢⋆ → ArgSet
+    _[_ : (nn : ℕ × ℕ)  → proj₁ nn ⊢⋆ ⊎ proj₂ nn ⊢♯ → ArgSet
     _[_ (n⋆ ,, n♯) x = (n⋆ ,, n♯) ,, [ x ]
 
     infixl 10 _,_
