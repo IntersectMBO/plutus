@@ -48,6 +48,7 @@ let
     pir = project.flake'.packages."plutus-executables:exe:pir";
     plutus = project.flake'.packages."plutus-executables:exe:plutus";
     uplc-evaluator = project.flake'.packages."plutus-benchmark:exe:uplc-evaluator";
+    uplc-evaluator-integration-tests = project.flake'.packages."plutus-benchmark:test:uplc-evaluator-integration-tests"; # editorconfig-checker-disable-line
   };
 
   static-haskell-packages = {

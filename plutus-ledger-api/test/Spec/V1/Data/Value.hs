@@ -9,6 +9,7 @@ import PlutusTx.Numeric qualified as Numeric
 import Control.Lens
 import Data.ByteString qualified as BS
 import Data.List (sort)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty
 import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.QuickCheck
@@ -26,7 +27,7 @@ x <=> y = x === y .&&. y === x
 x </> y = x =/= y .&&. y =/= x
 
 scaleTestsBy :: Testable prop => Int -> prop -> Property
-scaleTestsBy factor = withMaxSuccess (100 * factor) . mapSize (* factor)
+scaleTestsBy factor = BaseQC.withNumTests (100 * factor) . mapSize (* factor)
 
 {-| Apply a function to an arbitrary number of elements of the given list. The elements are chosen
 at random. -}
