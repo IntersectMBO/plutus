@@ -37,41 +37,41 @@ The generic type of a Translation is that it matches one (or more) patterns on t
 we can build a decision procedure to apply them recursivley down the AST structure.
 
 ```
-data Translation (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set
+data Translation (R : Relation) { n : ℕ } : (n ⊢) → (n ⊢) → Set
 
-data TransMatch (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set where
-  var : {x : Fin X} → TransMatch R (` x) (` x) -- We assume we won't want to translate variables individually?
-  ƛ   : {x x' : suc X ⊢}
+data TransMatch (R : Relation) { n : ℕ } : (n ⊢) → (n ⊢) → Set where
+  var : {x : Fin n} → TransMatch R (` x) (` x) -- We assume we won't want to translate variables individually?
+  ƛ   : {x x' : suc n ⊢}
            → Translation R x x'
            ----------------------
            → TransMatch R (ƛ x) (ƛ x')
-  app : {f t f' t' : X ⊢} →
+  app : {f t f' t' : n ⊢} →
         Translation R f f' →
         Translation R t t' →
         TransMatch R (f · t) (f' · t')
-  force : {t t' : X ⊢} →
+  force : {t t' : n ⊢} →
         Translation R t t' →
         TransMatch R (force t) (force t')
-  delay : {t t' : X ⊢} →
+  delay : {t t' : n ⊢} →
         Translation R t t' →
         TransMatch R (delay t) (delay t')
-  con : {tc : TmCon} → TransMatch R {X} (con tc) (con tc)
-  constr : {xs xs' : List (X ⊢)} { n : ℕ }
+  con : {tc : TmCon} → TransMatch R {n} (con tc) (con tc)
+  constr : {xs xs' : List (n ⊢)} { i : ℕ }
                 → Pointwise (Translation R) xs xs'
                   ------------------------
-                → TransMatch R (constr n xs) (constr n xs')
-  case : {p p' : X ⊢} {alts alts' : List (X ⊢)}
+                → TransMatch R (constr i xs) (constr i xs')
+  case : {p p' : n ⊢} {alts alts' : List (n ⊢)}
                 → Pointwise (Translation R) alts alts' -- recursive translation for the other case patterns
                 → Translation R p p'
                 ------------------------
                 → TransMatch R (case p alts) (case p' alts')
-  builtin : {b : Builtin} → TransMatch R {X} (builtin b) (builtin b)
-  error : TransMatch R {X} error error
+  builtin : {b : Builtin} → TransMatch R {n} (builtin b) (builtin b)
+  error : TransMatch R {n} error error
 
 
-data Translation R {X} where
-  istranslation : {ast ast' : X ⊢} → R ast ast' → Translation R ast ast'
-  match : {ast ast' : X ⊢} → TransMatch R ast ast' → Translation R ast ast'
+data Translation R {n} where
+  istranslation : {ast ast' : n ⊢} → R ast ast' → Translation R ast ast'
+  match : {ast ast' : n ⊢} → TransMatch R ast ast' → Translation R ast ast'
 ```
 For the decision procedure we have the rather dissapointing 110 lines to demonstrate to Agda that,
 having determined that we aren't in the translation pattern, we are in fact, still not in the translation pattern
@@ -80,7 +80,7 @@ for each pair of term types.
 ```
 open import Data.Product
 
-untypedIx : {X : ℕ} → X ⊢ → ℕ
+untypedIx : {n : ℕ} → n ⊢ → ℕ
 untypedIx (` x) = 1
 untypedIx (ƛ t) = 2
 untypedIx (t · t₁) = 3
@@ -92,7 +92,7 @@ untypedIx (case t ts) = 8
 untypedIx (builtin b) = 9
 untypedIx error = 10
 
-matchIx : {R : Relation}{X : ℕ}{a b : X ⊢} → TransMatch R a b → untypedIx a ≡ untypedIx b
+matchIx : {R : Relation}{n : ℕ}{a b : n ⊢} → TransMatch R a b → untypedIx a ≡ untypedIx b
 matchIx var = refl
 matchIx (ƛ x) = refl
 matchIx (app x x₁) = refl
@@ -105,19 +105,19 @@ matchIx builtin = refl
 matchIx error = refl
 
 translation?
-  : {X' : ℕ} {R : Relation}
+  : {m : ℕ} {R : Relation}
   → OptTag
-  → ({ X : ℕ } → DecidableCE (R {X}))
-  → (p q : X' ⊢) → ProofOrCE (Translation R {X'} p q)
+  → ({ n : ℕ } → DecidableCE (R {n}))
+  → (p q : m ⊢) → ProofOrCE (Translation R {m} p q)
 
 decPointwiseTranslation?
-  : {X' : ℕ} {R : Relation}
+  : {m : ℕ} {R : Relation}
   → OptTag
-  → ({ X : ℕ } → DecidableCE (R {X}))
-  → (p q : List (X' ⊢)) → ProofOrCE (Pointwise (Translation R {X'}) p q)
+  → ({ n : ℕ } → DecidableCE (R {n}))
+  → (p q : List (m ⊢)) → ProofOrCE (Pointwise (Translation R {m}) p q)
 decPointwiseTranslation? _ _ [] [] = proof Pointwise.[]
-decPointwiseTranslation? {X' = X'} tag isR? [] (x ∷ ys) = ce (λ ()) {X = List (Fin X')} tag [] (x ∷ ys)
-decPointwiseTranslation? {X' = X'} tag isR? (x ∷ xs) [] = ce (λ ()) {X' = List (Fin X')} tag (x ∷ xs) []
+decPointwiseTranslation? {m = m} tag isR? [] (x ∷ ys) = ce (λ ()) {X = List (Fin m)} tag [] (x ∷ ys)
+decPointwiseTranslation? {m = m} tag isR? (x ∷ xs) [] = ce (λ ()) {X' = List (Fin m)} tag (x ∷ xs) []
 decPointwiseTranslation? tag isR? (x ∷ xs) (y ∷ ys)
     with translation? tag isR? x y | decPointwiseTranslation? tag isR? xs ys
 ... | proof p | proof q = proof (p Pointwise.∷ q)
@@ -125,9 +125,9 @@ decPointwiseTranslation? tag isR? (x ∷ xs) (y ∷ ys)
 ... | ce ¬p t before after | _     = ce (λ { (x∼y Pointwise.∷ x) → ¬p x∼y }) t before after
 
 translation? {_} tag isR? ast ast' with (untypedIx ast) Data.Nat.≟ (untypedIx ast')
-translation? {X} tag isR? (` x) (` x₁) | yes _ with Data.Fin._≟_ x x₁
+translation? {n} tag isR? (` x) (` x₁) | yes _ with Data.Fin._≟_ x x₁
 ... | yes refl = proof (match var)
-... | no x≠x₁ with isR? {X} (` x) (` x₁)
+... | no x≠x₁ with isR? {n} (` x) (` x₁)
 ...   | proof p = proof (istranslation p)
 ...   | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match var) → x≠x₁ refl }) t b a
 translation? {_} tag isR? (ƛ ast) (ƛ ast') | yes _ with translation? tag isR? ast ast'
@@ -154,9 +154,9 @@ translation? {_} tag isR? (delay ast) (delay ast') | yes _ with translation? tag
 ...                  | ce ¬tr t b a with isR? (delay ast) (delay ast')
 ...                               | proof p = proof (istranslation p)
 ...                               | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (delay x)) → ¬tr x }) t b a
-translation? {X} tag isR? (con x) (con x₁) | yes _ with x ≟ x₁
+translation? {n} tag isR? (con x) (con x₁) | yes _ with x ≟ x₁
 ...                  | yes refl = proof (match con)
-...                  | no x≠x₁ with isR? {X} (con x) (con x₁)
+...                  | no x≠x₁ with isR? {n} (con x) (con x₁)
 ...                                   | proof p = proof (istranslation p)
 ...                                   | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match con) → x≠x₁ refl }) t b a
 translation? {_} tag isR? (constr i xs) (constr i₁ xs₁) | yes _ with (decToPCE tag (i ≟ i₁) {constr i xs} {constr i₁ xs₁})
@@ -177,9 +177,9 @@ translation? {_} tag isR? (case ast ts) (case ast' ts₁) | yes _ | proof pa wit
 ...                                    | ce ¬tr t b a with isR? (case ast ts) (case ast' ts₁)
 ...                                           | proof p = proof (istranslation p)
 ...                                           | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (case x x₁)) → ¬tr x}) t b a
-translation? {X} tag isR? (builtin b) (builtin b₁) | yes _ with b ≟ b₁
+translation? {n} tag isR? (builtin b) (builtin b₁) | yes _ with b ≟ b₁
 ... | yes refl = proof (match builtin)
-... | no b≠b₁ with isR? {X} (builtin b) (builtin b₁)
+... | no b≠b₁ with isR? {n} (builtin b) (builtin b₁)
 ...                  | proof p = proof (istranslation p)
 ...                  | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match builtin) → b≠b₁ refl }) t b a
 translation? {_} tag isR? error error | yes _ = proof (match error)
@@ -195,17 +195,17 @@ These functions can be useful when showing equivilence etc. between translation 
 ```
 variable
   R S : Relation
-  X : ℕ
-  x x' : X ⊢
-  xs xs' : List (X ⊢)
+  n : ℕ
+  x x' : n ⊢
+  xs xs' : List (n ⊢)
 
-convert-pointwise : (∀ {Y : ℕ} {y y' : Y ⊢} → R y y' → S y y') → (Pointwise R xs xs' → Pointwise S xs xs')
+convert-pointwise : (∀ {m : ℕ} {y y' : m ⊢} → R y y' → S y y') → (Pointwise R xs xs' → Pointwise S xs xs')
 convert-pointwise f Pointwise.[] = Pointwise.[]
 convert-pointwise {R = R} {S = S} f (x∼y Pointwise.∷ p) = f x∼y Pointwise.∷ convert-pointwise {R =  R} {S = S} f p
 
 
 {-# TERMINATING #-}
-convert : (∀ {Y : ℕ} {y y' : Y ⊢} → R y y' → S y y') → (Translation R x x' → Translation S x x')
+convert : (∀ {m : ℕ} {y y' : m ⊢} → R y y' → S y y') → (Translation R x x' → Translation S x x')
 convert f (Translation.istranslation xx') = Translation.istranslation (f xx')
 convert f (match var) = match var
 convert f (match (ƛ x)) = match (ƛ (convert f x))
@@ -219,7 +219,7 @@ convert {R = R} {S = S} f (match (case (x∼y Pointwise.∷ x) x₁)) = match (c
 convert f (match builtin) = match builtin
 convert f (match error) = match error
 
-pointwise-reflexive : (∀ {X : ℕ} {x : X ⊢} → Translation R x x) → (∀ {X : ℕ} {xs : List (X ⊢)} → Pointwise (Translation R) xs xs)
+pointwise-reflexive : (∀ {n : ℕ} {x : n ⊢} → Translation R x x) → (∀ {n : ℕ} {xs : List (n ⊢)} → Pointwise (Translation R) xs xs)
 pointwise-reflexive f {xs = List.[]} = Pointwise.[]
 pointwise-reflexive f {xs = x List.∷ xs} = f Pointwise.∷ pointwise-reflexive f
 

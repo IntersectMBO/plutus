@@ -29,29 +29,29 @@ always infer the indices.
 
 ```
 Reflexive : Relation → Set
-Reflexive _~_ = ∀ {X} {M : X ⊢} →
+Reflexive _~_ = ∀ {n} {M : n ⊢} →
   -----
   M ~ M
 
 Transitive : Relation → Set
-Transitive _~_ = ∀ {X} {L M N : X ⊢} →
+Transitive _~_ = ∀ {n} {L M N : n ⊢} →
   L ~ M →
   M ~ N →
   -------
   L ~ N
 
 Symmetric : Relation → Set
-Symmetric _~_ = ∀ {X} {M N : X ⊢} →
+Symmetric _~_ = ∀ {n} {M N : n ⊢} →
   M ~ N →
   -------
   N ~ M
 
 Idempotent : Relation → Set
-Idempotent R = ∀ {X} {L M N : X ⊢} → R L M → R M N → M ≡ N
+Idempotent R = ∀ {n} {L M N : n ⊢} → R L M → R M N → M ≡ N
 
 _⊆_ : Relation → Relation → Set
 R ⊆ S =
-  ∀ {X} {M N : X ⊢}
+  ∀ {n} {M N : n ⊢}
   → R M N
   → S M N
 
@@ -69,19 +69,19 @@ Operations on terms can be abbreviated:
 
 ```
 Transform : Set
-Transform = ∀{X} → X ⊢ → X ⊢
+Transform = ∀{n} → n ⊢ → n ⊢
 
 Transform? : Set
-Transform? = ∀{X} → X ⊢ → Maybe (X ⊢)
+Transform? = ∀{n} → n ⊢ → Maybe (n ⊢)
 
 Transform₂ : Set
-Transform₂ = ∀{X} → X ⊢ → X ⊢ → X ⊢
+Transform₂ = ∀{n} → n ⊢ → n ⊢ → n ⊢
 
 Deterministicᵣ : Relation → Set
-Deterministicᵣ R = ∀ {X} {M N N' : X ⊢} → R M N → R M N' → N ≡ N'
+Deterministicᵣ R = ∀ {n} {M N N' : n ⊢} → R M N → R M N' → N ≡ N'
 
 Deterministicₗ : Relation → Set
-Deterministicₗ R = ∀ {X} {M M' N : X ⊢} → R M N → R M' N → M ≡ M'
+Deterministicₗ R = ∀ {n} {M M' N : n ⊢} → R M N → R M' N → M ≡ M'
 ```
 
 A compatible function maps related inputs to related outputs:
@@ -89,14 +89,14 @@ A compatible function maps related inputs to related outputs:
 ```
 Compatible : Relation → Transform → Set
 Compatible _~_ f =
-  ∀ {X} {M N : X ⊢} →
+  ∀ {n} {M N : n ⊢} →
     M ~ N →
     ---------
     f M ~ f N
 
 Compatible₂ : Relation → Transform₂ → Set
 Compatible₂ _~_ f =
-  ∀ {X} {K L M N : X ⊢} →
+  ∀ {n} {K L M N : n ⊢} →
     K ~ L →
     M ~ N →
     -------------
@@ -107,7 +107,7 @@ Compatible₂ _~_ f =
 
 
 ```
-pointwise-refl : ∀ {X} {R : Relation} {Ms : List (X ⊢)} → Reflexive R → Pointwise R Ms Ms
+pointwise-refl : ∀ {n} {R : Relation} {Ms : List (n ⊢)} → Reflexive R → Pointwise R Ms Ms
 pointwise-refl {Ms = []} R-refl = []
 pointwise-refl {R = R} {Ms = M ∷ Ms} R-refl = R-refl ∷ pointwise-refl {R = R} R-refl
 ```
@@ -118,7 +118,7 @@ A function refines a relation `R `when each input-output pair is related in R.
 
 ```
 Refines : Transform → Relation → Set
-Refines f R = ∀ {X} {M : X ⊢} → R M (f M)
+Refines f R = ∀ {n} {M : n ⊢} → R M (f M)
 ```
 
 There is a similar notion for partial functions:
@@ -126,13 +126,13 @@ There is a similar notion for partial functions:
 ```
 Refines? : Transform? → Relation → Set
 Refines? f R =
-  ∀ {X}
-  → (M N : X ⊢)
+  ∀ {n}
+  → (M N : n ⊢)
   → f M ≡ just N
   → R M N
 
 Refines?-⊆ :
-  ∀ {f : ∀ {X} → X ⊢ → Maybe (X ⊢)} {R S : Relation}
+  ∀ {f : ∀ {n} → n ⊢ → Maybe (n ⊢)} {R S : Relation}
   → R ⊆ S
   → Refines? f R
   → Refines? f S
@@ -145,11 +145,11 @@ proof of inhabitance of the relation:
 ```
 Refinement? : Relation → Set
 Refinement? R =
-  ∀ {X}
-  → (M : X ⊢)
+  ∀ {n}
+  → (M : n ⊢)
   → Maybe (∃ (λ M' → R M M'))
 
-refine? : ∀ {X} {R : Relation} → Refinement? R → X ⊢ → Maybe (X ⊢)
+refine? : ∀ {n} {R : Relation} → Refinement? R → n ⊢ → Maybe (n ⊢)
 refine? f M with f M
 ... | nothing = nothing
 ... | just (M' , _) = just M'
