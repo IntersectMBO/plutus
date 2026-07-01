@@ -173,6 +173,13 @@ def cmd_build(args: argparse.Namespace) -> int:
 
     cert_dir.mkdir(parents=True, exist_ok=True)
 
+    print("--- cabal update ---")
+    update = subprocess.run(["cabal", "update"])
+    if update.returncode != 0:
+        print(f"WARNING: cabal update exited with code {update.returncode}", file=sys.stderr)
+        print("Continuing to attempt the build anyway...", file=sys.stderr)
+    print()
+
     print(f"--- cabal build {' '.join(targets)} ---")
     result = subprocess.run(
         ["cabal", "build", *targets,
