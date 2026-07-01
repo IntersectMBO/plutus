@@ -21,6 +21,7 @@ export default function Footer(props) {
             href="https://github.com/IntersectMBO/plutus"
             class="github-link"
             target="_blank"
+            aria-label="Github"
           ></a>
         </div>
       </div>
