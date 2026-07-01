@@ -43,6 +43,5 @@ verifyEd25519Signature pk msg sig =
     loc :: Text
     loc = "Ed25519 signature verification"
 #else
--- See Note [The with-crypto flag] in PlutusCore.Crypto.Utils.
 verifyEd25519Signature _pk _msg _sig = cryptoDisabled "verifyEd25519Signature"
 #endif

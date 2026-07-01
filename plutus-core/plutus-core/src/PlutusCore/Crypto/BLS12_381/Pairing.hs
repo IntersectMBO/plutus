@@ -39,9 +39,6 @@ import PlutusCore.Crypto.Utils (cryptoDisabled)
 newtype MlResult = MlResult {unMlResult :: BlstBindings.PT}
   deriving newtype (Eq)
 #else
--- See Note [The with-crypto flag] in PlutusCore.Crypto.Utils. MlResult values
--- are only ever created during evaluation, which is unavailable in a C-free
--- build, so the representation is a placeholder.
 newtype MlResult = MlResult {unMlResult :: ByteString}
   deriving newtype (Eq)
 #endif
@@ -94,8 +91,6 @@ identityMlResult :: MlResult
 identityMlResult = millerLoop G1.offchain_zero G2.offchain_zero
 
 #else
-
--- C-free stubs. See Note [The with-crypto flag] in PlutusCore.Crypto.Utils.
 
 millerLoop :: G1.Element -> G2.Element -> MlResult
 millerLoop = cryptoDisabled "bls12_381_millerLoop"
