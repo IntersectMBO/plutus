@@ -138,6 +138,19 @@ closed interval of integers $\{n \in \Z : a \leq n \leq b\}$.  Note that $n$
 here is a variable (not a fixed label) so we are defining whole families of
 encoders $\E_1, \E_2, \E_3, \ldots$ and decoders $\D_1, \D_2, \D_3\ldots$.
 
+\subsection{Pairs}
+\label{sec:flat:pairs}
+Given sets $X$ and $Y$ for which we have defined encoders $\E_X$ and $\E_Y$, we
+define an encoder for elements of $X \times Y$ by composing the individual encoders:
+$$
+\E_{X \times Y} (s, (x,y)) = \E_Y(\E_X(s,x), y)
+$$
+Similarly, if we have decoders $\D_X$ and $D_Y$ for $X$ and $Y$ we define
+
+$$
+\D_{X \times Y} (s) = (s'', (x,y)) \quad \text{if $\D_X(s) = (s', x)$ and $\D_Y(s') = (s'', y)$}.
+$$
+
 
 \subsection{Lists}
 \label{sec:flat:lists}
@@ -166,7 +179,7 @@ with $n \geq 0$, $0 \leq k_i \leq 127$ for $0 \leq i \leq n$, and $k_n \ne 0$.
 Each $k_i$ is 7 bit binary block, $k_0$ being the least significant block.
 
 \medskip
-\noindent With this representation, the encoder for natural numbers is 
+\noindent With this representation, the encoder for natural numbers is
 
 $$
 \E_{\N} (s, \sum_{i=0}^{n}k_i2^{7i}) =
@@ -424,7 +437,7 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{0011} \cdot s)  &= (s'', \Apply{t_1}{t_2}) &&\quad \text{if}\ \Dterm(s) = (s', t_1)
                                                   &&\ \text{and}\ \Dterm(s') = (s'', t_2) \\
   \Dterm(\bits{0100} \cdot s)  &= (s'', \Const{tn}{c}) &&\quad \text{if}\ \Dtype(s) = (s', \tn)
-                                                           &&\ \text{and}\ \dConstant{\tn}(s') =(s'', c) \\
+                                                           &&\ \text{and}\ \Dconstant{\tn}(s') =(s'', c) \\
   \Dterm(\bits{0101} \cdot s)  &= (s', \Force{t})  &&\quad \text{if}\ \Dterm(s) = (s', t) \\
   \Dterm(\bits{0110} \cdot s)  &= (s, \Error)  && \\
   \Dterm(\bits{0111} \cdot s)  &= (s', \Builtin{b}) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
@@ -467,6 +480,7 @@ tags for the basic types together with a tag for a type application operator.
   $\ty{bls12\_381\_G2\_element}$ & $\bits{1010}$ & 10 \\
   $\ty{bls12\_381\_MlResult}$    & $\bits{1011}$ & 11 \\
   $\ty{array}$                   & $\bits{1100}$ & 12 \\
+  $\ty{value}$                   & $\bits{1101}$ & 13 \\
   \hline
 \end{tabular}
 \caption{Type tags}
@@ -491,7 +505,8 @@ denotes the universe of types defined in Sections~\ref{sec:default-builtins-1},
   &\etype(\listOf{t})        &&= [7,5] \cdot \etype(t) \\
   &\etype(\arrayOf{t})       &&= [7,12] \cdot \etype(t) \\
   &\etype(\pairOf{t_1}{t_2}) &&= [7,7,6] \cdot \etype(t_1) \cdot \etype(t_2)\\
-  &\etype(\ty{data})         &&= [8].
+  &\etype(\ty{data})         &&= [8].11\\
+  &\etype(\ty{value})        &&= [13]
 \end{alignat*}
 
 \begin{alignat*}{3}
@@ -507,7 +522,8 @@ denotes the universe of types defined in Sections~\ref{sec:default-builtins-1},
       \text{if} & \dtype(l) = (l', t_1)\\
       \text{and} & \dtype(l') = (l'', t_2)
     \end{cases}\\
-  &\dtype(8 \cdot l) &&= (l, \ty{data}).
+  &\dtype(8 \cdot l) &&= (l, \ty{data})\\
+  &\dtype(13 \cdot l) &&= (l, \ty{value}).
 \end{alignat*}
 
 \noindent The encoder and decoder for types is obtained by combining $\etype$
@@ -537,26 +553,37 @@ already defined:
   & \Econstant{\listOf{\tn}}(s,l)                  &&= \Elist^{\tn}_{\mathsf{constant}}(s, l) \\
   & \Econstant{\arrayOf{\tn}}(s,a)                 &&= \Earray^{\tn}_{\mathsf{constant}}(s, a) \\
   & \Econstant{\pairOf{\tn_1}{\tn_2}}(s,(c_1,c_2)) &&= \Econstant{\tn_2}(\Econstant{\tn_1}(s, c_1), c_2)\\
-  & \Econstant{\ty{data}}(s,d)                     &&= \E_{\B^*}(s, \eData(d))
+  & \Econstant{\ty{data}}(s,d)                     &&= \E_{\B^*}(s, \eData(d))\\
+  & \Econstant{\ty{value}}(s,v)                    &&= \Elist_{\B^* \times I^*}(s, \flatten{v})
+                                                     \quad\text{where $I = \B^* \times \Z$ and $\E_{I^*} = \Elist_I$}
 \end{alignat*}
+% The encoder/decoder for `value` are slightly complicated because we've got
+% inner lists of (bytestring, integer) pairs and we have to define a separate
+% encoder/decoder for them.  We can't just say that we always use the standard
+% list encoding for lists/sequences X^* because for example we've defined the
+% set of all bytestrings to be \B^* and there's a special encoding for them that
+% isn't just encoding a list of bytes.
 
 \begin{alignat*}{3}
-  &\dConstant{\ty{integer}}(s)              &&= \D_{\Z}(s) \\
-  &\dConstant{\ty{bytestring}}(s)           &&= \D_{\B^*}(s) \\
-  &\dConstant{\ty{string}}(s)               &&= \D_{\U^*}(s) \\
-  &\dConstant{\ty{unit}}(s)                 &&= s  \\
-  &\dConstant{\ty{bool}}(\bits{0} \cdot s)  &&= (s, \texttt{False}) \\
-  &\dConstant{\ty{bool}}(\bits{1} \cdot s)  &&= (s, \texttt{True}) \\
-  &\dConstant{\listOf{\tn}}(s)              &&= \Dlist^{\tn}_{\mathsf{constant}}(s) \\
-  &\dConstant{\arrayOf{\tn}}(s)             &&= \Darray^{\tn}_{\mathsf{constant}}(s) \\
-  &\dConstant{\pairOf{\tn_1}{\tn_2}}(s)     &&= (s'', (c_1, c_2))
+  &\Dconstant{\ty{integer}}(s)              &&= \D_{\Z}(s) \\
+  &\Dconstant{\ty{bytestring}}(s)           &&= \D_{\B^*}(s) \\
+  &\Dconstant{\ty{string}}(s)               &&= \D_{\U^*}(s) \\
+  &\Dconstant{\ty{unit}}(s)                 &&= s  \\
+  &\Dconstant{\ty{bool}}(\bits{0} \cdot s)  &&= (s, \texttt{False}) \\
+  &\Dconstant{\ty{bool}}(\bits{1} \cdot s)  &&= (s, \texttt{True}) \\
+  &\Dconstant{\listOf{\tn}}(s)              &&= \Dlist^{\tn}_{\mathsf{constant}}(s) \\
+  &\Dconstant{\arrayOf{\tn}}(s)             &&= \Darray^{\tn}_{\mathsf{constant}}(s) \\
+  &\Dconstant{\pairOf{\tn_1}{\tn_2}}(s)     &&= (s'', (c_1, c_2))
   && \begin{cases}
-       \text{if}  & \dConstant{\tn_1}(s) = (s', c_1) \\
-       \text{and} & \dConstant{\tn_2}(s') = (s'', c_2)
+       \text{if}  & \Dconstant{\tn_1}(s) = (s', c_1) \\
+       \text{and} & \Dconstant{\tn_2}(s') = (s'', c_2)
      \end{cases}\\
-  &\dConstant{\ty{data}}(s)                  &&= (s', d) &&
+  &\Dconstant{\ty{data}}(s)                 &&= (s', d) &&
                                            \text{if $\D_{\B*}(s) = (s', t)$
-                                            and $\dData(t) = (t', d)$ for some $t'$}.
+                                            and $\dData(t) = (t', d)$ for some $t'$}\\
+& \Dconstant{\ty{value}}(s)                 && = (s', \unflatten{x})
+                                             &&\text{if $\Dlist_{\B^* \times I^*} = (s',l)$
+                                             where $I=\B^* \times \Z$ and $\D_{I^*} = \Dlist_I$}.
 \end{alignat*}
 
 \paragraph{Units.} The unit value \texttt{(con unit ())} does not have
@@ -589,6 +616,22 @@ Decoding can similarly be performed indirectly by using
 \texttt{bls12\_381\_G1\_uncompress} and \texttt{bls12\_381\_G2\_uncompress} on
 bytestring constants during program execution.
 
+
+\paragraph{The \texttt{value} type.}
+The encoder and decoder for the \texttt{value} type use the concrete
+representation of a $\ty{value}$ as an element of $(\B^* \times (\B^*\times
+\Z)^*)^*$ described in Section~\ref{sec:built-in-value-type}, where a
+\texttt{value} is represented by an outer list of pairs of bytestrings and inner
+lists, an inner list being a list of pairs of bytestrings and integers, ie a
+list of elements of $I = \B^*\times \Z$.  To encode a \texttt{value} $v$ we
+convert it to the concrete representation $\flatten{v}$ and then encode that:
+inner lists are encoded using the standard list encoding (see
+Section~\ref{sec:flat:lists}) for lists with elements in $\B^*\times \Z$ and
+outer lists are encoded using the standard list encoding for lists with elements
+in $\B^* \times I$.  The decoder reverses this process, but note that we use the
+$\uparrow$ operation, which fails if it finds a bytestring with length greater
+than 32 or an integer value which is zero or lies outside the range $[-2^{127},
+  2^{127}-1]$.
 
 \subsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and
@@ -695,8 +738,8 @@ and forth between builtin names and their tags.
     \TT{bls12\_381\_finalVerify}     & $\bits{1000110}$  & 70 \\
     \TT{keccak\_256}                 & $\bits{1000111}$  & 71 \\
     \TT{blake2b\_224}                & $\bits{1001000}$  & 72 \\
-    \TT{integerToByteString}         & $\bits{1001000}$  & 73 \\
-    \TT{byteStringToInteger}         & $\bits{1001000}$  & 74 \\
+    \TT{integerToByteString}         & $\bits{1001001}$  & 73 \\
+    \TT{byteStringToInteger}         & $\bits{1001010}$  & 74 \\
 \hline
 \end{tabular}
 \caption{Tags for built-in functions (Batch 4)}
@@ -742,6 +785,13 @@ and forth between builtin names and their tags.
   \TT{indexArray}                     & $\bits{1011011}$  & 91 \\
   \TT{bls12\_381\_G1\_multiScalarMul} & $\bits{1011100}$  & 92 \\
   \TT{bls12\_381\_G2\_multiScalarMul} & $\bits{1011101}$  & 93 \\
+  \TT{insertCoin}                     & $\bits{1011110}$  & 94 \\
+  \TT{lookupCoin}                     & $\bits{1011111}$  & 95 \\
+  \TT{unionValue}                     & $\bits{1100000}$  & 96 \\
+  \TT{valueContains}                  & $\bits{1100001}$  & 97 \\
+  \TT{valueData}                      & $\bits{1100010}$  & 98 \\
+  \TT{unValueData}                    & $\bits{1100011}$  & 99 \\
+  \TT{scaleValue}                     & $\bits{1100100}$  & 100 \\
   \hline
 \end{tabular}
 \caption{Tags for built-in functions (Batch 6)}
