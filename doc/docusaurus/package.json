@@ -49,7 +49,7 @@
     "brace-expansion": "1.1.13",
     "on-headers": "1.1.0",
     "mermaid": "11.15.0",
-    "js-yaml": "3.14.2",
+    "js-yaml": "3.15.0",
     "joi": "17.13.4",
     "launch-editor": "2.14.1",
     "shell-quote": "1.8.4",
