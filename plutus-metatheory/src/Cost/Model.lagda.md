@@ -201,7 +201,7 @@ convertRawModel {3} (LinearInYAndZ (mkLF2 intercept slope1 slope2)) =
                    just (twoArgumentsLinearInYAndZ intercept slope1 slope2)
 convertRawModel {suc (suc n)} (LinearInY2 (mkLF intercept slope) _) = just (linearCostIn (suc zero) intercept slope)
 convertRawModel {3} (LinearInMaxYZ (mkLF intercept slope)) = just (twoArgumentsLinearInMaxYZ intercept slope)
-convertRawModel {suc (suc n)} (QuadraticInX (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 zero c0 c1 c2)
+convertRawModel {suc n} (QuadraticInX (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 zero c0 c1 c2)
 convertRawModel {suc (suc n)} (QuadraticInY (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc zero) c0 c1 c2)
 convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
 convertRawModel {suc (suc (suc (suc n)))} (LinearInU (mkLF intercept slope)) = just (linearCostIn (suc (suc (suc zero))) intercept slope)
@@ -217,6 +217,7 @@ convertRawModel {2} (ConstOffDiagonal c m) = mapMaybe (twoArgumentsConstOffDiago
 convertRawModel {2} (AboveAndBelowDiagonal c m) = mapMaybe (twoArgumentsAboveAndBelowDiagonal c) (convertRawModel m)
 convertRawModel {3} (ExpModCost (mkExpModCostingFunction c00 c11 c12)) = just (threeArgumentsExpModCost c00 c11 c12)
 convertRawModel {suc (suc n)} (WithInteractionInXAndY (mkWI c00 c10 c01 c11)) = just (withInteractionIn zero (suc zero) c00 c10 c01 c11)
+convertRawModel {suc (suc n)} (LinearInXAndY (mkLF2 intercept slope1 slope2)) = just (withInteractionIn zero (suc zero) intercept slope1 slope2 0)
 convertRawModel _ = nothing
 
 convertCpuAndMemoryModel : ∀{n} → CpuAndMemoryModel → Maybe (BuiltinModel n)
