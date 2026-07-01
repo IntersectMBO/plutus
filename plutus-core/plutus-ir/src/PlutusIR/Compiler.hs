@@ -218,7 +218,7 @@ compileToReadable
 compileToReadable (Program a v t) = do
   validateOpts v
   let pipeline :: m (P.Pass m TyName Name uni fun b)
-      pipeline = ala Ap foldMap [typeCheckTerm, dce, simplifier]
+      pipeline = ala Ap foldMap [typeCheckTerm, dce, simplifier, floatOutPasses]
   Program a v <$> runCompilerPass pipeline t
 
 {-| The 2nd half of the PIR compiler pipeline.
@@ -236,7 +236,6 @@ compileReadableToPlc (Program a v t) = do
         Ap
         foldMap
         [ floatInPasses
-        , recInlinePasses
         , NonStrict.compileNonStrictBindingsPassSC <$> view ccTypeCheckConfig <*> pure False
         , ThunkRec.thunkRecursionsPass <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
         , -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
