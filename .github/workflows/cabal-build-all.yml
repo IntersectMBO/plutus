@@ -31,6 +31,6 @@ jobs:
         uses: actions/checkout@v6.0.1
 
       - name: Cold Build / ${{ matrix.ghc }} / x86_64-linux
-        run: | 
+        run: |
           nix develop --no-warn-dirty --accept-flake-config .#${{ matrix.ghc }} \
             --command bash -c 'cabal clean && cabal update && cabal build all --ghc-options=-Werror'

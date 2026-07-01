@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
@@ -20,12 +21,7 @@ module PlutusCore.Crypto.BLS12_381.G1
   , multiScalarMul
   ) where
 
-import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
-import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
-
 import PlutusCore.Builtin.Result (BuiltinResult (..))
-import PlutusCore.Crypto.BLS12_381.Bounds (msmScalarOutOfBounds)
-import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error (..))
 import PlutusCore.Crypto.Utils (byteStringAsHex)
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy)
@@ -35,15 +31,25 @@ import Control.DeepSeq
   , rnf
   , rwhnf
   )
-import Data.ByteString
-  ( ByteString
-  , length
-  )
-import Data.Coerce (coerce)
+import Data.ByteString (ByteString)
 import Data.Hashable
-import Data.Proxy (Proxy (..))
 import PlutusCore.Flat
 import Prettyprinter
+
+#ifdef WITH_CRYPTO
+import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
+import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
+import Data.ByteString (length)
+import Data.Coerce (coerce)
+import Data.Proxy (Proxy (..))
+import PlutusCore.Crypto.BLS12_381.Bounds (msmScalarOutOfBounds)
+import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error (..))
+#else
+import Data.ByteString (pack)
+import Data.Char (digitToInt)
+import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error)
+import PlutusCore.Crypto.Utils (cryptoDisabled)
+#endif
 
 {- Note [Wrapping the BLS12-381 types in Plutus Core].  In the Haskell bindings
 to the `blst` library in cardano-crypto-class, points in G1 and G2 are
@@ -60,8 +66,14 @@ functions at the appropriate phantom types.
 
 See also Note [Wrapping the BLS12-381 types in PlutusTx].
 -}
+#ifdef WITH_CRYPTO
 newtype Element = Element {unElement :: BlstBindings.Point1}
   deriving newtype (Eq)
+#else
+newtype Element = Element {unElement :: ByteString}
+  deriving newtype (Eq)
+#endif
+
 instance Show Element where
   show = byteStringAsHex . compress
 instance Pretty Element where
@@ -90,6 +102,8 @@ instance NFData Element where
 
 instance Hashable Element where
   hashWithSalt salt = hashWithSalt salt . compress
+
+#ifdef WITH_CRYPTO
 
 -- | Add two G1 group elements
 add :: Element -> Element -> Element
@@ -199,3 +213,54 @@ multiScalarMul :: [Integer] -> [Element] -> BuiltinResult Element
 multiScalarMul ss p
   | any msmScalarOutOfBounds ss = fail "Scalar exceeds 512-byte bound for G1.multiScalarMul"
   | otherwise = pure . coerce $ BlstBindings.blsMSM @BlstBindings.Curve1 (zip ss (coerce p))
+
+#else
+
+add :: Element -> Element -> Element
+add = cryptoDisabled "bls12_381_G1_add"
+
+neg :: Element -> Element
+neg = cryptoDisabled "bls12_381_G1_neg"
+
+scalarMul :: Integer -> Element -> Element
+scalarMul = cryptoDisabled "bls12_381_G1_scalarMul"
+
+scalarMulE :: Integer -> Element -> BuiltinResult Element
+scalarMulE = cryptoDisabled "bls12_381_G1_scalarMul"
+
+compress :: Element -> ByteString
+compress = unElement
+
+uncompress :: ByteString -> Either BLS12_381_Error Element
+uncompress = Right . Element
+
+hashToGroup :: ByteString -> ByteString -> Either BLS12_381_Error Element
+hashToGroup = cryptoDisabled "bls12_381_G1_hashToGroup"
+
+offchain_zero :: Element
+offchain_zero = Element compressed_zero
+
+compressed_zero :: ByteString
+compressed_zero =
+  unhex "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
+compressed_generator :: ByteString
+compressed_generator =
+  unhex "97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb"
+
+unhex :: String -> ByteString
+unhex = pack . go
+  where
+    go (a : b : rest) = fromIntegral (digitToInt a * 16 + digitToInt b) : go rest
+    go _ = []
+
+memSizeBytes :: Int
+memSizeBytes = 144
+
+compressedSizeBytes :: Int
+compressedSizeBytes = 48
+
+multiScalarMul :: [Integer] -> [Element] -> BuiltinResult Element
+multiScalarMul = cryptoDisabled "bls12_381_G1_multiScalarMul"
+
+#endif

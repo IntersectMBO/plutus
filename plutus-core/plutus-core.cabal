@@ -59,6 +59,30 @@ flag with-cert
   manual:      True
   default:     False
 
+-- The with-crypto flag (enabled by default) selects Plutus Core's cryptography
+-- backend, and is the single control for building without the system C crypto
+-- libraries.
+--
+-- Enabled: the hash, signature-verification and BLS12-381 builtins are backed by
+-- cardano-crypto-class, which binds the system libraries libsodium, libblst and
+-- libsecp256k1.
+--
+-- Disabled (-with-crypto): Plutus Core links no system cryptography library, so
+-- it builds -- and Plinth/Plutus scripts compile -- where those libraries are
+-- not installed. (Otherwise Cabal cannot even solve, because cardano-crypto-class
+-- declares them as pkgconfig-depends: https://github.com/haskell/cabal/issues/4087.)
+-- In that build the modules under PlutusCore.Crypto are compiled C-free: the
+-- hashes are computed by crypton (which vendors its C sources, needs no system
+-- library, and is byte-identical -- see crypto-hash-parity-test); the BLS12-381
+-- constants stay real hardcoded values; and the signature-verification and
+-- BLS12-381 group/pairing operations become compile-only stubs that error if
+-- evaluated. The components that link cardano-crypto-class directly are disabled
+-- (buildable: False) so the whole package solves C-free. Scripts still COMPILE;
+-- those builtins simply cannot be EVALUATED. The default build is unaffected.
+flag with-crypto
+  manual:  True
+  default: True
+
 common lang
   default-language:   Haskell2010
   default-extensions:
@@ -320,7 +344,6 @@ library
     , base64-bytestring
     , bimap
     , bytestring
-    , cardano-crypto-class
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
@@ -367,6 +390,28 @@ library
     , transformers
     , unordered-containers
     , vector                      ^>=0.13.2
+
+  if flag(with-crypto)
+    build-depends: cardano-crypto-class >=2.3.1.0
+    cpp-options:   -DWITH_CRYPTO
+
+  else
+    build-depends:
+      , crypton  ^>=1.0
+      , memory
+
+test-suite crypto-hash-parity-test
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test-crypto-hash-parity
+  build-depends:
+    , base
+    , base16-bytestring
+    , bytestring
+    , plutus-core
+    , tasty
+    , tasty-golden
 
 test-suite plutus-core-test
   import:           lang
@@ -435,6 +480,9 @@ test-suite untyped-plutus-core-test
   if (os(windows) || arch(wasm32))
     buildable: False
 
+  if !flag(with-crypto)
+    buildable: False
+
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: untyped-plutus-core/test
@@ -453,6 +501,9 @@ library untyped-plutus-core-testlib
 
   -- needs linux 'diff' available
   if (os(windows) || arch(wasm32))
+    buildable: False
+
+  if !flag(with-crypto)
     buildable: False
 
   exposed-modules:
@@ -814,6 +865,10 @@ library plutus-ir-cert
 executable cost-model-budgeting-bench
   import:         lang
   main-is:        Main.hs
+
+  if !flag(with-crypto)
+    buildable: False
+
   other-modules:
     Benchmarks.Arrays
     Benchmarks.Bitwise
