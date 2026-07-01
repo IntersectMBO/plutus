@@ -78,6 +78,12 @@ tests =
       , goldenBundle "concat" concat (concat `unsafeApplyCode` l4)
       , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
       , goldenBundle "zipWith" zipWith (zipWith `unsafeApplyCode` l1)
+      , -- , goldenBundle "sort" sort (sort `unsafeApplyCode` l1)
+        -- , goldenBundle "sortBy" sortBy (sortBy `unsafeApplyCode` l1)
+        -- , goldenBundle "splitAt" splitAt (splitAt `unsafeApplyCode` l1)
+        -- , goldenBundle "partition" partition (partition `unsafeApplyCode` l1)
+        goldenBundle "zip" zip (zip `unsafeApplyCode` l1)
+        -- , goldenBundle "unzip" unzip (unzip `unsafeApplyCode` l3)
       ]
 
 map :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
@@ -227,6 +233,30 @@ nub = $$(compile [||\xs -> L.nub (L.append xs xs)||])
 nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 nubBy = $$(compile [||\xs -> L.nubBy (<=) xs||])
 
+concat :: CompiledCode (L.BuiltinList (L.BuiltinList Integer) -> L.BuiltinList Integer)
+concat = $$(compile [||\xss -> L.concat xss||])
+
+concatMap :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
+concatMap = $$(compile [||\xss -> L.concatMap (L.replicate 2) xss||])
+
+-- splitAt :: CompiledCode (L.BuiltinList Integer -> BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer))
+-- splitAt = $$(compile [||\xs -> L.splitAt 5 xs||])
+
+-- partition :: CompiledCode (L.BuiltinList Integer -> BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer))
+-- partition = $$(compile [||\xs -> L.partition even xs||])
+
+zip :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList (BuiltinPair Integer Integer))
+zip = $$(compile [||\xs -> L.zip xs xs||])
+
+-- unzip :: CompiledCode (L.BuiltinList (BuiltinPair Integer Integer) -> BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer))
+-- unzip = $$(compile [||\xs -> L.unzip xs||])
+
+-- sort :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
+-- sort = $$(compile [||\xs -> L.sort xs||])
+
+-- sortBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
+-- sortBy = $$(compile [||\xs -> L.sortBy compare xs||])
+
 l1 :: CompiledCode (L.BuiltinList Integer)
 l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
 
@@ -238,9 +268,3 @@ l3 = liftCodeDef $ toBuiltin ([(1, 2), (3, 4), (5, 6)] :: [(Integer, Integer)])
 
 l4 :: CompiledCode (L.BuiltinList (L.BuiltinList Integer))
 l4 = liftCodeDef $ toBuiltin ([[1, 2], [3, 4]] :: [[Integer]])
-
-concat :: CompiledCode (L.BuiltinList (L.BuiltinList Integer) -> L.BuiltinList Integer)
-concat = $$(compile [||\xss -> L.concat xss||])
-
-concatMap :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-concatMap = $$(compile [||\xss -> L.concatMap (L.replicate 2) xss||])
