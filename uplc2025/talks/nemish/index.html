@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>JIT-compiling Plutus on the JVM – the fastest UPLC evaluator on the planet - UPLC (UPLC Programming Language Conference) 2025</title>
+  <meta name="description" content="Talk by Alexander Nemish at UPLC (UPLC Programming Language Conference) 2025" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:image" content="https://plutus.cardano.intersectmbo.org//uplc2025/assets/images/twitter_preview.png" />
+  <meta name="twitter:title" content="JIT-compiling Plutus on the JVM – the fastest UPLC evaluator on the planet" />
+  <meta name="twitter:description" content="Talk by Alexander Nemish at UPLC (UPLC Programming Language Conference) 2025" />
+
+  <meta property="og:site_name" content="UPLC (UPLC Programming Language Conference) 2025" />
+  <meta property="og:image" content="https://plutus.cardano.intersectmbo.org//uplc2025/assets/images/facebook_preview.png" />
+  <meta property="og:url" content="https://plutus.cardano.intersectmbo.org//uplc2025/talks/nemish/" />
+  <meta property="og:title" content="JIT-compiling Plutus on the JVM – the fastest UPLC evaluator on the planet" />
+  <meta property="og:description" content="Talk by Alexander Nemish at UPLC (UPLC Programming Language Conference) 2025" />
+  <meta property="og:type" content="website" />
+
+  <link rel="stylesheet" href="/uplc2025/assets/css/main.css?t=1761828110" />
+
+  <link rel="preload" as="font" href="/uplc2025/assets/webfonts/fa-regular-400.woff2" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" as="font" href="/uplc2025/assets/webfonts/fa-solid-900.woff2" type="font/woff2" crossorigin="anonymous" />
+</head>
+
+<body class="pb-4">
+  <header>
+    <!-- navigation bar (web only): --><nav class="navbar navbar-expand-md navbar-light bg-light mb-3">
+  <div class="container">
+
+    <a class="navbar-brand" href="/uplc2025/">UPLC (UPLC Programming Language Conference) 2025</a>
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+            <li class="nav-item "><a class="nav-link" href="https://services.iohk.io/uplc" title="Home">
+                Home
+              </a>
+            </li>
+            <li class="nav-item "><a class="nav-link" href="/uplc2025/location/" title="Location">
+                Location
+              </a>
+            </li>
+      </ul>
+    </div>
+
+  </div>
+</nav><!-- site title (print only): -->
+      <div class="container d-none d-print-block mt-4 mb-4">
+        <h1 class="display-4">
+          UPLC (UPLC Programming Language Conference) 2025
+        </h1>
+      </div></header>
+  <main class="container"><div class="d-flex flex-md-row flex-column container-fluid mb-2 p-0">
+    <div class="h6 mt-2 mb-0 mr-1 pr-1 pb-1">
+      
+      <span class="d-block d-sm-inline p-1 pl-2 pr-2 border-soft-success bg-soft-success font-weight-normal">
+        Talk
+      </span>
+    </div>
+
+    
+  </div>
+
+  <h1 class="font-weight-light text-break">JIT-compiling Plutus on the JVM – the fastest UPLC evaluator on the planet</h1>
+
+  <p class="mb-3 font-weight-light">
+    <a class="text-reset" href="/uplc2025/speakers/Nemish/">Alexander Nemish</a>
+  </p>
+
+  <div class="mb-3 p-0">
+    
+        
+        
+        
+        
+        
+        
+        
+      
+        
+        
+        
+        
+      
+        
+        
+      
+        
+      
+    
+        
+        
+        
+        
+        
+        
+      
+        
+        
+        
+      
+        
+      
+        
+      
+        
+        
+      
+    
+        
+        
+        <span class="d-none d-sm-inline">on</span> <a href="/uplc2025/program#thu" class="badge badge-light font-weight-normal text-left ">
+  <i class="far fa-clock"></i>&nbsp;Thu, 13:30</a><span class="d-none d-sm-inline ml-1">in</span> <a href="/uplc2025/rooms/room-1/" class="badge badge-light font-weight-normal"><i class="far fa-square"></i>&nbsp;G.03</a><span class="d-none d-sm-inline ml-1">for</span> <span class="badge badge-light font-weight-normal text-left">
+  <i class="fas fa-stopwatch"></i>&nbsp;40min
+</span>
+
+        
+        
+      
+        
+      
+        
+        
+      
+        
+      
+    
+  </div>
+
+  
+
+
+  
+
+  
+
+  
+
+  <p class="d-print-none mt-5">
+    <a href="/uplc2025/talks" class="btn btn-light">
+      <i class="fas fa-bullhorn"></i>&nbsp;Overview
+    </a>
+
+    <a href="/uplc2025/program" class="btn btn-light">
+      <i class="far fa-calendar-alt"></i>&nbsp;Program
+    </a>
+  </p>
+  </main>
+  <footer class="container"></footer><div class="modal fade" id="link-modal" tabindex="-1" role="dialog" aria-labelledby="link-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="link-modal-label">
+          <h3 class="mb-2 font-weight-light"></h3>
+          <h5 class="mb-0 font-weight-light"></h5>
+        </div>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body embed-responsive embed-responsive-16by9">
+        <iframe class="embed-responsive-item" src="" allowfullscreen></iframe>
+      </div>
+      <div class="modal-footer justify-content-start">
+        <p></p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Append build time to avoid caching of live program embedded in JavaScript file -->
+  <script src="/uplc2025/assets/js/main.js?t=1761828110"></script>
+
+</body>
+</html>

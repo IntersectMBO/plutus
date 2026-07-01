@@ -1,0 +1,433 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>{-| In this module we define Church-encoded type-level natural numbers,
+<span class="lineno">    7 </span>Church-encoded vectors and Scott-encoded vectors.
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>See @/docs/fomega/gadts/ScottVec.agda@ for how Scott-encoded vectors work. -}
+<span class="lineno">   10 </span>module PlutusCore.Examples.Data.Vec where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import PlutusCore.Core
+<span class="lineno">   13 </span>import PlutusCore.Default.Builtins
+<span class="lineno">   14 </span>import PlutusCore.MkPlc
+<span class="lineno">   15 </span>import PlutusCore.Name.Unique
+<span class="lineno">   16 </span>import PlutusCore.Quote
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import PlutusCore.StdLib.Data.Integer
+<span class="lineno">   19 </span>import PlutusCore.StdLib.Data.Unit
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>{-|
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>&gt; natK = (* -&gt; *) -&gt; * -&gt; * -}
+<span class="lineno">   24 </span>natK :: Kind ()
+<span class="lineno">   25 </span><span class="decl"><span class="istickedoff">natK = KindArrow <span class="nottickedoff">()</span> (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span>) . KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>-- We don't have eta-equality for types, so we need to eta-expand some things manually.
+<span class="lineno">   28 </span>-- Should we have eta-equality?
+<span class="lineno">   29 </span>{-|
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>&gt; getEta n = \(f :: * -&gt; *) (z :: *) -&gt; n f z -}
+<span class="lineno">   32 </span>getEta :: Type TyName uni () -&gt; Quote (Type TyName uni ())
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">getEta n = do</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshTyName &quot;f&quot;</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshTyName &quot;z&quot;</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> f (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> z (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   39 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterTyAppNoAnn</span>
+<span class="lineno">   40 </span><span class="spaces">      </span><span class="istickedoff">n</span>
+<span class="lineno">   41 </span><span class="spaces">      </span><span class="istickedoff">[ TyVar <span class="nottickedoff">()</span> f</span>
+<span class="lineno">   42 </span><span class="spaces">      </span><span class="istickedoff">, TyVar <span class="nottickedoff">()</span> z</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>{-|
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>&gt; zeroT = \(f :: * -&gt; *) (z :: *) -&gt; z -}
+<span class="lineno">   48 </span>zeroT :: Type TyName uni ()
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">zeroT = runQuote $ do</span>
+<span class="lineno">   50 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshTyName &quot;f&quot;</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshTyName &quot;z&quot;</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> f (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> z (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> z</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>{-|
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>&gt; succT = \(n : natK) (f :: * -&gt; *) (z :: *) -&gt; f (n f z) -}
+<span class="lineno">   60 </span>succT :: Type TyName uni ()
+<span class="lineno">   61 </span><span class="decl"><span class="istickedoff">succT = runQuote $ do</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshTyName &quot;f&quot;</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshTyName &quot;z&quot;</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> f (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> z (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">. TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterTyAppNoAnn</span>
+<span class="lineno">   71 </span><span class="spaces">      </span><span class="istickedoff">(TyVar <span class="nottickedoff">()</span> n)</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="istickedoff">[ TyVar <span class="nottickedoff">()</span> f</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="istickedoff">, TyVar <span class="nottickedoff">()</span> z</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>{-|
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>&gt; plusT = \(n : natK) (m : natK) (f :: * -&gt; *) (z :: *) -&gt; n f (m f z) -}
+<span class="lineno">   79 </span>plusT :: Type TyName uni ()
+<span class="lineno">   80 </span><span class="decl"><span class="istickedoff">plusT = runQuote $ do</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">m &lt;- freshTyName &quot;m&quot;</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshTyName &quot;f&quot;</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshTyName &quot;z&quot;</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> m natK</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> f (KindArrow <span class="nottickedoff">()</span> (Type <span class="nottickedoff">()</span>) $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> z (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterTyAppNoAnn</span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="istickedoff">(TyVar <span class="nottickedoff">()</span> n)</span>
+<span class="lineno">   92 </span><span class="spaces">      </span><span class="istickedoff">[ TyVar <span class="nottickedoff">()</span> f</span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="istickedoff">, mkIterTyAppNoAnn</span>
+<span class="lineno">   94 </span><span class="spaces">          </span><span class="istickedoff">(TyVar <span class="nottickedoff">()</span> m)</span>
+<span class="lineno">   95 </span><span class="spaces">          </span><span class="istickedoff">[ TyVar <span class="nottickedoff">()</span> f</span>
+<span class="lineno">   96 </span><span class="spaces">          </span><span class="istickedoff">, TyVar <span class="nottickedoff">()</span> z</span>
+<span class="lineno">   97 </span><span class="spaces">          </span><span class="istickedoff">]</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>{-|
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>&gt; stepFun a r1 r2 = all (p :: natK). a -&gt; r1 p -&gt; r2 (succT p) -}
+<span class="lineno">  103 </span>getStepFun :: TyName -&gt; Type TyName uni () -&gt; TyName -&gt; Quote (Type TyName uni ())
+<span class="lineno">  104 </span><span class="decl"><span class="istickedoff">getStepFun a r1 r2 = do</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="istickedoff">p &lt;- freshTyName &quot;p&quot;</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  107 </span><span class="spaces">    </span><span class="istickedoff">. TyForall <span class="nottickedoff">()</span> p natK</span>
+<span class="lineno">  108 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">  109 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> r1 $ TyVar <span class="nottickedoff">()</span> p)</span>
+<span class="lineno">  110 </span><span class="spaces">    </span><span class="istickedoff">. TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r2)</span>
+<span class="lineno">  111 </span><span class="spaces">    </span><span class="istickedoff">. TyApp <span class="nottickedoff">()</span> succT</span>
+<span class="lineno">  112 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> p</span></span>
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span>{-|
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>&gt; churchVec =
+<span class="lineno">  117 </span>&gt;     \(a :: *) (n :: natK) -&gt;
+<span class="lineno">  118 </span>&gt;         all (r :: natK -&gt; *). (all (p :: natK). a -&gt; r p -&gt; r (succT p)) -&gt; r zeroT -&gt; r n -}
+<span class="lineno">  119 </span>churchVec :: Type TyName uni ()
+<span class="lineno">  120 </span><span class="decl"><span class="istickedoff">churchVec = runQuote $ do</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="istickedoff">stepFun &lt;- getStepFun a (TyVar <span class="nottickedoff">()</span> r) r</span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  127 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">  128 </span><span class="spaces">    </span><span class="istickedoff">. TyForall <span class="nottickedoff">()</span> r (KindArrow <span class="nottickedoff">()</span> natK $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> stepFun</span>
+<span class="lineno">  130 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) zeroT)</span>
+<span class="lineno">  131 </span><span class="spaces">    </span><span class="istickedoff">. TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">  132 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> n</span></span>
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span>{-|
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>&gt; churchNil =
+<span class="lineno">  137 </span>&gt;     /\(a :: *) -&gt;
+<span class="lineno">  138 </span>&gt;         /\(r :: natK -&gt; *) -&gt; \(f : all (p :: natK). a -&gt; r p -&gt; r (succT p)) (z : r zeroT) -&gt;
+<span class="lineno">  139 </span>&gt;             z -}
+<span class="lineno">  140 </span>churchNil :: Term TyName Name uni fun ()
+<span class="lineno">  141 </span><span class="decl"><span class="istickedoff">churchNil = runQuote $ do</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  144 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="istickedoff">stepFun &lt;- getStepFun a (TyVar <span class="nottickedoff">()</span> r) r</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  148 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (KindArrow <span class="nottickedoff">()</span> natK $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  150 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f stepFun</span>
+<span class="lineno">  151 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) zeroT)</span>
+<span class="lineno">  152 </span><span class="spaces">    </span><span class="istickedoff">$ Var <span class="nottickedoff">()</span> z</span></span>
+<span class="lineno">  153 </span>
+<span class="lineno">  154 </span>{-|
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>&gt; churchCons =
+<span class="lineno">  157 </span>&gt;     /\(a :: *) (n :: natK) -&gt; \(x : a) (xs : churchVec a n) -&gt;
+<span class="lineno">  158 </span>&gt;         /\(r :: natK -&gt; *) -&gt; \(f : all (p :: natK). a -&gt; r p -&gt; r (succT p)) (z : r zeroT) -&gt;
+<span class="lineno">  159 </span>&gt;             f {n} x (xs {r} f z) -}
+<span class="lineno">  160 </span>churchCons :: Term TyName Name uni fun ()
+<span class="lineno">  161 </span><span class="decl"><span class="istickedoff">churchCons = runQuote $ do</span>
+<span class="lineno">  162 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  163 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">  164 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">  165 </span><span class="spaces">  </span><span class="istickedoff">xs &lt;- freshName &quot;xs&quot;</span>
+<span class="lineno">  166 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  167 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff">stepFun &lt;- getStepFun a (TyVar <span class="nottickedoff">()</span> r) r</span>
+<span class="lineno">  170 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  171 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  172 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">  173 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> x (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">  174 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs (mkIterTyAppNoAnn churchVec [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> n])</span>
+<span class="lineno">  175 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (KindArrow <span class="nottickedoff">()</span> natK $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  176 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f stepFun</span>
+<span class="lineno">  177 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) zeroT)</span>
+<span class="lineno">  178 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  179 </span><span class="spaces">      </span><span class="istickedoff">(TyInst <span class="nottickedoff">()</span> (Var <span class="nottickedoff">()</span> f) $ TyVar <span class="nottickedoff">()</span> n)</span>
+<span class="lineno">  180 </span><span class="spaces">      </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> x</span>
+<span class="lineno">  181 </span><span class="spaces">      </span><span class="istickedoff">, mkIterAppNoAnn</span>
+<span class="lineno">  182 </span><span class="spaces">          </span><span class="istickedoff">(TyInst <span class="nottickedoff">()</span> (Var <span class="nottickedoff">()</span> xs) $ TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">  183 </span><span class="spaces">          </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> f</span>
+<span class="lineno">  184 </span><span class="spaces">          </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> z</span>
+<span class="lineno">  185 </span><span class="spaces">          </span><span class="istickedoff">]</span>
+<span class="lineno">  186 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  187 </span>
+<span class="lineno">  188 </span>{-|
+<span class="lineno">  189 </span>
+<span class="lineno">  190 </span>&gt; churchConcat =
+<span class="lineno">  191 </span>&gt;     /\(a :: *) (n :: natK) (m :: natK) -&gt; \(xs : churchVec a n) (ys : churchVec a m) -&gt;
+<span class="lineno">  192 </span>&gt;         /\(r :: natK -&gt; *) -&gt; \(f : all (p :: natK). a -&gt; r p -&gt; r (succT p)) (z : r zeroT) -&gt;
+<span class="lineno">  193 </span>&gt;             xs
+<span class="lineno">  194 </span>&gt;                 {\(p :: natK) -&gt; r (plusT p m)}
+<span class="lineno">  195 </span>&gt;                 (/\(p :: natK) -&gt; f {plusT p m})
+<span class="lineno">  196 </span>&gt;                 (ys {r} f z) -}
+<span class="lineno">  197 </span>churchConcat :: Term TyName Name uni fun ()
+<span class="lineno">  198 </span><span class="decl"><span class="istickedoff">churchConcat = runQuote $ do</span>
+<span class="lineno">  199 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  200 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">  201 </span><span class="spaces">  </span><span class="istickedoff">m &lt;- freshTyName &quot;m&quot;</span>
+<span class="lineno">  202 </span><span class="spaces">  </span><span class="istickedoff">xs &lt;- freshName &quot;xs&quot;</span>
+<span class="lineno">  203 </span><span class="spaces">  </span><span class="istickedoff">ys &lt;- freshName &quot;ys&quot;</span>
+<span class="lineno">  204 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  205 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  206 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">  207 </span><span class="spaces">  </span><span class="istickedoff">p &lt;- freshTyName &quot;p&quot;</span>
+<span class="lineno">  208 </span><span class="spaces">  </span><span class="istickedoff">stepFun &lt;- getStepFun a (TyVar <span class="nottickedoff">()</span> r) r</span>
+<span class="lineno">  209 </span><span class="spaces">  </span><span class="istickedoff">mEta &lt;- getEta $ TyVar <span class="nottickedoff">()</span> m</span>
+<span class="lineno">  210 </span><span class="spaces">  </span><span class="istickedoff">let plusTPM = mkIterTyAppNoAnn plusT [TyVar <span class="nottickedoff">()</span> p, TyVar <span class="nottickedoff">()</span> m]</span>
+<span class="lineno">  211 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  212 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  213 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">  214 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> m natK</span>
+<span class="lineno">  215 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs (mkIterTyAppNoAnn churchVec [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> n])</span>
+<span class="lineno">  216 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> ys (mkIterTyAppNoAnn churchVec [TyVar <span class="nottickedoff">()</span> a, mEta])</span>
+<span class="lineno">  217 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (KindArrow <span class="nottickedoff">()</span> natK $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  218 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f stepFun</span>
+<span class="lineno">  219 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) zeroT)</span>
+<span class="lineno">  220 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  221 </span><span class="spaces">      </span><span class="istickedoff">(TyInst <span class="nottickedoff">()</span> (Var <span class="nottickedoff">()</span> xs) . TyLam <span class="nottickedoff">()</span> p natK $ TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) plusTPM)</span>
+<span class="lineno">  222 </span><span class="spaces">      </span><span class="istickedoff">[ TyAbs <span class="nottickedoff">()</span> p natK $ TyInst <span class="nottickedoff">()</span> (Var <span class="nottickedoff">()</span> f) plusTPM</span>
+<span class="lineno">  223 </span><span class="spaces">      </span><span class="istickedoff">, mkIterAppNoAnn</span>
+<span class="lineno">  224 </span><span class="spaces">          </span><span class="istickedoff">(TyInst <span class="nottickedoff">()</span> (Var <span class="nottickedoff">()</span> ys) $ TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">  225 </span><span class="spaces">          </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> f</span>
+<span class="lineno">  226 </span><span class="spaces">          </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> z</span>
+<span class="lineno">  227 </span><span class="spaces">          </span><span class="istickedoff">]</span>
+<span class="lineno">  228 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  229 </span>
+<span class="lineno">  230 </span>{-|
+<span class="lineno">  231 </span>
+<span class="lineno">  232 </span>&gt; scottVecF =
+<span class="lineno">  233 </span>&gt;     \(a :: *) (rec :: natK -&gt; *) (n :: natK) -&gt;
+<span class="lineno">  234 </span>&gt;         all (r :: natK -&gt; *). (all (p :: natK). a -&gt; rec p -&gt; r (succT p)) -&gt; r zeroT -&gt; r n -}
+<span class="lineno">  235 </span>scottVecF :: Type TyName uni ()
+<span class="lineno">  236 </span><span class="decl"><span class="istickedoff">scottVecF = runQuote $ do</span>
+<span class="lineno">  237 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  238 </span><span class="spaces">  </span><span class="istickedoff">rec &lt;- freshTyName &quot;rec&quot;</span>
+<span class="lineno">  239 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">  240 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  241 </span><span class="spaces">  </span><span class="istickedoff">stepFun &lt;- getStepFun a (TyVar <span class="nottickedoff">()</span> rec) r</span>
+<span class="lineno">  242 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  243 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  244 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> rec (KindArrow <span class="nottickedoff">()</span> natK $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  245 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">  246 </span><span class="spaces">    </span><span class="istickedoff">. TyForall <span class="nottickedoff">()</span> r (KindArrow <span class="nottickedoff">()</span> natK $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  247 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> stepFun</span>
+<span class="lineno">  248 </span><span class="spaces">    </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) zeroT)</span>
+<span class="lineno">  249 </span><span class="spaces">    </span><span class="istickedoff">. TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r)</span>
+<span class="lineno">  250 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> n</span></span>
+<span class="lineno">  251 </span>
+<span class="lineno">  252 </span>{-|
+<span class="lineno">  253 </span>
+<span class="lineno">  254 </span>&gt; scottVec = \(a :: *) (n :: natK) -&gt; ifix (scottVecF a) n -}
+<span class="lineno">  255 </span>scottVec :: Type TyName uni ()
+<span class="lineno">  256 </span><span class="decl"><span class="istickedoff">scottVec = runQuote $ do</span>
+<span class="lineno">  257 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  258 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">  259 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  260 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  261 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">  262 </span><span class="spaces">    </span><span class="istickedoff">. TyIFix <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> scottVecF $ TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">  263 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> n</span></span>
+<span class="lineno">  264 </span>
+<span class="lineno">  265 </span>{-|
+<span class="lineno">  266 </span>
+<span class="lineno">  267 </span>&gt; scottNil =
+<span class="lineno">  268 </span>&gt;     /\(a :: *) -&gt;
+<span class="lineno">  269 </span>&gt;         iwrap (scottVecF a) zeroT
+<span class="lineno">  270 </span>&gt;             (/\(r :: natK -&gt; *) -&gt;
+<span class="lineno">  271 </span>&gt;                 \(f : all (p :: natK). a -&gt; scottVec a p -&gt; r (succT p)) (z : r zeroT) -&gt;
+<span class="lineno">  272 </span>&gt;                     z) -}
+<span class="lineno">  273 </span>scottNil :: Term TyName Name uni fun ()
+<span class="lineno">  274 </span><span class="decl"><span class="istickedoff">scottNil = runQuote $ do</span>
+<span class="lineno">  275 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  276 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  277 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  278 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">  279 </span><span class="spaces">  </span><span class="istickedoff">stepFun &lt;- getStepFun a (TyApp <span class="nottickedoff">()</span> scottVec $ TyVar <span class="nottickedoff">()</span> a) r</span>
+<span class="lineno">  280 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  281 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  282 </span><span class="spaces">    </span><span class="istickedoff">. IWrap <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> scottVecF $ TyVar <span class="nottickedoff">()</span> a) zeroT</span>
+<span class="lineno">  283 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (KindArrow <span class="nottickedoff">()</span> natK $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  284 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f stepFun</span>
+<span class="lineno">  285 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) zeroT)</span>
+<span class="lineno">  286 </span><span class="spaces">    </span><span class="istickedoff">$ Var <span class="nottickedoff">()</span> z</span></span>
+<span class="lineno">  287 </span>
+<span class="lineno">  288 </span>{-|
+<span class="lineno">  289 </span>
+<span class="lineno">  290 </span>&gt; scottCons =
+<span class="lineno">  291 </span>&gt;     /\(a :: *) (n :: natK) -&gt; \(x : a) (xs : scottVec a n) -&gt;
+<span class="lineno">  292 </span>&gt;         iwrap (scottVecF a) (succT n)
+<span class="lineno">  293 </span>&gt;             (/\(r :: natK -&gt; *) -&gt;
+<span class="lineno">  294 </span>&gt;                 \(f : all (p :: natK). a -&gt; scottVec a p -&gt; r (succT p)) (z : r zeroT) -&gt;
+<span class="lineno">  295 </span>&gt;                     f {n} x xs) -}
+<span class="lineno">  296 </span>scottCons :: Term TyName Name uni fun ()
+<span class="lineno">  297 </span><span class="decl"><span class="istickedoff">scottCons = runQuote $ do</span>
+<span class="lineno">  298 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  299 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">  300 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">  301 </span><span class="spaces">  </span><span class="istickedoff">xs &lt;- freshName &quot;xs&quot;</span>
+<span class="lineno">  302 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  303 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  304 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">  305 </span><span class="spaces">  </span><span class="istickedoff">stepFun &lt;- getStepFun a (TyApp <span class="nottickedoff">()</span> scottVec $ TyVar <span class="nottickedoff">()</span> a) r</span>
+<span class="lineno">  306 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  307 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  308 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">  309 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> x (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">  310 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs (mkIterTyAppNoAnn scottVec [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> n])</span>
+<span class="lineno">  311 </span><span class="spaces">    </span><span class="istickedoff">. IWrap <span class="nottickedoff">()</span> (TyApp <span class="nottickedoff">()</span> scottVecF $ TyVar <span class="nottickedoff">()</span> a) (TyApp <span class="nottickedoff">()</span> succT $ TyVar <span class="nottickedoff">()</span> n)</span>
+<span class="lineno">  312 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (KindArrow <span class="nottickedoff">()</span> natK $ Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  313 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f stepFun</span>
+<span class="lineno">  314 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z (TyApp <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> r) zeroT)</span>
+<span class="lineno">  315 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  316 </span><span class="spaces">      </span><span class="istickedoff">(TyInst <span class="nottickedoff">()</span> (Var <span class="nottickedoff">()</span> f) $ TyVar <span class="nottickedoff">()</span> n)</span>
+<span class="lineno">  317 </span><span class="spaces">      </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> x</span>
+<span class="lineno">  318 </span><span class="spaces">      </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> xs</span>
+<span class="lineno">  319 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  320 </span>
+<span class="lineno">  321 </span>{-|
+<span class="lineno">  322 </span>
+<span class="lineno">  323 </span>&gt; scottHead =
+<span class="lineno">  324 </span>&gt;     /\(a :: *) (n :: natK) -&gt; (xs : scottVec a (suc n)) -&gt;
+<span class="lineno">  325 </span>&gt;         unwrap
+<span class="lineno">  326 </span>&gt;             xs
+<span class="lineno">  327 </span>&gt;             {\(p :: natK) -&gt; p (\(z :: *) -&gt; a) unit}
+<span class="lineno">  328 </span>&gt;             (/\(p :: natK) (x : a) (xs' : scottVec a p) -&gt; x)
+<span class="lineno">  329 </span>&gt;             unitval -}
+<span class="lineno">  330 </span>scottHead :: uni `HasTypeAndTermLevel` () =&gt; Term TyName Name uni fun ()
+<span class="lineno">  331 </span><span class="decl"><span class="istickedoff">scottHead = runQuote $ do</span>
+<span class="lineno">  332 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  333 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">  334 </span><span class="spaces">  </span><span class="istickedoff">p &lt;- freshTyName &quot;p&quot;</span>
+<span class="lineno">  335 </span><span class="spaces">  </span><span class="istickedoff">z &lt;- freshTyName &quot;z&quot;</span>
+<span class="lineno">  336 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">  337 </span><span class="spaces">  </span><span class="istickedoff">xs &lt;- freshName &quot;xs&quot;</span>
+<span class="lineno">  338 </span><span class="spaces">  </span><span class="istickedoff">xs' &lt;- freshName &quot;xs'&quot;</span>
+<span class="lineno">  339 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  340 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  341 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">  342 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs (mkIterTyAppNoAnn scottVec [TyVar <span class="nottickedoff">()</span> a, TyApp <span class="nottickedoff">()</span> succT $ TyVar <span class="nottickedoff">()</span> n])</span>
+<span class="lineno">  343 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  344 </span><span class="spaces">      </span><span class="istickedoff">( TyInst <span class="nottickedoff">()</span> (Unwrap <span class="nottickedoff">()</span> $ Var <span class="nottickedoff">()</span> xs)</span>
+<span class="lineno">  345 </span><span class="spaces">          </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> p natK</span>
+<span class="lineno">  346 </span><span class="spaces">          </span><span class="istickedoff">$ mkIterTyAppNoAnn</span>
+<span class="lineno">  347 </span><span class="spaces">            </span><span class="istickedoff">(TyVar <span class="nottickedoff">()</span> p)</span>
+<span class="lineno">  348 </span><span class="spaces">            </span><span class="istickedoff">[ TyLam <span class="nottickedoff">()</span> z (Type <span class="nottickedoff">()</span>) $ TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">  349 </span><span class="spaces">            </span><span class="istickedoff">, unit</span>
+<span class="lineno">  350 </span><span class="spaces">            </span><span class="istickedoff">]</span>
+<span class="lineno">  351 </span><span class="spaces">      </span><span class="istickedoff">)</span>
+<span class="lineno">  352 </span><span class="spaces">      </span><span class="istickedoff">[ TyAbs <span class="nottickedoff">()</span> p natK</span>
+<span class="lineno">  353 </span><span class="spaces">          </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> x (TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">  354 </span><span class="spaces">          </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs' (mkIterTyAppNoAnn scottVec [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> p])</span>
+<span class="lineno">  355 </span><span class="spaces">          </span><span class="istickedoff">$ Var <span class="nottickedoff">()</span> x</span>
+<span class="lineno">  356 </span><span class="spaces">      </span><span class="istickedoff">, unitval</span>
+<span class="lineno">  357 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  358 </span>
+<span class="lineno">  359 </span>{-|
+<span class="lineno">  360 </span>
+<span class="lineno">  361 </span>&gt; scottSumHeadsOr0 =
+<span class="lineno">  362 </span>&gt;     /\(n :: natK) -&gt; (xs ys : scottVec integer n) -&gt;
+<span class="lineno">  363 </span>&gt;         unwrap
+<span class="lineno">  364 </span>&gt;             xs
+<span class="lineno">  365 </span>&gt;             {\(p :: natK) -&gt; (scottVec Integer n -&gt; scottVec integer p) -&gt; integer}
+<span class="lineno">  366 </span>&gt;             (/\(p :: natK) (x : integer) (xs' : scottVec integer p)
+<span class="lineno">  367 </span>&gt;                 \(coe : scottVec Integer n -&gt; scottVec integer (suc p)) -&gt;
+<span class="lineno">  368 </span>&gt;                     x + scottHead {integer} {p} (coe ys))
+<span class="lineno">  369 </span>&gt;             (\(coe : scottVec Integer n -&gt; scottVec integer zero) -&gt; 0)
+<span class="lineno">  370 </span>&gt;             (/\(xs' :: scottVec Integer n) -&gt; xs') -}
+<span class="lineno">  371 </span>scottSumHeadsOr0
+<span class="lineno">  372 </span>  :: (uni `HasTypeAndTermLevel` Integer, uni `HasTypeAndTermLevel` ())
+<span class="lineno">  373 </span>  =&gt; Term TyName Name uni DefaultFun ()
+<span class="lineno">  374 </span><span class="decl"><span class="istickedoff">scottSumHeadsOr0 = runQuote $ do</span>
+<span class="lineno">  375 </span><span class="spaces">  </span><span class="istickedoff">n &lt;- freshTyName &quot;n&quot;</span>
+<span class="lineno">  376 </span><span class="spaces">  </span><span class="istickedoff">p &lt;- freshTyName &quot;p&quot;</span>
+<span class="lineno">  377 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">  378 </span><span class="spaces">  </span><span class="istickedoff">xs &lt;- freshName &quot;xs&quot;</span>
+<span class="lineno">  379 </span><span class="spaces">  </span><span class="istickedoff">ys &lt;- freshName &quot;ys&quot;</span>
+<span class="lineno">  380 </span><span class="spaces">  </span><span class="istickedoff">xs' &lt;- freshName &quot;xs'&quot;</span>
+<span class="lineno">  381 </span><span class="spaces">  </span><span class="istickedoff">coe &lt;- freshName &quot;coe&quot;</span>
+<span class="lineno">  382 </span><span class="spaces">  </span><span class="istickedoff">let vecInteger l = mkIterTyAppNoAnn scottVec [integer, l]</span>
+<span class="lineno">  383 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  384 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> n natK</span>
+<span class="lineno">  385 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs (vecInteger $ TyVar <span class="nottickedoff">()</span> n)</span>
+<span class="lineno">  386 </span><span class="spaces">    </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> ys (vecInteger $ TyVar <span class="nottickedoff">()</span> n)</span>
+<span class="lineno">  387 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  388 </span><span class="spaces">      </span><span class="istickedoff">( TyInst <span class="nottickedoff">()</span> (Unwrap <span class="nottickedoff">()</span> $ Var <span class="nottickedoff">()</span> xs)</span>
+<span class="lineno">  389 </span><span class="spaces">          </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> p natK</span>
+<span class="lineno">  390 </span><span class="spaces">          </span><span class="istickedoff">. TyFun <span class="nottickedoff">()</span> (TyFun <span class="nottickedoff">()</span> (vecInteger $ TyVar <span class="nottickedoff">()</span> n) $ vecInteger (TyVar <span class="nottickedoff">()</span> p))</span>
+<span class="lineno">  391 </span><span class="spaces">          </span><span class="istickedoff">$ integer</span>
+<span class="lineno">  392 </span><span class="spaces">      </span><span class="istickedoff">)</span>
+<span class="lineno">  393 </span><span class="spaces">      </span><span class="istickedoff">[ TyAbs <span class="nottickedoff">()</span> p natK</span>
+<span class="lineno">  394 </span><span class="spaces">          </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> x integer</span>
+<span class="lineno">  395 </span><span class="spaces">          </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> xs' (vecInteger $ TyVar <span class="nottickedoff">()</span> p)</span>
+<span class="lineno">  396 </span><span class="spaces">          </span><span class="istickedoff">. LamAbs</span>
+<span class="lineno">  397 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">()</span></span>
+<span class="lineno">  398 </span><span class="spaces">            </span><span class="istickedoff">coe</span>
+<span class="lineno">  399 </span><span class="spaces">            </span><span class="istickedoff">(TyFun <span class="nottickedoff">()</span> (vecInteger $ TyVar <span class="nottickedoff">()</span> n) $ vecInteger (TyApp <span class="nottickedoff">()</span> succT $ TyVar <span class="nottickedoff">()</span> p))</span>
+<span class="lineno">  400 </span><span class="spaces">          </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  401 </span><span class="spaces">            </span><span class="istickedoff">(builtin <span class="nottickedoff">()</span> AddInteger)</span>
+<span class="lineno">  402 </span><span class="spaces">            </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> x</span>
+<span class="lineno">  403 </span><span class="spaces">            </span><span class="istickedoff">, Apply <span class="nottickedoff">()</span> (mkIterInstNoAnn scottHead [integer, TyVar <span class="nottickedoff">()</span> p])</span>
+<span class="lineno">  404 </span><span class="spaces">                </span><span class="istickedoff">. Apply <span class="nottickedoff">()</span> (Var <span class="nottickedoff">()</span> coe)</span>
+<span class="lineno">  405 </span><span class="spaces">                </span><span class="istickedoff">$ Var <span class="nottickedoff">()</span> ys</span>
+<span class="lineno">  406 </span><span class="spaces">            </span><span class="istickedoff">]</span>
+<span class="lineno">  407 </span><span class="spaces">      </span><span class="istickedoff">, LamAbs <span class="nottickedoff">()</span> coe (TyFun <span class="nottickedoff">()</span> (vecInteger $ TyVar <span class="nottickedoff">()</span> n) $ vecInteger zeroT) $</span>
+<span class="lineno">  408 </span><span class="spaces">          </span><span class="istickedoff">mkConstant @Integer <span class="nottickedoff">()</span> 0</span>
+<span class="lineno">  409 </span><span class="spaces">      </span><span class="istickedoff">, LamAbs <span class="nottickedoff">()</span> xs' (vecInteger $ TyVar <span class="nottickedoff">()</span> n) $ Var <span class="nottickedoff">()</span> xs'</span>
+<span class="lineno">  410 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+
+</pre>
+</body>
+</html>

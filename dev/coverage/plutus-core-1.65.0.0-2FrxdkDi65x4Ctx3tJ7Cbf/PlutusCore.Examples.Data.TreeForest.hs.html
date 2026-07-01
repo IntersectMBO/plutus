@@ -1,0 +1,285 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    4 </span>{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>module PlutusCore.Examples.Data.TreeForest
+<span class="lineno">    7 </span>  ( treeData
+<span class="lineno">    8 </span>  , forestData
+<span class="lineno">    9 </span>  , treeNode
+<span class="lineno">   10 </span>  , forestNil
+<span class="lineno">   11 </span>  , forestCons
+<span class="lineno">   12 </span>  ) where
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import PlutusCore.Core
+<span class="lineno">   15 </span>import PlutusCore.MkPlc
+<span class="lineno">   16 </span>import PlutusCore.Name.Unique
+<span class="lineno">   17 </span>import PlutusCore.Normalize
+<span class="lineno">   18 </span>import PlutusCore.Quote
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import PlutusCore.StdLib.Type
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Universe
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>{- Note [Tree]
+<span class="lineno">   25 </span>Here we encode the following:
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>    mutual
+<span class="lineno">   28 </span>      data Tree (A : Set) : Set where
+<span class="lineno">   29 </span>        node : A -&gt; Forest A -&gt; Tree A
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>      data Forest (A : Set) : Set where
+<span class="lineno">   32 </span>        nil  : Forest A
+<span class="lineno">   33 </span>        cons : Tree A -&gt; Forest A -&gt; Forest A
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>    mutual
+<span class="lineno">   36 </span>      mapTree : ∀ A B -&gt; (A -&gt; B) -&gt; Tree A -&gt; Tree B
+<span class="lineno">   37 </span>      mapTree A B f (node x forest) = node (f x) (mapForest A B f forest)
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>      mapForest : ∀ A B -&gt; (A -&gt; B) -&gt; Forest A -&gt; Forest B
+<span class="lineno">   40 </span>      mapForest A B f  nil               = nil
+<span class="lineno">   41 </span>      mapForest A B f (cons rose forest) = cons (mapTree A B f rose) (mapForest A B f forest)
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>using this representation:
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>    {-# OPTIONS_GHC --type-in-type #-}
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>    {-# NO_POSITIVITY_CHECK #-}
+<span class="lineno">   48 </span>    data IFix {A : Set} (F : (A -&gt; Set) -&gt; A -&gt; Set) (x : A) : Set where
+<span class="lineno">   49 </span>      wrap : F (IFix F) x -&gt; IFix F x
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>    Fix₂ : ∀ {A B} -&gt; ((A -&gt; B -&gt; Set) -&gt; A -&gt; B -&gt; Set) -&gt; A -&gt; B -&gt; Set
+<span class="lineno">   52 </span>    Fix₂ F x y = IFix (λ B P -&gt; P (F λ x y -&gt; B λ R -&gt; R x y)) (λ R -&gt; R x y)
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>    treeTag : Set -&gt; Set -&gt; Set
+<span class="lineno">   55 </span>    treeTag T F = T
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>    forestTag : Set -&gt; Set -&gt; Set
+<span class="lineno">   58 </span>    forestTag T F = F
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>    AsTree : (Set -&gt; (Set -&gt; Set -&gt; Set) -&gt; Set) -&gt; Set -&gt; Set
+<span class="lineno">   61 </span>    AsTree D A = D A treeTag
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>    AsForest : (Set -&gt; (Set -&gt; Set -&gt; Set) -&gt; Set) -&gt; Set -&gt; Set
+<span class="lineno">   64 </span>    AsForest D A = D A forestTag
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>    TreeForest : Set -&gt; (Set -&gt; Set -&gt; Set) -&gt; Set
+<span class="lineno">   67 </span>    TreeForest =
+<span class="lineno">   68 </span>      Fix₂ λ Rec A tag -&gt;
+<span class="lineno">   69 </span>      ∀ R -&gt;
+<span class="lineno">   70 </span>        tag ((A -&gt; AsForest Rec A -&gt; R) -&gt; R) (R -&gt; (AsTree Rec A -&gt; AsForest Rec A -&gt; R) -&gt; R)
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>    Tree : Set -&gt; Set
+<span class="lineno">   73 </span>    Tree = AsTree TreeForest
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>    Forest : Set -&gt; Set
+<span class="lineno">   76 </span>    Forest = AsForest TreeForest
+<span class="lineno">   77 </span>-}
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>infixr 5 ~~&gt;
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>class HasArrow a where
+<span class="lineno">   82 </span>  (~~&gt;) :: a -&gt; a -&gt; a
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>instance a ~ () =&gt; HasArrow (Kind a) where
+<span class="lineno">   85 </span>  <span class="decl"><span class="istickedoff">(~~&gt;) = KindArrow <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>instance a ~ () =&gt; HasArrow (Type tyname uni a) where
+<span class="lineno">   88 </span>  <span class="decl"><span class="istickedoff">(~~&gt;) = TyFun <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>star :: Kind ()
+<span class="lineno">   91 </span><span class="decl"><span class="istickedoff">star = Type <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>treeTag :: Type TyName uni ()
+<span class="lineno">   94 </span><span class="decl"><span class="istickedoff">treeTag = runQuote $ do</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">t &lt;- freshTyName &quot;t&quot;</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshTyName &quot;f&quot;</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> t star</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> f star</span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> t</span></span>
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>forestTag :: Type TyName uni ()
+<span class="lineno">  103 </span><span class="decl"><span class="istickedoff">forestTag = runQuote $ do</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="istickedoff">t &lt;- freshTyName &quot;t&quot;</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshTyName &quot;f&quot;</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  107 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> t star</span>
+<span class="lineno">  108 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> f star</span>
+<span class="lineno">  109 </span><span class="spaces">    </span><span class="istickedoff">$ TyVar <span class="nottickedoff">()</span> f</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>asTree :: Type TyName uni ()
+<span class="lineno">  112 </span><span class="decl"><span class="istickedoff">asTree = runQuote $ do</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="istickedoff">d &lt;- freshTyName &quot;d&quot;</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  116 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> d (star ~~&gt; (star ~~&gt; star ~~&gt; star) ~~&gt; star)</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> a star</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterTyAppNoAnn</span>
+<span class="lineno">  119 </span><span class="spaces">      </span><span class="istickedoff">(TyVar <span class="nottickedoff">()</span> d)</span>
+<span class="lineno">  120 </span><span class="spaces">      </span><span class="istickedoff">[ TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">  121 </span><span class="spaces">      </span><span class="istickedoff">, treeTag</span>
+<span class="lineno">  122 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>asForest :: Type TyName uni ()
+<span class="lineno">  125 </span><span class="decl"><span class="istickedoff">asForest = runQuote $ do</span>
+<span class="lineno">  126 </span><span class="spaces">  </span><span class="istickedoff">d &lt;- freshTyName &quot;d&quot;</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> d (star ~~&gt; (star ~~&gt; star ~~&gt; star) ~~&gt; star)</span>
+<span class="lineno">  130 </span><span class="spaces">    </span><span class="istickedoff">. TyLam <span class="nottickedoff">()</span> a star</span>
+<span class="lineno">  131 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterTyAppNoAnn</span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="istickedoff">(TyVar <span class="nottickedoff">()</span> d)</span>
+<span class="lineno">  133 </span><span class="spaces">      </span><span class="istickedoff">[ TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">  134 </span><span class="spaces">      </span><span class="istickedoff">, forestTag</span>
+<span class="lineno">  135 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>treeForestData :: RecursiveType uni fun ()
+<span class="lineno">  138 </span><span class="decl"><span class="istickedoff">treeForestData = runQuote $ do</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="istickedoff">treeForest &lt;- freshTyName &quot;treeForest&quot;</span>
+<span class="lineno">  140 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  141 </span><span class="spaces">  </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="istickedoff">tag &lt;- freshTyName &quot;tag&quot;</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">let vA = TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">  144 </span><span class="spaces">      </span><span class="istickedoff">vR = TyVar <span class="nottickedoff">()</span> r</span>
+<span class="lineno">  145 </span><span class="spaces">      </span><span class="istickedoff">recSpine = [TyVar <span class="nottickedoff">()</span> treeForest, vA]</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="istickedoff">let tree = mkIterTyAppNoAnn asTree recSpine</span>
+<span class="lineno">  147 </span><span class="spaces">      </span><span class="istickedoff">forest = mkIterTyAppNoAnn asForest recSpine</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="istickedoff">body =</span>
+<span class="lineno">  149 </span><span class="spaces">        </span><span class="istickedoff">TyForall <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>) $</span>
+<span class="lineno">  150 </span><span class="spaces">          </span><span class="istickedoff">mkIterTyAppNoAnn</span>
+<span class="lineno">  151 </span><span class="spaces">            </span><span class="istickedoff">(TyVar <span class="nottickedoff">()</span> tag)</span>
+<span class="lineno">  152 </span><span class="spaces">            </span><span class="istickedoff">[ (vA ~~&gt; forest ~~&gt; vR) ~~&gt; vR</span>
+<span class="lineno">  153 </span><span class="spaces">            </span><span class="istickedoff">, vR ~~&gt; (tree ~~&gt; forest ~~&gt; vR) ~~&gt; vR</span>
+<span class="lineno">  154 </span><span class="spaces">            </span><span class="istickedoff">]</span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="istickedoff">makeRecursiveType</span>
+<span class="lineno">  156 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">()</span></span>
+<span class="lineno">  157 </span><span class="spaces">    </span><span class="istickedoff">treeForest</span>
+<span class="lineno">  158 </span><span class="spaces">    </span><span class="istickedoff">[TyVarDecl <span class="nottickedoff">()</span> a star, TyVarDecl <span class="nottickedoff">()</span> tag $ star ~~&gt; star ~~&gt; star]</span>
+<span class="lineno">  159 </span><span class="spaces">    </span><span class="istickedoff">body</span></span>
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>treeData :: RecursiveType uni fun ()
+<span class="lineno">  162 </span><span class="decl"><span class="istickedoff">treeData = runQuote $ do</span>
+<span class="lineno">  163 </span><span class="spaces">  </span><span class="istickedoff">let RecursiveType treeForest wrapTreeForest = treeForestData</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="istickedoff">tree = TyApp <span class="nottickedoff">()</span> asTree treeForest</span>
+<span class="lineno">  165 </span><span class="spaces">  </span><span class="istickedoff">return $ RecursiveType tree (\[a] -&gt; wrapTreeForest [a, treeTag])</span></span>
+<span class="lineno">  166 </span>
+<span class="lineno">  167 </span>forestData :: RecursiveType uni fun ()
+<span class="lineno">  168 </span><span class="decl"><span class="istickedoff">forestData = runQuote $ do</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff">let RecursiveType treeForest wrapTreeForest = treeForestData</span>
+<span class="lineno">  170 </span><span class="spaces">      </span><span class="istickedoff">forest = TyApp <span class="nottickedoff">()</span> asForest treeForest</span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="istickedoff">return $ RecursiveType forest (\[a] -&gt; wrapTreeForest [a, forestTag])</span></span>
+<span class="lineno">  172 </span>
+<span class="lineno">  173 </span>{-|
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>&gt; /\(a :: *) -&gt; \(x : a) (fr : forest a) -&gt;
+<span class="lineno">  176 </span>&gt;     wrapTree [a] /\(r :: *) -&gt; \(f : a -&gt; forest a -&gt; r) -&gt; f x fr -}
+<span class="lineno">  177 </span>treeNode :: HasUniApply uni =&gt; Term TyName Name uni fun ()
+<span class="lineno">  178 </span><span class="decl"><span class="istickedoff">treeNode =</span>
+<span class="lineno">  179 </span><span class="spaces">  </span><span class="istickedoff">runQuote $</span>
+<span class="lineno">  180 </span><span class="spaces">    </span><span class="istickedoff">normalizeTypesIn =&lt;&lt; do</span>
+<span class="lineno">  181 </span><span class="spaces">      </span><span class="istickedoff">let RecursiveType _ wrapTree = treeData</span>
+<span class="lineno">  182 </span><span class="spaces">          </span><span class="istickedoff">RecursiveType forest _ = forestData</span>
+<span class="lineno">  183 </span><span class="spaces">      </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  184 </span><span class="spaces">      </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  185 </span><span class="spaces">      </span><span class="istickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">  186 </span><span class="spaces">      </span><span class="istickedoff">fr &lt;- freshName &quot;fr&quot;</span>
+<span class="lineno">  187 </span><span class="spaces">      </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  188 </span><span class="spaces">      </span><span class="istickedoff">let vA = TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">  189 </span><span class="spaces">          </span><span class="istickedoff">vR = TyVar <span class="nottickedoff">()</span> r</span>
+<span class="lineno">  190 </span><span class="spaces">      </span><span class="istickedoff">Normalized forestA &lt;- normalizeType $ TyApp <span class="nottickedoff">()</span> forest vA</span>
+<span class="lineno">  191 </span><span class="spaces">      </span><span class="istickedoff">return</span>
+<span class="lineno">  192 </span><span class="spaces">        </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  193 </span><span class="spaces">        </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> x vA</span>
+<span class="lineno">  194 </span><span class="spaces">        </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> fr forestA</span>
+<span class="lineno">  195 </span><span class="spaces">        </span><span class="istickedoff">. wrapTree [vA]</span>
+<span class="lineno">  196 </span><span class="spaces">        </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  197 </span><span class="spaces">        </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f (mkIterTyFun <span class="nottickedoff">()</span> [vA, forestA] vR)</span>
+<span class="lineno">  198 </span><span class="spaces">        </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  199 </span><span class="spaces">          </span><span class="istickedoff">(Var <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  200 </span><span class="spaces">          </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> x</span>
+<span class="lineno">  201 </span><span class="spaces">          </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> fr</span>
+<span class="lineno">  202 </span><span class="spaces">          </span><span class="istickedoff">]</span></span>
+<span class="lineno">  203 </span>
+<span class="lineno">  204 </span>{-|
+<span class="lineno">  205 </span>
+<span class="lineno">  206 </span>&gt; /\(a :: *) -&gt;
+<span class="lineno">  207 </span>&gt;     wrapForest [a] /\(r :: *) -&gt; \(z : r) (f : tree a -&gt; forest a -&gt; r) -&gt; z -}
+<span class="lineno">  208 </span>forestNil :: HasUniApply uni =&gt; Term TyName Name uni fun ()
+<span class="lineno">  209 </span><span class="decl"><span class="istickedoff">forestNil =</span>
+<span class="lineno">  210 </span><span class="spaces">  </span><span class="istickedoff">runQuote $</span>
+<span class="lineno">  211 </span><span class="spaces">    </span><span class="istickedoff">normalizeTypesIn =&lt;&lt; do</span>
+<span class="lineno">  212 </span><span class="spaces">      </span><span class="istickedoff">let RecursiveType tree _ = treeData</span>
+<span class="lineno">  213 </span><span class="spaces">          </span><span class="istickedoff">RecursiveType forest wrapForest = forestData</span>
+<span class="lineno">  214 </span><span class="spaces">      </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  215 </span><span class="spaces">      </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  216 </span><span class="spaces">      </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">  217 </span><span class="spaces">      </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  218 </span><span class="spaces">      </span><span class="istickedoff">let vA = TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">  219 </span><span class="spaces">          </span><span class="istickedoff">vR = TyVar <span class="nottickedoff">()</span> r</span>
+<span class="lineno">  220 </span><span class="spaces">      </span><span class="istickedoff">Normalized treeA &lt;- normalizeType $ TyApp <span class="nottickedoff">()</span> tree vA</span>
+<span class="lineno">  221 </span><span class="spaces">      </span><span class="istickedoff">Normalized forestA &lt;- normalizeType $ TyApp <span class="nottickedoff">()</span> forest vA</span>
+<span class="lineno">  222 </span><span class="spaces">      </span><span class="istickedoff">return</span>
+<span class="lineno">  223 </span><span class="spaces">        </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  224 </span><span class="spaces">        </span><span class="istickedoff">. wrapForest [vA]</span>
+<span class="lineno">  225 </span><span class="spaces">        </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  226 </span><span class="spaces">        </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z vR</span>
+<span class="lineno">  227 </span><span class="spaces">        </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f (mkIterTyFun <span class="nottickedoff">()</span> [treeA, forestA] vR)</span>
+<span class="lineno">  228 </span><span class="spaces">        </span><span class="istickedoff">$ Var <span class="nottickedoff">()</span> z</span></span>
+<span class="lineno">  229 </span>
+<span class="lineno">  230 </span>{-|
+<span class="lineno">  231 </span>
+<span class="lineno">  232 </span>&gt; /\(a :: *) -&gt; \(tr : tree a) (fr : forest a)
+<span class="lineno">  233 </span>&gt;     wrapForest [a] /\(r :: *) -&gt; \(z : r) (f : tree a -&gt; forest a -&gt; r) -&gt; f tr fr -}
+<span class="lineno">  234 </span>forestCons :: HasUniApply uni =&gt; Term TyName Name uni fun ()
+<span class="lineno">  235 </span><span class="decl"><span class="istickedoff">forestCons =</span>
+<span class="lineno">  236 </span><span class="spaces">  </span><span class="istickedoff">runQuote $</span>
+<span class="lineno">  237 </span><span class="spaces">    </span><span class="istickedoff">normalizeTypesIn =&lt;&lt; do</span>
+<span class="lineno">  238 </span><span class="spaces">      </span><span class="istickedoff">let RecursiveType tree _ = treeData</span>
+<span class="lineno">  239 </span><span class="spaces">          </span><span class="istickedoff">RecursiveType forest wrapForest = forestData</span>
+<span class="lineno">  240 </span><span class="spaces">      </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  241 </span><span class="spaces">      </span><span class="istickedoff">tr &lt;- freshName &quot;tr&quot;</span>
+<span class="lineno">  242 </span><span class="spaces">      </span><span class="istickedoff">fr &lt;- freshName &quot;fr&quot;</span>
+<span class="lineno">  243 </span><span class="spaces">      </span><span class="istickedoff">r &lt;- freshTyName &quot;r&quot;</span>
+<span class="lineno">  244 </span><span class="spaces">      </span><span class="istickedoff">z &lt;- freshName &quot;z&quot;</span>
+<span class="lineno">  245 </span><span class="spaces">      </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">  246 </span><span class="spaces">      </span><span class="istickedoff">let vA = TyVar <span class="nottickedoff">()</span> a</span>
+<span class="lineno">  247 </span><span class="spaces">          </span><span class="istickedoff">vR = TyVar <span class="nottickedoff">()</span> r</span>
+<span class="lineno">  248 </span><span class="spaces">      </span><span class="istickedoff">Normalized treeA &lt;- normalizeType $ TyApp <span class="nottickedoff">()</span> tree vA</span>
+<span class="lineno">  249 </span><span class="spaces">      </span><span class="istickedoff">Normalized forestA &lt;- normalizeType $ TyApp <span class="nottickedoff">()</span> forest vA</span>
+<span class="lineno">  250 </span><span class="spaces">      </span><span class="istickedoff">return</span>
+<span class="lineno">  251 </span><span class="spaces">        </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  252 </span><span class="spaces">        </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> tr treeA</span>
+<span class="lineno">  253 </span><span class="spaces">        </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> fr forestA</span>
+<span class="lineno">  254 </span><span class="spaces">        </span><span class="istickedoff">. wrapForest [vA]</span>
+<span class="lineno">  255 </span><span class="spaces">        </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> r (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">  256 </span><span class="spaces">        </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> z vR</span>
+<span class="lineno">  257 </span><span class="spaces">        </span><span class="istickedoff">. LamAbs <span class="nottickedoff">()</span> f (mkIterTyFun <span class="nottickedoff">()</span> [treeA, forestA] vR)</span>
+<span class="lineno">  258 </span><span class="spaces">        </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">  259 </span><span class="spaces">          </span><span class="istickedoff">(Var <span class="nottickedoff">()</span> f)</span>
+<span class="lineno">  260 </span><span class="spaces">          </span><span class="istickedoff">[ Var <span class="nottickedoff">()</span> tr</span>
+<span class="lineno">  261 </span><span class="spaces">          </span><span class="istickedoff">, Var <span class="nottickedoff">()</span> fr</span>
+<span class="lineno">  262 </span><span class="spaces">          </span><span class="istickedoff">]</span></span>
+
+</pre>
+</body>
+</html>

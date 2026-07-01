@@ -1,0 +1,144 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>module UntypedPlutusCore.Subst
+<span class="lineno">    7 </span>  ( substVarA
+<span class="lineno">    8 </span>  , substVar
+<span class="lineno">    9 </span>  , termSubstNamesM
+<span class="lineno">   10 </span>  , termSubstNames
+<span class="lineno">   11 </span>  , termMapNames
+<span class="lineno">   12 </span>  , programMapNames
+<span class="lineno">   13 </span>  , substConstantA
+<span class="lineno">   14 </span>  , substConstant
+<span class="lineno">   15 </span>  , termSubstConstantsM
+<span class="lineno">   16 </span>  , termSubstConstants
+<span class="lineno">   17 </span>  , vTerm
+<span class="lineno">   18 </span>  ) where
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import PlutusPrelude
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import UntypedPlutusCore.Core
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import Control.Lens
+<span class="lineno">   25 </span>import Universe
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>-- | Applicatively replace a variable using the given function.
+<span class="lineno">   28 </span>substVarA
+<span class="lineno">   29 </span>  :: Applicative f
+<span class="lineno">   30 </span>  =&gt; (name -&gt; ann -&gt; f (Maybe (Term name uni fun ann)))
+<span class="lineno">   31 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   32 </span>  -&gt; f (Term name uni fun ann)
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">substVarA nameF t@(Var a name) = fromMaybe t &lt;$&gt; nameF name a</span>
+<span class="lineno">   34 </span><span class="spaces"></span><span class="istickedoff">substVarA _ t = pure t</span></span>
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>-- | Replace a variable using the given function.
+<span class="lineno">   37 </span>substVar
+<span class="lineno">   38 </span>  :: (name -&gt; ann -&gt; Maybe (Term name uni fun ann))
+<span class="lineno">   39 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   40 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">substVar = purely (substVarA . curry) . uncurry</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>-- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
+<span class="lineno">   44 </span>termSubstNamesM
+<span class="lineno">   45 </span>  :: Monad m
+<span class="lineno">   46 </span>  =&gt; (name -&gt; ann -&gt; m (Maybe (Term name uni fun ann)))
+<span class="lineno">   47 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   48 </span>  -&gt; m (Term name uni fun ann)
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">termSubstNamesM = transformMOf termSubterms . substVarA</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>-- | Naively substitute names using the given function (i.e. do not substitute binders).
+<span class="lineno">   52 </span>termSubstNames
+<span class="lineno">   53 </span>  :: (name -&gt; ann -&gt; Maybe (Term name uni fun ann))
+<span class="lineno">   54 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   55 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">termSubstNames = purely (termSubstNamesM . curry) . uncurry</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>-- | Completely replace the names with a new name type.
+<span class="lineno">   59 </span>termMapNames
+<span class="lineno">   60 </span>  :: forall name name' uni fun ann
+<span class="lineno">   61 </span>   . (name -&gt; name')
+<span class="lineno">   62 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   63 </span>  -&gt; Term name' uni fun ann
+<span class="lineno">   64 </span><span class="decl"><span class="istickedoff">termMapNames f = go</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">-- This is all a bit clunky because of the type-changing, I'm not sure of a nicer way to do it</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">go :: Term name uni fun ann -&gt; Term name' uni fun ann</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">go = \case</span>
+<span class="lineno">   69 </span><span class="spaces">      </span><span class="istickedoff">LamAbs ann name body -&gt; LamAbs ann (f name) (go body)</span>
+<span class="lineno">   70 </span><span class="spaces">      </span><span class="istickedoff">Var ann name -&gt; Var ann (f name)</span>
+<span class="lineno">   71 </span><span class="spaces">      </span><span class="istickedoff">Apply ann t1 t2 -&gt; Apply ann (go t1) (go t2)</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="istickedoff">Delay ann t -&gt; Delay ann (go t)</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="istickedoff">Force ann t -&gt; Force ann (go t)</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="istickedoff">Constr ann i es -&gt; Constr ann i (fmap go es)</span>
+<span class="lineno">   75 </span><span class="spaces">      </span><span class="istickedoff">Case ann arg cs -&gt; Case ann (go arg) (fmap go cs)</span>
+<span class="lineno">   76 </span><span class="spaces">      </span><span class="istickedoff">Constant ann c -&gt; Constant ann c</span>
+<span class="lineno">   77 </span><span class="spaces">      </span><span class="istickedoff">Builtin ann b -&gt; Builtin ann b</span>
+<span class="lineno">   78 </span><span class="spaces">      </span><span class="istickedoff">Error ann -&gt; Error ann</span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>programMapNames
+<span class="lineno">   81 </span>  :: forall name name' uni fun ann
+<span class="lineno">   82 </span>   . (name -&gt; name')
+<span class="lineno">   83 </span>  -&gt; Program name uni fun ann
+<span class="lineno">   84 </span>  -&gt; Program name' uni fun ann
+<span class="lineno">   85 </span><span class="decl"><span class="istickedoff">programMapNames f (Program a v term) = Program <span class="nottickedoff">a</span> v (termMapNames f term)</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>-- TODO: this could be a Traversal
+<span class="lineno">   88 </span>-- | Get all the term variables in a term.
+<span class="lineno">   89 </span>vTerm :: Fold (Term name uni fun ann) name
+<span class="lineno">   90 </span><span class="decl"><span class="istickedoff">vTerm = termSubtermsDeep . termVars</span></span>
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>-- | Applicatively replace a constant using the given function.
+<span class="lineno">   93 </span>substConstantA
+<span class="lineno">   94 </span>  :: Applicative f
+<span class="lineno">   95 </span>  =&gt; (ann -&gt; Some (ValueOf uni) -&gt; f (Maybe (Term name uni fun ann)))
+<span class="lineno">   96 </span>  -&gt; Term name uni fun ann
+<span class="lineno">   97 </span>  -&gt; f (Term name uni fun ann)
+<span class="lineno">   98 </span><span class="decl"><span class="istickedoff">substConstantA valF t@(Constant ann val) = fromMaybe t &lt;$&gt; valF ann val</span>
+<span class="lineno">   99 </span><span class="spaces"></span><span class="istickedoff">substConstantA _ t = pure t</span></span>
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>-- | Replace a constant using the given function.
+<span class="lineno">  102 </span>substConstant
+<span class="lineno">  103 </span>  :: (ann -&gt; Some (ValueOf uni) -&gt; Maybe (Term name uni fun ann))
+<span class="lineno">  104 </span>  -&gt; Term name uni fun ann
+<span class="lineno">  105 </span>  -&gt; Term name uni fun ann
+<span class="lineno">  106 </span><span class="decl"><span class="nottickedoff">substConstant = purely (substConstantA . curry) . uncurry</span></span>
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>-- | Monadically substitute constants using the given function.
+<span class="lineno">  109 </span>termSubstConstantsM
+<span class="lineno">  110 </span>  :: Monad m
+<span class="lineno">  111 </span>  =&gt; (ann -&gt; Some (ValueOf uni) -&gt; m (Maybe (Term name uni fun ann)))
+<span class="lineno">  112 </span>  -&gt; Term name uni fun ann
+<span class="lineno">  113 </span>  -&gt; m (Term name uni fun ann)
+<span class="lineno">  114 </span><span class="decl"><span class="istickedoff">termSubstConstantsM = transformMOf termSubterms . substConstantA</span></span>
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>-- | Substitute constants using the given function.
+<span class="lineno">  117 </span>termSubstConstants
+<span class="lineno">  118 </span>  :: (ann -&gt; Some (ValueOf uni) -&gt; Maybe (Term name uni fun ann))
+<span class="lineno">  119 </span>  -&gt; Term name uni fun ann
+<span class="lineno">  120 </span>  -&gt; Term name uni fun ann
+<span class="lineno">  121 </span><span class="decl"><span class="nottickedoff">termSubstConstants = purely (termSubstConstantsM . curry) . uncurry</span></span>
+
+</pre>
+</body>
+</html>

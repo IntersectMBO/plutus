@@ -1,0 +1,1009 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Optimize.Opts</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.65.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Optimize.Opts.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Optimize.Opts</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:OptimizeOpts"
+	      >OptimizeOpts</a
+	      > name a = <a href="#v:OptimizeOpts"
+	      >OptimizeOpts</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_ooMaxSimplifierIterations"
+		  >_ooMaxSimplifierIterations</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:_ooMaxCseIterations"
+		  >_ooMaxCseIterations</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:_ooCseWhichSubterms"
+		  >_ooCseWhichSubterms</a
+		  > &#8759; <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+		  >CseWhichSubterms</a
+		  ></li
+		><li
+		><a href="#v:_ooConservativeOpts"
+		  >_ooConservativeOpts</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_ooInlineHints"
+		  >_ooInlineHints</a
+		  > &#8759; <a href="PlutusCore-Annotation.html#t:InlineHints" title="PlutusCore.Annotation"
+		  >InlineHints</a
+		  > name a</li
+		><li
+		><a href="#v:_ooInlineConstants"
+		  >_ooInlineConstants</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_ooInlineUnconditionalGrowth"
+		  >_ooInlineUnconditionalGrowth</a
+		  > &#8759; <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+		  >AstSize</a
+		  ></li
+		><li
+		><a href="#v:_ooInlineCallsiteGrowth"
+		  >_ooInlineCallsiteGrowth</a
+		  > &#8759; <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+		  >AstSize</a
+		  ></li
+		><li
+		><a href="#v:_ooPreserveLogging"
+		  >_ooPreserveLogging</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_ooApplyToCase"
+		  >_ooApplyToCase</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_ooHoistPolyBuiltins"
+		  >_ooHoistPolyBuiltins</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_ooCertifiedOptsOnly"
+		  >_ooCertifiedOptsOnly</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:ooApplyToCase"
+	      >ooApplyToCase</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooHoistPolyBuiltins"
+	      >ooHoistPolyBuiltins</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooMaxSimplifierIterations"
+	      >ooMaxSimplifierIterations</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooMaxCseIterations"
+	      >ooMaxCseIterations</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooCseWhichSubterms"
+	      >ooCseWhichSubterms</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+	      >CseWhichSubterms</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooInlineHints"
+	      >ooInlineHints</a
+	      > &#8759; &#8704; name a name a. Lens (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) (<a href="PlutusCore-Annotation.html#t:InlineHints" title="PlutusCore.Annotation"
+	      >InlineHints</a
+	      > name a) (<a href="PlutusCore-Annotation.html#t:InlineHints" title="PlutusCore.Annotation"
+	      >InlineHints</a
+	      > name a)</li
+	    ><li class="src short"
+	    ><a href="#v:ooConservativeOpts"
+	      >ooConservativeOpts</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooInlineConstants"
+	      >ooInlineConstants</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooInlineUnconditionalGrowth"
+	      >ooInlineUnconditionalGrowth</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+	      >AstSize</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooInlineCallsiteGrowth"
+	      >ooInlineCallsiteGrowth</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+	      >AstSize</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooPreserveLogging"
+	      >ooPreserveLogging</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ooCertifiedOptsOnly"
+	      >ooCertifiedOptsOnly</a
+	      > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:defaultOptimizeOpts"
+	      >defaultOptimizeOpts</a
+	      > &#8759; <a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	      >OptimizeOpts</a
+	      > name a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CseWhichSubterms"
+	      >CseWhichSubterms</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:AllSubterms"
+		  >AllSubterms</a
+		  ></li
+		><li
+		>| <a href="#v:ExcludeWorkFree"
+		  >ExcludeWorkFree</a
+		  ></li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:OptimizeOpts" class="def"
+	    >OptimizeOpts</a
+	    > name a <a href="src/UntypedPlutusCore.Optimize.Opts.html#OptimizeOpts" class="link"
+	    >Source</a
+	    > <a href="#t:OptimizeOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:OptimizeOpts" class="def"
+		  >OptimizeOpts</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_ooMaxSimplifierIterations" class="def"
+			  >_ooMaxSimplifierIterations</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooMaxCseIterations" class="def"
+			  >_ooMaxCseIterations</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooCseWhichSubterms" class="def"
+			  >_ooCseWhichSubterms</a
+			  > &#8759; <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooConservativeOpts" class="def"
+			  >_ooConservativeOpts</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooInlineHints" class="def"
+			  >_ooInlineHints</a
+			  > &#8759; <a href="PlutusCore-Annotation.html#t:InlineHints" title="PlutusCore.Annotation"
+			  >InlineHints</a
+			  > name a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooInlineConstants" class="def"
+			  >_ooInlineConstants</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooInlineUnconditionalGrowth" class="def"
+			  >_ooInlineUnconditionalGrowth</a
+			  > &#8759; <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+			  >AstSize</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooInlineCallsiteGrowth" class="def"
+			  >_ooInlineCallsiteGrowth</a
+			  > &#8759; <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+			  >AstSize</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooPreserveLogging" class="def"
+			  >_ooPreserveLogging</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooApplyToCase" class="def"
+			  >_ooApplyToCase</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooHoistPolyBuiltins" class="def"
+			  >_ooHoistPolyBuiltins</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ooCertifiedOptsOnly" class="def"
+			  >_ooCertifiedOptsOnly</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:OptimizeOpts"
+	    >Instances</h4
+	    ><details id="i:OptimizeOpts" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:OptimizeOpts:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+		      >OptimizeOpts</a
+		      > name a)</span
+		    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:OptimizeOpts" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:OptimizeOpts:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Optimize-Opts.html"
+			>UntypedPlutusCore.Optimize.Opts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+			  >OptimizeOpts</a
+			  > name a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+			  >OptimizeOpts</a
+			  > name a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+			  >OptimizeOpts</a
+			  > name a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooApplyToCase" class="def"
+	    >ooApplyToCase</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooApplyToCase" class="link"
+	    >Source</a
+	    > <a href="#v:ooApplyToCase" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooHoistPolyBuiltins" class="def"
+	    >ooHoistPolyBuiltins</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooHoistPolyBuiltins" class="link"
+	    >Source</a
+	    > <a href="#v:ooHoistPolyBuiltins" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooMaxSimplifierIterations" class="def"
+	    >ooMaxSimplifierIterations</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooMaxSimplifierIterations" class="link"
+	    >Source</a
+	    > <a href="#v:ooMaxSimplifierIterations" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooMaxCseIterations" class="def"
+	    >ooMaxCseIterations</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooMaxCseIterations" class="link"
+	    >Source</a
+	    > <a href="#v:ooMaxCseIterations" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooCseWhichSubterms" class="def"
+	    >ooCseWhichSubterms</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+	    >CseWhichSubterms</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooCseWhichSubterms" class="link"
+	    >Source</a
+	    > <a href="#v:ooCseWhichSubterms" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooInlineHints" class="def"
+	    >ooInlineHints</a
+	    > &#8759; &#8704; name a name a. Lens (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) (<a href="PlutusCore-Annotation.html#t:InlineHints" title="PlutusCore.Annotation"
+	    >InlineHints</a
+	    > name a) (<a href="PlutusCore-Annotation.html#t:InlineHints" title="PlutusCore.Annotation"
+	    >InlineHints</a
+	    > name a) <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooInlineHints" class="link"
+	    >Source</a
+	    > <a href="#v:ooInlineHints" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooConservativeOpts" class="def"
+	    >ooConservativeOpts</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooConservativeOpts" class="link"
+	    >Source</a
+	    > <a href="#v:ooConservativeOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooInlineConstants" class="def"
+	    >ooInlineConstants</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooInlineConstants" class="link"
+	    >Source</a
+	    > <a href="#v:ooInlineConstants" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooInlineUnconditionalGrowth" class="def"
+	    >ooInlineUnconditionalGrowth</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+	    >AstSize</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooInlineUnconditionalGrowth" class="link"
+	    >Source</a
+	    > <a href="#v:ooInlineUnconditionalGrowth" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooInlineCallsiteGrowth" class="def"
+	    >ooInlineCallsiteGrowth</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="PlutusCore-AstSize.html#t:AstSize" title="PlutusCore.AstSize"
+	    >AstSize</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooInlineCallsiteGrowth" class="link"
+	    >Source</a
+	    > <a href="#v:ooInlineCallsiteGrowth" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooPreserveLogging" class="def"
+	    >ooPreserveLogging</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooPreserveLogging" class="link"
+	    >Source</a
+	    > <a href="#v:ooPreserveLogging" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ooCertifiedOptsOnly" class="def"
+	    >ooCertifiedOptsOnly</a
+	    > &#8759; &#8704; name a. <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#ooCertifiedOptsOnly" class="link"
+	    >Source</a
+	    > <a href="#v:ooCertifiedOptsOnly" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultOptimizeOpts" class="def"
+	    >defaultOptimizeOpts</a
+	    > &#8759; <a href="UntypedPlutusCore-Optimize-Opts.html#t:OptimizeOpts" title="UntypedPlutusCore.Optimize.Opts"
+	    >OptimizeOpts</a
+	    > name a <a href="src/UntypedPlutusCore.Optimize.Opts.html#defaultOptimizeOpts" class="link"
+	    >Source</a
+	    > <a href="#v:defaultOptimizeOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CseWhichSubterms" class="def"
+	    >CseWhichSubterms</a
+	    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#CseWhichSubterms" class="link"
+	    >Source</a
+	    > <a href="#t:CseWhichSubterms" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Which subterms should be considered as candidates for CSE?</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:AllSubterms" class="def"
+		  >AllSubterms</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ExcludeWorkFree" class="def"
+		  >ExcludeWorkFree</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CseWhichSubterms"
+	    >Instances</h4
+	    ><details id="i:CseWhichSubterms" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CseWhichSubterms:Read:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+		      >Read</a
+		      > <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+		      >CseWhichSubterms</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:CseWhichSubterms" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CseWhichSubterms:Read:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Optimize-Opts.html"
+			>UntypedPlutusCore.Optimize.Opts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readsPrec"
+			  >readsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readList"
+			  >readList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadP.html#t:ReadS" title="Text.ParserCombinators.ReadP"
+			  >ReadS</a
+			  > [<a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readPrec"
+			  >readPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:readListPrec"
+			  >readListPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-ParserCombinators-ReadPrec.html#t:ReadPrec" title="Text.ParserCombinators.ReadPrec"
+			  >ReadPrec</a
+			  > [<a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:readListPrec" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CseWhichSubterms:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+		      >CseWhichSubterms</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:CseWhichSubterms" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CseWhichSubterms:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Optimize-Opts.html"
+			>UntypedPlutusCore.Optimize.Opts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CseWhichSubterms:Pretty:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+		      >CseWhichSubterms</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Optimize.Opts.html#line-33" class="link"
+		    >Source</a
+		    > <a href="#t:CseWhichSubterms" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CseWhichSubterms:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Optimize-Opts.html"
+			>UntypedPlutusCore.Optimize.Opts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Optimize-Opts.html#t:CseWhichSubterms" title="UntypedPlutusCore.Optimize.Opts"
+			  >CseWhichSubterms</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

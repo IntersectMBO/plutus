@@ -1,0 +1,203 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    3 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    5 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE StrictData #-}
+<span class="lineno">    8 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    9 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+<span class="lineno">   12 </span>  ( ExBudgetMode (..)
+<span class="lineno">   13 </span>  , CountingSt (..)
+<span class="lineno">   14 </span>  , CekExTally (..)
+<span class="lineno">   15 </span>  , TallyingSt (..)
+<span class="lineno">   16 </span>  , RestrictingSt (..)
+<span class="lineno">   17 </span>  , Hashable
+<span class="lineno">   18 </span>  , monoidalBudgeting
+<span class="lineno">   19 </span>  , counting
+<span class="lineno">   20 </span>  , enormousBudget
+<span class="lineno">   21 </span>  , tallying
+<span class="lineno">   22 </span>  , restricting
+<span class="lineno">   23 </span>  , restrictingLarge
+<span class="lineno">   24 </span>  , restrictingEnormous
+<span class="lineno">   25 </span>  )
+<span class="lineno">   26 </span>where
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>import PlutusPrelude
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>import PlutusCore.Evaluation.Machine.ExBudget
+<span class="lineno">   33 </span>import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>import Control.Lens (imap)
+<span class="lineno">   36 </span>import Control.Monad (when)
+<span class="lineno">   37 </span>import Control.Monad.Except
+<span class="lineno">   38 </span>import Data.HashMap.Monoidal as HashMap
+<span class="lineno">   39 </span>import Data.Hashable (Hashable)
+<span class="lineno">   40 </span>import Data.Map.Strict qualified as Map
+<span class="lineno">   41 </span>import Data.Primitive.PrimArray
+<span class="lineno">   42 </span>import Data.STRef
+<span class="lineno">   43 </span>import Data.SatInt
+<span class="lineno">   44 </span>import Data.Semigroup.Generic
+<span class="lineno">   45 </span>import Prettyprinter
+<span class="lineno">   46 </span>import Text.PrettyBy (IgnorePrettyConfig (..))
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>{-| Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.
+<span class="lineno">   49 </span>The value then gets added to the current state via @(&lt;&gt;)@. -}
+<span class="lineno">   50 </span>monoidalBudgeting
+<span class="lineno">   51 </span>  :: Monoid cost =&gt; (ExBudgetCategory fun -&gt; ExBudget -&gt; cost) -&gt; ExBudgetMode cost uni fun
+<span class="lineno">   52 </span><span class="decl"><span class="istickedoff">monoidalBudgeting toCost = ExBudgetMode $ do</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">costRef &lt;- newSTRef mempty</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="istickedoff">budgetRef &lt;- newSTRef mempty</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">let spend key budgetToSpend = CekM $ do</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="istickedoff">modifySTRef' costRef (&lt;&gt; toCost key budgetToSpend)</span>
+<span class="lineno">   57 </span><span class="spaces">        </span><span class="istickedoff">modifySTRef' budgetRef (&lt;&gt; budgetToSpend)</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">spender = CekBudgetSpender spend</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="istickedoff">cumulative = readSTRef <span class="nottickedoff">budgetRef</span></span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="istickedoff">final = readSTRef costRef</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">pure $ ExBudgetInfo spender final cumulative</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>-- | For calculating the cost of execution by counting up using the 'Monoid' instance of 'ExBudget'.
+<span class="lineno">   64 </span>newtype CountingSt = CountingSt ExBudget
+<span class="lineno">   65 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   66 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">PrettyBy config</span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>instance <span class="decl"><span class="nottickedoff">Pretty CountingSt</span></span> where
+<span class="lineno">   69 </span>  <span class="decl"><span class="nottickedoff">pretty (CountingSt budget) = parens $ &quot;required budget:&quot; &lt;+&gt; pretty budget &lt;&gt; line</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>-- | For calculating the cost of execution.
+<span class="lineno">   72 </span>counting :: ExBudgetMode CountingSt uni fun
+<span class="lineno">   73 </span><span class="decl"><span class="istickedoff">counting = monoidalBudgeting $ const CountingSt</span></span>
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>{-| For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
+<span class="lineno">   76 </span>The (derived) 'Monoid' instance of 'CekExTally' is the main piece of the machinery. -}
+<span class="lineno">   77 </span>newtype CekExTally fun = CekExTally (MonoidalHashMap (ExBudgetCategory fun) ExBudget)
+<span class="lineno">   78 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   79 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>) via (GenericSemigroupMonoid (CekExTally fun))
+<span class="lineno">   80 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   81 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">PrettyBy config</span></span></span></span>) via (IgnorePrettyConfig (CekExTally fun))
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>instance <span class="decl"><span class="nottickedoff">(Show fun, Ord fun) =&gt; Pretty (CekExTally fun)</span></span> where
+<span class="lineno">   84 </span>  <span class="decl"><span class="istickedoff">pretty (CekExTally m) =</span>
+<span class="lineno">   85 </span><span class="spaces">    </span><span class="istickedoff">let om = Map.fromList $ HashMap.toList m</span>
+<span class="lineno">   86 </span><span class="spaces">     </span><span class="istickedoff">in parens $</span>
+<span class="lineno">   87 </span><span class="spaces">          </span><span class="istickedoff">encloseSep &quot;{&quot; &quot;}&quot; &quot;| &quot; $</span>
+<span class="lineno">   88 </span><span class="spaces">            </span><span class="istickedoff">fmap group $</span>
+<span class="lineno">   89 </span><span class="spaces">              </span><span class="istickedoff">Map.elems $</span>
+<span class="lineno">   90 </span><span class="spaces">                </span><span class="istickedoff">imap (\k v -&gt; (pretty k &lt;+&gt; &quot;causes&quot; &lt;+&gt; group (pretty v))) om</span></span>
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>data TallyingSt fun = TallyingSt (CekExTally fun) ExBudget
+<span class="lineno">   93 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Generic</span></span></span></span>)
+<span class="lineno">   94 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>) via (GenericSemigroupMonoid (TallyingSt fun))
+<span class="lineno">   95 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   96 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">PrettyBy config</span></span></span></span>) via (IgnorePrettyConfig (TallyingSt fun))
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>instance <span class="decl"><span class="nottickedoff">(Show fun, Ord fun) =&gt; Pretty (TallyingSt fun)</span></span> where
+<span class="lineno">   99 </span>  <span class="decl"><span class="istickedoff">pretty (TallyingSt tally budget) =</span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="istickedoff">parens $</span>
+<span class="lineno">  101 </span><span class="spaces">      </span><span class="istickedoff">fold</span>
+<span class="lineno">  102 </span><span class="spaces">        </span><span class="istickedoff">[ &quot;{ tally: &quot;</span>
+<span class="lineno">  103 </span><span class="spaces">        </span><span class="istickedoff">, pretty tally</span>
+<span class="lineno">  104 </span><span class="spaces">        </span><span class="istickedoff">, line</span>
+<span class="lineno">  105 </span><span class="spaces">        </span><span class="istickedoff">, &quot;| budget: &quot;</span>
+<span class="lineno">  106 </span><span class="spaces">        </span><span class="istickedoff">, pretty budget</span>
+<span class="lineno">  107 </span><span class="spaces">        </span><span class="istickedoff">, line</span>
+<span class="lineno">  108 </span><span class="spaces">        </span><span class="istickedoff">, &quot;}&quot;</span>
+<span class="lineno">  109 </span><span class="spaces">        </span><span class="istickedoff">]</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>-- | For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
+<span class="lineno">  112 </span>tallying :: Hashable fun =&gt; ExBudgetMode (TallyingSt fun) uni fun
+<span class="lineno">  113 </span><span class="decl"><span class="istickedoff">tallying =</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">monoidalBudgeting $ \key budgetToSpend -&gt;</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff">TallyingSt (CekExTally $ singleton key budgetToSpend) budgetToSpend</span></span>
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>newtype RestrictingSt = RestrictingSt ExRestrictingBudget
+<span class="lineno">  118 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">  119 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">  120 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">PrettyBy config</span></span></span></span>)
+<span class="lineno">  121 </span>
+<span class="lineno">  122 </span>instance <span class="decl"><span class="nottickedoff">Pretty RestrictingSt</span></span> where
+<span class="lineno">  123 </span>  <span class="decl"><span class="nottickedoff">pretty (RestrictingSt budget) = parens $ &quot;final budget:&quot; &lt;+&gt; pretty budget &lt;&gt; line</span></span>
+<span class="lineno">  124 </span>
+<span class="lineno">  125 </span>-- | For execution, to avoid overruns.
+<span class="lineno">  126 </span>restricting
+<span class="lineno">  127 </span>  :: ThrowableBuiltins uni fun
+<span class="lineno">  128 </span>  =&gt; ExRestrictingBudget -&gt; ExBudgetMode RestrictingSt uni fun
+<span class="lineno">  129 </span><span class="decl"><span class="istickedoff">restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMode $ do</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="istickedoff">-- We keep the counters in a PrimArray. This is better than an STRef since it stores its contents unboxed.</span>
+<span class="lineno">  131 </span><span class="spaces">  </span><span class="istickedoff">--</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="istickedoff">-- If we don't specify the element type then GHC has difficulty inferring it, but it's</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="istickedoff">-- annoying to specify the monad, since it refers to the 's' which is not in scope.</span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="istickedoff">ref &lt;- newPrimArray @_ @SatInt 2</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="istickedoff">let</span>
+<span class="lineno">  136 </span><span class="spaces">    </span><span class="istickedoff">cpuIx = 0</span>
+<span class="lineno">  137 </span><span class="spaces">    </span><span class="istickedoff">memIx = 1</span>
+<span class="lineno">  138 </span><span class="spaces">    </span><span class="istickedoff">readCpu = coerce @_ @ExCPU &lt;$&gt; readPrimArray ref cpuIx</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="istickedoff">writeCpu cpu = writePrimArray ref cpuIx $ coerce cpu</span>
+<span class="lineno">  140 </span><span class="spaces">    </span><span class="istickedoff">readMem = coerce @_ @ExMemory &lt;$&gt; readPrimArray ref memIx</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="istickedoff">writeMem mem = writePrimArray ref memIx $ coerce mem</span>
+<span class="lineno">  142 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">writeCpu cpuInit</span>
+<span class="lineno">  144 </span><span class="spaces">  </span><span class="istickedoff">writeMem memInit</span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">let</span>
+<span class="lineno">  146 </span><span class="spaces">    </span><span class="istickedoff">spend _ (ExBudget cpuToSpend memToSpend) = do</span>
+<span class="lineno">  147 </span><span class="spaces">      </span><span class="istickedoff">cpuLeft &lt;- CekM readCpu</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="istickedoff">memLeft &lt;- CekM readMem</span>
+<span class="lineno">  149 </span><span class="spaces">      </span><span class="istickedoff">let cpuLeft' = cpuLeft - cpuToSpend</span>
+<span class="lineno">  150 </span><span class="spaces">      </span><span class="istickedoff">let memLeft' = memLeft - memToSpend</span>
+<span class="lineno">  151 </span><span class="spaces">      </span><span class="istickedoff">-- Note that even if we throw an out-of-budget error, we still need to record</span>
+<span class="lineno">  152 </span><span class="spaces">      </span><span class="istickedoff">-- what the final state was.</span>
+<span class="lineno">  153 </span><span class="spaces">      </span><span class="istickedoff">CekM $ writeCpu cpuLeft'</span>
+<span class="lineno">  154 </span><span class="spaces">      </span><span class="istickedoff">CekM $ writeMem memLeft'</span>
+<span class="lineno">  155 </span><span class="spaces">      </span><span class="istickedoff">when (cpuLeft' &lt; 0 || memLeft' &lt; 0) $ do</span>
+<span class="lineno">  156 </span><span class="spaces">        </span><span class="istickedoff">let</span>
+<span class="lineno">  157 </span><span class="spaces">          </span><span class="istickedoff">-- You'd think whether the budget is computed strictly or not before throwing</span>
+<span class="lineno">  158 </span><span class="spaces">          </span><span class="istickedoff">-- an error isn't important, but GHC refuses to unbox the second argument of</span>
+<span class="lineno">  159 </span><span class="spaces">          </span><span class="istickedoff">-- @spend@ without this bang. Bangs on @cpuLeft'@ and @memLeft'@ don't help</span>
+<span class="lineno">  160 </span><span class="spaces">          </span><span class="istickedoff">-- either as those are forced by 'writeCpu' and 'writeMem' anyway. Go figure.</span>
+<span class="lineno">  161 </span><span class="spaces">          </span><span class="istickedoff">!budgetLeft = ExBudget cpuLeft' memLeft'</span>
+<span class="lineno">  162 </span><span class="spaces">        </span><span class="istickedoff">throwError $</span>
+<span class="lineno">  163 </span><span class="spaces">          </span><span class="istickedoff">ErrorWithCause</span>
+<span class="lineno">  164 </span><span class="spaces">            </span><span class="istickedoff">(OperationalError (CekOutOfExError $ ExRestrictingBudget budgetLeft))</span>
+<span class="lineno">  165 </span><span class="spaces">            </span><span class="istickedoff">Nothing</span>
+<span class="lineno">  166 </span><span class="spaces">    </span><span class="istickedoff">spender = CekBudgetSpender spend</span>
+<span class="lineno">  167 </span><span class="spaces">    </span><span class="istickedoff">remaining = <span class="nottickedoff">ExBudget</span> &lt;$&gt; readCpu &lt;*&gt; readMem</span>
+<span class="lineno">  168 </span><span class="spaces">    </span><span class="istickedoff">cumulative = do</span>
+<span class="lineno">  169 </span><span class="spaces">      </span><span class="istickedoff">r &lt;- <span class="nottickedoff">remaining</span></span>
+<span class="lineno">  170 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">pure $ initB `minusExBudget` r</span></span>
+<span class="lineno">  171 </span><span class="spaces">    </span><span class="istickedoff">final = <span class="nottickedoff">RestrictingSt . ExRestrictingBudget</span> &lt;$&gt; remaining</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="istickedoff">pure $ ExBudgetInfo spender final cumulative</span></span>
+<span class="lineno">  173 </span>
+<span class="lineno">  174 </span>-- | 'restricting' instantiated at 'largeBudget'.
+<span class="lineno">  175 </span>restrictingLarge :: ThrowableBuiltins uni fun =&gt; ExBudgetMode RestrictingSt uni fun
+<span class="lineno">  176 </span><span class="decl"><span class="istickedoff">restrictingLarge = restricting largeBudget</span></span>
+<span class="lineno">  177 </span>
+<span class="lineno">  178 </span>-- | 'restricting' instantiated at 'enormousBudget'.
+<span class="lineno">  179 </span>restrictingEnormous :: ThrowableBuiltins uni fun =&gt; ExBudgetMode RestrictingSt uni fun
+<span class="lineno">  180 </span><span class="decl"><span class="istickedoff">restrictingEnormous = restricting enormousBudget</span></span>
+
+</pre>
+</body>
+</html>

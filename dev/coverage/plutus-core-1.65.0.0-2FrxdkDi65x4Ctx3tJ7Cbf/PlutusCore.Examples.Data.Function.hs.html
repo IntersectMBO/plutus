@@ -1,0 +1,46 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module PlutusCore.Examples.Data.Function
+<span class="lineno">    4 </span>  ( unsafeCoerce
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import PlutusCore.Core
+<span class="lineno">    8 </span>import PlutusCore.MkPlc
+<span class="lineno">    9 </span>import PlutusCore.Name.Unique
+<span class="lineno">   10 </span>import PlutusCore.Quote
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import PlutusCore.StdLib.Data.Function
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>unsafeCoerce :: Term TyName Name uni fun ()
+<span class="lineno">   15 </span><span class="decl"><span class="istickedoff">unsafeCoerce = runQuote $ do</span>
+<span class="lineno">   16 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   17 </span><span class="spaces">  </span><span class="istickedoff">b &lt;- freshTyName &quot;b&quot;</span>
+<span class="lineno">   18 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   19 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   20 </span><span class="spaces">    </span><span class="istickedoff">. TyAbs <span class="nottickedoff">()</span> b (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   21 </span><span class="spaces">    </span><span class="istickedoff">. Apply <span class="nottickedoff">()</span> (mkIterInstNoAnn fix [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> b])</span>
+<span class="lineno">   22 </span><span class="spaces">    </span><span class="istickedoff">. TyInst <span class="nottickedoff">()</span> idFun</span>
+<span class="lineno">   23 </span><span class="spaces">    </span><span class="istickedoff">$ TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> a) (TyVar <span class="nottickedoff">()</span> b)</span></span>
+
+</pre>
+</body>
+</html>

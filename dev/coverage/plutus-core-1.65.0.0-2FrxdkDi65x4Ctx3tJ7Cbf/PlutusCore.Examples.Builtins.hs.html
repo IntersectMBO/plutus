@@ -1,0 +1,568 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE AllowAmbiguousTypes #-}
+<span class="lineno">    2 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    4 </span>{-# LANGUAGE DerivingVia #-}
+<span class="lineno">    5 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    6 </span>{-# LANGUAGE InstanceSigs #-}
+<span class="lineno">    7 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    8 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    9 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">   10 </span>{-# LANGUAGE PolyKinds #-}
+<span class="lineno">   11 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">   12 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">   13 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">   14 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   15 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">   16 </span>{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>module PlutusCore.Examples.Builtins where
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import PlutusCore
+<span class="lineno">   21 </span>import PlutusCore.Builtin
+<span class="lineno">   22 </span>import PlutusCore.Data
+<span class="lineno">   23 </span>import PlutusCore.Evaluation.Machine.BuiltinCostModel
+<span class="lineno">   24 </span>import PlutusCore.Evaluation.Machine.ExBudget
+<span class="lineno">   25 </span>import PlutusCore.Evaluation.Machine.ExBudgetStream
+<span class="lineno">   26 </span>import PlutusCore.Pretty
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>import PlutusCore.StdLib.Data.ScottList qualified as Plc
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>import Control.Concurrent.MVar
+<span class="lineno">   31 </span>import Control.Exception
+<span class="lineno">   32 </span>import Control.Monad
+<span class="lineno">   33 </span>import Control.Monad.Except
+<span class="lineno">   34 </span>import Data.Default.Class
+<span class="lineno">   35 </span>import Data.Either
+<span class="lineno">   36 </span>import Data.Kind qualified as GHC (Type)
+<span class="lineno">   37 </span>import Data.Proxy
+<span class="lineno">   38 </span>import Data.Some.GADT qualified as GADT
+<span class="lineno">   39 </span>import Data.Tuple
+<span class="lineno">   40 </span>import Data.Void
+<span class="lineno">   41 </span>import GHC.Generics
+<span class="lineno">   42 </span>import GHC.Ix
+<span class="lineno">   43 </span>import GHC.TypeLits as GHC
+<span class="lineno">   44 </span>import Prettyprinter
+<span class="lineno">   45 </span>import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
+<span class="lineno">   46 </span>import System.Mem (performMinorGC)
+<span class="lineno">   47 </span>import System.Mem.Weak (addFinalizer)
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>instance (Bounded a, Bounded b) =&gt; Bounded (Either a b) where
+<span class="lineno">   50 </span>  <span class="decl"><span class="istickedoff">minBound = Left minBound</span></span>
+<span class="lineno">   51 </span>  <span class="decl"><span class="istickedoff">maxBound = Right maxBound</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>size :: forall a. (Bounded a, Enum a) =&gt; Int
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">size = fromEnum (maxBound :: a) - fromEnum (minBound :: a) + 1</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- &gt;&gt;&gt; map fromEnum [Left False .. Right GT]
+<span class="lineno">   57 </span>-- [0,1,2,3,4]
+<span class="lineno">   58 </span>-- &gt;&gt;&gt; map toEnum [0 .. 4] :: [Either Bool Ordering]
+<span class="lineno">   59 </span>-- [Left False,Left True,Right LT,Right EQ,Right GT]
+<span class="lineno">   60 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">(Eq a, Eq b, Bounded a, Bounded b, Enum a, Enum b) =&gt; Enum (Either a b)</span></span></span></span></span></span></span></span> where
+<span class="lineno">   61 </span>  <span class="decl"><span class="nottickedoff">succ (Left x)</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="nottickedoff">| x == maxBound = Right minBound</span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = Left $ succ x</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">succ (Right y)</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="nottickedoff">| y == maxBound = error &quot;Out of bounds&quot;</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = Right $ succ y</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>  <span class="decl"><span class="nottickedoff">pred (Left x)</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="nottickedoff">| x == minBound = error &quot;Out of bounds&quot;</span>
+<span class="lineno">   70 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = Left $ pred x</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">pred (Right y)</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="nottickedoff">| y == minBound = Left maxBound</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="nottickedoff">| otherwise = Right $ pred y</span></span>
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>  <span class="decl"><span class="istickedoff">toEnum i</span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="istickedoff">| i &lt; s = Left $ toEnum i</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = Right $ toEnum (i - s)</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">   79 </span><span class="spaces">      </span><span class="istickedoff">s = size @a</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>  <span class="decl"><span class="istickedoff">fromEnum (Left x) = fromEnum x</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">fromEnum (Right y) = size @a + fromEnum y</span></span>
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>-- &gt;&gt;&gt; import GHC.Ix
+<span class="lineno">   85 </span>-- &gt;&gt;&gt; map (unsafeIndex (Left False, Right GT)) [Left False .. Right GT]
+<span class="lineno">   86 </span>-- [0,1,2,3,4]
+<span class="lineno">   87 </span>-- &gt;&gt;&gt; let bounds = (Left (False, EQ), Right (True, GT)) in map (unsafeIndex bounds) $ range bounds
+<span class="lineno">   88 </span>-- [0,1,2,3,4,5,6,7,8,9]
+<span class="lineno">   89 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">(Bounded a, Bounded b, Ix a, Ix b) =&gt; Ix (Either a b)</span></span></span></span></span></span> where
+<span class="lineno">   90 </span>  <span class="decl"><span class="nottickedoff">range (Right _, Left _) = []</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="nottickedoff">range (Right x, Right y) = map Right (range (x, y))</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">range (Left x, Right y) = map Left (range (x, maxBound)) ++ map Right (range (minBound, y))</span>
+<span class="lineno">   93 </span><span class="spaces">  </span><span class="nottickedoff">range (Left x, Left y) = map Left (range (x, y))</span></span>
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>  <span class="decl"><span class="istickedoff">unsafeIndex (Right _, _) (Left _) = <span class="nottickedoff">error &quot;Out of bounds&quot;</span></span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">unsafeIndex (Left x, n) (Left i) = unsafeIndex (x, <span class="nottickedoff">fromLeft maxBound n</span>) i</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">unsafeIndex (Right x, n) (Right i) = <span class="nottickedoff">unsafeIndex (x, fromRight (error &quot;Out of bounds&quot;) n) i</span></span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">unsafeIndex (Left x, n) (Right i) =</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="istickedoff">unsafeIndex (x, <span class="nottickedoff">maxBound</span>) maxBound</span>
+<span class="lineno">  100 </span><span class="spaces">      </span><span class="istickedoff">+ 1</span>
+<span class="lineno">  101 </span><span class="spaces">      </span><span class="istickedoff">+ unsafeIndex (minBound, <span class="nottickedoff">fromRight (error &quot;Out of bounds&quot;) n</span>) i</span></span>
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>  <span class="decl"><span class="istickedoff">inRange (m, n) i = m &lt;= i &amp;&amp; i &lt;= n</span></span>
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>-- See Note [Representable built-in functions over polymorphic built-in types]
+<span class="lineno">  106 </span>data ExtensionFun
+<span class="lineno">  107 </span>  = Factorial
+<span class="lineno">  108 </span>  | ForallFortyTwo -- A builtin for @42 :: forall a. Integer@.
+<span class="lineno">  109 </span>  | SumInteger
+<span class="lineno">  110 </span>  | Const
+<span class="lineno">  111 </span>  | Id
+<span class="lineno">  112 </span>  | IdAssumeBool
+<span class="lineno">  113 </span>  | IdAssumeCheckBool
+<span class="lineno">  114 </span>  | IdSomeConstantBool
+<span class="lineno">  115 </span>  | IdIntegerAsBool
+<span class="lineno">  116 </span>  | IdFInteger
+<span class="lineno">  117 </span>  | IdList
+<span class="lineno">  118 </span>  | IdRank2
+<span class="lineno">  119 </span>  | ScottToMetaUnit
+<span class="lineno">  120 </span>  | -- The next four are for testing that costing always precedes actual evaluation.
+<span class="lineno">  121 </span>    FailingSucc
+<span class="lineno">  122 </span>  | ExpensiveSucc
+<span class="lineno">  123 </span>  | FailingPlus
+<span class="lineno">  124 </span>  | ExpensivePlus
+<span class="lineno">  125 </span>  | IsConstant
+<span class="lineno">  126 </span>  | UnsafeCoerce
+<span class="lineno">  127 </span>  | UnsafeCoerceEl
+<span class="lineno">  128 </span>  | Undefined
+<span class="lineno">  129 </span>  | Absurd
+<span class="lineno">  130 </span>  | ErrorPrime -- Like 'Error', but a builtin. What do we even need 'Error' for at this point?
+<span class="lineno">  131 </span>  -- Who knows what machinery a tick could break, hence the @Prime@ part.
+<span class="lineno">  132 </span>  | Comma
+<span class="lineno">  133 </span>  | BiconstPair -- A safe version of 'Comma' as discussed in Note [Representable built-in
+<span class="lineno">  134 </span>  -- functions over polymorphic built-in types].
+<span class="lineno">  135 </span>  | Swap -- For checking that permuting type arguments of a polymorphic built-in works correctly.
+<span class="lineno">  136 </span>  | SwapEls -- For checking that nesting polymorphic built-in types and instantiating them with
+<span class="lineno">  137 </span>  -- a mix of monomorphic types and type variables works correctly.
+<span class="lineno">  138 </span>  | ExtensionVersion -- Reflect the version of the Extension
+<span class="lineno">  139 </span>  | TrackCosts -- For checking that each cost is released and can be picked up by GC once it's
+<span class="lineno">  140 </span>  -- accounted for in the evaluator.
+<span class="lineno">  141 </span>  | IntNoIntegerNoWord -- For testing the signature dump test.
+<span class="lineno">  142 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Enum</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Bounded</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Ix</span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  143 </span>  deriving anyclass (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>instance <span class="decl"><span class="nottickedoff">Pretty ExtensionFun</span></span> where <span class="decl"><span class="istickedoff">pretty = viaShow</span></span>
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>instance
+<span class="lineno">  148 </span>  ( ToBuiltinMeaning uni fun1
+<span class="lineno">  149 </span>  , ToBuiltinMeaning uni fun2
+<span class="lineno">  150 </span>  , Default (BuiltinSemanticsVariant fun1)
+<span class="lineno">  151 </span>  , Default (BuiltinSemanticsVariant fun2)
+<span class="lineno">  152 </span>  )
+<span class="lineno">  153 </span>  =&gt; ToBuiltinMeaning uni (Either fun1 fun2)
+<span class="lineno">  154 </span>  where
+<span class="lineno">  155 </span>  type CostingPart uni (Either fun1 fun2) = (CostingPart uni fun1, CostingPart uni fun2)
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>  data BuiltinSemanticsVariant (Either fun1 fun2)
+<span class="lineno">  158 </span>    = PairV (BuiltinSemanticsVariant fun1) (BuiltinSemanticsVariant fun2)
+<span class="lineno">  159 </span>  <span class="decl"><span class="istickedoff">toBuiltinMeaning (PairV semvarL _) (Left fun) = case toBuiltinMeaning semvarL fun of</span>
+<span class="lineno">  160 </span><span class="spaces">    </span><span class="istickedoff">BuiltinMeaning tySch toF denot -&gt;</span>
+<span class="lineno">  161 </span><span class="spaces">      </span><span class="istickedoff">BuiltinMeaning tySch <span class="nottickedoff">toF</span> (denot . fst)</span>
+<span class="lineno">  162 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning (PairV _ semvarR) (Right fun) = case toBuiltinMeaning semvarR fun of</span>
+<span class="lineno">  163 </span><span class="spaces">    </span><span class="istickedoff">BuiltinMeaning tySch toF denot -&gt;</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="istickedoff">BuiltinMeaning tySch <span class="nottickedoff">toF</span> (denot . <span class="nottickedoff">snd</span>)</span></span>
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>instance
+<span class="lineno">  167 </span>  (Default (BuiltinSemanticsVariant fun1), Default (BuiltinSemanticsVariant fun2))
+<span class="lineno">  168 </span>  =&gt; Default (BuiltinSemanticsVariant (Either fun1 fun2))
+<span class="lineno">  169 </span>  where
+<span class="lineno">  170 </span>  <span class="decl"><span class="istickedoff">def = PairV def def</span></span>
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>{-| Normally @forall@ in the type of a Haskell function gets detected and instantiated
+<span class="lineno">  173 </span>automatically, however there's no way of doing that for a @forall@ that binds a never referenced
+<span class="lineno">  174 </span>type variable. Which is OK, because that would be a pretty weird builtin, however it's definable
+<span class="lineno">  175 </span>and for the purpose of testing we do introduce such a builtin, hence this definition allowing us
+<span class="lineno">  176 </span>to create an @all@ that binds a never referenced type variable in Plutus while still using
+<span class="lineno">  177 </span>'makeBuiltinMeaning'. -}
+<span class="lineno">  178 </span>newtype MetaForall name a = MetaForall a
+<span class="lineno">  179 </span>
+<span class="lineno">  180 </span>instance
+<span class="lineno">  181 </span>  ( name ~ 'TyNameRep @kind text uniq
+<span class="lineno">  182 </span>  , KnownSymbol text
+<span class="lineno">  183 </span>  , KnownNat uniq
+<span class="lineno">  184 </span>  , KnownKind kind
+<span class="lineno">  185 </span>  , KnownTypeAst tyname uni a
+<span class="lineno">  186 </span>  )
+<span class="lineno">  187 </span>  =&gt; KnownTypeAst tyname uni (MetaForall name a)
+<span class="lineno">  188 </span>  where
+<span class="lineno">  189 </span>  type IsBuiltin _ (MetaForall name a) = 'False
+<span class="lineno">  190 </span>  type ToHoles _ _ (MetaForall name a) = '[TypeHole a]
+<span class="lineno">  191 </span>  type ToBinds uni acc (MetaForall name a) = ToBinds uni (Insert ('GADT.Some name) acc) a
+<span class="lineno">  192 </span>  <span class="decl"><span class="istickedoff">typeAst = toTypeAst $ <span class="nottickedoff">Proxy @a</span></span></span>
+<span class="lineno">  193 </span>instance MakeKnownIn DefaultUni term a =&gt; MakeKnownIn DefaultUni term (MetaForall name a) where
+<span class="lineno">  194 </span>  <span class="decl"><span class="istickedoff">makeKnown (MetaForall x) = makeKnown x</span></span>
+<span class="lineno">  195 </span>
+<span class="lineno">  196 </span>-- 'ReadKnownIn' doesn't make sense for 'MetaForall'.
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>data PlcListRep (a :: GHC.Type)
+<span class="lineno">  199 </span>instance
+<span class="lineno">  200 </span>  (tyname ~ TyName, KnownTypeAst tyname uni a)
+<span class="lineno">  201 </span>  =&gt; KnownTypeAst tyname uni (PlcListRep a)
+<span class="lineno">  202 </span>  where
+<span class="lineno">  203 </span>  type IsBuiltin _ (PlcListRep a) = 'False
+<span class="lineno">  204 </span>  type ToHoles _ _ (PlcListRep a) = '[RepHole a]
+<span class="lineno">  205 </span>  type ToBinds uni acc (PlcListRep a) = ToBinds uni acc a
+<span class="lineno">  206 </span>  <span class="decl"><span class="istickedoff">typeAst = TyApp () Plc.listTy . toTypeAst $ <span class="nottickedoff">Proxy @a</span></span></span>
+<span class="lineno">  207 </span>
+<span class="lineno">  208 </span>instance tyname ~ TyName =&gt; KnownTypeAst tyname DefaultUni Void where
+<span class="lineno">  209 </span>  type IsBuiltin _ _ = 'False
+<span class="lineno">  210 </span>  type ToHoles _ _ _ = '[]
+<span class="lineno">  211 </span>  type ToBinds _ acc _ = acc
+<span class="lineno">  212 </span>  <span class="decl"><span class="istickedoff">typeAst = runQuote $ do</span>
+<span class="lineno">  213 </span><span class="spaces">    </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">  214 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyForall <span class="nottickedoff">()</span> a (Type <span class="nottickedoff">()</span>) $ TyVar <span class="nottickedoff">()</span> a</span></span>
+<span class="lineno">  215 </span>instance UniOf term ~ DefaultUni =&gt; MakeKnownIn DefaultUni term Void where
+<span class="lineno">  216 </span>  <span class="decl"><span class="nottickedoff">makeKnown = absurd</span></span>
+<span class="lineno">  217 </span>instance UniOf term ~ DefaultUni =&gt; ReadKnownIn DefaultUni term Void where
+<span class="lineno">  218 </span>  <span class="decl"><span class="nottickedoff">readKnown _ = throwError $ structuralUnliftingError &quot;Can't unlift to 'Void'&quot;</span></span>
+<span class="lineno">  219 </span>
+<span class="lineno">  220 </span>data BuiltinErrorCall = BuiltinErrorCall
+<span class="lineno">  221 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  222 </span>  deriving anyclass (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Exception</span></span></span></span></span></span>)
+<span class="lineno">  223 </span>
+<span class="lineno">  224 </span>{-| For the most part we don't care about costing functions of example builtins, hence this class
+<span class="lineno">  225 </span>for being explicit about not caring. -}
+<span class="lineno">  226 </span>class Whatever a where
+<span class="lineno">  227 </span>  -- | The costing function of a builtin whose costing function doesn't matter.
+<span class="lineno">  228 </span>  whatever :: a
+<span class="lineno">  229 </span>
+<span class="lineno">  230 </span>instance Whatever b =&gt; Whatever (a -&gt; b) where
+<span class="lineno">  231 </span>  <span class="decl"><span class="istickedoff">whatever _ = whatever</span></span>
+<span class="lineno">  232 </span>
+<span class="lineno">  233 </span>instance Whatever ExBudgetStream where
+<span class="lineno">  234 </span>  <span class="decl"><span class="istickedoff">whatever = ExBudgetLast mempty</span></span>
+<span class="lineno">  235 </span>
+<span class="lineno">  236 </span>-- See Note [Representable built-in functions over polymorphic built-in types].
+<span class="lineno">  237 </span>-- We have lists in the universe and so we can define a function like @\x -&gt; [x, x]@ that duplicates
+<span class="lineno">  238 </span>-- the constant that it receives. Should memory consumption of that function be linear in the number
+<span class="lineno">  239 </span>-- of duplicates that the function creates? I think, no:
+<span class="lineno">  240 </span>--
+<span class="lineno">  241 </span>-- 1. later we can call @head@ over the resulting list thus not duplicating anything in the end
+<span class="lineno">  242 </span>-- 2. any monomorphic builtin touching a duplicated constant will automatically
+<span class="lineno">  243 </span>--    add it to the current budget. And if we never touch the duplicate again and just keep it
+<span class="lineno">  244 </span>--    around, then it won't ever increase memory consumption. And any other node will be taken into
+<span class="lineno">  245 </span>--    account automatically as well: just think that having @\x -&gt; f x x@ as a PLC term is supposed
+<span class="lineno">  246 </span>--    to be handled correctly by design
+<span class="lineno">  247 </span>instance uni ~ DefaultUni =&gt; ToBuiltinMeaning uni ExtensionFun where
+<span class="lineno">  248 </span>  type CostingPart uni ExtensionFun = ()
+<span class="lineno">  249 </span>
+<span class="lineno">  250 </span>  data BuiltinSemanticsVariant ExtensionFun
+<span class="lineno">  251 </span>    = ExtensionFunSemanticsVariant0
+<span class="lineno">  252 </span>    | ExtensionFunSemanticsVariant1
+<span class="lineno">  253 </span>    | ExtensionFunSemanticsVariant2
+<span class="lineno">  254 </span>    | ExtensionFunSemanticsVariant3
+<span class="lineno">  255 </span>    | ExtensionFunSemanticsVariant4
+<span class="lineno">  256 </span>    deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Enum</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Bounded</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">  257 </span>
+<span class="lineno">  258 </span>  toBuiltinMeaning
+<span class="lineno">  259 </span>    :: forall val
+<span class="lineno">  260 </span>     . HasMeaningIn uni val
+<span class="lineno">  261 </span>    =&gt; BuiltinSemanticsVariant ExtensionFun
+<span class="lineno">  262 </span>    -&gt; ExtensionFun
+<span class="lineno">  263 </span>    -&gt; BuiltinMeaning val ()
+<span class="lineno">  264 </span>  <span class="decl"><span class="istickedoff">toBuiltinMeaning _semvar Factorial =</span>
+<span class="lineno">  265 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  266 </span><span class="spaces">      </span><span class="istickedoff">(\(n :: Integer) -&gt; product [1 .. n])</span>
+<span class="lineno">  267 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  268 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar ForallFortyTwo =</span>
+<span class="lineno">  269 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  270 </span><span class="spaces">      </span><span class="istickedoff">forallFortyTwo</span>
+<span class="lineno">  271 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  272 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  273 </span><span class="spaces">      </span><span class="istickedoff">forallFortyTwo :: MetaForall ('TyNameRep @GHC.Type &quot;a&quot; 0) Integer</span>
+<span class="lineno">  274 </span><span class="spaces">      </span><span class="istickedoff">forallFortyTwo = MetaForall 42</span>
+<span class="lineno">  275 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar SumInteger =</span>
+<span class="lineno">  276 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  277 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(sum :: [Integer] -&gt; Integer)</span></span>
+<span class="lineno">  278 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  279 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar Const =</span>
+<span class="lineno">  280 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  281 </span><span class="spaces">      </span><span class="istickedoff">const</span>
+<span class="lineno">  282 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  283 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar Id =</span>
+<span class="lineno">  284 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  285 </span><span class="spaces">      </span><span class="istickedoff">Prelude.id</span>
+<span class="lineno">  286 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  287 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar IdAssumeBool =</span>
+<span class="lineno">  288 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  289 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(Prelude.id :: Opaque val Bool -&gt; Opaque val Bool)</span></span>
+<span class="lineno">  290 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  291 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar IdAssumeCheckBool =</span>
+<span class="lineno">  292 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  293 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">idAssumeCheckBoolPlc</span></span>
+<span class="lineno">  294 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  295 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  296 </span><span class="spaces">      </span><span class="istickedoff">idAssumeCheckBoolPlc :: Opaque val Bool -&gt; BuiltinResult Bool</span>
+<span class="lineno">  297 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">idAssumeCheckBoolPlc val =</span></span>
+<span class="lineno">  298 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">case asConstant val of</span></span>
+<span class="lineno">  299 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">Right (Some (ValueOf DefaultUniBool b)) -&gt; pure b</span></span>
+<span class="lineno">  300 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">_ -&gt; builtinResultFailure</span></span>
+<span class="lineno">  301 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar IdSomeConstantBool =</span>
+<span class="lineno">  302 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  303 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">idSomeConstantBoolPlc</span></span>
+<span class="lineno">  304 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  305 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  306 </span><span class="spaces">      </span><span class="istickedoff">idSomeConstantBoolPlc :: SomeConstant uni Bool -&gt; BuiltinResult Bool</span>
+<span class="lineno">  307 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">idSomeConstantBoolPlc = \case</span></span>
+<span class="lineno">  308 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">SomeConstant (Some (ValueOf DefaultUniBool b)) -&gt; pure b</span></span>
+<span class="lineno">  309 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">_ -&gt; builtinResultFailure</span></span>
+<span class="lineno">  310 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar IdIntegerAsBool =</span>
+<span class="lineno">  311 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  312 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">idIntegerAsBool</span></span>
+<span class="lineno">  313 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  314 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  315 </span><span class="spaces">      </span><span class="istickedoff">idIntegerAsBool :: SomeConstant uni Integer -&gt; BuiltinResult (SomeConstant uni Integer)</span>
+<span class="lineno">  316 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">idIntegerAsBool = \case</span></span>
+<span class="lineno">  317 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -&gt; pure con</span></span>
+<span class="lineno">  318 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">_ -&gt; builtinResultFailure</span></span>
+<span class="lineno">  319 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar IdFInteger =</span>
+<span class="lineno">  320 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  321 </span><span class="spaces">      </span><span class="istickedoff">(Prelude.id :: fi ~ Opaque val (f `TyAppRep` Integer) =&gt; fi -&gt; fi)</span>
+<span class="lineno">  322 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  323 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar IdList =</span>
+<span class="lineno">  324 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  325 </span><span class="spaces">      </span><span class="istickedoff">(Prelude.id :: la ~ Opaque val (PlcListRep a) =&gt; la -&gt; la)</span>
+<span class="lineno">  326 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  327 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar IdRank2 =</span>
+<span class="lineno">  328 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  329 </span><span class="spaces">      </span><span class="istickedoff">( Prelude.id</span>
+<span class="lineno">  330 </span><span class="spaces">          </span><span class="istickedoff">:: afa ~ Opaque val (TyForallRep @GHC.Type a (TyVarRep f `TyAppRep` TyVarRep a))</span>
+<span class="lineno">  331 </span><span class="spaces">          </span><span class="istickedoff">=&gt; afa -&gt; afa</span>
+<span class="lineno">  332 </span><span class="spaces">      </span><span class="istickedoff">)</span>
+<span class="lineno">  333 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  334 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar ScottToMetaUnit =</span>
+<span class="lineno">  335 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  336 </span><span class="spaces">      </span><span class="istickedoff">( (\_ -&gt; ())</span>
+<span class="lineno">  337 </span><span class="spaces">          </span><span class="istickedoff">:: va ~ TyVarRep a</span>
+<span class="lineno">  338 </span><span class="spaces">          </span><span class="istickedoff">=&gt; Opaque val (TyForallRep a (va -&gt; va)) -&gt; ()</span>
+<span class="lineno">  339 </span><span class="spaces">      </span><span class="istickedoff">)</span>
+<span class="lineno">  340 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  341 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar FailingSucc =</span>
+<span class="lineno">  342 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  343 </span><span class="spaces">      </span><span class="istickedoff">@(Integer -&gt; Integer)</span>
+<span class="lineno">  344 </span><span class="spaces">      </span><span class="istickedoff">(\_ -&gt; throw BuiltinErrorCall)</span>
+<span class="lineno">  345 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  346 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar ExpensiveSucc =</span>
+<span class="lineno">  347 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  348 </span><span class="spaces">      </span><span class="istickedoff">@(Integer -&gt; Integer)</span>
+<span class="lineno">  349 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(\_ -&gt; throw BuiltinErrorCall)</span></span>
+<span class="lineno">  350 </span><span class="spaces">      </span><span class="istickedoff">(\_ _ -&gt; ExBudgetLast $ unExRestrictingBudget enormousBudget)</span>
+<span class="lineno">  351 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar FailingPlus =</span>
+<span class="lineno">  352 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  353 </span><span class="spaces">      </span><span class="istickedoff">@(Integer -&gt; Integer -&gt; Integer)</span>
+<span class="lineno">  354 </span><span class="spaces">      </span><span class="istickedoff">(\_ _ -&gt; throw BuiltinErrorCall)</span>
+<span class="lineno">  355 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  356 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar ExpensivePlus =</span>
+<span class="lineno">  357 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  358 </span><span class="spaces">      </span><span class="istickedoff">@(Integer -&gt; Integer -&gt; Integer)</span>
+<span class="lineno">  359 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(\_ _ -&gt; throw BuiltinErrorCall)</span></span>
+<span class="lineno">  360 </span><span class="spaces">      </span><span class="istickedoff">(\_ _ _ -&gt; ExBudgetLast $ unExRestrictingBudget enormousBudget)</span>
+<span class="lineno">  361 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar IsConstant =</span>
+<span class="lineno">  362 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  363 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">isConstantPlc</span></span>
+<span class="lineno">  364 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  365 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  366 </span><span class="spaces">      </span><span class="istickedoff">-- The type signature is just for clarity, it's not required.</span>
+<span class="lineno">  367 </span><span class="spaces">      </span><span class="istickedoff">isConstantPlc :: Opaque val a -&gt; Bool</span>
+<span class="lineno">  368 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">isConstantPlc = isRight . asConstant</span></span>
+<span class="lineno">  369 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar UnsafeCoerce =</span>
+<span class="lineno">  370 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  371 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">unsafeCoercePlc</span></span>
+<span class="lineno">  372 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  373 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  374 </span><span class="spaces">      </span><span class="istickedoff">-- The type signature is just for clarity, it's not required.</span>
+<span class="lineno">  375 </span><span class="spaces">      </span><span class="istickedoff">unsafeCoercePlc :: Opaque val a -&gt; Opaque val b</span>
+<span class="lineno">  376 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">unsafeCoercePlc = Opaque . unOpaque</span></span>
+<span class="lineno">  377 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar UnsafeCoerceEl =</span>
+<span class="lineno">  378 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  379 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">unsafeCoerceElPlc</span></span>
+<span class="lineno">  380 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  381 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  382 </span><span class="spaces">      </span><span class="istickedoff">unsafeCoerceElPlc</span>
+<span class="lineno">  383 </span><span class="spaces">        </span><span class="istickedoff">:: SomeConstant DefaultUni [a] -&gt; BuiltinResult (SomeConstant DefaultUni [b])</span>
+<span class="lineno">  384 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">unsafeCoerceElPlc (SomeConstant (Some (ValueOf uniList xs))) = do</span></span>
+<span class="lineno">  385 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">DefaultUniList _ &lt;- pure uniList</span></span>
+<span class="lineno">  386 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">pure $ fromValueOf uniList xs</span></span>
+<span class="lineno">  387 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar Undefined =</span>
+<span class="lineno">  388 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  389 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">undefined</span></span>
+<span class="lineno">  390 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  391 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar Absurd =</span>
+<span class="lineno">  392 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  393 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">absurd</span></span>
+<span class="lineno">  394 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  395 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar ErrorPrime =</span>
+<span class="lineno">  396 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  397 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(builtinResultFailure :: forall a. BuiltinResult a)</span></span>
+<span class="lineno">  398 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  399 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar Comma =</span>
+<span class="lineno">  400 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  401 </span><span class="spaces">      </span><span class="istickedoff">commaPlc</span>
+<span class="lineno">  402 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  403 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  404 </span><span class="spaces">      </span><span class="istickedoff">commaPlc</span>
+<span class="lineno">  405 </span><span class="spaces">        </span><span class="istickedoff">:: SomeConstant uni a</span>
+<span class="lineno">  406 </span><span class="spaces">        </span><span class="istickedoff">-&gt; SomeConstant uni b</span>
+<span class="lineno">  407 </span><span class="spaces">        </span><span class="istickedoff">-&gt; SomeConstant uni (a, b)</span>
+<span class="lineno">  408 </span><span class="spaces">      </span><span class="istickedoff">commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =</span>
+<span class="lineno">  409 </span><span class="spaces">        </span><span class="istickedoff">fromValueOf (DefaultUniPair uniA uniB) (x, y)</span>
+<span class="lineno">  410 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar BiconstPair =</span>
+<span class="lineno">  411 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  412 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">biconstPairPlc</span></span>
+<span class="lineno">  413 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  414 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  415 </span><span class="spaces">      </span><span class="istickedoff">biconstPairPlc</span>
+<span class="lineno">  416 </span><span class="spaces">        </span><span class="istickedoff">:: SomeConstant uni a</span>
+<span class="lineno">  417 </span><span class="spaces">        </span><span class="istickedoff">-&gt; SomeConstant uni b</span>
+<span class="lineno">  418 </span><span class="spaces">        </span><span class="istickedoff">-&gt; SomeConstant uni (a, b)</span>
+<span class="lineno">  419 </span><span class="spaces">        </span><span class="istickedoff">-&gt; BuiltinResult (SomeConstant uni (a, b))</span>
+<span class="lineno">  420 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">biconstPairPlc</span></span>
+<span class="lineno">  421 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(SomeConstant (Some (ValueOf uniA x)))</span></span>
+<span class="lineno">  422 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(SomeConstant (Some (ValueOf uniB y)))</span></span>
+<span class="lineno">  423 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">(SomeConstant (Some (ValueOf uniPairAB _))) = do</span></span>
+<span class="lineno">  424 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">DefaultUniPair uniA' uniB' &lt;- pure uniPairAB</span></span>
+<span class="lineno">  425 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">Just Refl &lt;- pure $ uniA `geq` uniA'</span></span>
+<span class="lineno">  426 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">Just Refl &lt;- pure $ uniB `geq` uniB'</span></span>
+<span class="lineno">  427 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">pure $ fromValueOf uniPairAB (x, y)</span></span>
+<span class="lineno">  428 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar Swap =</span>
+<span class="lineno">  429 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  430 </span><span class="spaces">      </span><span class="istickedoff">swapPlc</span>
+<span class="lineno">  431 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  432 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  433 </span><span class="spaces">      </span><span class="istickedoff">swapPlc</span>
+<span class="lineno">  434 </span><span class="spaces">        </span><span class="istickedoff">:: SomeConstant uni (a, b)</span>
+<span class="lineno">  435 </span><span class="spaces">        </span><span class="istickedoff">-&gt; BuiltinResult (SomeConstant uni (b, a))</span>
+<span class="lineno">  436 </span><span class="spaces">      </span><span class="istickedoff">swapPlc (SomeConstant (Some (ValueOf uniPairAB p))) = do</span>
+<span class="lineno">  437 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniPair uniA uniB &lt;- pure uniPairAB</span>
+<span class="lineno">  438 </span><span class="spaces">        </span><span class="istickedoff">pure $ fromValueOf (DefaultUniPair uniB uniA) (snd p, fst p)</span>
+<span class="lineno">  439 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _semvar SwapEls =</span>
+<span class="lineno">  440 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  441 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">swapElsPlc</span></span>
+<span class="lineno">  442 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">whatever</span></span>
+<span class="lineno">  443 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  444 </span><span class="spaces">      </span><span class="istickedoff">-- The type reads as @[(a, Bool)] -&gt; [(Bool, a)]@.</span>
+<span class="lineno">  445 </span><span class="spaces">      </span><span class="istickedoff">swapElsPlc</span>
+<span class="lineno">  446 </span><span class="spaces">        </span><span class="istickedoff">:: SomeConstant uni [SomeConstant uni (a, Bool)]</span>
+<span class="lineno">  447 </span><span class="spaces">        </span><span class="istickedoff">-&gt; BuiltinResult (SomeConstant uni [SomeConstant uni (Bool, a)])</span>
+<span class="lineno">  448 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">swapElsPlc (SomeConstant (Some (ValueOf uniList xs))) = do</span></span>
+<span class="lineno">  449 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">DefaultUniList (DefaultUniPair uniA DefaultUniBool) &lt;- pure uniList</span></span>
+<span class="lineno">  450 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">let uniList' = DefaultUniList $ DefaultUniPair DefaultUniBool uniA</span></span>
+<span class="lineno">  451 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">pure . fromValueOf uniList' $ map swap xs</span></span>
+<span class="lineno">  452 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  453 </span><span class="spaces">  </span><span class="istickedoff">-- A dummy builtin to reflect the builtin-version of the 'ExtensionFun'.</span>
+<span class="lineno">  454 </span><span class="spaces">  </span><span class="istickedoff">-- See Note [Builtin semantics variants]</span>
+<span class="lineno">  455 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning semvar ExtensionVersion =</span>
+<span class="lineno">  456 </span><span class="spaces">    </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  457 </span><span class="spaces">      </span><span class="istickedoff">@(() -&gt; Integer)</span>
+<span class="lineno">  458 </span><span class="spaces">      </span><span class="istickedoff">( \_ -&gt; case semvar of</span>
+<span class="lineno">  459 </span><span class="spaces">          </span><span class="istickedoff">ExtensionFunSemanticsVariant0 -&gt; 0</span>
+<span class="lineno">  460 </span><span class="spaces">          </span><span class="istickedoff">ExtensionFunSemanticsVariant1 -&gt; <span class="nottickedoff">1</span></span>
+<span class="lineno">  461 </span><span class="spaces">          </span><span class="istickedoff">ExtensionFunSemanticsVariant2 -&gt; <span class="nottickedoff">2</span></span>
+<span class="lineno">  462 </span><span class="spaces">          </span><span class="istickedoff">ExtensionFunSemanticsVariant3 -&gt; <span class="nottickedoff">3</span></span>
+<span class="lineno">  463 </span><span class="spaces">          </span><span class="istickedoff">ExtensionFunSemanticsVariant4 -&gt; 4</span>
+<span class="lineno">  464 </span><span class="spaces">      </span><span class="istickedoff">)</span>
+<span class="lineno">  465 </span><span class="spaces">      </span><span class="istickedoff">whatever</span>
+<span class="lineno">  466 </span><span class="spaces">  </span><span class="istickedoff">-- We want to know if the CEK machine releases individual budgets after accounting for them and</span>
+<span class="lineno">  467 </span><span class="spaces">  </span><span class="istickedoff">-- one way to ensure that is to check that individual budgets are GCed in chunks rather than all</span>
+<span class="lineno">  468 </span><span class="spaces">  </span><span class="istickedoff">-- at once when evaluation of the builtin finishes. This builtin returns a list of the maximum</span>
+<span class="lineno">  469 </span><span class="spaces">  </span><span class="istickedoff">-- numbers of individual budgets retained between GC calls. If the returned list is long (for</span>
+<span class="lineno">  470 </span><span class="spaces">  </span><span class="istickedoff">-- some definition of &quot;long&quot;, see the tests), then chances are individual budgets are not</span>
+<span class="lineno">  471 </span><span class="spaces">  </span><span class="istickedoff">-- retained unnecessarily, and if it's too short (again, see the tests), then they are.</span>
+<span class="lineno">  472 </span><span class="spaces">  </span><span class="istickedoff">--</span>
+<span class="lineno">  473 </span><span class="spaces">  </span><span class="istickedoff">-- We track how many budgets get GCed by attaching a finalizer (see &quot;System.Mem.Weak&quot;) to each</span>
+<span class="lineno">  474 </span><span class="spaces">  </span><span class="istickedoff">-- of them.</span>
+<span class="lineno">  475 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning _ TrackCosts = unsafePerformIO $ do</span>
+<span class="lineno">  476 </span><span class="spaces">    </span><span class="istickedoff">-- A variable for storing the number of elements from the stream of budgets pending GC.</span>
+<span class="lineno">  477 </span><span class="spaces">    </span><span class="istickedoff">pendingGcVar &lt;- newMVar 0</span>
+<span class="lineno">  478 </span><span class="spaces">    </span><span class="istickedoff">-- A variable for storing all the final numbers from @pendingGcVar@ appearing there right</span>
+<span class="lineno">  479 </span><span class="spaces">    </span><span class="istickedoff">-- before another GC is triggered. We store the results in reverse order for fast consing</span>
+<span class="lineno">  480 </span><span class="spaces">    </span><span class="istickedoff">-- and then 'reverse' them in the denotation of the builtin.</span>
+<span class="lineno">  481 </span><span class="spaces">    </span><span class="istickedoff">numsOfGcedVar &lt;- newMVar []</span>
+<span class="lineno">  482 </span><span class="spaces">    </span><span class="istickedoff">let</span>
+<span class="lineno">  483 </span><span class="spaces">      </span><span class="istickedoff">-- A function to run when GC picks up an individual budget.</span>
+<span class="lineno">  484 </span><span class="spaces">      </span><span class="istickedoff">finalize =</span>
+<span class="lineno">  485 </span><span class="spaces">        </span><span class="istickedoff">tryTakeMVar pendingGcVar &gt;&gt;= \case</span>
+<span class="lineno">  486 </span><span class="spaces">          </span><span class="istickedoff">-- If @pendingGcVar@ happens to be empty, we say that no budgets were released</span>
+<span class="lineno">  487 </span><span class="spaces">          </span><span class="istickedoff">-- and don't update @pendingGcVar@. I.e. this entire testing machinery can</span>
+<span class="lineno">  488 </span><span class="spaces">          </span><span class="istickedoff">-- affect how budgets are retained, but the impact of the 'MVar' business is</span>
+<span class="lineno">  489 </span><span class="spaces">          </span><span class="istickedoff">-- negligible, since @pendingGcVar@ is filled immediately after it's emptied.</span>
+<span class="lineno">  490 </span><span class="spaces">          </span><span class="istickedoff">Nothing -&gt; pure <span class="nottickedoff">()</span></span>
+<span class="lineno">  491 </span><span class="spaces">          </span><span class="istickedoff">-- If @pendingGcVar@ is not empty, then we cons its content to the resulting</span>
+<span class="lineno">  492 </span><span class="spaces">          </span><span class="istickedoff">-- list and put @0@ as the new content of the variable.</span>
+<span class="lineno">  493 </span><span class="spaces">          </span><span class="istickedoff">Just pendingGc -&gt; do</span>
+<span class="lineno">  494 </span><span class="spaces">            </span><span class="istickedoff">_ &lt;- modifyMVar_ numsOfGcedVar $ pure . (<span class="nottickedoff">pendingGc</span> :)</span>
+<span class="lineno">  495 </span><span class="spaces">            </span><span class="istickedoff">putMVar pendingGcVar 0</span>
+<span class="lineno">  496 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  497 </span><span class="spaces">      </span><span class="istickedoff">-- Register an element of the stream of budgets by incrementing the counter storing the</span>
+<span class="lineno">  498 </span><span class="spaces">      </span><span class="istickedoff">-- number of elements pending GC and attaching the @finalize@ finalizer to the element.</span>
+<span class="lineno">  499 </span><span class="spaces">      </span><span class="istickedoff">regBudget budget = do</span>
+<span class="lineno">  500 </span><span class="spaces">        </span><span class="istickedoff">pendingGc &lt;- takeMVar pendingGcVar</span>
+<span class="lineno">  501 </span><span class="spaces">        </span><span class="istickedoff">let pendingGc' = succ pendingGc</span>
+<span class="lineno">  502 </span><span class="spaces">        </span><span class="istickedoff">putMVar pendingGcVar pendingGc'</span>
+<span class="lineno">  503 </span><span class="spaces">        </span><span class="istickedoff">addFinalizer <span class="nottickedoff">budget</span> finalize</span>
+<span class="lineno">  504 </span><span class="spaces">        </span><span class="istickedoff">-- We need to trigger GC occasionally (otherwise it can easily take more than 100k</span>
+<span class="lineno">  505 </span><span class="spaces">        </span><span class="istickedoff">-- elements before GC is triggered and the number can go much higher depending on</span>
+<span class="lineno">  506 </span><span class="spaces">        </span><span class="istickedoff">-- the RTS options), so we picked 100 elements as a cutoff number. Doing GC less</span>
+<span class="lineno">  507 </span><span class="spaces">        </span><span class="istickedoff">-- often makes tests slower, doing GC more often requires us to generate longer</span>
+<span class="lineno">  508 </span><span class="spaces">        </span><span class="istickedoff">-- streams in tests in order to observe meaningful results making tests slower.</span>
+<span class="lineno">  509 </span><span class="spaces">        </span><span class="istickedoff">when (pendingGc' &gt;= 100) performMinorGC</span>
+<span class="lineno">  510 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  511 </span><span class="spaces">      </span><span class="istickedoff">-- Call @regBudget@ over each element of the stream of budgets.</span>
+<span class="lineno">  512 </span><span class="spaces">      </span><span class="istickedoff">regBudgets (ExBudgetLast budget) = do</span>
+<span class="lineno">  513 </span><span class="spaces">        </span><span class="istickedoff">regBudget <span class="nottickedoff">budget</span></span>
+<span class="lineno">  514 </span><span class="spaces">        </span><span class="istickedoff">-- Run @finalize@ one final time before returning the last budget.</span>
+<span class="lineno">  515 </span><span class="spaces">        </span><span class="istickedoff">finalize</span>
+<span class="lineno">  516 </span><span class="spaces">        </span><span class="istickedoff">-- Make all outstanding finalizers inert, so that we don't mix up budgets GCed</span>
+<span class="lineno">  517 </span><span class="spaces">        </span><span class="istickedoff">-- during spending with budgets GCed right after spending finishes.</span>
+<span class="lineno">  518 </span><span class="spaces">        </span><span class="istickedoff">_ &lt;- takeMVar pendingGcVar</span>
+<span class="lineno">  519 </span><span class="spaces">        </span><span class="istickedoff">pure $ ExBudgetLast budget</span>
+<span class="lineno">  520 </span><span class="spaces">      </span><span class="istickedoff">regBudgets (ExBudgetCons budget budgets) = do</span>
+<span class="lineno">  521 </span><span class="spaces">        </span><span class="istickedoff">regBudget <span class="nottickedoff">budget</span></span>
+<span class="lineno">  522 </span><span class="spaces">        </span><span class="istickedoff">-- Without 'unsafeInterleaveIO' this function would traverse the entire stream</span>
+<span class="lineno">  523 </span><span class="spaces">        </span><span class="istickedoff">-- before returning anything, which isn't what costing functions normally do and so</span>
+<span class="lineno">  524 </span><span class="spaces">        </span><span class="istickedoff">-- we don't want to have such behavior in a test.</span>
+<span class="lineno">  525 </span><span class="spaces">        </span><span class="istickedoff">budgets' &lt;- unsafeInterleaveIO $ regBudgets budgets</span>
+<span class="lineno">  526 </span><span class="spaces">        </span><span class="istickedoff">pure $ ExBudgetCons budget budgets'</span>
+<span class="lineno">  527 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  528 </span><span class="spaces">      </span><span class="istickedoff">-- Just a random model that keeps the costs coming from the 'ExMemoryUsage' instance.</span>
+<span class="lineno">  529 </span><span class="spaces">      </span><span class="istickedoff">linear1 = ModelOneArgumentLinearInX $ OneVariableLinearFunction 1 1</span>
+<span class="lineno">  530 </span><span class="spaces">      </span><span class="istickedoff">model = CostingFun linear1 linear1</span>
+<span class="lineno">  531 </span><span class="spaces">    </span><span class="istickedoff">pure $</span>
+<span class="lineno">  532 </span><span class="spaces">      </span><span class="istickedoff">makeBuiltinMeaning</span>
+<span class="lineno">  533 </span><span class="spaces">        </span><span class="istickedoff">@(Data -&gt; [Integer])</span>
+<span class="lineno">  534 </span><span class="spaces">        </span><span class="istickedoff">(\_ -&gt; unsafePerformIO $ reverse &lt;$&gt; readMVar numsOfGcedVar)</span>
+<span class="lineno">  535 </span><span class="spaces">        </span><span class="istickedoff">(\_ -&gt; unsafePerformIO . regBudgets . runCostingFunOneArgument model)</span>
+<span class="lineno">  536 </span><span class="spaces">  </span><span class="istickedoff">toBuiltinMeaning semvar IntNoIntegerNoWord =</span>
+<span class="lineno">  537 </span><span class="spaces">    </span><span class="istickedoff">case semvar of</span>
+<span class="lineno">  538 </span><span class="spaces">      </span><span class="istickedoff">ExtensionFunSemanticsVariant0 -&gt; makeBuiltinMeaning @(Int -&gt; ()) <span class="nottickedoff">mempty</span> <span class="nottickedoff">whatever</span></span>
+<span class="lineno">  539 </span><span class="spaces">      </span><span class="istickedoff">ExtensionFunSemanticsVariant1 -&gt; makeBuiltinMeaning @(Integer -&gt; ()) <span class="nottickedoff">mempty</span> <span class="nottickedoff">whatever</span></span>
+<span class="lineno">  540 </span><span class="spaces">      </span><span class="istickedoff">ExtensionFunSemanticsVariant2 -&gt; makeBuiltinMeaning @(Integer -&gt; ()) <span class="nottickedoff">mempty</span> <span class="nottickedoff">whatever</span></span>
+<span class="lineno">  541 </span><span class="spaces">      </span><span class="istickedoff">ExtensionFunSemanticsVariant3 -&gt; makeBuiltinMeaning @(Word -&gt; ()) <span class="nottickedoff">mempty</span> <span class="nottickedoff">whatever</span></span>
+<span class="lineno">  542 </span><span class="spaces">      </span><span class="istickedoff">ExtensionFunSemanticsVariant4 -&gt; makeBuiltinMeaning @(Word -&gt; ()) <span class="nottickedoff">mempty</span> <span class="nottickedoff">whatever</span></span></span>
+<span class="lineno">  543 </span>
+<span class="lineno">  544 </span>instance Default (BuiltinSemanticsVariant ExtensionFun) where
+<span class="lineno">  545 </span>  <span class="decl"><span class="istickedoff">def = maxBound</span></span>
+
+</pre>
+</body>
+</html>

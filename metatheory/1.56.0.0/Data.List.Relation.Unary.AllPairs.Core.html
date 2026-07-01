@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.List.Relation.Unary.AllPairs.Core</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Lists where every pair of elements are related (symmetrically)</a>
+<a id="172" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="246" class="Comment">-- Core modules are not meant to be used directly outside of the</a>
+<a id="311" class="Comment">-- standard library.</a>
+
+<a id="333" class="Comment">-- This module should be removable if and when Agda issue</a>
+<a id="391" class="Comment">-- https://github.com/agda/agda/issues/3210 is fixed</a>
+
+<a id="445" class="Symbol">{-#</a> <a id="449" class="Keyword">OPTIONS</a> <a id="457" class="Pragma">--cubical-compatible</a> <a id="478" class="Pragma">--safe</a> <a id="485" class="Symbol">#-}</a>
+
+<a id="490" class="Keyword">open</a> <a id="495" class="Keyword">import</a> <a id="502" href="Relation.Binary.Core.html" class="Module">Relation.Binary.Core</a> <a id="523" class="Keyword">using</a> <a id="529" class="Symbol">(</a><a id="530" href="Relation.Binary.Core.html#896" class="Function">Rel</a><a id="533" class="Symbol">)</a>
+
+<a id="536" class="Keyword">module</a> <a id="543" href="Data.List.Relation.Unary.AllPairs.Core.html" class="Module">Data.List.Relation.Unary.AllPairs.Core</a>
+  <a id="584" class="Symbol">{</a><a id="585" href="Data.List.Relation.Unary.AllPairs.Core.html#585" class="Bound">a</a> <a id="587" href="Data.List.Relation.Unary.AllPairs.Core.html#587" class="Bound">ℓ</a><a id="588" class="Symbol">}</a> <a id="590" class="Symbol">{</a><a id="591" href="Data.List.Relation.Unary.AllPairs.Core.html#591" class="Bound">A</a> <a id="593" class="Symbol">:</a> <a id="595" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="599" href="Data.List.Relation.Unary.AllPairs.Core.html#585" class="Bound">a</a><a id="600" class="Symbol">}</a> <a id="602" class="Symbol">(</a><a id="603" href="Data.List.Relation.Unary.AllPairs.Core.html#603" class="Bound">R</a> <a id="605" class="Symbol">:</a> <a id="607" href="Relation.Binary.Core.html#896" class="Function">Rel</a> <a id="611" href="Data.List.Relation.Unary.AllPairs.Core.html#591" class="Bound">A</a> <a id="613" href="Data.List.Relation.Unary.AllPairs.Core.html#587" class="Bound">ℓ</a><a id="614" class="Symbol">)</a> <a id="616" class="Keyword">where</a>
+
+<a id="623" class="Keyword">open</a> <a id="628" class="Keyword">import</a> <a id="635" href="Level.html" class="Module">Level</a>
+<a id="641" class="Keyword">open</a> <a id="646" class="Keyword">import</a> <a id="653" href="Data.List.Base.html" class="Module">Data.List.Base</a>
+<a id="668" class="Keyword">open</a> <a id="673" class="Keyword">import</a> <a id="680" href="Data.List.Relation.Unary.All.html" class="Module">Data.List.Relation.Unary.All</a>
+
+<a id="710" class="Comment">------------------------------------------------------------------------</a>
+<a id="783" class="Comment">-- Definition</a>
+
+<a id="798" class="Comment">-- AllPairs R xs means that every pair of elements (x , y) in xs is a</a>
+<a id="868" class="Comment">-- member of relation R (as long as x comes before y in the list).</a>
+
+<a id="936" class="Keyword">infixr</a> <a id="943" class="Number">5</a> <a id="945" href="Data.List.Relation.Unary.AllPairs.Core.html#1015" class="InductiveConstructor Operator">_∷_</a>
+
+<a id="950" class="Keyword">data</a> <a id="AllPairs"></a><a id="955" href="Data.List.Relation.Unary.AllPairs.Core.html#955" class="Datatype">AllPairs</a> <a id="964" class="Symbol">:</a> <a id="966" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="971" href="Data.List.Relation.Unary.AllPairs.Core.html#591" class="Bound">A</a> <a id="973" class="Symbol">→</a> <a id="975" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="979" class="Symbol">(</a><a id="980" href="Data.List.Relation.Unary.AllPairs.Core.html#585" class="Bound">a</a> <a id="982" href="Agda.Primitive.html#961" class="Primitive Operator">⊔</a> <a id="984" href="Data.List.Relation.Unary.AllPairs.Core.html#587" class="Bound">ℓ</a><a id="985" class="Symbol">)</a> <a id="987" class="Keyword">where</a>
+  <a id="AllPairs.[]"></a><a id="995" href="Data.List.Relation.Unary.AllPairs.Core.html#995" class="InductiveConstructor">[]</a>  <a id="999" class="Symbol">:</a> <a id="1001" href="Data.List.Relation.Unary.AllPairs.Core.html#955" class="Datatype">AllPairs</a> <a id="1010" href="Agda.Builtin.List.html#184" class="InductiveConstructor">[]</a>
+  <a id="AllPairs._∷_"></a><a id="1015" href="Data.List.Relation.Unary.AllPairs.Core.html#1015" class="InductiveConstructor Operator">_∷_</a> <a id="1019" class="Symbol">:</a> <a id="1021" class="Symbol">∀</a> <a id="1023" class="Symbol">{</a><a id="1024" href="Data.List.Relation.Unary.AllPairs.Core.html#1024" class="Bound">x</a> <a id="1026" href="Data.List.Relation.Unary.AllPairs.Core.html#1026" class="Bound">xs</a><a id="1028" class="Symbol">}</a> <a id="1030" class="Symbol">→</a> <a id="1032" href="Data.List.Relation.Unary.All.html#1639" class="Datatype">All</a> <a id="1036" class="Symbol">(</a><a id="1037" href="Data.List.Relation.Unary.AllPairs.Core.html#603" class="Bound">R</a> <a id="1039" href="Data.List.Relation.Unary.AllPairs.Core.html#1024" class="Bound">x</a><a id="1040" class="Symbol">)</a> <a id="1042" href="Data.List.Relation.Unary.AllPairs.Core.html#1026" class="Bound">xs</a> <a id="1045" class="Symbol">→</a> <a id="1047" href="Data.List.Relation.Unary.AllPairs.Core.html#955" class="Datatype">AllPairs</a> <a id="1056" href="Data.List.Relation.Unary.AllPairs.Core.html#1026" class="Bound">xs</a> <a id="1059" class="Symbol">→</a> <a id="1061" href="Data.List.Relation.Unary.AllPairs.Core.html#955" class="Datatype">AllPairs</a> <a id="1070" class="Symbol">(</a><a id="1071" href="Data.List.Relation.Unary.AllPairs.Core.html#1024" class="Bound">x</a> <a id="1073" href="Agda.Builtin.List.html#199" class="InductiveConstructor Operator">∷</a> <a id="1075" href="Data.List.Relation.Unary.AllPairs.Core.html#1026" class="Bound">xs</a><a id="1077" class="Symbol">)</a>
+</pre></body></html>

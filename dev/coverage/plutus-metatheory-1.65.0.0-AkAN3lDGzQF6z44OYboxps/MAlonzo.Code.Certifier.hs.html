@@ -1,0 +1,150 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Certifier where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Agda.Builtin.Bool
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Agda.Builtin.List
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Agda.Builtin.Maybe
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Agda.Builtin.Sigma
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Agda.Builtin.String
+<span class="lineno">   25 </span>import qualified MAlonzo.Code.CertifierReport
+<span class="lineno">   26 </span>import qualified MAlonzo.Code.RawU
+<span class="lineno">   27 </span>import qualified MAlonzo.Code.Utils
+<span class="lineno">   28 </span>import qualified MAlonzo.Code.VerifiedCompilation
+<span class="lineno">   29 </span>import qualified MAlonzo.Code.VerifiedCompilation.Trace
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- Certifier.runCertifier
+<span class="lineno">   32 </span>d_runCertifier_2 ::
+<span class="lineno">   33 </span>  MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_90
+<span class="lineno">   34 </span>    (MAlonzo.Code.Utils.T__'215'__436
+<span class="lineno">   35 </span>       (MAlonzo.Code.Utils.T_Either_6
+<span class="lineno">   36 </span>          MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+<span class="lineno">   37 </span>          MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
+<span class="lineno">   38 </span>       MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_80)
+<span class="lineno">   39 </span>    MAlonzo.Code.RawU.T_Untyped_208 -&gt;
+<span class="lineno">   40 </span>  MAlonzo.Code.Utils.T_Either_6
+<span class="lineno">   41 </span>    MAlonzo.Code.VerifiedCompilation.T_Error_2
+<span class="lineno">   42 </span>    MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">d_runCertifier_2 v0</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">= coe</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="istickedoff">MAlonzo.Code.Utils.du_eitherBind_54</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="istickedoff">(coe</span>
+<span class="lineno">   47 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Utils.du_try_102</span>
+<span class="lineno">   48 </span><span class="spaces">         </span><span class="istickedoff">(coe</span>
+<span class="lineno">   49 </span><span class="spaces">            </span><span class="istickedoff">MAlonzo.Code.VerifiedCompilation.d_checkScope'7511'_102 (coe v0))</span>
+<span class="lineno">   50 </span><span class="spaces">         </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.VerifiedCompilation.C_illScoped_6)</span>)</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="istickedoff">(coe</span>
+<span class="lineno">   52 </span><span class="spaces">         </span><span class="istickedoff">(\ v1 -&gt;</span>
+<span class="lineno">   53 </span><span class="spaces">            </span><span class="istickedoff">coe</span>
+<span class="lineno">   54 </span><span class="spaces">              </span><span class="istickedoff">MAlonzo.Code.Utils.du_eitherBind_54</span>
+<span class="lineno">   55 </span><span class="spaces">              </span><span class="istickedoff">(coe MAlonzo.Code.VerifiedCompilation.d_certify_46 (coe v1))</span>
+<span class="lineno">   56 </span><span class="spaces">              </span><span class="istickedoff">(coe</span>
+<span class="lineno">   57 </span><span class="spaces">                 </span><span class="istickedoff">(\ v2 -&gt;</span>
+<span class="lineno">   58 </span><span class="spaces">                    </span><span class="istickedoff">coe</span>
+<span class="lineno">   59 </span><span class="spaces">                      </span><span class="istickedoff">MAlonzo.Code.Utils.C_inj'8322'_14</span>
+<span class="lineno">   60 </span><span class="spaces">                      </span><span class="istickedoff">(coe</span>
+<span class="lineno">   61 </span><span class="spaces">                         </span><span class="istickedoff">MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 (coe v1) (coe v2))))))</span></span>
+<span class="lineno">   62 </span>-- Certifier.runCertifierMain
+<span class="lineno">   63 </span>runCertifierMain ::
+<span class="lineno">   64 </span>  MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_90
+<span class="lineno">   65 </span>    (MAlonzo.Code.Utils.T__'215'__436
+<span class="lineno">   66 </span>       (MAlonzo.Code.Utils.T_Either_6
+<span class="lineno">   67 </span>          MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+<span class="lineno">   68 </span>          MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
+<span class="lineno">   69 </span>       MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_80)
+<span class="lineno">   70 </span>    MAlonzo.Code.RawU.T_Untyped_208 -&gt;
+<span class="lineno">   71 </span>  MAlonzo.Code.Agda.Builtin.List.T_List_10
+<span class="lineno">   72 </span>    () MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_122 -&gt;
+<span class="lineno">   73 </span>  MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
+<span class="lineno">   74 </span>    ()
+<span class="lineno">   75 </span>    (MAlonzo.Code.Utils.T__'215'__436
+<span class="lineno">   76 </span>       Bool MAlonzo.Code.Agda.Builtin.String.T_String_6)
+<span class="lineno">   77 </span><span class="decl"><span class="istickedoff">runCertifierMain = coe d_runCertifierMain_10</span></span>
+<span class="lineno">   78 </span>d_runCertifierMain_10 ::
+<span class="lineno">   79 </span>  MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_90
+<span class="lineno">   80 </span>    (MAlonzo.Code.Utils.T__'215'__436
+<span class="lineno">   81 </span>       (MAlonzo.Code.Utils.T_Either_6
+<span class="lineno">   82 </span>          MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+<span class="lineno">   83 </span>          MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
+<span class="lineno">   84 </span>       MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_80)
+<span class="lineno">   85 </span>    MAlonzo.Code.RawU.T_Untyped_208 -&gt;
+<span class="lineno">   86 </span>  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_122] -&gt;
+<span class="lineno">   87 </span>  Maybe
+<span class="lineno">   88 </span>    (MAlonzo.Code.Utils.T__'215'__436
+<span class="lineno">   89 </span>       Bool MAlonzo.Code.Agda.Builtin.String.T_String_6)
+<span class="lineno">   90 </span><span class="decl"><span class="istickedoff">d_runCertifierMain_10 v0 v1</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">= let v2 = d_runCertifier_2 (coe v0) in</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">coe</span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="istickedoff">(case coe v2 of</span>
+<span class="lineno">   94 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Utils.C_inj'8321'_12 v3</span>
+<span class="lineno">   95 </span><span class="spaces">           </span><span class="istickedoff">-&gt; case coe v3 of</span>
+<span class="lineno">   96 </span><span class="spaces">                </span><span class="istickedoff">MAlonzo.Code.VerifiedCompilation.C_emptyDump_4</span>
+<span class="lineno">   97 </span><span class="spaces">                  </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span></span>
+<span class="lineno">   98 </span><span class="spaces">                </span><span class="istickedoff">MAlonzo.Code.VerifiedCompilation.C_illScoped_6</span>
+<span class="lineno">   99 </span><span class="spaces">                  </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span></span>
+<span class="lineno">  100 </span><span class="spaces">                </span><span class="istickedoff">MAlonzo.Code.VerifiedCompilation.C_counterExample_8 v4</span>
+<span class="lineno">  101 </span><span class="spaces">                  </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  102 </span><span class="spaces">                       </span><span class="istickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16</span>
+<span class="lineno">  103 </span><span class="spaces">                       </span><span class="istickedoff">(coe</span>
+<span class="lineno">  104 </span><span class="spaces">                          </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__450</span>
+<span class="lineno">  105 </span><span class="spaces">                          </span><span class="istickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)</span>
+<span class="lineno">  106 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  107 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.CertifierReport.d_makeReport_290 (coe v2) (coe v1))</span>)</span>
+<span class="lineno">  108 </span><span class="spaces">                </span><span class="istickedoff">MAlonzo.Code.VerifiedCompilation.C_abort_10 v4</span>
+<span class="lineno">  109 </span><span class="spaces">                  </span><span class="istickedoff">-&gt; <span class="nottickedoff">coe</span></span>
+<span class="lineno">  110 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16</span></span>
+<span class="lineno">  111 </span><span class="spaces">                       </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  112 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.Utils.C__'44'__450</span></span>
+<span class="lineno">  113 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)</span></span>
+<span class="lineno">  114 </span><span class="spaces">                          </span><span class="istickedoff"><span class="nottickedoff">(coe</span></span>
+<span class="lineno">  115 </span><span class="spaces">                             </span><span class="istickedoff"><span class="nottickedoff">MAlonzo.Code.CertifierReport.d_makeReport_290 (coe v2) (coe v1)))</span></span>
+<span class="lineno">  116 </span><span class="spaces">                </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  117 </span><span class="spaces">         </span><span class="istickedoff">MAlonzo.Code.Utils.C_inj'8322'_14 v3</span>
+<span class="lineno">  118 </span><span class="spaces">           </span><span class="istickedoff">-&gt; coe</span>
+<span class="lineno">  119 </span><span class="spaces">                </span><span class="istickedoff">seq (coe v3)</span>
+<span class="lineno">  120 </span><span class="spaces">                </span><span class="istickedoff">(coe</span>
+<span class="lineno">  121 </span><span class="spaces">                   </span><span class="istickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16</span>
+<span class="lineno">  122 </span><span class="spaces">                   </span><span class="istickedoff">(coe</span>
+<span class="lineno">  123 </span><span class="spaces">                      </span><span class="istickedoff">MAlonzo.Code.Utils.C__'44'__450</span>
+<span class="lineno">  124 </span><span class="spaces">                      </span><span class="istickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)</span>
+<span class="lineno">  125 </span><span class="spaces">                      </span><span class="istickedoff">(coe</span>
+<span class="lineno">  126 </span><span class="spaces">                         </span><span class="istickedoff">MAlonzo.Code.CertifierReport.d_makeReport_290 (coe v2) (coe v1))))</span>
+<span class="lineno">  127 </span><span class="spaces">         </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">MAlonzo.RTE.mazUnreachableError</span>)</span></span>
+
+</pre>
+</body>
+</html>

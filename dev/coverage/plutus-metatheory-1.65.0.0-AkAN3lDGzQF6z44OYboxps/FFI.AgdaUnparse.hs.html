@@ -1,0 +1,211 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    2 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    3 </span>{-# OPTIONS_GHC -Wall #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module FFI.AgdaUnparse where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import Data.ByteString (ByteString)
+<span class="lineno">    8 </span>import Data.List.NonEmptySep
+<span class="lineno">    9 </span>import Data.Proxy
+<span class="lineno">   10 </span>import Data.Text (Text)
+<span class="lineno">   11 </span>import Data.Text qualified as T
+<span class="lineno">   12 </span>import Data.Vector.Strict (Vector)
+<span class="lineno">   13 </span>import FFI.Untyped qualified as AgdaFFI
+<span class="lineno">   14 </span>import PlutusCore qualified as PLC
+<span class="lineno">   15 </span>import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+<span class="lineno">   16 </span>import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+<span class="lineno">   17 </span>import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
+<span class="lineno">   18 </span>import PlutusCore.Data (Data)
+<span class="lineno">   19 </span>import PlutusCore.Data qualified as Data
+<span class="lineno">   20 </span>import PlutusCore.Value (Value)
+<span class="lineno">   21 </span>import PlutusPrelude
+<span class="lineno">   22 </span>import Prettyprinter
+<span class="lineno">   23 </span>import Prettyprinter.Render.String (renderString)
+<span class="lineno">   24 </span>import UntypedPlutusCore qualified as UPLC
+<span class="lineno">   25 </span>import UntypedPlutusCore.Transform.Certify.Hints qualified as Hints
+<span class="lineno">   26 </span>import UntypedPlutusCore.Transform.Certify.Trace
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>usToHyphen :: String -&gt; String
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">usToHyphen = map (\c -&gt; if c == '_' then '-' else c)</span></span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- | A class for types that can be unparsed to Agda code.
+<span class="lineno">   32 </span>class AgdaUnparse a where
+<span class="lineno">   33 </span>  agdaUnparse :: a -&gt; Doc ann
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>-- | Render an 'AgdaUnparse' value to a 'String'.
+<span class="lineno">   36 </span>renderAgdaUnparse :: AgdaUnparse a =&gt; a -&gt; String
+<span class="lineno">   37 </span><span class="decl"><span class="istickedoff">renderAgdaUnparse = renderString . layoutPretty (LayoutOptions Unbounded) . agdaUnparse</span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>instance (AgdaUnparse a, AgdaUnparse b) =&gt; AgdaUnparse (NonEmptySep a b) where
+<span class="lineno">   40 </span>  <span class="decl"><span class="nottickedoff">agdaUnparse (Singleton x) = parens (&quot;singleton&quot; &lt;+&gt; agdaUnparse x)</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">agdaUnparse (Cons x y xs) =</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="nottickedoff">parens $</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="nottickedoff">&quot;cons&quot;</span>
+<span class="lineno">   44 </span><span class="spaces">        </span><span class="nottickedoff">&lt;+&gt; agdaUnparse x</span>
+<span class="lineno">   45 </span><span class="spaces">        </span><span class="nottickedoff">&lt;+&gt; agdaUnparse y</span>
+<span class="lineno">   46 </span><span class="spaces">        </span><span class="nottickedoff">&lt;+&gt; agdaUnparse xs</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>instance AgdaUnparse AgdaFFI.UTerm where
+<span class="lineno">   49 </span>  <span class="decl"><span class="istickedoff">agdaUnparse =</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">\case</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.UVar n -&gt; parens (&quot;UVar&quot; &lt;+&gt; agdaUnparse (fromInteger n :: Natural))</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.ULambda term -&gt; parens (&quot;ULambda&quot; &lt;+&gt; agdaUnparse term)</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.UApp t u -&gt; parens (&quot;UApp&quot; &lt;+&gt; agdaUnparse t &lt;+&gt; agdaUnparse u)</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.UCon someValue -&gt; parens (&quot;UCon&quot; &lt;+&gt; agdaUnparse someValue)</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.UError -&gt; <span class="nottickedoff">&quot;UError&quot;</span></span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.UBuiltin fun -&gt; parens (&quot;UBuiltin&quot; &lt;+&gt; agdaUnparse fun)</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.UDelay term -&gt; parens (&quot;UDelay&quot; &lt;+&gt; agdaUnparse term)</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.UForce term -&gt; parens (&quot;UForce&quot; &lt;+&gt; agdaUnparse term)</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.UConstr i terms -&gt;</span>
+<span class="lineno">   60 </span><span class="spaces">        </span><span class="istickedoff">parens (&quot;UConstr&quot; &lt;+&gt; agdaUnparse (fromInteger i :: Natural) &lt;+&gt; agdaUnparse terms)</span>
+<span class="lineno">   61 </span><span class="spaces">      </span><span class="istickedoff">AgdaFFI.UCase term cases -&gt; parens (&quot;UCase&quot; &lt;+&gt; agdaUnparse term &lt;+&gt; agdaUnparse cases)</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>instance AgdaUnparse UPLC.DefaultFun where
+<span class="lineno">   64 </span>  <span class="decl"><span class="istickedoff">agdaUnparse = pretty . usToHyphen . lowerInitialChar . show</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>instance AgdaUnparse CertifiedOptStage where
+<span class="lineno">   67 </span>  <span class="decl"><span class="istickedoff">agdaUnparse FloatDelay = &quot;floatDelayT&quot;</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse ForceDelay = &quot;forceDelayT&quot;</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse ForceCaseDelay = &quot;forceCaseDelayT&quot;</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse Inline = &quot;inlineT&quot;</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse CSE = &quot;cseT&quot;</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse ApplyToCase = &quot;applyToCaseT&quot;</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse CaseReduce = <span class="nottickedoff">&quot;caseReduceT&quot;</span></span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse LetFloatOut = &quot;letFloatOutT&quot;</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>instance AgdaUnparse UncertifiedOptStage where
+<span class="lineno">   77 </span>  <span class="decl"><span class="istickedoff">agdaUnparse CaseOfCase = <span class="nottickedoff">&quot;caseOfCaseT&quot;</span></span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse ConstantFolding = &quot;constantFoldingT&quot;</span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PolyBuiltin = &quot;polyBuiltinT&quot;</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>instance AgdaUnparse Hints.Hints where
+<span class="lineno">   82 </span>  <span class="decl"><span class="istickedoff">agdaUnparse = \case</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">Hints.NoHints -&gt; &quot;none&quot;</span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="istickedoff">Hints.Inline x -&gt; parens (&quot;inline&quot; &lt;+&gt; agdaUnparse x)</span></span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>instance AgdaUnparse Hints.Inline where
+<span class="lineno">   87 </span>  <span class="decl"><span class="istickedoff">agdaUnparse = \case</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlVar -&gt; &quot;var&quot;</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlLam t -&gt; parens (&quot;ƛ&quot; &lt;+&gt; agdaUnparse t)</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlApply f x -&gt; parens (agdaUnparse f &lt;+&gt; &quot;·&quot; &lt;+&gt; agdaUnparse x)</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlForce t -&gt; parens (&quot;force&quot; &lt;+&gt; agdaUnparse t)</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlDelay t -&gt; parens (&quot;delay&quot; &lt;+&gt; agdaUnparse t)</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlCon -&gt; &quot;con&quot;</span>
+<span class="lineno">   94 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlBuiltin -&gt; &quot;builtin&quot;</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlError -&gt; <span class="nottickedoff">&quot;error&quot;</span></span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlConstr ts -&gt; parens (&quot;constr&quot; &lt;+&gt; agdaUnparse ts)</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlCase t ts -&gt; parens (&quot;case&quot; &lt;+&gt; agdaUnparse t &lt;+&gt; agdaUnparse ts)</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlExpand t -&gt; parens (&quot;expand&quot; &lt;+&gt; agdaUnparse t)</span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="istickedoff">Hints.InlDrop t -&gt; parens (agdaUnparse t &lt;+&gt; &quot;·↓&quot;)</span></span>
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>instance AgdaUnparse Natural where
+<span class="lineno">  102 </span>  <span class="decl"><span class="istickedoff">agdaUnparse = viaShow</span></span>
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>instance AgdaUnparse Integer where
+<span class="lineno">  105 </span>  <span class="decl"><span class="istickedoff">agdaUnparse x</span>
+<span class="lineno">  106 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlyfalse">x &lt; 0</span> = <span class="nottickedoff">parens (&quot;ℤ.negsuc&quot; &lt;+&gt; viaShow (abs x - 1))</span></span>
+<span class="lineno">  107 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = parens (&quot;ℤ.pos&quot; &lt;+&gt; viaShow x)</span></span>
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>instance AgdaUnparse Bool where
+<span class="lineno">  110 </span>  <span class="decl"><span class="istickedoff">agdaUnparse True = &quot;true&quot;</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse False = &quot;false&quot;</span></span>
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>instance AgdaUnparse Char where
+<span class="lineno">  114 </span>  <span class="decl"><span class="nottickedoff">agdaUnparse = viaShow</span></span>
+<span class="lineno">  115 </span>instance AgdaUnparse Text where
+<span class="lineno">  116 </span>  <span class="decl"><span class="istickedoff">agdaUnparse = viaShow . T.unpack</span></span>
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>instance AgdaUnparse ByteString where
+<span class="lineno">  119 </span>  <span class="decl"><span class="istickedoff">agdaUnparse bs = parens (&quot;mkByteString&quot; &lt;+&gt; viaShow bs)</span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>instance AgdaUnparse () where
+<span class="lineno">  122 </span>  <span class="decl"><span class="istickedoff">agdaUnparse _ = &quot;tt&quot;</span></span>
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>agdaUnfold :: (AgdaUnparse a, Foldable f) =&gt; f a -&gt; Doc ann
+<span class="lineno">  125 </span><span class="decl"><span class="istickedoff">agdaUnfold l = parens $ foldr (\x xs -&gt; agdaUnparse x &lt;+&gt; &quot;∷&quot; &lt;+&gt; xs) &quot;[]&quot; l</span></span>
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>instance AgdaUnparse a =&gt; AgdaUnparse [a] where
+<span class="lineno">  128 </span>  <span class="decl"><span class="istickedoff">agdaUnparse = agdaUnfold</span></span>
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>instance (AgdaUnparse a, AgdaUnparse b) =&gt; AgdaUnparse (a, b) where
+<span class="lineno">  131 </span>  <span class="decl"><span class="istickedoff">agdaUnparse (x, y) = parens (agdaUnparse x &lt;+&gt; &quot;,&quot; &lt;+&gt; agdaUnparse y)</span></span>
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>instance AgdaUnparse a =&gt; AgdaUnparse (Vector a) where
+<span class="lineno">  134 </span>  <span class="decl"><span class="istickedoff">agdaUnparse v = parens (&quot;mkArray&quot; &lt;+&gt; parens (agdaUnfold v))</span></span>
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>instance (AgdaUnparse a, AgdaUnparse b) =&gt; AgdaUnparse (Either a b) where
+<span class="lineno">  137 </span>  <span class="decl"><span class="istickedoff">agdaUnparse (Left a) = parens (&quot;inj₁&quot; &lt;+&gt; agdaUnparse a)</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse (Right b) = parens (&quot;inj₂&quot; &lt;+&gt; agdaUnparse b)</span></span>
+<span class="lineno">  139 </span>instance AgdaUnparse Data where
+<span class="lineno">  140 </span>  <span class="decl"><span class="nottickedoff">agdaUnparse (Data.Constr i args) =</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="nottickedoff">parens (&quot;ConstrDATA&quot; &lt;+&gt; agdaUnparse i &lt;+&gt; agdaUnparse args)</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="nottickedoff">agdaUnparse (Data.Map assocList) =</span>
+<span class="lineno">  143 </span><span class="spaces">    </span><span class="nottickedoff">parens (&quot;MapDATA&quot; &lt;+&gt; agdaUnparse assocList)</span>
+<span class="lineno">  144 </span><span class="spaces">  </span><span class="nottickedoff">agdaUnparse (Data.List xs) =</span>
+<span class="lineno">  145 </span><span class="spaces">    </span><span class="nottickedoff">parens (&quot;ListDATA&quot; &lt;+&gt; agdaUnparse xs)</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="nottickedoff">agdaUnparse (Data.I i) =</span>
+<span class="lineno">  147 </span><span class="spaces">    </span><span class="nottickedoff">parens (&quot;iDATA&quot; &lt;+&gt; agdaUnparse i)</span>
+<span class="lineno">  148 </span><span class="spaces">  </span><span class="nottickedoff">agdaUnparse (Data.B b) =</span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="nottickedoff">parens (&quot;bDATA&quot; &lt;+&gt; agdaUnparse b)</span></span>
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1796)
+<span class="lineno">  152 </span>instance AgdaUnparse Value where
+<span class="lineno">  153 </span>  <span class="decl"><span class="nottickedoff">agdaUnparse _ = &quot;Not Implemented: AgdaUnprase Value&quot;</span></span>
+<span class="lineno">  154 </span>
+<span class="lineno">  155 </span>instance AgdaUnparse BLS12_381.G1.Element where
+<span class="lineno">  156 </span>  <span class="decl"><span class="nottickedoff">agdaUnparse = viaShow</span></span>
+<span class="lineno">  157 </span>
+<span class="lineno">  158 </span>instance AgdaUnparse BLS12_381.G2.Element where
+<span class="lineno">  159 </span>  <span class="decl"><span class="nottickedoff">agdaUnparse = viaShow</span></span>
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>instance AgdaUnparse BLS12_381.Pairing.MlResult where
+<span class="lineno">  162 </span>  <span class="decl"><span class="nottickedoff">agdaUnparse = viaShow</span></span>
+<span class="lineno">  163 </span>
+<span class="lineno">  164 </span>instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
+<span class="lineno">  165 </span>  <span class="decl"><span class="istickedoff">agdaUnparse PLC.DefaultUniInteger = &quot;integer&quot;</span>
+<span class="lineno">  166 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PLC.DefaultUniByteString = &quot;bytestring&quot;</span>
+<span class="lineno">  167 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PLC.DefaultUniString = &quot;string&quot;</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PLC.DefaultUniBool = &quot;bool&quot;</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PLC.DefaultUniUnit = &quot;unit&quot;</span>
+<span class="lineno">  170 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PLC.DefaultUniData = <span class="nottickedoff">&quot;pdata&quot;</span></span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PLC.DefaultUniValue = <span class="nottickedoff">&quot;value&quot;</span></span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse (PLC.DefaultUniList t) =</span>
+<span class="lineno">  173 </span><span class="spaces">    </span><span class="istickedoff">parens (&quot;list&quot; &lt;+&gt; agdaUnparse t)</span>
+<span class="lineno">  174 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse (PLC.DefaultUniPair t1 t2) =</span>
+<span class="lineno">  175 </span><span class="spaces">    </span><span class="istickedoff">parens (&quot;pair&quot; &lt;+&gt; agdaUnparse t1 &lt;+&gt; agdaUnparse t2)</span>
+<span class="lineno">  176 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PLC.DefaultUniBLS12_381_G1_Element = <span class="nottickedoff">&quot;bls12-381-g1-element&quot;</span></span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PLC.DefaultUniBLS12_381_G2_Element = <span class="nottickedoff">&quot;bls12-381-g2-element&quot;</span></span>
+<span class="lineno">  178 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse PLC.DefaultUniBLS12_381_MlResult = <span class="nottickedoff">&quot;bls12-381-mlresult&quot;</span></span>
+<span class="lineno">  179 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse (PLC.DefaultUniArray t) =</span>
+<span class="lineno">  180 </span><span class="spaces">    </span><span class="istickedoff">parens (&quot;array&quot; &lt;+&gt; agdaUnparse t)</span>
+<span class="lineno">  181 </span><span class="spaces">  </span><span class="istickedoff">agdaUnparse (PLC.DefaultUniApply _ _) = <span class="nottickedoff">error &quot;Application of an unknown type is not supported.&quot;</span></span></span>
+<span class="lineno">  182 </span>
+<span class="lineno">  183 </span>instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
+<span class="lineno">  184 </span>  <span class="decl"><span class="istickedoff">agdaUnparse (PLC.Some (PLC.ValueOf univ val)) =</span>
+<span class="lineno">  185 </span><span class="spaces">    </span><span class="istickedoff">parens $</span>
+<span class="lineno">  186 </span><span class="spaces">      </span><span class="istickedoff">&quot;tagCon&quot;</span>
+<span class="lineno">  187 </span><span class="spaces">        </span><span class="istickedoff">&lt;+&gt; agdaUnparse univ</span>
+<span class="lineno">  188 </span><span class="spaces">        </span><span class="istickedoff">&lt;+&gt; PLC.bring <span class="nottickedoff">(Proxy @AgdaUnparse)</span> univ (agdaUnparse val)</span></span>
+
+</pre>
+</body>
+</html>

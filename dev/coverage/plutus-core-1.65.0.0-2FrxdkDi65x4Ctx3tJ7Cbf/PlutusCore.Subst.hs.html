@@ -1,0 +1,338 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    2 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>module PlutusCore.Subst
+<span class="lineno">    5 </span>  ( substTyVarA
+<span class="lineno">    6 </span>  , substVarA
+<span class="lineno">    7 </span>  , substTyVar
+<span class="lineno">    8 </span>  , substVar
+<span class="lineno">    9 </span>  , termSubstNamesM
+<span class="lineno">   10 </span>  , termSubstTyNamesM
+<span class="lineno">   11 </span>  , typeSubstTyNamesM
+<span class="lineno">   12 </span>  , termSubstNames
+<span class="lineno">   13 </span>  , termSubstTyNames
+<span class="lineno">   14 </span>  , typeSubstTyNames
+<span class="lineno">   15 </span>  , typeSubstClosedType
+<span class="lineno">   16 </span>  , termSubstClosedType
+<span class="lineno">   17 </span>  , termSubstClosedTerm
+<span class="lineno">   18 </span>  , typeMapNames
+<span class="lineno">   19 </span>  , termMapNames
+<span class="lineno">   20 </span>  , programMapNames
+<span class="lineno">   21 </span>  , fvTerm
+<span class="lineno">   22 </span>  , ftvTerm
+<span class="lineno">   23 </span>  , ftvTy
+<span class="lineno">   24 </span>  , ftvTyCtx
+<span class="lineno">   25 </span>  , vTerm
+<span class="lineno">   26 </span>  , tvTerm
+<span class="lineno">   27 </span>  , tvTy
+<span class="lineno">   28 </span>  , substConstantA
+<span class="lineno">   29 </span>  , substConstant
+<span class="lineno">   30 </span>  , termSubstConstantsM
+<span class="lineno">   31 </span>  , termSubstConstants
+<span class="lineno">   32 </span>  ) where
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>import PlutusPrelude
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>import PlutusCore.Core
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>import Control.Lens
+<span class="lineno">   39 </span>import Control.Lens.Unsound qualified as Unsound
+<span class="lineno">   40 </span>import PlutusCore.Name.Unique (HasUnique)
+<span class="lineno">   41 </span>import PlutusCore.Name.UniqueSet (UniqueSet)
+<span class="lineno">   42 </span>import PlutusCore.Name.UniqueSet qualified as USet
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>import Universe
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>-- | Applicatively replace a type variable using the given function.
+<span class="lineno">   47 </span>substTyVarA
+<span class="lineno">   48 </span>  :: Applicative f
+<span class="lineno">   49 </span>  =&gt; (tyname -&gt; f (Maybe (Type tyname uni ann)))
+<span class="lineno">   50 </span>  -&gt; Type tyname uni ann
+<span class="lineno">   51 </span>  -&gt; f (Type tyname uni ann)
+<span class="lineno">   52 </span><span class="decl"><span class="istickedoff">substTyVarA tynameF ty@(TyVar _ tyname) = fromMaybe ty &lt;$&gt; tynameF tyname</span>
+<span class="lineno">   53 </span><span class="spaces"></span><span class="istickedoff">substTyVarA _ ty = pure ty</span></span>
+<span class="lineno">   54 </span>{-# INLINE substTyVarA #-}
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- | Applicatively replace a variable using the given function.
+<span class="lineno">   57 </span>substVarA
+<span class="lineno">   58 </span>  :: Applicative f
+<span class="lineno">   59 </span>  =&gt; (name -&gt; f (Maybe (Term tyname name uni fun ann)))
+<span class="lineno">   60 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">   61 </span>  -&gt; f (Term tyname name uni fun ann)
+<span class="lineno">   62 </span><span class="decl"><span class="istickedoff">substVarA nameF t@(Var _ name) = fromMaybe t &lt;$&gt; nameF name</span>
+<span class="lineno">   63 </span><span class="spaces"></span><span class="istickedoff">substVarA _ t = pure t</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>-- | Replace a type variable using the given function.
+<span class="lineno">   66 </span>substTyVar
+<span class="lineno">   67 </span>  :: (tyname -&gt; Maybe (Type tyname uni ann))
+<span class="lineno">   68 </span>  -&gt; Type tyname uni ann
+<span class="lineno">   69 </span>  -&gt; Type tyname uni ann
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">substTyVar = purely substTyVarA</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>-- | Replace a variable using the given function.
+<span class="lineno">   73 </span>substVar
+<span class="lineno">   74 </span>  :: (name -&gt; Maybe (Term tyname name uni fun ann))
+<span class="lineno">   75 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">   76 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">substVar = purely substVarA</span></span>
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>{-| Naively monadically substitute type names (i.e. do not substitute binders).
+<span class="lineno">   80 </span>INLINE is important here because the function is too polymorphic (determined from profiling) -}
+<span class="lineno">   81 </span>typeSubstTyNamesM
+<span class="lineno">   82 </span>  :: Monad m
+<span class="lineno">   83 </span>  =&gt; (tyname -&gt; m (Maybe (Type tyname uni ann)))
+<span class="lineno">   84 </span>  -&gt; Type tyname uni ann
+<span class="lineno">   85 </span>  -&gt; m (Type tyname uni ann)
+<span class="lineno">   86 </span><span class="decl"><span class="istickedoff">typeSubstTyNamesM = transformMOf typeSubtypes . substTyVarA</span></span>
+<span class="lineno">   87 </span>{-# INLINE typeSubstTyNamesM #-}
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span>-- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
+<span class="lineno">   90 </span>termSubstNamesM
+<span class="lineno">   91 </span>  :: Monad m
+<span class="lineno">   92 </span>  =&gt; (name -&gt; m (Maybe (Term tyname name uni fun ann)))
+<span class="lineno">   93 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">   94 </span>  -&gt; m (Term tyname name uni fun ann)
+<span class="lineno">   95 </span><span class="decl"><span class="istickedoff">termSubstNamesM = transformMOf termSubterms . substVarA</span></span>
+<span class="lineno">   96 </span>
+<span class="lineno">   97 </span>{-| Naively monadically substitute type names using the given function
+<span class="lineno">   98 </span>(i.e. do not substitute binders). -}
+<span class="lineno">   99 </span>termSubstTyNamesM
+<span class="lineno">  100 </span>  :: Monad m
+<span class="lineno">  101 </span>  =&gt; (tyname -&gt; m (Maybe (Type tyname uni ann)))
+<span class="lineno">  102 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  103 </span>  -&gt; m (Term tyname name uni fun ann)
+<span class="lineno">  104 </span><span class="decl"><span class="istickedoff">termSubstTyNamesM =</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="istickedoff">transformMOf termSubterms . traverseOf termSubtypes . transformMOf typeSubtypes . substTyVarA</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>-- | Naively substitute type names (i.e. do not substitute binders).
+<span class="lineno">  108 </span>typeSubstTyNames
+<span class="lineno">  109 </span>  :: (tyname -&gt; Maybe (Type tyname uni ann))
+<span class="lineno">  110 </span>  -&gt; Type tyname uni ann
+<span class="lineno">  111 </span>  -&gt; Type tyname uni ann
+<span class="lineno">  112 </span><span class="decl"><span class="istickedoff">typeSubstTyNames = purely typeSubstTyNamesM</span></span>
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span>-- | Naively substitute names using the given function (i.e. do not substitute binders).
+<span class="lineno">  115 </span>termSubstNames
+<span class="lineno">  116 </span>  :: (name -&gt; Maybe (Term tyname name uni fun ann))
+<span class="lineno">  117 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  118 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  119 </span><span class="decl"><span class="nottickedoff">termSubstNames = purely termSubstNamesM</span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>-- | Naively substitute type names using the given function (i.e. do not substitute binders).
+<span class="lineno">  122 </span>termSubstTyNames
+<span class="lineno">  123 </span>  :: (tyname -&gt; Maybe (Type tyname uni ann))
+<span class="lineno">  124 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  125 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  126 </span><span class="decl"><span class="nottickedoff">termSubstTyNames = purely termSubstTyNamesM</span></span>
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>{-| Substitute the given closed 'Type' for the given type variable in the given 'Type'. Does not
+<span class="lineno">  129 </span>descend under binders that bind the same variable as the one we're substituting for (since from
+<span class="lineno">  130 </span>there that variable is no longer free). The resulting 'Term' may and likely will not satisfy
+<span class="lineno">  131 </span>global uniqueness. -}
+<span class="lineno">  132 </span>typeSubstClosedType
+<span class="lineno">  133 </span>  :: Eq tyname =&gt; tyname -&gt; Type tyname uni a -&gt; Type tyname uni a -&gt; Type tyname uni a
+<span class="lineno">  134 </span><span class="decl"><span class="istickedoff">typeSubstClosedType tn0 ty0 = go</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  136 </span><span class="spaces">    </span><span class="istickedoff">go = \case</span>
+<span class="lineno">  137 </span><span class="spaces">      </span><span class="istickedoff">TyVar a tn -&gt; if tn == tn0 then ty0 else TyVar a tn</span>
+<span class="lineno">  138 </span><span class="spaces">      </span><span class="istickedoff">TyForall a tn k ty -&gt; TyForall <span class="nottickedoff">a</span> tn k (goUnder tn ty)</span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="istickedoff">TyLam a tn k ty -&gt; TyLam a tn k (goUnder tn ty)</span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="istickedoff">ty -&gt; ty &amp; over typeSubtypes go</span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="istickedoff">goUnder tn ty = if tn == tn0 then ty else go ty</span></span>
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>{-| Substitute the given closed 'Type' for the given type variable in the given 'Term'. Does not
+<span class="lineno">  144 </span>descend under binders that bind the same variable as the one we're substituting for (since from
+<span class="lineno">  145 </span>there that variable is no longer free). The resulting 'Term' may and likely will not satisfy
+<span class="lineno">  146 </span>global uniqueness. -}
+<span class="lineno">  147 </span>termSubstClosedType
+<span class="lineno">  148 </span>  :: Eq tyname
+<span class="lineno">  149 </span>  =&gt; tyname -&gt; Type tyname uni a -&gt; Term tyname name uni fun a -&gt; Term tyname name uni fun a
+<span class="lineno">  150 </span><span class="decl"><span class="istickedoff">termSubstClosedType tn0 ty0 = go</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  152 </span><span class="spaces">    </span><span class="istickedoff">go = \case</span>
+<span class="lineno">  153 </span><span class="spaces">      </span><span class="istickedoff">TyAbs a tn k body -&gt; TyAbs <span class="nottickedoff">a</span> tn <span class="nottickedoff">k</span> (goUnder tn body)</span>
+<span class="lineno">  154 </span><span class="spaces">      </span><span class="istickedoff">t -&gt; t &amp; over termSubtypes <span class="nottickedoff">goTy</span> &amp; over termSubterms go</span>
+<span class="lineno">  155 </span><span class="spaces">    </span><span class="istickedoff">goUnder tn term = if tn == tn0 then term else go term</span>
+<span class="lineno">  156 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">goTy = typeSubstClosedType tn0 ty0</span></span></span>
+<span class="lineno">  157 </span>
+<span class="lineno">  158 </span>{-| Substitute the given closed 'Term' for the given term variable in the given 'Term'. Does not
+<span class="lineno">  159 </span>descend under binders that bind the same variable as the one we're substituting for (since from
+<span class="lineno">  160 </span>there that variable is no longer free). The resulting 'Term' may and likely will not satisfy
+<span class="lineno">  161 </span>global uniqueness. -}
+<span class="lineno">  162 </span>termSubstClosedTerm
+<span class="lineno">  163 </span>  :: Eq name
+<span class="lineno">  164 </span>  =&gt; name
+<span class="lineno">  165 </span>  -&gt; Term tyname name uni fun a
+<span class="lineno">  166 </span>  -&gt; Term tyname name uni fun a
+<span class="lineno">  167 </span>  -&gt; Term tyname name uni fun a
+<span class="lineno">  168 </span><span class="decl"><span class="istickedoff">termSubstClosedTerm varFor new = go</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  170 </span><span class="spaces">    </span><span class="istickedoff">go = \case</span>
+<span class="lineno">  171 </span><span class="spaces">      </span><span class="istickedoff">Var a var -&gt; if var == varFor then new else Var <span class="nottickedoff">a</span> var</span>
+<span class="lineno">  172 </span><span class="spaces">      </span><span class="istickedoff">LamAbs a var ty body -&gt; LamAbs <span class="nottickedoff">a</span> var ty (goUnder var body)</span>
+<span class="lineno">  173 </span><span class="spaces">      </span><span class="istickedoff">t -&gt; t &amp; over termSubterms go</span>
+<span class="lineno">  174 </span><span class="spaces">    </span><span class="istickedoff">goUnder var term = if var == varFor then term else go term</span></span>
+<span class="lineno">  175 </span>
+<span class="lineno">  176 </span>-- Mapping name-modification functions over types and terms.
+<span class="lineno">  177 </span>
+<span class="lineno">  178 </span>typeMapNames
+<span class="lineno">  179 </span>  :: forall tyname tyname' uni ann
+<span class="lineno">  180 </span>   . (tyname -&gt; tyname')
+<span class="lineno">  181 </span>  -&gt; Type tyname uni ann
+<span class="lineno">  182 </span>  -&gt; Type tyname' uni ann
+<span class="lineno">  183 </span><span class="decl"><span class="istickedoff">typeMapNames f = go</span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  185 </span><span class="spaces">    </span><span class="istickedoff">go :: Type tyname uni ann -&gt; Type tyname' uni ann</span>
+<span class="lineno">  186 </span><span class="spaces">    </span><span class="istickedoff">go = \case</span>
+<span class="lineno">  187 </span><span class="spaces">      </span><span class="istickedoff">TyVar ann tn -&gt; <span class="nottickedoff">TyVar ann (f tn)</span></span>
+<span class="lineno">  188 </span><span class="spaces">      </span><span class="istickedoff">TyFun ann ty1 ty2 -&gt; <span class="nottickedoff">TyFun ann (go ty1) (go ty2)</span></span>
+<span class="lineno">  189 </span><span class="spaces">      </span><span class="istickedoff">TyIFix ann ty1 ty2 -&gt; <span class="nottickedoff">TyIFix ann (go ty1) (go ty2)</span></span>
+<span class="lineno">  190 </span><span class="spaces">      </span><span class="istickedoff">TyForall ann tn k ty -&gt; <span class="nottickedoff">TyForall ann (f tn) k (go ty)</span></span>
+<span class="lineno">  191 </span><span class="spaces">      </span><span class="istickedoff">TyBuiltin ann s -&gt; TyBuiltin <span class="nottickedoff">ann</span> s</span>
+<span class="lineno">  192 </span><span class="spaces">      </span><span class="istickedoff">TyLam ann tn k ty -&gt; <span class="nottickedoff">TyLam ann (f tn) k (go ty)</span></span>
+<span class="lineno">  193 </span><span class="spaces">      </span><span class="istickedoff">TyApp ann ty1 ty2 -&gt; TyApp <span class="nottickedoff">ann</span> (go ty1) (go ty2)</span>
+<span class="lineno">  194 </span><span class="spaces">      </span><span class="istickedoff">TySOP ann tyls -&gt; <span class="nottickedoff">TySOP ann ((fmap . fmap) go tyls)</span></span></span>
+<span class="lineno">  195 </span>
+<span class="lineno">  196 </span>-- termMapNames requires two function arguments: one (called f) to modify type names
+<span class="lineno">  197 </span>-- and another (called g) to modify variable names.
+<span class="lineno">  198 </span>termMapNames
+<span class="lineno">  199 </span>  :: forall tyname tyname' name name' uni fun ann
+<span class="lineno">  200 </span>   . (tyname -&gt; tyname')
+<span class="lineno">  201 </span>  -&gt; (name -&gt; name')
+<span class="lineno">  202 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  203 </span>  -&gt; Term tyname' name' uni fun ann
+<span class="lineno">  204 </span><span class="decl"><span class="nottickedoff">termMapNames f g = go</span>
+<span class="lineno">  205 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  206 </span><span class="spaces">    </span><span class="nottickedoff">go :: Term tyname name uni fun ann -&gt; Term tyname' name' uni fun ann</span>
+<span class="lineno">  207 </span><span class="spaces">    </span><span class="nottickedoff">go = \case</span>
+<span class="lineno">  208 </span><span class="spaces">      </span><span class="nottickedoff">LamAbs ann name ty body -&gt; LamAbs ann (g name) (typeMapNames f ty) (go body)</span>
+<span class="lineno">  209 </span><span class="spaces">      </span><span class="nottickedoff">TyAbs ann tyname k body -&gt; TyAbs ann (f tyname) k (go body)</span>
+<span class="lineno">  210 </span><span class="spaces">      </span><span class="nottickedoff">Var ann name -&gt; Var ann (g name)</span>
+<span class="lineno">  211 </span><span class="spaces">      </span><span class="nottickedoff">Apply ann t1 t2 -&gt; Apply ann (go t1) (go t2)</span>
+<span class="lineno">  212 </span><span class="spaces">      </span><span class="nottickedoff">Constant ann c -&gt; Constant ann c</span>
+<span class="lineno">  213 </span><span class="spaces">      </span><span class="nottickedoff">Builtin ann b -&gt; Builtin ann b</span>
+<span class="lineno">  214 </span><span class="spaces">      </span><span class="nottickedoff">TyInst ann body ty -&gt; TyInst ann (go body) (typeMapNames f ty)</span>
+<span class="lineno">  215 </span><span class="spaces">      </span><span class="nottickedoff">Unwrap ann body -&gt; Unwrap ann (go body)</span>
+<span class="lineno">  216 </span><span class="spaces">      </span><span class="nottickedoff">IWrap ann ty1 ty2 body -&gt; IWrap ann (typeMapNames f ty1) (typeMapNames f ty2) (go body)</span>
+<span class="lineno">  217 </span><span class="spaces">      </span><span class="nottickedoff">Constr ann ty i es -&gt; Constr ann (typeMapNames f ty) i (fmap go es)</span>
+<span class="lineno">  218 </span><span class="spaces">      </span><span class="nottickedoff">Case ann ty arg cs -&gt; Case ann (typeMapNames f ty) (go arg) (fmap go cs)</span>
+<span class="lineno">  219 </span><span class="spaces">      </span><span class="nottickedoff">Error ann ty -&gt; Error ann (typeMapNames f ty)</span></span>
+<span class="lineno">  220 </span>
+<span class="lineno">  221 </span>programMapNames
+<span class="lineno">  222 </span>  :: forall tyname tyname' name name' uni fun ann
+<span class="lineno">  223 </span>   . (tyname -&gt; tyname')
+<span class="lineno">  224 </span>  -&gt; (name -&gt; name')
+<span class="lineno">  225 </span>  -&gt; Program tyname name uni fun ann
+<span class="lineno">  226 </span>  -&gt; Program tyname' name' uni fun ann
+<span class="lineno">  227 </span><span class="decl"><span class="nottickedoff">programMapNames f g (Program a v term) = Program a v (termMapNames f g term)</span></span>
+<span class="lineno">  228 </span>
+<span class="lineno">  229 </span>-- Free variables
+<span class="lineno">  230 </span>
+<span class="lineno">  231 </span>-- | Get all the free term variables in a term.
+<span class="lineno">  232 </span>fvTerm :: HasUnique name unique =&gt; Traversal' (Term tyname name uni fun ann) name
+<span class="lineno">  233 </span><span class="decl"><span class="nottickedoff">fvTerm = fvTermCtx mempty</span></span>
+<span class="lineno">  234 </span>
+<span class="lineno">  235 </span>fvTermCtx
+<span class="lineno">  236 </span>  :: HasUnique name unique
+<span class="lineno">  237 </span>  =&gt; UniqueSet unique -&gt; Traversal' (Term tyname name uni fun ann) name
+<span class="lineno">  238 </span><span class="decl"><span class="nottickedoff">fvTermCtx bound f = \case</span>
+<span class="lineno">  239 </span><span class="spaces">  </span><span class="nottickedoff">Var a n -&gt; Var a &lt;$&gt; (if USet.memberByName n bound then pure n else f n)</span>
+<span class="lineno">  240 </span><span class="spaces">  </span><span class="nottickedoff">LamAbs a n ty t -&gt; LamAbs a n ty &lt;$&gt; fvTermCtx (USet.insertByName n bound) f t</span>
+<span class="lineno">  241 </span><span class="spaces">  </span><span class="nottickedoff">t -&gt; (termSubterms . fvTermCtx bound) f t</span></span>
+<span class="lineno">  242 </span>
+<span class="lineno">  243 </span>-- | Get all the free type variables in a term.
+<span class="lineno">  244 </span>ftvTerm :: HasUnique tyname unique =&gt; Traversal' (Term tyname name uni fun ann) tyname
+<span class="lineno">  245 </span><span class="decl"><span class="nottickedoff">ftvTerm = ftvTermCtx mempty</span></span>
+<span class="lineno">  246 </span>
+<span class="lineno">  247 </span>ftvTermCtx
+<span class="lineno">  248 </span>  :: HasUnique tyname unique
+<span class="lineno">  249 </span>  =&gt; UniqueSet unique
+<span class="lineno">  250 </span>  -&gt; Traversal' (Term tyname name uni fun ann) tyname
+<span class="lineno">  251 </span><span class="decl"><span class="nottickedoff">ftvTermCtx bound f = \case</span>
+<span class="lineno">  252 </span><span class="spaces">  </span><span class="nottickedoff">TyAbs a ty k t -&gt; TyAbs a ty k &lt;$&gt; ftvTermCtx (USet.insertByName ty bound) f t</span>
+<span class="lineno">  253 </span><span class="spaces">  </span><span class="nottickedoff">-- sound because the subterms and subtypes are disjoint</span>
+<span class="lineno">  254 </span><span class="spaces">  </span><span class="nottickedoff">t -&gt;</span>
+<span class="lineno">  255 </span><span class="spaces">    </span><span class="nottickedoff">((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t</span></span>
+<span class="lineno">  256 </span>
+<span class="lineno">  257 </span>-- | Get all the free type variables in a type.
+<span class="lineno">  258 </span>ftvTy
+<span class="lineno">  259 </span>  :: HasUnique tyname unique
+<span class="lineno">  260 </span>  =&gt; Traversal' (Type tyname uni ann) tyname
+<span class="lineno">  261 </span><span class="decl"><span class="istickedoff">ftvTy = ftvTyCtx mempty</span></span>
+<span class="lineno">  262 </span>
+<span class="lineno">  263 </span>ftvTyCtx
+<span class="lineno">  264 </span>  :: HasUnique tyname unique
+<span class="lineno">  265 </span>  =&gt; UniqueSet unique
+<span class="lineno">  266 </span>  -&gt; Traversal' (Type tyname uni ann) tyname
+<span class="lineno">  267 </span><span class="decl"><span class="istickedoff">ftvTyCtx bound f = \case</span>
+<span class="lineno">  268 </span><span class="spaces">  </span><span class="istickedoff">TyVar a ty -&gt; <span class="nottickedoff">TyVar a</span> &lt;$&gt; (if USet.memberByName ty bound then pure <span class="nottickedoff">ty</span> else f ty)</span>
+<span class="lineno">  269 </span><span class="spaces">  </span><span class="istickedoff">TyForall a bnd k ty -&gt; <span class="nottickedoff">TyForall a bnd k</span> &lt;$&gt; ftvTyCtx (USet.insertByName bnd bound) f ty</span>
+<span class="lineno">  270 </span><span class="spaces">  </span><span class="istickedoff">TyLam a bnd k ty -&gt; <span class="nottickedoff">TyLam a bnd k</span> &lt;$&gt; ftvTyCtx (USet.insertByName bnd bound) f ty</span>
+<span class="lineno">  271 </span><span class="spaces">  </span><span class="istickedoff">t -&gt; (typeSubtypes . ftvTyCtx bound) f t</span></span>
+<span class="lineno">  272 </span>
+<span class="lineno">  273 </span>-- TODO: these could be Traversals
+<span class="lineno">  274 </span>-- | Get all the term variables in a term.
+<span class="lineno">  275 </span>vTerm :: Fold (Term tyname name uni fun ann) name
+<span class="lineno">  276 </span><span class="decl"><span class="istickedoff">vTerm = termSubtermsDeep . termVars</span></span>
+<span class="lineno">  277 </span>
+<span class="lineno">  278 </span>-- | Get all the type variables in a term.
+<span class="lineno">  279 </span>tvTerm :: Fold (Term tyname name uni fun ann) tyname
+<span class="lineno">  280 </span><span class="decl"><span class="istickedoff">tvTerm = termSubtypesDeep . typeTyVars</span></span>
+<span class="lineno">  281 </span>
+<span class="lineno">  282 </span>-- | Get all the type variables in a type.
+<span class="lineno">  283 </span>tvTy :: Fold (Type tyname uni ann) tyname
+<span class="lineno">  284 </span><span class="decl"><span class="istickedoff">tvTy = typeSubtypesDeep . typeTyVars</span></span>
+<span class="lineno">  285 </span>
+<span class="lineno">  286 </span>-- | Applicatively replace a constant using the given function.
+<span class="lineno">  287 </span>substConstantA
+<span class="lineno">  288 </span>  :: Applicative f
+<span class="lineno">  289 </span>  =&gt; (ann -&gt; Some (ValueOf uni) -&gt; f (Maybe (Term tyname name uni fun ann)))
+<span class="lineno">  290 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  291 </span>  -&gt; f (Term tyname name uni fun ann)
+<span class="lineno">  292 </span><span class="decl"><span class="istickedoff">substConstantA valF t@(Constant ann val) = fromMaybe t &lt;$&gt; valF ann val</span>
+<span class="lineno">  293 </span><span class="spaces"></span><span class="istickedoff">substConstantA _ t = pure t</span></span>
+<span class="lineno">  294 </span>
+<span class="lineno">  295 </span>-- | Replace a constant using the given function.
+<span class="lineno">  296 </span>substConstant
+<span class="lineno">  297 </span>  :: (ann -&gt; Some (ValueOf uni) -&gt; Maybe (Term tyname name uni fun ann))
+<span class="lineno">  298 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  299 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  300 </span><span class="decl"><span class="nottickedoff">substConstant = purely (substConstantA . curry) . uncurry</span></span>
+<span class="lineno">  301 </span>
+<span class="lineno">  302 </span>-- | Monadically substitute constants using the given function.
+<span class="lineno">  303 </span>termSubstConstantsM
+<span class="lineno">  304 </span>  :: Monad m
+<span class="lineno">  305 </span>  =&gt; (ann -&gt; Some (ValueOf uni) -&gt; m (Maybe (Term tyname name uni fun ann)))
+<span class="lineno">  306 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  307 </span>  -&gt; m (Term tyname name uni fun ann)
+<span class="lineno">  308 </span><span class="decl"><span class="istickedoff">termSubstConstantsM = transformMOf termSubterms . substConstantA</span></span>
+<span class="lineno">  309 </span>
+<span class="lineno">  310 </span>-- | Substitute constants using the given function.
+<span class="lineno">  311 </span>termSubstConstants
+<span class="lineno">  312 </span>  :: (ann -&gt; Some (ValueOf uni) -&gt; Maybe (Term tyname name uni fun ann))
+<span class="lineno">  313 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  314 </span>  -&gt; Term tyname name uni fun ann
+<span class="lineno">  315 </span><span class="decl"><span class="nottickedoff">termSubstConstants = purely (termSubstConstantsM . curry) . uncurry</span></span>
+
+</pre>
+</body>
+</html>
