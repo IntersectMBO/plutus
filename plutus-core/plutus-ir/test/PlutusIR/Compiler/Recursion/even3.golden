@@ -1,15 +1,15 @@
 program
   1.1.0
-  ((/\Bool ->
-      \(True : Bool)
-       (False : Bool)
-       (match_Bool :
-          Bool -> (all out_Bool. out_Bool -> out_Bool -> out_Bool)) ->
-        (/\Nat ->
-           \(Zero : Nat)
-            (Suc : Nat -> Nat)
-            (match_Nat :
-               Nat -> (all out_Nat. out_Nat -> (Nat -> out_Nat) -> out_Nat)) ->
+  ((/\Nat ->
+      \(Zero : Nat)
+       (Suc : Nat -> Nat)
+       (match_Nat :
+          Nat -> (all out_Nat. out_Nat -> (Nat -> out_Nat) -> out_Nat)) ->
+        (/\Bool ->
+           \(True : Bool)
+            (False : Bool)
+            (match_Bool :
+               Bool -> (all out_Bool. out_Bool -> out_Bool -> out_Bool)) ->
              (\(s :
                   (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
                     (Nat -> Bool)) ->
@@ -32,51 +32,51 @@ program
                             False
                             (\(p : Nat) -> unwrap s s p))))
                (Suc (Suc (Suc Zero))))
-          {ifix
-             (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
-             (\Nat -> sop [] [Nat])}
-          (iwrap
-             (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
-             (\Nat -> sop [] [Nat])
-             (constr
-                (sop
-                   []
-                   [ (ifix
-                        (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
-                        (\Nat -> sop [] [Nat])) ])
-                0
-                []))
-          (\(arg_0 :
-               ifix
-                 (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
-                 (\Nat -> sop [] [Nat])) ->
-             iwrap
-               (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
-               (\Nat -> sop [] [Nat])
-               (constr
-                  (sop
-                     []
-                     [ (ifix
-                          (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
-                          (\Nat -> sop [] [Nat])) ])
-                  1
-                  [arg_0]))
-          (\(x :
-               ifix
-                 (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
-                 (\Nat -> sop [] [Nat])) ->
-             /\out_Nat ->
-               \(case_Zero : out_Nat)
-                (case_Suc :
-                   ifix
+          {sop [] []}
+          (constr (sop [] []) 0 [])
+          (constr (sop [] []) 1 [])
+          (\(x : sop [] []) ->
+             /\out_Bool ->
+               \(case_True : out_Bool) (case_False : out_Bool) ->
+                 case out_Bool x [case_True, case_False]))
+     {ifix
+        (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
+        (\Nat -> sop [] [Nat])}
+     (iwrap
+        (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
+        (\Nat -> sop [] [Nat])
+        (constr
+           (sop
+              []
+              [ (ifix
+                   (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
+                   (\Nat -> sop [] [Nat])) ])
+           0
+           []))
+     (\(arg_0 :
+          ifix
+            (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
+            (\Nat -> sop [] [Nat])) ->
+        iwrap
+          (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
+          (\Nat -> sop [] [Nat])
+          (constr
+             (sop
+                []
+                [ (ifix
                      (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
-                     (\Nat -> sop [] [Nat]) ->
-                   out_Nat) ->
-                 case out_Nat (unwrap x) [case_Zero, case_Suc]))
-     {sop [] []}
-     (constr (sop [] []) 0 [])
-     (constr (sop [] []) 1 [])
-     (\(x : sop [] []) ->
-        /\out_Bool ->
-          \(case_True : out_Bool) (case_False : out_Bool) ->
-            case out_Bool x [case_True, case_False]))
+                     (\Nat -> sop [] [Nat])) ])
+             1
+             [arg_0]))
+     (\(x :
+          ifix
+            (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
+            (\Nat -> sop [] [Nat])) ->
+        /\out_Nat ->
+          \(case_Zero : out_Nat)
+           (case_Suc :
+              ifix
+                (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
+                (\Nat -> sop [] [Nat]) ->
+              out_Nat) ->
+            case out_Nat (unwrap x) [case_Zero, case_Suc]))

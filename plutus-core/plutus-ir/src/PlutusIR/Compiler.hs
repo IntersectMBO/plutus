@@ -218,7 +218,7 @@ compileToReadable
 compileToReadable (Program a v t) = do
   validateOpts v
   let pipeline :: m (P.Pass m TyName Name uni fun b)
-      pipeline = ala Ap foldMap [typeCheckTerm, dce, simplifier, floatOutPasses]
+      pipeline = ala Ap foldMap [typeCheckTerm, dce, simplifier]
   Program a v <$> runCompilerPass pipeline t
 
 {-| The 2nd half of the PIR compiler pipeline.
