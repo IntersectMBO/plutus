@@ -45,6 +45,7 @@ import PlutusTx.Optimize.Inline qualified
 import PlutusTx.Options
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
+import PlutusTx.Plugin.Boilerplate (removeBoilerplateOpts)
 import PlutusTx.Plugin.Utils qualified
 import PlutusTx.Trace
 import UntypedPlutusCore qualified as UPLC
@@ -91,8 +92,15 @@ import Data.Text qualified as Text
 import GHC.Num.Integer qualified
 import Language.Haskell.TH.Syntax as TH hiding (lift)
 import Prettyprinter qualified as PP
+import System.Directory (createDirectoryIfMissing, makeAbsolute)
+import System.FilePath ((</>))
 import System.IO (hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
+import System.Random (randomRIO)
+import Text.Regex.TDFA ((=~))
+
+import PlutusTx.Compiler.Utils (getPackageName)
+import UntypedPlutusCore.Transform.Optimizer (OptimizerTrace)
 
 data PluginCtx = PluginCtx
   { pcOpts :: PluginOptions
@@ -101,6 +109,7 @@ data PluginCtx = PluginCtx
   , pcAnchorName :: GHC.Name
   , pcModuleName :: GHC.ModuleName
   , pcModuleModBreaks :: Maybe GHC.ModBreaks
+  , pcPackageName :: String
   }
 
 {- Note [Making sure unfoldings are present]
@@ -140,7 +149,7 @@ installCorePlugin markerTHName args rest = do
   simplPass <- mkSimplPass <$> GHC.getDynFlags
   -- instantiate our plugin pass
   pluginPass <-
-    mkPluginPass markerTHName <$> case parsePluginOptions args of
+    mkPluginPass markerTHName <$> case parsePluginOptions (removeBoilerplateOpts args) of
       Success opts -> pure opts
       Failure errs -> liftIO $ throwIO errs
   -- return the pipeline
@@ -173,7 +182,10 @@ injectAnchors env = do
         "Plinth.Plugin"
         (GHC.text $ "Could not find module " <> plinthcModName)
   let binds = GHC.tcg_binds env
-      bindsAnchored = Compat.modifyBinds (transformBi (anchorExpr anchorId)) binds
+      bindsAnchored =
+        Compat.modifyBinds
+          (transformBi (stripGuardAnchors anchorId) . transformBi (anchorExpr anchorId))
+          binds
   pure env {GHC.tcg_binds = bindsAnchored}
 
 -- | Wrap an @HsExpr@ with @anchor@.
@@ -222,6 +234,28 @@ isAnchorApp marker = (Just marker ==) . appHead
       GHC.XExpr (Compat.WrapExpr e) -> appHead e
       Compat.HsPar (GHC.L _ e) -> appHead e
       _ -> Nothing
+
+{-| Remove anchors in guards. We can't wrap `otherwise` with an anchor, since it would
+cause GHC to emit a "non-exhuastive" warning. In general, anchors in guards are
+probably not very useful, so we remove all anchors within guards. -}
+stripGuardAnchors
+  :: GHC.Id
+  -> GHC.GRHS GHC.GhcTc (GHC.LHsExpr GHC.GhcTc)
+  -> GHC.GRHS GHC.GhcTc (GHC.LHsExpr GHC.GhcTc)
+stripGuardAnchors anchorId (GHC.GRHS x guards body) =
+  GHC.GRHS x (transformBi (stripHsAnchor anchorId) guards) body
+
+stripHsAnchor :: GHC.Id -> GHC.LHsExpr GHC.GhcTc -> GHC.LHsExpr GHC.GhcTc
+stripHsAnchor anchorId le@(GHC.L _ e)
+  | GHC.HsApp _ (GHC.L _ f) arg <- e
+  , isAnchor f =
+      arg
+  | otherwise = le
+  where
+    isAnchor = \case
+      GHC.HsVar _ (GHC.L _ v) -> v == anchorId
+      GHC.XExpr (Compat.WrapExpr inner) -> isAnchor inner
+      _ -> False
 
 {- Note [GHC.sm_pre_inline]
 We run a GHC simplifier pass before the plugin, in which we turn on `sm_pre_inline`, which
@@ -331,18 +365,21 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
   maybeanchorGhcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.anchor
   case (maybeMarkerName, maybeanchorGhcName) of
     -- See Note [Marker resolution]
-    (Just markerName, Just anchorGhcName) ->
-      let pctx =
+    (Just markerName, Just anchorGhcName) -> do
+      hscEnv <- GHC.getHscEnv
+      let thisModule = GHC.mg_module guts
+          pctx =
             PluginCtx
               { pcOpts = opts
               , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
               , pcMarkerName = markerName
               , pcAnchorName = anchorGhcName
-              , pcModuleName = GHC.moduleName $ GHC.mg_module guts
+              , pcModuleName = GHC.moduleName thisModule
               , pcModuleModBreaks = GHC.mg_modBreaks guts
+              , pcPackageName = getPackageName hscEnv thisModule
               }
-       in -- start looking for marker calls from the top-level binds
-          GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
+      -- start looking for marker calls from the top-level binds
+      GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
     _ -> pure guts
 
 {-| The monad where the plugin runs in for each module.
@@ -495,8 +532,8 @@ compileMarkedExprs expr = do
         | markerName == GHC.idName fid -> compileMarkedExprOrDefer (show fs_locStr) codeTy inner
     GHC.App
       ( GHC.App
-          (stripAnchors anchorGhcName -> (GHC.Var fid))
-          (stripAnchors anchorGhcName -> GHC.Type codeTy)
+          (stripCoreAnchors anchorGhcName -> (GHC.Var fid))
+          (stripCoreAnchors anchorGhcName -> GHC.Type codeTy)
         )
       -- code to be compiled
       inner
@@ -556,6 +593,7 @@ compileMarkedExpr _locStr codeTy origE = do
   famEnvs <- asks pcFamEnvs
   opts <- asks pcOpts
   moduleName <- asks pcModuleName
+  packageName <- asks pcPackageName
   let moduleNameStr =
         GHC.showSDocForUser flags GHC.emptyUnitState GHC.alwaysQualify (GHC.ppr moduleName)
   -- We need to do this out here, since it has to run in CoreM
@@ -621,7 +659,7 @@ compileMarkedExpr _locStr codeTy origE = do
 
   ((pirP, uplcP), covIdx) <-
     runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
-      runCompiler moduleNameStr opts origE'
+      runCompiler packageName moduleNameStr opts origE'
 
   -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
   bsPir <- makeByteStringLiteral $ flat pirP
@@ -652,10 +690,11 @@ runCompiler
      , MonadIO m
      )
   => String
+  -> String
   -> PluginOptions
   -> GHC.CoreExpr
   -> m (PIRProgram uni fun, UPLCProgram uni fun)
-runCompiler moduleName opts expr = do
+runCompiler packageName moduleName opts expr = do
   GHC.DynFlags {GHC.extensions = extensions} <- asks ccFlags
   let
     enabledExtensions =
@@ -742,6 +781,9 @@ runCompiler moduleName opts expr = do
             (opts ^. posInlineFix)
           & set (PIR.ccOpts . PIR.coInlineHints) hints
           & set
+            (PIR.ccOpts . PIR.coInlineUnconditionalGrowth)
+            (opts ^. posInlineUnconditionalGrowth . to fromIntegral)
+          & set
             (PIR.ccOpts . PIR.coInlineCallsiteGrowth)
             (opts ^. posInlineCallsiteGrowth . to fromIntegral)
           & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
@@ -757,30 +799,39 @@ runCompiler moduleName opts expr = do
       plcOpts =
         PLC.defaultCompilationOpts
           & set
-            (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)
+            (PLC.coOptimizeOpts . UPLC.ooMaxSimplifierIterations)
             (opts ^. posMaxSimplifierIterationsUPlc)
           & set
-            (PLC.coSimplifyOpts . UPLC.soCseWhichSubterms)
+            (PLC.coOptimizeOpts . UPLC.ooCseWhichSubterms)
             (opts ^. posCseWhichSubterms)
           & set
-            (PLC.coSimplifyOpts . UPLC.soMaxCseIterations)
+            (PLC.coOptimizeOpts . UPLC.ooMaxCseIterations)
             (opts ^. posMaxCseIterations)
           & set
-            (PLC.coSimplifyOpts . UPLC.soConservativeOpts)
+            (PLC.coOptimizeOpts . UPLC.ooConservativeOpts)
             (opts ^. posConservativeOpts)
-          & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
+          & set (PLC.coOptimizeOpts . UPLC.ooInlineHints) hints
           & set
-            (PLC.coSimplifyOpts . UPLC.soInlineConstants)
+            (PLC.coOptimizeOpts . UPLC.ooInlineConstants)
             (opts ^. posInlineConstants)
           & set
-            (PLC.coSimplifyOpts . UPLC.soInlineCallsiteGrowth)
+            (PLC.coOptimizeOpts . UPLC.ooInlineUnconditionalGrowth)
+            (opts ^. posInlineUnconditionalGrowth . to fromIntegral)
+          & set
+            (PLC.coOptimizeOpts . UPLC.ooInlineCallsiteGrowth)
             (opts ^. posInlineCallsiteGrowth . to fromIntegral)
           & set
-            (PLC.coSimplifyOpts . UPLC.soPreserveLogging)
+            (PLC.coOptimizeOpts . UPLC.ooPreserveLogging)
             (opts ^. posPreserveLogging)
           & set
-            (PLC.coSimplifyOpts . UPLC.soApplyToCase)
+            (PLC.coOptimizeOpts . UPLC.ooApplyToCase)
             (opts ^. posApplyToCase)
+          & set
+            (PLC.coOptimizeOpts . UPLC.ooHoistPolyBuiltins)
+            (opts ^. posHoistPolyBuiltins)
+          & set
+            (PLC.coOptimizeOpts . UPLC.ooCertifiedOptsOnly)
+            (opts ^. posCertifiedOptsOnly)
 
   -- GHC.Core -> Pir translation.
   pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
@@ -810,17 +861,11 @@ runCompiler moduleName opts expr = do
       modifyError PLC.TypeErrorE $
         PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-  let optCertify = opts ^. posCertify
   (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
-  liftIO $ case optCertify of
-    Just certName -> do
-      -- FIXME: add a plugin option to choose from BasicOutput vs. other options
-      result <- runCertifier $ mkCertifier simplTrace certName BasicOutput
-      case result of
-        Right _ -> pure ()
-        Left err ->
-          hPutStrLn stderr $ prettyCertifierError err
+  case opts ^. posCertify of
     Nothing -> pure ()
+    Just certifyPath ->
+      liftIO $ generateCertificate packageName moduleName opts simplTrace certifyPath
 
   dbP <-
     liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
@@ -846,6 +891,51 @@ runCompiler moduleName opts expr = do
 
     getSrcSpans :: PIR.Provenance Ann -> SrcSpans
     getSrcSpans = SrcSpans . Set.unions . fmap (unSrcSpans . annSrcSpans) . toList
+
+generateCertificate
+  :: String
+  -> String
+  -> PluginOptions
+  -> OptimizerTrace PLC.Name PLC.DefaultUni PLC.DefaultFun a
+  -> String
+  -> IO ()
+generateCertificate packageName moduleName opts simplTrace certifyPath = do
+  absCertifyPath <-
+    if null certifyPath then pure "" else makeAbsolute certifyPath
+  hash <- replicateM 6 $ (alphabet !!) <$> randomRIO (0, length alphabet - 1)
+  let dir = certDir hash absCertifyPath
+      verbose = opts ^. posVerbosity Prelude./= Quiet
+  createDirectoryIfMissing True dir
+  result <- runCertifier $ mkCertifier simplTrace certName (ProjectOutput dir) []
+  case result of
+    Right _ -> do
+      writeFile (dir </> "plinth-certifier-PASS.txt") ""
+      when verbose $
+        hPutStrLn stderr $
+          "Certifier result: PASS — " ++ dir
+    Left err -> do
+      let errMsg = prettyCertifierError err
+      writeFile (dir </> "plinth-certifier-FAIL.txt") (errMsg ++ "\n")
+      hPutStrLn stderr $ "Certifier result: FAIL — " ++ dir ++ "\n" ++ errMsg
+  where
+    certName = collapseDigitUnderscores (map sanitise packageName ++ "_" ++ map sanitise moduleName)
+      where
+        sanitise '.' = '_'
+        sanitise '-' = '_'
+        sanitise c = c
+        -- Agda parses `_` in identifiers as a mixfix hole, so module names like
+        -- `BLS12_381` are rejected. Collapse any underscore between two digits.
+        collapseDigitUnderscores s =
+          case s =~ ("([0-9])_([0-9])" :: String) :: (String, String, String, [String]) of
+            (before, _, after, [a, b]) -> before ++ a ++ b ++ collapseDigitUnderscores after
+            _ -> s
+    certDir hash absCertifyPath
+      | null absCertifyPath = name
+      | otherwise = absCertifyPath </> name
+      where
+        name = certName ++ "-" ++ hash ++ ".agda-cert"
+    alphabet :: [Char]
+    alphabet = ['a' .. 'z'] ++ ['0' .. '9']
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.
 thNameToGhcNameOrFail :: TH.Name -> PluginM uni fun GHC.Name
@@ -892,11 +982,11 @@ stripTicks = \case
   GHC.Tick _ e -> stripTicks e
   e -> e
 
-stripAnchors :: GHC.Name -> GHC.CoreExpr -> GHC.CoreExpr
-stripAnchors marker = \case
-  GHC.Tick _ e -> stripAnchors marker e
+stripCoreAnchors :: GHC.Name -> GHC.CoreExpr -> GHC.CoreExpr
+stripCoreAnchors marker = \case
+  GHC.Tick _ e -> stripCoreAnchors marker e
   GHC.App (GHC.App (GHC.App (GHC.Var f) _locTy) _codeTy) code
-    | GHC.getName f == marker -> stripAnchors marker code
+    | GHC.getName f == marker -> stripCoreAnchors marker code
   other -> other
 
 -- | Helper to avoid doing too much construction of Core ourselves

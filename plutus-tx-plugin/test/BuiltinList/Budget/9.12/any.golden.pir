@@ -24,11 +24,5 @@ in
   Tuple2
     {bool}
     {bool}
-    (any
-       {integer}
-       (\(v : integer) -> case bool (lessThanInteger v 8) [True, False])
-       xs)
-    (any
-       {integer}
-       (\(v : integer) -> case bool (lessThanInteger v 12) [True, False])
-       xs)
+    (any {integer} (\(v : integer) -> lessThanEqualsInteger 8 v) xs)
+    (any {integer} (\(v : integer) -> lessThanEqualsInteger 12 v) xs)

@@ -29,67 +29,35 @@
     !checkValid_f : bytestring -> integer = byteStringToInteger False
     data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
       Tuple2 : a -> b -> Tuple2 a b
-  in
-  letrec
-    !expModManual : integer -> integer -> integer -> integer
-      = \(b' : integer) (e : integer) (m : integer) ->
-          case
-            (all dead. integer)
-            (equalsInteger 0 e)
-            [ (/\dead ->
-                 let
-                   !reduced : integer = expModManual b' (divideInteger e 2) m
-                   !t : integer = modInteger (multiplyInteger reduced reduced) m
-                 in
-                 case
-                   (all dead. integer)
-                   (equalsInteger 0 (modInteger e 2))
-                   [ (/\dead -> modInteger (multiplyInteger t b') m)
-                   , (/\dead -> t) ]
-                   {all dead. dead})
-            , (/\dead -> 1) ]
-            {all dead. dead}
-  in
-  let
-    ~d :
-       integer
-      = multiplyInteger
-          -121665
-          (expModManual
-             121666
-             57896044618658097711785492504343953926634992332820282019728792003956564819947
-             57896044618658097711785492504343953926634992332820282019728792003956564819949)
     !xRecover :
        integer -> integer
       = \(y : integer) ->
           let
-            !i :
-               integer
-              = expModManual
-                  2
-                  14474011154664524427946373126085988481658748083205070504932198000989141204987
-                  57896044618658097711785492504343953926634992332820282019728792003956564819949
             !xx :
                integer
               = multiplyInteger
                   (subtractInteger (multiplyInteger y y) 1)
-                  (expModManual
-                     (addInteger 1 (multiplyInteger (multiplyInteger d y) y))
+                  (expModInteger
+                     (addInteger
+                        1
+                        (multiplyInteger
+                           (multiplyInteger
+                              -4513249062541557337682894930092624173785641285191125241628941591882900924598840740
+                              y)
+                           y))
                      57896044618658097711785492504343953926634992332820282019728792003956564819947
                      57896044618658097711785492504343953926634992332820282019728792003956564819949)
             !x :
                integer
-              = expModManual
+              = expModInteger
                   xx
                   7237005577332262213973186563042994240829374041602535252466099000494570602494
                   57896044618658097711785492504343953926634992332820282019728792003956564819949
             !xA :
                integer
               = multiplyInteger
+                  19681161376707505956807079304988542015446066515923890162744021073123829784752
                   x
-                  (modInteger
-                     i
-                     57896044618658097711785492504343953926634992332820282019728792003956564819949)
             !xAB :
                integer
               = subtractInteger
@@ -386,13 +354,15 @@
                             (addInteger
                                (multiplyInteger y y)
                                (multiplyInteger x x))
-                            (expModManual
+                            (expModInteger
                                (subtractInteger
                                   1
                                   (multiplyInteger
                                      (multiplyInteger
                                         (multiplyInteger
-                                           (multiplyInteger d x)
+                                           (multiplyInteger
+                                              -4513249062541557337682894930092624173785641285191125241628941591882900924598840740
+                                              x)
                                            x)
                                         y)
                                      y))
@@ -407,13 +377,15 @@
                             (addInteger
                                (multiplyInteger x y)
                                (multiplyInteger x y))
-                            (expModManual
+                            (expModInteger
                                (addInteger
                                   1
                                   (multiplyInteger
                                      (multiplyInteger
                                         (multiplyInteger
-                                           (multiplyInteger d x)
+                                           (multiplyInteger
+                                              -4513249062541557337682894930092624173785641285191125241628941591882900924598840740
+                                              x)
                                            x)
                                         y)
                                      y))
@@ -522,15 +494,10 @@
       !sig : bytestring = unBData signature
       !message : bytestring = unBData msg
       !pubKey : bytestring = unBData pk
-      !by :
+      !bx :
          integer
-        = multiplyInteger
-            4
-            (expModManual
-               5
-               57896044618658097711785492504343953926634992332820282019728792003956564819947
-               57896044618658097711785492504343953926634992332820282019728792003956564819949)
-      !bx : integer = xRecover by
+        = xRecover
+            46316835694926478169428394003475163141307993866256225615783033603165251855960
       !s : integer = checkValid_f (sliceByteString 32 32 sig)
       !nt : Tuple2 integer integer = decodePoint pubKey
       !nt : Tuple2 integer integer = decodePoint (sliceByteString 0 32 sig)
@@ -2228,9 +2195,7 @@
             (modInteger
                bx
                57896044618658097711785492504343953926634992332820282019728792003956564819949)
-            (modInteger
-               by
-               57896044618658097711785492504343953926634992332820282019728792003956564819949))
+            46316835694926478169428394003475163141307993866256225615783033603165251855960)
          s)
       {bool}
       (\(x : integer) (y : integer) ->

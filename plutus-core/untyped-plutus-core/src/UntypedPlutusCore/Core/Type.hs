@@ -20,8 +20,6 @@ module UntypedPlutusCore.Core.Type
   , bindFunM
   , bindFun
   , mapFun
-  , termAnn
-  , modifyTermAnn
   , UVarDecl (..)
   , uvarDeclName
   , uvarDeclAnn
@@ -34,6 +32,7 @@ import PlutusPrelude
 import Data.Vector
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.MkPlc
 import PlutusCore.Name.Unique qualified as TPLC
 import Universe
@@ -112,6 +111,11 @@ deriving anyclass instance
   (NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
   => NFData (Term name uni fun ann)
 
+-- See Note [ExMemoryUsage instances for non-constants].
+instance ExMemoryUsage (Term name uni fun ann) where
+  memoryUsage =
+    Prelude.error "Internal error: 'memoryUsage' for UPLC 'Term' is not supposed to be forced"
+
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program name uni fun ann = Program
   { _progAnn :: ann
@@ -165,30 +169,28 @@ data UVarDecl name ann = UVarDecl
 makeLenses ''UVarDecl
 
 -- | Return the outermost annotation of a 'Term'.
-termAnn :: Term name uni fun ann -> ann
-termAnn (Constant ann _) = ann
-termAnn (Builtin ann _) = ann
-termAnn (Var ann _) = ann
-termAnn (LamAbs ann _ _) = ann
-termAnn (Apply ann _ _) = ann
-termAnn (Delay ann _) = ann
-termAnn (Force ann _) = ann
-termAnn (Error ann) = ann
-termAnn (Constr ann _ _) = ann
-termAnn (Case ann _ _) = ann
-
-modifyTermAnn :: (ann -> ann) -> Term name uni fun ann -> Term name uni fun ann
-modifyTermAnn f = \case
-  Constant ann c -> Constant (f ann) c
-  Builtin ann b -> Builtin (f ann) b
-  Var ann v -> Var (f ann) v
-  LamAbs ann x body -> LamAbs (f ann) x body
-  Apply ann fun arg -> Apply (f ann) fun arg
-  Delay ann body -> Delay (f ann) body
-  Force ann body -> Force (f ann) body
-  Error ann -> Error (f ann)
-  Constr ann i args -> Constr (f ann) i args
-  Case ann scrut alts -> Case (f ann) scrut alts
+instance HasAnn (Term name uni fun) where
+  getAnn (Constant ann _) = ann
+  getAnn (Builtin ann _) = ann
+  getAnn (Var ann _) = ann
+  getAnn (LamAbs ann _ _) = ann
+  getAnn (Apply ann _ _) = ann
+  getAnn (Delay ann _) = ann
+  getAnn (Force ann _) = ann
+  getAnn (Error ann) = ann
+  getAnn (Constr ann _ _) = ann
+  getAnn (Case ann _ _) = ann
+  modifyAnn f = \case
+    Constant ann c -> Constant (f ann) c
+    Builtin ann b -> Builtin (f ann) b
+    Var ann v -> Var (f ann) v
+    LamAbs ann x body -> LamAbs (f ann) x body
+    Apply ann fun arg -> Apply (f ann) fun arg
+    Delay ann body -> Delay (f ann) body
+    Force ann body -> Force (f ann) body
+    Error ann -> Error (f ann)
+    Constr ann i args -> Constr (f ann) i args
+    Case ann scrut alts -> Case (f ann) scrut alts
 
 bindFunM
   :: Monad m

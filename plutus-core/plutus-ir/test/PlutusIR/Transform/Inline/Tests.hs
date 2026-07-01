@@ -10,7 +10,8 @@ import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.Inline.Inline
 import PlutusPrelude
-import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
+import Test.QuickCheck.Property (Property)
 import Test.Tasty (TestTree)
 
 -- | Tests of the inliner, include global uniqueness test.
@@ -66,14 +67,14 @@ test_inline =
       <> [runTest withoutConstantInlining "inlineConstantsOff"]
   where
     runTest constantInlining =
-      goldenPir (runQuote . runTestPass (\tc -> inlinePassSC 0 constantInlining tc def def)) pTerm
+      goldenPir (runQuote . runTestPass (\tc -> inlinePassSC 0 0 constantInlining tc def def)) pTerm
     withConstantInlining = True
     withoutConstantInlining = False
 
 prop_inline
   :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_inline biVariant =
-  withMaxSuccess numTestsForPassProp
+  BaseQC.withNumTests numTestsForPassProp
     $ testPassProp
       runQuote
-    $ \tc -> inlinePassSC 0 True tc def (def {_biSemanticsVariant = biVariant})
+    $ \tc -> inlinePassSC 0 0 True tc def (def {_biSemanticsVariant = biVariant})

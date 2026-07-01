@@ -1,4 +1,76 @@
 
+<a id='changelog-1.65.0.0'></a>
+# 1.65.0.0 — 2026-05-21
+
+## Added
+
+- A new plugin flag `hoist-polymorphic-builtins` that controls whether to run the optimization
+  that hoists forced polymorphic built-in functions (on by default).
+
+## Changed
+
+- `CannotParseValue` plugin-option parse error now carries a human-readable
+  detail string instead of a placeholder `SomeTypeRep`. Errors produced by
+  `plcParserOption` include the underlying parser error message (source
+  position and explanation), so failures to parse option values are no
+  longer reported as "into type Int".
+
+<a id='changelog-1.64.0.0'></a>
+# 1.64.0.0 — 2026-05-11
+
+## Added
+
+- `certify` plugin option to trigger Agda certificate generation for compiled
+  Plutus scripts. Each certificate is written to a directory named
+  `<package>_<module>-<hash>.agda-cert`, where `<hash>` is a random 6-char
+  alphanumeric tag.
+- `generateCertificate` top-level function that invokes the certifier with
+  package and module names.
+
+- Detailed error message for unsupported casing on Integer.
+
+## Changed
+
+- Improved error reporting for a few unsupported types: `Float`, `Double`,
+  `Ratio`, `Text`, `ByteString`.
+
+<a id='changelog-1.63.0.0'></a>
+# 1.63.0.0 — 2026-05-01
+
+## Removed
+
+- Removed `PlutusTx.Plugin` and `plc`.
+  Use `Plinth.Plugin` and `plinthc` instead.
+
+<a id='changelog-1.62.0.0'></a>
+# 1.62.0.0 — 2026-04-24
+
+## Added
+
+- Added a new plugin option `certified-opts-only` which disables those optimisation passes which are not certified to preserve the functional behavior of the original program.
+
+## Changed
+
+- The plugin now automatically inserts INLINEABLE pragmas.
+  Requires compiling with `plinthc` or `plc` instead of `compile`.
+
+<a id='changelog-1.61.0.0'></a>
+# 1.61.0.0 — 2026-04-02
+
+## Changed
+
+- The plugin now automatically sets the `Strict` extension and the GHC flags mentioned
+  in https://plutus.cardano.intersectmbo.org/docs/using-plinth/extensions-flags-pragmas.
+  The `Strict` extension can be turned off using plugin flag `no-strict`.
+  Requires compiling with `plinthc` or `plc` instead of `compile`.
+
+## Fixed
+
+- Fixed a 3-5x execution cost regression for `unsafeFromBuiltinData` on multi-constructor
+  types when compiling in SumsOfProducts mode (the default). The `caseInteger` fallback
+  now generates `equalsInteger`/`ifThenElse` chains instead of building a linked list at
+  runtime.
+
 <a id='changelog-1.60.0.0'></a>
 # 1.60.0.0 — 2026-03-18
 

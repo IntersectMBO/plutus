@@ -21,6 +21,7 @@ module PlutusIR.Subst
   , vTerm
   , tvTerm
   , tvTy
+  , termUsages
   , substConstantA
   , substConstant
   , termSubstConstantsM
@@ -29,6 +30,7 @@ module PlutusIR.Subst
 
 import PlutusPrelude
 
+import PlutusCore.Analysis.Usages (Usages)
 import PlutusCore.Core (typeTyVars)
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Name.Unique (HasUnique, TermUnique, TypeUnique)
@@ -40,6 +42,7 @@ import PlutusIR.Core
 
 import Control.Lens
 import Control.Lens.Unsound qualified as Unsound
+import Data.MultiSet.Lens (multiSetOf)
 import Data.Traversable (mapAccumL)
 import Universe
 
@@ -236,6 +239,13 @@ vTerm = termSubtermsDeep . termVars
 -- | Get all the type variables in a term.
 tvTerm :: Fold (Term tyname name uni fun ann) tyname
 tvTerm = termSubtypesDeep . typeTyVars
+
+-- | Get all the variable usages in a term.
+termUsages
+  :: (HasUnique name TermUnique, HasUnique tyname TypeUnique)
+  => Term tyname name uni fun ann
+  -> Usages
+termUsages = multiSetOf (vTerm . PLC.theUnique <^> tvTerm . PLC.theUnique)
 
 -- | Applicatively replace a constant using the given function.
 substConstantA

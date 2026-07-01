@@ -47,7 +47,7 @@ d_names_10
       MAlonzo.Code.Data.String.Base.du_wordsBy_106
       (coe
          (\ v0 ->
-            MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_66
+            MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_72
               (coe
                  MAlonzo.Code.Data.Char.Base.d__'8776''7495'__14 (coe v0)
                  (coe '.'))))
@@ -57,7 +57,7 @@ d_lastName_14 ::
   [MAlonzo.Code.Agda.Builtin.String.T_String_6] ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_lastName_14 v0 v1
-  = let v2 = coe MAlonzo.Code.Data.List.Base.du_last_540 (coe v1) in
+  = let v2 = coe MAlonzo.Code.Data.List.Base.du_last_524 (coe v1) in
     coe
       (case coe v2 of
          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3 -> coe v3
@@ -317,7 +317,7 @@ d_mk'45'DecCls_82 v0 v1
                                      (MAlonzo.RTE.Fixity
                                         MAlonzo.RTE.NonAssoc MAlonzo.RTE.Unrelated)))
                                (coe
-                                  MAlonzo.Code.Data.List.Base.du_'91'_'93'_286
+                                  MAlonzo.Code.Data.List.Base.du_'91'_'93'_270
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.Reflection.C_arg_98
                                      (coe
@@ -417,7 +417,7 @@ d_mk'45'DecCls_82 v0 v1
                                      (MAlonzo.RTE.Fixity
                                         MAlonzo.RTE.NonAssoc MAlonzo.RTE.Unrelated)))
                                (coe
-                                  MAlonzo.Code.Data.List.Base.du_'91'_'93'_286
+                                  MAlonzo.Code.Data.List.Base.du_'91'_'93'_270
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.Reflection.C_arg_98
                                      (coe
@@ -502,11 +502,59 @@ d_defShow_124 v0 v1
            (coe
               MAlonzo.Code.Data.List.Base.du_map_22 (coe d_mk'45'Show_120)
               (coe d_constructors_4 (coe v2))))
+-- Utils.Reflection.mk-Enum
+d_mk'45'Enum_134 ::
+  [AgdaAny] -> [MAlonzo.Code.Agda.Builtin.Reflection.T_Clause_160]
+d_mk'45'Enum_134 = coe d_go_140 (coe (0 :: Integer))
+-- Utils.Reflection._.go
+d_go_140 ::
+  Integer ->
+  [AgdaAny] -> [MAlonzo.Code.Agda.Builtin.Reflection.T_Clause_160]
+d_go_140 v0 v1
+  = case coe v1 of
+      [] -> coe v1
+      (:) v2 v3
+        -> coe
+             MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+             (coe
+                MAlonzo.Code.Agda.Builtin.Reflection.C_clause_272
+                (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)
+                (coe
+                   MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                   (coe
+                      MAlonzo.Code.Agda.Builtin.Reflection.C_arg_98
+                      (coe
+                         MAlonzo.Code.Agda.Builtin.Reflection.C_arg'45'info_82
+                         (coe MAlonzo.Code.Agda.Builtin.Reflection.C_visible_50)
+                         (coe
+                            MAlonzo.Code.Agda.Builtin.Reflection.C_modality_74
+                            (coe MAlonzo.Code.Agda.Builtin.Reflection.C_relevant_58)
+                            (coe MAlonzo.Code.Agda.Builtin.Reflection.C_quantity'45'ω_66)))
+                      (coe
+                         MAlonzo.Code.Agda.Builtin.Reflection.C_con_244 (coe v2)
+                         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))
+                   (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
+                (coe
+                   MAlonzo.Code.Agda.Builtin.Reflection.C_lit_210
+                   (coe MAlonzo.Code.Agda.Builtin.Reflection.C_nat_128 (coe v0))))
+             (coe d_go_140 (coe addInt (coe (1 :: Integer)) (coe v0)) (coe v3))
+      _ -> MAlonzo.RTE.mazUnreachableError
+-- Utils.Reflection.defEnum
+d_defEnum_148 :: AgdaAny -> AgdaAny -> AgdaAny
+d_defEnum_148 v0 v1
+  = coe
+      MAlonzo.Code.Agda.Builtin.Reflection.d_bindTC_336 () () erased
+      erased
+      (coe MAlonzo.Code.Agda.Builtin.Reflection.d_getDefinition_408 v0)
+      (\ v2 ->
+         coe
+           MAlonzo.Code.Agda.Builtin.Reflection.d_defineFun_404 v1
+           (coe d_mk'45'Enum_134 (d_constructors_4 (coe v2))))
 -- Utils.Reflection.mkList
-d_mkList_134 ::
+d_mkList_158 ::
   [MAlonzo.Code.Agda.Builtin.Reflection.T_Term_154] ->
   MAlonzo.Code.Agda.Builtin.Reflection.T_Term_154
-d_mkList_134 v0
+d_mkList_158 v0
   = case coe v0 of
       []
         -> coe
@@ -573,12 +621,12 @@ d_mkList_134 v0
                                   MAlonzo.Code.Agda.Builtin.Reflection.C_modality_74
                                   (coe MAlonzo.Code.Agda.Builtin.Reflection.C_relevant_58)
                                   (coe MAlonzo.Code.Agda.Builtin.Reflection.C_quantity'45'ω_66)))
-                            (coe d_mkList_134 (coe v2)))
+                            (coe d_mkList_158 (coe v2)))
                          (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.Reflection.defListConstructors
-d_defListConstructors_140 :: AgdaAny -> AgdaAny -> AgdaAny
-d_defListConstructors_140 v0 v1
+d_defListConstructors_164 :: AgdaAny -> AgdaAny -> AgdaAny
+d_defListConstructors_164 v0 v1
   = coe
       MAlonzo.Code.Agda.Builtin.Reflection.d_bindTC_336 () () erased
       erased
@@ -593,7 +641,7 @@ d_defListConstructors_140 v0 v1
                  (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)
                  (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)
                  (coe
-                    d_mkList_134
+                    d_mkList_158
                     (coe
                        MAlonzo.Code.Data.List.Base.du_map_22
                        (coe

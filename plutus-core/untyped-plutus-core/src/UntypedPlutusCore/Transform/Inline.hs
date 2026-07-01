@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -52,12 +53,12 @@ import PlutusCore.Name.Unique (HasUnique, TermUnique (..), Unique (..))
 import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Quote (MonadQuote (..), Quote)
 import PlutusCore.Rename (Dupable, dupable, liftDupable)
-import PlutusPrelude (Generic)
+import PlutusPrelude (Generic, getAnn, modifyAnn)
 import UntypedPlutusCore.Analysis.Usages qualified as Usages
 import UntypedPlutusCore.AstSize (AstSize, termAstSize)
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Core.Plated (termSubterms)
-import UntypedPlutusCore.Core.Type (Term (..), modifyTermAnn, termAnn)
+import UntypedPlutusCore.Core.Type (Term (..))
 import UntypedPlutusCore.MkUPlc (Def (..), UTermDef, UVarDecl (..))
 import UntypedPlutusCore.Purity
   ( EvalTerm (EvalTerm, Unknown)
@@ -69,10 +70,10 @@ import UntypedPlutusCore.Purity
 import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Subst (termSubstNamesM)
 import UntypedPlutusCore.Transform.Certify.Hints qualified as CertifierHints
-import UntypedPlutusCore.Transform.Simplifier
-  ( SimplifierStage (Inline)
-  , SimplifierT
-  , recordSimplificationWithHints
+import UntypedPlutusCore.Transform.Optimizer
+  ( OptimizerT
+  , recordOptimizationWithHints
+  , pattern InlineStage
   )
 
 {- Note [Differences from PIR inliner]
@@ -151,6 +152,7 @@ data InlineInfo name fun a = InlineInfo
   , _iiHints :: InlineHints name a
   , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _iiInlineConstants :: Bool
+  , _iiInlineUnconditionalGrowth :: AstSize
   , _iiInlineCallsiteGrowth :: AstSize
   , _iiPreserveLogging :: Bool
   }
@@ -206,7 +208,9 @@ inline
   :: forall name uni fun m a
    . ExternalConstraints name uni fun m
   => AstSize
-  -- ^ inline threshold
+  -- ^ unconditional threshold
+  -> AstSize
+  -- ^ callsite threshold
   -> Bool
   -- ^ inline constants
   -> Bool
@@ -214,8 +218,9 @@ inline
   -> InlineHints name a
   -> PLC.BuiltinSemanticsVariant fun
   -> Term name uni fun a
-  -> SimplifierT name uni fun a m (Term name uni fun a)
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 inline
+  unconditionalGrowth
   callsiteGrowth
   inlineConstants
   preserveLogging
@@ -232,11 +237,16 @@ inline
               , _iiHints = hints
               , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
               , _iiInlineConstants = inlineConstants
+              , _iiInlineUnconditionalGrowth = unconditionalGrowth
               , _iiInlineCallsiteGrowth = callsiteGrowth
               , _iiPreserveLogging = preserveLogging
               }
     let result = snd <$> decoratedResult
-    recordSimplificationWithHints (CertifierHints.Inline (mkHints decoratedResult)) t Inline result
+    recordOptimizationWithHints
+      (CertifierHints.Inline (mkHints decoratedResult))
+      t
+      InlineStage
+      result
     return result
 
 -- See Note [Differences from PIR inliner] 3
@@ -273,10 +283,9 @@ restoreApps defs t = makeLams [] t (reverse defs)
     -- `aa` is the annotation on the Apply node, and `al` is the annotation
     -- on the LamAbs node.
     makeLams args acc ((Left al, aa) : rest) =
-      -- `Left` means the binding is dropped, so `acc` should be decorated with `al`
-      -- plus `DLamDrop`.
+      -- `Left` means the binding is dropped, so `acc` should be decorated with `al`.
       -- This corresponds to Note [Inliner's Certifier Hints], #3.
-      makeLams ((Nothing, aa) : args) (decorateWith (al ^. decorations ++ [DLamDrop]) acc) rest
+      makeLams ((Nothing, aa) : args) (decorateWith (al ^. decorations) acc) rest
     makeLams args acc ((Right (Def (UVarDecl al n) rhs), aa) : rest) =
       makeLams ((Just rhs, aa) : args) (LamAbs al n acc) rest
     makeLams args acc [] =
@@ -504,9 +513,15 @@ acceptable
   -- ^ inline constants
   -> Term name uni fun a
   -> InlineM name uni fun b Bool
-acceptable inlineConstants t =
+acceptable inlineConstants t = do
+  unconditionalGrowth <- view iiInlineUnconditionalGrowth
   -- See Note [Inlining criteria]
-  pure $ costIsAcceptable t && sizeIsAcceptable inlineConstants t
+  let costOk = costIsAcceptable t
+      sizeOk = termAstSize t <= 1 + unconditionalGrowth
+      constantsOk = case t of
+        Constant {} -> inlineConstants
+        _ -> True
+  pure $ costOk && sizeOk && constantsOk
 
 {-| Is the cost increase (in terms of evaluation work) of inlining a variable
 whose RHS is the given term acceptable? -}
@@ -532,33 +547,6 @@ costIsAcceptable = \case
   Force {} -> False
   Delay {} -> True
 
-{-| Is the size increase (in the AST) of inlining a variable whose RHS is
-the given term acceptable? -}
-sizeIsAcceptable
-  :: Bool
-  -- ^ inline constants
-  -> Term name uni fun a
-  -> Bool
-sizeIsAcceptable inlineConstants = \case
-  Builtin {} -> True
-  Var {} -> True
-  Error {} -> True
-  -- See Note [Differences from PIR inliner] 4
-  LamAbs {} -> False
-  -- Inlining constructors of size 1 or 0 seems okay
-  Constr _ _ es -> case es of
-    [] -> True
-    [e] -> sizeIsAcceptable inlineConstants e
-    _ -> False
-  -- Cases are pretty big, due to the case branches
-  Case {} -> False
-  -- Inlining constants is deemed acceptable if the 'inlineConstants'
-  -- flag is turned on, see Note [Inlining constants].
-  Constant {} -> inlineConstants
-  Apply {} -> False
-  Force _ t -> sizeIsAcceptable inlineConstants t
-  Delay _ t -> sizeIsAcceptable inlineConstants t
-
 -- | Fully apply and beta reduce.
 fullyApplyAndBetaReduce
   :: forall name uni fun a
@@ -578,17 +566,17 @@ fullyApplyAndBetaReduce av info args0 = do
     --   * ...
     --   * decorations on the innermost Apply node, plus DDrop
     --   * `av` plus DExpand.
-    --   * decorations on the first LamAbs, plus DLamDrop
-    --   * decorations on the second LamAbs, plus DLamDrop
+    --   * decorations on the first LamAbs
+    --   * decorations on the second LamAbs
     --   * ...
-    --   * decorations on the last LamAbs, plus DLamDrop
+    --   * decorations on the last LamAbs
     --
     -- See Note [Inliner's Certifier Hints].
     decorateWith
       ( concatMap (\(annApply, _arg) -> annApply ^. decorations ++ [DDrop]) (reverse args0)
           ++ av ^. decorations
           ++ [DExpand]
-          ++ concatMap (\(_name, annLam) -> annLam ^. decorations ++ [DLamDrop]) (info ^. varBinders)
+          ++ concatMap (\(_name, annLam) -> annLam ^. decorations) (info ^. varBinders)
       )
       <$> liftDupable (let Done rhsBody = info ^. varRhsBody in rhsBody)
   let go
@@ -669,8 +657,8 @@ inlineSaturatedApp t
 -- See Note [Inliner's Certifier Hints] for an overview.
 -------------------------------------------------------------------------------
 
--- | An enclosing Drop, LamDrop or Expand layer
-data Decoration = DDrop | DLamDrop | DExpand
+-- | An enclosing Drop or Expand layer
+data Decoration = DDrop | DExpand
 
 type Ann a = ([Decoration], a)
 
@@ -684,7 +672,7 @@ decorations = _1
 
 -- | Prepend the given decorations
 decorateWith :: [Decoration] -> Term name uni fun (Ann a) -> Term name uni fun (Ann a)
-decorateWith ds = modifyTermAnn (first (ds ++))
+decorateWith ds = modifyAnn (first (ds ++))
 {-# INLINE decorateWith #-}
 
 -- | Fold a decorated term into certifier hints.
@@ -696,10 +684,9 @@ mkHints = go
         decorate :: CertifierHints.Inline -> [Decoration] -> CertifierHints.Inline
         decorate = foldr $ \d h -> case d of
           DDrop -> CertifierHints.InlDrop h
-          DLamDrop -> CertifierHints.InlLamDrop h
           DExpand -> CertifierHints.InlExpand h
 
-        ds = termAnn t ^. decorations
+        ds = getAnn t ^. decorations
 
         hints = case t of
           Var {} -> CertifierHints.InlVar
@@ -727,11 +714,11 @@ inliner as a process that repeatedly performs one of the following two operation
 
 Certifier hints are then defined constructively according to the following procedure.
 In the end, the final hints mirror the post-term structure, except that each node may be
-decorated with an arbitrary number of `InlExpand`, `InlDrop` and `InlLamDrop` layers,
+decorated with an arbitrary number of `InlExpand` and `InlDrop` layers,
 reflecting the inlining operations that the inliner has performed.
 
 - Initially the hints mirror the pre-term structure, using constructors of `Inline`
-  except `InlExpand`, `InlDrop` and `InlLamDrop`. Excluding these three constructors,
+  except `InlExpand` and `InlDrop`. Excluding these two constructors,
   there is a 1-1 correspondence between hints constructors and AST constructors.
 
 - Suppose the inliner performs operation 1, substituting term `N` for variable `v`.
@@ -739,8 +726,8 @@ reflecting the inlining operations that the inliner has performed.
 
     hints(v) = decorations(InlVar)
 
-  where `decorations` denotes an arbitrary number of enclosing `InlExpand`, `InlDrop` or
-  `InlLamDrop` layers. After the substitution, the hints at this location should become
+  where `decorations` denotes an arbitrary number of enclosing `InlExpand` or `InlDrop`
+  layers. After the substitution, the hints at this location should become
 
     decorations(InlExpand hints(N))                          (#1)
 
@@ -760,11 +747,11 @@ reflecting the inlining operations that the inliner has performed.
   That is, it is decorated with `decorations₁` plus `InlDrop`.
   The hints for `M` should become
 
-    decorations₂(InlLamDrop (hints(M)))                      (#3)
+    decorations₂(hints(M))                                   (#3)
 
-  That is, it is decorated with `decorations₂`, plus `InlLamDrop`. Note that when `n = 0`,
+  That is, it is decorated with `decorations₂`. Note that when `n = 0`,
   `(\x‾ₙ y. M) X‾ₙ` becomes `M`, and therefore, `hints(M)` should be decorated with
-  `decorations₁` plus `InlDrop` plus `InlLamDrop` plus `decorations₂`.
+  `decorations₁` plus `InlDrop` plus `decorations₂`.
 
 Refer to the golden tests for examples of hints (look for files ending with
 `.golden.certifier-hints`).

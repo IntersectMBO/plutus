@@ -1,21 +1,19 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE NumericUnderscores #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Transform.Inline.Spec where
 
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (runStateT)
-import Data.Text qualified as Text
-import GHC.Exts (fromList)
 import PlutusCore.Annotation (Inline (MayInline))
 import PlutusCore.Default (DefaultFun (..), DefaultUni)
-import PlutusCore.Name.Unique (Name (..), Unique (..))
+import PlutusCore.Name.Unique (Name)
 import PlutusCore.Quote (runQuote)
 import PlutusPrelude (def)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, testCase)
+import Transform.Lib (T, app, builtin, case_, delay, lam, name, var)
 import UntypedPlutusCore.AstSize (AstSize (..))
 import UntypedPlutusCore.Core (Term (..))
 import UntypedPlutusCore.Transform.Inline
@@ -60,11 +58,11 @@ test_inline =
 testVarBeforeAfterEffects :: Assertion
 testVarBeforeAfterEffects = do
   assertBool "a is evaluated before effects" do
-    isFirstVarBeforeEffects def a term
+    isFirstVarBeforeEffects def (name "a") term
   assertBool "b is evaluated before effects" do
-    isFirstVarBeforeEffects def b term
+    isFirstVarBeforeEffects def (name "b") term
   assertBool "c is not evaluated before effects" $ not do
-    isFirstVarBeforeEffects def c term
+    isFirstVarBeforeEffects def (name "c") term
   where
     term :: Term Name DefaultUni DefaultFun ()
     term =
@@ -72,78 +70,67 @@ testVarBeforeAfterEffects = do
 
         1. pure work-free: a
         2. pure work-free: b
-        3. impure? maybe work?: addInteger a b
+        3. impure? maybe work?: plus a b
         4. pure work-free: c
-        5. impure? maybe work?: addInteger (addInteger a b) c
+        5. impure? maybe work?: plus (plus a b) c
       -}
-      addInteger (addInteger (var a) (var b)) (var c)
-    (a, b, c, _) = makeUniqueNames
+      plus (plus (var "a") (var "b")) (var "c")
 
 testVarIsEventuallyEvaluatedDelay :: Assertion
 testVarIsEventuallyEvaluatedDelay = do
   assertBool "var 'a' is not eventually evaluated in delay" $
-    not (isStrictIn a term)
+    not (isStrictIn (name "a") term)
   assertBool "var 'b' is eventually evaluated outside of the delay" $
-    isStrictIn b term
+    isStrictIn (name "b") term
   assertBool "it's not known if var 'c' is eventually evaluated" $
-    not (isStrictIn c term)
+    not (isStrictIn (name "c") term)
   where
     term :: Term Name DefaultUni DefaultFun ()
-    term = delay (var a `addInteger` var b) `addInteger` var b
-
-    (a, b, c, _) = makeUniqueNames
+    term = delay (var "a" `plus` var "b") `plus` var "b"
 
 testVarIsEventuallyEvaluatedLambda :: Assertion
 testVarIsEventuallyEvaluatedLambda = do
   assertBool "var 'a' is not eventually evaluated in lambda body" $
-    not (isStrictIn a term)
+    not (isStrictIn (name "a") term)
   assertBool "var 'c' is eventually evaluated outside of the lambda" $
-    isStrictIn c term
+    isStrictIn (name "c") term
   assertBool "it's not known if var 'd' is eventually evaluated" $
-    not (isStrictIn d term)
+    not (isStrictIn (name "d") term)
   where
     term :: Term Name DefaultUni DefaultFun ()
-    term = lam b (var a `addInteger` var c) `app` var c
-
-    (a, b, c, d) = makeUniqueNames
+    term = lam "b" (var "a" `plus` var "c") `app` var "c"
 
 testVarIsEventuallyEvaluatedCaseBranch :: Assertion
 testVarIsEventuallyEvaluatedCaseBranch = do
   assertBool "var 'a' is not eventually evaluated in case branch" $
-    not (isStrictIn a term)
+    not (isStrictIn (name "a") term)
   assertBool "var 'b' is eventually evaluated outside of the case branch" $
-    isStrictIn b term
+    isStrictIn (name "b") term
   assertBool "it is not known if var 'd' is eventually evaluated" $
-    not (isStrictIn d term)
+    not (isStrictIn (name "d") term)
   where
     term :: Term Name DefaultUni DefaultFun ()
-    term = case_ (var b) [var a, var b, var c]
-
-    (a, b, c, d) = makeUniqueNames
+    term = case_ (var "b") [var "a", var "b", var "c"]
 
 testEffectSafePreservedLogs :: Assertion
 testEffectSafePreservedLogs = do
   assertBool "an immediately eval'd var is not \"effect safe\"" $
-    runInlineWithLogging (not <$> effectSafe term c False)
+    runInlineWithLogging (not <$> effectSafe term (name "c") False)
   assertBool "a var before effects is \"effect safe\"" $
-    runInlineWithLogging (effectSafe term a False)
+    runInlineWithLogging (effectSafe term (name "a") False)
   where
     term :: Term Name DefaultUni DefaultFun ()
-    term = (var a `addInteger` var b) `addInteger` var c
-
-    (a, b, c, _) = makeUniqueNames
+    term = (var "a" `plus` var "b") `plus` var "c"
 
 testEffectSafeWithoutPreservedLogs :: Assertion
 testEffectSafeWithoutPreservedLogs = do
   assertBool "an immediately eval'd var is \"effect safe\"" $
-    runInlineWithoutLogging (effectSafe term c False)
+    runInlineWithoutLogging (effectSafe term (name "c") False)
   assertBool "a var before effects is \"effect safe\"" $
-    runInlineWithoutLogging (effectSafe term a False)
+    runInlineWithoutLogging (effectSafe term (name "a") False)
   where
     term :: Term Name DefaultUni DefaultFun ()
-    term = (var a `addInteger` var b) `addInteger` var c
-
-    (a, b, c, _) = makeUniqueNames
+    term = (var "a" `plus` var "b") `plus` var "c"
 
 --------------------------------------------------------------------------------
 -- InlineM runner --------------------------------------------------------------
@@ -166,6 +153,7 @@ runInlineM preserveLogging m = result
         , _iiHints = InlineHints \_ann _name -> MayInline
         , _iiBuiltinSemanticsVariant = def
         , _iiInlineConstants = True
+        , _iiInlineUnconditionalGrowth = AstSize 3
         , _iiInlineCallsiteGrowth = AstSize 1_000_000
         , _iiPreserveLogging = preserveLogging
         }
@@ -173,36 +161,7 @@ runInlineM preserveLogging m = result
     initialState = S {_subst = Subst (TermEnv mempty), _vars = mempty}
 
 --------------------------------------------------------------------------------
--- UPLC Term constructors ------------------------------------------------------
+-- Local helpers ---------------------------------------------------------------
 
-type T = Term Name DefaultUni DefaultFun ()
-
-var :: Name -> T
-var = Var ()
-
-lam :: Name -> T -> T
-lam = LamAbs ()
-
-app :: T -> T -> T
-app = Apply ()
-
-delay :: T -> T
-delay = Delay ()
-
-case_ :: T -> [T] -> T
-case_ scrut branches = Case () scrut (fromList branches)
-
-addInteger :: T -> T -> T
-addInteger i j = builtin AddInteger `app` i `app` j
-
-builtin :: DefaultFun -> T
-builtin = Builtin ()
-
---------------------------------------------------------------------------------
--- Unique names ----------------------------------------------------------------
-
-makeUniqueNames :: (Name, Name, Name, Name)
-makeUniqueNames = (name "a" 0, name "b" 1, name "c" 2, name "d" 3)
-
-name :: String -> Int -> Name
-name n u = Name (Text.pack n) (Unique u)
+plus :: T -> T -> T
+plus i j = builtin AddInteger `app` i `app` j

@@ -1,1 +1,1 @@
-ByteString -> ByteString -> BuiltinResult Element
+CByteString -> ByteString -> BuiltinResult Element

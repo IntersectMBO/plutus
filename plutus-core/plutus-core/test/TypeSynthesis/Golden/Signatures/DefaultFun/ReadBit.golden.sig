@@ -1,1 +1,1 @@
-ByteString -> Int -> BuiltinResult Bool
+CByteString -> Int -> BuiltinResult Bool

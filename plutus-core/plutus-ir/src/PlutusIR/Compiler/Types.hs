@@ -104,6 +104,7 @@ data CompilationOpts a = CompilationOpts
   , _coInlineHints :: InlineHints PLC.Name (Provenance a)
   , _coInlineConstants :: Bool
   , _coInlineFix :: Bool
+  , _coInlineUnconditionalGrowth :: AstSize
   , _coInlineCallsiteGrowth :: AstSize
   , -- Profiling
     _coProfile :: Bool
@@ -138,6 +139,7 @@ defaultCompilationOpts =
     , _coInlineHints = def
     , _coInlineConstants = True
     , _coInlineFix = True
+    , _coInlineUnconditionalGrowth = 1
     , _coInlineCallsiteGrowth = 5
     , _coProfile = False
     , _coRelaxedFloatin = True

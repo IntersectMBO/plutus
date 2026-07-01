@@ -12,7 +12,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 
 module Spec.Value.WithCurrencySymbol where
 
@@ -39,6 +39,7 @@ import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as List
 import PlutusTx.TH (compile)
 import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
@@ -112,7 +113,7 @@ test_Plinth_CorrectTokenQuantitiesAreSelected =
 
 scaleTestsBy :: Testable prop => Haskell.Int -> prop -> Property
 scaleTestsBy factor =
-  withMaxSuccess (100 Haskell.* factor) . mapSize (Haskell.* factor)
+  BaseQC.withNumTests (100 Haskell.* factor) . mapSize (Haskell.* factor)
 
 cekProp :: CompiledCode Bool -> Property
 cekProp code = evaluationResultMatchesHaskell code (===) True

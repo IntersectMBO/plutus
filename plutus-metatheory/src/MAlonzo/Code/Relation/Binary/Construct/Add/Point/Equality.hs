@@ -1,30 +1,30 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Relation.Binary.Construct.Add.Point.Equality where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Function.Base qualified
-import MAlonzo.Code.Relation.Binary.Structures qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Function.Base
+import qualified MAlonzo.Code.Relation.Binary.Structures
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 -- Relation.Binary.Construct.Add.Point.Equality._≈∙_
 d__'8776''8729'__20 a0 a1 a2 a3 a4 a5 = ()
@@ -43,7 +43,7 @@ du_'91''8776''93''45'injective_34 :: T__'8776''8729'__20 -> AgdaAny
 du_'91''8776''93''45'injective_34 v0
   = case coe v0 of
       C_'91'_'93'_28 v3 -> coe v3
-      _                 -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Relation.Binary.Construct.Add.Point.Equality.≈∙-refl
 d_'8776''8729''45'refl_38 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -153,7 +153,7 @@ du_'8776''8729''45'dec_66 v0 v1 v2
         -> case coe v2 of
              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v4
                -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
                     (coe C_'91'_'93'_28) (coe du_'91''8776''93''45'injective_34)
                     (coe v0 v3 v4)
              MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
@@ -238,47 +238,47 @@ d_'8776''8729''45'isEquivalence_108 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> ()) ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28
 d_'8776''8729''45'isEquivalence_108 ~v0 ~v1 ~v2 ~v3 v4
   = du_'8776''8729''45'isEquivalence_108 v4
 du_'8776''8729''45'isEquivalence_108 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28
 du_'8776''8729''45'isEquivalence_108 v0
   = coe
-      MAlonzo.Code.Relation.Binary.Structures.C_IsEquivalence'46'constructor_745
+      MAlonzo.Code.Relation.Binary.Structures.C_constructor_46
       (coe
          du_'8776''8729''45'refl_38
-         (coe MAlonzo.Code.Relation.Binary.Structures.d_refl_34 (coe v0)))
+         (coe MAlonzo.Code.Relation.Binary.Structures.d_refl_36 (coe v0)))
       (coe
          du_'8776''8729''45'sym_46
-         (coe MAlonzo.Code.Relation.Binary.Structures.d_sym_36 (coe v0)))
+         (coe MAlonzo.Code.Relation.Binary.Structures.d_sym_38 (coe v0)))
       (coe
          du_'8776''8729''45'trans_54
-         (coe MAlonzo.Code.Relation.Binary.Structures.d_trans_38 (coe v0)))
+         (coe MAlonzo.Code.Relation.Binary.Structures.d_trans_40 (coe v0)))
 -- Relation.Binary.Construct.Add.Point.Equality.≈∙-isDecEquivalence
 d_'8776''8729''45'isDecEquivalence_128 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> ()) ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_44 ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_44
+  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_48 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_48
 d_'8776''8729''45'isDecEquivalence_128 ~v0 ~v1 ~v2 ~v3 v4
   = du_'8776''8729''45'isDecEquivalence_128 v4
 du_'8776''8729''45'isDecEquivalence_128 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_44 ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_44
+  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_48 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_48
 du_'8776''8729''45'isDecEquivalence_128 v0
   = coe
-      MAlonzo.Code.Relation.Binary.Structures.C_IsDecEquivalence'46'constructor_3083
+      MAlonzo.Code.Relation.Binary.Structures.C_constructor_70
       (coe
          du_'8776''8729''45'isEquivalence_108
          (coe
-            MAlonzo.Code.Relation.Binary.Structures.d_isEquivalence_50
+            MAlonzo.Code.Relation.Binary.Structures.d_isEquivalence_54
             (coe v0)))
       (coe
          du_'8776''8729''45'dec_66
          (coe
-            MAlonzo.Code.Relation.Binary.Structures.d__'8799'__52 (coe v0)))
+            MAlonzo.Code.Relation.Binary.Structures.d__'8799'__56 (coe v0)))

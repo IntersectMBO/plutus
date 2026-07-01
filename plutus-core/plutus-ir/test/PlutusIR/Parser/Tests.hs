@@ -131,7 +131,7 @@ propTermSrcSpan = property $ do
   trailingSpaces <- forAll $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])
   case parseTerm (code <> trailingSpaces) of
     Right term ->
-      let sp = termAnn term
+      let sp = getAnn term
        in (srcSpanELine sp, srcSpanECol sp) === (endingLine, endingCol + 1)
     Left err -> annotate (display err) >> failure
 

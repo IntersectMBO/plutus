@@ -1,12 +1,10 @@
 {-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Transform.CaseOfCase.Spec where
 
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
-import Data.Vector qualified as V
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -19,13 +17,13 @@ import PlutusCore.Evaluation.Machine.MachineParameters
   , mkMachineVariantParameters
   )
 import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
-import PlutusCore.MkPlc (mkConstant, mkIterApp)
+import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Pretty
-import PlutusCore.Quote (freshName, runQuote)
 import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
 import Test.Tasty.HUnit (testCase, (@?=))
+import Transform.Lib (builtinTrue, case_, con, constr, err, ite, sopFalse, sopTrue, var)
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -36,7 +34,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
   , unsafeSplitStructuralOperational
   )
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
-import UntypedPlutusCore.Transform.Simplifier (evalSimplifier)
+import UntypedPlutusCore.Transform.Optimizer (evalOptimizer)
 
 test_caseOfCase :: TestTree
 test_caseOfCase =
@@ -50,42 +48,26 @@ test_caseOfCase =
     ]
 
 caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-caseOfCase1 = runQuote do
-  b <- freshName "b"
-  let ite = Force () (Builtin () PLC.IfThenElse)
-      true = Constr () 0 []
-      false = Constr () 1 []
-      alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
-  pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
+caseOfCase1 =
+  case_
+    (ite (var "b") sopTrue sopFalse)
+    [ con 1 -- True branch
+    , con 2 -- False branch
+    ]
 
 {-| This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
 Unless both branches are known constructors, the case-of-case transformation
 may increase the program size. -}
 caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-caseOfCase2 = runQuote do
-  b <- freshName "b"
-  t <- freshName "t"
-  let ite = Force () (Builtin () PLC.IfThenElse)
-      true = Var () t
-      false = Constr () 1 []
-      alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
-  pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
+caseOfCase2 = case_ (ite (var "b") (var "t") sopFalse) [con 1, con 2]
 
 {-| Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
-@[Integer]@ rather than Bool (note that @Constr 0@ has two parameters, @x@ and @xs@). -}
+@[Integer]@ rather than Bool (note that @constr 0@ has two parameters, @x@ and @xs@). -}
 caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-caseOfCase3 = runQuote do
-  b <- freshName "b"
-  x <- freshName "x"
-  xs <- freshName "xs"
-  f <- freshName "f"
-  let ite = Force () (Builtin () PLC.IfThenElse)
-      true = Constr () 0 [Var () x, Var () xs]
-      false = Constr () 1 []
-      altTrue = Var () f
-      altFalse = mkConstant @Integer () 2
-      alts = V.fromList [altTrue, altFalse]
-  pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
+caseOfCase3 =
+  case_
+    (ite (var "b") (constr 0 [var "x", var "xs"]) sopFalse)
+    [var "f", con 2]
 
 {-|
 
@@ -104,17 +86,7 @@ After the `CaseOfCase` transformation the program should evaluate to `()` as wel
   force ((force ifThenElse) True (delay ()) (delay _|_))
 @ -}
 caseOfCaseWithError :: Term Name DefaultUni DefaultFun ()
-caseOfCaseWithError =
-  Case
-    ()
-    ( mkIterApp
-        (Force () (Builtin () PLC.IfThenElse))
-        [ ((), mkConstant @Bool () True)
-        , ((), Constr () 0 []) -- True
-        , ((), Constr () 1 []) -- False
-        ]
-    )
-    (V.fromList [mkConstant @() () (), Error ()])
+caseOfCaseWithError = case_ (ite builtinTrue sopTrue sopFalse) [mkConstant @() () (), err]
 
 testCaseOfCaseWithError :: TestTree
 testCaseOfCaseWithError =
@@ -128,7 +100,7 @@ testCaseOfCaseWithError =
 evalCaseOfCase
   :: Term Name DefaultUni DefaultFun ()
   -> Term Name DefaultUni DefaultFun ()
-evalCaseOfCase term = evalSimplifier $ caseOfCase term
+evalCaseOfCase term = evalOptimizer $ caseOfCase term
 
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()
@@ -145,8 +117,10 @@ evaluateUplc = unsafeSplitStructuralOperational . fst <$> evaluateCek noEmitter 
       MachineParameters def $ mkMachineVariantParameters def costModel
 
 goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
-goldenVsSimplified name =
-  goldenVsString name ("untyped-plutus-core/test/Transform/CaseOfCase/" ++ name ++ ".golden.uplc")
+goldenVsSimplified testName =
+  goldenVsString
+    testName
+    ("untyped-plutus-core/test/Transform/CaseOfCase/" ++ testName ++ ".golden.uplc")
     . pure
     . BSL.fromStrict
     . encodeUtf8

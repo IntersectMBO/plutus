@@ -232,7 +232,7 @@ runTypecheck (TypecheckOptions inp fmt outp printMode nameFormat) = do
 ---------------- Optimisation ----------------
 
 runOptimisations :: OptimiseOptions name a -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode _ _ _) = do
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode _ _ _ _) = do
   prog <- readProgram ifmt inp :: IO (PlcProg PLC.SrcSpan)
   let optimised = prog -- No PLC optimisations at present!
   writeProgram outp ofmt mode optimised
@@ -269,6 +269,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
     Flat flatMode -> writeFlat outp flatMode untypedProg
     Serialised -> fail "Serialised format unsupported for TPLC"
     Hex -> fail "Hex format unsupported for TPLC"
+    Blueprint -> fail "Blueprint format unsupported for TPLC"
 
 ---------------- Version ----------------
 

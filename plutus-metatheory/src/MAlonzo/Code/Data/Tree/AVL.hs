@@ -1,148 +1,144 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.Tree.AVL where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.DifferenceList qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Data.Maybe.Base qualified
-import MAlonzo.Code.Data.Product.Base qualified
-import MAlonzo.Code.Data.Tree.AVL.Height qualified
-import MAlonzo.Code.Data.Tree.AVL.Indexed qualified
-import MAlonzo.Code.Data.Tree.AVL.Value qualified
-import MAlonzo.Code.Function.Base qualified
-import MAlonzo.Code.Relation.Binary.Bundles qualified
-import MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.Strict qualified
-import MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.DifferenceList
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Data.Maybe.Base
+import qualified MAlonzo.Code.Data.Product.Base
+import qualified MAlonzo.Code.Data.Tree.AVL.Height
+import qualified MAlonzo.Code.Data.Tree.AVL.Indexed
+import qualified MAlonzo.Code.Data.Tree.AVL.Value
+import qualified MAlonzo.Code.Function.Base
+import qualified MAlonzo.Code.Relation.Binary.Bundles
+import qualified MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.Strict
+import qualified MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict
 
 -- Data.Tree.AVL.Indexed.K&_
-d_K'38'__106 a0 a1 a2 a3 a4 a5 = ()
+d_K'38'__114 a0 a1 a2 a3 a4 a5 = ()
 -- Data.Tree.AVL.Indexed.Tree
-d_Tree_112 a0 a1 a2 a3 a4 a5 a6 a7 a8 = ()
+d_Tree_122 a0 a1 a2 a3 a4 a5 a6 a7 a8 = ()
 -- Data.Tree.AVL.Indexed.Value
-d_Value_114 a0 a1 a2 a3 a4 = ()
+d_Value_124 a0 a1 a2 a3 a4 = ()
 -- Data.Tree.AVL.Indexed.const
-d_const_120 ::
+d_const_132 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38
-d_const_120 ~v0 ~v1 ~v2 ~v3 = du_const_120
-du_const_120 ::
+  () -> MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40
+d_const_132 ~v0 ~v1 ~v2 ~v3 = du_const_132
+du_const_132 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38
-du_const_120 v0 v1
-  = coe MAlonzo.Code.Data.Tree.AVL.Value.du_const_94
+  () -> MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40
+du_const_132 v0 v1
+  = coe MAlonzo.Code.Data.Tree.AVL.Value.du_const_96
 -- Data.Tree.AVL.Indexed.fromPair
-d_fromPair_128 ::
+d_fromPair_140 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__56
-d_fromPair_128 ~v0 ~v1 ~v2 ~v3 = du_fromPair_128
-du_fromPair_128 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__58
+d_fromPair_140 ~v0 ~v1 ~v2 ~v3 = du_fromPair_140
+du_fromPair_140 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__56
-du_fromPair_128 v0 v1 v2
-  = coe MAlonzo.Code.Data.Tree.AVL.Value.du_fromPair_86 v2
+  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__58
+du_fromPair_140 v0 v1 v2
+  = coe MAlonzo.Code.Data.Tree.AVL.Value.du_fromPair_88 v2
 -- Data.Tree.AVL.Indexed.toPair
-d_toPair_182 ::
-  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__56 ->
+d_toPair_194 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__58 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_toPair_182 v0
-  = coe
-      MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
-      (coe MAlonzo.Code.Data.Tree.AVL.Value.d_key_66 (coe v0))
-      (coe MAlonzo.Code.Data.Tree.AVL.Value.d_value_68 (coe v0))
+d_toPair_194 = coe MAlonzo.Code.Data.Tree.AVL.Value.d_toPair_82
 -- Data.Tree.AVL.Indexed.K&_.key
-d_key_204 ::
-  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__56 -> AgdaAny
-d_key_204 v0
-  = coe MAlonzo.Code.Data.Tree.AVL.Value.d_key_66 (coe v0)
+d_key_216 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__58 -> AgdaAny
+d_key_216 v0
+  = coe MAlonzo.Code.Data.Tree.AVL.Value.d_key_68 (coe v0)
 -- Data.Tree.AVL.Indexed.K&_.value
-d_value_206 ::
-  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__56 -> AgdaAny
-d_value_206 v0
-  = coe MAlonzo.Code.Data.Tree.AVL.Value.d_value_68 (coe v0)
+d_value_218 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__58 -> AgdaAny
+d_value_218 v0
+  = coe MAlonzo.Code.Data.Tree.AVL.Value.d_value_70 (coe v0)
 -- Data.Tree.AVL.Indexed.Value.family
-d_family_216 ::
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_family_216 = erased
+d_family_228 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_family_228 = erased
 -- Data.Tree.AVL.Indexed.Value.respects
-d_respects_218 ::
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+d_respects_230 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny
-d_respects_218 v0
-  = coe MAlonzo.Code.Data.Tree.AVL.Value.d_respects_48 (coe v0)
+d_respects_230 v0
+  = coe MAlonzo.Code.Data.Tree.AVL.Value.d_respects_50 (coe v0)
 -- Data.Tree.AVL.Tree
-d_Tree_254 a0 a1 a2 a3 a4 a5 = ()
-data T_Tree_254
-  = C_tree_262 Integer MAlonzo.Code.Data.Tree.AVL.Indexed.T_Tree_180
+d_Tree_266 a0 a1 a2 a3 a4 a5 = ()
+data T_Tree_266
+  = C_tree_274 Integer MAlonzo.Code.Data.Tree.AVL.Indexed.T_Tree_192
 -- Data.Tree.AVL._.Val
-d_Val_272 ::
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Val_272 = erased
+d_Val_284 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Val_284 = erased
 -- Data.Tree.AVL._.empty
-d_empty_274 ::
+d_empty_286 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> T_Tree_254
-d_empty_274 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 = du_empty_274
-du_empty_274 :: T_Tree_254
-du_empty_274
-  = let v0 = coe C_tree_262 (coe (0 :: Integer)) in
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> T_Tree_266
+d_empty_286 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 = du_empty_286
+du_empty_286 :: T_Tree_266
+du_empty_286
+  = let v0 = coe C_tree_274 (coe (0 :: Integer)) in
     coe
       (coe
          v0
          (coe
-            MAlonzo.Code.Data.Tree.AVL.Indexed.C_leaf_192
+            MAlonzo.Code.Data.Tree.AVL.Indexed.C_leaf_204
             (coe
                MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict.C_'91'_'93''60''8868''8314'_30)))
 -- Data.Tree.AVL._.singleton
-d_singleton_278 ::
+d_singleton_290 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> AgdaAny -> T_Tree_254
-d_singleton_278 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 v7
-  = du_singleton_278 v6 v7
-du_singleton_278 :: AgdaAny -> AgdaAny -> T_Tree_254
-du_singleton_278 v0 v1
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> AgdaAny -> T_Tree_266
+d_singleton_290 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 v7
+  = du_singleton_290 v6 v7
+du_singleton_290 :: AgdaAny -> AgdaAny -> T_Tree_266
+du_singleton_290 v0 v1
   = coe
-      C_tree_262 (coe (1 :: Integer))
+      C_tree_274 (coe (1 :: Integer))
       (coe
-         MAlonzo.Code.Data.Tree.AVL.Indexed.du_singleton_798 (coe v0)
+         MAlonzo.Code.Data.Tree.AVL.Indexed.du_singleton_810 (coe v0)
          (coe v1)
          (coe
             MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
@@ -153,32 +149,32 @@ du_singleton_278 v0 v1
             (coe
                MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict.C_'91'_'93''60''8868''8314'_30)))
 -- Data.Tree.AVL._.insert
-d_insert_286 ::
+d_insert_298 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> AgdaAny -> T_Tree_254 -> T_Tree_254
-d_insert_286 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7 v8
-  = du_insert_286 v3 v5 v6 v7 v8
-du_insert_286 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> AgdaAny -> T_Tree_254 -> T_Tree_254
-du_insert_286 v0 v1 v2 v3 v4
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> AgdaAny -> T_Tree_266 -> T_Tree_266
+d_insert_298 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7 v8
+  = du_insert_298 v3 v5 v6 v7 v8
+du_insert_298 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> AgdaAny -> T_Tree_266 -> T_Tree_266
+du_insert_298 v0 v1 v2 v3 v4
   = case coe v4 of
-      C_tree_262 v5 v6
+      C_tree_274 v5 v6
         -> let v7
                  = coe
-                     C_tree_262
+                     C_tree_274
                      (coe
                         MAlonzo.Code.Data.Tree.AVL.Height.d__'8853'__16
                         (coe
                            MAlonzo.Code.Agda.Builtin.Sigma.d_fst_28
                            (coe
-                              MAlonzo.Code.Data.Tree.AVL.Indexed.du_insert_920 v0 v1 v2 v3 v6
+                              MAlonzo.Code.Data.Tree.AVL.Indexed.du_insert_932 v0 v1 v2 v3 v6
                               (coe
                                  MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                  (coe
@@ -193,7 +189,7 @@ du_insert_286 v0 v1 v2 v3 v4
                 v7
                 (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
                    (coe
-                      MAlonzo.Code.Data.Tree.AVL.Indexed.du_insert_920 v0 v1 v2 v3 v6
+                      MAlonzo.Code.Data.Tree.AVL.Indexed.du_insert_932 v0 v1 v2 v3 v6
                       (coe
                          MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                          (coe
@@ -204,32 +200,32 @@ du_insert_286 v0 v1 v2 v3 v4
                             MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict.C_'91'_'93''60''8868''8314'_30)))))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.insertWith
-d_insertWith_296 ::
+d_insertWith_308 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> (Maybe AgdaAny -> AgdaAny) -> T_Tree_254 -> T_Tree_254
-d_insertWith_296 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7 v8
-  = du_insertWith_296 v3 v5 v6 v7 v8
-du_insertWith_296 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> (Maybe AgdaAny -> AgdaAny) -> T_Tree_254 -> T_Tree_254
-du_insertWith_296 v0 v1 v2 v3 v4
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> (Maybe AgdaAny -> AgdaAny) -> T_Tree_266 -> T_Tree_266
+d_insertWith_308 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7 v8
+  = du_insertWith_308 v3 v5 v6 v7 v8
+du_insertWith_308 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> (Maybe AgdaAny -> AgdaAny) -> T_Tree_266 -> T_Tree_266
+du_insertWith_308 v0 v1 v2 v3 v4
   = case coe v4 of
-      C_tree_262 v5 v6
+      C_tree_274 v5 v6
         -> let v7
                  = coe
-                     C_tree_262
+                     C_tree_274
                      (coe
                         MAlonzo.Code.Data.Tree.AVL.Height.d__'8853'__16
                         (coe
                            MAlonzo.Code.Agda.Builtin.Sigma.d_fst_28
                            (coe
-                              MAlonzo.Code.Data.Tree.AVL.Indexed.du_insertWith_818 (coe v0)
+                              MAlonzo.Code.Data.Tree.AVL.Indexed.du_insertWith_830 (coe v0)
                               (coe v1) (coe v2) (coe v3) (coe v6)
                               (coe
                                  MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
@@ -245,7 +241,7 @@ du_insertWith_296 v0 v1 v2 v3 v4
                 v7
                 (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
                    (coe
-                      MAlonzo.Code.Data.Tree.AVL.Indexed.du_insertWith_818 (coe v0)
+                      MAlonzo.Code.Data.Tree.AVL.Indexed.du_insertWith_830 (coe v0)
                       (coe v1) (coe v2) (coe v3) (coe v6)
                       (coe
                          MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
@@ -257,30 +253,30 @@ du_insertWith_296 v0 v1 v2 v3 v4
                             MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict.C_'91'_'93''60''8868''8314'_30)))))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.delete
-d_delete_304 ::
+d_delete_316 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> T_Tree_254 -> T_Tree_254
-d_delete_304 ~v0 ~v1 ~v2 v3 ~v4 ~v5 v6 v7 = du_delete_304 v3 v6 v7
-du_delete_304 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  AgdaAny -> T_Tree_254 -> T_Tree_254
-du_delete_304 v0 v1 v2
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> T_Tree_266 -> T_Tree_266
+d_delete_316 ~v0 ~v1 ~v2 v3 ~v4 ~v5 v6 v7 = du_delete_316 v3 v6 v7
+du_delete_316 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  AgdaAny -> T_Tree_266 -> T_Tree_266
+du_delete_316 v0 v1 v2
   = case coe v2 of
-      C_tree_262 v3 v4
+      C_tree_274 v3 v4
         -> let v5
                  = coe
-                     C_tree_262
+                     C_tree_274
                      (coe
                         MAlonzo.Code.Data.Tree.AVL.Height.d_pred'91'_'8853'_'93'_22
                         (coe
                            MAlonzo.Code.Agda.Builtin.Sigma.d_fst_28
                            (coe
-                              MAlonzo.Code.Data.Tree.AVL.Indexed.du_delete_936 (coe v0)
+                              MAlonzo.Code.Data.Tree.AVL.Indexed.du_delete_948 (coe v0)
                               (coe
                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
                                  (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))
@@ -300,7 +296,7 @@ du_delete_304 v0 v1 v2
                 v5
                 (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
                    (coe
-                      MAlonzo.Code.Data.Tree.AVL.Indexed.du_delete_936 (coe v0)
+                      MAlonzo.Code.Data.Tree.AVL.Indexed.du_delete_948 (coe v0)
                       (coe
                          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
                          (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))
@@ -316,25 +312,25 @@ du_delete_304 v0 v1 v2
                             MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict.C_'91'_'93''60''8868''8314'_30)))))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.lookup
-d_lookup_312 ::
+d_lookup_324 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> AgdaAny -> Maybe AgdaAny
-d_lookup_312 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7
-  = du_lookup_312 v3 v5 v6 v7
-du_lookup_312 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> AgdaAny -> Maybe AgdaAny
-du_lookup_312 v0 v1 v2 v3
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> AgdaAny -> Maybe AgdaAny
+d_lookup_324 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7
+  = du_lookup_324 v3 v5 v6 v7
+du_lookup_324 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> AgdaAny -> Maybe AgdaAny
+du_lookup_324 v0 v1 v2 v3
   = case coe v2 of
-      C_tree_262 v4 v5
+      C_tree_274 v4 v5
         -> coe
-             MAlonzo.Code.Data.Tree.AVL.Indexed.du_lookup_1034 (coe v0) (coe v1)
+             MAlonzo.Code.Data.Tree.AVL.Indexed.du_lookup_1046 (coe v0) (coe v1)
              (coe v5) (coe v3)
              (coe
                 MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
@@ -346,88 +342,88 @@ du_lookup_312 v0 v1 v2 v3
                    MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict.C_'91'_'93''60''8868''8314'_30))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.Val
-d_Val_330 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+d_Val_342 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Val_330 = erased
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Val_342 = erased
 -- Data.Tree.AVL._.Wal
-d_Wal_332 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+d_Wal_344 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Wal_332 = erased
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Wal_344 = erased
 -- Data.Tree.AVL._.map
-d_map_334 ::
+d_map_346 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  (AgdaAny -> AgdaAny -> AgdaAny) -> T_Tree_254 -> T_Tree_254
-d_map_334 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8 v9 = du_map_334 v8 v9
-du_map_334 ::
-  (AgdaAny -> AgdaAny -> AgdaAny) -> T_Tree_254 -> T_Tree_254
-du_map_334 v0 v1
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  (AgdaAny -> AgdaAny -> AgdaAny) -> T_Tree_266 -> T_Tree_266
+d_map_346 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8 v9 = du_map_346 v8 v9
+du_map_346 ::
+  (AgdaAny -> AgdaAny -> AgdaAny) -> T_Tree_266 -> T_Tree_266
+du_map_346 v0 v1
   = case coe v1 of
-      C_tree_262 v2 v3
+      C_tree_274 v2 v3
         -> coe
-             C_tree_262 (coe v2)
+             C_tree_274 (coe v2)
              (coe
-                MAlonzo.Code.Data.Tree.AVL.Indexed.du_map_1188 (coe v0) (coe v3))
+                MAlonzo.Code.Data.Tree.AVL.Indexed.du_map_1200 (coe v0) (coe v3))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.Val
-d_Val_348 ::
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Val_348 = erased
+d_Val_360 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Val_360 = erased
 -- Data.Tree.AVL._.member
-d_member_350 ::
+d_member_362 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> T_Tree_254 -> Bool
-d_member_350 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7
-  = du_member_350 v3 v5 v6 v7
-du_member_350 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> T_Tree_254 -> Bool
-du_member_350 v0 v1 v2 v3
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> T_Tree_266 -> Bool
+d_member_362 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7
+  = du_member_362 v3 v5 v6 v7
+du_member_362 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> T_Tree_266 -> Bool
+du_member_362 v0 v1 v2 v3
   = coe
       MAlonzo.Code.Data.Maybe.Base.du_is'45'just_20
-      (coe du_lookup_312 (coe v0) (coe v1) (coe v3) (coe v2))
+      (coe du_lookup_324 (coe v0) (coe v1) (coe v3) (coe v2))
 -- Data.Tree.AVL._.headTail
-d_headTail_356 ::
+d_headTail_368 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_headTail_356 ~v0 ~v1 ~v2 v3 ~v4 ~v5 v6 = du_headTail_356 v3 v6
-du_headTail_356 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  T_Tree_254 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-du_headTail_356 v0 v1
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+d_headTail_368 ~v0 ~v1 ~v2 v3 ~v4 ~v5 v6 = du_headTail_368 v3 v6
+du_headTail_368 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  T_Tree_266 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+du_headTail_368 v0 v1
   = case coe v1 of
-      C_tree_262 v2 v3
+      C_tree_274 v2 v3
         -> let v4
                  = let v4 = subInt (coe v2) (coe (1 :: Integer)) in
                    coe
                      (let v5
                             = coe
-                                MAlonzo.Code.Data.Tree.AVL.Indexed.du_headTail_648 (coe v4)
+                                MAlonzo.Code.Data.Tree.AVL.Indexed.du_headTail_660 (coe v4)
                                 (coe v3) in
                       coe
                         (case coe v5 of
@@ -442,12 +438,12 @@ du_headTail_356 v0 v1
                                                    MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                                    (coe v6)
                                                    (coe
-                                                      C_tree_262
+                                                      C_tree_274
                                                       (coe
                                                          MAlonzo.Code.Data.Tree.AVL.Height.d__'8853'__16
                                                          (coe v10) (coe v4))
                                                       (coe
-                                                         MAlonzo.Code.Data.Tree.AVL.Indexed.du_cast'737'_290
+                                                         MAlonzo.Code.Data.Tree.AVL.Indexed.du_cast'737'_302
                                                          (coe v0)
                                                          (coe
                                                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
@@ -458,7 +454,7 @@ du_headTail_356 v0 v1
                                                             (coe
                                                                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
                                                                (coe
-                                                                  MAlonzo.Code.Data.Tree.AVL.Value.d_key_66
+                                                                  MAlonzo.Code.Data.Tree.AVL.Value.d_key_68
                                                                   (coe v6))))
                                                          (coe
                                                             MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
@@ -472,32 +468,32 @@ du_headTail_356 v0 v1
                            _ -> MAlonzo.RTE.mazUnreachableError)) in
            coe
              (case coe v3 of
-                MAlonzo.Code.Data.Tree.AVL.Indexed.C_leaf_192 v5
+                MAlonzo.Code.Data.Tree.AVL.Indexed.C_leaf_204 v5
                   -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
                 _ -> coe v4)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.initLast
-d_initLast_368 ::
+d_initLast_380 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_initLast_368 ~v0 ~v1 ~v2 v3 ~v4 ~v5 v6 = du_initLast_368 v3 v6
-du_initLast_368 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  T_Tree_254 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-du_initLast_368 v0 v1
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+d_initLast_380 ~v0 ~v1 ~v2 v3 ~v4 ~v5 v6 = du_initLast_380 v3 v6
+du_initLast_380 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  T_Tree_266 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+du_initLast_380 v0 v1
   = case coe v1 of
-      C_tree_262 v2 v3
+      C_tree_274 v2 v3
         -> let v4
                  = let v4 = subInt (coe v2) (coe (1 :: Integer)) in
                    coe
                      (let v5
                             = coe
-                                MAlonzo.Code.Data.Tree.AVL.Indexed.du_initLast_698 (coe v4)
+                                MAlonzo.Code.Data.Tree.AVL.Indexed.du_initLast_710 (coe v4)
                                 (coe v3) in
                       coe
                         (case coe v5 of
@@ -511,12 +507,12 @@ du_initLast_368 v0 v1
                                                 (coe
                                                    MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
                                                    (coe
-                                                      C_tree_262
+                                                      C_tree_274
                                                       (coe
                                                          MAlonzo.Code.Data.Tree.AVL.Height.d__'8853'__16
                                                          (coe v10) (coe v4))
                                                       (coe
-                                                         MAlonzo.Code.Data.Tree.AVL.Indexed.du_cast'691'_316
+                                                         MAlonzo.Code.Data.Tree.AVL.Indexed.du_cast'691'_328
                                                          (coe v0)
                                                          (coe
                                                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
@@ -527,7 +523,7 @@ du_initLast_368 v0 v1
                                                             (coe
                                                                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
                                                                (coe
-                                                                  MAlonzo.Code.Data.Tree.AVL.Value.d_key_66
+                                                                  MAlonzo.Code.Data.Tree.AVL.Value.d_key_68
                                                                   (coe v6))))
                                                          (coe
                                                             MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
@@ -540,369 +536,364 @@ du_initLast_368 v0 v1
                            _ -> MAlonzo.RTE.mazUnreachableError)) in
            coe
              (case coe v3 of
-                MAlonzo.Code.Data.Tree.AVL.Indexed.C_leaf_192 v5
+                MAlonzo.Code.Data.Tree.AVL.Indexed.C_leaf_204 v5
                   -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
                 _ -> coe v4)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.foldr
-d_foldr_382 ::
+d_foldr_394 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
-  AgdaAny -> T_Tree_254 -> AgdaAny
-d_foldr_382 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8 v9 v10
-  = du_foldr_382 v8 v9 v10
-du_foldr_382 ::
+  AgdaAny -> T_Tree_266 -> AgdaAny
+d_foldr_394 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8 v9 v10
+  = du_foldr_394 v8 v9 v10
+du_foldr_394 ::
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
-  AgdaAny -> T_Tree_254 -> AgdaAny
-du_foldr_382 v0 v1 v2
+  AgdaAny -> T_Tree_266 -> AgdaAny
+du_foldr_394 v0 v1 v2
   = case coe v2 of
-      C_tree_262 v3 v4
+      C_tree_274 v3 v4
         -> coe
-             MAlonzo.Code.Data.Tree.AVL.Indexed.du_foldr_1114 (coe v0) (coe v1)
+             MAlonzo.Code.Data.Tree.AVL.Indexed.du_foldr_1126 (coe v0) (coe v1)
              (coe v4)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.fromList
-d_fromList_390 ::
+d_fromList_402 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  [MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__56] -> T_Tree_254
-d_fromList_390 ~v0 ~v1 ~v2 v3 ~v4 v5 = du_fromList_390 v3 v5
-du_fromList_390 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  [MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__56] -> T_Tree_254
-du_fromList_390 v0 v1
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  [MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__58] -> T_Tree_266
+d_fromList_402 ~v0 ~v1 ~v2 v3 ~v4 v5 = du_fromList_402 v3 v5
+du_fromList_402 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  [MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__58] -> T_Tree_266
+du_fromList_402 v0 v1
   = coe
       MAlonzo.Code.Data.List.Base.du_foldr_216
       (coe
          MAlonzo.Code.Function.Base.du__'8728''8242'__216
          (coe
             MAlonzo.Code.Data.Product.Base.du_uncurry_244
-            (coe du_insert_286 (coe v0) (coe v1)))
-         (coe MAlonzo.Code.Data.Tree.AVL.Value.d_toPair_80))
-      (coe du_empty_274)
+            (coe du_insert_298 (coe v0) (coe v1)))
+         (coe MAlonzo.Code.Data.Tree.AVL.Value.d_toPair_82))
+      (coe du_empty_286)
 -- Data.Tree.AVL._.toList
-d_toList_392 ::
+d_toList_404 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> [MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__56]
-d_toList_392 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_toList_392 v6
-du_toList_392 ::
-  T_Tree_254 -> [MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__56]
-du_toList_392 v0
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> [MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__58]
+d_toList_404 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_toList_404 v6
+du_toList_404 ::
+  T_Tree_266 -> [MAlonzo.Code.Data.Tree.AVL.Value.T_K'38'__58]
+du_toList_404 v0
   = case coe v0 of
-      C_tree_262 v1 v2
+      C_tree_274 v1 v2
         -> coe
              MAlonzo.Code.Data.DifferenceList.du_toList_54
              (coe
-                MAlonzo.Code.Data.Tree.AVL.Indexed.du_toDiffList_1140 (coe v2))
+                MAlonzo.Code.Data.Tree.AVL.Indexed.du_toDiffList_1152 (coe v2))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.size
-d_size_396 ::
+d_size_408 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> Integer
-d_size_396 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_size_396 v6
-du_size_396 :: T_Tree_254 -> Integer
-du_size_396 v0
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> Integer
+d_size_408 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_size_408 v6
+du_size_408 :: T_Tree_266 -> Integer
+du_size_408 v0
   = case coe v0 of
-      C_tree_262 v1 v2
-        -> coe MAlonzo.Code.Data.Tree.AVL.Indexed.du_size_1164 v2
+      C_tree_274 v1 v2
+        -> coe MAlonzo.Code.Data.Tree.AVL.Indexed.du_size_1176 v2
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.Val
-d_Val_412 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+d_Val_424 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Val_412 = erased
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Val_424 = erased
 -- Data.Tree.AVL._.Wal
-d_Wal_414 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+d_Wal_426 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Wal_414 = erased
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Wal_426 = erased
 -- Data.Tree.AVL._.unionWith
-d_unionWith_418 ::
+d_unionWith_430 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> Maybe AgdaAny -> AgdaAny) ->
-  T_Tree_254 -> T_Tree_254 -> T_Tree_254
-d_unionWith_418 ~v0 ~v1 ~v2 v3 ~v4 ~v5 ~v6 v7 v8 v9 v10
-  = du_unionWith_418 v3 v7 v8 v9 v10
-du_unionWith_418 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  T_Tree_266 -> T_Tree_266 -> T_Tree_266
+d_unionWith_430 ~v0 ~v1 ~v2 v3 ~v4 ~v5 ~v6 v7 v8 v9 v10
+  = du_unionWith_430 v3 v7 v8 v9 v10
+du_unionWith_430 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> Maybe AgdaAny -> AgdaAny) ->
-  T_Tree_254 -> T_Tree_254 -> T_Tree_254
-du_unionWith_418 v0 v1 v2 v3 v4
+  T_Tree_266 -> T_Tree_266 -> T_Tree_266
+du_unionWith_430 v0 v1 v2 v3 v4
   = coe
-      du_foldr_382
+      du_foldr_394
       (coe
          (\ v5 v6 ->
-            coe du_insertWith_296 (coe v0) (coe v1) (coe v5) (coe v2 v5 v6)))
+            coe du_insertWith_308 (coe v0) (coe v1) (coe v5) (coe v2 v5 v6)))
       (coe v4) (coe v3)
 -- Data.Tree.AVL._.Val
-d_Val_438 ::
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Val_438 = erased
+d_Val_450 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Val_450 = erased
 -- Data.Tree.AVL._.union
-d_union_440 ::
+d_union_452 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> T_Tree_254 -> T_Tree_254
-d_union_440 ~v0 ~v1 ~v2 v3 ~v4 v5 = du_union_440 v3 v5
-du_union_440 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> T_Tree_254 -> T_Tree_254
-du_union_440 v0 v1
-  = coe du_unionWith_418 (coe v0) (coe v1) (coe (\ v2 v3 v4 -> v3))
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> T_Tree_266 -> T_Tree_266
+d_union_452 ~v0 ~v1 ~v2 v3 ~v4 v5 = du_union_452 v3 v5
+du_union_452 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> T_Tree_266 -> T_Tree_266
+du_union_452 v0 v1
+  = coe du_unionWith_430 (coe v0) (coe v1) (coe (\ v2 v3 v4 -> v3))
 -- Data.Tree.AVL._.unionsWith
-d_unionsWith_444 ::
+d_unionsWith_456 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> Maybe AgdaAny -> AgdaAny) ->
-  [T_Tree_254] -> T_Tree_254
-d_unionsWith_444 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7
-  = du_unionsWith_444 v3 v5 v6 v7
-du_unionsWith_444 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  [T_Tree_266] -> T_Tree_266
+d_unionsWith_456 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7
+  = du_unionsWith_456 v3 v5 v6 v7
+du_unionsWith_456 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> Maybe AgdaAny -> AgdaAny) ->
-  [T_Tree_254] -> T_Tree_254
-du_unionsWith_444 v0 v1 v2 v3
+  [T_Tree_266] -> T_Tree_266
+du_unionsWith_456 v0 v1 v2 v3
   = coe
       MAlonzo.Code.Data.List.Base.du_foldr_216
-      (coe du_unionWith_418 (coe v0) (coe v1) (coe v2))
-      (coe du_empty_274) (coe v3)
+      (coe du_unionWith_430 (coe v0) (coe v1) (coe v2))
+      (coe du_empty_286) (coe v3)
 -- Data.Tree.AVL._.unions
-d_unions_450 ::
+d_unions_462 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  [T_Tree_254] -> T_Tree_254
-d_unions_450 ~v0 ~v1 ~v2 v3 ~v4 v5 = du_unions_450 v3 v5
-du_unions_450 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  [T_Tree_254] -> T_Tree_254
-du_unions_450 v0 v1
-  = coe du_unionsWith_444 (coe v0) (coe v1) (coe (\ v2 v3 v4 -> v3))
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  [T_Tree_266] -> T_Tree_266
+d_unions_462 ~v0 ~v1 ~v2 v3 ~v4 v5 = du_unions_462 v3 v5
+du_unions_462 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  [T_Tree_266] -> T_Tree_266
+du_unions_462 v0 v1
+  = coe du_unionsWith_456 (coe v0) (coe v1) (coe (\ v2 v3 v4 -> v3))
 -- Data.Tree.AVL._.Val
-d_Val_468 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+d_Val_480 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Val_468 = erased
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Val_480 = erased
 -- Data.Tree.AVL._.Wal
-d_Wal_470 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+d_Wal_482 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Wal_470 = erased
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Wal_482 = erased
 -- Data.Tree.AVL._.Xal
-d_Xal_472 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+d_Xal_484 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Xal_472 = erased
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Xal_484 = erased
 -- Data.Tree.AVL._.intersectionWith
-d_intersectionWith_476 ::
+d_intersectionWith_488 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
-  T_Tree_254 -> T_Tree_254 -> T_Tree_254
-d_intersectionWith_476 ~v0 ~v1 ~v2 v3 ~v4 ~v5 ~v6 ~v7 v8 v9 v10 v11
+  T_Tree_266 -> T_Tree_266 -> T_Tree_266
+d_intersectionWith_488 ~v0 ~v1 ~v2 v3 ~v4 ~v5 ~v6 ~v7 v8 v9 v10 v11
                        v12
-  = du_intersectionWith_476 v3 v8 v9 v10 v11 v12
-du_intersectionWith_476 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  = du_intersectionWith_488 v3 v8 v9 v10 v11 v12
+du_intersectionWith_488 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
-  T_Tree_254 -> T_Tree_254 -> T_Tree_254
-du_intersectionWith_476 v0 v1 v2 v3 v4 v5
+  T_Tree_266 -> T_Tree_266 -> T_Tree_266
+du_intersectionWith_488 v0 v1 v2 v3 v4 v5
   = coe
-      du_foldr_382
-      (coe du_cons_490 (coe v0) (coe v1) (coe v2) (coe v3) (coe v5))
-      (coe du_empty_274) (coe v4)
+      du_foldr_394
+      (coe du_cons_502 (coe v0) (coe v1) (coe v2) (coe v3) (coe v5))
+      (coe du_empty_286) (coe v4)
 -- Data.Tree.AVL._._.cons
-d_cons_490 ::
+d_cons_502 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
-  T_Tree_254 ->
-  T_Tree_254 -> AgdaAny -> AgdaAny -> T_Tree_254 -> T_Tree_254
-d_cons_490 ~v0 ~v1 ~v2 v3 ~v4 ~v5 ~v6 ~v7 v8 v9 v10 ~v11 v12 v13
+  T_Tree_266 ->
+  T_Tree_266 -> AgdaAny -> AgdaAny -> T_Tree_266 -> T_Tree_266
+d_cons_502 ~v0 ~v1 ~v2 v3 ~v4 ~v5 ~v6 ~v7 v8 v9 v10 ~v11 v12 v13
            v14
-  = du_cons_490 v3 v8 v9 v10 v12 v13 v14
-du_cons_490 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  = du_cons_502 v3 v8 v9 v10 v12 v13 v14
+du_cons_502 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
-  T_Tree_254 -> AgdaAny -> AgdaAny -> T_Tree_254 -> T_Tree_254
-du_cons_490 v0 v1 v2 v3 v4 v5 v6
-  = let v7 = coe du_lookup_312 (coe v0) (coe v1) (coe v4) (coe v5) in
+  T_Tree_266 -> AgdaAny -> AgdaAny -> T_Tree_266 -> T_Tree_266
+du_cons_502 v0 v1 v2 v3 v4 v5 v6
+  = let v7 = coe du_lookup_324 (coe v0) (coe v1) (coe v4) (coe v5) in
     coe
       (case coe v7 of
          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v8
-           -> coe
-                du_insert_286 (coe v0)
-                (coe
-                   MAlonzo.Code.Data.Tree.AVL.Value.C_MkValue_50
-                   (MAlonzo.Code.Data.Tree.AVL.Value.d_respects_48 (coe v2)))
-                (coe v5) (coe v3 v5 v6 v8)
+           -> coe du_insert_298 (coe v0) (coe v2) (coe v5) (coe v3 v5 v6 v8)
          MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 -> coe (\ v8 -> v8)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Data.Tree.AVL._.Val
-d_Val_508 ::
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 -> AgdaAny -> ()
-d_Val_508 = erased
+d_Val_520 ::
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 -> AgdaAny -> ()
+d_Val_520 = erased
 -- Data.Tree.AVL._.intersection
-d_intersection_510 ::
+d_intersection_522 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> T_Tree_254 -> T_Tree_254
-d_intersection_510 ~v0 ~v1 ~v2 v3 ~v4 v5
-  = du_intersection_510 v3 v5
-du_intersection_510 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  T_Tree_254 -> T_Tree_254 -> T_Tree_254
-du_intersection_510 v0 v1
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> T_Tree_266 -> T_Tree_266
+d_intersection_522 ~v0 ~v1 ~v2 v3 ~v4 v5
+  = du_intersection_522 v3 v5
+du_intersection_522 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  T_Tree_266 -> T_Tree_266 -> T_Tree_266
+du_intersection_522 v0 v1
   = coe
-      du_intersectionWith_476 (coe v0) (coe v1) (coe v1)
+      du_intersectionWith_488 (coe v0) (coe v1) (coe v1)
       (coe (\ v2 v3 v4 -> v3))
 -- Data.Tree.AVL._.intersectionsWith
-d_intersectionsWith_514 ::
+d_intersectionsWith_526 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
-  [T_Tree_254] -> T_Tree_254
-d_intersectionsWith_514 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7
-  = du_intersectionsWith_514 v3 v5 v6 v7
-du_intersectionsWith_514 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
+  [T_Tree_266] -> T_Tree_266
+d_intersectionsWith_526 ~v0 ~v1 ~v2 v3 ~v4 v5 v6 v7
+  = du_intersectionsWith_526 v3 v5 v6 v7
+du_intersectionsWith_526 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
-  [T_Tree_254] -> T_Tree_254
-du_intersectionsWith_514 v0 v1 v2 v3
+  [T_Tree_266] -> T_Tree_266
+du_intersectionsWith_526 v0 v1 v2 v3
   = case coe v3 of
-      [] -> coe du_empty_274
+      [] -> coe du_empty_286
       (:) v4 v5
         -> coe
              MAlonzo.Code.Data.List.Base.du_foldl_230
-             (coe du_intersectionWith_476 (coe v0) (coe v1) (coe v1) (coe v2))
+             (coe du_intersectionWith_488 (coe v0) (coe v1) (coe v1) (coe v2))
              (coe v4) (coe v5)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Tree.AVL._.intersections
-d_intersections_524 ::
+d_intersections_536 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  [T_Tree_254] -> T_Tree_254
-d_intersections_524 ~v0 ~v1 ~v2 v3 ~v4 v5
-  = du_intersections_524 v3 v5
-du_intersections_524 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  [T_Tree_254] -> T_Tree_254
-du_intersections_524 v0 v1
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  [T_Tree_266] -> T_Tree_266
+d_intersections_536 ~v0 ~v1 ~v2 v3 ~v4 v5
+  = du_intersections_536 v3 v5
+du_intersections_536 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  [T_Tree_266] -> T_Tree_266
+du_intersections_536 v0 v1
   = coe
-      du_intersectionsWith_514 (coe v0) (coe v1) (coe (\ v2 v3 v4 -> v3))
+      du_intersectionsWith_526 (coe v0) (coe v1) (coe (\ v2 v3 v4 -> v3))
 -- Data.Tree.AVL._∈?_
-d__'8712''63'__530 ::
+d__'8712''63'__542 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> T_Tree_254 -> Bool
-d__'8712''63'__530 ~v0 ~v1 ~v2 v3 ~v4 v5
-  = du__'8712''63'__530 v3 v5
-du__'8712''63'__530 ::
-  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036 ->
-  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_38 ->
-  AgdaAny -> T_Tree_254 -> Bool
-du__'8712''63'__530 v0 v1 = coe du_member_350 (coe v0) (coe v1)
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> T_Tree_266 -> Bool
+d__'8712''63'__542 ~v0 ~v1 ~v2 v3 ~v4 v5
+  = du__'8712''63'__542 v3 v5
+du__'8712''63'__542 ::
+  MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1280 ->
+  MAlonzo.Code.Data.Tree.AVL.Value.T_Value_40 ->
+  AgdaAny -> T_Tree_266 -> Bool
+du__'8712''63'__542 v0 v1 = coe du_member_362 (coe v0) (coe v1)

@@ -11,13 +11,17 @@ open import VerifiedCompilation
 open import VerifiedCompilation.Certificate
 open import VerifiedCompilation.UntypedTranslation
 open import VerifiedCompilation.UInline
+open import VerifiedCompilation.UCaseReduce as CR
+import VerifiedCompilation.FloatOut as FloatOut
+open import Untyped.Relation.Binary.Modular
+open import Untyped.Relation.Binary.Core renaming (Pointwise to PW)
 open import Untyped
 open import Untyped.RenamingSubstitution using (Sub)
-open import Utils as U using (List; _×_; _,_; Either; either)
+open import Utils as U using (_×_; _,_; Either; either; inj₁; inj₂)
 
 open import Agda.Builtin.Sigma using (Σ; _,_; snd)
 open import Data.Bool using (if_then_else_)
-open import Data.List as L using (List)
+open import Data.List using (List; []; _∷_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Data.Maybe
 open import Data.Nat
@@ -35,16 +39,24 @@ nl = "\n"
 hl : String
 hl = "\n──────────────────────────────────────────────────────\n"
 
-showTag : SimplifierTag → String
-showTag floatDelayT = "Float Delay"
-showTag forceDelayT = "Force-Delay Cancellation"
-showTag forceCaseDelayT = "Float Force into Case Branches"
-showTag caseOfCaseT = "Case-of-Case"
-showTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
-showTag inlineT = "Inlining"
-showTag cseT = "Common Subexpression Elimination"
-showTag applyToCaseT = "Transform multi-argument applications into case-constr form"
-showTag unknown = "Unknown Pass"
+showCertifiedOptTag : CertifiedOptTag → String
+showCertifiedOptTag floatDelayT = "Float Delay"
+showCertifiedOptTag forceDelayT = "Force-Delay Cancellation"
+showCertifiedOptTag forceCaseDelayT = "Float Force into Case Branches"
+showCertifiedOptTag inlineT = "Inlining"
+showCertifiedOptTag cseT = "Common Subexpression Elimination"
+showCertifiedOptTag applyToCaseT = "Transform multi-argument applications into case-constr form"
+showCertifiedOptTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
+showCertifiedOptTag letFloatOutT = "Float bindings outwards"
+
+showUncertifiedOptTag : UncertifiedOptTag → String
+showUncertifiedOptTag caseOfCaseT = "Case-of-Case"
+showUncertifiedOptTag constantFoldingT = "Constant Folding"
+showUncertifiedOptTag polyBuiltinT = "Hoist Polymorphic Builtins"
+
+showTag : OptTag → String
+showTag (inj₁ tag) = showUncertifiedOptTag tag ++ "  ⚠ (certifier unavailable)"
+showTag (inj₂ tag) = showCertifiedOptTag tag ++ "  ✅"
 ```
 
 Number of times an optimization is applied on the given term in one compiler pass:
@@ -55,7 +67,7 @@ numSites′ = go 0
   where
   go : {R : Relation} {X : ℕ} {M N : X ⊢} →  ℕ → Translation R M N → ℕ
   goᵐ : {R : Relation} {X : ℕ} {M N : X ⊢} →  ℕ → TransMatch R M N → ℕ
-  goᵖʷ : {R : Relation} {X : ℕ} {Ms Ns : L.List (X ⊢)} → ℕ → Pointwise (Translation R) Ms Ns → ℕ
+  goᵖʷ : {R : Relation} {X : ℕ} {Ms Ns : List (X ⊢)} → ℕ → Pointwise (Translation R) Ms Ns → ℕ
 
   go n (istranslation _) = suc n
   go n (match m) = goᵐ n m
@@ -77,7 +89,7 @@ numSites′ = go 0
 numSitesInlineᵖʷ :
   {X : ℕ}
   {σ : Sub X X}
-  {Ms Ns : L.List (X ⊢)}
+  {Ms Ns : List (X ⊢)}
   (p : Pointwise (Inline σ □) Ms Ns)
   → ℕ
 
@@ -107,24 +119,23 @@ numSitesInline (case r rs) = numSitesInline r + numSitesInlineᵖʷ rs
 numSitesInlineᵖʷ Pointwise.[] = 0
 numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖʷ xs
 
-numSites : {M N : 0 ⊢} (tag : SimplifierTag) → RelationOf tag M N → Maybe ℕ
-numSites forceDelayT p = just (numSites′ p)
-numSites floatDelayT p = just (numSites′ p)
-numSites cseT p = just (numSites′ p)
-numSites caseReduceT p = just (numSites′ p)
-numSites inlineT p = just (numSitesInline p)
-numSites forceCaseDelayT _ = nothing
-numSites caseOfCaseT _ = nothing
-numSites applyToCaseT p = just (numSites′ p)
-numSites unknown _ = nothing
 
-showSites : {M N : 0 ⊢} → (tag : SimplifierTag) → RelationOf tag M N → String
-showSites t p with numSites t p
-... | just n = ⇉ "Optimization sites: " ++ showℕ n
-... | nothing = ""
+numSites : {M N : 0 ⊢} (tag : CertifiedOptTag) → RelationOf (inj₂ tag) M N → ℕ
+numSites forceDelayT p = numSites′ p
+numSites floatDelayT p = numSites′ p
+numSites cseT p = numSites′ p
+numSites inlineT p = numSitesInline p
+numSites forceCaseDelayT p = numSites′ p
+numSites applyToCaseT p = numSites′ p
+numSites {M = M} caseReduceT p = numSitesCaseReduce (CR.sound {M = M} p)
+numSites letFloatOutT p = FloatOut.numSites p
+
+showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
+showSites (inj₁ _) _ = ""
+showSites (inj₂ t) p = ⇉ "Optimization sites: " ++ showℕ (numSites t p)
 
 termSize : {X : ℕ} → X ⊢ → ℕ
-termSizeᵖʷ : {X : ℕ} → L.List (X ⊢) → ℕ
+termSizeᵖʷ : {X : ℕ} → List (X ⊢) → ℕ
 
 termSize (` _) = 1
 termSize (ƛ M) = 1 + termSize M
@@ -137,31 +148,52 @@ termSize error = 1
 termSize (constr _ Ms) = 1 + termSizeᵖʷ Ms
 termSize (case M Ms) = 1 + termSize M + termSizeᵖʷ Ms
 
-termSizeᵖʷ L.[] = 0
-termSizeᵖʷ (x L.∷ xs) = termSize x + termSizeᵖʷ xs
+termSizeᵖʷ [] = 0
+termSizeᵖʷ (x ∷ xs) = termSize x + termSizeᵖʷ xs
 ```
 
 Functions for producing the certifier report:
 
 ```
+showEvalResult : EvalResult → String
+showEvalResult (success cpu mem) =
+  (⇉ "Execution Cost: CPU = ") ++ showℕ cpu ++ ", MEM = " ++ showℕ mem
+showEvalResult (failure err cpu mem) =
+  (⇉ "Evaluation FAILED: ") ++ err ++
+  nl ++
+  (⇉ "Execution Cost: CPU = ") ++ showℕ cpu ++ ", MEM = " ++ showℕ mem
+
+showCostPair : List EvalResult → String
+showCostPair (x ∷ y ∷ _) =
+  showEvalResult x ++ " (before)" ++
+  nl ++
+  showEvalResult y ++ " (after)"
+showCostPair _ = ""
+
+tail : {A : Set} → List A → List A
+tail (_ ∷ rest) = rest
+tail [] = []
+
 reportPasses :
   (n : ℕ)
   (t : Trace (0 ⊢))
   (r : Certificate t)
+  → List EvalResult
   → String
-reportPasses _ (done _) _ = ""
-reportPasses n (step tag _ x trace) (p , proofs) =
+reportPasses _ (singleton _) _ _ = ""
+reportPasses n (cons x (tag , _) trace) (p , proofs) costs =
   hl ++
-  "Pass " ++ showℕ n ++ ": " ++ showTag tag
-    ++ (if hasRelation tag then "  ✅" else "  ⚠ (certifier unavailable)") ++
+  "Pass " ++ showℕ n ++ ": " ++ showTag tag ++
   hl ++
-  (⇉ "Program Size Before: ") ++ showℕ (termSize x) ++
+  (⇉ "Program Size: ") ++ showℕ (termSize x) ++ " (before)" ++
   nl ++
-  (⇉ "Program Size After: ") ++ showℕ (termSize (head trace)) ++
+  (⇉ "Program Size: ") ++ showℕ (termSize (head trace)) ++ " (after)" ++
+  nl ++
+  showCostPair costs ++
   nl ++
   showSites tag p ++
   nl ++
-  reportPasses (suc n) trace proofs
+  reportPasses (suc n) trace proofs (tail costs)
 
 reportFailure : Error → String
 reportFailure (counterExample tag) =
@@ -183,9 +215,10 @@ reportFailure illScoped =
 
 makeReport :
   Either Error (Σ (Trace (0 ⊢)) Certificate)
+  → List EvalResult
   → String
-makeReport r =
+makeReport r costs =
   "UPLC OPTIMIZATION: CERTIFIER REPORT"
     ++ nl
-    ++ either r reportFailure (λ { (t , r) → reportPasses 1 t r})
+    ++ either r reportFailure (λ { (t , r) → reportPasses 1 t r costs})
 ```

@@ -16,10 +16,13 @@ import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified
 import IntegerLiterals.NoStrict.NoNegativeLiterals.Spec qualified
 import IntegerLiterals.Strict.NegativeLiterals.Spec qualified
 import IntegerLiterals.Strict.NoNegativeLiterals.Spec qualified
+import IsData.Budget.BuiltinCasing qualified as IsData.Budget.BuiltinCasing
+import IsData.Budget.SoP qualified as IsData.Budget.SoP
 import IsData.Spec qualified as IsData
 import Lift.Spec qualified as Lift
 import List.Spec qualified as List
 import Optimization.Spec qualified as Optimization
+import Options.Spec qualified as Options
 import Plugin.Spec qualified as Plugin
 import Recursion.Spec qualified as Recursion
 import ShortCircuit.Spec qualified as ShortCircuit
@@ -47,6 +50,8 @@ tests =
     , IntegerLiterals.Strict.NoNegativeLiterals.Spec.tests
     , embed ByteStringLiterals.tests
     , IsData.tests
+    , IsData.Budget.SoP.tests
+    , IsData.Budget.BuiltinCasing.tests
     , Lift.tests
     , TH.tests
     , Lib.tests
@@ -58,6 +63,7 @@ tests =
     , Inline.tests
     , Recursion.tests
     , Optimization.tests
+    , Options.tests
     , Strictness.tests
     , Blueprint.Tests.tests
     , AssocMap.goldenTests

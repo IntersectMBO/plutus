@@ -34,13 +34,21 @@ module PlutusCore.Value
   , valueContains
   , unionValue
   , valueData
+  , valueDataMaxSize
   , unValueData
+  , buildValueWith
   ) where
 
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.Serialise qualified as CBOR
 import Control.DeepSeq (NFData)
-import Control.Monad.Extra (replicateM, unless, when, whenJust, (>=>))
+import Control.Monad.Extra
+  ( replicateM
+  , unless
+  , when
+  , whenJust
+  , (>=>)
+  )
 import Data.Bifunctor
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
@@ -449,7 +457,7 @@ unionValue vA vB
 {-# INLINEABLE unionValue #-}
 
 valueDataMaxSize :: Int
-valueDataMaxSize = 40000
+valueDataMaxSize = 40_000
 
 {-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
 This is the denotation of @ValueData@ in Plutus V1, V2 and V3. -}

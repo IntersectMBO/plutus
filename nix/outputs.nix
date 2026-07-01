@@ -48,6 +48,7 @@ let
     pir = project.flake'.packages."plutus-executables:exe:pir";
     plutus = project.flake'.packages."plutus-executables:exe:plutus";
     uplc-evaluator = project.flake'.packages."plutus-benchmark:exe:uplc-evaluator";
+    uplc-evaluator-integration-tests = project.flake'.packages."plutus-benchmark:test:uplc-evaluator-integration-tests"; # editorconfig-checker-disable-line
   };
 
   static-haskell-packages = {
@@ -129,14 +130,7 @@ let
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
-      { ghc96 = project-variants-hydra-jobs.ghc96; } //
-      { ghc912 = project-variants-hydra-jobs.ghc912; } //
-      { devShells.ghc96 = devShells.ghc96; } //
-      { devShells.ghc912 = devShells.ghc912; } //
-      { devShells.ghc96-profiled = devShells.ghc96-profiled; } //
-      { devShells.ghc912-profiled = devShells.ghc912-profiled; } //
-      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
-      { required = hydra-required-job; };
+      { };
     "aarch64-linux" =
       { };
     "aarch64-darwin" =

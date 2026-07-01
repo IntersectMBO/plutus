@@ -90,37 +90,36 @@ data T_ExBudgetCategory_34
 -- Cost.Base.MachineParameters
 d_MachineParameters_46 a0 = ()
 data T_MachineParameters_46
-  = C_MachineParameters'46'constructor_359 (T_ExBudgetCategory_34 ->
-                                            AgdaAny)
-                                           AgdaAny (AgdaAny -> AgdaAny -> AgdaAny)
-                                           MAlonzo.Code.Algebra.Structures.T_IsMonoid_686
+  = C_constructor_68 (T_ExBudgetCategory_34 -> AgdaAny) AgdaAny
+                     (AgdaAny -> AgdaAny -> AgdaAny)
+                     MAlonzo.Code.Algebra.Structures.T_IsMonoid_712
 -- Cost.Base.MachineParameters.cekMachineCost
 d_cekMachineCost_58 ::
   T_MachineParameters_46 -> T_ExBudgetCategory_34 -> AgdaAny
 d_cekMachineCost_58 v0
   = case coe v0 of
-      C_MachineParameters'46'constructor_359 v1 v2 v3 v4 -> coe v1
+      C_constructor_68 v1 v2 v3 v4 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Base.MachineParameters.ε
 d_ε_60 :: T_MachineParameters_46 -> AgdaAny
 d_ε_60 v0
   = case coe v0 of
-      C_MachineParameters'46'constructor_359 v1 v2 v3 v4 -> coe v2
+      C_constructor_68 v1 v2 v3 v4 -> coe v2
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Base.MachineParameters._∙_
 d__'8729'__62 ::
   T_MachineParameters_46 -> AgdaAny -> AgdaAny -> AgdaAny
 d__'8729'__62 v0
   = case coe v0 of
-      C_MachineParameters'46'constructor_359 v1 v2 v3 v4 -> coe v3
+      C_constructor_68 v1 v2 v3 v4 -> coe v3
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Base.MachineParameters.costMonoid
 d_costMonoid_64 ::
   T_MachineParameters_46 ->
-  MAlonzo.Code.Algebra.Structures.T_IsMonoid_686
+  MAlonzo.Code.Algebra.Structures.T_IsMonoid_712
 d_costMonoid_64 v0
   = case coe v0 of
-      C_MachineParameters'46'constructor_359 v1 v2 v3 v4 -> coe v4
+      C_constructor_68 v1 v2 v3 v4 -> coe v4
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Base.MachineParameters.startupCost
 d_startupCost_66 :: () -> T_MachineParameters_46 -> AgdaAny

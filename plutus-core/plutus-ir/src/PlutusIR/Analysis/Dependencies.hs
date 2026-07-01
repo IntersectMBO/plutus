@@ -15,11 +15,11 @@ module PlutusIR.Analysis.Dependencies
   ) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Analysis.Usages qualified as Usages
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name.Unique qualified as PLC
 
 import PlutusIR
-import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Purity
 
 import Control.Lens hiding (Strict)

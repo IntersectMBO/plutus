@@ -15,6 +15,7 @@ import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
 import Data.String
 
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck hiding (choose, vectorOf)
 
 -- * Tests for unification and substitution
@@ -38,7 +39,7 @@ The statistics at the time this comment was written are as follows:
 So we don't get great coverage, but given that it takes a few seconds to generate dozens of
 thousands of (non-filtered) test cases, we do still get some reasonable coverage in the end. -}
 prop_unify :: Property
-prop_unify = withMaxSuccess 500 $
+prop_unify = BaseQC.withNumTests 500 $
   forAllDoc "n" arbitrary shrink $ \(NonNegative n) ->
     forAllDoc "nSub" (choose (0, n)) shrink $ \nSub ->
       -- See Note [Chaotic Good fresh name generation].
@@ -89,7 +90,7 @@ prop_unifyRename =
 {-| Check that substitution eliminates from the type all free occurrences of variables present in
 the domain of the substitution. -}
 prop_substType :: Property
-prop_substType = withMaxSuccess 1000 $
+prop_substType = BaseQC.withNumTests 1000 $
   -- No shrinking because every nested shrink makes properties harder to shrink (because you'd need
   -- to regenerate the stuff that depends on the context, meaning you don't have the same
   -- counterexample as you did before) and context minimality doesn't help readability very much.

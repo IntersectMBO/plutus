@@ -8,6 +8,7 @@ layout: page
 ```
 open import Function using (case_of_)
 open import Data.Bool.Base using (Bool; false; true)
+open import Data.List as L using (List)
 open import Data.String using (String)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 
@@ -19,21 +20,20 @@ open import VerifiedCompilation.Trace
 open import VerifiedCompilation.Certificate hiding (_>>=_)
 open import CertifierReport using (makeReport)
 
-runCertifier : Dump → Either Error (Σ (Trace (0 ⊢)) Certificate)
-runCertifier dump = do
-  trace ← try (toTrace dump) emptyDump
+runCertifier : Trace Untyped → Either Error (Σ (Trace (0 ⊢)) Certificate)
+runCertifier trace = do
   trace' ← try (checkScopeᵗ trace) illScoped
   cert ← certify trace'
   return (trace' , cert)
 
 -- FIXME: Instead of `Maybe Bool`, we should use something like `Error` on the Haskell side
-runCertifierMain : Dump → Maybe (Bool × String)
-runCertifierMain dump =
+runCertifierMain : Trace Untyped → L.List EvalResult → Maybe (Bool × String)
+runCertifierMain dump costs =
   let r = runCertifier dump
   in case r of λ where
-    (inj₂ (trace , p)) → just (true , makeReport r)
-    (inj₁ (counterExample _)) → just (false , makeReport r)
-    (inj₁ (abort _)) → just (false , makeReport r)
+    (inj₂ (trace , p)) → just (true , makeReport r costs)
+    (inj₁ (counterExample _)) → just (false , makeReport r costs)
+    (inj₁ (abort _)) → just (false , makeReport r costs)
     (inj₁ illScoped) → nothing
     (inj₁ emptyDump) → nothing
 

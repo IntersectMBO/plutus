@@ -59,29 +59,19 @@ let
           !x : integer = x
         in
         \(y : integer) -> let !y : integer = y in equalsInteger x y
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
-  !lessThanInteger : integer -> integer -> bool = lessThanInteger
   ~greaterThanEqualsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) ->
-          let
-            !y : integer = y
-          in
-          ifThenElse {bool} (lessThanInteger x y) False True
+        \(y : integer) -> let !y : integer = y in lessThanEqualsInteger y x
+  !lessThanInteger : integer -> integer -> bool = lessThanInteger
   ~greaterThanInteger : integer -> integer -> bool
     = \(x : integer) ->
         let
           !x : integer = x
         in
-        \(y : integer) ->
-          let
-            !y : integer = y
-          in
-          ifThenElse {bool} (lessThanEqualsInteger x y) False True
+        \(y : integer) -> let !y : integer = y in lessThanInteger y x
   ~lessThanEqualsInteger : integer -> integer -> bool
     = \(x : integer) ->
         let

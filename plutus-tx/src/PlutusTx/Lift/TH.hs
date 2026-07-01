@@ -183,7 +183,7 @@ data Dep = TypeableDep TH.Type | LiftDep TH.Type deriving stock (Show, Eq, Ord)
 type Deps = Set.Set Dep
 
 withTyVars :: MonadReader (LocalVars uni) m => [(TH.Name, TyVarDecl TyName ())] -> m a -> m a
-withTyVars mappings = local (\scope -> foldl' (\acc (n, tvd) -> Map.insert n (mkTyVar () tvd) acc) scope mappings)
+withTyVars mappings = local (\scope -> foldl' (\acc (n, tvd) -> Map.insert n (mkTyVar tvd) acc) scope mappings)
 
 thWithTyVars :: MonadReader THLocalVars m => [TH.Name] -> m a -> m a
 thWithTyVars names = local (\scope -> foldr Set.insert scope names)
@@ -317,7 +317,7 @@ compileTypeableType ty name = do
     let trep' :: forall fun. RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
         trep' = Trans.lift $ unCompileType ($$(TH.liftCode trep))
      in CompileTypeScope $ do
-          maybeType <- lookupType () name
+          maybeType <- lookupType name
           case maybeType of
             Just t -> pure t
             -- this will need some additional constraints in scope
@@ -360,7 +360,7 @@ compileTypeRep dt@TH.DatatypeInfo {TH.datatypeName = tyName, TH.datatypeVars = t
             argTy' = unCompileTypeScope $$(TH.liftCode argTy)
             act :: forall fun. RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
             act = do
-              maybeDefined <- lookupType () tyName
+              maybeDefined <- lookupType tyName
               case maybeDefined of
                 Just ty -> pure ty
                 Nothing -> do
@@ -384,14 +384,14 @@ compileTypeRep dt@TH.DatatypeInfo {TH.datatypeName = tyName, TH.datatypeVars = t
             constrExprs' = $$(TH.liftCode $ tyListE constrExprs)
             act :: forall fun. RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
             act = do
-              maybeDefined <- lookupType () tyName
+              maybeDefined <- lookupType tyName
               case maybeDefined of
                 Just ty -> pure ty
                 Nothing -> do
                   (_, dtvd) <- mkTyVarDecl tyName typeKind
                   tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
 
-                  let resultType = mkIterTyAppNoAnn (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
+                  let resultType = mkIterTyAppNoAnn (mkTyVar dtvd) (fmap (mkTyVar . snd) tvds)
                   matchName <- safeFreshName (T.pack "match_" <> showName tyName)
 
                   -- See Note [Occurrences of recursive names]
@@ -409,7 +409,7 @@ compileTypeRep dt@TH.DatatypeInfo {TH.datatypeName = tyName, TH.datatypeVars = t
                     let datatype = Datatype () dtvd (fmap snd tvds) matchName constrs
 
                     defineDatatype tyName (PLC.Def dtvd datatype) deps
-                  pure $ mkTyVar () dtvd
+                  pure $ mkTyVar dtvd
            in
             CompileType $ runReaderT act mempty
           ||]

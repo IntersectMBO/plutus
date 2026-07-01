@@ -83,7 +83,7 @@ d_isPure'63'_72 v0 v1
                                                    seq (coe v9)
                                                    (let v11
                                                           = coe
-                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                               (coe
                                                                  d_isPure'63'_72
                                                                  (coe
@@ -152,7 +152,7 @@ d_isPure'63'_72 v0 v1
                                                        coe
                                                          (let v11
                                                                 = coe
-                                                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                                                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                     (coe
                                                                        d_isPure'63'_72 (coe v0)
                                                                        (coe v2))
@@ -393,7 +393,7 @@ d_allPure'63'_78 v0 v1
       (:) v2 v3
         -> let v4
                  = coe
-                     MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                     MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                      (coe d_isPure'63'_72 (coe v0) (coe v2))
                      (coe d_allPure'63'_78 (coe v0) (coe v3)) in
            coe
@@ -422,3 +422,31 @@ d_allPure'63'_78 v0 v1
                                  (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
                 _ -> MAlonzo.RTE.mazUnreachableError)
       _ -> MAlonzo.RTE.mazUnreachableError
+-- Untyped.Purity.pure₀
+d_pure'8320'_470 :: MAlonzo.Code.Untyped.T__'8866'_14 -> ()
+d_pure'8320'_470 = erased
+-- Untyped.Purity.pure
+d_pure_478 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> ()
+d_pure_478 = erased
+-- Untyped.Purity.pure₀-pure
+d_pure'8320''45'pure_486
+  = error
+      "MAlonzo Runtime Error: postulate evaluated: Untyped.Purity.pure\8320-pure"
+-- Untyped.Purity.value-pure
+d_value'45'pure_490 ::
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.Reduction.T_Value_180 ->
+  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+d_value'45'pure_490 v0 v1
+  = coe
+      d_pure'8320''45'pure_486 v0
+      (coe
+         MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 (coe v0)
+         (coe
+            MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32
+            (coe MAlonzo.Code.Untyped.Reduction.C_refl_464)
+            (coe MAlonzo.Code.Untyped.Reduction.du_V'45'v_592 (coe v1))))
+-- Untyped.Purity.Pure-pure
+d_Pure'45'pure_498
+  = error
+      "MAlonzo Runtime Error: postulate evaluated: Untyped.Purity.Pure-pure"

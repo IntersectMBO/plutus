@@ -1,3 +1,4 @@
+{- FOURMOLU_DISABLE -}
 {-# LANGUAGE BinaryLiterals            #-}
 {-# LANGUAGE CPP                       #-}
 {-# LANGUAGE FlexibleContexts          #-}
@@ -42,21 +43,29 @@ import Test.E
 import Test.E.Arbitrary ()
 import Test.E.Flat
 import Test.Tasty
+import Test.Tasty.Golden (goldenVsStringDiff)
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck as QC hiding (getSize)
 -- import Test.QuickCheck.Arbitrary
 import Data.Complex qualified as B
+import Data.Fixed qualified as DF
+import Data.Functor.Identity (Identity (..))
 import Data.IntMap.Lazy qualified as CL
 import Data.IntMap.Strict qualified as CS
 import Data.Map qualified as C
 import Data.Map.Lazy qualified as CL
 import Data.Map.Strict qualified as CS
+import Data.Monoid qualified as Monoid
 import Data.Ratio qualified as B
+import Data.Semigroup qualified as Semigroup
+import Data.Set qualified as DSet
+import Data.Tree qualified as DTree
 -- import           Data.List
 -- import           Data.Ord
 #if MIN_VERSION_base(4,9,0)
 import Data.List.NonEmpty qualified as BI
 #endif
+import PlutusCore.Flat.Filler (Filler (..), PreAligned, preAligned)
 
 instance Arbitrary UTF8Text where
   arbitrary = UTF8Text <$> arbitrary
@@ -106,7 +115,13 @@ testEncDec = testGroup
 
 testFlat = testGroup
   "flat/unflat"
-  [testSize, testLargeEnum, testContainers, flatUnflatRT, flatTests]
+  [ testSize
+  , testLargeEnum
+  , testContainers
+  , flatUnflatRT
+  , flatTests
+  , testEncodingStability
+  ]
 
 -- Flat.Endian tests (to run, need to modify imports and cabal file)
 testEndian = testGroup
@@ -348,6 +363,34 @@ testLargeEnum = testGroup "test enum with more than 256 constructors"
       -- , encRaw (E258_256,E258_257,E258_258) [0b11111110,0b11111111,0b01111111,0b11000000]
     , map trip [E258_1, E258_256, E258_257, E258_258]
     , map trip [E256_1, E256_134, E256_256]
+      -- Issue #7542: consClose only advances currPtr by 1 byte, so when
+      -- (constructor_bits + usedBits >= 16) the decoder state is corrupted
+      -- (usedBits overflows to 8+). This makes the Filler decoder loop
+      -- forever, building infinite FillerBit chains and consuming all memory.
+      --
+      -- The bug requires: (a) a constructor needing 9 bits (depth-9 in the
+      -- Generic tree), AND (b) 7 prior consumed bits so usedBits=7 before
+      -- consOpen. We use 7 nested Bool fields to set up condition (b).
+      --
+      -- Control: E258_256 needs only 8 bits, so 8+7=15 < 16 - no overflow.
+    , [trip (False, (False, (False, (False, (False, (False, (False, E258_256)))))))]
+      -- Bug: E258_258 needs 9 bits, so 9+7=16 - consClose overflows usedBits.
+      -- Without fix: unflat hangs forever (Filler decoder infinite loop).
+    , [localOption (mkTimeout 5000000) $
+        trip (False, (False, (False, (False, (False, (False, (False, E258_258)))))))]
+      -- consClose must reject when constructor bits exceed the remaining buffer,
+      -- not silently leave the decoder in an invalid state for strictDecoder to
+      -- catch later. E258_258 needs 9 bits but a 1-byte buffer only has 8.
+      -- With correct bounds checking (ensureBits), consClose throws NotEnoughSpace.
+      -- Without it, consClose "succeeds" and strictDecoder catches TooMuchSpace.
+    , [testCase "consClose rejects 9-bit tag in 1-byte buffer" $
+        case unflatRaw (B.pack [0xFF]) :: Decoded E258 of
+          Left (NotEnoughSpace _) -> return ()
+          Left (TooMuchSpace _)   -> assertFailure
+            "consClose let overrun through (caught by strictDecoder as TooMuchSpace)"
+          Left other               -> assertFailure $ "Unexpected error: " ++ show other
+          Right _                  -> assertFailure "Should not decode: only 8 bits for a 9-bit tag"
+      ]
 #endif
     ]
 
@@ -355,6 +398,31 @@ testContainers =
   testGroup "containers" [trip longSeq, trip dataMap, trip listMap]
 
     -- , trip intMap
+
+-- | Stable byte encoding tests for flat library container/composite types.
+-- Wrapper types (Identity, All, Any, Dual, etc.) only have roundtrip tests
+-- since their encoding stability is not critical (they are never on-chain).
+-- Use @cabal test flat-test --test-options --accept@ to update golden files.
+testEncodingStability =
+  goldenVsStringDiff "stable byte encodings"
+    (\expected actual -> ["diff", "-u", expected, actual])
+    "flat/test/golden/encoding-stability.golden"
+    (pure . L.pack . map (fromIntegral . ord) $ unlines
+      [ enc "Nothing :: Maybe Bool" (Nothing :: Maybe Bool)
+      , enc "Just True :: Maybe Bool" (Just True :: Maybe Bool)
+      , enc "Right () :: Either Bool ()" (Right () :: Either Bool ())
+      , enc "True :| [False]" (True BI.:| [False])
+      , enc "4 :+ 2 :: Complex Word8" (4 B.:+ 2 :: B.Complex Word8)
+      , enc "3 % 4 :: Ratio Word8" (3 B.% 4 :: B.Ratio Word8)
+      , enc "Set.fromList [1,2,3] :: Set Word8" (DSet.fromList [1, 2, 3] :: DSet.Set Word8)
+      , enc "Node 1 [Node 2 []] :: Tree Word8" (DTree.Node 1 [DTree.Node 2 []] :: DTree.Tree Word8)
+      , enc "fromList [(1,True)] :: Map Int Bool" (C.fromList [(1 :: Int, True)])
+      , enc "Seq.fromList [1,2] :: Seq Word8" (Seq.fromList [1, 2] :: Seq.Seq Word8)
+      , enc "FillerEnd" FillerEnd
+      , enc "preAligned 42 :: PreAligned Word8" (preAligned (42 :: Word8))
+      ])
+  where
+    enc label v = label ++ " = " ++ show (serRaw v)
 flatUnflatRT = testGroup
   "unflat (flat v) == v"
   [ rt "()" (prop_Flat_roundtrip :: RT ())
@@ -410,7 +478,27 @@ flatUnflatRT = testGroup
   , rt "B" (prop_Flat_roundtrip :: RT B)
     -- ,rt "Tree Bool" (prop_Flat_roundtrip:: RT (Tree Bool))
     -- ,rt "Tree N" (prop_Flat_roundtrip:: RT (Tree N))
-  , rt "List N" (prop_Flat_roundtrip :: RT (List N))]
+  , rt "List N" (prop_Flat_roundtrip :: RT (List N))
+  , rt "Tree Word8" (prop_Flat_roundtrip :: RT (DTree.Tree Word8))
+  , rt "Set Word8" (prop_Flat_roundtrip :: RT (DSet.Set Word8))
+  , rt "Identity Bool" (prop_Flat_roundtrip :: RT (Identity Bool))
+  , rt "Monoid.All" (prop_Flat_roundtrip :: RT Monoid.All)
+  , rt "Monoid.Any" (prop_Flat_roundtrip :: RT Monoid.Any)
+  , rt "Monoid.Dual Word8" (prop_Flat_roundtrip :: RT (Monoid.Dual Word8))
+  , rt "Monoid.Sum Int" (prop_Flat_roundtrip :: RT (Monoid.Sum Int))
+  , rt "Monoid.Product Int" (prop_Flat_roundtrip :: RT (Monoid.Product Int))
+  , rt "Semigroup.Min Int" (prop_Flat_roundtrip :: RT (Semigroup.Min Int))
+  , rt "Semigroup.Max Int" (prop_Flat_roundtrip :: RT (Semigroup.Max Int))
+  , rt "Semigroup.First Word8" (prop_Flat_roundtrip :: RT (Semigroup.First Word8))
+  , rt "Semigroup.Last Word8" (prop_Flat_roundtrip :: RT (Semigroup.Last Word8))
+  , rt "Monoid.Alt Maybe Bool" (prop_Flat_roundtrip :: RT (Monoid.Alt Maybe Bool))
+  , rt "DF.Fixed DF.E0" (prop_Flat_roundtrip :: RT (DF.Fixed DF.E0))
+  , testCase "PreAligned roundtrip" test_preAlignedRoundtrip
+  , testCase "String roundtrip \"hello world\"" $
+      (unflat (flat "hello world" :: B.ByteString) :: Decoded String) @?= Right "hello world"
+  , testCase "String roundtrip \"\"" $
+      (unflat (flat "" :: B.ByteString) :: Decoded String) @?= Right ""
+  ]
 
 rt n = QC.testProperty (unwords ["round trip", n])
 
@@ -795,6 +883,35 @@ prop_common_unsigned n _ = let n2 :: h = fromIntegral n
 -- b1 = BLOB UTF8 (preAligned (List255 [97,98,99]))
 -- -- b1 = BLOB (preAligned (UTF8 (List255 [97,98,99])))
 
+#if !MIN_VERSION_QuickCheck(2,18,0)
+-- Arbitrary instances for Semigroup wrappers not provided by QuickCheck.
+-- QuickCheck provides: Identity, Dual, Sum, Product, All, Any, Alt, Fixed,
+-- Monoid.First, Monoid.Last. But not these Semigroup wrappers:
+instance Arbitrary a => Arbitrary (Semigroup.Min a) where
+  arbitrary = Semigroup.Min <$> arbitrary
+  shrink (Semigroup.Min x) = Semigroup.Min <$> shrink x
 
+instance Arbitrary a => Arbitrary (Semigroup.Max a) where
+  arbitrary = Semigroup.Max <$> arbitrary
+  shrink (Semigroup.Max x) = Semigroup.Max <$> shrink x
 
+instance Arbitrary a => Arbitrary (Semigroup.First a) where
+  arbitrary = Semigroup.First <$> arbitrary
+  shrink (Semigroup.First x) = Semigroup.First <$> shrink x
+
+instance Arbitrary a => Arbitrary (Semigroup.Last a) where
+  arbitrary = Semigroup.Last <$> arbitrary
+  shrink (Semigroup.Last x) = Semigroup.Last <$> shrink x
+#endif
+
+-- | PreAligned roundtrip: the filler may change after re-encoding,
+-- so we only check the inner value survives.
+test_preAlignedRoundtrip :: Assertion
+test_preAlignedRoundtrip = do
+  let v = preAligned (42 :: Word8)
+      encoded = flat v :: B.ByteString
+      decoded = unflat encoded :: Decoded (PreAligned Word8)
+  case decoded of
+    Right pa -> preValue pa @?= 42
+    Left err -> assertFailure $ "decode failed: " ++ show err
 

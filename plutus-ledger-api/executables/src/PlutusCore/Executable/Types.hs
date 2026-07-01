@@ -42,7 +42,7 @@ data AstNameType
   = Named
   | DeBruijn
   | NamedDeBruijn
-  deriving stock (Show)
+  deriving stock (Eq, Show)
 
 data Input = FileInput FilePath | StdInput
 instance Show Input where
@@ -75,6 +75,8 @@ data Format
     most other places. -}
     Hex
   | Flat AstNameType
+  | Blueprint
+  deriving stock (Eq)
 
 instance Show Format where
   show Textual = "textual"
@@ -83,6 +85,7 @@ instance Show Format where
   show (Flat Named) = "flat-named"
   show (Flat DeBruijn) = "flat-deBruijn"
   show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
+  show Blueprint = "blueprint"
 
 type Certifier = Maybe String
 
@@ -98,10 +101,27 @@ data OptimiseOptions name a
       PrintMode
       Certifier
       CertifierOutputMode
-      (UPLC.SimplifyOpts name a)
+      (UPLC.OptimizeOpts name a)
+      OptimiseEvalOpts
 data PrintOptions = PrintOptions Input Output PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
 data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
+
+data EvalArgKind
+  = -- | Each argument is a program
+    ArgProg
+  | -- | Each argment is a Data object
+    ArgData
+
+data OptimiseEvalOpts = OptimiseEvalOpts
+  { oeEval :: Bool
+  -- ^ Whether or not to evaluate the program before/after optimisation.
+  , oeArgFiles :: [FilePath]
+  {-^ Argument files, when optimising a single program (i.e., the input-format
+  is anything other than blueprint). -}
+  , oeArgKind :: EvalArgKind
+  , oeBlueprintArgsDir :: Maybe FilePath
+  }
 
 {-| Specialised types for PIR, which doesn't support deBruijn names in ASTs
 | A specialised format type for PIR. We don't support deBruijn or named deBruijn for PIR. -}

@@ -31,6 +31,8 @@ module PlutusLedgerApi.Common.Versions
   , batch4b
   , batch5
   , batch6
+  , MaxBounds (..)
+  , maxBoundsByPV
   ) where
 
 import PlutusCore
@@ -358,3 +360,15 @@ plcVersionsIntroducedIn =
 and 'MajorProtocolVersion'? -}
 plcVersionsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set Version
 plcVersionsAvailableIn = collectUpTo . plcVersionsIntroducedIn
+
+data MaxBounds = MaxBounds
+  { mbHeader :: Int
+  , mbConstr :: Int
+  }
+
+maxBoundsByPV :: MajorProtocolVersion -> MaxBounds
+maxBoundsByPV pv =
+  if pv >= vanRossemPV
+    then MaxBounds {mbHeader = 32, mbConstr = 1024}
+    else MaxBounds {mbHeader = maxBound, mbConstr = maxBound}
+{-# INLINE maxBoundsByPV #-}

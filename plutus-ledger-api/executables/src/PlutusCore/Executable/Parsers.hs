@@ -9,9 +9,9 @@ import PlutusCore.AstSize (AstSize (..))
 import PlutusCore.Default (BuiltinSemanticsVariant (..), DefaultFun)
 import PlutusCore.Executable.Types
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Transform.Cse (CseWhichSubterms (..))
 
 import Control.Lens ((^.))
+import Data.Maybe
 import Options.Applicative
 
 {-| Parser for an input stream. If none is specified,
@@ -71,10 +71,12 @@ noOutput =
 
 formatHelp :: String
 formatHelp =
-  "textual, flat-named (names), flat (de Bruijn indices), "
+  "textual, "
     <> "serialised (cbor + flat, with de Bruijn indices), "
     <> "hex (hex + cbor + flat), "
-    <> "or flat-namedDeBruijn (names and de Bruijn indices)"
+    <> "flat-named (names), flat (de Bruijn indices), "
+    <> "flat-namedDeBruijn (names and de Bruijn indices), "
+    <> "or blueprint."
 
 formatReader :: String -> Maybe Format
 formatReader =
@@ -86,6 +88,7 @@ formatReader =
     "flat" -> Just (Flat DeBruijn)
     "flat-deBruijn" -> Just (Flat DeBruijn)
     "flat-namedDeBruijn" -> Just (Flat NamedDeBruijn)
+    "blueprint" -> Just Blueprint
     _ -> Nothing
 
 inputformat :: Parser Format
@@ -194,64 +197,73 @@ certifierOutputMode =
         )
     ]
 
-simplifyOpts :: Parser (UPLC.SimplifyOpts name a)
-simplifyOpts = do
-  _soMaxSimplifierIterations <-
+optimizeOpts :: Parser (UPLC.OptimizeOpts name a)
+optimizeOpts = do
+  _ooMaxSimplifierIterations <-
     option
       auto
       ( long "opt-simplifier-iterations"
           <> metavar "INT"
-          <> value (UPLC.defaultSimplifyOpts ^. UPLC.soMaxSimplifierIterations)
+          <> value (UPLC.defaultOptimizeOpts ^. UPLC.ooMaxSimplifierIterations)
           <> showDefault
           <> help "Number of simplifier iterations"
       )
-  _soMaxCseIterations <-
+  _ooMaxCseIterations <-
     option
       auto
       ( long "opt-cse-iterations"
           <> metavar "INT"
-          <> value (UPLC.defaultSimplifyOpts ^. UPLC.soMaxCseIterations)
+          <> value (UPLC.defaultOptimizeOpts ^. UPLC.ooMaxCseIterations)
           <> showDefault
           <> help "Number of CSE iterations"
       )
-  _soCseWhichSubterms <-
+  _ooCseWhichSubterms <-
     option
       ( maybeReader
           ( \case
-              "all" -> Just AllSubterms
-              "exclude-work-free" -> Just ExcludeWorkFree
+              "all" -> Just UPLC.AllSubterms
+              "exclude-work-free" -> Just UPLC.ExcludeWorkFree
               _ -> Nothing
           )
       )
       ( long "opt-cse-which-subterms"
           <> metavar "MODE"
-          <> value ExcludeWorkFree
-          <> showDefaultWith (\case AllSubterms -> "all"; ExcludeWorkFree -> "exclude-work-free")
+          <> value UPLC.ExcludeWorkFree
+          <> showDefaultWith (\case UPLC.AllSubterms -> "all"; UPLC.ExcludeWorkFree -> "exclude-work-free")
           <> help "CSE subterm selection: all | exclude-work-free"
       )
-  _soConservativeOpts <-
+  _ooConservativeOpts <-
     switch
       ( long "opt-conservative"
           <> help "Use conservative optimisation options. May result in less optimized code."
       )
-  let _soInlineHints = UPLC.defaultSimplifyOpts ^. UPLC.soInlineHints
-  _soInlineConstants <-
+  let _ooInlineHints = UPLC.defaultOptimizeOpts ^. UPLC.ooInlineHints
+  _ooInlineConstants <-
     flag
       True
       False
       ( long "opt-no-inline-constants"
           <> help "Disable constant inlining"
       )
-  _soInlineCallsiteGrowth <-
+  _ooInlineUnconditionalGrowth <-
+    option
+      (AstSize <$> auto)
+      ( long "opt-inline-unconditional-growth"
+          <> metavar "INT"
+          <> value (UPLC.defaultOptimizeOpts ^. UPLC.ooInlineUnconditionalGrowth)
+          <> showDefault
+          <> help "Maximum allowed AST growth for unconditional inlining"
+      )
+  _ooInlineCallsiteGrowth <-
     option
       (AstSize <$> auto)
       ( long "opt-inline-callsite-growth"
           <> metavar "INT"
-          <> value (UPLC.defaultSimplifyOpts ^. UPLC.soInlineCallsiteGrowth)
+          <> value (UPLC.defaultOptimizeOpts ^. UPLC.ooInlineCallsiteGrowth)
           <> showDefault
-          <> help "Maximum allowed AST growth at call sites for inlining"
+          <> help "Maximum allowed AST growth for callsite inlining"
       )
-  _soPreserveLogging <-
+  _ooPreserveLogging <-
     switch
       ( long "opt-preserve-logging"
           <> help
@@ -259,14 +271,91 @@ simplifyOpts = do
                 <> " May result in less optimized code."
             )
       )
-  _soApplyToCase <-
+  _ooApplyToCase <-
     flag
       True
       False
       ( long "opt-no-apply-to-case"
           <> help "Disable apply-to-case optimization"
       )
-  pure UPLC.SimplifyOpts {..}
+  _ooHoistPolyBuiltins <-
+    flag
+      True
+      False
+      ( long "opt-no-hoist-polymorphic-builtins"
+          <> help "Disable hoist-polymorphic-builtins optimization"
+      )
+  _ooCertifiedOptsOnly <-
+    flag
+      False
+      True
+      ( long "certified-opts-only"
+          <> help
+            "Run only those optimisation passes which are certified to preserve the functional behavior of the original program."
+      )
+  pure UPLC.OptimizeOpts {..}
+
+optimiseEvalOpts :: Parser OptimiseEvalOpts
+optimiseEvalOpts =
+  mkOpts
+    <$> switch
+      ( long "eval"
+          <> help
+            "Evaluate the program (using the CEK machine) at every stage of \
+            \the optimization pipeline.  CPU and memory costs are then shown \
+            \in the optimization report, alongside AST sizes, for every pass. \
+            \With --certify, the same costs and sizes are also recorded in the \
+            \certifier report.  Use --eval-apply or --eval-args-dir to supply \
+            \arguments, if any."
+      )
+    <*> many
+      ( strOption
+          ( long "eval-apply"
+              <> metavar "FILE"
+              <> help
+                "Apply program to this argument file before evaluating \
+                \(repeatable).  Implies --eval."
+          )
+      )
+    <*> option
+      ( maybeReader
+          ( \case
+              "prog" -> Just ArgProg
+              "data" -> Just ArgData
+              _ -> Nothing
+          )
+      )
+      ( long "eval-arg-kind"
+          <> metavar "prog|data"
+          <> value ArgData
+          <> showDefaultWith (\case ArgProg -> "prog"; ArgData -> "data")
+          <> help
+            "Whether --eval-apply arguments are UPLC programs or Data objects"
+      )
+    <*> optional
+      ( strOption
+          ( long "eval-args-dir"
+              <> metavar "DIR"
+              <> help
+                "Directory with per-validator argument files for blueprint \
+                \optimisation.  For each validator titled T, it looks for \
+                \files DIR/T/1, DIR/T/2, ... containing arguments to apply. \
+                \Implies --eval."
+          )
+      )
+  where
+    -- If the user supplied any --eval-apply or --eval-args-dir,
+    -- treat --eval as implied even if they didn't pass it explicitly.
+    mkOpts eval argFiles argKind argsDir =
+      OptimiseEvalOpts
+        { oeEval =
+            eval
+              || not (null argFiles)
+              || isJust argsDir
+        , oeArgFiles = argFiles
+        , oeArgKind = argKind
+        , oeBlueprintArgsDir = argsDir
+        }
 
 optimiseOpts :: Parser (OptimiseOptions name a)
 optimiseOpts =
@@ -278,7 +367,8 @@ optimiseOpts =
     <*> printmode
     <*> certifier
     <*> certifierOutputMode
-    <*> simplifyOpts
+    <*> optimizeOpts
+    <*> optimiseEvalOpts
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle

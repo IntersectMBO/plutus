@@ -17,8 +17,20 @@ let
           {integer}
           ds
           {integer}
-          (\(i : integer) (j : integer) (k : integer) (l : integer) ->
-             addInteger (addInteger (addInteger i j) k) l)
+          (\(i : integer) (j : integer) (k : integer) ->
+             let
+               !y : integer = k
+             in
+             \(l : integer) ->
+               let
+                 !y : integer = l
+                 !x : integer
+                   = let
+                     !x : integer = addInteger i j
+                   in
+                   addInteger x y
+               in
+               addInteger x y)
 in
 \(x : integer) ->
   let

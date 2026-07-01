@@ -1,58 +1,38 @@
 let
   data Unit | Unit_match where
     Unit : Unit
-  data (Tuple :: * -> * -> *) a b | Tuple_match where
-    Tuple2 : a -> b -> Tuple a b
 in
 \(ds : (\a -> data) integer) ->
-  Tuple_match
-    {integer}
-    {list data}
-    ((let
-         b = list data
-       in
-       \(tup : pair integer b) ->
-         Tuple2
-           {integer}
-           {b}
-           (case integer tup [(\(l : integer) (r : b) -> l)])
-           (case b tup [(\(l : integer) (r : b) -> r)]))
-       (unConstrData ds))
-    {integer}
-    (\(ds : integer) (ds : list data) ->
-       case
-         (all dead. integer)
-         (equalsInteger 0 ds)
-         [ (/\dead ->
-              Tuple_match
-                {integer}
-                {list data}
-                ((let
-                     b = list data
-                   in
-                   \(tup : pair integer b) ->
-                     Tuple2
-                       {integer}
-                       {b}
-                       (case integer tup [(\(l : integer) (r : b) -> l)])
-                       (case b tup [(\(l : integer) (r : b) -> r)]))
-                   (unConstrData ds))
-                {integer}
-                (\(ds : integer) (ds : list data) ->
-                   case
-                     (all dead. integer)
-                     (equalsInteger 1 ds)
-                     [ (/\dead ->
-                          let
-                            !defaultBody : integer = error {integer}
-                          in
-                          Unit_match (error {Unit}) {integer} defaultBody)
-                     , (/\dead -> 1) ]
-                     {all dead. dead}))
-         , (/\dead ->
-              let
-                !ds : data = headList {data} ds
-                !ds : list data = tailList {data} ds
-              in
-              unIData ds) ]
-         {all dead. dead})
+  let
+    !tup : pair integer (list data) = unConstrData ds
+  in
+  case
+    (all dead. integer)
+    (equalsInteger 0 (case integer tup [(\(l : integer) (r : list data) -> l)]))
+    [ (/\dead ->
+         case
+           (all dead. integer)
+           (equalsInteger
+              1
+              (case
+                 integer
+                 (unConstrData ds)
+                 [(\(l : integer) (r : list data) -> l)]))
+           [ (/\dead ->
+                let
+                  !defaultBody : integer = error {integer}
+                in
+                Unit_match (error {Unit}) {integer} defaultBody)
+           , (/\dead -> 1) ]
+           {all dead. dead})
+    , (/\dead ->
+         unIData
+           (headList
+              {data}
+              ((let
+                   b = list data
+                 in
+                 \(x : pair integer b) ->
+                   case b x [(\(l : integer) (r : b) -> r)])
+                 tup))) ]
+    {all dead. dead}

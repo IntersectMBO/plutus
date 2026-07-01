@@ -2,16 +2,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.Lists.Lookup.Compiled where
 
+import Plinth.Plugin ()
 import PlutusTx qualified as Tx
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Lift ()
 import PlutusTx.List qualified as L
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as P
 
 {-

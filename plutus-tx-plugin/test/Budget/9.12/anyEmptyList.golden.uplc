@@ -1,9 +1,7 @@
 (program
    1.1.0
-   ((\s -> s s)
+   ((\s -> s s (constr 0 []))
       (\s ds ->
          case
            ds
-           [ False
-           , (\x xs -> case (lessThanEqualsInteger 1 x) [True, (s s xs)]) ])
-      (constr 0 [])))
+           [False, (\x xs -> case (lessThanInteger x 1) [(s s xs), True])])))

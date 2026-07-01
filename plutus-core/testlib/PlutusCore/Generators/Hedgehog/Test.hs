@@ -44,7 +44,7 @@ getSampleTermValue
      , MakeKnown (Term TyName Name uni fun ()) a
      )
   => TermGen a
-  -> IO (TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ())))
+  -> IO (TermWith (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ())))
 getSampleTermValue genTerm = Gen.sample $ unsafeTypeEvalCheck <$> genTerm
 
 {-| Generate a program using a given generator and check that it's well-typed and evaluates
@@ -58,7 +58,7 @@ getSampleProgramAndValue
   => TermGen a
   -> IO (Program TyName Name uni fun (), EvaluationResult (Term TyName Name uni fun ()))
 getSampleProgramAndValue genTerm =
-  getSampleTermValue genTerm <&> \(TermOf term result) ->
+  getSampleTermValue genTerm <&> \(TermWith term result) ->
     (Program () latestVersion term, result)
 
 {-| Generate a program using a given generator, check that it's well-typed and evaluates correctly
@@ -118,9 +118,9 @@ propEvaluate
   -> TermGen a
   -- ^ A term/value generator.
   -> Property
-propEvaluate eval genTermOfTbv = withTests 200 . property $ do
-  termOfTbv <- forAllNoShow genTermOfTbv
-  case typeEvalCheckBy eval termOfTbv of
+propEvaluate eval genTermWithTbv = withTests 200 . property $ do
+  termWithTbv <- forAllNoShow genTermWithTbv
+  case typeEvalCheckBy eval termWithTbv of
     Left (TypeEvalCheckErrorIllFormed err) -> fail $ prettyPlcErrorString err
     Left (TypeEvalCheckErrorIllTyped expected actual) ->
       -- We know that these two are distinct, but there is no nice way we

@@ -1,5 +1,3 @@
--- editorconfig-checker-disable-file
-
 -- | The types and functions that are common among all ledger Plutus versions.
 module PlutusLedgerApi.Common
   ( -- * Script (de)serialization
@@ -33,6 +31,12 @@ module PlutusLedgerApi.Common
   , Versions.ledgerLanguageIntroducedIn
   , Versions.ledgerLanguagesAvailableIn
 
+    -- * Compute script hashes
+  , Hash.hashScript
+  , Hash.hashScriptHex
+  , Hash.hashScriptB
+  , Hash.plutusVersionTag
+
     -- * Protocol Versions
   , Protocol.shelleyPV
   , Protocol.allegraPV
@@ -43,6 +47,7 @@ module PlutusLedgerApi.Common
   , Protocol.changPV
   , Protocol.plominPV
   , Protocol.vanRossemPV
+  , Protocol.newestPV
   , Protocol.knownPVs
 
     -- * Costing-related types
@@ -105,6 +110,7 @@ module PlutusLedgerApi.Common
   ) where
 
 import PlutusLedgerApi.Common.Eval qualified as Eval
+import PlutusLedgerApi.Common.Hash qualified as Hash
 import PlutusLedgerApi.Common.ParamName qualified as ParamName
 import PlutusLedgerApi.Common.ProtocolVersions qualified as Protocol
 import PlutusLedgerApi.Common.SerialisedScript qualified as SerialisedScript

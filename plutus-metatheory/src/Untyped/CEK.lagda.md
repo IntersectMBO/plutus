@@ -567,11 +567,17 @@ BUILTIN replicateByte = λ
   ; _ -> inj₁ userError
   }
 BUILTIN shiftByteString = λ
-  { (app (app base (V-con bytestring s)) (V-con integer i)) -> inj₂ (V-con bytestring (shiftBYTESTRING s i))
+  { (app (app base (V-con bytestring s)) (V-con integer i)) -> case shiftBYTESTRING s i of λ
+     { (just r) -> inj₂ (V-con bytestring r)
+     ; nothing  -> inj₁ userError
+     }
   ; _ -> inj₁ userError
   }
 BUILTIN rotateByteString = λ
-  { (app (app base (V-con bytestring s)) (V-con integer i)) -> inj₂ (V-con bytestring (rotateBYTESTRING s i))
+  { (app (app base (V-con bytestring s)) (V-con integer i)) -> case rotateBYTESTRING s i of λ
+     { (just r) -> inj₂ (V-con bytestring r)
+     ; nothing  -> inj₁ userError
+     }
   ; _ -> inj₁ userError
   }
 BUILTIN countSetBits  = λ

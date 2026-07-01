@@ -162,6 +162,8 @@ module PlutusLedgerApi.V1
   , Interval.upperBound
   , Interval.strictLowerBound
   , Interval.strictUpperBound
+  , Interval.inclusiveLowerBound
+  , Interval.inclusiveUpperBound
   , Interval.member
   , Interval.interval
   , Interval.hull

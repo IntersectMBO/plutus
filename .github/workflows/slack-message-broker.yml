@@ -1,4 +1,4 @@
-# This workflow sends a message to the plutus-ci channel whenever a status check fails, 
+# This workflow sends a message to the plutus-ci channel whenever a status check fails,
 # and tried to notify the author of the commit that caused the failure.
 #
 # This workflow triggers whenever a workflow run or a check run is completed.
@@ -9,12 +9,12 @@ on:
   check_run:
     types: [completed]
   workflow_run:
-    workflows: 
+    workflows:
       - "🔗 Broken Links"
       - "👷 Cabal Build All"
       - "🗽 Cardano Constitution Tests"
       - "💰 Cost Model Benchmark"
-      - "🦕 Docusaurus Site" 
+      - "🦕 Docusaurus Site"
       - "📜 Haddock Site"
       - "🩺 Longitudinal Benchmark"
       - "🔮 Metatheory Site"
@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   Send:
@@ -34,15 +35,26 @@ jobs:
       - name: Prepare Slack Message
         uses: actions/github-script@v7.1.0
         id: prepare-slack-message
-
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SENDER_LOGIN: ${{ github.event.sender.login }}
+          WORKFLOW_NAME: ${{ github.event.workflow.name }}
+          WORKFLOW_RUN_NAME: ${{ github.event.workflow_run.name }}
+          WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW_RUN_STATUS: ${{ github.event.workflow_run.status }}
+          WORKFLOW_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          CHECK_RUN_NAME: ${{ github.event.check_run.name }}
+          CHECK_RUN_STATUS: ${{ github.event.check_run.status }}
+          CHECK_RUN_CONCLUSION: ${{ github.event.check_run.conclusion }}
+          CHECK_RUN_URL: ${{ github.event.check_run.html_url }}
         with:
-          script: | 
-            console.log(${{ toJson(github.event) }});
+          script: |
+            console.log(JSON.stringify(context.payload));
 
 
             function getSlackMembersToBeNotified() {
-              const senderLogin = "${{ github.event.sender.login }}";
-              const workflowName = "${{ github.event.workflow.name }}";
+              const senderLogin = process.env.SENDER_LOGIN;
+              const workflowName = process.env.WORKFLOW_NAME;
 
               const slackMemberIds = {
                 "zeme-wana": ["U03HGDNDRKR"],
@@ -77,40 +89,53 @@ jobs:
               }
             }
 
-                              
-            const isWorkflowRunEvent = "${{ github.event_name }}" == "workflow_run";
-            const isCheckRunEvent = "${{ github.event_name }}" == "check_run";
 
-            
-            function isDraftPullRequest() {
-              const workflowRunPrIsNull = "${{ github.event.workflow_run.pull_requests == null }}" === "true";
-              const isDraftPrWorkflowRun = "${{ github.event.workflow_run.pull_requests[0][0].draft }}" === "true";
+            const eventName = process.env.EVENT_NAME;
+            const isWorkflowRunEvent = eventName === "workflow_run";
+            const isCheckRunEvent = eventName === "check_run";
 
-              const checkRunPrIsNull = "${{ github.event.check_run.pull_requests == null }}" === "true";
-              const isDraftPrCheckRun = "${{ github.event.check_run.pull_requests[0][0].draft }}" === "true";
+
+            async function isDraftPullRequest() {
+              const event = isWorkflowRunEvent ? context.payload.workflow_run
+                          : isCheckRunEvent ? context.payload.check_run
+                          : null;
+              const pr = event && event.pull_requests && event.pull_requests[0];
 
               console.log(`isWorkflowRunEvent:  ${isWorkflowRunEvent}`);
               console.log(`isCheckRunEvent:  ${isCheckRunEvent}`);
-              console.log(`workflowRunPrIsNull:  ${workflowRunPrIsNull}`);
-              console.log(`checkRunPrIsNull:  ${checkRunPrIsNull}`);
-              console.log(`isDraftPrWorkflowRun:  ${isDraftPrWorkflowRun}`);
-              console.log(`isDraftPrCheckRun:  ${isDraftPrCheckRun}`);
 
-              return isDraftPrWorkflowRun || isDraftPrCheckRun;
+              if (!pr) {
+                console.log("No associated pull request; treating as non-draft.");
+                return false;
+              }
+
+              try {
+                const { data } = await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                });
+                console.log(`PR #${pr.number} draft:  ${data.draft}`);
+                return data.draft === true;
+              } catch (error) {
+                // Fail open: if we cannot determine draft status, send the message.
+                console.log(`Could not fetch PR #${pr.number}:  ${error}`);
+                return false;
+              }
             }
 
             const slackMembers = getSlackMembersToBeNotified();
-            const isDraftPR = isDraftPullRequest();
+            const isDraftPR = await isDraftPullRequest();
 
             let message;
             let shouldSendMessage;
-            
-         
+
+
             function handleWorkflowRunEvent() {
-              const name = "${{ github.event.workflow_run.name }}";
-              const url = "${{ github.event.workflow_run.html_url }}";
-              const status = "${{ github.event.workflow_run.status }}";
-              const conclusion = "${{ github.event.workflow_run.conclusion }}";
+              const name = process.env.WORKFLOW_RUN_NAME;
+              const url = process.env.WORKFLOW_RUN_URL;
+              const status = process.env.WORKFLOW_RUN_STATUS;
+              const conclusion = process.env.WORKFLOW_RUN_CONCLUSION;
               const failureConclusions = [ "failure", "null", "action_required", "neutral", "timed_out" ];
 
               if (failureConclusions.includes(conclusion)) {
@@ -124,19 +149,18 @@ jobs:
 
 
             function handleCheckRunEvent() {
-              const name = "${{ github.event.check_run.name }}";
-              const status = "${{ github.event.check_run.status }}";
-              const conclusion = "${{ github.event.check_run.conclusion }}";
-              const url = "${{ github.event.check_run.html_url }}";
+              const name = process.env.CHECK_RUN_NAME;
+              const status = process.env.CHECK_RUN_STATUS;
+              const conclusion = process.env.CHECK_RUN_CONCLUSION;
+              const url = process.env.CHECK_RUN_URL;
 
               const checkRunWatchlist = [
                 "ci/hydra-build:aarch64-darwin.required",
-                "ci/hydra-build:x86_64-darwin.required",
                 "ci/hydra-build:x86_64-linux.required",
                 "ci/eval"
               ];
 
-              if (conclusion == "failure" && checkRunWatchlist.includes(name)) {
+              if (conclusion === "failure" && checkRunWatchlist.includes(name)) {
                 message = `❌ ${name} \`${conclusion}\` <${url}|View Logs> ${slackMembers}`;
                 shouldSendMessage = true;
               } else {
@@ -146,24 +170,27 @@ jobs:
             }
 
 
-            if (!isDraftPR && isWorkflowRunEvent) { 
+            if (isDraftPR) {
+              message = `Draft PR, skipping notification: ${eventName}`;
+              shouldSendMessage = false;
+            } else if (isWorkflowRunEvent) {
               handleWorkflowRunEvent();
-            } else if (!isDraftPR && isCheckRunEvent) { 
+            } else if (isCheckRunEvent) {
               handleCheckRunEvent();
             } else {
-              message = `Unknown event or draft PR: ${{ github.event_name }}`;
+              message = `Unknown event: ${eventName}`;
               shouldSendMessage = true;
             }
 
             console.log(`message:  ${message}`);
             console.log(`shouldSendMessage:  ${shouldSendMessage}`);
 
-            core.setOutput("message", message); 
-            core.setOutput("shouldSendMessage", shouldSendMessage); 
+            core.setOutput("message", message);
+            core.setOutput("shouldSendMessage", shouldSendMessage);
 
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.3
         if: ${{ steps.prepare-slack-message.outputs.shouldSendMessage == 'true' }}
         with:
           method: chat.postMessage

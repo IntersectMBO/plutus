@@ -1,43 +1,42 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Function.Properties.Inverse.HalfAdjointEquivalence where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Function.Bundles qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Function.Bundles
 
 -- Function.Properties.Inverse.HalfAdjointEquivalence._≃_
 d__'8771'__24 a0 a1 a2 a3 = ()
 data T__'8771'__24
-  = C__'8771'_'46'constructor_973 (AgdaAny -> AgdaAny)
-                                  (AgdaAny -> AgdaAny)
+  = C_constructor_78 (AgdaAny -> AgdaAny) (AgdaAny -> AgdaAny)
 -- Function.Properties.Inverse.HalfAdjointEquivalence._≃_.to
 d_to_46 :: T__'8771'__24 -> AgdaAny -> AgdaAny
 d_to_46 v0
   = case coe v0 of
-      C__'8771'_'46'constructor_973 v1 v2 -> coe v1
-      _                                   -> MAlonzo.RTE.mazUnreachableError
+      C_constructor_78 v1 v2 -> coe v1
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Function.Properties.Inverse.HalfAdjointEquivalence._≃_.from
 d_from_48 :: T__'8771'__24 -> AgdaAny -> AgdaAny
 d_from_48 v0
   = case coe v0 of
-      C__'8771'_'46'constructor_973 v1 v2 -> coe v2
-      _                                   -> MAlonzo.RTE.mazUnreachableError
+      C_constructor_78 v1 v2 -> coe v2
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Function.Properties.Inverse.HalfAdjointEquivalence._≃_.left-inverse-of
 d_left'45'inverse'45'of_52 ::
   T__'8771'__24 ->
@@ -66,24 +65,24 @@ d_injective_66 ::
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_injective_66 = erased
 -- Function.Properties.Inverse.HalfAdjointEquivalence.≃⇒↔
-d_'8771''8658''8596'_78 ::
+d_'8771''8658''8596'_80 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> T__'8771'__24 -> MAlonzo.Code.Function.Bundles.T_Inverse_1960
-d_'8771''8658''8596'_78 ~v0 ~v1 ~v2 ~v3 v4
-  = du_'8771''8658''8596'_78 v4
-du_'8771''8658''8596'_78 ::
-  T__'8771'__24 -> MAlonzo.Code.Function.Bundles.T_Inverse_1960
-du_'8771''8658''8596'_78 v0
+  () -> T__'8771'__24 -> MAlonzo.Code.Function.Bundles.T_Inverse_2122
+d_'8771''8658''8596'_80 ~v0 ~v1 ~v2 ~v3 v4
+  = du_'8771''8658''8596'_80 v4
+du_'8771''8658''8596'_80 ::
+  T__'8771'__24 -> MAlonzo.Code.Function.Bundles.T_Inverse_2122
+du_'8771''8658''8596'_80 v0
   = coe
-      MAlonzo.Code.Function.Bundles.du_mk'8596''8347''8242'_2366
+      MAlonzo.Code.Function.Bundles.du_mk'8596''8347''8242'_2542
       (coe d_to_46 (coe v0)) (coe d_from_48 (coe v0))
 -- Function.Properties.Inverse.HalfAdjointEquivalence._._.from
-d_from_88 :: T__'8771'__24 -> AgdaAny -> AgdaAny
-d_from_88 v0 = coe d_from_48 (coe v0)
+d_from_90 :: T__'8771'__24 -> AgdaAny -> AgdaAny
+d_from_90 v0 = coe d_from_48 (coe v0)
 -- Function.Properties.Inverse.HalfAdjointEquivalence._._.injective
-d_injective_90 ::
+d_injective_92 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -93,73 +92,72 @@ d_injective_90 ::
   AgdaAny ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_injective_90 = erased
+d_injective_92 = erased
 -- Function.Properties.Inverse.HalfAdjointEquivalence._._.left-inverse-of
-d_left'45'inverse'45'of_92 ::
+d_left'45'inverse'45'of_94 ::
   T__'8771'__24 ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_left'45'inverse'45'of_92 = erased
+d_left'45'inverse'45'of_94 = erased
 -- Function.Properties.Inverse.HalfAdjointEquivalence._._.left-right
-d_left'45'right_94 ::
+d_left'45'right_96 ::
   T__'8771'__24 ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_left'45'right_94 = erased
+d_left'45'right_96 = erased
 -- Function.Properties.Inverse.HalfAdjointEquivalence._._.right-inverse-of
-d_right'45'inverse'45'of_96 ::
+d_right'45'inverse'45'of_98 ::
   T__'8771'__24 ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_right'45'inverse'45'of_96 = erased
+d_right'45'inverse'45'of_98 = erased
 -- Function.Properties.Inverse.HalfAdjointEquivalence._._.to
-d_to_98 :: T__'8771'__24 -> AgdaAny -> AgdaAny
-d_to_98 v0 = coe d_to_46 (coe v0)
+d_to_100 :: T__'8771'__24 -> AgdaAny -> AgdaAny
+d_to_100 v0 = coe d_to_46 (coe v0)
 -- Function.Properties.Inverse.HalfAdjointEquivalence.↔⇒≃
-d_'8596''8658''8771'_100 ::
+d_'8596''8658''8771'_102 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  () -> MAlonzo.Code.Function.Bundles.T_Inverse_1960 -> T__'8771'__24
-d_'8596''8658''8771'_100 ~v0 ~v1 ~v2 ~v3 v4
-  = du_'8596''8658''8771'_100 v4
-du_'8596''8658''8771'_100 ::
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960 -> T__'8771'__24
-du_'8596''8658''8771'_100 v0
+  () -> MAlonzo.Code.Function.Bundles.T_Inverse_2122 -> T__'8771'__24
+d_'8596''8658''8771'_102 ~v0 ~v1 ~v2 ~v3 v4
+  = du_'8596''8658''8771'_102 v4
+du_'8596''8658''8771'_102 ::
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122 -> T__'8771'__24
+du_'8596''8658''8771'_102 v0
   = coe
-      C__'8771'_'46'constructor_973
-      (MAlonzo.Code.Function.Bundles.d_to_1972 (coe v0))
-      (MAlonzo.Code.Function.Bundles.d_from_1974 (coe v0))
+      C_constructor_78 (MAlonzo.Code.Function.Bundles.d_to_2134 (coe v0))
+      (MAlonzo.Code.Function.Bundles.d_from_2136 (coe v0))
 -- Function.Properties.Inverse.HalfAdjointEquivalence._.A↔B.strictlyInverseʳ
-d_strictlyInverse'691'_130 ::
+d_strictlyInverse'691'_132 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960 ->
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122 ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_strictlyInverse'691'_130 = erased
+d_strictlyInverse'691'_132 = erased
 -- Function.Properties.Inverse.HalfAdjointEquivalence._.right-inverse-of
-d_right'45'inverse'45'of_188 ::
+d_right'45'inverse'45'of_194 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960 ->
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122 ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_right'45'inverse'45'of_188 = erased
+d_right'45'inverse'45'of_194 = erased
 -- Function.Properties.Inverse.HalfAdjointEquivalence._.left-right
-d_left'45'right_194 ::
+d_left'45'right_200 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960 ->
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122 ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_left'45'right_194 = erased
+d_left'45'right_200 = erased
 -- Function.Properties.Inverse.HalfAdjointEquivalence._._.lemma
-d_lemma_202 ::
+d_lemma_208 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   () ->
-  MAlonzo.Code.Function.Bundles.T_Inverse_1960 ->
+  MAlonzo.Code.Function.Bundles.T_Inverse_2122 ->
   AgdaAny -> MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_lemma_202 = erased
+d_lemma_208 = erased

@@ -1,32 +1,32 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.List.Relation.Unary.AllPairs where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.List.Relation.Unary.All qualified
-import MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core qualified
-import MAlonzo.Code.Data.Product.Base qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.List.Relation.Unary.All
+import qualified MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
+import qualified MAlonzo.Code.Data.Product.Base
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 -- Data.List.Relation.Unary.AllPairs.head
 d_head_22 ::
@@ -277,16 +277,16 @@ du_allPairs'63'_110 v0 v1
                    MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core.C_'91''93'_22))
       (:) v2 v3
         -> coe
-             MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168
+             MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
              (coe
                 MAlonzo.Code.Data.Product.Base.du_uncurry_244
                 (coe
                    MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core.C__'8759'__28))
              (coe du_uncons_42)
              (coe
-                MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                 (coe
-                   MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_506
+                   MAlonzo.Code.Data.List.Relation.Unary.All.du_all'63'_510
                    (coe v0 v2) (coe v3))
                 (coe du_allPairs'63'_110 (coe v0) (coe v3)))
       _ -> MAlonzo.RTE.mazUnreachableError

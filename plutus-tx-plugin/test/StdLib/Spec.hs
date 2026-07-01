@@ -3,12 +3,12 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=0 #-}
 
 module StdLib.Spec where
 
@@ -16,13 +16,13 @@ import Control.DeepSeq (NFData, force)
 import Control.Exception (SomeException, evaluate, try)
 import Control.Monad.Except (runExceptT)
 import Control.Monad.IO.Class (MonadIO (liftIO))
-import Data.Proxy (Proxy (..))
 import Data.Ratio ((%))
 import GHC.Exts (fromString)
 import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import Plinth.Plugin (plinthc)
 import PlutusCore.Data qualified as PLC
 import PlutusCore.MkPlc qualified as Core
 import PlutusCore.Test (TestNested, embed, runUPlc, testNested, testNestedGhc)
@@ -32,7 +32,6 @@ import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Lift qualified as Lift
 import PlutusTx.Ord qualified as PlutusTx
-import PlutusTx.Plugin (plc)
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio qualified as Ratio
 import PlutusTx.Test (goldenPirReadable)
@@ -41,7 +40,7 @@ import Test.Tasty.HUnit (assertFailure, testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
 roundPlc :: CompiledCode (Ratio.Rational -> Integer)
-roundPlc = plc (Proxy @"roundPlc") Ratio.round
+roundPlc = plinthc Ratio.round
 
 tests :: TestNested
 tests =
@@ -145,4 +144,4 @@ genData =
         ]
 
 errorTrace :: CompiledCode Integer
-errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceError "")
+errorTrace = plinthc (PlutusTx.traceError "")

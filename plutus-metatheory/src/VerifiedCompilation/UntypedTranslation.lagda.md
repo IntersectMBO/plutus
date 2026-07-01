@@ -26,8 +26,10 @@ open import Builtin using (Builtin)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Untyped.Equality using (DecEq; _≟_; decPointwise)
-open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE; DecidableCE; SimplifierTag)
+open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE; DecidableCE; OptTag)
 open import Data.Sum using (_⊎_;inj₁; inj₂)
+
+open import Untyped.Relation.Binary using (Relation) public
 
 ```
 The generic type of a Translation is that it matches one (or more) patterns on the left to one
@@ -35,8 +37,6 @@ The generic type of a Translation is that it matches one (or more) patterns on t
 we can build a decision procedure to apply them recursivley down the AST structure.
 
 ```
-Relation = { X : ℕ } → (X ⊢) → (X ⊢) → Set
-
 data Translation (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set
 
 data TransMatch (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set where
@@ -106,13 +106,13 @@ matchIx error = refl
 
 translation?
   : {X' : ℕ} {R : Relation}
-  → SimplifierTag
+  → OptTag
   → ({ X : ℕ } → DecidableCE (R {X}))
   → (p q : X' ⊢) → ProofOrCE (Translation R {X'} p q)
 
 decPointwiseTranslation?
   : {X' : ℕ} {R : Relation}
-  → SimplifierTag
+  → OptTag
   → ({ X : ℕ } → DecidableCE (R {X}))
   → (p q : List (X' ⊢)) → ProofOrCE (Pointwise (Translation R {X'}) p q)
 decPointwiseTranslation? _ _ [] [] = proof Pointwise.[]

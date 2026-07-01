@@ -1,21 +1,24 @@
-cabal-version: 3.0
-name:          plutus-metatheory
-version:       1.60.0.0
-synopsis:      Command line tool for running plutus core programs
-homepage:      https://github.com/IntersectMBO/plutus
-license:       Apache-2.0
+cabal-version:      3.0
+name:               plutus-metatheory
+version:            1.65.0.0
+synopsis:           Command line tool for running plutus core programs
+homepage:           https://github.com/IntersectMBO/plutus
+license:            Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-author:        James Chapman
-maintainer:    james.chapman@iohk.io
-category:      Development
-build-type:    Simple
+author:             James Chapman
+maintainer:         james.chapman@iohk.io
+category:           Development
+build-type:         Simple
 data-files:
   plutus-metatheory.agda-lib
   README.md
   src/**/*.lagda.md
+  test/certifier-report/scripts/*.uplc
+
+extra-source-files: file-embed/certificate-README.md
 
 common lang
   default-language:   Haskell2010
@@ -45,6 +48,7 @@ common lang
 
   ghc-options:
     -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
+    -Wunused-packages
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
@@ -72,34 +76,32 @@ library
 
   hs-source-dirs:  src
   build-depends:
-    , aeson
     , base
     , bytestring
     , composition-prelude
     , deepseq
     , directory
     , extra
+    , file-embed
     , filepath
-    , ghc-prim
-    , ieee754
-    , megaparsec
-    , memory
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.60
+    , plutus-core                       ^>=1.65
+    , plutus-ledger-api
     , plutus-ledger-api:plutus-execlib
-    , process
+    , prettyprinter
     , text
-    , time
     , transformers
     , vector                            ^>=0.13.2
 
   exposed-modules: Paths_plutus_metatheory
   exposed-modules:
     Certifier
+    Data.List.NonEmptySep
     FFI.AgdaUnparse
+    FFI.CostInfo
+    FFI.OptimizerTrace
     FFI.Opts
-    FFI.SimplifierTrace
     FFI.Untyped
     Raw
 
@@ -205,6 +207,7 @@ library
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
+    MAlonzo.Code.Data.List.Relation.Unary.All.Properties.Core
     MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
@@ -218,6 +221,7 @@ library
     MAlonzo.Code.Data.Nat.Divisibility.Core
     MAlonzo.Code.Data.Nat.DivMod
     MAlonzo.Code.Data.Nat.DivMod.Core
+    MAlonzo.Code.Data.Nat.ListAction
     MAlonzo.Code.Data.Nat.Properties
     MAlonzo.Code.Data.Nat.Show
     MAlonzo.Code.Data.Parity.Base
@@ -301,6 +305,7 @@ library
     MAlonzo.Code.Reflection.AST.Show
     MAlonzo.Code.Reflection.AST.Term
     MAlonzo.Code.Relation.Binary.Bundles
+    MAlonzo.Code.Relation.Binary.Bundles.Raw
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Strict
@@ -366,13 +371,23 @@ library
     MAlonzo.Code.Untyped.Equality
     MAlonzo.Code.Untyped.Purity
     MAlonzo.Code.Untyped.Reduction
+    MAlonzo.Code.Untyped.Relation.Binary
+    MAlonzo.Code.Untyped.Relation.Binary.Core
+    MAlonzo.Code.Untyped.Relation.Binary.Modular
+    MAlonzo.Code.Untyped.Relation.Binary.Modular.Patterns
+    MAlonzo.Code.Untyped.Relation.Binary.Modular.Structures
+    MAlonzo.Code.Untyped.Relation.Binary.Properties
+    MAlonzo.Code.Untyped.Relation.Binary.Structures
     MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.Strictness
+    MAlonzo.Code.Untyped.Transform
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Certificate
+    MAlonzo.Code.VerifiedCompilation.FloatOut
     MAlonzo.Code.VerifiedCompilation.NotImplemented
     MAlonzo.Code.VerifiedCompilation.Trace
     MAlonzo.Code.VerifiedCompilation.UApplyToCase
@@ -380,6 +395,7 @@ library
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
     MAlonzo.Code.VerifiedCompilation.UCSE
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
+    MAlonzo.Code.VerifiedCompilation.UForceCaseDelay
     MAlonzo.Code.VerifiedCompilation.UForceDelay
     MAlonzo.Code.VerifiedCompilation.UInline
     MAlonzo.Code.VerifiedCompilation.UntypedTranslation
@@ -393,7 +409,7 @@ executable plc-agda
   main-is:        Main.hs
   build-depends:
     , base
-    , plutus-metatheory  ^>=1.60
+    , plutus-metatheory  ^>=1.65
 
 test-suite test-NEAT
   import:         lang, os-support, ghc-version-support
@@ -406,11 +422,9 @@ test-suite test-NEAT
     , data-default-class
     , lazy-search
     , mtl
-    , plutus-core                      ^>=1.60
+    , plutus-core                      ^>=1.65
     , plutus-core:plutus-core-testlib
-    , plutus-metatheory                ^>=1.60
-    , size-based
-    , Stream
+    , plutus-metatheory                ^>=1.65
     , tasty
     , tasty-hunit
 
@@ -426,12 +440,35 @@ test-suite test-certifier
 
   build-depends:
     , base
-    , filepath
     , plutus-core
-    , plutus-core:plutus-core-testlib
     , plutus-core:untyped-plutus-core-testlib
-    , plutus-metatheory                        ^>=1.60
-    , process
+    , plutus-metatheory                        ^>=1.65
     , tasty
     , tasty-hunit
     , text
+
+test-suite test-certifier-report
+  import:         lang, os-support, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/certifier-report
+  other-modules:
+    Paths_plutus_metatheory
+    Test.Certifier.Report
+
+  build-depends:
+    , base
+    , bytestring
+    , extra
+    , filepath
+    , lens
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-ledger-api:plutus-execlib
+    , plutus-metatheory                 ^>=1.65
+    , plutus-tx
+    , tasty
+    , tasty-golden
+    , transformers
+
+  ghc-options:    -Wall

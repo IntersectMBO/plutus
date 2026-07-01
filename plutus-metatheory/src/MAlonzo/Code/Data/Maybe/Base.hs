@@ -1,30 +1,30 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.Maybe.Base where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Builtin.Unit qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Bool.Base qualified
-import MAlonzo.Code.Data.These.Base qualified
-import MAlonzo.Code.Level qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Bool.Base
+import qualified MAlonzo.Code.Data.These.Base
+import qualified MAlonzo.Code.Level
 
 -- Data.Maybe.Base.boolToMaybe
 d_boolToMaybe_18 ::
@@ -72,7 +72,7 @@ du_maybe_32 v0 v1 v2
   = case coe v2 of
       MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3 -> coe v0 v3
       MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 -> coe v1
-      _                                            -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Maybe.Base.maybe′
 d_maybe'8242'_44 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -148,7 +148,7 @@ du__'62''62''61'__72 v0 v1
   = case coe v0 of
       MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v2 -> coe v1 v2
       MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 -> coe v0
-      _                                            -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Maybe.Base._<∣>_
 d__'60''8739''62'__80 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -160,7 +160,7 @@ du__'60''8739''62'__80 v0 v1
   = case coe v0 of
       MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v2 -> coe v0
       MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 -> coe v1
-      _                                            -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Maybe.Base.when
 d_when_88 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->

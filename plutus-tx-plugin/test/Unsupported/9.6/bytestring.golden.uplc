@@ -1,0 +1,1 @@
+Error: Unsupported feature: Type Data.ByteString.Internal.Type.ByteString is not supported in Plinth; use BuiltinByteString instead

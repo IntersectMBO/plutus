@@ -1,21 +1,17 @@
 (program
    1.1.0
-   ((\ds ->
-       case
-         ((\tup ->
-             constr 0 [(case tup [(\l r -> l)]), (case tup [(\l r -> r)])])
-            (unConstrData ds))
-         [ (\ds ds ->
-              case
-                (equalsInteger 0 ds)
-                [ (case
-                     ((\tup ->
-                         constr 0
-                           [(case tup [(\l r -> l)]), (case tup [(\l r -> r)])])
-                        (unConstrData ds))
-                     [ (\ds ds ->
-                          case
-                            (equalsInteger 1 ds)
-                            [((\cse -> case cse [cse]) error), 1]) ])
-                , (unIData (force headList ds)) ]) ])
+   ((\forced ds ->
+       (\cse ->
+          (\ds ->
+             case
+               (equalsInteger 0 (case cse [(\l r -> l)]))
+               [ ((\ds ->
+                     case
+                       (equalsInteger 1 (case cse [(\l r -> l)]))
+                       [((\cse -> case cse [cse]) error), 1])
+                    (case cse [(\l r -> r)]))
+               , (unIData (forced ds)) ])
+            (case cse [(\l r -> r)]))
+         (unConstrData ds))
+      (force headList)
       (Constr 0 [I 1])))

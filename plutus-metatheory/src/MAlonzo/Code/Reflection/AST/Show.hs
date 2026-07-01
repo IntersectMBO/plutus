@@ -1,33 +1,33 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Reflection.AST.Show where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Float qualified
-import MAlonzo.Code.Agda.Builtin.Reflection qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Data.Nat.Show qualified
-import MAlonzo.Code.Data.String qualified
-import MAlonzo.Code.Data.String.Base qualified
-import MAlonzo.Code.Function.Base qualified
-import MAlonzo.Code.Reflection.AST.Argument qualified
-import MAlonzo.Code.Reflection.AST.Argument.Information qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Float
+import qualified MAlonzo.Code.Agda.Builtin.Reflection
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Data.Nat.Show
+import qualified MAlonzo.Code.Data.String
+import qualified MAlonzo.Code.Data.String.Base
+import qualified MAlonzo.Code.Function.Base
+import qualified MAlonzo.Code.Reflection.AST.Argument
+import qualified MAlonzo.Code.Reflection.AST.Argument.Information
 
 -- Reflection.AST.Show.showRelevance
 d_showRelevance_6 ::
@@ -480,7 +480,7 @@ d_showDefinition_168 v0
                          (coe
                             MAlonzo.Code.Function.Base.du__'8728''8242'__216
                             (coe MAlonzo.Code.Agda.Builtin.Reflection.d_primShowQName_12)
-                            (coe MAlonzo.Code.Reflection.AST.Argument.du_unArg_74))
+                            (coe MAlonzo.Code.Reflection.AST.Argument.d_unArg_74))
                          (coe v2)))))
       MAlonzo.Code.Agda.Builtin.Reflection.C_data'45'cons_302 v1 v2
         -> coe

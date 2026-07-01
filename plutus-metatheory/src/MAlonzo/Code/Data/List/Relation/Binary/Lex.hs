@@ -1,36 +1,36 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.List.Relation.Binary.Lex where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Empty qualified
-import MAlonzo.Code.Data.Irrelevant qualified
-import MAlonzo.Code.Data.List.Relation.Binary.Lex.Core qualified
-import MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base qualified
-import MAlonzo.Code.Data.Product.Base qualified
-import MAlonzo.Code.Data.Sum.Base qualified
-import MAlonzo.Code.Function.Bundles qualified
-import MAlonzo.Code.Relation.Binary.Structures qualified
-import MAlonzo.Code.Relation.Nullary.Decidable qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Irrelevant
+import qualified MAlonzo.Code.Data.List.Relation.Binary.Lex.Core
+import qualified MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base
+import qualified MAlonzo.Code.Data.Product.Base
+import qualified MAlonzo.Code.Data.Sum.Base
+import qualified MAlonzo.Code.Function.Bundles
+import qualified MAlonzo.Code.Relation.Binary.Structures
+import qualified MAlonzo.Code.Relation.Nullary.Decidable
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Negation.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 -- Data.List.Relation.Binary.Lex._._≋_
 d__'8779'__28 ::
@@ -164,7 +164,10 @@ du_as_90 v0 v1 v2 v3
                 MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.C_'91''93'_56)
       MAlonzo.Code.Data.List.Relation.Binary.Lex.Core.C_this_60 v8
         -> coe
-             seq (coe v3) (coe MAlonzo.Code.Data.Empty.du_'8869''45'elim_14)
+             seq (coe v3)
+             (coe
+                MAlonzo.Code.Relation.Nullary.Negation.Core.du_contradiction_44
+                erased)
       MAlonzo.Code.Data.List.Relation.Binary.Lex.Core.C_next_74 v8 v9
         -> case coe v0 of
              (:) v10 v11
@@ -172,7 +175,9 @@ du_as_90 v0 v1 v2 v3
                     (:) v12 v13
                       -> case coe v3 of
                            MAlonzo.Code.Data.List.Relation.Binary.Lex.Core.C_this_60 v18
-                             -> coe MAlonzo.Code.Data.Empty.du_'8869''45'elim_14
+                             -> coe
+                                  MAlonzo.Code.Relation.Nullary.Negation.Core.du_contradiction_44
+                                  erased
                            MAlonzo.Code.Data.List.Relation.Binary.Lex.Core.C_next_74 v18 v19
                              -> coe
                                   MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.C__'8759'__62
@@ -219,7 +224,7 @@ d_transitive_132 ::
   () ->
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny -> ()) ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   [AgdaAny] ->
@@ -231,7 +236,7 @@ d_transitive_132 ::
 d_transitive_132 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 v7 v8 v9 v10 v11 v12
   = du_transitive_132 v7 v8 v9 v10 v11 v12
 du_transitive_132 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   [AgdaAny] ->
@@ -252,7 +257,7 @@ d_trans_144 ::
   () ->
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny -> ()) ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   [AgdaAny] ->
@@ -268,7 +273,7 @@ d_trans_144 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 v7 v8 v9 ~v10 ~v11 ~v12 v13
             v14 v15 v16 v17
   = du_trans_144 v7 v8 v9 v13 v14 v15 v16 v17
 du_trans_144 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   [AgdaAny] ->
@@ -329,7 +334,7 @@ du_trans_144 v0 v1 v2 v3 v4 v5 v6 v7
                                          (coe
                                             MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30 v1 v23 v16 v14
                                             (coe
-                                               MAlonzo.Code.Relation.Binary.Structures.d_sym_36 v0
+                                               MAlonzo.Code.Relation.Binary.Structures.d_sym_38 v0
                                                v14 v16 v12)
                                             v22)
                                   _ -> MAlonzo.RTE.mazUnreachableError
@@ -339,7 +344,7 @@ du_trans_144 v0 v1 v2 v3 v4 v5 v6 v7
                                     -> coe
                                          MAlonzo.Code.Data.List.Relation.Binary.Lex.Core.C_next_74
                                          (coe
-                                            MAlonzo.Code.Relation.Binary.Structures.d_trans_38 v0
+                                            MAlonzo.Code.Relation.Binary.Structures.d_trans_40 v0
                                             v14 v16 v24 v12 v22)
                                          (coe
                                             du_trans_144 (coe v0) (coe v1) (coe v2) (coe v15)
@@ -358,13 +363,13 @@ d_respects'8322'_180 ::
   () ->
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny -> ()) ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 d_respects'8322'_180 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 v7 v8
   = du_respects'8322'_180 v7 v8
 du_respects'8322'_180 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 du_respects'8322'_180 v0 v1
@@ -384,7 +389,7 @@ d_resp'185'_200 ::
   () ->
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny -> ()) ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   [AgdaAny] ->
@@ -397,7 +402,7 @@ d_resp'185'_200 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 v7 v8 ~v9 v10 v11 v12
                 v13 v14
   = du_resp'185'_200 v7 v8 v10 v11 v12 v13 v14
 du_resp'185'_200 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   [AgdaAny] ->
   [AgdaAny] ->
@@ -430,7 +435,7 @@ du_resp'185'_200 v0 v1 v2 v3 v4 v5 v6
                                     -> coe
                                          MAlonzo.Code.Data.List.Relation.Binary.Lex.Core.C_next_74
                                          (coe
-                                            MAlonzo.Code.Relation.Binary.Structures.d_trans_38 v0
+                                            MAlonzo.Code.Relation.Binary.Structures.d_trans_40 v0
                                             v23 v13 v15 v21 v11)
                                          (coe
                                             du_resp'185'_200 (coe v0) (coe v1) (coe v24) (coe v14)
@@ -449,7 +454,7 @@ d_resp'178'_218 ::
   () ->
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny -> ()) ->
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   [AgdaAny] ->
@@ -462,7 +467,7 @@ d_resp'178'_218 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 v7 ~v8 v9 v10 v11 v12
                 v13 v14
   = du_resp'178'_218 v7 v9 v10 v11 v12 v13 v14
 du_resp'178'_218 ::
-  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 ->
+  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_28 ->
   (AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny -> AgdaAny) ->
   [AgdaAny] ->
   [AgdaAny] ->
@@ -493,10 +498,10 @@ du_resp'178'_218 v0 v1 v2 v3 v4 v5 v6
                                     -> coe
                                          MAlonzo.Code.Data.List.Relation.Binary.Lex.Core.C_next_74
                                          (coe
-                                            MAlonzo.Code.Relation.Binary.Structures.d_trans_38 v0
+                                            MAlonzo.Code.Relation.Binary.Structures.d_trans_40 v0
                                             v15 v13 v23
                                             (coe
-                                               MAlonzo.Code.Relation.Binary.Structures.d_sym_36 v0
+                                               MAlonzo.Code.Relation.Binary.Structures.d_sym_38 v0
                                                v13 v15 v11)
                                             v21)
                                          (coe
@@ -516,14 +521,14 @@ d_'91''93''60''91''93''45''8660'_234 ::
   () ->
   (AgdaAny -> AgdaAny -> ()) ->
   (AgdaAny -> AgdaAny -> ()) ->
-  MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+  MAlonzo.Code.Function.Bundles.T_Equivalence_1858
 d_'91''93''60''91''93''45''8660'_234 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6
   = du_'91''93''60''91''93''45''8660'_234
 du_'91''93''60''91''93''45''8660'_234 ::
-  MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+  MAlonzo.Code.Function.Bundles.T_Equivalence_1858
 du_'91''93''60''91''93''45''8660'_234
   = coe
-      MAlonzo.Code.Function.Bundles.du_mk'8660'_2298
+      MAlonzo.Code.Function.Bundles.du_mk'8660'_2474
       (coe MAlonzo.Code.Data.List.Relation.Binary.Lex.Core.C_base_42)
       (coe du_'46'extendedlambda0_236)
 -- Data.List.Relation.Binary.Lex._..extendedlambda0
@@ -557,15 +562,15 @@ d_'8759''60''8759''45''8660'_248 ::
   AgdaAny ->
   AgdaAny ->
   [AgdaAny] ->
-  [AgdaAny] -> MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+  [AgdaAny] -> MAlonzo.Code.Function.Bundles.T_Equivalence_1858
 d_'8759''60''8759''45''8660'_248 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7
                                  ~v8 ~v9 ~v10
   = du_'8759''60''8759''45''8660'_248
 du_'8759''60''8759''45''8660'_248 ::
-  MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+  MAlonzo.Code.Function.Bundles.T_Equivalence_1858
 du_'8759''60''8759''45''8660'_248
   = coe
-      MAlonzo.Code.Function.Bundles.du_mk'8660'_2298
+      MAlonzo.Code.Function.Bundles.du_mk'8660'_2474
       (coe
          MAlonzo.Code.Data.Sum.Base.du_'91'_'44'_'93'_52
          (coe MAlonzo.Code.Data.List.Relation.Binary.Lex.Core.C_this_60)
@@ -631,10 +636,10 @@ du_decidable_260 v0 v1 v2 v3 v4
                     MAlonzo.Code.Relation.Nullary.Decidable.du_map_18
                     (coe du_'8759''60''8759''45''8660'_248)
                     (coe
-                       MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'8846''45'dec__86
+                       MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'8846''45'dec__96
                        (coe v2 v5 v7)
                        (coe
-                          MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__76
+                          MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                           (coe v1 v5 v7)
                           (coe
                              du_decidable_260 (coe v0) (coe v1) (coe v2) (coe v6) (coe v8))))

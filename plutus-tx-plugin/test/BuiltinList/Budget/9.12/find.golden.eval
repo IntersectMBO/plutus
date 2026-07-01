@@ -1,6 +1,6 @@
-CPU:                 7_343_320
-Memory:                 40_918
-AST Size:                   56
-Flat Size:                  76
+CPU:                 6_741_166
+Memory:                 37_318
+AST Size:                   50
+Flat Size:                  69
 
 (constr 0 (constr 0 (con integer 8)) (constr 1))

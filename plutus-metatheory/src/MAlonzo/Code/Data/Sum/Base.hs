@@ -1,24 +1,24 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.Sum.Base where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Function.Base qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Function.Base
 
 -- Data.Sum.Base._⊎_
 d__'8846'__30 a0 a1 a2 a3 = ()
@@ -43,7 +43,7 @@ du_'91'_'44'_'93'_52 v0 v1 v2
   = case coe v2 of
       C_inj'8321'_38 v3 -> coe v0 v3
       C_inj'8322'_42 v3 -> coe v1 v3
-      _                 -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Sum.Base.[_,_]′
 d_'91'_'44'_'93''8242'_66 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -101,7 +101,7 @@ du_swap_78 v0
   = case coe v0 of
       C_inj'8321'_38 v1 -> coe C_inj'8322'_42 (coe v1)
       C_inj'8322'_42 v1 -> coe C_inj'8321'_38 (coe v1)
-      _                 -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Data.Sum.Base.map
 d_map_84 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->

@@ -303,20 +303,22 @@ pattern C_LinearInX_156 a0 = LinearInX a0
 pattern C_LinearInY_158 a0 = LinearInY a0
 pattern C_LinearInZ_160 a0 = LinearInZ a0
 pattern C_LinearInU_162 a0 = LinearInU a0
-pattern C_LiteralInYOrLinearInZ_164 a0 = LiteralInYOrLinearInZ a0
-pattern C_LinearInMaxYZ_166 a0 = LinearInMaxYZ a0
-pattern C_LinearInXAndY_168 a0 = LinearInXAndY a0
-pattern C_LinearInYAndZ_170 a0 = LinearInYAndZ a0
-pattern C_QuadraticInX_172 a0 = QuadraticInX a0
-pattern C_QuadraticInY_174 a0 = QuadraticInY a0
-pattern C_QuadraticInZ_176 a0 = QuadraticInZ a0
-pattern C_QuadraticInXAndY_178 a0 = QuadraticInXAndY a0
-pattern C_WithInteractionInXAndY_180 a0 = WithInteractionInXAndY a0
-pattern C_SubtractedSizes_182 a0 a1 = SubtractedSizes a0 a1
-pattern C_ConstAboveDiagonal_184 a0 a1 = ConstAboveDiagonal a0 a1
-pattern C_ConstBelowDiagonal_186 a0 a1 = ConstBelowDiagonal a0 a1
-pattern C_ConstOffDiagonal_188 a0 a1 = ConstOffDiagonal a0 a1
-pattern C_ExpModCost_190 a0 = ExpModCost a0
+pattern C_LinearInY2_164 a0 a1 = LinearInY2 a0 a1
+pattern C_LiteralInYOrLinearInZ_166 a0 = LiteralInYOrLinearInZ a0
+pattern C_LinearInMaxYZ_168 a0 = LinearInMaxYZ a0
+pattern C_LinearInXAndY_170 a0 = LinearInXAndY a0
+pattern C_LinearInYAndZ_172 a0 = LinearInYAndZ a0
+pattern C_QuadraticInX_174 a0 = QuadraticInX a0
+pattern C_QuadraticInY_176 a0 = QuadraticInY a0
+pattern C_QuadraticInZ_178 a0 = QuadraticInZ a0
+pattern C_QuadraticInXAndY_180 a0 = QuadraticInXAndY a0
+pattern C_WithInteractionInXAndY_182 a0 = WithInteractionInXAndY a0
+pattern C_SubtractedSizes_184 a0 a1 = SubtractedSizes a0 a1
+pattern C_ConstAboveDiagonal_186 a0 a1 = ConstAboveDiagonal a0 a1
+pattern C_ConstBelowDiagonal_188 a0 a1 = ConstBelowDiagonal a0 a1
+pattern C_ConstOffDiagonal_190 a0 a1 = ConstOffDiagonal a0 a1
+pattern C_AboveAndBelowDiagonal_192 a0 a1 = AboveAndBelowDiagonal a0 a1
+pattern C_ExpModCost_194 a0 = ExpModCost a0
 check_ConstantCost_146 :: Integer -> T_RawModel_144
 check_ConstantCost_146 = ConstantCost
 check_AddedSizes_148 :: T_LinearFunction_32 -> T_RawModel_144
@@ -335,47 +337,53 @@ check_LinearInZ_160 :: T_LinearFunction_32 -> T_RawModel_144
 check_LinearInZ_160 = LinearInZ
 check_LinearInU_162 :: T_LinearFunction_32 -> T_RawModel_144
 check_LinearInU_162 = LinearInU
-check_LiteralInYOrLinearInZ_164 ::
-  T_LinearFunction_32 -> T_RawModel_144
-check_LiteralInYOrLinearInZ_164 = LiteralInYOrLinearInZ
-check_LinearInMaxYZ_166 :: T_LinearFunction_32 -> T_RawModel_144
-check_LinearInMaxYZ_166 = LinearInMaxYZ
-check_LinearInXAndY_168 ::
-  T_TwoVariableLinearFunction_60 -> T_RawModel_144
-check_LinearInXAndY_168 = LinearInXAndY
-check_LinearInYAndZ_170 ::
-  T_TwoVariableLinearFunction_60 -> T_RawModel_144
-check_LinearInYAndZ_170 = LinearInYAndZ
-check_QuadraticInX_172 ::
-  T_OneVariableQuadraticFunction_44 -> T_RawModel_144
-check_QuadraticInX_172 = QuadraticInX
-check_QuadraticInY_174 ::
-  T_OneVariableQuadraticFunction_44 -> T_RawModel_144
-check_QuadraticInY_174 = QuadraticInY
-check_QuadraticInZ_176 ::
-  T_OneVariableQuadraticFunction_44 -> T_RawModel_144
-check_QuadraticInZ_176 = QuadraticInZ
-check_QuadraticInXAndY_178 ::
-  T_TwoVariableQuadraticFunction_76 -> T_RawModel_144
-check_QuadraticInXAndY_178 = QuadraticInXAndY
-check_WithInteractionInXAndY_180 ::
-  T_TwoVariableWithInteractionFunction_108 -> T_RawModel_144
-check_WithInteractionInXAndY_180 = WithInteractionInXAndY
-check_SubtractedSizes_182 ::
+check_LinearInY2_164 ::
   T_LinearFunction_32 -> Integer -> T_RawModel_144
-check_SubtractedSizes_182 = SubtractedSizes
-check_ConstAboveDiagonal_184 ::
+check_LinearInY2_164 = LinearInY2
+check_LiteralInYOrLinearInZ_166 ::
+  T_LinearFunction_32 -> T_RawModel_144
+check_LiteralInYOrLinearInZ_166 = LiteralInYOrLinearInZ
+check_LinearInMaxYZ_168 :: T_LinearFunction_32 -> T_RawModel_144
+check_LinearInMaxYZ_168 = LinearInMaxYZ
+check_LinearInXAndY_170 ::
+  T_TwoVariableLinearFunction_60 -> T_RawModel_144
+check_LinearInXAndY_170 = LinearInXAndY
+check_LinearInYAndZ_172 ::
+  T_TwoVariableLinearFunction_60 -> T_RawModel_144
+check_LinearInYAndZ_172 = LinearInYAndZ
+check_QuadraticInX_174 ::
+  T_OneVariableQuadraticFunction_44 -> T_RawModel_144
+check_QuadraticInX_174 = QuadraticInX
+check_QuadraticInY_176 ::
+  T_OneVariableQuadraticFunction_44 -> T_RawModel_144
+check_QuadraticInY_176 = QuadraticInY
+check_QuadraticInZ_178 ::
+  T_OneVariableQuadraticFunction_44 -> T_RawModel_144
+check_QuadraticInZ_178 = QuadraticInZ
+check_QuadraticInXAndY_180 ::
+  T_TwoVariableQuadraticFunction_76 -> T_RawModel_144
+check_QuadraticInXAndY_180 = QuadraticInXAndY
+check_WithInteractionInXAndY_182 ::
+  T_TwoVariableWithInteractionFunction_108 -> T_RawModel_144
+check_WithInteractionInXAndY_182 = WithInteractionInXAndY
+check_SubtractedSizes_184 ::
+  T_LinearFunction_32 -> Integer -> T_RawModel_144
+check_SubtractedSizes_184 = SubtractedSizes
+check_ConstAboveDiagonal_186 ::
   Integer -> T_RawModel_144 -> T_RawModel_144
-check_ConstAboveDiagonal_184 = ConstAboveDiagonal
-check_ConstBelowDiagonal_186 ::
+check_ConstAboveDiagonal_186 = ConstAboveDiagonal
+check_ConstBelowDiagonal_188 ::
   Integer -> T_RawModel_144 -> T_RawModel_144
-check_ConstBelowDiagonal_186 = ConstBelowDiagonal
-check_ConstOffDiagonal_188 ::
+check_ConstBelowDiagonal_188 = ConstBelowDiagonal
+check_ConstOffDiagonal_190 ::
   Integer -> T_RawModel_144 -> T_RawModel_144
-check_ConstOffDiagonal_188 = ConstOffDiagonal
-check_ExpModCost_190 ::
+check_ConstOffDiagonal_190 = ConstOffDiagonal
+check_AboveAndBelowDiagonal_192 ::
+  Integer -> T_RawModel_144 -> T_RawModel_144
+check_AboveAndBelowDiagonal_192 = AboveAndBelowDiagonal
+check_ExpModCost_194 ::
   T_ExpModCostingFunction_128 -> T_RawModel_144
-check_ExpModCost_190 = ExpModCost
+check_ExpModCost_194 = ExpModCost
 cover_RawModel_144 :: Model -> ()
 cover_RawModel_144 x
   = case x of
@@ -388,6 +396,7 @@ cover_RawModel_144 x
       LinearInY _ -> ()
       LinearInZ _ -> ()
       LinearInU _ -> ()
+      LinearInY2 _ _ -> ()
       LiteralInYOrLinearInZ _ -> ()
       LinearInMaxYZ _ -> ()
       LinearInXAndY _ -> ()
@@ -401,33 +410,34 @@ cover_RawModel_144 x
       ConstAboveDiagonal _ _ -> ()
       ConstBelowDiagonal _ _ -> ()
       ConstOffDiagonal _ _ -> ()
+      AboveAndBelowDiagonal _ _ -> ()
       ExpModCost _ -> ()
 -- Cost.Raw.CpuAndMemoryModel
-d_CpuAndMemoryModel_192 = ()
-type T_CpuAndMemoryModel_192 = CpuAndMemoryModel
-pattern C_mkCpuAndMemoryModel_202 a0 a1 = CpuAndMemoryModel a0 a1
-check_mkCpuAndMemoryModel_202 ::
-  T_RawModel_144 -> T_RawModel_144 -> T_CpuAndMemoryModel_192
-check_mkCpuAndMemoryModel_202 = CpuAndMemoryModel
-cover_CpuAndMemoryModel_192 :: CpuAndMemoryModel -> ()
-cover_CpuAndMemoryModel_192 x
+d_CpuAndMemoryModel_196 = ()
+type T_CpuAndMemoryModel_196 = CpuAndMemoryModel
+pattern C_mkCpuAndMemoryModel_206 a0 a1 = CpuAndMemoryModel a0 a1
+check_mkCpuAndMemoryModel_206 ::
+  T_RawModel_144 -> T_RawModel_144 -> T_CpuAndMemoryModel_196
+check_mkCpuAndMemoryModel_206 = CpuAndMemoryModel
+cover_CpuAndMemoryModel_196 :: CpuAndMemoryModel -> ()
+cover_CpuAndMemoryModel_196 x
   = case x of
       CpuAndMemoryModel _ _ -> ()
 -- Cost.Raw.CpuAndMemoryModel.cpuModel
-d_cpuModel_198 :: T_CpuAndMemoryModel_192 -> T_RawModel_144
-d_cpuModel_198 v0
+d_cpuModel_202 :: T_CpuAndMemoryModel_196 -> T_RawModel_144
+d_cpuModel_202 v0
   = case coe v0 of
-      C_mkCpuAndMemoryModel_202 v1 v2 -> coe v1
+      C_mkCpuAndMemoryModel_206 v1 v2 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.CpuAndMemoryModel.memoryModel
-d_memoryModel_200 :: T_CpuAndMemoryModel_192 -> T_RawModel_144
-d_memoryModel_200 v0
+d_memoryModel_204 :: T_CpuAndMemoryModel_196 -> T_RawModel_144
+d_memoryModel_204 v0
   = case coe v0 of
-      C_mkCpuAndMemoryModel_202 v1 v2 -> coe v2
+      C_mkCpuAndMemoryModel_206 v1 v2 -> coe v2
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.BuiltinCostMap
-d_BuiltinCostMap_204 :: ()
-d_BuiltinCostMap_204 = erased
+d_BuiltinCostMap_208 :: ()
+d_BuiltinCostMap_208 = erased
 -- Cost.Raw.RawCostModel
-d_RawCostModel_206 :: ()
-d_RawCostModel_206 = erased
+d_RawCostModel_210 :: ()
+d_RawCostModel_210 = erased

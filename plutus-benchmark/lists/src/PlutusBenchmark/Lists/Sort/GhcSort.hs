@@ -9,8 +9,8 @@ module PlutusBenchmark.Lists.Sort.GhcSort where
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 import PlutusBenchmark.Lists.Sort.MergeSort (mergeSortWorstCase)
 
+import Plinth.Plugin ()
 import PlutusTx qualified as Tx
-import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 
 {-| GHC's 'sort' algorithm specialised to Integer.

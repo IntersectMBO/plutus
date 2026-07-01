@@ -287,11 +287,8 @@ builtinMemoryModels =
     , paramVerifySchnorrSecp256k1Signature = Id $ ModelThreeArgumentsConstantCost 10
     , paramAppendString = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 4 1
     , paramEqualsString = Id $ boolMemModel
-    , -- In the worst case two UTF-16 bytes encode to three UTF-8 bytes, so two
-      -- output words per input word should cover that.
-      paramEncodeUtf8 = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 2
-    , -- In the worst case one UTF-8 byte decodes to two UTF-16 bytes
-      paramDecodeUtf8 = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 2
+    , paramEncodeUtf8 = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 2
+    , paramDecodeUtf8 = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 2
     , paramIfThenElse = Id $ ModelThreeArgumentsConstantCost 1
     , paramChooseUnit = Id $ ModelTwoArgumentsConstantCost 4
     , paramTrace = Id $ ModelTwoArgumentsConstantCost 32

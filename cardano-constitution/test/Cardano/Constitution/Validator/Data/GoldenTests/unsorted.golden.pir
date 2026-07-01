@@ -128,8 +128,6 @@ program
                               go expectedPredValues))
             in
             go ds
-    !ifThenElse : all a. bool -> a -> a -> a
-      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   in
   letrec
     !euclid : integer -> integer -> integer
@@ -211,14 +209,9 @@ program
                       (\(x : integer) (y : integer) -> lessThanInteger x y)
                       (\(x : integer) (y : integer) ->
                          lessThanEqualsInteger x y)
+                      (\(x : integer) (y : integer) -> lessThanInteger y x)
                       (\(x : integer) (y : integer) ->
-                         ifThenElse
-                           {bool}
-                           (lessThanEqualsInteger x y)
-                           False
-                           True)
-                      (\(x : integer) (y : integer) ->
-                         ifThenElse {bool} (lessThanInteger x y) False True)
+                         lessThanEqualsInteger y x)
                       (\(x : integer) (y : integer) ->
                          case
                            (all dead. integer)
@@ -318,13 +311,8 @@ program
                                 (\(n' : integer) (d' : integer) ->
                                    let
                                      !x : integer = multiplyInteger n d'
-                                     !y : integer = multiplyInteger n' d
                                    in
-                                   ifThenElse
-                                     {bool}
-                                     (lessThanEqualsInteger x y)
-                                     False
-                                     True)))
+                                   lessThanInteger (multiplyInteger n' d) x)))
                       (\(ds : Rational) (ds : Rational) ->
                          Rational_match
                            ds
@@ -336,13 +324,10 @@ program
                                 (\(n' : integer) (d' : integer) ->
                                    let
                                      !x : integer = multiplyInteger n d'
-                                     !y : integer = multiplyInteger n' d
                                    in
-                                   ifThenElse
-                                     {bool}
-                                     (lessThanInteger x y)
-                                     False
-                                     True)))
+                                   lessThanEqualsInteger
+                                     (multiplyInteger n' d)
+                                     x)))
                       (\(x : Rational) (y : Rational) ->
                          Rational_match
                            x
@@ -380,8 +365,10 @@ program
                      !bl : list data = unListData eta
                      !bl' : list data = tailList {data} bl
                    in
-                   ifThenElse
-                     {Unit -> Rational}
+                   (let
+                       a = Unit -> Rational
+                     in
+                     \(b : bool) (x : a) (y : a) -> case a b [y, x])
                      (nullList {data} (tailList {data} bl'))
                      (\(ds : Unit) ->
                         unsafeRatio
@@ -5154,65 +5141,61 @@ program
                                                                                                                                     {Rational})))
                                                                                                                            n)))))
                                                                                                         n))))))))))))))))))))))))))))))
-    !fun : List (Tuple2 data data) -> bool
-      = (let
-            a = Tuple2 data data
-          in
-          \(f : a -> bool) ->
-            letrec
-              !go : List a -> bool
-                = \(ds : List a) ->
-                    List_match
-                      {a}
-                      ds
-                      {bool}
-                      True
-                      (\(x : a) (xs : List a) ->
-                         case
-                           (all dead. bool)
-                           (f x)
-                           [(/\dead -> False), (/\dead -> go xs)]
-                           {all dead. dead})
-            in
-            \(eta : List a) -> go eta)
-          (\(ds : Tuple2 data data) ->
-             Tuple2_match
-               {data}
-               {data}
-               ds
-               {bool}
-               (\(ds : data) (actualValueData : data) ->
-                  validateParamValue
-                    ((let
-                         !k : integer = unIData ds
-                       in
-                       letrec
-                         !go : List (Tuple2 integer ParamValue) -> ParamValue
-                           = \(ds : List (Tuple2 integer ParamValue)) ->
-                               List_match
-                                 {Tuple2 integer ParamValue}
-                                 ds
-                                 {all dead. ParamValue}
-                                 (/\dead -> error {ParamValue})
-                                 (\(ds : Tuple2 integer ParamValue)
-                                   (xs' : List (Tuple2 integer ParamValue)) ->
-                                    /\dead ->
-                                      Tuple2_match
-                                        {integer}
-                                        {ParamValue}
-                                        ds
-                                        {ParamValue}
-                                        (\(k' : integer) (i : ParamValue) ->
-                                           case
-                                             (all dead. ParamValue)
-                                             (equalsInteger k k')
-                                             [(/\dead -> go xs'), (/\dead -> i)]
-                                             {all dead. dead}))
-                                 {all dead. dead}
-                       in
-                       go)
-                       cfg)
-                    actualValueData))
+  in
+  letrec
+    !go : List (Tuple2 data data) -> bool
+      = \(ds : List (Tuple2 data data)) ->
+          List_match
+            {Tuple2 data data}
+            ds
+            {bool}
+            True
+            (\(x : Tuple2 data data) (xs : List (Tuple2 data data)) ->
+               case
+                 (all dead. bool)
+                 (Tuple2_match
+                    {data}
+                    {data}
+                    x
+                    {bool}
+                    (\(ds : data) (actualValueData : data) ->
+                       validateParamValue
+                         ((let
+                              !k : integer = unIData ds
+                            in
+                            letrec
+                              !go :
+                                 List (Tuple2 integer ParamValue) -> ParamValue
+                                = \(ds : List (Tuple2 integer ParamValue)) ->
+                                    List_match
+                                      {Tuple2 integer ParamValue}
+                                      ds
+                                      {all dead. ParamValue}
+                                      (/\dead -> error {ParamValue})
+                                      (\(ds : Tuple2 integer ParamValue)
+                                        (xs' :
+                                           List (Tuple2 integer ParamValue)) ->
+                                         /\dead ->
+                                           Tuple2_match
+                                             {integer}
+                                             {ParamValue}
+                                             ds
+                                             {ParamValue}
+                                             (\(k' : integer)
+                                               (i : ParamValue) ->
+                                                case
+                                                  (all dead. ParamValue)
+                                                  (equalsInteger k k')
+                                                  [ (/\dead -> go xs')
+                                                  , (/\dead -> i) ]
+                                                  {all dead. dead}))
+                                      {all dead. dead}
+                            in
+                            go)
+                            cfg)
+                         actualValueData))
+                 [(/\dead -> False), (/\dead -> go xs)]
+                 {all dead. dead})
   in
   \(ds : data) ->
     Maybe_match
@@ -5348,7 +5331,7 @@ program
          /\dead ->
            case
              (all dead. unit)
-             (fun cparams)
+             (go cparams)
              [(/\dead -> error {unit}), (/\dead -> ())]
              {all dead. dead})
       (/\dead -> ())

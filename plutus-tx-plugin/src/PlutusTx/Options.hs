@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -30,18 +29,15 @@ import Data.Foldable (toList)
 #else
 import Data.Foldable (foldl', toList)
 #endif
-import Control.Applicative (many, optional, (<|>))
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Type.Equality
 import GHC.Plugins qualified as GHC
 import Prettyprinter
-import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
 import Text.Read (readMaybe)
 import Type.Reflection
 
@@ -68,12 +64,14 @@ data PluginOptions = PluginOptions
   , _posDoSimplifierStrictifyBindings :: Bool
   , _posDoSimplifierRemoveDeadBindings :: Bool
   , _posApplyToCase :: Bool
+  , _posHoistPolyBuiltins :: Bool
   , _posProfile :: ProfileOpts
   , _posCoverageAll :: Bool
   , _posCoverageLocation :: Bool
   , _posCoverageBoolean :: Bool
   , _posRelaxedFloatin :: Bool
   , _posCaseOfCaseConservative :: Bool
+  , _posInlineUnconditionalGrowth :: Int
   , _posInlineCallsiteGrowth :: Int
   , _posInlineConstants :: Bool
   , _posInlineFix :: Bool
@@ -85,6 +83,11 @@ data PluginOptions = PluginOptions
     _posRemoveTrace :: Bool
   , _posDumpCompilationTrace :: Bool
   , _posCertify :: Maybe String
+  {-^ @Nothing@: certification disabled.
+  @Just ""@: certify, placing output next to source files.
+  @Just path@: certify, placing all output under the given directory. -}
+  , _posCertifiedOptsOnly :: Bool
+  , _posPreserveSourceLocations :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -115,7 +118,7 @@ data PluginOption
   }
 
 data ParseError
-  = CannotParseValue !OptionKey !OptionValue !SomeTypeRep
+  = CannotParseValue !OptionKey !OptionValue !Text
   | UnexpectedValue !OptionKey !OptionValue
   | MissingValue !OptionKey
   | UnrecognisedOption !OptionKey ![OptionKey]
@@ -133,13 +136,13 @@ instance Exception ParseErrors
 
 renderParseError :: ParseError -> Text
 renderParseError = \case
-  CannotParseValue k v tr ->
+  CannotParseValue k v detail ->
     "Cannot parse value "
       <> Text.pack (show v)
       <> " for option "
       <> Text.pack (show k)
-      <> " into type "
-      <> Text.pack (show tr)
+      <> ": "
+      <> detail
   UnexpectedValue k v ->
     "Option "
       <> Text.pack (show k)
@@ -215,9 +218,15 @@ pluginOptions =
     , let k = "dump-uplc"
           desc = "Dump Untyped Plutus Core"
        in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+    , let k = "inline-unconditional-growth"
+          desc =
+            "Sets the inlining threshold for unconditional inlining. `n` allows unconditional "
+              <> "inlining if the AST size grows by at most `n` at each variable occurrence "
+              <> "(i.e., the size of the binding's RHS is at most `n+1`)."
+       in (k, PluginOption typeRep (readOption k) posInlineUnconditionalGrowth desc [])
     , let k = "inline-callsite-growth"
           desc =
-            "Sets the inlining threshold for callsites. 0 disables inlining a binding at a "
+            "Sets the inlining threshold for callsite inlining. 0 disables inlining a binding at a "
               <> "callsite if it increases the AST size; `n` allows inlining if the AST size grows by "
               <> "no more than `n`. Keep in mind that doing so does not mean the final program "
               <> "will be bigger, since inlining can often unlock further optimizations."
@@ -267,7 +276,7 @@ pluginOptions =
           desc = "Set the max iterations for the PIR simplifier"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsPir desc [])
     , let k = "max-simplifier-iterations-uplc"
-          desc = "Set the max iterations for the UPLC simplifier"
+          desc = "Set the max iterations for the UPLC optimizer"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsUPlc desc [])
     , let k = "max-cse-iterations"
           desc = "Set the max iterations for CSE"
@@ -298,6 +307,9 @@ pluginOptions =
     , let k = "apply-to-case"
           desc = "Run the apply-to-case pass, turning multi-argument applications into case-constr form."
        in (k, PluginOption typeRep (setTrue k) posApplyToCase desc [])
+    , let k = "hoist-polymorphic-builtins"
+          desc = "Run the hoist-polymorphic-builtins pass, reducing the number of forces."
+       in (k, PluginOption typeRep (setTrue k) posHoistPolyBuiltins desc [])
     , let k = "profile-all"
           desc = "Set profiling options to All, which adds tracing when entering and exiting a term."
        in (k, PluginOption typeRep (flag (const All) k) posProfile desc [])
@@ -329,16 +341,23 @@ pluginOptions =
        in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
     , let k = "certify"
           desc =
-            "Produce a certificate for the compiled program, with the given name. "
+            "Produce Agda certificate projects for compiled programs. "
               <> "This certificate provides evidence that the compiler optimizations have "
               <> "preserved the functional behavior of the original program. "
-              <> "Currently, this is only supported for the UPLC compilation pipeline."
-          p =
-            optional $ do
-              firstC <- upperChar
-              rest <- many (alphaNumChar <|> char '_' <|> char '\\')
-              pure (firstC : rest)
-       in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
+              <> "Currently, this is only supported for the UPLC compilation pipeline. "
+              <> "When used without a value, certificates are placed next to source files. "
+              <> "When given a directory path (certify=DIR), all certificates are placed there."
+       in (k, PluginOption typeRep (optionalStringOption k) posCertify desc [])
+    , let k = "certified-opts-only"
+          desc =
+            "Run only those optimisation passes which are certified to preserve the functional "
+              <> "behavior of the original program."
+       in (k, PluginOption typeRep (setTrue k) posCertifiedOptsOnly desc [])
+    , let k = "preserve-source-locations"
+          desc =
+            "Try to preserve source locations for use in error messages. "
+              <> "This is an experimental feature."
+       in (k, PluginOption typeRep (setTrue k) posPreserveSourceLocations desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -347,19 +366,26 @@ flag f k = maybe (Success f) (Failure . UnexpectedValue k)
 setTrue :: OptionKey -> Maybe OptionValue -> Validation ParseError (Bool -> Bool)
 setTrue = flag (const True)
 
+{-| An option that takes an optional string value.
+Without a value: sets to @Just ""@. With a value: sets to @Just (Text.unpack v)@. -}
+optionalStringOption
+  :: OptionKey -> Maybe OptionValue -> Validation ParseError (Maybe String -> Maybe String)
+optionalStringOption _k = \case
+  Nothing -> Success $ const (Just "")
+  Just v -> Success $ const (Just (Text.unpack v))
+
 plcParserOption :: PLC.Parser a -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
 plcParserOption p k = \case
   Just t -> case PLC.runQuoteT $ PLC.parse p "none" t of
     Right v -> Success $ const v
-    -- TODO: use the error
-    Left (_e :: PLC.ParserErrorBundle) -> Failure $ CannotParseValue k t (someTypeRep (Proxy @Int))
+    Left (e :: PLC.ParserErrorBundle) -> Failure $ CannotParseValue k t (Text.pack (show e))
   Nothing -> Failure $ MissingValue k
 
 readOption :: Read a => OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
 readOption k = \case
   Just v
     | Just i <- readMaybe (Text.unpack v) -> Success $ const i
-    | otherwise -> Failure $ CannotParseValue k v (someTypeRep (Proxy @Int))
+    | otherwise -> Failure $ CannotParseValue k v "could not parse value"
   Nothing -> Failure $ MissingValue k
 
 -- | Obtain an option value of type @a@ from an `Int`.
@@ -372,7 +398,7 @@ fromReadOption
 fromReadOption k f = \case
   Just v
     | Just i <- readMaybe (Text.unpack v) -> const <$> f i
-    | otherwise -> Failure $ CannotParseValue k v (someTypeRep (Proxy @Int))
+    | otherwise -> Failure $ CannotParseValue k v "expected Int"
   Nothing -> Failure $ MissingValue k
 
 defaultPluginOptions :: PluginOptions
@@ -391,9 +417,9 @@ defaultPluginOptions =
     , _posVerbosity = Quiet
     , _posDatatypes = PIR.defaultDatatypeCompilationOpts
     , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
-    , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
-    , _posMaxCseIterations = view UPLC.soMaxCseIterations UPLC.defaultSimplifyOpts
-    , _posCseWhichSubterms = view UPLC.soCseWhichSubterms UPLC.defaultSimplifyOpts
+    , _posMaxSimplifierIterationsUPlc = view UPLC.ooMaxSimplifierIterations UPLC.defaultOptimizeOpts
+    , _posMaxCseIterations = view UPLC.ooMaxCseIterations UPLC.defaultOptimizeOpts
+    , _posCseWhichSubterms = view UPLC.ooCseWhichSubterms UPLC.defaultOptimizeOpts
     , _posDoSimplifierUnwrapCancel = True
     , _posDoSimplifierBeta = True
     , _posDoSimplifierInline = True
@@ -401,12 +427,14 @@ defaultPluginOptions =
     , _posDoSimplifierStrictifyBindings = True
     , _posDoSimplifierRemoveDeadBindings = True
     , _posApplyToCase = True
+    , _posHoistPolyBuiltins = True
     , _posProfile = None
     , _posCoverageAll = False
     , _posCoverageLocation = False
     , _posCoverageBoolean = False
     , _posRelaxedFloatin = True
     , _posCaseOfCaseConservative = False
+    , _posInlineUnconditionalGrowth = 1
     , _posInlineCallsiteGrowth = 5
     , _posInlineConstants = True
     , _posInlineFix = True
@@ -414,6 +442,8 @@ defaultPluginOptions =
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
     , _posCertify = Nothing
+    , _posCertifiedOptsOnly = False
+    , _posPreserveSourceLocations = False
     }
 
 processOne
@@ -456,6 +486,6 @@ toKeyValue opt = case List.elemIndex '=' opt of
      in (Text.pack lhs, Just (Text.pack (drop 1 rhs)))
 
 {-| Parses the arguments that were given to ghc at commandline as
- "-fplugin-opt PlutusTx.Plugin:opt" or "-fplugin-opt PlutusTx.Plugin:opt=val" -}
+ "-fplugin-opt Plinth.Plugin:opt" or "-fplugin-opt Plinth.Plugin:opt=val" -}
 parsePluginOptions :: [GHC.CommandLineOption] -> Validation ParseErrors PluginOptions
 parsePluginOptions = fmap (foldl' (flip ($)) defaultPluginOptions) . processAll . fmap toKeyValue

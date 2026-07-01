@@ -57,7 +57,7 @@ HADDOCK_PACKAGES=(
 cabal update
 cabal freeze
 cabal build   "${CABAL_OPTS[@]}" all
-cabal haddock "${CABAL_OPTS[@]}" all "${HADDOCK_OPTS[@]}"
+cabal haddock "${CABAL_OPTS[@]}" all "${HADDOCK_OPTS[@]}" -j2
 
 
 if [[ "$?" != "0" ]]; then 
@@ -169,31 +169,43 @@ cat << EOF > "${BUILD_DIR}/sedscript.txt"
 # To
 #   href="../../plutus-core/src/PlutusCore.Arity.html#Arity"
 #  
-s|href=\"file:///.*dist-newstyle/.*/doc/html/(.*)\"|href=\"../../\1\"|g
+s@href=\"file:///.*dist-newstyle/.*/doc/html/(.*)\"@href=\"../../\1\"@g
 
 # From e.g.
 #   href="file:///nix/store/ing9848aasbnza8aibjii5dznrd2cril-base64-bytestring-lib-base64-bytestring-1.2.1.0-haddock-doc/share/doc/base64-bytestring/html/src/Data.ByteString.Base64.html"
 # To
 #   href="https://hackage.haskell.org/package/base64-bytestring-1.2.1.0/docs/src/Data.ByteString.Base64.html" 
 #
-s|href=\"file:///nix/store/.{32}-.+-([0-9\.]+)-haddock-doc/share/doc/([^/]+)/html/([^\"]+)\"|href=\"https://hackage.haskell.org/package/\2-\1/docs/\3\"|g
+s@href=\"file:///nix/store/.{32}-.+-([0-9\.]+)-haddock-doc/share/doc/([^/]+)/html/([^\"]+)\"@href=\"https://hackage.haskell.org/package/\2-\1/docs/\3\"@g
 
 # From e.g.
 #   href="file:///nix/store/4rj4zlhhsl011g890xj4dq689x6zxb4x-ghc-9.6.5-doc/share/doc/ghc-9.6.5/html/libraries/base-4.18.2.1/src/GHC.Base.html#%3C%3E"
 # To
 #   href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%3C%3E"
 # 
-s|href=\"file:///nix/store/.{32}-ghc-${GHC_VERSION}-doc/share/doc/ghc-${GHC_VERSION}/html/libraries/([^/]+)/([^\"]+)\"|href=\"https://hackage.haskell.org/package/\1/docs/\2\"|g
+s@href=\"file:///nix/store/.{32}-ghc-${GHC_VERSION}-doc/share/doc/ghc-${GHC_VERSION}/html/libraries/([^/]+)/([^\"]+)\"@href=\"https://hackage.haskell.org/package/\1/docs/\2\"@g
 
 # In cabal.project.freeze from e.g.
 #   any.mono-traversable ==0.14.4,
 # To
-#   s|href=".*/mono-traversable/([^"]+)"|href="https://hackage.haskell.org/package/mono-traversable-1.0.15.3/docs/\1"|g
+#   s@href=".*/mono-traversable/([^"]+)"@href="https://hackage.haskell.org/package/mono-traversable-1.0.15.3/docs/\1"@g
 # And so from e.g.
 #   href="../mono-traversable/Data-MonoTraversable.html#t:MonoFoldable"
 # To
 #   href="https://hackage.haskell.org/package/mono-traversable-1.0.15.3/docs/Data-MonoTraversable.html#t:MonoFoldable"
-$(sed -E "s|\s*any\.([^=]*) ==([^,]*),|s\|href=\".*/\1/([^\"]+)\"\|href=\"https://hackage.haskell.org/package/\1-\2/docs/\\\1\"\|g|g" cabal.project.freeze | sed -E "/^[^s]/d")
+#
+# We use '@' (not '|') as the sed delimiter for the generated rules so that
+# version-range disjunctions in freeze entries (e.g. "==1.0 || ==1.1") do not
+# break the s-command. '@' does not appear in package names, versions, or any
+# href value we rewrite.
+#
+# The version capture is "[0-9.]+", which picks the *first* pinned version in
+# any disjunction. For packages with a single pin this is exact; for the
+# disjunction case (typically pre-existing libs from the nix-supplied GHC pkg
+# db) it deterministically yields a valid Hackage URL even if not the one
+# Haddock actually used. The authoritative per-component version map lives in
+# dist-newstyle/cache/plan.json if a more precise rewrite is ever needed.
+$(sed -E "s|\s*any\.([^=]*) ==([0-9.]+).*,|s@href=\".*/\1/([^\"]+)\"@href=\"https://hackage.haskell.org/package/\1-\2/docs/\\\1\"@g|g" cabal.project.freeze | sed -E "/^[^s]/d")
 EOF
 # Note the embedded sed above: we refer to cabal.project.freeze to obtain all package versions.
 # Then for each package-version we produce a different sed substitution.

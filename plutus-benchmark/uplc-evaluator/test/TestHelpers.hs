@@ -13,6 +13,12 @@ module TestHelpers
   , waitForError
   , waitForResultOrFail
   , waitForErrorOrFail
+  , waitForFile
+  , defaultWaitMs
+
+    -- * Path derivation
+  , resultPath
+  , errorPath
 
     -- * JSON parsing functions
   , readResultJson
@@ -26,7 +32,8 @@ module TestHelpers
   , TimingSample (..)
   ) where
 
-import Control.Concurrent (threadDelay)
+import Control.Concurrent.MVar (newEmptyMVar, takeMVar, tryPutMVar)
+import Control.Monad (void, when)
 import Data.Aeson (FromJSON (..), (.:))
 import Data.Aeson qualified as Aeson
 import Data.ByteString (ByteString)
@@ -40,7 +47,9 @@ import Data.Word (Word64)
 import GHC.Generics (Generic)
 import Harness (ServiceHandle (..))
 import System.Directory (doesFileExist, renameFile)
-import System.FilePath ((</>))
+import System.FSNotify qualified as FS
+import System.FilePath (takeDirectory, takeFileName, (</>))
+import System.Timeout (timeout)
 import Test.Tasty.HUnit (assertFailure)
 
 -- | Timing sample for a single evaluation run (variable data only)
@@ -122,50 +131,54 @@ submitProgramFlat ServiceHandle {..} jobId programBytes = do
   BS.writeFile tempPath programBytes
   renameFile tempPath filepath
 
+-- | Path the service writes a result.json to for this job.
+resultPath :: ServiceHandle -> UUID -> FilePath
+resultPath ServiceHandle {..} jobId =
+  shOutputDir </> UUID.toString jobId ++ ".result.json"
+
+-- | Path the service writes an error.json to for this job.
+errorPath :: ServiceHandle -> UUID -> FilePath
+errorPath ServiceHandle {..} jobId =
+  shOutputDir </> UUID.toString jobId ++ ".error.json"
+
 {-| Wait for a result.json file to appear
 
-Polls the output directory until the result file appears or timeout is reached.
-Timeout is specified in milliseconds.
+Subscribes to filesystem events for the output directory and returns as soon
+as the file is created, with 'defaultWaitMs' as a safety-net timeout.
 Returns the filepath if found, Nothing if timeout. -}
-waitForResult :: ServiceHandle -> UUID -> Int -> IO (Maybe FilePath)
-waitForResult ServiceHandle {..} jobId timeoutMs = do
-  let filename = UUID.toString jobId ++ ".result.json"
-      filepath = shOutputDir </> filename
-      -- Convert timeout to microseconds for threadDelay
-      timeoutUs = timeoutMs * 1000
-      -- Poll every 50ms
-      pollIntervalUs = 50000
-  waitForFile filepath timeoutUs pollIntervalUs
+waitForResult :: ServiceHandle -> UUID -> IO (Maybe FilePath)
+waitForResult handle jobId = waitForFile (resultPath handle jobId) defaultWaitMs
 
 {-| Wait for an error.json file to appear
 
-Polls the output directory until the error file appears or timeout is reached.
-Timeout is specified in milliseconds.
+Subscribes to filesystem events for the output directory and returns as soon
+as the file is created, with 'defaultWaitMs' as a safety-net timeout.
 Returns the filepath if found, Nothing if timeout. -}
-waitForError :: ServiceHandle -> UUID -> Int -> IO (Maybe FilePath)
-waitForError ServiceHandle {..} jobId timeoutMs = do
-  let filename = UUID.toString jobId ++ ".error.json"
-      filepath = shOutputDir </> filename
-      timeoutUs = timeoutMs * 1000
-      pollIntervalUs = 50000
-  waitForFile filepath timeoutUs pollIntervalUs
+waitForError :: ServiceHandle -> UUID -> IO (Maybe FilePath)
+waitForError handle jobId = waitForFile (errorPath handle jobId) defaultWaitMs
 
-{-| Internal helper to wait for a file to appear
+{-| Wait for a file to appear, event-driven
 
-Polls at regular intervals until file exists or timeout. -}
-waitForFile :: FilePath -> Int -> Int -> IO (Maybe FilePath)
-waitForFile filepath timeoutUs pollIntervalUs = go 0
-  where
-    go elapsedUs = do
-      exists <- doesFileExist filepath
-      if exists
-        then return (Just filepath)
-        else
-          if elapsedUs >= timeoutUs
-            then return Nothing
-            else do
-              threadDelay pollIntervalUs
-              go (elapsedUs + pollIntervalUs)
+Registers an fsnotify watcher on the parent directory and blocks until the
+file appears, with a wall-clock safety net. After registering the watcher
+we do a single 'doesFileExist' probe to cover the case where the file was
+already created before the watcher was ready (otherwise the event would
+have fired and been missed). Timeout is specified in milliseconds. -}
+waitForFile :: FilePath -> Int -> IO (Maybe FilePath)
+waitForFile filepath timeoutMs = do
+  done <- newEmptyMVar
+  let dir = takeDirectory filepath
+      target = takeFileName filepath
+      isMatch ev = takeFileName (FS.eventPath ev) == target
+  FS.withManager $ \mgr -> do
+    stop <- FS.watchDir mgr dir isMatch (\_ -> void (tryPutMVar done ()))
+    -- The file may have appeared before the watcher started; check once
+    -- after registering so we don't deadlock waiting for a missed event.
+    alreadyThere <- doesFileExist filepath
+    when alreadyThere (void (tryPutMVar done ()))
+    res <- timeout (timeoutMs * 1000) (takeMVar done)
+    stop
+    pure (filepath <$ res)
 
 {-| Read and parse a result JSON file
 
@@ -183,22 +196,29 @@ readErrorJson filepath = do
   content <- BSL.readFile filepath
   return $ Aeson.eitherDecode content
 
-{-| Wait for a result file and fail the test if timeout
+{-| Default upper bound for "wait until the service produces output".
+Generous enough to absorb scheduler jitter on loaded CI builders;
+the event-driven waiter returns immediately on success, so this is
+only paid on actual hangs. -}
+defaultWaitMs :: Int
+defaultWaitMs = 20000
+
+{-| Wait for a result file and fail the test if it does not appear
 
 This is a convenience wrapper around waitForResult that converts
 timeout to a test failure using assertFailure. -}
-waitForResultOrFail :: ServiceHandle -> UUID -> Int -> IO FilePath
-waitForResultOrFail handle jobId timeoutMs = do
-  result <- waitForResult handle jobId timeoutMs
+waitForResultOrFail :: ServiceHandle -> UUID -> IO FilePath
+waitForResultOrFail handle jobId = do
+  result <- waitForResult handle jobId
   maybe (assertFailure "Timeout waiting for result.json") pure result
 
-{-| Wait for an error file and fail the test if timeout
+{-| Wait for an error file and fail the test if it does not appear
 
 This is a convenience wrapper around waitForError that converts
 timeout to a test failure using assertFailure. -}
-waitForErrorOrFail :: ServiceHandle -> UUID -> Int -> IO FilePath
-waitForErrorOrFail handle jobId timeoutMs = do
-  result <- waitForError handle jobId timeoutMs
+waitForErrorOrFail :: ServiceHandle -> UUID -> IO FilePath
+waitForErrorOrFail handle jobId = do
+  result <- waitForError handle jobId
   maybe (assertFailure "Timeout waiting for error.json") pure result
 
 {-| Read and parse a result JSON file, failing the test on error

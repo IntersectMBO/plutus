@@ -11,18 +11,19 @@ in the paper 'Secrets of the GHC Inliner'.
 module PlutusIR.Transform.Inline.Inline (inline, inlinePass, inlinePassSC, InlineHints (..)) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Analysis.Usages qualified as Usages
 import PlutusCore.Annotation
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 import PlutusIR
 import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
 import PlutusIR.AstSize (AstSize, termAstSize)
 import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
 import PlutusIR.MkPir (mkLet)
 import PlutusIR.Pass
+import PlutusIR.Subst (termUsages)
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
@@ -159,31 +160,35 @@ inlinePassSC
   :: forall uni fun ann m
    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
   => AstSize
-  -- ^ inline threshold
+  -- ^ Unconditional inlining threshold
+  -> AstSize
+  -- ^ Callsite inlining threshold
   -> Bool
   -- ^ should we inline constants?
   -> TC.PirTCConfig uni fun
   -> InlineHints Name ann
   -> BuiltinsInfo uni fun
   -> Pass m TyName Name uni fun ann
-inlinePassSC thresh ic tcconfig hints binfo =
-  renamePass <> inlinePass thresh ic tcconfig hints binfo
+inlinePassSC threshUnconditional threshCallsite ic tcconfig hints binfo =
+  renamePass <> inlinePass threshUnconditional threshCallsite ic tcconfig hints binfo
 
 inlinePass
   :: forall uni fun ann m
    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
   => AstSize
-  -- ^ inline threshold
+  -- ^ Unconditional inlining threshold
+  -> AstSize
+  -- ^ Callsite inlining threshold
   -> Bool
   -- ^ should we inline constants?
   -> TC.PirTCConfig uni fun
   -> InlineHints Name ann
   -> BuiltinsInfo uni fun
   -> Pass m TyName Name uni fun ann
-inlinePass thresh ic tcconfig hints binfo =
+inlinePass threshUnconditional threshCallsite ic tcconfig hints binfo =
   NamedPass "inline" $
     Pass
-      (inline thresh ic hints binfo)
+      (inline threshUnconditional threshCallsite ic hints binfo)
       [GloballyUniqueNames, Typechecks tcconfig]
       [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
 
@@ -193,20 +198,31 @@ inline
   :: forall tyname name uni fun ann m
    . ExternalConstraints tyname name uni fun m
   => AstSize
-  -- ^ inline threshold
+  -- ^ Unconditional inlining threshold
+  -> AstSize
+  -- ^ Callsite inlining threshold
   -> Bool
   -- ^ should we inline constants?
   -> InlineHints name ann
   -> BuiltinsInfo uni fun
   -> Term tyname name uni fun ann
   -> m (Term tyname name uni fun ann)
-inline thresh ic hints binfo t =
+inline threshUnconditional threshCallsite ic hints binfo t =
   let
     inlineInfo :: InlineInfo tyname name uni fun ann
-    inlineInfo = InlineInfo vinfo usgs hints binfo ic thresh
+    inlineInfo =
+      InlineInfo
+        { _iiVarInfo = vinfo
+        , _iiUsages = usgs
+        , _iiHints = hints
+        , _iiBuiltinsInfo = binfo
+        , _iiInlineConstants = ic
+        , _iiInlineUnconditionalGrowth = threshUnconditional
+        , _iiInlineCallsiteGrowth = threshCallsite
+        }
     vinfo = VarInfo.termVarInfo t
     usgs :: Usages.Usages
-    usgs = Usages.termUsages t
+    usgs = termUsages t
    in
     liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 

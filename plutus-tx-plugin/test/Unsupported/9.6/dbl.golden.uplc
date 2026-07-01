@@ -1,0 +1,1 @@
+Error: Unsupported feature: Type GHC.Types.Double is not supported in Plinth; use Integer or PlutusTx.Ratio.Rational instead

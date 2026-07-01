@@ -1,0 +1,16 @@
+-- Core types
+Version 1 1 0 = [1,1,0]
+Name "x" (Unique 0) = [1,1,120,0,0]
+Kind: Type () = [0]
+DeBruijn (Index 1) = [1]
+NamedDeBruijn "x" (Index 42) = [1,1,120,0,42]
+Index 1 = [1]
+SrcSpan "f" 1 2 3 4 = [179,0,129,1,130,0]
+SrcSpans (Set.fromList [sp]) = [217,128,64,128,193,0]
+
+-- DefaultFun
+AddInteger = [0]
+SubtractInteger = [2]
+
+-- DefaultUni
+SomeTypeIn DefaultUniInteger = [128]

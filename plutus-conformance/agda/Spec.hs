@@ -4,21 +4,39 @@
 -- | Conformance tests for the Agda implementation.
 module Main (main) where
 
-import Control.Monad.Trans.Except (ExceptT, runExceptT, withExceptT)
+import Control.Monad.Trans.Except
+  ( ExceptT
+  , runExceptT
+  , withExceptT
+  )
 
-import MAlonzo.Code.Evaluator.Term (runUAgda, runUCountingAgda)
+import MAlonzo.Code.Evaluator.Term
+  ( runUAgda
+  , runUCountingAgda
+  )
 
-import PlutusConformance.Common (UplcEvaluator (..), runUplcEvalTests)
+import PlutusConformance.Common
+  ( UplcEvaluator (..)
+  , runUplcEvalTests
+  )
 import PlutusCore (Error (..))
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default
+  ( DefaultFun
+  , DefaultUni
+  )
 import PlutusCore.Evaluation.Machine.CostModelInterface
   ( CekMachineCosts
   , CostModelParams
   , applyCostModelParams
   )
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCostModelForTesting)
-import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+  ( defaultCekCostModelForTesting
+  )
+import PlutusCore.Evaluation.Machine.ExMemory
+  ( ExCPU (..)
+  , ExMemory (..)
+  )
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
   ( BuiltinCostKeyMap
@@ -29,7 +47,11 @@ import PlutusCore.Quote
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
 
-import Data.Aeson (Result (Error, Success), fromJSON, toJSON)
+import Data.Aeson
+  ( Result (Error, Success)
+  , fromJSON
+  , toJSON
+  )
 
 -- This type corresponds to Cost.Raw.RawCostModel in plutus-metaheory.
 type RawCostModel = (CekMachineCosts, BuiltinCostMap)
@@ -160,19 +182,13 @@ failingEvaluationTests =
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
   , -- The following are failing because the metatheory needs to be updated with
     -- Value built-in functions
-    "test-cases/uplc/evaluation/builtin/constant/value/duplicate-keys"
-  , "test-cases/uplc/evaluation/builtin/constant/value/empty-tokens"
-  , "test-cases/uplc/evaluation/builtin/constant/value/empty"
-  , "test-cases/uplc/evaluation/builtin/constant/value/ill-formed"
-  , "test-cases/uplc/evaluation/builtin/constant/value/multi"
-  , "test-cases/uplc/evaluation/builtin/constant/value/unordered"
-  , "test-cases/uplc/evaluation/builtin/constant/value/zero-asset"
-  , "test-cases/uplc/evaluation/builtin/constant/value/max-key-length-1"
-  , "test-cases/uplc/evaluation/builtin/constant/value/max-key-length-2"
-  , "test-cases/uplc/evaluation/builtin/constant/value/overflow"
+    "test-cases/uplc/evaluation/builtin/constant/value/empty-value"
+  , "test-cases/uplc/evaluation/builtin/constant/value/max-currencyID-length"
+  , "test-cases/uplc/evaluation/builtin/constant/value/max-tokenID-length"
   , "test-cases/uplc/evaluation/builtin/constant/value/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/constant/value/underflow"
   , "test-cases/uplc/evaluation/builtin/constant/value/no-underflow"
+  , "test-cases/uplc/evaluation/builtin/constant/value/value-ok-1"
+  , "test-cases/uplc/evaluation/builtin/constant/value/value-ok-2"
   , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-empty"
   , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-nonempty"
   , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-token"
@@ -282,6 +298,9 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
+  , "test-cases/uplc/evaluation/builtin/semantics/appendString"
+  , "test-cases/uplc/evaluation/builtin/semantics/encodeUtf8"
+  , "test-cases/uplc/evaluation/builtin/semantics/equalsString/equalsString-02"
   , -- These "constant casing" tests fail because Agda metatheory does not yet
     -- implement casing on constant values.
     -- TODO: remove these tests once casing on constant is added to Agda metatheory.
@@ -313,19 +332,13 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
   , -- The following are failing because the metatheory needs to be updated with
     -- Value built-in functions
-    "test-cases/uplc/evaluation/builtin/constant/value/duplicate-keys"
-  , "test-cases/uplc/evaluation/builtin/constant/value/empty-tokens"
-  , "test-cases/uplc/evaluation/builtin/constant/value/empty"
-  , "test-cases/uplc/evaluation/builtin/constant/value/ill-formed"
-  , "test-cases/uplc/evaluation/builtin/constant/value/multi"
-  , "test-cases/uplc/evaluation/builtin/constant/value/unordered"
-  , "test-cases/uplc/evaluation/builtin/constant/value/zero-asset"
-  , "test-cases/uplc/evaluation/builtin/constant/value/max-key-length-1"
-  , "test-cases/uplc/evaluation/builtin/constant/value/max-key-length-2"
-  , "test-cases/uplc/evaluation/builtin/constant/value/overflow"
+    "test-cases/uplc/evaluation/builtin/constant/value/empty-value"
+  , "test-cases/uplc/evaluation/builtin/constant/value/max-currencyID-length"
+  , "test-cases/uplc/evaluation/builtin/constant/value/max-tokenID-length"
   , "test-cases/uplc/evaluation/builtin/constant/value/no-overflow"
-  , "test-cases/uplc/evaluation/builtin/constant/value/underflow"
   , "test-cases/uplc/evaluation/builtin/constant/value/no-underflow"
+  , "test-cases/uplc/evaluation/builtin/constant/value/value-ok-1"
+  , "test-cases/uplc/evaluation/builtin/constant/value/value-ok-2"
   , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-empty"
   , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-ccy-nonempty"
   , "test-cases/uplc/evaluation/builtin/semantics/insertCoin/multi-token"

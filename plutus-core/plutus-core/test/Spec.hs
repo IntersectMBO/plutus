@@ -3,7 +3,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Main
   ( main
@@ -16,6 +15,7 @@ import Check.Spec qualified as Check
 import CostModelInterface.Spec
 import CostModelSafety.Spec
 import Evaluation.Spec (test_evaluation)
+import Flat.Spec qualified as FlatSpec
 import Generators.QuickCheck.Utils (test_utils)
 import Names.Spec
 import Normalization.Check
@@ -269,4 +269,5 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , Parser.tests
     , Value.tests
     , test_utils
+    , FlatSpec.tests
     ]

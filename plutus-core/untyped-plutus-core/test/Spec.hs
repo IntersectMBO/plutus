@@ -13,9 +13,11 @@ import Evaluation.FreeVars (test_freevars)
 import Evaluation.Golden (test_golden)
 import Evaluation.Machines (test_NumberOfStepCounters, test_budget, test_machines, test_tallying)
 import Evaluation.Regressions (schnorrVerifyRegressions)
+import Flat.Spec (test_flat)
 import Generators.Spec (test_parsing)
 import Scoping.Spec (test_names)
 import Transform.CaseOfCase.Spec (test_caseOfCase)
+import Transform.EvaluateBuiltins.Spec (test_evaluateBuiltins)
 import Transform.Inline.Spec (test_inline)
 import Transform.Simplify.Spec (test_simplify)
 
@@ -31,6 +33,7 @@ main = do
       , test_builtins
       , test_budget
       , test_caseOfCase
+      , test_evaluateBuiltins
       , test_inline
       , test_golden
       , test_tallying
@@ -43,4 +46,5 @@ main = do
       , schnorrVerifyRegressions
       , evalOrder
       , test_names
+      , test_flat
       ]

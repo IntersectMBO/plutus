@@ -1,55 +1,9 @@
-letrec
-  !go : list (pair data data) -> bool
-    = \(xs : list (pair data data)) ->
-        case
-          bool
-          xs
-          [ (\(hd : pair data data) ->
-               case
-                 (all dead. list (pair data data) -> bool)
-                 (equalsInteger
-                    0
-                    (unIData (case data hd [(\(l : data) (r : data) -> r)])))
-                 [ (/\dead -> \(ds : list (pair data data)) -> False)
-                 , (/\dead -> go) ]
-                 {all dead. dead})
-          , True ]
-in
 let
-  !`$fToDataInteger_$ctoBuiltinData` : integer -> data
-    = \(i : integer) -> iData i
+  !`$j` : list (pair data data) -> bool = \(ds : list (pair data data)) -> False
   data (These :: * -> * -> *) a b | These_match where
     That : b -> These a b
     These : a -> b -> These a b
     This : a -> These a b
-  !`$fToDataThese_$ctoBuiltinData` :
-     all a b. (\a -> a -> data) a -> (\a -> a -> data) b -> These a b -> data
-    = /\a b ->
-        \(`$dToData` : (\a -> a -> data) a)
-         (`$dToData` : (\a -> a -> data) b)
-         (ds : These a b) ->
-          These_match
-            {a}
-            {b}
-            ds
-            {data}
-            (\(arg : b) -> constrData 1 (mkCons {data} (`$dToData` arg) []))
-            (\(arg : a) (arg : b) ->
-               constrData
-                 2
-                 (mkCons
-                    {data}
-                    (`$dToData` arg)
-                    (mkCons {data} (`$dToData` arg) [])))
-            (\(arg : a) -> constrData 0 (mkCons {data} (`$dToData` arg) []))
-  ~`$dToData` : These integer integer -> data
-    = `$fToDataThese_$ctoBuiltinData`
-        {integer}
-        {integer}
-        `$fToDataInteger_$ctoBuiltinData`
-        `$fToDataInteger_$ctoBuiltinData`
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !`$fUnsafeFromDataThese_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> These a b
     = /\a b ->
@@ -87,83 +41,67 @@ letrec
           bool
           xs
           [ (\(hd : pair data data) ->
-               case
-                 (all dead. list (pair data data) -> bool)
-                 (let
-                   !k' : These integer integer
-                     = `$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
-                         {integer}
-                         {integer}
-                         unIData
-                         unIData
-                         (case data hd [(\(l : data) (r : data) -> r)])
-                 in
-                 These_match
-                   {integer}
-                   {integer}
-                   k'
-                   {bool}
-                   (\(b : integer) ->
-                      ifThenElse {bool} (lessThanInteger 0 b) False True)
-                   (\(a : integer) (b : integer) ->
-                      ifThenElse {bool} (lessThanInteger a b) False True)
-                   (\(a : integer) ->
-                      ifThenElse {bool} (lessThanInteger a 0) False True))
-                 [ (/\dead -> \(ds : list (pair data data)) -> False)
-                 , (/\dead -> go) ]
-                 {all dead. dead})
-          , True ]
-in
-letrec
-  !go : list (pair data data) -> bool
-    = \(xs : list (pair data data)) ->
-        case
-          bool
-          xs
-          [ (\(hd : pair data data) ->
-               case
-                 (all dead. list (pair data data) -> bool)
-                 (go (unMapData (case data hd [(\(l : data) (r : data) -> r)])))
-                 [ (/\dead -> \(ds : list (pair data data)) -> False)
-                 , (/\dead -> go) ]
-                 {all dead. dead})
+               These_match
+                 {integer}
+                 {integer}
+                 (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
+                    {integer}
+                    {integer}
+                    unIData
+                    unIData
+                    (case data hd [(\(l : data) (r : data) -> r)]))
+                 {list (pair data data) -> bool}
+                 (\(b : integer) ->
+                    case
+                      (all dead. list (pair data data) -> bool)
+                      (lessThanEqualsInteger b 0)
+                      [(/\dead -> `$j`), (/\dead -> go)]
+                      {all dead. dead})
+                 (\(a : integer) (b : integer) ->
+                    case
+                      (all dead. list (pair data data) -> bool)
+                      (lessThanEqualsInteger b a)
+                      [(/\dead -> `$j`), (/\dead -> go)]
+                      {all dead. dead})
+                 (\(a : integer) ->
+                    case
+                      (all dead. list (pair data data) -> bool)
+                      (lessThanEqualsInteger 0 a)
+                      [(/\dead -> `$j`), (/\dead -> go)]
+                      {all dead. dead}))
           , True ]
 in
 let
-  !`$fToDataMap_$ctoBuiltinData` :
-     all k a. (\k a -> list (pair data data)) k a -> data
-    = /\k a -> \(ds : (\k a -> list (pair data data)) k a) -> mapData ds
-  !map :
-     all k a b.
+  !`$j` : list (pair data data) -> bool = \(ds : list (pair data data)) -> False
+  !`$fToDataInteger_$ctoBuiltinData` : integer -> data
+    = \(i : integer) -> iData i
+  !all :
+     all k a.
        (\a -> data -> a) a ->
-       (\a -> a -> data) b ->
-       (a -> b) ->
+       (a -> bool) ->
        (\k a -> list (pair data data)) k a ->
-       (\k a -> list (pair data data)) k b
-    = /\k a b ->
-        \(`$dUnsafeFromData` : (\a -> data -> a) a)
-         (`$dToData` : (\a -> a -> data) b)
-         (f : a -> b) ->
+       bool
+    = /\k a ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a) (p : a -> bool) ->
           letrec
-            !go : list (pair data data) -> list (pair data data)
+            !go : list (pair data data) -> bool
               = \(xs : list (pair data data)) ->
                   case
-                    (list (pair data data))
+                    bool
                     xs
-                    [ (\(hd : pair data data) (eta : list (pair data data)) ->
-                         mkCons
-                           {pair data data}
-                           (mkPairData
-                              (case data hd [(\(l : data) (r : data) -> l)])
-                              (`$dToData`
-                                 (f
-                                    (`$dUnsafeFromData`
-                                       (case
-                                          data
-                                          hd
-                                          [(\(l : data) (r : data) -> r)])))))
-                           (go eta))
-                    , [] ]
+                    [ (\(hd : pair data data) ->
+                         case
+                           (all dead. list (pair data data) -> bool)
+                           (p
+                              (`$dUnsafeFromData`
+                                 (case
+                                    data
+                                    hd
+                                    [(\(l : data) (r : data) -> r)])))
+                           [ (/\dead -> \(ds : list (pair data data)) -> False)
+                           , (/\dead -> go) ]
+                           {all dead. dead})
+                    , True ]
           in
           go
 in
@@ -211,6 +149,26 @@ letrec
           , xs ]
 in
 let
+  !`$fToDataThese_$ctoBuiltinData` :
+     all a b. (\a -> a -> data) a -> (\a -> a -> data) b -> These a b -> data
+    = /\a b ->
+        \(`$dToData` : (\a -> a -> data) a)
+         (`$dToData` : (\a -> a -> data) b)
+         (ds : These a b) ->
+          These_match
+            {a}
+            {b}
+            ds
+            {data}
+            (\(arg : b) -> constrData 1 (mkCons {data} (`$dToData` arg) []))
+            (\(arg : a) (arg : b) ->
+               constrData
+                 2
+                 (mkCons
+                    {data}
+                    (`$dToData` arg)
+                    (mkCons {data} (`$dToData` arg) [])))
+            (\(arg : a) -> constrData 0 (mkCons {data} (`$dToData` arg) []))
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
@@ -356,6 +314,72 @@ let
                       , [] ]
             in
             safeAppend (goLeft ds) (goRight ds)
+in
+letrec
+  !go : list (pair data data) -> bool
+    = \(xs : list (pair data data)) ->
+        case
+          bool
+          xs
+          [ (\(hd : pair data data) ->
+               These_match
+                 {(\k a -> list (pair data data)) bytestring integer}
+                 {(\k a -> list (pair data data)) bytestring integer}
+                 (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
+                    {(\k a -> list (pair data data)) bytestring integer}
+                    {(\k a -> list (pair data data)) bytestring integer}
+                    (\(eta : data) -> unMapData eta)
+                    (\(eta : data) -> unMapData eta)
+                    (case data hd [(\(l : data) (r : data) -> r)]))
+                 {list (pair data data) -> bool}
+                 (\(innerR :
+                      (\k a -> list (pair data data)) bytestring integer) ->
+                    case
+                      (all dead. list (pair data data) -> bool)
+                      (all
+                         {bytestring}
+                         {integer}
+                         unIData
+                         (\(v : integer) -> lessThanEqualsInteger v 0)
+                         innerR)
+                      [(/\dead -> `$j`), (/\dead -> go)]
+                      {all dead. dead})
+                 (\(innerL : (\k a -> list (pair data data)) bytestring integer)
+                   (innerR :
+                      (\k a -> list (pair data data)) bytestring integer) ->
+                    case
+                      (all dead. list (pair data data) -> bool)
+                      (go
+                         (union
+                            {bytestring}
+                            {integer}
+                            {integer}
+                            unIData
+                            unIData
+                            `$fToDataInteger_$ctoBuiltinData`
+                            `$fToDataInteger_$ctoBuiltinData`
+                            innerL
+                            innerR))
+                      [(/\dead -> `$j`), (/\dead -> go)]
+                      {all dead. dead})
+                 (\(innerL :
+                      (\k a -> list (pair data data)) bytestring integer) ->
+                    case
+                      (all dead. list (pair data data) -> bool)
+                      (all
+                         {bytestring}
+                         {integer}
+                         unIData
+                         (\(v : integer) -> lessThanEqualsInteger 0 v)
+                         innerL)
+                      [(/\dead -> `$j`), (/\dead -> go)]
+                      {all dead. dead}))
+          , True ]
+in
+let
+  !`$fToDataMap_$ctoBuiltinData` :
+     all k a. (\k a -> list (pair data data)) k a -> data
+    = /\k a -> \(ds : (\k a -> list (pair data data)) k a) -> mapData ds
   data Unit | Unit_match where
     Unit : Unit
 in
@@ -585,75 +609,28 @@ in
   case
     (all dead. bool)
     (go
-       (map
+       (union
           {bytestring}
-          {These
-             ((\k a -> list (pair data data)) bytestring integer)
-             ((\k a -> list (pair data data)) bytestring integer)}
-          {(\k a -> list (pair data data)) bytestring (These integer integer)}
-          (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
-             {(\k a -> list (pair data data)) bytestring integer}
-             {(\k a -> list (pair data data)) bytestring integer}
-             (\(eta : data) -> unMapData eta)
-             (\(eta : data) -> unMapData eta))
-          (`$fToDataMap_$ctoBuiltinData` {bytestring} {These integer integer})
-          (\(k :
-               These
-                 ((\k a -> list (pair data data)) bytestring integer)
-                 ((\k a -> list (pair data data)) bytestring integer)) ->
-             These_match
-               {(\k a -> list (pair data data)) bytestring integer}
-               {(\k a -> list (pair data data)) bytestring integer}
-               k
-               {(\k a -> list (pair data data))
-                  bytestring
-                  (These integer integer)}
-               (\(b : (\k a -> list (pair data data)) bytestring integer) ->
-                  map
-                    {bytestring}
-                    {integer}
-                    {These integer integer}
-                    unIData
-                    `$dToData`
-                    (\(ds : integer) -> That {integer} {integer} ds)
-                    b)
-               (\(a : (\k a -> list (pair data data)) bytestring integer)
-                 (b : (\k a -> list (pair data data)) bytestring integer) ->
-                  union
-                    {bytestring}
-                    {integer}
-                    {integer}
-                    unIData
-                    unIData
-                    `$fToDataInteger_$ctoBuiltinData`
-                    `$fToDataInteger_$ctoBuiltinData`
-                    a
-                    b)
-               (\(a : (\k a -> list (pair data data)) bytestring integer) ->
-                  map
-                    {bytestring}
-                    {integer}
-                    {These integer integer}
-                    unIData
-                    `$dToData`
-                    (\(ds : integer) -> This {integer} {integer} ds)
-                    a))
-          (union
-             {bytestring}
-             {(\k a -> list (pair data data)) bytestring integer}
-             {(\k a -> list (pair data data)) bytestring integer}
-             (\(eta : data) -> unMapData eta)
-             (\(eta : data) -> unMapData eta)
-             (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
-             (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
-             l
-             r)))
+          {(\k a -> list (pair data data)) bytestring integer}
+          {(\k a -> list (pair data data)) bytestring integer}
+          (\(eta : data) -> unMapData eta)
+          (\(eta : data) -> unMapData eta)
+          (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
+          (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
+          l
+          r))
     [ (/\dead -> False)
     , (/\dead ->
          case
            bool
            (unordEqWith
-              (\(v : data) -> go (unMapData v))
+              (\(v : data) ->
+                 all
+                   {bytestring}
+                   {integer}
+                   unIData
+                   (\(v : integer) -> equalsInteger 0 v)
+                   (unMapData v))
               (\(v : data) (v : data) ->
                  unordEqWith
                    (\(v : data) -> equalsInteger 0 (unIData v))

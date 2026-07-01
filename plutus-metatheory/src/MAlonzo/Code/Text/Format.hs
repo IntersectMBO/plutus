@@ -1,27 +1,27 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Text.Format where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Char qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Data.Sum.Base qualified
-import MAlonzo.Code.Text.Format.Generic qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Char
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Data.Sum.Base
+import qualified MAlonzo.Code.Text.Format.Generic
 
 -- Text.Format.ArgChunk
 d_ArgChunk_4 = ()
@@ -53,9 +53,7 @@ d_lexArg_20 v0
 -- Text.Format.formatSpec
 d_formatSpec_22 :: MAlonzo.Code.Text.Format.Generic.T_FormatSpec_6
 d_formatSpec_22
-  = coe
-      MAlonzo.Code.Text.Format.Generic.C_FormatSpec'46'constructor_27
-      d_lexArg_20
+  = coe MAlonzo.Code.Text.Format.Generic.C_constructor_20 d_lexArg_20
 -- Text.Format._.Chunk
 d_Chunk_28 = ()
 -- Text.Format._.Error
@@ -69,13 +67,13 @@ d_lexer_40 ::
   MAlonzo.Code.Data.Sum.Base.T__'8846'__30
 d_lexer_40
   = coe
-      MAlonzo.Code.Text.Format.Generic.d_lexer_88 (coe d_formatSpec_22)
+      MAlonzo.Code.Text.Format.Generic.d_lexer_90 (coe d_formatSpec_22)
 -- Text.Format._.size
 d_size_42 ::
-  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -> Integer
-d_size_42 = coe MAlonzo.Code.Text.Format.Generic.du_size_68
+  [MAlonzo.Code.Text.Format.Generic.T_Chunk_62] -> Integer
+d_size_42 = coe MAlonzo.Code.Text.Format.Generic.du_size_70
 -- Text.Format._.⟦_⟧
 d_'10214'_'10215'_44 ::
-  [MAlonzo.Code.Text.Format.Generic.T_Chunk_60] -> AgdaAny
+  [MAlonzo.Code.Text.Format.Generic.T_Chunk_62] -> AgdaAny
 d_'10214'_'10215'_44
-  = coe MAlonzo.Code.Text.Format.Generic.du_'10214'_'10215'_74
+  = coe MAlonzo.Code.Text.Format.Generic.du_'10214'_'10215'_76

@@ -17,7 +17,8 @@ import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.RecSplit qualified as RecSplit
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
-import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
+import Test.QuickCheck.Property (Property)
 
 test_letFloatOut :: TestTree
 test_letFloatOut =
@@ -66,7 +67,7 @@ test_letFloatOut =
         <> LetMerge.letMergePass tcconfig
 
 prop_floatOut :: BuiltinSemanticsVariant PLC.DefaultFun -> Property
-prop_floatOut biVariant = withMaxSuccess numTestsForPassProp $ testPassProp runQuote testPass
+prop_floatOut biVariant = BaseQC.withNumTests numTestsForPassProp $ testPassProp runQuote testPass
   where
     testPass tcconfig =
       LetFloatOut.floatTermPassSC

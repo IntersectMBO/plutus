@@ -57,8 +57,8 @@ Do NOT modify by hand.
 --->
 
 ``` haskell
-{{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-uplc #-}}
-{{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=3 #-}}
+{{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:dump-uplc #-}}
+{{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:max-simplifier-iterations-uplc=3 #-}}
 ```
 
 For each boolean option, you can add a `no-` prefix to switch it off, such as `no-typecheck`, `no-simplifier-beta`.

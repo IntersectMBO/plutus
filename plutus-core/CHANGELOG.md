@@ -1,4 +1,60 @@
 
+<a id='changelog-1.65.0.0'></a>
+# 1.65.0.0 — 2026-05-21
+
+## Added
+
+- A new UPLC optimization that hoists forced polymorphic builtins, which can reduce
+  the number of forces.
+
+<a id='changelog-1.64.0.0'></a>
+# 1.64.0.0 — 2026-05-11
+
+## Added
+
+- The UPLC optimizer now also simplifies terms by evaluating builtins.
+
+<a id='changelog-1.63.0.0'></a>
+# 1.63.0.0 — 2026-05-01
+
+## Fixed
+
+- Fixed `SrcSpan` annotations on inner `Apply`/`TyInst` nodes from the PLC, PIR, and
+  UPLC parsers. Parser error messages and tooling that reads annotations off parsed
+  terms will now point to the specific argument involved.
+
+<a id='changelog-1.62.0.0'></a>
+# 1.62.0.0 — 2026-04-24
+
+## Added
+
+- A new UPLC optimization pass that floats bindings outwards. This can unlock further
+  optimizations, such as case-constr and force-delay cancellation.
+
+- Added a new command line option `--certified-opts-only` which disables those optimization passes which are not certified.
+
+- A new plugin flag `inline-unconditional-growth`, and a new UPLC executable flag
+  `opt-inline-unconditional-growth`.
+  They control the aggressiveness of unconditional inlining.
+
+## Changed
+
+- Improved the CSE pass to make it see through bindings.
+
+<a id='changelog-1.61.0.0'></a>
+# 1.61.0.0 — 2026-04-02
+
+## Added
+
+- Roundtrip and stable byte encoding tests for all Flat instances across
+  flat, plutus-core, plutus-ir, and untyped-plutus-core packages.
+- Standalone encoding generator executable (`cabal run flat-encoding-generator`)
+  for reproducing expected byte constants.
+
+## Fixed
+
+- Fixed `consClose` in the Flat decoder failing to advance the stream pointer past 1 byte, which corrupted decoder state for Generic-derived Flat instances of large enums (>256 constructors) and caused infinite memory consumption during deserialization.
+
 <a id='changelog-1.60.0.0'></a>
 # 1.60.0.0 — 2026-03-18
 

@@ -146,6 +146,8 @@ module PlutusLedgerApi.Data.V1
   , upperBound
   , strictLowerBound
   , strictUpperBound
+  , inclusiveLowerBound
+  , inclusiveUpperBound
 
     -- *** Newtypes and hash types
   , ScriptHash (..)

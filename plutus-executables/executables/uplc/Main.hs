@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main (main) where
@@ -5,44 +6,87 @@ module Main (main) where
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
 import PlutusCore.Data (Data)
-import PlutusCore.Default (BuiltinSemanticsVariant (..))
-import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
+import PlutusCore.Default
+  ( BuiltinSemanticsVariant (..)
+  )
+import PlutusCore.Evaluation.Machine.ExBudget
+  ( ExBudget (..)
+  , ExRestrictingBudget (..)
+  )
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Executable.AstIO (toDeBruijnTermUPLC)
+import PlutusCore.Evaluation.Machine.ExMemory
+  ( ExCPU (..)
+  , ExMemory (..)
+  )
+import PlutusCore.Executable.AstIO
+  ( UplcTermNDB
+  , toDeBruijnTermUPLC
+  )
+import PlutusCore.Executable.Blueprint
 import PlutusCore.Executable.Common
+import PlutusCore.Executable.Eval
+import PlutusCore.Executable.OptimizerReport
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
-
-import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
-import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
-
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn (FreeVariableError)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
-import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
+import Codec.Serialise
+  ( DeserialiseFailure
+  , deserialiseOrFail
+  )
 import Control.DeepSeq (force)
+import Control.Exception (evaluate)
 import Control.Monad.Except
+  ( runExcept
+  , tryError
+  )
+import Control.Monad.Extra (whenJust)
 import Control.Monad.IO.Class (liftIO)
-import Criterion (benchmarkWith, whnf)
+import Control.Monad.ST (RealWorld)
+import Criterion
+  ( benchmarkWith
+  , whnf
+  )
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
-import Data.ByteString.Lazy as BSL (readFile)
-import Data.Foldable
+import Data.ByteString.Base16 qualified as Base16
+import Data.ByteString.Lazy qualified as BSL
+import Data.IORef
+  ( newIORef
+  , readIORef
+  )
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
-import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
+import Data.Text.Encoding qualified as T
+import Data.Text.IO qualified as T
+import Data.Time.Clock.System
+  ( getSystemTime
+  , systemNanoseconds
+  )
 import Options.Applicative
 import PlutusCore.Flat (unflat)
 import Prettyprinter ((<+>))
-import System.Exit (ExitCode (..), exitFailure, exitSuccess, exitWith)
-import System.IO (hPrint, stderr)
-import Text.Read (readMaybe)
-
-import Control.Monad.ST (RealWorld)
+import System.CPUTime (getCPUTime)
 import System.Console.Haskeline qualified as Repl
+import System.Directory.Extra (doesFileExist)
+import System.Exit
+  ( ExitCode (..)
+  , exitFailure
+  , exitWith
+  )
+import System.FilePath
+import System.IO
+  ( hPrint
+  , stderr
+  )
+import System.Mem (performGC)
+import Text.Printf (printf)
+import Text.Read (readMaybe)
 
 import Data.Version.Extras (gitAwareVersionInfo)
 import Paths_plutus_executables qualified as Paths
@@ -76,6 +120,14 @@ data EvalOptions
       CekModel
       (BuiltinSemanticsVariant PLC.DefaultFun)
 
+data TimeEvalOptions
+  = TimeEvalOptions
+      Input
+      Format
+      (BuiltinSemanticsVariant PLC.DefaultFun)
+      Integer -- number of repetitions
+      Bool -- raw output (nanoseconds, no units)
+
 data BenchmarkOptions
   = BenchmarkOptions
       Input
@@ -102,6 +154,7 @@ data Command
   | Print PrintOptions
   | Example ExampleOptions
   | Eval EvalOptions
+  | TimeEval TimeEvalOptions
   | Dbg DbgOptions
   | DumpModel (BuiltinSemanticsVariant PLC.DefaultFun)
   | PrintBuiltinSignatures
@@ -146,6 +199,26 @@ evalOpts =
     <*> output
     <*> cekmodel
     <*> builtinSemanticsVariant
+
+timeOpts :: Parser TimeEvalOptions
+timeOpts =
+  TimeEvalOptions
+    <$> input
+    <*> inputformat
+    <*> builtinSemanticsVariant
+    <*> option
+      auto
+      ( short 'n'
+          <> long "repeat"
+          <> metavar "N"
+          <> value 100
+          <> showDefault
+          <> help "Number of times to evaluate the script (average time is reported for N > 1)."
+      )
+    <*> switch
+      ( long "raw"
+          <> help "Print the average time in nanoseconds with no units."
+      )
 
 dbgOpts :: Parser DbgOptions
 dbgOpts =
@@ -307,6 +380,15 @@ plutusOpts =
             (progDesc "Evaluate an untyped Plutus Core program using the CEK machine.")
         )
       <> command
+        "time"
+        ( info
+            (TimeEval <$> timeOpts)
+            ( progDesc $
+                "Time the evaluation of an untyped Plutus Core program using the CEK machine.  "
+                  ++ "For best results, bypass cabal and run the `uplc` binary directly; for example use `$(cabal list-bin uplc)`."
+            )
+        )
+      <> command
         "debug"
         ( info
             (Dbg <$> dbgOpts)
@@ -331,37 +413,202 @@ plutusOpts =
 
 -- | Run the UPLC optimisations
 runOptimisations :: OptimiseOptions UPLC.Name SrcSpan -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput simplOpts) = do
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert certifierOutput sopts eopts) =
+  case ifmt of
+    Blueprint -> runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
+    _ -> runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts
+
+runOptimiseSingle
+  :: Input
+  -> Format
+  -> Output
+  -> Format
+  -> PrintMode
+  -> Certifier
+  -> CertifierOutputMode
+  -> UPLC.OptimizeOpts UPLC.Name SrcSpan
+  -> OptimiseEvalOpts
+  -> IO ()
+runOptimiseSingle inp ifmt outp ofmt mode mcert certifierOutput sopts eopts = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
-  (simplified, simplificationTrace) <- PLC.runQuoteT $ do
-    renamed <- PLC.rename prog
-    let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
-        defaultBuiltinSemanticsVariant = def
-    UPLC.simplifyProgramWithTrace simplOpts defaultBuiltinSemanticsVariant renamed
+  (simplified, optimizerTrace) <- optimiseProgram sopts prog
   writeProgram outp ofmt mode simplified
-  case mcert of
-    Nothing -> pure ()
-    Just cert -> do
-      time <- systemNanoseconds <$> getSystemTime
-      let
-        certDir = cert <> "-" <> show time
+  margs <- loadArgsIfEval eopts
+  let costs = case margs of
+        Nothing -> []
+        Just args ->
+          let evalCtx = mkDefaultEvalCtx def
+           in evalOptimizerTrace evalCtx optimizerTrace args
+  printReport stderr (buildReport optimizerTrace costs)
+  whenJust mcert $ \cert -> do
+    time <- systemNanoseconds <$> getSystemTime
+    let certDir = cert <> "-" <> show time
         certOutput = case certifierOutput of
           CertBasic -> BasicOutput
           CertReport file -> ReportOutput file
           CertProject -> ProjectOutput certDir
-      execCertifier simplificationTrace cert certOutput
+    execCertifier optimizerTrace cert certOutput costs
+
+runOptimiseBlueprint
+  :: Input
+  -> Output
+  -> Format
+  -> Certifier
+  -> CertifierOutputMode
+  -> UPLC.OptimizeOpts UPLC.Name SrcSpan
+  -> OptimiseEvalOpts
+  -> IO ()
+runOptimiseBlueprint inp outp ofmt mcert certifierOutput sopts eopts
+  | ofmt /= Blueprint = fail "When input format is blueprint, output format must also be blueprint."
+  | otherwise = do
+      (validators, blueprint) <- readBlueprint inp
+      optimisedWithTrace <-
+        traverse
+          (optimiseProgram sopts . (topSrcSpan <$) . bvCode)
+          validators
+      let optimised = map (void . fst) optimisedWithTrace
+          evalCtx = mkDefaultEvalCtx def
+      writeBlueprint outp blueprint optimised
+      time <- systemNanoseconds <$> getSystemTime
+      for_ (zip validators (snd <$> optimisedWithTrace)) $ \(validator, optTrace) -> do
+        let validatorName = T.unpack (bvTitle validator)
+        margs <- loadBlueprintArgs eopts validatorName
+        let costs = case margs of
+              Nothing -> []
+              Just args -> evalOptimizerTrace evalCtx optTrace args
+        T.hPutStrLn stderr ("\n--- " <> bvTitle validator <> " ---")
+        printReport stderr (buildReport optTrace costs)
+        whenJust mcert $ \cert -> do
+          let certDir = cert <> "-" <> validatorName <> "-" <> show time
+              certOutput = case certifierOutput of
+                CertBasic -> BasicOutput
+                CertReport file ->
+                  let (fileBase, fileExt) = splitExtension file
+                   in ReportOutput (fileBase <> "-" <> validatorName <.> fileExt)
+                CertProject -> ProjectOutput certDir
+          execCertifier optTrace cert certOutput costs
+
+optimiseProgram
+  :: forall m name a
+   . (UPLC.HasUnique name UPLC.TermUnique, Monad m, Ord name, Typeable name)
+  => UPLC.OptimizeOpts name a
+  -> UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
+  -> m
+       ( UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
+       , UPLC.OptimizerTrace name UPLC.DefaultUni UPLC.DefaultFun a
+       )
+optimiseProgram opts prog = PLC.runQuoteT $ do
+  renamed <- PLC.rename prog
+  let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
+      defaultBuiltinSemanticsVariant = def
+  UPLC.optimizeProgramWithTrace opts defaultBuiltinSemanticsVariant renamed
+
+execCertifier
+  :: UPLC.OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  -> CertName
+  -> CertifierOutput
+  -> [ ( Maybe
+           (Cek.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+       , ExBudget
+       )
+     ]
+  -> IO ()
+execCertifier optimizerTrace cert out costs = do
+  result <- runCertifier $ mkCertifier optimizerTrace cert out costs
+  case result of
+    Left err -> do
+      putStrLn $ prettyCertifierError err
+      case err of
+        InvalidCertificate _ _ -> exitWith $ ExitFailure 1
+        InvalidCompilerOutput -> exitWith $ ExitFailure 2
+        ValidationError _ -> exitWith $ ExitFailure 3
+    -- TODO: Only Right True is success
+    Right _ -> pure ()
+
+---------------- Load script arguments for evaluation ----------------
+
+-- | Load hex-encoded args as @Program@s, one per `FilePath`.
+loadProgramArgs :: [FilePath] -> IO [UplcTermNDB ()]
+loadProgramArgs = traverse loadArg
   where
-    execCertifier simplificationTrace cert out = do
-      result <- runCertifier $ mkCertifier simplificationTrace cert out
-      case result of
-        Left err -> do
-          putStrLn $ prettyCertifierError err
-          case err of
-            InvalidCertificate _ -> exitWith $ ExitFailure 1
-            InvalidCompilerOutput -> exitWith $ ExitFailure 2
-            ValidationError _ -> exitWith $ ExitFailure 3
-        -- TODO: Only Right True is success
-        Right _ -> exitSuccess
+    loadArg path = do
+      -- TODO: create a `readProgram` variant that returns `UplcProgDB` instead of `UplcProg`.
+      prog <- readProgram Hex (FileInput path) :: IO (UplcProg SrcSpan)
+      let term = void $ prog ^. UPLC.progTerm
+      case runExcept @FreeVariableError $ UPLC.deBruijnTerm term of
+        Left err -> fail $ "Error converting argument " <> path <> ": " <> show err
+        Right t -> pure (void t)
+
+-- | Load hex-encoded args as @Data@ objects, one per `FilePath`.
+loadDataArgs :: [FilePath] -> IO [UplcTermNDB ()]
+loadDataArgs = traverse loadArg
+  where
+    loadArg path = do
+      hex <- T.readFile path
+      case Base16.decode (T.encodeUtf8 (T.strip hex)) of
+        Left err -> fail $ "Cannot hex-decode data argument " <> path <> ": " <> err
+        Right bs ->
+          case deserialiseOrFail @Data (BSL.fromStrict bs) of
+            Left err -> fail $ "Cannot CBOR-decode data argument " <> path <> ": " <> show err
+            Right d -> pure $ mkConstant () d
+
+{-| Load hex-encoded args, which can be either @Program@s or @Data@ objects,
+depending on `EvalArgKind`. One arg per `FilePath`. -}
+loadArgs :: EvalArgKind -> [FilePath] -> IO [UplcTermNDB ()]
+loadArgs kind = case kind of
+  ArgProg -> loadProgramArgs
+  ArgData -> loadDataArgs
+
+{-| Load args from a dir.
+
+It tries to load the first arg from the file named "0", second from "1", and so on,
+until the file doesn't exist.
+
+The args can be either @Program@s or @Data@ objects, depending on `EvalArgKind`. -}
+loadArgsFromDir
+  :: FilePath
+  -> String
+  -- ^ Validator title
+  -> EvalArgKind
+  -> IO (Maybe [UplcTermNDB ()])
+loadArgsFromDir baseDir title argKind = do
+  let dir = baseDir </> title
+  paths <- collectArgFiles dir 0
+  if null paths
+    then pure Nothing
+    else Just <$> loadArgs argKind paths
+  where
+    collectArgFiles dir n = do
+      let path = dir </> show (n :: Int)
+      exists <- doesFileExist path
+      if exists
+        then (path :) <$> collectArgFiles dir (n + 1)
+        else pure []
+
+-- | Returns `Nothing` if evaluation is not requested, otherwise `Just args`.
+loadBlueprintArgs
+  :: OptimiseEvalOpts
+  -> String
+  -> IO (Maybe [UplcTermNDB ()])
+loadBlueprintArgs opts validatorName =
+  case oeBlueprintArgsDir opts of
+    Just dir -> do
+      margs <- loadArgsFromDir dir validatorName (oeArgKind opts)
+      case margs of
+        Just args -> pure (Just args)
+        Nothing | oeEval opts -> pure (Just [])
+        Nothing -> pure Nothing
+    Nothing ->
+      -- Blueprint args dir not specified. Try loading args from files, and
+      -- apply the same args to all validators in the blueprint.
+      loadArgsIfEval opts
+
+-- | Returns `Nothing` if evaluation is not requested, otherwise `Just args`.
+loadArgsIfEval :: OptimiseEvalOpts -> IO (Maybe [UplcTermNDB ()])
+loadArgsIfEval opts
+  | not (oeEval opts) = pure Nothing
+  | null (oeArgFiles opts) = pure (Just [])
+  | otherwise = Just <$> loadArgs (oeArgKind opts) (oeArgFiles opts)
 
 ---------------- Script application ----------------
 
@@ -423,23 +670,32 @@ runBenchmark :: BenchmarkOptions -> IO ()
 runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
   prog <- readProgram ifmt inp
   let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
-      cekparams = PLC.defaultCekParametersForVariant semvar
-      -- Extract an evaluation result
-      getResult = either (error . show) (const ()) . Cek.cekResultToEither . Cek._cekReportResult
-      evaluate = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
+      evalCtx = mkDefaultEvalCtx semvar
+      -- Evaluate the term the same way the 'time' subcommand (and production)
+      -- does, erroring on an unexpected failure.
+      cekEval = either (error . show) (const ()) . evaluateCekLikeInProd evalCtx
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
       -- we have to put them back to get an AST with NamedDeBruijn names.
-      !term =
+      term =
         fromRight (error "Unexpected open term in runBenchmark.")
           . runExcept @FreeVariableError
           $ UPLC.deBruijnTerm (UPLC._progTerm prog)
       -- Big names slow things down
-      !anonTerm = UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) term
-      -- Big annotations slow things down
+      anonTerm = UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) term
+      -- Big annotations slow things down.  Forcing this to NF here drives all
+      -- the preparatory work (de Bruijn conversion, name anonymisation, 'void')
+      -- to completion before benchmarking, so it isn't measured by Criterion.
       !unitAnnTerm = force (void anonTerm)
-  benchmarkWith criterionConfig $! whnf evaluate unitAnnTerm
+  benchmarkWith criterionConfig $! whnf cekEval unitAnnTerm
 
 ---------------- Evaluation ----------------
+
+formatNs :: Integer -> String
+formatNs ns
+  | ns < 1000 = printf "%d ns" ns
+  | ns < 1000000 = printf "%.3f \xb5s" (fromIntegral ns / 1000 :: Double)
+  | ns < 1000000000 = printf "%.3f ms" (fromIntegral ns / 1000000 :: Double)
+  | otherwise = printf "%.3f s" (fromIntegral ns / 1000000000 :: Double)
 
 runEval :: EvalOptions -> IO ()
 runEval
@@ -474,24 +730,74 @@ runEval
           Silent -> SomeBudgetMode Cek.restrictingEnormous
           Verbose bm -> bm
     case budgetM of
-      SomeBudgetMode bm ->
-        do
-          let Cek.CekReport res budget logs = Cek.runCek cekparams bm emitM term
-          case Cek.cekResultToEither res of
-            Left err -> hPrint stderr err
-            Right v ->
-              case nameFormat of
-                IdNames -> writeToOutput outp $ prettyPrintByMode printMode v
-                DeBruijnNames -> writeToOutput outp $ prettyPrintByMode printMode $ toDeBruijnTermUPLC v
-          case budgetMode of
-            Silent -> pure ()
-            Verbose _ -> printBudgetState term cekModel budget
-          case traceMode of
-            None -> pure ()
-            _ -> writeToOutput outp (T.intercalate "\n" logs)
-          case Cek.cekResultToEither res of
-            Left _ -> exitFailure
-            Right _ -> pure ()
+      SomeBudgetMode bm -> do
+        report <- evaluate (Cek.runCek cekparams bm emitM term)
+        let Cek.CekReport res budget logs = report
+        case Cek.cekResultToEither res of
+          Left err -> hPrint stderr err
+          Right v ->
+            case nameFormat of
+              IdNames -> writeToOutput outp $ prettyPrintByMode printMode v
+              DeBruijnNames -> writeToOutput outp $ prettyPrintByMode printMode $ toDeBruijnTermUPLC v
+        case budgetMode of
+          Silent -> pure ()
+          Verbose _ -> printBudgetState term cekModel budget
+        case traceMode of
+          None -> pure ()
+          _ -> writeToOutput outp (T.intercalate "\n" logs)
+        case Cek.cekResultToEither res of
+          Left _ -> exitFailure
+          Right _ -> pure ()
+
+---------------- Timing ----------------
+
+runTimeEval :: TimeEvalOptions -> IO ()
+runTimeEval (TimeEvalOptions inp ifmt semvar n raw) = do
+  prog <- readProgram ifmt inp
+  let count = fromIntegral (max 1 n) :: Int
+      term = void $ prog ^. UPLC.progTerm
+      dbTerm =
+        fromRight (error "time: term has free variables")
+          . runExcept @FreeVariableError
+          $ UPLC.deBruijnTerm term
+  -- Fully evaluate the anonymised term to NF before timing.  This single
+  -- 'force' drives all the preparatory work (the 'void', the de Bruijn
+  -- conversion and the name anonymisation) to completion, since 'anonTerm'
+  -- depends on all of it; doing it here keeps it out of the timed loop.
+  anonTerm <-
+    evaluate . force $
+      UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) dbTerm
+  let !evalCtx = mkDefaultEvalCtx semvar
+  performGC
+  -- Store the term in an IORef so GHC cannot CSE/share the result of
+  -- evaluateCekLikeInProd across iterations.
+  termRef <- newIORef anonTerm
+  -- We measure CPU time (getCPUTime) rather than wall-clock time
+  -- (getSystemTime): a CPU-time clock does not advance while the thread is
+  -- descheduled, so the measurement is immune to contention from co-runners
+  -- sharing the core.  In particular, running via 'cabal run' pins the
+  -- long-lived cabal supervisor to the same core, and its periodic wake-ups
+  -- would otherwise be charged to whichever evaluation happened to be in
+  -- progress, inflating the reported time (especially for inputs that take
+  -- longer to parse and so keep the process alive longer).
+  let loop 0 !total = pure total
+      loop k !total = do
+        term' <- readIORef termRef
+        t0 <- getCPUTime
+        r <- evaluate (evaluateCekLikeInProd evalCtx term')
+        t1 <- getCPUTime
+        case r of
+          Right _ -> loop (k - 1) (total + t1 - t0)
+          Left e -> putStrLn (show e) >> exitFailure
+  totalPs <- loop count 0
+  -- getCPUTime returns picoseconds; convert the total to nanoseconds.
+  let avgNs = totalPs `div` (1000 * fromIntegral count)
+  putStrLn $
+    if raw
+      then show avgNs
+      else
+        (if count > 1 then "Average evaluation time (" ++ show count ++ " runs): " else "Evaluation time: ")
+          ++ formatNs avgNs
 
 ---------------- Debugging ----------------
 
@@ -584,6 +890,7 @@ main = do
     ApplyToCborData opts -> runApplyToCborData opts
     Benchmark opts -> runBenchmark opts
     Eval opts -> runEval opts
+    TimeEval opts -> runTimeEval opts
     Dbg opts -> runDbg opts
     Example opts -> runUplcPrintExample opts
     Optimise opts -> runOptimisations opts

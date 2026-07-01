@@ -10,7 +10,7 @@
 
 -- | This module defines the 'TypedBuiltinGen' type and functions of this type.
 module PlutusCore.Generators.Hedgehog.TypedBuiltinGen
-  ( TermOf (..)
+  ( TermWith (..)
   , TypedBuiltinGenT
   , TypedBuiltinGen
   , genLowerBytes
@@ -22,6 +22,7 @@ import PlutusPrelude
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Default
 import PlutusCore.Pretty
 
 import Data.ByteString qualified as BS
@@ -36,32 +37,31 @@ import Type.Reflection
 genLowerBytes :: Monad m => Range Int -> GenT m BS.ByteString
 genLowerBytes range = Gen.utf8 range Gen.lower
 
--- TODO: rename me to @TermWith@.
 -- | A @term@ along with the corresponding Haskell value.
-data TermOf term a = TermOf
-  { _termOfTerm :: term
+data TermWith term a = TermWith
+  { _termWithTerm :: term
   -- ^ The term
-  , _termOfValue :: a
+  , _termWithValue :: a
   -- ^ The Haskell value.
   }
   deriving stock (Functor, Foldable, Traversable)
 
 {-| A function of this type generates values of built-in typed (see 'TypedBuiltin' for
 the list of such types) and returns it along with the corresponding PLC value. -}
-type TypedBuiltinGenT term m = forall a. TypeRep a -> GenT m (TermOf term a)
+type TypedBuiltinGenT term m = forall a. TypeRep a -> GenT m (TermWith term a)
 
 -- | 'TypedBuiltinGenT' specified to 'Identity'.
 type TypedBuiltinGen term = TypedBuiltinGenT term Identity
 
 instance
   (PrettyBy config a, PrettyBy config term)
-  => PrettyBy config (TermOf term a)
+  => PrettyBy config (TermWith term a)
   where
-  prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
+  prettyBy config (TermWith t x) = prettyBy config t <+> "~>" <+> prettyBy config x
 
 attachCoercedTerm
   :: (Monad m, MakeKnown term a, PrettyConst a)
-  => GenT m a -> GenT m (TermOf term a)
+  => GenT m a -> GenT m (TermWith term a)
 attachCoercedTerm a = do
   x <- a
   case makeKnownOrFail x of
@@ -73,7 +73,7 @@ attachCoercedTerm a = do
           [ "Got 'EvaluationFailure' when generating a value of a built-in type: "
           , render $ prettyConst botRenderContext x
           ]
-    EvaluationSuccess res -> pure $ TermOf res x
+    EvaluationSuccess res -> pure $ TermWith res x
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen
@@ -103,7 +103,12 @@ genTypedBuiltinDef
   :: (HasConstantIn DefaultUni term, Monad m)
   => TypedBuiltinGenT term m
 genTypedBuiltinDef =
-  updateTypedBuiltinGen @Integer (Gen.integral $ Range.linearFrom 0 0 10) $
-    updateTypedBuiltinGen (genLowerBytes (Range.linear 0 10)) $
-      updateTypedBuiltinGen Gen.bool $
-        genTypedBuiltinFail
+  updateTypedBuiltinGen @Integer genInteger $
+    updateTypedBuiltinGen (CInteger <$> genInteger) $
+      updateTypedBuiltinGen genByteString $
+        updateTypedBuiltinGen (CByteString <$> genByteString) $
+          updateTypedBuiltinGen Gen.bool $
+            genTypedBuiltinFail
+  where
+    genInteger = Gen.integral $ Range.linearFrom 0 0 10
+    genByteString = genLowerBytes (Range.linear 0 10)

@@ -12,6 +12,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , flattenCostRose
   , NumBytesCostedAsNumWords (..)
   , IntegerCostedLiterally (..)
+  , TextCostedByByteLength (..)
   , ValueTotalSize (..)
   , ValueMaxDepth (..)
   , DataNodeCount (..)
@@ -32,6 +33,7 @@ import Data.Map.Strict qualified as Map
 import Data.Proxy
 import Data.SatInt
 import Data.Text qualified as T
+import Data.Text.Internal qualified as TI
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word
@@ -315,32 +317,26 @@ instance ExMemoryUsage IntegerCostedLiterally where
    bytestring.  -}
 instance ExMemoryUsage BS.ByteString where
   -- Don't use `div` here!  That gives 0 instead of 1 for the empty bytestring.
-  memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1
+  memoryUsage bs = singletonRose . unsafeToSatInt . fromIntegral $ ((n - 1) `quot` 8) + 1
     where
       n = BS.length bs
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage T.Text where
-  -- This says that @Text@ allocates 1 'CostingInteger' worth of memory (i.e. 8 bytes) per
-  -- character, which is a conservative overestimate (i.e. is safe) regardless of whether @Text@
-  -- is UTF16-based (like it used to when we implemented this instance) or UTF8-based (like it is
-  -- now).
-  --
-  -- Note that the @ExMemoryUsage Char@ instance does not affect this one, this is for performance
-  -- reasons, since @T.length@ is O(1) unlike @sum . map (memoryUsage @Char) . T.unpack@. We used
-  -- to have the latter, but changed it to the former for easy performance gains.
-  --
-  -- We may want to make this a bit less of an overestimate in future just not to overcharge
-  -- users.
   memoryUsage = go
     where
       go xs
         | T.null ys = singletonRose (fromIntegral (T.length xs))
         | otherwise = CostRose 100 [go ys]
         where
-          -- This is similar to the ExMemoryUsage [a] instance, but no need to do
-          -- compile time unrolling since it doesn't apply to Text.
           ys = T.drop 100 xs
+  {-# INLINE memoryUsage #-}
+
+newtype TextCostedByByteLength = TextCostedByByteLength {unTextCostedByByteLength :: T.Text}
+
+instance ExMemoryUsage TextCostedByByteLength where
+  memoryUsage (TextCostedByByteLength (TI.Text _ _ lenInBytes)) =
+    singletonRose . unsafeToSatInt . fromIntegral $ lenInBytes `quot` 4
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
@@ -466,7 +462,7 @@ getting the memoryUsage instances to call those.
 -}
 
 g1ElementCost :: CostRose
-g1ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div` 8
+g1ElementCost = singletonRose . unsafeToSatInt . fromIntegral $ BLS12_381.G1.memSizeBytes `div` 8
 {-# OPAQUE g1ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G1.Element where
@@ -475,7 +471,7 @@ instance ExMemoryUsage BLS12_381.G1.Element where
 -- Should be 18
 
 g2ElementCost :: CostRose
-g2ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div` 8
+g2ElementCost = singletonRose . unsafeToSatInt . fromIntegral $ BLS12_381.G2.memSizeBytes `div` 8
 {-# OPAQUE g2ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G2.Element where
@@ -484,7 +480,7 @@ instance ExMemoryUsage BLS12_381.G2.Element where
 -- Should be 36
 
 mlResultElementCost :: CostRose
-mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
+mlResultElementCost = singletonRose . unsafeToSatInt . fromIntegral $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
 {-# OPAQUE mlResultElementCost #-}
 
 instance ExMemoryUsage BLS12_381.Pairing.MlResult where

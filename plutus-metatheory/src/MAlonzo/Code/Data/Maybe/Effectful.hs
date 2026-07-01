@@ -1,30 +1,30 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Data.Maybe.Effectful where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Maybe.Base qualified
-import MAlonzo.Code.Effect.Applicative qualified
-import MAlonzo.Code.Effect.Choice qualified
-import MAlonzo.Code.Effect.Empty qualified
-import MAlonzo.Code.Effect.Functor qualified
-import MAlonzo.Code.Effect.Monad qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Maybe.Base
+import qualified MAlonzo.Code.Effect.Applicative
+import qualified MAlonzo.Code.Effect.Choice
+import qualified MAlonzo.Code.Effect.Empty
+import qualified MAlonzo.Code.Effect.Functor
+import qualified MAlonzo.Code.Effect.Monad
 
 -- Data.Maybe.Effectful.functor
 d_functor_22 ::
@@ -34,7 +34,7 @@ d_functor_22 ~v0 = du_functor_22
 du_functor_22 :: MAlonzo.Code.Effect.Functor.T_RawFunctor_24
 du_functor_22
   = coe
-      MAlonzo.Code.Effect.Functor.C_RawFunctor'46'constructor_241
+      MAlonzo.Code.Effect.Functor.C_constructor_44
       (coe (\ v0 v1 v2 -> coe MAlonzo.Code.Data.Maybe.Base.du_map_64 v2))
 -- Data.Maybe.Effectful.applicative
 d_applicative_24 ::
@@ -45,7 +45,7 @@ du_applicative_24 ::
   MAlonzo.Code.Effect.Applicative.T_RawApplicative_20
 du_applicative_24
   = coe
-      MAlonzo.Code.Effect.Applicative.C_RawApplicative'46'constructor_453
+      MAlonzo.Code.Effect.Applicative.C_constructor_78
       (coe du_functor_22)
       (coe (\ v0 -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16))
       (coe
@@ -63,7 +63,7 @@ d_empty_26 ~v0 = du_empty_26
 du_empty_26 :: MAlonzo.Code.Effect.Empty.T_RawEmpty_16
 du_empty_26
   = coe
-      MAlonzo.Code.Effect.Empty.C_RawEmpty'46'constructor_129
+      MAlonzo.Code.Effect.Empty.C_constructor_26
       (coe (\ v0 -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))
 -- Data.Maybe.Effectful.choice
 d_choice_28 ::
@@ -73,30 +73,30 @@ d_choice_28 ~v0 = du_choice_28
 du_choice_28 :: MAlonzo.Code.Effect.Choice.T_RawChoice_16
 du_choice_28
   = coe
-      MAlonzo.Code.Effect.Choice.C_RawChoice'46'constructor_149
+      MAlonzo.Code.Effect.Choice.C_constructor_26
       (\ v0 v1 v2 ->
          coe MAlonzo.Code.Data.Maybe.Base.du__'60''8739''62'__80 v1 v2)
 -- Data.Maybe.Effectful.applicativeZero
 d_applicativeZero_30 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Effect.Applicative.T_RawApplicativeZero_120
+  MAlonzo.Code.Effect.Applicative.T_RawApplicativeZero_122
 d_applicativeZero_30 ~v0 = du_applicativeZero_30
 du_applicativeZero_30 ::
-  MAlonzo.Code.Effect.Applicative.T_RawApplicativeZero_120
+  MAlonzo.Code.Effect.Applicative.T_RawApplicativeZero_122
 du_applicativeZero_30
   = coe
-      MAlonzo.Code.Effect.Applicative.C_RawApplicativeZero'46'constructor_8049
+      MAlonzo.Code.Effect.Applicative.C_constructor_176
       (coe du_applicative_24) (coe du_empty_26)
 -- Data.Maybe.Effectful.alternative
 d_alternative_32 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Effect.Applicative.T_RawAlternative_180
+  MAlonzo.Code.Effect.Applicative.T_RawAlternative_184
 d_alternative_32 ~v0 = du_alternative_32
 du_alternative_32 ::
-  MAlonzo.Code.Effect.Applicative.T_RawAlternative_180
+  MAlonzo.Code.Effect.Applicative.T_RawAlternative_184
 du_alternative_32
   = coe
-      MAlonzo.Code.Effect.Applicative.C_RawAlternative'46'constructor_9897
+      MAlonzo.Code.Effect.Applicative.C_constructor_246
       (coe du_applicativeZero_30) (coe du_choice_28)
 -- Data.Maybe.Effectful.monad
 d_monad_34 ::
@@ -106,8 +106,7 @@ d_monad_34 ~v0 = du_monad_34
 du_monad_34 :: MAlonzo.Code.Effect.Monad.T_RawMonad_24
 du_monad_34
   = coe
-      MAlonzo.Code.Effect.Monad.C_RawMonad'46'constructor_319
-      (coe du_applicative_24)
+      MAlonzo.Code.Effect.Monad.C_constructor_98 (coe du_applicative_24)
       (coe
          (\ v0 v1 v2 v3 ->
             coe MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72 v2 v3))
@@ -118,27 +117,27 @@ d_join_36 ::
 d_join_36 ~v0 ~v1 = du_join_36
 du_join_36 :: Maybe (Maybe AgdaAny) -> Maybe AgdaAny
 du_join_36
-  = coe MAlonzo.Code.Effect.Monad.du_join_158 (coe du_monad_34)
+  = coe MAlonzo.Code.Effect.Monad.du_join_160 (coe du_monad_34)
 -- Data.Maybe.Effectful.monadZero
 d_monadZero_38 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Effect.Monad.T_RawMonadZero_206
+  MAlonzo.Code.Effect.Monad.T_RawMonadZero_208
 d_monadZero_38 ~v0 = du_monadZero_38
-du_monadZero_38 :: MAlonzo.Code.Effect.Monad.T_RawMonadZero_206
+du_monadZero_38 :: MAlonzo.Code.Effect.Monad.T_RawMonadZero_208
 du_monadZero_38
   = coe
-      MAlonzo.Code.Effect.Monad.C_RawMonadZero'46'constructor_7131
-      (coe du_monad_34) (coe du_empty_26)
+      MAlonzo.Code.Effect.Monad.C_constructor_280 (coe du_monad_34)
+      (coe du_empty_26)
 -- Data.Maybe.Effectful.monadPlus
 d_monadPlus_40 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
-  MAlonzo.Code.Effect.Monad.T_RawMonadPlus_284
+  MAlonzo.Code.Effect.Monad.T_RawMonadPlus_288
 d_monadPlus_40 ~v0 = du_monadPlus_40
-du_monadPlus_40 :: MAlonzo.Code.Effect.Monad.T_RawMonadPlus_284
+du_monadPlus_40 :: MAlonzo.Code.Effect.Monad.T_RawMonadPlus_288
 du_monadPlus_40
   = coe
-      MAlonzo.Code.Effect.Monad.C_RawMonadPlus'46'constructor_9035
-      (coe du_monadZero_38) (coe du_choice_28)
+      MAlonzo.Code.Effect.Monad.C_constructor_370 (coe du_monadZero_38)
+      (coe du_choice_28)
 -- Data.Maybe.Effectful.TraversableA.sequenceA
 d_sequenceA_88 ::
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->

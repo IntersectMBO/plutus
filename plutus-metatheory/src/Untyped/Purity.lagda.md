@@ -15,7 +15,7 @@ open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; 
 open import Relation.Nullary using (Dec; yes; no; ¬_; _×-dec_)
 open import Builtin using (Builtin; arity; arity₀)
 open import RawU using (TmCon)
-open import Data.Product using (_,_; _×_)
+open import Data.Product using (_,_; _×_ ; ∃)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc; _>_; _>?_)
 open import Data.List using (List; _∷_; [])
@@ -29,7 +29,7 @@ open import Data.Empty using (⊥)
 open import Function.Base using (case_of_)
 open import Untyped.CEK using (lookup?)
 open import VerifiedCompilation.UntypedViews using (isDelay?; isTerm?; isLambda?; isdelay; isterm; islambda)
-open import Untyped.Reduction using (iterApp; Arity; want; no-builtin; sat)
+open import Untyped.Reduction using (iterApp; Arity; want; no-builtin; sat; _⟶*_; value)
 ```
 ## Saturation
 
@@ -141,4 +141,55 @@ isPure? (constr i xs) with allPure? xs
 isPure? (case scrut ts) =  no λ ()
 isPure? (builtin b) = yes builtin
 isPure? error = no λ ()
+```
+
+## Semantics of purity
+
+Note: this is currently based on the reduction semantics in `Untyped.Reduction`,
+which may change in the future (e.g. in favour of directly working against CEK
+semantics, or an updated `Untyped.Reduction`). We reuse `Env` from the CEK
+module but otherwise not CEK semantics is used at the moment.
+
+```
+open import Untyped.RenamingSubstitution using (Sub; sub)
+open import Untyped.Reduction using (_⟶*_; refl; Value; value; V-v)
+open import Untyped.CEK using (env2sub)
+```
+
+A closed term is semantically pure when it eventually reduces to a value.
+
+```
+pure₀ : 0 ⊢ → Set
+pure₀ M = ∃ λ N → (M ⟶* N) × value N
+```
+
+An open term is semantically pure when closing it with a value substitution
+results in a closed pure term:
+
+```
+pure : ∀{X} → X ⊢ → Set
+pure M = ∃ λ ρ → pure₀ (sub (env2sub ρ) M)
+```
+
+TODO, substituting the empty environment is the identity:
+
+```
+postulate
+  pure₀-pure : ∀ {M} → pure₀ M → pure M
+```
+
+Every value is trivially pure:
+
+```
+value-pure : ∀ {M : 0 ⊢} → Value M → pure M
+value-pure v = pure₀-pure (_ , refl , (V-v v))
+```
+
+## Soundness of `Pure`
+
+TODO:
+
+```
+postulate
+  Pure-pure : ∀ {X} {M : X ⊢} → Pure M → pure M
 ```
