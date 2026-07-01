@@ -61,7 +61,7 @@ flag with-cert
 
 -- The with-crypto flag (enabled by default) selects Plutus Core's cryptography
 -- backend, and is the single control for building without the system C crypto
--- libraries. It is the only place this design is documented.
+-- libraries.
 --
 -- Enabled: the hash, signature-verification and BLS12-381 builtins are backed by
 -- cardano-crypto-class, which binds the system libraries libsodium, libblst and
