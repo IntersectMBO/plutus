@@ -8,15 +8,17 @@ module Generators.Spec where
 import PlutusPrelude (display, fold, getAnn, void, (&&&))
 
 import Control.Lens (view)
+import Data.Foldable qualified as F
+import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as T
-import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
+import Hedgehog (Gen, annotate, annotateShow, failure, forAll, property, tripping, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (Name)
+import PlutusCore (Name (..), Unique (..))
 import PlutusCore.Annotation (SrcSpan (..))
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
+import PlutusCore.Error (ParserError (..), ParserErrorBundle (ParseErrorB))
 import PlutusCore.Flat (flat, unflat)
 import PlutusCore.Generators.Hedgehog (forAllPretty)
 import PlutusCore.Generators.Hedgehog.AST (runAstGen)
@@ -28,7 +30,7 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
 import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
-import Text.Megaparsec (errorBundlePretty)
+import Text.Megaparsec (ErrorFancy (..), ParseError (..), bundleErrors, errorBundlePretty)
 
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
@@ -60,6 +62,9 @@ test_parsing =
         , propMissingConOperands
         , propInvalidKeyword
         , propBracketMismatch
+        , propValidUniqueSuffix
+        , propInvalidUniqueSuffix
+        , propInvalidUniqueSuffixScalusRegression
         ]
     ]
 
@@ -240,6 +245,119 @@ propBracketMismatch =
     "Bracket type mismatch error"
     "bracket-mismatch"
     "(program 1.1.0 [(var x))"
+
+propInvalidUniqueSuffixScalusRegression :: TestTree
+propInvalidUniqueSuffixScalusRegression =
+  testParseErrorGolden
+    "MalformedUniqueSuffix: Scalus pubKeyHash-305478r71 regression (#7742)"
+    "malformed-unique-suffix-scalus"
+    "(program 1.1.0 (lam pubKeyHash-305478r71 (lam x x)))"
+
+{-| A '<base>-<digits>' unquoted name parses to a 'Name' carrying the base
+text and a 'Unique' equal to the digits. -}
+propValidUniqueSuffix :: TestTree
+propValidUniqueSuffix =
+  testPropertyNamed
+    "Valid unique suffix: <base>-<digits> parses to Name <base> (Unique <digits>)"
+    "valid-unique-suffix"
+    $ property
+    $ do
+      base <- forAll genBaseName
+      n <- forAll (Gen.integral (Range.linear 0 9999999))
+      let nText = T.pack (show (n :: Int))
+          input = "(lam " <> base <> "-" <> nText <> " (con bool True))"
+      case runQuoteT (parseTerm input) of
+        Right (UPLC.LamAbs _ binder _) -> do
+          _nameText binder === base
+          _nameUnique binder === Unique n
+        Right other -> do
+          annotate ("Expected LamAbs, got: " <> show other)
+          failure
+        Left bundle -> do
+          annotateShow bundle
+          failure
+
+{-| A '<base>-<bad>' unquoted name (where '<bad>' is empty, contains a
+non-digit, or contains another '-') raises 'MalformedUniqueSuffix' carrying
+'<base>' and '<bad>' verbatim. -}
+propInvalidUniqueSuffix :: TestTree
+propInvalidUniqueSuffix =
+  testPropertyNamed
+    "Invalid unique suffix: <base>-<bad> raises MalformedUniqueSuffix <base> <bad>"
+    "invalid-unique-suffix"
+    $ property
+    $ do
+      base <- forAll genBaseName
+      bad <- forAll genBadSuffix
+      let input = "(lam " <> base <> "-" <> bad <> " (con bool True))"
+      case runQuoteT (parseTerm input) of
+        Right ok -> do
+          annotate ("Expected MalformedUniqueSuffix, got success: " <> show ok)
+          failure
+        Left bundle ->
+          case extractMalformedUniqueSuffix bundle of
+            Just (b, s) -> do
+              b === base
+              s === bad
+            Nothing -> do
+              annotateShow bundle
+              failure
+  where
+    extractMalformedUniqueSuffix :: ParserErrorBundle -> Maybe (Text, Text)
+    extractMalformedUniqueSuffix (ParseErrorB bundle) =
+      case [ (b, s)
+           | err <- F.toList (bundleErrors bundle)
+           , (b, s) <- fanciesOf err
+           ] of
+        (x : _) -> Just x
+        [] -> Nothing
+    fanciesOf (FancyError _ es) =
+      [(b, s) | ErrorCustom (MalformedUniqueSuffix b s _) <- Set.toList es]
+    fanciesOf _ = []
+
+-- Generators for unquoted-name property tests.
+
+genIdStartChar :: Gen Char
+genIdStartChar =
+  Gen.choice [Gen.element ['a' .. 'z'], Gen.element ['A' .. 'Z'], pure '_']
+
+genIdRestChar :: Gen Char
+genIdRestChar =
+  Gen.choice [genIdStartChar, Gen.element ['0' .. '9'], pure '\'']
+
+genBaseName :: Gen Text
+genBaseName = do
+  hd <- genIdStartChar
+  tl <- Gen.list (Range.linear 0 8) genIdRestChar
+  pure (T.pack (hd : tl))
+
+{-| Generate a guaranteed-malformed suffix by either returning the empty string,
+or starting from a valid digit-string base (possibly empty) and inserting one
+or more invalidating characters at random positions. The invalidating set is
+'isNameExtensionChar' minus digits, so any single insertion turns the result
+into a non-digit-only string. -}
+genBadSuffix :: Gen Text
+genBadSuffix =
+  Gen.choice
+    [ pure T.empty
+    , do
+        base <- T.pack <$> Gen.list (Range.linear 0 8) (Gen.element ['0' .. '9'])
+        n <- Gen.integral (Range.linear 1 3 :: Range.Range Int)
+        applyMutations n base
+    ]
+  where
+    applyMutations :: Int -> Text -> Gen Text
+    applyMutations 0 t = pure t
+    applyMutations k t = insertInvalidatingChar t >>= applyMutations (k - 1)
+
+    insertInvalidatingChar :: Text -> Gen Text
+    insertInvalidatingChar t = do
+      pos <- Gen.integral (Range.linear 0 (T.length t))
+      c <- Gen.element invalidatingChars
+      pure (T.take pos t <> T.singleton c <> T.drop pos t)
+
+    invalidatingChars :: String
+    invalidatingChars = ['a' .. 'z'] <> ['A' .. 'Z'] <> "_'-"
 
 --------------------------------------------------------------------------------
 -- Helper Functions ------------------------------------------------------------
