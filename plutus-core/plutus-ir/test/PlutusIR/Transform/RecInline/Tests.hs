@@ -36,6 +36,6 @@ test_recInline =
 
 prop_recInline :: Property
 prop_recInline =
-  withMaxSuccess numTestsForPassProp $
+  withNumTests numTestsForPassProp $
     testPassProp runQuote $
       \tc -> recInlinePassSC def True tc

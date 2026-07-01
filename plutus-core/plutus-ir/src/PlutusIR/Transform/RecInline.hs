@@ -26,15 +26,16 @@ import Data.Map qualified as Map
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Set qualified as Set
 import PlutusCore qualified as PLC
+import PlutusCore.Analysis.Usages qualified as Usages
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name.Unique qualified as Unique
 import PlutusCore.Quote (MonadQuote)
 import PlutusIR
 import PlutusIR.Analysis.Builtins (BuiltinsInfo)
-import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Analysis.VarInfo (termVarInfo)
 import PlutusIR.Pass
 import PlutusIR.Purity (isPure)
+import PlutusIR.Subst (termUsages)
 import PlutusIR.Transform.Inline.Utils (costIsAcceptable, sizeIsAcceptable)
 import PlutusIR.Transform.Rename ()
 import PlutusIR.TypeCheck qualified as TC
@@ -151,10 +152,10 @@ mkRecGroup binfo ann bs body = do
       bindingMap = Map.fromList [(key b, b) | b <- eligible]
       -- Bindings used by the let body or by passthrough bindings are roots —
       -- inlining them away would break references from outside the group.
-      bodyUsed = Usages.allUsed (Usages.termUsages body)
+      bodyUsed = Usages.allUsed (termUsages body)
       passthroughUsed =
         Set.unions
-          [ Usages.allUsed (Usages.termUsages rhs)
+          [ Usages.allUsed (termUsages rhs)
           | TermBind _ _ _ rhs <- passthrough
           ]
       roots =
@@ -174,7 +175,7 @@ mkRecGroup binfo ann bs body = do
                 , rbStrictness = strictness
                 , rbDecl = decl
                 , rbRhs = rhs
-                , rbUsages = Usages.termUsages rhs
+                , rbUsages = termUsages rhs
                 }
       _ -> Nothing
 
@@ -268,7 +269,7 @@ tryInline group (InlineCandidate helperKey needsRename) =
       let updated =
             binding
               { rbRhs = rhs'
-              , rbUsages = Usages.termUsages rhs'
+              , rbUsages = termUsages rhs'
               }
       pure (key, updated)
 

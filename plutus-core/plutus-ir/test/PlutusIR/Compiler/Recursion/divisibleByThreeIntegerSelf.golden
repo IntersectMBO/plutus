@@ -1,31 +1,33 @@
 program
   1.1.0
-  ((\s -> s s)
-     (\s n ->
-        case
-          (constr 0
-             [ (equalsInteger 0 n)
-             , (\u -> True)
-             , (\u ->
-                  (\n1 ->
-                     case
-                       (constr 0
-                          [ (equalsInteger 0 n1)
-                          , (\u -> False)
-                          , (\u ->
-                               (\n2 ->
-                                  case
-                                    (constr 0
-                                       [ (equalsInteger 0 n2)
-                                       , (\u -> False)
-                                       , (\u ->
-                                            (\x -> s s x)
-                                              (subtractInteger n2 1))
-                                       , () ])
-                                    [(force ifThenElse)])
-                                 (subtractInteger n1 1))
-                          , () ])
-                       [(force ifThenElse)])
-                    (subtractInteger n 1))
-             , () ])
-          [(force ifThenElse)]))
+  ((\forced ->
+      (\s -> s s)
+        (\s n ->
+           case
+             (constr 0
+                [ (equalsInteger 0 n)
+                , (\u -> True)
+                , (\u ->
+                     (\n1 ->
+                        case
+                          (constr 0
+                             [ (equalsInteger 0 n1)
+                             , (\u -> False)
+                             , (\u ->
+                                  (\n2 ->
+                                     case
+                                       (constr 0
+                                          [ (equalsInteger 0 n2)
+                                          , (\u -> False)
+                                          , (\u ->
+                                               (\x -> s s x)
+                                                 (subtractInteger n2 1))
+                                          , () ])
+                                       [forced])
+                                    (subtractInteger n1 1))
+                             , () ])
+                          [forced])
+                       (subtractInteger n 1))
+                , () ])
+             [forced]))
+     (force ifThenElse))
