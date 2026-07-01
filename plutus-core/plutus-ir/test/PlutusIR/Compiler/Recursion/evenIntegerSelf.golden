@@ -1,0 +1,22 @@
+program
+  1.1.0
+  ((\forced ->
+      (\s -> s s)
+        (\s n ->
+           case
+             (constr 0
+                [ (equalsInteger 0 n)
+                , (\u -> True)
+                , (\u ->
+                     (\n1 ->
+                        case
+                          (constr 0
+                             [ (equalsInteger 0 n1)
+                             , (\u -> False)
+                             , (\u -> (\x -> s s x) (subtractInteger n1 1))
+                             , () ])
+                          [forced])
+                       (subtractInteger n 1))
+                , () ])
+             [forced]))
+     (force ifThenElse))
