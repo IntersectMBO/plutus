@@ -72,11 +72,11 @@ instance AgdaUnparse CertifiedOptStage where
   agdaUnparse ApplyToCase = "applyToCaseT"
   agdaUnparse CaseReduce = "caseReduceT"
   agdaUnparse LetFloatOut = "letFloatOutT"
+  agdaUnparse PolyBuiltin = "polyBuiltinT"
 
 instance AgdaUnparse UncertifiedOptStage where
   agdaUnparse CaseOfCase = "caseOfCaseT"
   agdaUnparse ConstantFolding = "constantFoldingT"
-  agdaUnparse PolyBuiltin = "polyBuiltinT"
 
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case
