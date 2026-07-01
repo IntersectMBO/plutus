@@ -28,7 +28,7 @@ open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; LetFloa
 ```
 data FloatApply (@++ R : Relation) : Relation where
   float-apply :
-    ∀ {X} {M N K : X ⊢} {L N' : suc X ⊢}
+    ∀ {n} {M N K : n ⊢} {L N' : suc n ⊢}
     → R M (let' K L)
     → R (weaken N) N'
     ----------------------------------------
@@ -36,7 +36,7 @@ data FloatApply (@++ R : Relation) : Relation where
 
 data FloatCase (@++ R : Relation) : Relation where
   float-case :
-    ∀ {X} {M N : X ⊢} {L : suc X ⊢} {Ms Ms'}
+    ∀ {n} {M N : n ⊢} {L : suc n ⊢} {Ms Ms'}
     → R M (let' N L)
     → Pointwise R (map weaken Ms) Ms'
     -----------------------------------------------
@@ -44,7 +44,7 @@ data FloatCase (@++ R : Relation) : Relation where
 
 data FloatForce (@++ R : Relation) : Relation where
   float-force :
-    ∀ {X} {M N : X ⊢} {L : suc X ⊢}
+    ∀ {n} {M N : n ⊢} {L : suc n ⊢}
     → R M (let' N L)
     -------------------------------------------
     → FloatForce R (force M) (let' N (force L))
@@ -106,7 +106,7 @@ dec = Fix-dec (compatTerm? ⊕-dec apply-dec ⊕-dec case-dec ⊕-dec force-dec 
 
 Wrapper for `ProofOrCE`:
 ```
-decide : ∀ {X} (M M' : X ⊢) → ProofOrCE (FloatOut M M')
+decide : ∀ {n} (M M' : n ⊢) → ProofOrCE (FloatOut M M')
 decide M M' = case dec M M' of λ where
   (yes P) → proof P
   (no ¬P) → ce ¬P LetFloatOutT M M'
@@ -117,9 +117,9 @@ decide M M' = case dec M M' of λ where
 ## Counting optimization sites
 
 ```
-numSites : ∀ {X} {M N : X ⊢} → FloatOut M N → ℕ
-numSites* : ∀ {X} {Ms Ns : List (X ⊢)} → Pointwise FloatOut Ms Ns → ℕ
-numSites-compat : ∀ {X} {M N : X ⊢} → CompatTerm FloatOut M N → ℕ
+numSites : ∀ {n} {M N : n ⊢} → FloatOut M N → ℕ
+numSites* : ∀ {n} {Ms Ns : List (n ⊢)} → Pointwise FloatOut Ms Ns → ℕ
+numSites-compat : ∀ {n} {M N : n ⊢} → CompatTerm FloatOut M N → ℕ
 
 numSites (fix (inj₀ P)) = numSites-compat P
 numSites (fix (inj₁ (float-apply RM RN))) = 1 + numSites RM + numSites RN
@@ -150,10 +150,10 @@ private module Examples where
   open import Data.List using ([])
   open import Data.Fin
 
-  c : ∀ {X} → X ⊢
+  c : ∀ {n} → n ⊢
   c = constr 0 []
 
-  id : ∀ {X} → X ⊢
+  id : ∀ {n} → n ⊢
   id = ƛ (` zero)
 ```
 

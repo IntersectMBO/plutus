@@ -47,22 +47,22 @@ Ultimately they should be equivalent.
 
 ```
 
-data pureFD {X : ℕ} : X ⊢ → X ⊢ → Set where
-  forcedelay : {x x' : X ⊢} → pureFD x x' → pureFD (force (delay x)) x'
-  pushfd : {x x' : suc X ⊢} → {y y' : X ⊢}
+data pureFD {n : ℕ} : n ⊢ → n ⊢ → Set where
+  forcedelay : {x x' : n ⊢} → pureFD x x' → pureFD (force (delay x)) x'
+  pushfd : {x x' : suc n ⊢} → {y y' : n ⊢}
          → pureFD x x'
          → pureFD y y'
          → pureFD (force ((ƛ x) · y)) ((ƛ (force x')) · y')
-  _⨾_ : {x x'' x' : X ⊢}
+  _⨾_ : {x x'' x' : n ⊢}
          → pureFD x x''
          → pureFD x'' x'
          → pureFD x x'
-  translationfd : {x x' : X ⊢}
+  translationfd : {x x' : n ⊢}
          → Translation pureFD x x'
          → pureFD x x'
 
-  appfd : {x : suc X ⊢} → {y z : X ⊢} → pureFD (((ƛ x) · y) · z) (ƛ (x · (weaken z)) · y)
-  appfd⁻¹ : {x : suc X ⊢} → {y z : X ⊢} → pureFD (ƛ (x · (weaken z)) · y) (((ƛ x) · y) · z)
+  appfd : {x : suc n ⊢} → {y z : n ⊢} → pureFD (((ƛ x) · y) · z) (ƛ (x · (weaken z)) · y)
+  appfd⁻¹ : {x : suc n ⊢} → {y z : n ⊢} → pureFD (ƛ (x · (weaken z)) · y) (((ƛ x) · y) · z)
 
 _ : pureFD {1} (force (delay (` zero))) (` zero)
 _ = forcedelay (translationfd (Translation.match TransMatch.var))
@@ -78,26 +78,26 @@ _ = translationfd (Translation.match (TransMatch.force (Translation.istranslatio
 _ : pureFD {1} (force (force (ƛ (ƛ (delay (delay (` zero))) · (` zero)) · (` zero)))) (ƛ (ƛ (` zero) · (` zero)) · (` zero))
 _ = (translationfd (Translation.match (TransMatch.force (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))))) ⨾ ((translationfd (Translation.match (TransMatch.force (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) reflexive))))) ⨾ ( pushfd (translationfd reflexive) (translationfd reflexive) ⨾ ((translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) reflexive))) ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ((translationfd (Translation.match (TransMatch.force (Translation.istranslation (forcedelay (translationfd (Translation.match (TransMatch.delay (Translation.match TransMatch.var))))))))) ⨾ (forcedelay (translationfd (Translation.match TransMatch.var))))))) reflexive)))) reflexive))))))
 
-test4 : {X : ℕ} {N : suc (suc X) ⊢} {M M' : X ⊢} → pureFD (force (((ƛ (ƛ (delay N))) · M) · M')) (((ƛ (ƛ N)) · M) · M')
+test4 : {n : ℕ} {N : suc (suc n) ⊢} {M M' : n ⊢} → pureFD (force (((ƛ (ƛ (delay N))) · M) · M')) (((ƛ (ƛ N)) · M) · M')
 test4 = (translationfd (Translation.match (TransMatch.force (Translation.istranslation appfd)))) ⨾ ((pushfd (translationfd reflexive) (translationfd reflexive)) ⨾ ((translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) reflexive ))) ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (forcedelay (translationfd reflexive))))) reflexive)))) reflexive)) ⨾ appfd⁻¹)))
 
 variable
-  X : ℕ
+  n : ℕ
 
-data Zipper (X : ℕ) : Set where
-  □ : Zipper X
-  force : Zipper X → Zipper X
-  _·_ : Zipper X → (X ⊢) → Zipper X
+data Zipper (n : ℕ) : Set where
+  □ : Zipper n
+  force : Zipper n → Zipper n
+  _·_ : Zipper n → (n ⊢) → Zipper n
 
-zipwk : Zipper X → Zipper (suc X)
+zipwk : Zipper n → Zipper (suc n)
 zipwk □ = □
 zipwk (force z) = force (zipwk z)
 zipwk (z · x) = zipwk z · (weaken x)
 
 variable
-  z : Zipper X
-  x x' y y' b b' : X ⊢
-  -- TODO: why were all of these of type X before? (FD expects them to be terms)
+  z : Zipper n
+  x x' y y' b b' : n ⊢
+  -- TODO: why were all of these of type n before? (FD expects them to be terms)
 
 ```
 # FD Relation
@@ -110,7 +110,7 @@ without keeping track. Consequently, it only allows you to recurse to
 environment.
 ```
 
-data FD {X : ℕ} : Zipper X → X ⊢ → X ⊢ → Set where
+data FD {n : ℕ} : Zipper n → n ⊢ → n ⊢ → Set where
   force : FD (force z) x x' → FD z (force x) x'
   delay : FD z x x' → FD (force z) (delay x) x'
   app : FD (z · y') x x' → Translation (FD □) y y' → FD z (x · y) (x' · y')
@@ -125,7 +125,7 @@ data FD {X : ℕ} : Zipper X → X ⊢ → X ⊢ → Set where
     → FD (force z) y y'
     → FD (force z) ((((force (builtin ifThenElse)) · b) · x) · y) ((((force (builtin ifThenElse)) · b') · x') · y')
 
-ForceDelay : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
+ForceDelay : {n : ℕ} → (ast : n ⊢) → (ast' : n ⊢) → Set
 ForceDelay = Translation (FD □)
 
 ```
@@ -201,13 +201,13 @@ the forces and applications back on to the current term and have a valid
 ## Decision Procedure
 
 ```
-isForceDelay? : {X : ℕ} → DecidableCE (Translation (FD □) {X})
+isForceDelay? : {n : ℕ} → DecidableCE (Translation (FD □) {n})
 
 {-# TERMINATING #-}
-isFD? : {X : ℕ} → (z : Zipper X) → DecidableCE (FD {X} z)
+isFD? : {n : ℕ} → (z : Zipper n) → DecidableCE (FD {n} z)
 
 -- Helper function for the recursion search
-ForceFDNeverITE : {X : ℕ} {z : Zipper X} {b b' x x' y' : X ⊢} → ¬ FD (force z · y') ((force (builtin ifThenElse) · b) · x) ((force (builtin ifThenElse) · b') · x')
+ForceFDNeverITE : {n : ℕ} {z : Zipper n} {b b' x x' y' : n ⊢} → ¬ FD (force z · y') ((force (builtin ifThenElse) · b) · x) ((force (builtin ifThenElse) · b') · x')
 ForceFDNeverITE (app (app (force ()) x₁) x)
 
 isFD? □ ast ast' with isForce? isTerm? ast
