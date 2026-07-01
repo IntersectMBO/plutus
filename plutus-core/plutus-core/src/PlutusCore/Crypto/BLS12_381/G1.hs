@@ -70,10 +70,6 @@ See also Note [Wrapping the BLS12-381 types in PlutusTx].
 newtype Element = Element {unElement :: BlstBindings.Point1}
   deriving newtype (Eq)
 #else
-{- See Note [The with-crypto flag] in PlutusCore.Crypto.Utils. Without the C
-cryptography libraries a G1 element is represented by its compressed-point bytes;
-this is enough to carry the type through the universe and to compile scripts, but
-the group operations below are unavailable. -}
 newtype Element = Element {unElement :: ByteString}
   deriving newtype (Eq)
 #endif
@@ -220,11 +216,6 @@ multiScalarMul ss p
 
 #else
 
--- C-free stubs. See Note [The with-crypto flag] in PlutusCore.Crypto.Utils.
--- The group operations require the blst C library and are therefore unavailable;
--- 'compress'/'uncompress' remain total so the type can still be carried through
--- the universe, parsed, and compiled.
-
 add :: Element -> Element -> Element
 add = cryptoDisabled "bls12_381_G1_add"
 
@@ -237,24 +228,15 @@ scalarMul = cryptoDisabled "bls12_381_G1_scalarMul"
 scalarMulE :: Integer -> Element -> BuiltinResult Element
 scalarMulE = cryptoDisabled "bls12_381_G1_scalarMul"
 
--- | Just exposes the stored bytes: the only G1 operation that stays total in a
--- C-free build, so that 'Show'/'Hashable' keep working.
 compress :: Element -> ByteString
 compress = unElement
 
--- | Cannot validate the point without the C library, so it just stores the
--- bytes. This lets the textual parser accept G1 literals when compiling scripts;
--- the bytes are never interpreted as a curve point in a C-free build.
 uncompress :: ByteString -> Either BLS12_381_Error Element
 uncompress = Right . Element
 
 hashToGroup :: ByteString -> ByteString -> Either BLS12_381_Error Element
 hashToGroup = cryptoDisabled "bls12_381_G1_hashToGroup"
 
--- The compressed zero/generator are fixed constants that PlutusTx lifts at
--- COMPILE time, so they must be real values (not stubs) even in a C-free build.
--- These literals are golden-checked (in a with-crypto build) to equal
--- @compress blsZero@ / @compress blsGenerator@.
 offchain_zero :: Element
 offchain_zero = Element compressed_zero
 
@@ -266,18 +248,15 @@ compressed_generator :: ByteString
 compressed_generator =
   unhex "97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb"
 
--- | Decode a hex string to a 'ByteString'. C-free helper for the constants above.
 unhex :: String -> ByteString
 unhex = pack . go
   where
     go (a : b : rest) = fromIntegral (digitToInt a * 16 + digitToInt b) : go rest
     go _ = []
 
--- | Memory usage of a G1 point (144 bytes)
 memSizeBytes :: Int
 memSizeBytes = 144
 
--- | Compressed size of a G1 point (48 bytes)
 compressedSizeBytes :: Int
 compressedSizeBytes = 48
 

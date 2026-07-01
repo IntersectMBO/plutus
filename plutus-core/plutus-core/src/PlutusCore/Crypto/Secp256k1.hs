@@ -64,7 +64,6 @@ verifyEcdsaSecp256k1Signature pk msg sig =
     loc :: Text
     loc = "ECDSA SECP256k1 signature verification"
 #else
--- See Note [The with-crypto flag] in PlutusCore.Crypto.Utils.
 verifyEcdsaSecp256k1Signature _pk _msg _sig = cryptoDisabled "verifyEcdsaSecp256k1Signature"
 #endif
 
@@ -106,6 +105,5 @@ verifySchnorrSecp256k1Signature pk msg sig =
     loc :: Text
     loc = "Schnorr SECP256k1 signature verification"
 #else
--- See Note [The with-crypto flag] in PlutusCore.Crypto.Utils.
 verifySchnorrSecp256k1Signature _pk _msg _sig = cryptoDisabled "verifySchnorrSecp256k1Signature"
 #endif
