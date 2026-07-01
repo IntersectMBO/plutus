@@ -176,8 +176,7 @@ def cmd_build(args: argparse.Namespace) -> int:
     print("--- cabal update ---")
     update = subprocess.run(["cabal", "update"])
     if update.returncode != 0:
-        print(f"WARNING: cabal update exited with code {update.returncode}", file=sys.stderr)
-        print("Continuing to attempt the build anyway...", file=sys.stderr)
+        die(f"cabal update failed (exit code {update.returncode})")
     print()
 
     print(f"--- cabal build {' '.join(targets)} ---")
@@ -187,8 +186,7 @@ def cmd_build(args: argparse.Namespace) -> int:
     )
 
     if result.returncode != 0:
-        print(f"WARNING: cabal build exited with code {result.returncode}", file=sys.stderr)
-        print("Continuing to check any certificates that were produced...", file=sys.stderr)
+        die(f"cabal build failed (exit code {result.returncode})")
     print()
     return result.returncode
 
@@ -441,8 +439,8 @@ def cmd_run(args: argparse.Namespace) -> int:
         clean=args.clean,
         targets=args.targets,
     )
-    build_rc = cmd_build(build_ns)
-    # Continue even if build had warnings
+    # cmd_build aborts the script (via die) if cabal update or cabal build fails
+    cmd_build(build_ns)
 
     # Check phase
     check_ns = argparse.Namespace(
