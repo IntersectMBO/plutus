@@ -50,7 +50,7 @@ data Stack (A : Set) : Set where
 data Value : Set
 data Env : ℕ → Set where
   [] : Env 0
-  _∷_ : ∀{X} → Env X → Value → Env (suc X)
+  _∷_ : ∀{n} → Env n → Value → Env (suc n)
 
 data BApp (b : Builtin) :
     ∀{tn tm tt} → (pt : tn ∔ tm ≣ tt)
@@ -58,9 +58,9 @@ data BApp (b : Builtin) :
   → Set
 
 data Value where
-  V-ƛ : ∀{X} → Env X → suc X ⊢ → Value
+  V-ƛ : ∀{n} → Env n → suc n ⊢ → Value
   V-con : (ty : TyTag) → ⟦ ty ⟧tag → Value
-  V-delay : ∀{X} → Env X → X ⊢ → Value
+  V-delay : ∀{n} → Env n → n ⊢ → Value
   V-constr : (i : ℕ) → (vs : Stack Value) → Value
   V-I⇒ : ∀ b {tn}
        → {pt : tn ∔ 0 ≣ fv (signature b)}
@@ -125,7 +125,7 @@ data Frame : Set where
 
 
 data State : Set where
-  _;_▻_ : {X : ℕ} → Stack Frame → Env X → X ⊢ → State
+  _;_▻_ : {n : ℕ} → Stack Frame → Env n → n ⊢ → State
   _◅_   : Stack Frame → Value → State
   □ : Value → State
   ◆ : State

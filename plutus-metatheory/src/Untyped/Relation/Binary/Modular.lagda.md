@@ -59,15 +59,15 @@ RelationT = @++ Relation → Relation
 infixr 5 _⊕_
 
 data _⊕_ (F G : RelationT) (@++ R : Relation) : Relation where
-  inl : ∀ {X} {M N : X ⊢} → F R M N → (F ⊕ G) R M N
-  inr : ∀ {X} {M N : X ⊢} → G R M N → (F ⊕ G) R M N
+  inl : ∀ {n} {M N : n ⊢} → F R M N → (F ⊕ G) R M N
+  inr : ∀ {n} {M N : n ⊢} → G R M N → (F ⊕ G) R M N
 
 Empty : RelationT
 Empty R M N = ⊥
 
 data Fix (F : RelationT) : Relation where
   fix :
-    ∀ {X} {M N : X ⊢}
+    ∀ {n} {M N : n ⊢}
     → F (Fix F) M N
     → (Fix F) M N
 
@@ -79,18 +79,18 @@ Const R _ = R
 
 ```
 data Transitivity (@++ R : Relation) : Relation where
-  transF : ∀ {X} {L M N : X ⊢} →
+  transF : ∀ {n} {L M N : n ⊢} →
     R L M →
     R M N →
     Transitivity R L N
 
 data Symmetry (@++ R : Relation) : Relation where
-  symF : ∀ {X} {M N : X ⊢} →
+  symF : ∀ {n} {M N : n ⊢} →
     R M N →
     Symmetry R N M
 
 data Reflexivity (@++ R : Relation) : Relation where
-  reflF : ∀ {X} {M : X ⊢} →
+  reflF : ∀ {n} {M : n ⊢} →
     Reflexivity R M M
 ```
 
@@ -102,20 +102,20 @@ These are typical rules that are part of a translation relation.
 ```
 data CompatVar (@++ R : Relation) : Relation where
   `F_ :
-    ∀ {X} (x : Fin X)
+    ∀ {n} (x : Fin n)
     -------------------------
     → CompatVar R (` x) (` x)
 
 data CompatLambda (@++ R : Relation) : Relation where
   ƛF :
-    ∀ {X} {M M' : suc X ⊢}
+    ∀ {n} {M M' : suc n ⊢}
     → R M M'
     -----------------------------
     → CompatLambda R (ƛ M) (ƛ M')
 
 data CompatApply (@++ R : Relation) : Relation where
   _·F_ :
-    ∀ {X} {M M' N N' : X ⊢}
+    ∀ {n} {M M' N N' : n ⊢}
     → R M M'
     → R N N'
     ---------------------------------
@@ -123,34 +123,34 @@ data CompatApply (@++ R : Relation) : Relation where
 
 data CompatForce (@++ R : Relation) : Relation where
   forceF :
-    ∀ {X} {M M' : X ⊢}
+    ∀ {n} {M M' : n ⊢}
     → R M M'
     ------------------------------------
     → CompatForce R (force M) (force M')
 
 data CompatDelay (@++ R : Relation) : Relation where
   delayF :
-    ∀ {X} {M M' : X ⊢}
+    ∀ {n} {M M' : n ⊢}
     → R M M'
     ------------------------------------
     → CompatDelay R (delay M) (delay M')
 
 data CompatCon (@++ R : Relation) : Relation where
   conF :
-    ∀ {X} {c : TmCon}
+    ∀ {n} {c : TmCon}
     -------------------------------------
-    → CompatCon R (con {n = X} c) (con c)
+    → CompatCon R (con {n = n} c) (con c)
 
 data CompatConstr (@++ R : Relation) : Relation where
   constrF :
-    ∀ {X} {i : ℕ} {xs xs' : List (X ⊢)}
+    ∀ {n} {i : ℕ} {xs xs' : List (n ⊢)}
     → Pointwise R xs xs'
     ---------------------------------------------
     → CompatConstr R (constr i xs) (constr i xs')
 
 data CompatCase (@++ R : Relation) : Relation where
   caseF :
-    ∀ {X} {t t' : X ⊢} {ts ts' : List (X ⊢)}
+    ∀ {n} {t t' : n ⊢} {ts ts' : List (n ⊢)}
     → R t t'
     → Pointwise R ts ts'
     --------------------------------------
@@ -158,15 +158,15 @@ data CompatCase (@++ R : Relation) : Relation where
 
 data CompatBuiltin (@++ R : Relation) : Relation where
   builtinF :
-    ∀ {X} {b : Builtin}
+    ∀ {n} {b : Builtin}
     -------------------------------------------------
-    → CompatBuiltin R (builtin {n = X} b) (builtin b)
+    → CompatBuiltin R (builtin {n = n} b) (builtin b)
 
 data CompatError (@++ R : Relation) : Relation where
   errorF :
-    ∀ {X}
+    ∀ {n}
     -----------------------------------------------
-    → CompatError R (error {n = X}) (error {n = X})
+    → CompatError R (error {n = n}) (error {n = n})
 ```
 
 Term-compatibility can be constructed by using compatibility rules of all constructors:
@@ -382,7 +382,7 @@ We define a rule for transforming `delay`:
 ```
   data DelayLambda (@++ R : Relation) : Relation where
     delay-lambda :
-      ∀ {X} {M : X ⊢} {M' : suc X ⊢}
+      ∀ {n} {M : n ⊢} {M' : suc n ⊢}
       → R (weaken M) M'
       ----------------------------------------
       → DelayLambda R (delay M) (ƛ M')
@@ -406,7 +406,7 @@ Similarly for the `force` transformation:
 ```
   data ForceApply (@++ R : Relation) : Relation where
     force-apply :
-      ∀ {X} {M M' : X ⊢}
+      ∀ {n} {M M' : n ⊢}
       → R M M'
       ----------------------------------------
       → ForceApply R (force M) (M' · constr 0 [])

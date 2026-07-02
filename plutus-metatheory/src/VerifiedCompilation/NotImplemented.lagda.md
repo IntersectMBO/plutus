@@ -26,7 +26,7 @@ data Policy : Set where
 trivial inhabitant.
 
 ```
-data NotImplemented {X} : Policy → (X ⊢) → (X ⊢) → Set where
+data NotImplemented {n} : Policy → (n ⊢) → (n ⊢) → Set where
   notImplemented : ∀ {M N} → NotImplemented accept M N
 
 certNotImplemented : Certifiable (NotImplemented {0} accept)

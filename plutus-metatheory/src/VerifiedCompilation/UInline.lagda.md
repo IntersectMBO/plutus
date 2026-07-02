@@ -46,26 +46,26 @@ infix 4 _≽_
 infix 8 _↝
 
 variable
-  X Y : ℕ
+  n m : ℕ
 
 variable
-  x y : Fin X
+  x y : Fin n
 
 variable
-  σ : Sub X Y
+  σ : Sub n m
 
 variable
-  L M N L′ M′ N′ : X ⊢
+  L M N L′ M′ N′ : n ⊢
 
 -- | Zipper
-data _↝ (X : ℕ) : Set where
-  □ : X ↝
-  _·_ : X ↝ → (X ⊢) → X ↝
+data _↝ (n : ℕ) : Set where
+  □ : n ↝
+  _·_ : n ↝ → (n ⊢) → n ↝
 
 variable
-  z z′ : X ↝
+  z z′ : n ↝
 
-_↑ᶻ : X ↝ → (suc X) ↝
+_↑ᶻ : n ↝ → (suc n) ↝
 □ ↑ᶻ = □
 (z · M) ↑ᶻ = (z ↑ᶻ) · weaken M
 
@@ -75,7 +75,7 @@ injᶻˡ refl = refl
 injᶻʳ : (z · M ≡ z′ · M′) → M ≡ M′
 injᶻʳ refl = refl
 
-_≟ᶻ_ : DecidableEquality (X ↝)
+_≟ᶻ_ : DecidableEquality (n ↝)
 □ ≟ᶻ □ = yes refl
 (z · M) ≟ᶻ (z′ · M′) with z ≟ᶻ z′ | M ≟ M′
 ... | yes refl | yes refl = yes refl
@@ -85,10 +85,10 @@ _≟ᶻ_ : DecidableEquality (X ↝)
 □ ≟ᶻ (z′ · M′) = no λ()
 
 -- | Relating two zippers
-data _≽_ {X : ℕ} : X ↝ → X ↝ → Set where
+data _≽_ {n : ℕ} : n ↝ → n ↝ → Set where
   □ : □ ≽ □
-  keep : ∀ {z z′} (M : X ⊢) → z ≽ z′ → (z · M) ≽ (z′ · M)
-  drop : ∀ {z z′} (M : X ⊢) → z ≽ z′ → (z · M) ≽ (z′ · M)
+  keep : ∀ {z z′} (M : n ⊢) → z ≽ z′ → (z · M) ≽ (z′ · M)
+  drop : ∀ {z z′} (M : n ⊢) → z ≽ z′ → (z · M) ≽ (z′ · M)
 
 variable
   zz : z ≽ z′
@@ -98,7 +98,7 @@ _↑ᶻᶻ : z ≽ z′ → (z ↑ᶻ) ≽ (z′ ↑ᶻ)
 (keep M zᵃ) ↑ᶻᶻ = keep (weaken M) (zᵃ ↑ᶻᶻ)
 (drop M zᵃ) ↑ᶻᶻ = drop (weaken M) (zᵃ ↑ᶻᶻ)
 
-idᶻᶻ : (z : X ↝) → z ≽ z
+idᶻᶻ : (z : n ↝) → z ≽ z
 idᶻᶻ □ = □
 idᶻᶻ (z · M) = keep M (idᶻᶻ z)
 
@@ -118,15 +118,15 @@ zz ≟ᶻᶻ zz′ = nothing
 # Inline relation
 
 ```
-data Inline {X : ℕ} :
-  (σ : Sub X X)
-  {z z′ : X ↝}
+data Inline {n : ℕ} :
+  (σ : Sub n n)
+  {z z′ : n ↝}
   (zz : z ≽ z′)
-  (M M′ : X ⊢)
+  (M M′ : n ⊢)
   → Set where
 
   ` :
-      (x : Fin X)
+      (x : Fin n)
     → -----------------------------
       Inline σ (idᶻᶻ z) (` x) (` x)
 
@@ -217,16 +217,16 @@ The position of `σ` doesn't matter since no clause matches on it.
 ```
 checkPointwise :
         (hs : List InlineHints)
-        (σ : Sub X X)
+        (σ : Sub n n)
         (zz : z ≽ z′)
-        (Ms M′s : List (X ⊢))
+        (Ms M′s : List (n ⊢))
         → Proof? (Pointwise (Inline σ zz) Ms M′s)
 
-check : (σ : Sub X X)
-        (M : X ⊢)
+check : (σ : Sub n n)
+        (M : n ⊢)
         (zz : z ≽ z′)
         (h : InlineHints)
-        (M′ : X ⊢)
+        (M′ : n ⊢)
         → Proof? (Inline σ zz M M′)
 check {z = z} {z′ = z′} σ M@(` x) zz var M′@(` x′)
   with x Fin.≟ x′ | z ≟ᶻ z′
@@ -327,16 +327,16 @@ reflexiveᶻᶻ (drop M zz) rewrite reflexiveᴬ _≟_ M | reflexiveᶻᶻ zz = 
 
 ```
 completePointwise :
-  (σ : Sub X X)
+  (σ : Sub n n)
   (zz : z ≽ z′)
-  (Ms M′s : List (X ⊢))
+  (Ms M′s : List (n ⊢))
   (rs : Pointwise (Inline σ zz) Ms M′s)
   → ∃[ hs ] (checkPointwise hs σ zz Ms M′s ≡ proof rs)
 
 complete :
-  (σ : Sub X X)
+  (σ : Sub n n)
   (zz : z ≽ z′)
-  (M M′ : X ⊢)
+  (M M′ : n ⊢)
   (s : Inline σ zz M M′)
   → ∃[ h ] (check σ M zz h M′ ≡ proof s)
 complete {z = z} σ .(idᶻᶻ z) .(` x) .(` x) (` x) = (var , e′)
