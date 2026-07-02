@@ -34,13 +34,23 @@ import Crypto.Hash.Algorithms
 import Data.ByteArray qualified as BA
 #endif
 
-sha2_256
-  , sha3_256
-  , blake2b_224
-  , blake2b_256
-  , keccak_256
-  , ripemd_160
-    :: BS.ByteString -> BS.ByteString
+-- | Hash a `ByteString` using the SHA-256 hash function.
+sha2_256 :: BS.ByteString -> BS.ByteString
+
+-- | Hash a `ByteString` using the SHA3-256 hash function.
+sha3_256 :: BS.ByteString -> BS.ByteString
+
+-- | Hash a `ByteString` using the Blake2b-224 hash function.
+blake2b_224 :: BS.ByteString -> BS.ByteString
+
+-- | Hash a `ByteString` using the Blake2b-256 hash function.
+blake2b_256 :: BS.ByteString -> BS.ByteString
+
+-- | Hash a `ByteString` using the Keccak-256 hash function.
+keccak_256 :: BS.ByteString -> BS.ByteString
+
+-- | Hash a `ByteString` using the RIPEMD-160 hash function.
+ripemd_160 :: BS.ByteString -> BS.ByteString
 
 #ifdef WITH_CRYPTO
 

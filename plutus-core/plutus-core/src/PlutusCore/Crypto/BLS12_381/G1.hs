@@ -45,9 +45,8 @@ import Data.Proxy (Proxy (..))
 import PlutusCore.Crypto.BLS12_381.Bounds (msmScalarOutOfBounds)
 import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error (..))
 #else
-import Data.ByteString (pack)
-import Data.Char (digitToInt)
-import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error)
+import Data.ByteString.Base16 qualified as Base16
+import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error, checkCompressed)
 import PlutusCore.Crypto.Utils (cryptoDisabled)
 #endif
 
@@ -232,7 +231,7 @@ compress :: Element -> ByteString
 compress = unElement
 
 uncompress :: ByteString -> Either BLS12_381_Error Element
-uncompress = Right . Element
+uncompress = fmap Element . checkCompressed compressedSizeBytes
 
 hashToGroup :: ByteString -> ByteString -> Either BLS12_381_Error Element
 hashToGroup = cryptoDisabled "bls12_381_G1_hashToGroup"
@@ -242,17 +241,11 @@ offchain_zero = Element compressed_zero
 
 compressed_zero :: ByteString
 compressed_zero =
-  unhex "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  Base16.decodeLenient "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
 compressed_generator :: ByteString
 compressed_generator =
-  unhex "97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb"
-
-unhex :: String -> ByteString
-unhex = pack . go
-  where
-    go (a : b : rest) = fromIntegral (digitToInt a * 16 + digitToInt b) : go rest
-    go _ = []
+  Base16.decodeLenient "97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb"
 
 memSizeBytes :: Int
 memSizeBytes = 144

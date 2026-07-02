@@ -45,9 +45,8 @@ import Data.Proxy (Proxy (..))
 import PlutusCore.Crypto.BLS12_381.Bounds (msmScalarOutOfBounds)
 import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error (..))
 #else
-import Data.ByteString (pack)
-import Data.Char (digitToInt)
-import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error)
+import Data.ByteString.Base16 qualified as Base16
+import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error, checkCompressed)
 import PlutusCore.Crypto.Utils (cryptoDisabled)
 #endif
 
@@ -189,7 +188,7 @@ compress :: Element -> ByteString
 compress = unElement
 
 uncompress :: ByteString -> Either BLS12_381_Error Element
-uncompress = Right . Element
+uncompress = fmap Element . checkCompressed compressedSizeBytes
 
 hashToGroup :: ByteString -> ByteString -> Either BLS12_381_Error Element
 hashToGroup = cryptoDisabled "bls12_381_G2_hashToGroup"
@@ -199,17 +198,11 @@ offchain_zero = Element compressed_zero
 
 compressed_zero :: ByteString
 compressed_zero =
-  unhex "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  Base16.decodeLenient "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
 compressed_generator :: ByteString
 compressed_generator =
-  unhex "93e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f5049334cf11213945d57e5ac7d055d042b7e024aa2b2f08f0a91260805272dc51051c6e47ad4fa403b02b4510b647ae3d1770bac0326a805bbefd48056c8c121bdb8"
-
-unhex :: String -> ByteString
-unhex = pack . go
-  where
-    go (a : b : rest) = fromIntegral (digitToInt a * 16 + digitToInt b) : go rest
-    go _ = []
+  Base16.decodeLenient "93e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f5049334cf11213945d57e5ac7d055d042b7e024aa2b2f08f0a91260805272dc51051c6e47ad4fa403b02b4510b647ae3d1770bac0326a805bbefd48056c8c121bdb8"
 
 memSizeBytes :: Int
 memSizeBytes = 288

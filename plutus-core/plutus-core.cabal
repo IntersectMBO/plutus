@@ -397,7 +397,8 @@ library
 
   else
     build-depends:
-      , crypton  ^>=1.0
+      , base16-bytestring  ^>=1.0
+      , crypton            ^>=1.0
       , memory
 
 test-suite crypto-hash-parity-test
