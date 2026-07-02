@@ -446,7 +446,7 @@ and return 0.
 \note{Semantics of \texttt{unionValue}.}
 \label{note:unionValue-semantics}
 The result of \texttt{unionValue} is obtained by adding together corresponding
-quantities in its inputs, provided that all of the added values are in the
+quantities in its inputs, provided that all of the added quantities are in the
 signed 128-bit range $[-2^{127}, 2^{127}-1]$: its denotation
 \textsf{unionValue} is defined by
   $$
@@ -465,7 +465,8 @@ where $v+w \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ is defined by $(v+w)(c,t)
 For \texttt{valueContains} $v$ $w$, an error occurs if either $v$ or $w$
 contains a negative quantity.  If all quantities are non-negative then the
 function returns \texttt{true} if every quantity in $v$ is greater than or equal
-to the corresponding value in $w$, otherwise it returns \texttt{false}: its denotation
+to the corresponding quantity in $w$, otherwise it returns \texttt{false}: its
+denotation
 \textsf{valueContains} is defined by
   $$
   \mathsf{valueContains}(v,w)  =
