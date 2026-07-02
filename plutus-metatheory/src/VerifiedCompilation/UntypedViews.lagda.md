@@ -705,7 +705,7 @@ instance
     Inhabited (tmCon-pairᵖ P (tmCon (pair A B) x))
   inh-tmCon-pair = inh (tmCon-pair! inhabitant)
 
-  inh-match : ∀ {A : Set} {n : A} → Inhabited (match n)
+  inh-match : ∀ {A : Set} {x : A} → Inhabited (match x)
   inh-match = record {inhabitant = match! _}
 
   inh-× : ∀ {A B} → {{ Inhabited A }} → {{ Inhabited B }} → Inhabited (A × B)
