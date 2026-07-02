@@ -205,16 +205,18 @@ particular \texttt{value} a given token identifier may be associated with
 multiple currency identifiers.  We model \texttt{value}s as finitely supported
 maps from (currency identifier, token identifier) pairs to integers: see
 Table~\ref{table:built-in-value-type} (and recall that $\B^*$ denotes the set of
-all bytestrings, ie finite sequences of bytes).  In practice \texttt{value}s
-will be implemented as some finite data structure in which only a finite number
-of currency and token identifiers appear, but for specification purposes it is
-convenient to allow a \texttt{value} to contain \textit{all} identifiers, but
-with only a finite number of quantities nonzero.  In practice we only allow
-values $v$ such that for $c, t \in \B$ with $v(c,t) \neq 0$, it is the case that
-$\length(c) \leq 32$, $\length(t) \leq 32$ and $-2^{127} \leq q \leq 2^{127}-1$.
-We will call such values \textit{small values}; none of the built-in functions
-we provide allow a non-small value to be created, and non-small values will also
-cause a failure during deserialisation fromt the \texttt{flat} format (see
+all bytestrings, ie finite sequences of bytes).  For brevity we will call such
+finitely supported maps \textit{values} in this section.  In
+practice values will be implemented as some finite data structure in
+which only a finite number of currency and token identifiers appear, but for
+specification purposes it is convenient to allow a value to
+contain \textit{all} identifiers, but with only a finite number of quantities
+nonzero.  In practice we only allow values $v$ such that for $c, t \in \B^*$
+with $v(c,t) \neq 0$, it is the case that $\length(c) \leq 32$, $\length(t) \leq
+32$ and $-2^{127} \leq q \leq 2^{127}-1$.  We will call such
+values \textit{small values}; none of the built-in functions we provide allow a
+non-small value to be created, and non-small values will also cause a failure
+during deserialisation fromt the \texttt{flat} format (see
 Appendix~\ref{appendix:flat-serialisation}) and during parsing of textual UPLC.
 
 
@@ -231,9 +233,10 @@ Appendix~\ref{appendix:flat-serialisation}) and during parsing of textual UPLC.
     \label{table:built-in-value-type}
 \end{table}
 
-\noindent To obtain a syntactic representation of the abstract \texttt{value}
-we define a concrete ``flattened'' form which represents a \texttt{value} as a nested
-association list.  Given $v \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$, let
+\noindent To obtain a syntactic representation of the abstract value type
+we define a concrete ``flattened'' form which represents a value as a
+nested association list.  Given $v \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$,
+let
 $$C_v
 = \{c \in \B^*: \text{there exists $t \in \B^*$ with $v(c,t) \neq 0\}$.}
 $$
@@ -277,10 +280,11 @@ Conversely, given a list
  \item $c_1 < c_2 < \cdots <c_n$
  \item $k_i \geq 1$ for $1 \leq i \leq n$
  \item $t_{i1} < t_{i2} < \cdots < t_{ik_i}$ for $1 \leq i \leq n$
- \item $q \in [-2^{127}, 2^{127}-1]\setminus 0$ for all $i$ and $j$
+ \item $q_{ij} \in [-2^{127}, 2^{127}-1]\setminus 0$ for all $i$ and $j$
 \end{itemize}
-(we call a list satisfying these conditions a \textit{well-formed} list)
-we can define a map $\unflatten{l} \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ by
+(we call a list satisfying these conditions a \textit{well-formed} list) we can
+define a finitely supported map
+$\unflatten{l} \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ by
 $$
   \unflatten{l}(c,t) =
   \left\{\begin{array}{ll}
@@ -301,10 +305,11 @@ $$
 \noindent
 We have $\unflatten{\flatten{v}} = v$ for all small values $v$ and
 $\flatten{\unflatten{l}} = l$ for all well-formed $l$, the latter because
-well-formed lists are a canonical representation of the function
-$\unflatten{}$.  Without the restrictions we could permute the entries of the
-lists and add currencies with empty token lists or tokens with zero quantities
-to obtain different representations of the same function.
+well-formed lists provide a canonical representation of values: for each such
+value $v$ there is exactly one well-formed list $l$ with $\unflatten{l} = v$.
+Without the restrictions we could permute the entries of the lists and add
+currencies with empty token lists or tokens with zero quantities to obtain
+different representations of the same value.
 
 \paragraph{Concrete syntax.}
 In the concrete syntax, constants of type \texttt{value} are represented
@@ -319,7 +324,7 @@ by strings of the form of the form
 
 \noindent where each $C_i$ and $T_i$ are literal bytestrings
 described by the regular expression \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*} with at
-most 32 pairs of hexadecimal digits and each $Q_i$ is a non-zero literal integer
+most 32 pairs of hexadecimal digits and each $Q_{ij}$ is a non-zero literal integer
 in the range $[-2^{127}, 2^{127}-1]$. The currency IDs and the token IDs for
 each currency must be in strictly ascending order.
 
@@ -354,7 +359,7 @@ Some examples of valid \texttt{value} constants are
 \noindent
 The expressions
 \begin{verbatim}
-  (con value [(#33,[(#1234, 455]), (#2222, [(#9a, -7))])])
+  (con value [(#33,[(#1234, 455)]), (#2222, [(#9a, -7)])])
 \end{verbatim}
 \noindent and
 \begin{verbatim}
@@ -440,11 +445,12 @@ and return 0.
 
 \note{Semantics of \texttt{unionValue}.}
 \label{note:unionValue-semantics}
-The result of \texttt{unionValue} is obtained by adding together corresponding quantities
-in its inputs, provided that all of the added values are in the 127-bit range:  its denotation
+The result of \texttt{unionValue} is obtained by adding together corresponding
+quantities in its inputs, provided that all of the added values are in the
+signed 128-bit range $[-2^{127}, 2^{127}-1]$: its denotation
 \textsf{unionValue} is defined by
   $$
-  \mathsf{unionValue}(n, v) =
+  \mathsf{unionValue}(v, w) =
   \left\{
   \begin{array}{ll}
         v+w & \text{if $v(c,t)+w(c,t) \in Q$ for all $c$ and $t$}\\
@@ -473,7 +479,8 @@ to the corresponding value in $w$, otherwise it returns \texttt{false}: its deno
 \note{Semantics of \texttt{scaleValue}.}
 \label{note:scaleValue-semantics}
 The result of \texttt{scaleValue} $n$ $v$ is $v$ with all quantities multiplied
-by $n$, provided that all of the scaled values are in the 127-bit range:  its denotation
+by $n$, provided that all of the scaled values are in the signed 128-bit range:
+its denotation
 \textsf{scaleValue} is defined by
   $$
   \mathsf{scaleValue}(n,v) =
