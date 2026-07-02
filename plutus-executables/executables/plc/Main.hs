@@ -14,6 +14,7 @@ import PlutusCore.Evaluation.Machine.Ck qualified as Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Executable.AstIO (toDeBruijnTermPLC, toDeBruijnTypePLC)
 import PlutusCore.Executable.Common
+import PlutusCore.Executable.Help qualified as Help
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Pretty qualified as PP
@@ -84,7 +85,24 @@ plutus
 plutus langHelpText =
   info
     (plutusOpts <**> versioner <**> helper)
-    (fullDesc <> header "Typed Plutus Core Tool" <> progDesc langHelpText)
+    ( fullDesc
+        <> header "Typed Plutus Core Tool"
+        <> progDesc langHelpText
+        <> Help.examplesFooter
+          [ Help.eg
+              "Type-check a typed Plutus Core program"
+              "plc typecheck -i program.plc"
+          , Help.eg
+              "Evaluate a program on the CK machine"
+              "plc evaluate -i program.plc"
+          , Help.eg
+              "Erase types, producing an untyped Plutus Core program"
+              "plc erase --of textual -i program.plc -o program.uplc"
+          , Help.eg
+              "Enable bash completion for the current shell"
+              "source <(plc --bash-completion-script $(command -v plc))"
+          ]
+    )
 
 plutusOpts :: Parser Command
 plutusOpts =

@@ -26,6 +26,7 @@ fileInput =
       ( long "input"
           <> short 'i'
           <> metavar "FILENAME"
+          <> action "file"
           <> help "Input file"
       )
 
@@ -49,6 +50,7 @@ fileOutput =
       ( long "output"
           <> short 'o'
           <> metavar "FILENAME"
+          <> action "file"
           <> help "Output file"
       )
 
@@ -91,6 +93,19 @@ formatReader =
     "blueprint" -> Just Blueprint
     _ -> Nothing
 
+-- | The format names accepted by 'formatReader', used for shell completion.
+formatNames :: [String]
+formatNames =
+  [ "textual"
+  , "serialised"
+  , "hex"
+  , "flat-named"
+  , "flat"
+  , "flat-deBruijn"
+  , "flat-namedDeBruijn"
+  , "blueprint"
+  ]
+
 inputformat :: Parser Format
 inputformat =
   option
@@ -100,6 +115,7 @@ inputformat =
         <> metavar "FORMAT"
         <> value Textual
         <> showDefault
+        <> completeWith formatNames
         <> help ("Input format: " ++ formatHelp)
     )
 
@@ -112,6 +128,7 @@ outputformat =
         <> metavar "FORMAT"
         <> value Textual
         <> showDefault
+        <> completeWith formatNames
         <> help ("Output format: " ++ formatHelp)
     )
 
@@ -123,11 +140,12 @@ tracemode =
         <> metavar "MODE"
         <> value None
         <> showDefault
+        <> completeWith ["None", "Logs", "LogsWithTimestamps", "LogsWithBudgets", "LogsWithCallTrace"]
         <> help "Mode for trace output."
     )
 
 files :: Parser Files
-files = some (argument str (metavar "[FILES...]"))
+files = some (argument str (metavar "[FILES...]" <> action "file"))
 
 applyOpts :: Parser ApplyOptions
 applyOpts = ApplyOptions <$> files <*> inputformat <*> output <*> outputformat <*> printmode
@@ -140,6 +158,7 @@ printmode =
         <> metavar "MODE"
         <> value Classic
         <> showDefault
+        <> completeWith ["Classic", "Simple", "Readable", "ReadableSimple"]
         <> help
           ( "Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassic, "
               <> "Simple -> plcPrettyClassicSimple, "
@@ -187,6 +206,7 @@ certifierOutputMode =
         <$> strOption
           ( long "certifier-report"
               <> metavar "REPORT_FILE"
+              <> action "file"
               <> help "Certifier writes a report to the given file"
           )
     , flag
@@ -230,6 +250,7 @@ optimizeOpts = do
           <> metavar "MODE"
           <> value UPLC.ExcludeWorkFree
           <> showDefaultWith (\case UPLC.AllSubterms -> "all"; UPLC.ExcludeWorkFree -> "exclude-work-free")
+          <> completeWith ["all", "exclude-work-free"]
           <> help "CSE subterm selection: all | exclude-work-free"
       )
   _ooConservativeOpts <-
@@ -312,6 +333,7 @@ optimiseEvalOpts =
       ( strOption
           ( long "eval-apply"
               <> metavar "FILE"
+              <> action "file"
               <> help
                 "Apply program to this argument file before evaluating \
                 \(repeatable).  Implies --eval."
@@ -329,6 +351,7 @@ optimiseEvalOpts =
           <> metavar "prog|data"
           <> value ArgData
           <> showDefaultWith (\case ArgProg -> "prog"; ArgData -> "data")
+          <> completeWith ["prog", "data"]
           <> help
             "Whether --eval-apply arguments are UPLC programs or Data objects"
       )
@@ -336,10 +359,11 @@ optimiseEvalOpts =
       ( strOption
           ( long "eval-args-dir"
               <> metavar "DIR"
+              <> action "directory"
               <> help
                 "Directory with per-validator argument files for blueprint \
                 \optimisation.  For each validator titled T, it looks for \
-                \files DIR/T/1, DIR/T/2, ... containing arguments to apply. \
+                \files DIR/T/0, DIR/T/1, ... containing arguments to apply. \
                 \Implies --eval."
           )
       )
@@ -426,6 +450,7 @@ builtinSemanticsVariant =
         <> metavar "VARIANT"
         <> value DefaultFunSemanticsVariantE
         <> showDefaultWith showBuiltinSemanticsVariant
+        <> completeWith ["A", "B", "C", "D", "E"]
         <> help
           ( "Builtin semantics variant: A -> DefaultFunSemanticsVariantA, "
               <> "B -> DefaultFunSemanticsVariantB, "
@@ -449,6 +474,10 @@ pirFormatReader =
     "flat-named" -> Just FlatNamed
     _ -> Nothing
 
+-- | The format names accepted by 'pirFormatReader', used for shell completion.
+pirFormatNames :: [String]
+pirFormatNames = ["textual", "flat-named"]
+
 pPirInputFormat :: Parser PirFormat
 pPirInputFormat =
   option
@@ -458,6 +487,7 @@ pPirInputFormat =
         <> metavar "PIR-FORMAT"
         <> value TextualPir
         <> showDefault
+        <> completeWith pirFormatNames
         <> help ("Input format: " ++ pirFormatHelp)
     )
 
@@ -470,6 +500,7 @@ pPirOutputFormat =
         <> metavar "PIR-FORMAT"
         <> value TextualPir
         <> showDefault
+        <> completeWith pirFormatNames
         <> help ("Output format: " ++ pirFormatHelp)
     )
 
@@ -491,5 +522,6 @@ pLanguage =
         <> metavar "LANGUAGE"
         <> value UPLC
         <> showDefaultWith (\case PLC -> "plc"; UPLC -> "uplc")
+        <> completeWith ["plc", "uplc"]
         <> help ("Target language: plc or uplc")
     )
