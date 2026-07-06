@@ -1,0 +1,20 @@
+letrec
+  !f : integer -> bool
+    = \(n : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger n 0)
+          (\(u : unit) -> True)
+          (\(u : unit) -> g (subtractInteger n 1))
+          ()
+  !g : integer -> bool
+    = \(m : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger m 0)
+          (\(u : unit) -> False)
+          (\(u : unit) -> f (subtractInteger m 1))
+          ()
+  !val : bool = g 42
+in
+f 10

@@ -1,0 +1,43 @@
+(let (rec)
+  (termbind (strict) (vardecl f (fun (con integer) (con bool)))
+    (lam n (con integer)
+      [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+          [(builtin equalsInteger) n (con integer 0)]
+          (lam u (con unit) (con bool True))
+          (lam u (con unit)
+            [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+                [(builtin equalsInteger) n (con integer 1)]
+                (lam u (con unit)
+                  [g [(builtin subtractInteger) n (con integer 1)]])
+                (lam u (con unit)
+                  [h [(builtin subtractInteger) n (con integer 1)]])
+                (con unit ())
+            ])
+          (con unit ())
+      ]))
+  (termbind (strict) (vardecl g (fun (con integer) (con bool)))
+    (lam m (con integer)
+      [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+          [(builtin equalsInteger) m (con integer 0)]
+          (lam u (con unit) (con bool False))
+          (lam u (con unit)
+            [h [(builtin subtractInteger) m (con integer 1)]])
+          (con unit ())
+      ]))
+  (termbind (strict) (vardecl h (fun (con integer) (con bool)))
+    (lam k (con integer)
+      [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+          [(builtin equalsInteger) k (con integer 0)]
+          (lam u (con unit) (con bool False))
+          (lam u (con unit)
+            [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+                [(builtin equalsInteger) k (con integer 1)]
+                (lam u (con unit)
+                  [f [(builtin subtractInteger) k (con integer 1)]])
+                (lam u (con unit)
+                  [g [(builtin subtractInteger) k (con integer 1)]])
+                (con unit ())
+            ])
+          (con unit ())
+      ]))
+  f)

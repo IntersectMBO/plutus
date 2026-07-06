@@ -91,7 +91,7 @@ decEq-TmCon : DecidableEquality TmCon
 
 decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
 
-decEq-⊢ : ∀{X} → DecidableEquality (X ⊢)
+decEq-⊢ : ∀{n} → DecidableEquality (n ⊢)
 
 ```
 # Pointwise Decisions
@@ -124,10 +124,10 @@ instance
   DecEq-TmCon : DecEq TmCon
   DecEq-TmCon ._≟_ = decEq-TmCon
 
-  DecEq-⊢ : ∀{X} → DecEq (X ⊢)
+  DecEq-⊢ : ∀{n} → DecEq (n ⊢)
   DecEq-⊢ ._≟_ = decEq-⊢
 
-  DecEq-List : ∀{X} {{DE : DecEq X}} → DecEq (List X)
+  DecEq-List : ∀{n} {{DE : DecEq n}} → DecEq (List n)
   DecEq-List {{DE}} = record {_≟_ =  LP.≡-dec (DecEq._≟_ DE)}
 
   DecEq-Builtin : DecEq Builtin
@@ -174,7 +174,7 @@ pairDec eqA eqB (a₁ , b₁) (a₂ , b₂) with (eqA a₁ a₂) | (eqB b₁ b�
 ... | _             | no b₁≠b₂ = no λ { refl → b₁≠b₂ refl }
 
 instance
-  DecEq-UList : ∀{X} {{DE : DecEq X}} → DecEq (U.List X)
+  DecEq-UList : ∀{n} {{DE : DecEq n}} → DecEq (U.List n)
   DecEq-UList {{DE}} = record {_≟_ =  listDec (DecEq._≟_ DE)}
 
   DecEq-Pair : {A B : Set} {{DE-A : DecEq A}} {{DE-B : DecEq B}} → DecEq (A × B)

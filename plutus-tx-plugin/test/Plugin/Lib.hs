@@ -27,6 +27,25 @@ oddDirect :: Integer -> Bool
 oddDirect n = if Builtins.equalsInteger n 0 then False else evenDirect (Builtins.subtractInteger n 1)
 {-# INLINEABLE oddDirect #-}
 
+divisibleByThreeDirect :: Integer -> Bool
+divisibleByThreeDirect n =
+  if Builtins.equalsInteger n 0
+    then True
+    else divisibleByThreeStep1Direct (Builtins.subtractInteger n 1)
+{-# INLINEABLE divisibleByThreeDirect #-}
+
+divisibleByThreeStep1Direct :: Integer -> Bool
+divisibleByThreeStep1Direct n =
+  if Builtins.equalsInteger n 0
+    then False
+    else divisibleByThreeStep2Direct (Builtins.subtractInteger n 1)
+{-# INLINEABLE divisibleByThreeStep1Direct #-}
+
+divisibleByThreeStep2Direct :: Integer -> Bool
+divisibleByThreeStep2Direct n =
+  if Builtins.equalsInteger n 0 then False else divisibleByThreeDirect (Builtins.subtractInteger n 1)
+{-# INLINEABLE divisibleByThreeStep2Direct #-}
+
 -- GHC will lift out the error call to the top level, which is unsafe unless we bind it lazily.
 -- This is in Lib so we get the fully optimized unfolding with awkward top-level binds and everything.
 joinError :: Bool -> Bool -> ()

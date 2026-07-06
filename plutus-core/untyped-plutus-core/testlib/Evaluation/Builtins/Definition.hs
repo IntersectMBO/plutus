@@ -81,6 +81,7 @@ import Hedgehog (forAll, property, withTests, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@=?), (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
@@ -110,7 +111,7 @@ defaultBuiltinCostModelExt = (defaultBuiltinCostModelForTesting, ())
 
 test_IntegerDistribution :: TestTree
 test_IntegerDistribution =
-  QC.testProperty "distribution of 'Integer' constants" . QC.withMaxSuccess 10000 $
+  QC.testProperty "distribution of 'Integer' constants" . BaseQC.withNumTests 10000 $
     \(AsArbitraryBuiltin (i :: Integer)) ->
       let magnitudes = magnitudesPositive nextInterestingBound highInterestingBound
           (low, high) =
@@ -2017,7 +2018,7 @@ test_Case :: TestTree
 test_Case =
   testGroup
     "Case on constants"
-    [ QC.testProperty "Bool, 1 branch" . QC.withMaxSuccess 99 $
+    [ QC.testProperty "Bool, 1 branch" . BaseQC.withNumTests 99 $
         \(scrut :: Bool) (i :: Integer) ->
           let term :: TermLike term tyname name DefaultUni DefaultFun => term ()
               term =
@@ -2030,7 +2031,7 @@ test_Case =
                 Right (EvaluationSuccess res) -> res == mkConstant () i
                 Right EvaluationFailure -> scrut
                 _ -> False
-    , QC.testProperty "Bool, 2 branches" . QC.withMaxSuccess 99 $
+    , QC.testProperty "Bool, 2 branches" . BaseQC.withNumTests 99 $
         \(scrut :: Bool) (i :: Integer) (j :: Integer) ->
           let term :: TermLike term tyname name DefaultUni DefaultFun => term ()
               term =
@@ -2041,7 +2042,7 @@ test_Case =
                   [mkConstant () i, mkConstant () j]
            in Right (EvaluationSuccess . mkConstant () $ if not scrut then i else j)
                 QC.=== typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
-    , QC.testProperty "Bool, 3+ branches" . QC.withMaxSuccess 99 $
+    , QC.testProperty "Bool, 3+ branches" . BaseQC.withNumTests 99 $
         \(scrut :: Bool) (is :: [Integer]) ->
           let term :: TermLike term tyname name DefaultUni DefaultFun => term ()
               term =
@@ -2051,7 +2052,7 @@ test_Case =
                   (mkConstant () scrut)
                   (map (mkConstant ()) $ [1, 2, 3] <> is)
            in isLeft $ typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
-    , QC.testProperty "Integer success" . QC.withMaxSuccess 99 $
+    , QC.testProperty "Integer success" . BaseQC.withNumTests 99 $
         \(QC.NonEmpty is :: QC.NonEmptyList Integer) ->
           QC.forAll (QC.chooseInt (0, length is - 1)) $ \scrut ->
             let term :: TermLike term tyname name DefaultUni DefaultFun => term ()
@@ -2063,7 +2064,7 @@ test_Case =
                     (map (mkConstant ()) is)
              in Right (EvaluationSuccess . mkConstant () $ is !! scrut)
                   QC.=== typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
-    , QC.testProperty "Integer any" . QC.withMaxSuccess 99 $
+    , QC.testProperty "Integer any" . BaseQC.withNumTests 99 $
         \(scrut :: Integer) (is :: [Integer]) ->
           let term :: TermLike term tyname name DefaultUni DefaultFun => term ()
               term =
@@ -2076,7 +2077,7 @@ test_Case =
                 Left _ -> False
                 Right EvaluationFailure -> 0 > scrut || scrut >= fromIntegral (length is)
                 Right (EvaluationSuccess res) -> res == mkConstant () (is !! fromIntegral scrut)
-    , QC.testProperty "List, 1 branch" . QC.withMaxSuccess 99 $
+    , QC.testProperty "List, 1 branch" . BaseQC.withNumTests 99 $
         \(scrut :: [Integer]) ->
           let
             term :: Term TyName Name DefaultUni DefaultFun ()
@@ -2097,7 +2098,7 @@ test_Case =
               (Right (EvaluationSuccess res), (x : _)) -> res == mkConstant () x
               (Right EvaluationFailure, []) -> True
               _ -> False
-    , QC.testProperty "List, 2 branches" . QC.withMaxSuccess 99 $
+    , QC.testProperty "List, 2 branches" . BaseQC.withNumTests 99 $
         \(scrut :: [Integer]) (i :: Integer) ->
           let
             term :: Term TyName Name DefaultUni DefaultFun ()
@@ -2120,7 +2121,7 @@ test_Case =
               (Right (EvaluationSuccess res), []) -> res == mkConstant () i
               (Right (EvaluationSuccess res), (x : _)) -> res == mkConstant () x
               _ -> False
-    , QC.testProperty "List, 3+ branches" . QC.withMaxSuccess 99 $
+    , QC.testProperty "List, 3+ branches" . BaseQC.withNumTests 99 $
         \(scrut :: [Integer]) (is :: [Integer]) ->
           let
             term :: Term TyName Name DefaultUni DefaultFun ()

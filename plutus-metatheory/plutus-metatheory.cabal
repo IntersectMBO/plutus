@@ -374,6 +374,8 @@ library
     MAlonzo.Code.Untyped.Relation.Binary
     MAlonzo.Code.Untyped.Relation.Binary.Core
     MAlonzo.Code.Untyped.Relation.Binary.Modular
+    MAlonzo.Code.Untyped.Relation.Binary.Modular.Patterns
+    MAlonzo.Code.Untyped.Relation.Binary.Modular.Structures
     MAlonzo.Code.Untyped.Relation.Binary.Properties
     MAlonzo.Code.Untyped.Relation.Binary.Structures
     MAlonzo.Code.Untyped.RenamingSubstitution

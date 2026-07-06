@@ -1,0 +1,39 @@
+letrec
+  !f : integer -> bool
+    = \(n : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger n 0)
+          (\(u : unit) -> True)
+          (\(u : unit) ->
+             ifThenElse
+               {unit -> bool}
+               (equalsInteger n 1)
+               (\(u : unit) -> g (subtractInteger n 1))
+               (\(u : unit) -> h (subtractInteger n 1))
+               ())
+          ()
+  !g : integer -> bool
+    = \(m : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger m 0)
+          (\(u : unit) -> False)
+          (\(u : unit) -> h (subtractInteger m 1))
+          ()
+  !h : integer -> bool
+    = \(k : integer) ->
+        ifThenElse
+          {unit -> bool}
+          (equalsInteger k 0)
+          (\(u : unit) -> False)
+          (\(u : unit) ->
+             ifThenElse
+               {unit -> bool}
+               (equalsInteger k 1)
+               (\(u : unit) -> f (subtractInteger k 1))
+               (\(u : unit) -> g (subtractInteger k 1))
+               ())
+          ()
+in
+f

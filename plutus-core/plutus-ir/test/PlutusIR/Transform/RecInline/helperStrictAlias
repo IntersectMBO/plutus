@@ -1,0 +1,24 @@
+(let (rec)
+  (termbind (nonstrict) (vardecl even (fun (con integer) (con bool)))
+    (lam n (con integer)
+      (let (nonrec)
+        (termbind (strict) (vardecl n' (con integer)) n)
+        [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+            [(builtin equalsInteger) n' (con integer 0)]
+            (lam u (con unit) (con bool True))
+            (lam u (con unit)
+              [odd [(builtin subtractInteger) n' (con integer 1)]])
+            (con unit ())
+        ])))
+  (termbind (nonstrict) (vardecl odd (fun (con integer) (con bool)))
+    (lam m (con integer)
+      (let (nonrec)
+        (termbind (strict) (vardecl m' (con integer)) m)
+        [ {(builtin ifThenElse) (fun (con unit) (con bool))}
+            [(builtin equalsInteger) m' (con integer 0)]
+            (lam u (con unit) (con bool False))
+            (lam u (con unit)
+              [even [(builtin subtractInteger) m' (con integer 1)]])
+            (con unit ())
+        ])))
+  even)

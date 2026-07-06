@@ -8,9 +8,9 @@ layout: page
 module VerifiedCompilation.FloatOut where
 
 open import Function using (case_of_)
-open import Data.Nat using (suc; zero)
+open import Data.Nat using (suc; zero; ℕ; _+_)
 open import Data.List using (List; map)
-open import Data.Product using (_,_)
+open import Data.Product using (_,_; ∃)
 open import Relation.Nullary using (Dec; yes; no; does; _×-dec_)
 
 open import Untyped
@@ -18,6 +18,7 @@ open import VerifiedCompilation.UntypedViews
 open import Untyped.RenamingSubstitution using (weaken)
 open import Untyped.Relation.Binary
 open import Untyped.Relation.Binary.Modular
+open import Untyped.Relation.Binary.Modular.Patterns
 
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; LetFloatOutT; Proof?; abort)
 ```
@@ -27,7 +28,7 @@ open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; LetFloa
 ```
 data FloatApply (@++ R : Relation) : Relation where
   float-apply :
-    ∀ {X} {M N K : X ⊢} {L N' : suc X ⊢}
+    ∀ {n} {M N K : n ⊢} {L N' : suc n ⊢}
     → R M (let' K L)
     → R (weaken N) N'
     ----------------------------------------
@@ -35,7 +36,7 @@ data FloatApply (@++ R : Relation) : Relation where
 
 data FloatCase (@++ R : Relation) : Relation where
   float-case :
-    ∀ {X} {M N : X ⊢} {L : suc X ⊢} {Ms Ms'}
+    ∀ {n} {M N : n ⊢} {L : suc n ⊢} {Ms Ms'}
     → R M (let' N L)
     → Pointwise R (map weaken Ms) Ms'
     -----------------------------------------------
@@ -43,7 +44,7 @@ data FloatCase (@++ R : Relation) : Relation where
 
 data FloatForce (@++ R : Relation) : Relation where
   float-force :
-    ∀ {X} {M N : X ⊢} {L : suc X ⊢}
+    ∀ {n} {M N : n ⊢} {L : suc n ⊢}
     → R M (let' N L)
     -------------------------------------------
     → FloatForce R (force M) (let' N (force L))
@@ -55,7 +56,7 @@ Closed under term-compatibility.
 ```
 infix 5 FloatOut
 FloatOut : Relation
-FloatOut = Fix (CompatTerm + FloatApply + FloatCase + FloatForce)
+FloatOut = Fix (CompatTerm ⊕ FloatApply ⊕ FloatCase ⊕ FloatForce ⊕ Empty)
 ```
 
 ## Decision procedure
@@ -100,17 +101,44 @@ to more often see a compatibility case:
 
 ```
 dec : DecidableRel FloatOut
-dec = Fix-dec (compatTerm? +-dec apply-dec +-dec case-dec +-dec force-dec)
+dec = Fix-dec (compatTerm? ⊕-dec apply-dec ⊕-dec case-dec ⊕-dec force-dec ⊕-dec empty?)
 ```
 
 Wrapper for `ProofOrCE`:
 ```
-decide : ∀ {X} (M M' : X ⊢) → ProofOrCE (FloatOut M M')
+decide : ∀ {n} (M M' : n ⊢) → ProofOrCE (FloatOut M M')
 decide M M' = case dec M M' of λ where
   (yes P) → proof P
   (no ¬P) → ce ¬P LetFloatOutT M M'
   -- note: using a with-abstraction here instead of case_of_ causes agda to hang
   -- possibly due to infinite unfolding of dec?
+```
+
+## Counting optimization sites
+
+```
+numSites : ∀ {n} {M N : n ⊢} → FloatOut M N → ℕ
+numSites* : ∀ {n} {Ms Ns : List (n ⊢)} → Pointwise FloatOut Ms Ns → ℕ
+numSites-compat : ∀ {n} {M N : n ⊢} → CompatTerm FloatOut M N → ℕ
+
+numSites (fix (inj₀ P)) = numSites-compat P
+numSites (fix (inj₁ (float-apply RM RN))) = 1 + numSites RM + numSites RN
+numSites (fix (inj₂ (float-case RM RMs))) = 1 + numSites RM + numSites* RMs
+numSites (fix (inj₃ (float-force RM))) = 1 + numSites RM
+
+numSites* [] = 0
+numSites* (RM ∷ RMs) = numSites RM + numSites* RMs
+
+numSites-compat compat-conF = 0
+numSites-compat compat-builtinF = 0
+numSites-compat compat-errorF = 0
+numSites-compat (compat-varF _) = 0
+numSites-compat (compat-lambdaF P) = numSites P
+numSites-compat (compat-applyF P Q) = numSites P + numSites Q
+numSites-compat (compat-forceF P) = numSites P
+numSites-compat (compat-delayF P) = numSites P
+numSites-compat (compat-constrF Ps) = numSites* Ps
+numSites-compat (compat-caseF P Ps) = numSites P + numSites* Ps
 ```
 
 ## Example tests
@@ -122,10 +150,10 @@ private module Examples where
   open import Data.List using ([])
   open import Data.Fin
 
-  c : ∀ {X} → X ⊢
+  c : ∀ {n} → n ⊢
   c = constr 0 []
 
-  id : ∀ {X} → X ⊢
+  id : ∀ {n} → n ⊢
   id = ƛ (` zero)
 ```
 

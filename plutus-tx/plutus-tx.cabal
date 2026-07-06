@@ -136,7 +136,7 @@ library
     PlutusTx.Ord.TH
 
   build-depends:
-    , aeson                  >=2.2
+    , aeson                  >=2.3
     , aeson-pretty
     , base                   >=4.9      && <5
     , base16-bytestring

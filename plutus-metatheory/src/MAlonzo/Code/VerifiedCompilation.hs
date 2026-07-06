@@ -86,19 +86,19 @@ d_certifyPass_26 v0 v1
         -> case coe v2 of
              MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_14
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
+                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_204
                     (coe
                        MAlonzo.Code.VerifiedCompilation.UFloatDelay.d_isFloatDelay'63'_102
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_forceDelayT_16
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
+                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_204
                     (coe
                        MAlonzo.Code.VerifiedCompilation.UForceDelay.d_isForceDelay'63'_178
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_forceCaseDelayT_18
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
+                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_204
                     (coe
                        MAlonzo.Code.VerifiedCompilation.UForceCaseDelay.d_isForceCaseDelay'63'_94
                        (coe (0 :: Integer)))
@@ -106,7 +106,7 @@ d_certifyPass_26 v0 v1
                -> case coe v1 of
                     MAlonzo.Code.VerifiedCompilation.Trace.C_inline_82 v3
                       -> coe
-                           MAlonzo.Code.VerifiedCompilation.Certificate.du_checker_156
+                           MAlonzo.Code.VerifiedCompilation.Certificate.du_checker_168
                            (coe
                               MAlonzo.Code.VerifiedCompilation.UInline.d_top'45'check_718
                               (coe v3))
@@ -117,25 +117,25 @@ d_certifyPass_26 v0 v1
                     _ -> MAlonzo.RTE.mazUnreachableError
              MAlonzo.Code.VerifiedCompilation.Trace.C_cseT_22
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
+                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_204
                     (coe
                        MAlonzo.Code.VerifiedCompilation.UCSE.d_isUntypedCSE'63'_22
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_applyToCaseT_24
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
+                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_204
                     (coe
                        MAlonzo.Code.VerifiedCompilation.UApplyToCase.d_a2c'63''7580''7580'_24
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_caseReduceT_26
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
+                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_204
                     (coe
                        MAlonzo.Code.VerifiedCompilation.UCaseReduce.d_decide_526
                        (coe (0 :: Integer)))
              MAlonzo.Code.VerifiedCompilation.Trace.C_letFloatOutT_28
                -> coe
-                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_192
+                    MAlonzo.Code.VerifiedCompilation.Certificate.du_decider_204
                     (coe
                        MAlonzo.Code.VerifiedCompilation.FloatOut.d_decide_312
                        (coe (0 :: Integer)))

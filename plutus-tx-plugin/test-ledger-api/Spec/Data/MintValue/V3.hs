@@ -28,6 +28,7 @@ import PlutusTx.Data.List qualified as List
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.TH (compile)
 import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck qualified as QC
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (Property, testProperty, (===))
@@ -145,7 +146,7 @@ test_Plinth_MintValueBurnedIsPositive =
 
 scaleTestsBy :: QC.Testable prop => Haskell.Int -> prop -> QC.Property
 scaleTestsBy factor =
-  QC.withMaxSuccess (100 Haskell.* factor) . QC.mapSize (Haskell.* factor)
+  BaseQC.withNumTests (100 Haskell.* factor) . QC.mapSize (Haskell.* factor)
 
 cekProp :: CompiledCode Bool -> Property
 cekProp code = evaluationResultMatchesHaskell code (===) True

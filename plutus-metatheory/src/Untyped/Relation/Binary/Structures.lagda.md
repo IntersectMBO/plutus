@@ -31,10 +31,10 @@ record Equivalence (_~_ : Relation) : Set where
 record TermCompatible (_~_ : Relation) : Set where
   field
     compat-var :
-      ∀ {X} {n : Fin X}
-      → ` n  ~ ` n
+      ∀ {n} {x : Fin n}
+      → ` x  ~ ` x
     compat-ƛ :
-      ∀ {X} {M N : suc X ⊢}
+      ∀ {n} {M N : suc n ⊢}
       → M ~ N
       → ƛ M ~ ƛ N
     compat-· :
@@ -44,21 +44,21 @@ record TermCompatible (_~_ : Relation) : Set where
     compat-delay :
       Compatible _~_ delay
     compat-constr :
-      ∀ {X i} {Ms Ns : List (X ⊢)}
+      ∀ {n i} {Ms Ns : List (n ⊢)}
       → Pointwise _~_ Ms Ns
       → constr i Ms ~ constr i Ns
     compat-case :
-      ∀ {X} {M N : X ⊢} {Ms Ns}
+      ∀ {n} {M N : n ⊢} {Ms Ns}
       → M ~ N
       → Pointwise _~_ Ms Ns
       → case M Ms ~ case N Ns
     compat-con :
-      ∀ {k X}
-      → con {X} k ~ con {X} k
+      ∀ {k n}
+      → con {n} k ~ con {n} k
     compat-builtin :
-      ∀ {X} {f}
-      → builtin {X} f ~ builtin {X} f
+      ∀ {n} {f}
+      → builtin {n} f ~ builtin {n} f
     compat-error :
-      ∀ {X}
-      → error {X} ~ error {X}
+      ∀ {n}
+      → error {n} ~ error {n}
 ```
