@@ -13,7 +13,9 @@
             \ifthenelse{\equal{#1}{F}}{\item[\textbf{Term reduction}]}{%
               \ifthenelse{\equal{#1}{G}}{\item[\textbf{CEK machine}]}{%
                \ifthenelse{\equal{#1}{H}}{\item[\textbf{Concrete syntax}]}{%
-                 \ifthenelse{\equal{#1}{I}}{\item[\textbf{Serialisation and deserialisation}]}{}
+                 \ifthenelse{\equal{#1}{I}}{\item[\textbf{Serialisation and deserialisation}]}{%
+                  \ifthenelse{\equal{#1}{Y}}{\item[\textbf{Miscellaneous}]}{}
+                  }
                 }
               }
             }
@@ -432,7 +434,7 @@
 \newcommand\Dprogram{\decode{program}}
 \newcommand\Dterm{\decode{term}}
 \newcommand\Dbuiltin{\decode{builtin}}
-\newcommand\dConstant[1]{\decode{constant}^{#1}}
+\newcommand\Dconstant[1]{\decode{constant}^{#1}}
 \newcommand\Dname{\decode{name}}
 \newcommand\Dbinder{\decode{\text{$\lambda$}var}}
 \newcommand\Dtype{\decode{type}}

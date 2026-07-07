@@ -10,13 +10,21 @@
 \newpage
 \subsection{Batch 6}
 \label{sec:default-builtins-6}
-This section describes some new types and functions which have not been released
-at the time of writing (July 2025), but are expected to be released at a later
-date.
+The sixth batch of built-in types and functions provides
+\begin{itemize}
+\item A modular exponentiation function (see CIP-0109~\cite{CIP-0109}).
+\item A function to drop a specified number of items from the front of a built-in list (see CIP-0132~\cite{CIP-0132}).
+\item A built-in array type and functions for working with arrays (see CIP-0138)~\cite{CIP-0138})
+\item Two functions to provide efficient multi-scalar multiplication for the BLS12-381 elliptic curves (see CIP-0133~\cite{CIP-0133}).
+\item A built-in \texttt{value} type to represent quantities of currencies on the
+      Cardano blockchain, together with a number of operations on values. These
+      are described separately from the rest of the functions, in
+      Sections~\ref{sec:built-in-value-type} and \ref{sec:built-in-value-functions}. See CIP-0153~\cite{CIP-0153}.
+\end{itemize}
 
-\subsubsection{Built-in type operators}
+\subsubsection{The \texttt{array} type operator}
 \label{sec:built-in-type-operators-6}
-The sixth batch adds type operators defined in Table~\ref{table:built-in-type-operators-6}. 
+The \texttt{array} type operator is described in Table~\ref{table:array-type-operator}.
 
 \begin{table}[H]
   \centering
@@ -24,17 +32,21 @@ The sixth batch adds type operators defined in Table~\ref{table:built-in-type-op
         \hline
         Operator $\op$ & $\left|\op\right|$  & Denotation & Concrete Syntax\\
         \hline
-        \texttt{array} 
-          & 1 
-          & $\denote{\arrayOf{t}} = \denote{t}^*$ 
+        \texttt{array}
+          & 1
+          & $\denote{\arrayOf{t}} = \denote{t}^*$
           & See below\\
         \hline
         \end{tabular}
-   \caption{Type operators, Batch 6}
-    \label{table:built-in-type-operators-6}
+   \caption{Array type operator, Batch 6}
+    \label{table:array-type-operator}
 \end{table}
 
-\paragraph{Concrete syntax for arrays.}
+\paragraph{Arrays.}
+Arrays are finite sequences of built-in values of a particular type with the
+expectation that looking up the $n$th element takes constant time (unlike
+lists).
+
 An array of type $\texttt{array}(t)$ is written as a syntactic list
 \texttt{[$c_1, \ldots, c_n$]} where each $c_i$ lies in $\bitc_t$.
 Some valid constant expressions are thus:
@@ -43,10 +55,10 @@ Some valid constant expressions are thus:
    (con (array integer) [])
 \end{verbatim}
 
-\subsubsection{Built-in functions}
-\label{sec:built-in-functions-6}
-The sixth batch of built-in types is defined in Table~\ref{table:built-in-type-operators-6}.
-Operations are defined in Table~\ref{table:built-in-functions-6}.
+\subsubsection{Built-in functions (1)}
+\label{sec:built-in-functions-6-1}
+The non-\texttt{value}-related built-in functions in Batch 6 are defined in
+Table~\ref{table:built-in-functions-6-1}.
 
 \setlength{\LTleft}{-23mm}  % Shift the table left a bit to centre it on the page
 \renewcommand*{\arraystretch}{1.25}  %% Stretch the space between the rows by a factor of 25%
@@ -59,13 +71,13 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
     \hline
     \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
     & & & fail? & \\
-    \hline
+        \hline
     \endhead
     \hline
-    \caption{Built-in functions, Batch 6}
+    \caption{Built-in functions, Batch 6 (1)}
     \endfoot
-    \caption[]{Built-in functions, Batch 6}
-    \label{table:built-in-functions-6}
+    \caption[]{Built-in functions, Batch 6 (1)}
+    \label{table:built-in-functions-6-1}
     \endlastfoot
     \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, \ty{integer}]$ \text{$\;\;\; \to \ty{integer}$}
         & $\mathsf{expMod} $  & Yes & \ref{note:exp-mod-integer}\\
@@ -80,21 +92,21 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
             []                     &\text{if $k \geq n$}\\
         \end{array}\right.$}
         & No & \\
-    \TT{lengthOfArray} 
-      & $[\forall a_\#, \arrayOf{a_\#}] \to \ty{integer}$ 
+    \TT{lengthOfArray}
+      & $[\forall a_\#, \arrayOf{a_\#}] \to \ty{integer}$
       & $[] \mapsto 0$
-        \newline 
-        $[x_1,\ldots,x_n] \mapsto n\ (n \geq 1)$ 
-      & No 
+        \newline
+        $[x_1,\ldots,x_n] \mapsto n\ (n \geq 1)$
+      & No
       & \ref{note:array-semantics}\\
-    \TT{listToArray} 
-      & $[\forall a_\#, \listOf{a_\#}] \to \arrayOf{a_\#}$ 
+    \TT{listToArray}
+      & $[\forall a_\#, \listOf{a_\#}] \to \arrayOf{a_\#}$
       & $[] \mapsto []$
-        \newline 
+        \newline
         $[x_1,\ldots,x_n] \mapsto [x_1,\ldots,x_n]\ (n \geq 1)$
       & No
       & \ref{note:array-semantics}\\
-    \TT{indexArray} 
+    \TT{indexArray}
       & $[\forall a_\#, \arrayOf{a_\#}, \ty{integer}]$ \text{$\;\;\; \to \ty{a_\#}$}
       &  $([x_1,\ldots,x_n], k)$
         \smallskip
@@ -103,7 +115,7 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
             \errorX   & \text{if $k < 0$} \\ \relax %
             x_{k+1}   & \text{if $0 \leq k \leq n-1$} \\ \relax
             \errorX   & \text{if $k > n-1$}\\
-        \end{array}\right.$}  
+        \end{array}\right.$}
       & Yes & \ref{note:array-semantics}\\[2mm]
     \TT{bls12\_381\_G1\_multiScalarMul}  &
     $[ \listOf{\ty{integer}}$,
@@ -138,7 +150,7 @@ $$
      0 & \text{if $m=1$}\\
      \errorX & \text{if $m \leq 0$.}
   \end{cases}
-$$ 
+$$
 
 \noindent The fact that this is well defined for the case $e<0$ and $\mathrm{gcd}(a,m) = 1$
 follows, for example, from Proposition I.3.1 of~\cite{Koblitz-GTM}.  See
@@ -164,3 +176,425 @@ element of the relevant group.  Multi-scalar multiplication can already be
 performed using the standard group addition and scalar multiplication functions
 from Batch 4, but having dedicated functions allows for significantly more
 efficient implementation.
+
+\newcommand{\BB}{\mathtt{B}\;}
+\newcommand{\II}{\mathtt{I}\;}
+\newcommand{\flatten}[1]{\ensuremath{#1}\text{\textdownarrow}}
+\newcommand{\unflatten}[1]{\ensuremath{#1}\text{\textuparrow}}
+% If you use \downarrow and \uparrow there's too much space before them.
+
+\subsubsection{The built-in \texttt{value} type}
+\label{sec:built-in-value-type}
+
+\paragraph{Built-in \textsf{Values}.}
+The built-in \texttt{value} type represents the \textsf{Value} type used to
+represent quantities of currencies in Cardano's EUTXO model: see~\cite{EUTXOma};
+we provide a built-in type to represent these and a number of operations for
+working with them, as proposed in CIP-0153~\cite{CIP-0153}.
+
+A \texttt{value} involves a finite set of \textit{currency identifiers}, each of
+which has a finite number of associated \textit{token identifiers}, each of
+which has an associated integral \textit{quantity}. Various other names are used
+for these: for example the Cardano ledger and the Aiken language call currency
+identifiers \textit{policy IDs} and token identifiers \textit{asset names}, and
+the Plinth and Plutarch languages call currency identifiers \textit{currency
+symbols} and token identifiers \textit{token names}.
+
+Currency and token identifiers are bytestrings, and in a
+particular \texttt{value} a given token identifier may be associated with
+multiple currency identifiers.  We model \texttt{value}s as finitely supported
+maps from (currency identifier, token identifier) pairs to integers: see
+Table~\ref{table:built-in-value-type} (and recall that $\B^*$ denotes the set of
+all bytestrings, ie finite sequences of bytes).  For brevity we will call such
+finitely supported maps \textit{values} in this section.  In
+practice values will be implemented as some finite data structure in
+which only a finite number of currency and token identifiers appear, but for
+specification purposes it is convenient to allow a value to
+contain \textit{all} identifiers, but with only a finite number of quantities
+nonzero.  In practice we only allow values $v$ such that for $c, t \in \B^*$
+with $v(c,t) \neq 0$, it is the case that $\length(c) \leq 32$, $\length(t) \leq
+32$ and $-2^{127} \leq q \leq 2^{127}-1$.  We will call such
+values \textit{small values}; none of the built-in functions we provide allow a
+non-small value to be created, and non-small values will also cause a failure
+during deserialisation from the \texttt{flat} format (see
+Appendix~\ref{appendix:flat-serialisation}) and during parsing of textual UPLC.
+
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|p{3cm}|l|}
+        \hline
+        Type & Denotation & Concrete Syntax\\
+        \hline
+        $\ty{value}$ & $\mathsf{FinSup}(\B^* \times \B^*, \Z)$ & See below\\
+        \hline
+    \end{tabular}
+    \caption{Atomic types, Batch 6}
+    \label{table:built-in-value-type}
+\end{table}
+
+\noindent To obtain a syntactic representation of the abstract value type
+we define a concrete ``flattened'' form which represents a value as a
+nested association list.  Given $v \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$,
+let
+$$C_v
+= \{c \in \B^*: \text{there exists $t \in \B^*$ with $v(c,t) \neq 0\}$.}
+$$
+\noindent
+Since $v$ is finitely supported this set is finite, and since the set $\B^*$ of
+all bytestrings is totally ordered (lexicographically), we can write
+$$
+ C_v = \{c_1, \ldots, c_n\}\ \text{with $c_1 < c_2 < \cdots < c_n$}
+$$
+\noindent with $n\geq 0$, the case $n=0$ corresponding to the zero map.
+Similarly, for $1 \leq i \leq n$ we let
+$$T_v(i) = \{t \in \B^*: v(c_i,t) \neq 0\};
+$$
+\noindent
+each of these sets is nonempty and we can write
+$$
+   T_v(i) = \{t_{i1}, t_{i2}, \ldots, t_{ik_i}\}\ \text{with $t_{i1} < t_{i2} < \cdots < t_{ik_i}$}
+$$
+\noindent with $k_i \geq 1$ for $1 \leq i \leq n$. We now define $\flatten{v} \in (\B^* \times (\B^* \times \Z)^*)^*$ by
+\begin{align*}
+ \flatten{v} =
+ [&(c_1, [(t_{11}, v(c_1, t_{11})), (t_{12}, v(c_1, t_{12})), \ldots, (t_{1k_1}, v(c_1, t_{1k_1}))],\\
+  &(c_2, [(t_{21}, v(c_2, t_{21})), (t_{22}, v(c_2, t_{22})), \ldots, (t_{2k_2}, v(c_2, t_{2k_2}))],\\
+  &\ldots,\\
+  &(c_n, [(t_{n1}, v(c_n, t_{n1})), (t_{n2}, v(c_n, t_{n2})), \ldots, (t_{nk_n}, v(c_n, t_{nk_n}))]]
+\end{align*}%
+\nomenclature[Ya]{$\flatten{v}$}{Concrete representation of a \texttt{value} $v$ using nested association lists}
+
+\noindent
+Conversely, given a list
+\begin{align*}
+ l =  [&(c_1, [(t_{11}, q_{11}), (t_{12}, q_{12}), \ldots, (t_{1k_1}, q_{1k_1})]),\\
+       &(c_2, [(t_{21}, q_{21}), (t_{22}, q_{22}), \ldots, (t_{2k_2}, q_{2k_2})]),\\
+       &\ldots,\\
+       &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})])]
+\end{align*}
+
+\noindent in $(\B^* \times (\B^* \times \Z)^*)^*$ with
+\begin{itemize}
+ \item $n \geq 0$
+ \item $c_1 < c_2 < \cdots <c_n$
+ \item $k_i \geq 1$ for $1 \leq i \leq n$
+ \item $t_{i1} < t_{i2} < \cdots < t_{ik_i}$ for $1 \leq i \leq n$
+ \item $q_{ij} \in [-2^{127}, 2^{127}-1]\setminus 0$ for all $i$ and $j$
+\end{itemize}
+(we call a list satisfying these conditions a \textit{well-formed} list) we can
+define a finitely supported map
+$\unflatten{l} \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ by
+$$
+  \unflatten{l}(c,t) =
+  \left\{\begin{array}{ll}
+  q_{ij} & \text{if $c=c_i$ for some $i$ and $t=t_{ij}$ for some $i$ and $j$}\\
+  0 &\text{otherwise.}
+  \end{array}\right.
+$$%
+\nomenclature[Yb]{$\unflatten{l}$}{A nested list $l$ converted into a \texttt{value}}
+
+\noindent
+This function is well defined because the well-formedness requirements ensure
+that a given pair $(c,t)$ appears at most once in the nested list.  If $l$ is
+not well-formed then we put
+$$
+ \unflatten{l} = \errorX.
+$$
+
+\noindent
+We have $\unflatten{\flatten{v}} = v$ for all small values $v$ and
+$\flatten{\unflatten{l}} = l$ for all well-formed $l$, the latter because
+well-formed lists provide a canonical representation of values: for each such
+value $v$ there is exactly one well-formed list $l$ with $\unflatten{l} = v$.
+Without the restrictions we could permute the entries of the lists and add
+currencies with empty token lists or tokens with zero quantities to obtain
+different representations of the same value.
+
+\paragraph{Concrete syntax.}
+In the concrete syntax, constants of type \texttt{value} are represented
+by strings of the form of the form
+\begin{align*}
+ \mathtt{[}
+  & \text{\texttt{($C_1$, [($T_{11}$, $Q_{11}$), ($T_{12}$, $Q_{12}$), $\ldots$, ($T_{1k_1}$, $Q_{1k_1}$)]),}}\\
+  & \text{\texttt{($C_2$, [($T_{21}$, $Q_{21}$), ($T_{22}$, $Q_{22}$), $\ldots$, ($T_{2k_2}$, $Q_{2k_2}$)]),}}\\
+  & \text{\texttt{$\ldots$,}} \\
+  & \text{\texttt{($C_n$, [($T_{n1}$, $Q_{n1}$), ($T_{n2}$, $Q_{n2}$), $\ldots$, ($T_{nk_n}$, $Q_{nk_n}$)])]}}
+\end{align*}
+
+\noindent where each $C_i$ and $T_i$ are literal bytestrings
+described by the regular expression \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*} with at
+most 32 pairs of hexadecimal digits and each $Q_{ij}$ is a non-zero literal integer
+in the range $[-2^{127}, 2^{127}-1]$. The currency IDs and the token IDs for
+each currency must be in strictly ascending order.
+
+\medskip
+\noindent
+The denotation of the associated \texttt{value} is 
+\begin{align*}
+ \unflatten{[
+  & (\denote{C_1}, [(\denote{T_{11}}, \denote{Q_{11}}), (\denote{T_{12}}, \denote{Q_{12}}),
+      \ldots, (\denote{T_{1k_1}}, \denote{Q_{1k_1}})]),\\
+  & (\denote{C_2}, [(\denote{T_{21}}, \denote{Q_{21}}), (\denote{T_{22}}, \denote{Q_{22}}),
+      \ldots, (\denote{T_{2k_2}}, \denote{Q_{2k_2}})]),\\
+  & \ldots, \\
+  & (\denote{C_n}, [(\denote{T_{n1}}, \denote{Q_{n1}}), (\denote{T_{n2}}, \denote{Q_{n2}}),
+      \ldots, (\denote{T_{nk_n}}, \denote{Q_{nk_n}})])]}
+  \in \mathsf{FinSup}(\B^* \times \B^*, \Z)
+\end{align*}
+
+\noindent More intuitively (but less precisely), this maps every pair $(C_i, T_{ij})$
+occurring in the constant to $Q_{ij}$ and everything else to 0.
+
+\medskip
+\noindent
+Some examples of valid \texttt{value} constants are
+\begin{verbatim}
+  (con value []) 
+  (con value [(#1234AB, [(#, 2), (#01, 44), (#05, -3)])])
+  (con value [(#11, [(#, 2), (#01, 1), (#05, 3)]), 
+              (#3333, [(#0f,  4), (#1000, -1)])])
+\end{verbatim}
+
+\noindent
+The expressions
+\begin{verbatim}
+  (con value [(#33,[(#1234, 455)]), (#2222, [(#9a, -7)])])
+\end{verbatim}
+\noindent and
+\begin{verbatim}
+  (con value [(#2222, [(#9a, 44), (#F0, 0), (#FF, 22)])])
+\end{verbatim}
+\noindent are not valid, the first because the currency IDs are not in ascending order
+and the second because the token with ID \texttt{\#F0} appears with quantity 0.
+
+
+\subsubsection{Built-in functions operating on \texttt{value}s}
+\label{sec:built-in-value-functions}
+
+The built-in functions operating on \texttt{value}s are defined in
+Table~\ref{table:built-in-value-functions}.  The inputs to most of these are
+restricted in size and to make it easier to specify them we introduce the sets
+$\B^*_{32}$ of bytestrings of length at most 32 and $Q$ of 128-bit integers:
+
+$$\B^*_{32} = \{[c_0, \ldots, c_{n-1}] \in \B^*: n \leq 32\}$$
+
+$$Q = \{n \in \Z: -2^{127} \leq n \leq 2^{127}-1\}.$$
+
+
+
+
+\setlength{\LTleft}{-10mm}  % Shift the table left a bit to centre it on the page
+\renewcommand*{\arraystretch}{1.25}  %% Stretch the space between the rows by a factor of 25%
+\begin{longtable}[H]{|l|p{50mm}|p{58mm}|c|c|}
+    \hline
+    \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+    & & & fail? & \\
+    \hline
+    \endfirsthead
+    \hline
+    \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
+    & & & fail? & \\
+        \hline
+    \endhead
+    \hline
+    \caption{Batch 6: built-in \texttt{value} functions}
+    \endfoot
+    \caption[]{Batch 6: built-in \texttt{value} functions}
+    \label{table:built-in-value-functions}
+    \endlastfoot
+\hline  % Value builtins
+
+  \TT{insertCoin} & $[ \ty{bytestring}, \ty{bytestring}, $
+                       $\text{\:  \ty{integer}, \ty{value} ]}$ $\to \ty{value}$
+                  & $(c, t, n, v)$
+                  \smallskip
+                  \newline
+                  $\mapsto \left\{
+                  \begin{array}{ll}
+                  v[(c,t) \mapsto 0] & \text{if $n = 0$}\\
+                  v[(c,t) \mapsto n] & \text{if $c,t\in B^*_{32}$, $n \in Q$}\\
+                  \errorX & \text{otherwise}
+                  \end{array}\right.$
+                  & Yes & \ref{note:insertCoin-semantics} \\[2mm]
+  \TT{lookupCoin} & $[ \ty{bytestring}, \ty{bytestring}, $
+                       $\text{\: \ty{value} ]}$ $\to \ty{integer}$
+                  & $ (c,t,v) \mapsto v(c,t) $
+                  & No & \ref{note:lookupCoin-semantics} \\[2mm]
+  \TT{unionValue} & $[ \ty{value}, \ty{value} ] \to \ty{value}$
+                  & $ \mathsf{unionValue} $
+                  & Yes  & \ref{note:unionValue-semantics} \\[2mm]
+  \TT{valueContains} & $[ \ty{value}, \ty{value} ] \to \ty{bool}$ & $\mathsf{valueContains}$
+                  & Yes & \ref{note:valueContains-semantics} \\[2mm]
+  \TT{scaleValue} & $[ \ty{integer}, \ty{value} ] \to \ty{value}$
+                  & $\mathsf{scaleValue}$
+                  & Yes & \ref{note:scaleValue-semantics} \\[2mm]
+  \TT{valueData} & $[ \ty{value} ] \to \ty{data}$ &  \textsf{valueData} & Yes & \ref{note:valueData-semantics} \\[2mm]
+  \TT{unValueData} & $[ \ty{data} ] \to \ty{value}$ & \textsf{unValueData} & Yes & \ref{note:unValueData-semantics} \\[2mm]
+\hline
+\end{longtable}
+
+
+
+\note{Semantics of \texttt{insertCoin}.}
+\label{note:insertCoin-semantics}
+The \texttt{insertCoin} function updates the quantity $q$ associated with a
+(currency identifier, token identifier) pair $(c,t)$ in a value $v$. If $q=0$
+then the function returns $v$ with the entry for $(c,t)$ (if present) deleted;
+if there is no entry for $(c,t)$ then the function succeeds and $v$ is returned
+unaltered. When $q=0$ there is no limit on the size of the identifiers and the
+function always succeeds.  If $q$ is nonzero and lies in $[-2^{127}, 2^{127}-1]$
+and both $c$ and $t$ are no longer than 32 bytes then the function returns $v$
+updated to map $(c,t)$ to $q$; any previous quantity associated with $(c,t)$ is
+discarded.  If $q \neq0$ and any of $c$, $t$, or $q$ is out of bounds then the
+function fails.
+
+\note{Semantics of \texttt{lookupCoin}.}
+\label{note:lookupCoin-semantics}
+The \texttt{lookupCoin} function always accepts currency and token identifiers
+of any length; however there is no way to create a value where such an
+identifier is associated with a nonzero quantity, so if \texttt{lookupCoin} is
+called with such an identifier it will always succeed and return 0.
+
+\note{Semantics of \texttt{unionValue}.}
+\label{note:unionValue-semantics}
+The result of \texttt{unionValue} is obtained by adding together corresponding
+quantities in its inputs, provided that all of the added quantities are in the
+signed 128-bit range $[-2^{127}, 2^{127}-1]$: its denotation
+\textsf{unionValue} is defined by
+  $$
+  \mathsf{unionValue}(v, w) =
+  \left\{
+  \begin{array}{ll}
+        v+w & \text{if $v(c,t)+w(c,t) \in Q$ for all $c$ and $t$}\\
+        \errorX & \text{otherwise}\\
+  \end{array}\right.
+  $$
+where $v+w \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ is defined by $(v+w)(c,t)
+= v(c,t)+w(c,t)$ for all $c$ and $t$.
+
+\note{Semantics of \texttt{valueContains}.}
+\label{note:valueContains-semantics}
+For \texttt{valueContains} $v$ $w$, an error occurs if either $v$ or $w$
+contains a negative quantity.  If all quantities are non-negative then the
+function returns \texttt{true} if every quantity in $v$ is greater than or equal
+to the corresponding quantity in $w$, otherwise it returns \texttt{false}: its
+denotation
+\textsf{valueContains} is defined by
+  $$
+  \mathsf{valueContains}(v,w)  =
+  \left\{ \begin{array}{ll}
+  \textsf{true} & \text{if  $v(c,t) \geq w(c,t) \geq 0$ for all $c$ and $t$}\\
+  \textsf{false} & \text{if $v(c_0,t_0) < w(c_0,t_0)$ for some $c_0$ and $t_0$ and $v(c,t), w(c,t) \geq 0$ for all $c$ and $t$}\\
+  \errorX & \text{otherwise.}\\
+  \end{array}\right.
+  $$
+
+\note{Semantics of \texttt{scaleValue}.}
+\label{note:scaleValue-semantics}
+The result of \texttt{scaleValue} $n$ $v$ is $v$ with all quantities multiplied
+by $n$, provided that all of the scaled quantities are in the signed 128-bit
+range: its denotation
+\textsf{scaleValue} is defined by
+  $$
+  \mathsf{scaleValue}(n,v) =
+  \left\{
+  \begin{array}{ll}
+        n*v & \text{if $(n*v)(c,t) \in Q$ for all $c$ and $t$}\\
+        \errorX & \text{otherwise}\\
+  \end{array}\right.
+  $$
+  where $n*v \in \mathsf{FinSup}(\B^* \times \B^*, \Z)$ is defined by
+  $(n*v)(c,t) = n*v(c,t)$ for all $c$ and $t$.
+
+\note{Semantics of \texttt{valueData}.}
+\label{note:valueData-semantics}
+The \texttt{valueData} function converts a \texttt{value} object to an object of
+type \texttt{data} (see Section~\ref{sec:default-builtins-1}).  It returns
+a \texttt{Map} (the \textit{outer map}) containing a list of pairs, the first
+element of each pair being a \texttt{B} object containing a currency identifier,
+and the second element (an \textit{inner map}) containing a list of (token
+identifier, quantity) pairs.  The elements of the outer and inner maps are
+sorted lexicograpically by identifier, there are no repeated identifiers in any
+map, and the quantities are all nonzero.  The function fails if there are more
+than 40,000 token IDs in total in the input \texttt{value}.
+
+\medskip
+\noindent Formally, given a value $v$ with
+
+\begin{align*}
+ \flatten{v}=
+ [&(c_1, [(t_{11}, q_{11}), (t_{12}, q_{12}), \ldots, (t_{1k_1}, q_{1k_1})]),\\
+  &(c_2, [(t_{21}, q_{21}), (t_{22}, q_{22}), \ldots, (t_{2k_2}, q_{2k_2})]),\\
+  &\ldots,\\
+  &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})])]
+\end{align*}
+
+\noindent we let
+$$
+ \mathsf{valueData}(v) =
+ \left\{
+ \begin{array}{ll}
+  m & \text{if $\Sigma_{i=1}^nk_i \leq 40000$}\\
+  \errorX & \text{otherwise}
+ \end{array}\right.
+$$
+\noindent
+where
+
+\begin{align*}
+ m = \mathtt{Map}\,[
+ &(\BB c_1, \mathtt{Map}\,[(\BB t_{11}, \II q_{11}), (\BB t_{12}, \II q_{12}), \ldots, (\BB t_{1k_1}, \II q_{1k_1})]),\\
+ &(\BB c_2, \mathtt{Map}\,[(\BB t_{21}, \II q_{21}), (\BB t_{22}, \II q_{22}), \ldots, (\BB t_{2k_2}, \II q_{2k_2})]),\\
+ &\ldots,\\
+ &(\BB c_n, \mathtt{Map}\,[(\BB t_{n1}, \II q_{n1}), (\BB t_{n2}, \II q_{n2}), \ldots, (\BB t_{nk_n}, \II q_{nk_n})])].
+\end{align*}
+
+
+\note{Semantics of \texttt{unValueData}.}
+\label{note:unValueData-semantics}
+The \texttt{unValueData} function is the inverse of \texttt{valueData}.  It
+takes a \texttt{data} object as input and returns a \texttt{value} object.  The
+function requires its input to consist of a single outer \texttt{Map} whose
+entries are pairs of (\texttt{B}, \texttt{Map}) pairs, with each inner map
+containing a list of (\texttt{B}, \texttt{I}) pairs.  The keys in the outer map
+and all of the inner maps must be at most 32 bytes long and they must be
+strictly ascending according to the lexicographic ordering on bytestrings, and
+all quantities (the \texttt{I} entries) must be nonzero and lie in the interval
+$[-2^{127}, 2^{127}-1]$.  The outer map is allowed to be empty (representing the
+empty value) but the inner maps must all be nonempty.
+
+\medskip
+\noindent
+Formally, if $d$ is a data object then if $d$ is of the form
+
+\begin{align*}
+\mathtt{Map}\,[
+ &(\BB c_1, \mathtt{Map}\,[(\BB t_{11}, \II q_{11}), (\BB t_{12}, \II q_{12}), \ldots, (\BB t_{1k_1}, \II q_{1k_1})]),\\
+ &(\BB c_2, \mathtt{Map}\,[(\BB t_{21}, \II q_{21}), (\BB t_{22}, \II q_{22}), \ldots, (\BB t_{2k_2}, \II q_{2k_2})]),\\
+ &\ldots,\\
+ &(\BB c_n, \mathtt{Map}\,[(\BB t_{n1}, \II q_{n1}), (\BB t_{n2}, \II q_{n2}), \ldots, (\BB t_{nk_n}, \II q_{nk_n})])],
+\end{align*}
+
+\noindent then let 
+\begin{align*}
+  l = [
+  &(c_1, [(t_{11}, q_{11}), (t_{12}, q_{12}), \ldots, (t_{1k_1}, q_{1k_1})]),\\
+  &(c_2, [(t_{21}, q_{21}), (t_{22}, q_{22}), \ldots, (t_{2k_2}, q_{2k_2})]),\\
+  &\ldots,\\
+  &(c_n, [(t_{n1}, q_{n1}), (t_{n2}, q_{n2}), \ldots, (t_{nk_n}, q_{nk_n})])]
+\end{align*}
+\noindent and define 
+
+$$
+\mathsf{unValueData}(d) = \unflatten{l},
+$$
+remembering that $\unflatten{l} = \errorX$ if $l$ is not well formed.
+If the \texttt{data} object $d$ is not of the expected form (involving
+nested \texttt{Map}s) then also we let $\mathsf{unValueData}(d) = \errorX$.
+
+\paragraph{Note.} Later we expect to extend the \texttt{data} type to include
+a \texttt{Value} field containing a \texttt{value} object.  This will enable us
+to introduce much simpler and faster versions of \texttt{valueData}
+and \texttt{unValueData}.
+
