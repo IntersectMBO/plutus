@@ -78,7 +78,7 @@ pattern let' rhs body = ƛ body · rhs
 
 ```
 variable
-  t t' u u' : ∀{X} → X ⊢
+  t t' u u' : ∀{n} → n ⊢
 ```
 
 ## Debug printing
@@ -123,9 +123,9 @@ uglyBuiltin _ = "other"
 -- if we are going to start using this
 -- https://github.com/IntersectMBO/plutus-private/issues/1621
 
-uglyList : ∀{X} → L.List (X ⊢) → String
-uglyList' : ∀{X} → L.List (X ⊢) → String
-ugly : ∀{X} → X ⊢ → String
+uglyList : ∀{n} → L.List (n ⊢) → String
+uglyList' : ∀{n} → L.List (n ⊢) → String
+ugly : ∀{n} → n ⊢ → String
 ugly (` x) = "(` var )"
 ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
 ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"

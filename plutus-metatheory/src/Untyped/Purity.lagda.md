@@ -15,7 +15,7 @@ open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; 
 open import Relation.Nullary using (Dec; yes; no; ¬_; _×-dec_)
 open import Builtin using (Builtin; arity; arity₀)
 open import RawU using (TmCon)
-open import Data.Product using (_,_; _×_)
+open import Data.Product using (_,_; _×_ ; ∃)
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc; _>_; _>?_)
 open import Data.List using (List; _∷_; [])
@@ -29,7 +29,7 @@ open import Data.Empty using (⊥)
 open import Function.Base using (case_of_)
 open import Untyped.CEK using (lookup?)
 open import VerifiedCompilation.UntypedViews using (isDelay?; isTerm?; isLambda?; isdelay; isterm; islambda)
-open import Untyped.Reduction using (iterApp; Arity; want; no-builtin; sat)
+open import Untyped.Reduction using (iterApp; Arity; want; no-builtin; sat; _⟶*_; value)
 ```
 ## Saturation
 
@@ -37,10 +37,10 @@ The `sat` function is used to measure whether a builtin at the bottom of a
 sub-tree of `force` and applications is now saturated and ready to reduce.
 
 ```
-data Pure {X : ℕ} : (X ⊢) → Set where
-    force : {t : X ⊢} → Pure t → Pure (force (delay t))
+data Pure {n : ℕ} : (n ⊢) → Set where
+    force : {t : n ⊢} → Pure t → Pure (force (delay t))
 
-    constr : {i : ℕ} {xs : List (X ⊢)} → All Pure xs → Pure (constr i xs)
+    constr : {i : ℕ} {xs : List (n ⊢)} → All Pure xs → Pure (constr i xs)
 
     -- This assumes there are no builtins with arity 0
     -- Or, if there are, they can just be replaced by a
@@ -51,7 +51,7 @@ data Pure {X : ℕ} : (X ⊢) → Set where
     -- after it has been force'd or had something applied
     -- hence, unsat-builtin₀ and unsat-builtin₁ have
     -- (suc (suc _)) requirements.
-    unsat-builtin₀ : {t : X ⊢} {a₀ a₁ : ℕ}
+    unsat-builtin₀ : {t : n ⊢} {a₀ a₁ : ℕ}
             → sat t ≡ want (suc (suc a₀)) a₁
             → Pure t
             → Pure (force t)
@@ -59,12 +59,12 @@ data Pure {X : ℕ} : (X ⊢) → Set where
     -- unsat-builtin₀₋₁ handles the case where
     -- we consume the last type argument but
     -- still have some unsaturated term args.
-    unsat-builtin₀₋₁ : {t : X ⊢} {a₁ : ℕ}
+    unsat-builtin₀₋₁ : {t : n ⊢} {a₁ : ℕ}
             → sat t ≡ want (suc zero) (suc a₁)
             → Pure t
             → Pure (force t)
 
-    unsat-builtin₁ : {t t₁ : X ⊢} {a₁ : ℕ}
+    unsat-builtin₁ : {t t₁ : n ⊢} {a₁ : ℕ}
             → sat t ≡ want zero (suc (suc a₁))
             → Pure t
             → Pure t₁
@@ -76,20 +76,20 @@ data Pure {X : ℕ} : (X ⊢) → Set where
     -- ƛ ƛ ( (` nothing) · (` just nothing) ) · (ƛ error) · t -- not pure
     -- Double application is considered impure (Unknown) by
     -- the Haskell implementation at the moment.
-    app : {l : suc X ⊢} {r : X ⊢}
+    app : {l : suc n ⊢} {r : n ⊢}
             → Pure l
             → Pure r
             → Pure ((ƛ l) · r)
 
-    var : {v : Fin X} → Pure (` v)
-    delay : {t : X ⊢} → Pure (delay t)
-    ƛ : {t : (suc X) ⊢} → Pure (ƛ t)
+    var : {v : Fin n} → Pure (` v)
+    delay : {t : n ⊢} → Pure (delay t)
+    ƛ : {t : (suc n) ⊢} → Pure (ƛ t)
     con : {c : TmCon} → Pure (con c)
     -- all `case` and `error` terms are considered impure.
 
-isPure? : {X : ℕ} → (t : X ⊢) → Dec (Pure t)
+isPure? : {n : ℕ} → (t : n ⊢) → Dec (Pure t)
 
-allPure? : {X : ℕ} → (ts : List (X ⊢)) → Dec (All Pure ts)
+allPure? : {n : ℕ} → (ts : List (n ⊢)) → Dec (All Pure ts)
 allPure? [] = yes All.[]
 allPure? (t ∷ ts) with (isPure? t) ×-dec (allPure? ts)
 ... | yes (p , ps) = yes (p All.∷ ps)
@@ -141,4 +141,55 @@ isPure? (constr i xs) with allPure? xs
 isPure? (case scrut ts) =  no λ ()
 isPure? (builtin b) = yes builtin
 isPure? error = no λ ()
+```
+
+## Semantics of purity
+
+Note: this is currently based on the reduction semantics in `Untyped.Reduction`,
+which may change in the future (e.g. in favour of directly working against CEK
+semantics, or an updated `Untyped.Reduction`). We reuse `Env` from the CEK
+module but otherwise not CEK semantics is used at the moment.
+
+```
+open import Untyped.RenamingSubstitution using (Sub; sub)
+open import Untyped.Reduction using (_⟶*_; refl; Value; value; V-v)
+open import Untyped.CEK using (env2sub)
+```
+
+A closed term is semantically pure when it eventually reduces to a value.
+
+```
+pure₀ : 0 ⊢ → Set
+pure₀ M = ∃ λ N → (M ⟶* N) × value N
+```
+
+An open term is semantically pure when closing it with a value substitution
+results in a closed pure term:
+
+```
+pure : ∀{n} → n ⊢ → Set
+pure M = ∃ λ ρ → pure₀ (sub (env2sub ρ) M)
+```
+
+TODO, substituting the empty environment is the identity:
+
+```
+postulate
+  pure₀-pure : ∀ {M} → pure₀ M → pure M
+```
+
+Every value is trivially pure:
+
+```
+value-pure : ∀ {M : 0 ⊢} → Value M → pure M
+value-pure v = pure₀-pure (_ , refl , (V-v v))
+```
+
+## Soundness of `Pure`
+
+TODO:
+
+```
+postulate
+  Pure-pure : ∀ {n} {M : n ⊢} → Pure M → pure M
 ```

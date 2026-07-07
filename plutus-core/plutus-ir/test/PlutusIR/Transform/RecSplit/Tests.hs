@@ -9,6 +9,7 @@ import PlutusIR.Parser
 import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.RecSplit
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty.QuickCheck
 
 test_recSplit :: TestTree
@@ -26,4 +27,4 @@ test_recSplit =
 
 prop_recSplit :: Property
 prop_recSplit =
-  withMaxSuccess numTestsForPassProp $ testPassProp runIdentity recSplitPass
+  BaseQC.withNumTests numTestsForPassProp $ testPassProp runIdentity recSplitPass

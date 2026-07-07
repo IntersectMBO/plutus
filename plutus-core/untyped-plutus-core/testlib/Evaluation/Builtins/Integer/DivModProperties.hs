@@ -9,6 +9,7 @@ where
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common
 
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty (TestName, TestTree, testGroup)
 import Test.Tasty.QuickCheck
 
@@ -16,7 +17,7 @@ numberOfTests :: Int
 numberOfTests = 200
 
 testProp :: Testable prop => TestName -> prop -> TestTree
-testProp s p = testProperty s $ withMaxSuccess numberOfTests p
+testProp s p = testProperty s $ BaseQC.withNumTests numberOfTests p
 
 -- `divideInteger _ 0` always fails.
 prop_div_0_fails :: BigInteger -> Property

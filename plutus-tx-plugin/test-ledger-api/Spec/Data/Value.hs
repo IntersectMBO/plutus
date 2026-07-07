@@ -1,3 +1,4 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -12,9 +13,13 @@ import Prelude qualified as Haskell
 
 import PlutusLedgerApi.V1.Data.Value
 
+import Plinth.Plugin (plinthc)
 import PlutusTx.Base
+import PlutusTx.Builtins qualified as B
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code (CompiledCode, getPlc, unsafeApplyCode)
 import PlutusTx.Data.AssocMap qualified as AssocMap
+import PlutusTx.IsData qualified as Tx
 import PlutusTx.Lift
 import PlutusTx.List qualified as List
 import PlutusTx.Maybe
@@ -22,6 +27,7 @@ import PlutusTx.Numeric
 import PlutusTx.Prelude hiding (integerToByteString)
 import PlutusTx.Show (toDigits)
 import PlutusTx.TH (compile)
+import PlutusTx.Test.Run.Code (evalResult, evaluateCompiledCode)
 import PlutusTx.Traversable qualified as Tx
 
 import PlutusCore.Builtin qualified as PLC
@@ -31,12 +37,16 @@ import UntypedPlutusCore qualified as PLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as PLC
 
 import Control.Exception qualified as Haskell
+import Data.ByteString qualified as BS
 import Data.Functor qualified as Haskell
 import Data.List qualified as Haskell
 import Data.Map qualified as Map
+import PlutusLedgerApi.Test.V1.Data.Value qualified as ListToValue
 import Prettyprinter qualified as Pretty
+import Test.QuickCheck (Arbitrary (arbitrary), forAll, (===))
 import Test.Tasty
 import Test.Tasty.Extras
+import Test.Tasty.QuickCheck (testProperty)
 
 scalingFactor :: Integer
 scalingFactor = 4
@@ -258,3 +268,112 @@ test_EqValue =
     $ [ test_EqCurrencyList "Short" currencyListOptions
       , test_EqCurrencyList "Long" currencyLongListOptions
       ]
+
+-- | Compiled non-builtin 'valueOf', evaluated on CEK by the property test.
+compiledValueOf :: CompiledCode (Value -> CurrencySymbol -> TokenName -> Integer)
+compiledValueOf = plinthc valueOf
+
+{-| Compiled builtin lookup: @\\bd cs tn -> lookupCoin cs tn (unsafeDataAsValue bd)@.
+Used as the independent oracle in the differential property test for 'valueOf'. -}
+compiledBuiltinLookup
+  :: CompiledCode (BI.BuiltinData -> BI.BuiltinByteString -> BI.BuiltinByteString -> Integer)
+compiledBuiltinLookup =
+  plinthc (\bd c t -> B.lookupCoin c t (B.unsafeDataAsValue bd))
+
+{-| Check that the non-builtin 'valueOf' agrees with the builtin lookup path
+('unsafeDataAsValue' + 'lookupCoin') when both are evaluated on the CEK machine. -}
+test_valueOf :: TestTree
+test_valueOf =
+  testProperty "non-builtin valueOf matches builtin lookupCoin on CEK" \rawValue ->
+    let value =
+          ListToValue.listsToValue
+            . Haskell.sortOn fst
+            . Haskell.filter (Haskell.not . Haskell.null . snd)
+            . Haskell.map
+              ( Haskell.fmap
+                  ( Haskell.sortOn fst
+                      . Haskell.filter ((Haskell./= 0) . snd)
+                  )
+              )
+            $ ListToValue.valueToLists rawValue
+        genBytes = Haskell.fmap BS.pack arbitrary
+        genKeyPair =
+          Haskell.liftA2
+            (\bs1 bs2 -> (currencySymbol bs1, tokenName bs2))
+            genBytes
+            genBytes
+     in forAll genKeyPair \(cs, tn) ->
+          let nonBuiltin =
+                evalResult
+                  . evaluateCompiledCode
+                  $ compiledValueOf
+                  `unsafeApplyCode` liftCodeDef value
+                  `unsafeApplyCode` liftCodeDef cs
+                  `unsafeApplyCode` liftCodeDef tn
+              builtin =
+                evalResult
+                  . evaluateCompiledCode
+                  $ compiledBuiltinLookup
+                  `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+                  `unsafeApplyCode` liftCodeDef (unCurrencySymbol cs)
+                  `unsafeApplyCode` liftCodeDef (unTokenName tn)
+           in nonBuiltin === builtin
+
+{-| The 'unionWith' @(+)@ under test. Signature matches 'compiledBuiltinUnion' so the property
+can pit them against each other. -}
+compiledUnionWith :: CompiledCode (BI.BuiltinData -> BI.BuiltinData -> BI.BuiltinData)
+compiledUnionWith = plinthc \bd1 bd2 ->
+  Tx.toBuiltinData (unionWith (+) (Tx.unsafeFromBuiltinData bd1) (Tx.unsafeFromBuiltinData bd2))
+
+{-| Independent oracle: the builtin union path. Shares no source with 'compiledUnionWith', so a
+bug in one cannot hide behind the same bug in the other. -}
+compiledBuiltinUnion :: CompiledCode (BI.BuiltinData -> BI.BuiltinData -> BI.BuiltinData)
+compiledBuiltinUnion = plinthc \bd1 bd2 ->
+  B.mkValue (B.unionValue (B.unsafeDataAsValue bd1) (B.unsafeDataAsValue bd2))
+
+-- | Evaluate a compiled union on CEK and decode its result.
+runUnionCode
+  :: CompiledCode (BI.BuiltinData -> BI.BuiltinData -> BI.BuiltinData)
+  -> Value
+  -> Value
+  -> Value
+runUnionCode code value1 value2 =
+  Tx.unsafeFromBuiltinData
+    . BI.dataToBuiltinData
+    . either Haskell.throw id
+    $ errOrRes
+    >>= PLC.readKnownSelf
+  where
+    prog =
+      code
+        `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value1)
+        `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value2)
+    (errOrRes, _cost) =
+      PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
+        . PLC.runQuote
+        . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
+        . PLC._progTerm
+        $ getPlc prog
+
+-- | 'unionWith' @(+)@ must agree with the builtin union path on CEK.
+test_unionWith :: TestTree
+test_unionWith =
+  testProperty "non-builtin unionWith matches builtin unionValue on CEK" \rawValue1 rawValue2 ->
+    let v1 = normalise rawValue1
+        v2 = normalise rawValue2
+        -- Compare semantically: key order and zero-sum entries differ between the paths but
+        -- carry no meaning, so canonicalise before '==='.
+        canon code = normaliseLists . valueToLists $ runUnionCode code v1 v2
+     in canon compiledUnionWith === canon compiledBuiltinUnion
+
+{-| Restrict an arbitrary 'Value' to the well-formed domain 'unsafeDataAsValue' accepts: the
+builtin errors on unsorted keys, zero quantities, or empty token maps. -}
+normaliseLists
+  :: [(CurrencySymbol, [(TokenName, Integer)])] -> [(CurrencySymbol, [(TokenName, Integer)])]
+normaliseLists =
+  Haskell.sortOn fst
+    . Haskell.filter (Haskell.not . Haskell.null . snd)
+    . Haskell.map (Haskell.fmap (Haskell.sortOn fst . Haskell.filter ((Haskell./= 0) . snd)))
+
+normalise :: Value -> Value
+normalise = listsToValue . normaliseLists . valueToLists

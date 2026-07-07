@@ -9,7 +9,8 @@ import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.CaseOfCase qualified as CaseOfCase
 import PlutusPrelude
-import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
+import Test.QuickCheck.Property (Property)
 
 test_caseOfCase :: TestTree
 test_caseOfCase =
@@ -31,6 +32,6 @@ test_caseOfCase =
 
 prop_caseOfCase :: Property
 prop_caseOfCase =
-  withMaxSuccess numTestsForPassProp $
+  BaseQC.withNumTests numTestsForPassProp $
     testPassProp runQuote $
       \tc -> CaseOfCase.caseOfCasePassSC tc def True mempty

@@ -56,18 +56,18 @@ RelationT = @++ Relation → Relation
 ## Basic combinators for relation transformers
 
 ```
-infixr 5 _+_
+infixr 5 _⊕_
 
-data _+_ (F G : RelationT) (@++ R : Relation) : Relation where
-  inl : ∀ {X} {M N : X ⊢} → F R M N → (F + G) R M N
-  inr : ∀ {X} {M N : X ⊢} → G R M N → (F + G) R M N
+data _⊕_ (F G : RelationT) (@++ R : Relation) : Relation where
+  inl : ∀ {n} {M N : n ⊢} → F R M N → (F ⊕ G) R M N
+  inr : ∀ {n} {M N : n ⊢} → G R M N → (F ⊕ G) R M N
 
 Empty : RelationT
 Empty R M N = ⊥
 
 data Fix (F : RelationT) : Relation where
   fix :
-    ∀ {X} {M N : X ⊢}
+    ∀ {n} {M N : n ⊢}
     → F (Fix F) M N
     → (Fix F) M N
 
@@ -79,18 +79,18 @@ Const R _ = R
 
 ```
 data Transitivity (@++ R : Relation) : Relation where
-  transF : ∀ {X} {L M N : X ⊢} →
+  transF : ∀ {n} {L M N : n ⊢} →
     R L M →
     R M N →
     Transitivity R L N
 
 data Symmetry (@++ R : Relation) : Relation where
-  symF : ∀ {X} {M N : X ⊢} →
+  symF : ∀ {n} {M N : n ⊢} →
     R M N →
     Symmetry R N M
 
 data Reflexivity (@++ R : Relation) : Relation where
-  reflF : ∀ {X} {M : X ⊢} →
+  reflF : ∀ {n} {M : n ⊢} →
     Reflexivity R M M
 ```
 
@@ -102,20 +102,20 @@ These are typical rules that are part of a translation relation.
 ```
 data CompatVar (@++ R : Relation) : Relation where
   `F_ :
-    ∀ {X} (x : Fin X)
+    ∀ {n} (x : Fin n)
     -------------------------
     → CompatVar R (` x) (` x)
 
 data CompatLambda (@++ R : Relation) : Relation where
   ƛF :
-    ∀ {X} {M M' : suc X ⊢}
+    ∀ {n} {M M' : suc n ⊢}
     → R M M'
     -----------------------------
     → CompatLambda R (ƛ M) (ƛ M')
 
 data CompatApply (@++ R : Relation) : Relation where
   _·F_ :
-    ∀ {X} {M M' N N' : X ⊢}
+    ∀ {n} {M M' N N' : n ⊢}
     → R M M'
     → R N N'
     ---------------------------------
@@ -123,34 +123,34 @@ data CompatApply (@++ R : Relation) : Relation where
 
 data CompatForce (@++ R : Relation) : Relation where
   forceF :
-    ∀ {X} {M M' : X ⊢}
+    ∀ {n} {M M' : n ⊢}
     → R M M'
     ------------------------------------
     → CompatForce R (force M) (force M')
 
 data CompatDelay (@++ R : Relation) : Relation where
   delayF :
-    ∀ {X} {M M' : X ⊢}
+    ∀ {n} {M M' : n ⊢}
     → R M M'
     ------------------------------------
     → CompatDelay R (delay M) (delay M')
 
 data CompatCon (@++ R : Relation) : Relation where
   conF :
-    ∀ {X} {c : TmCon}
+    ∀ {n} {c : TmCon}
     -------------------------------------
-    → CompatCon R (con {n = X} c) (con c)
+    → CompatCon R (con {n = n} c) (con c)
 
 data CompatConstr (@++ R : Relation) : Relation where
   constrF :
-    ∀ {X} {i : ℕ} {xs xs' : List (X ⊢)}
+    ∀ {n} {i : ℕ} {xs xs' : List (n ⊢)}
     → Pointwise R xs xs'
     ---------------------------------------------
     → CompatConstr R (constr i xs) (constr i xs')
 
 data CompatCase (@++ R : Relation) : Relation where
   caseF :
-    ∀ {X} {t t' : X ⊢} {ts ts' : List (X ⊢)}
+    ∀ {n} {t t' : n ⊢} {ts ts' : List (n ⊢)}
     → R t t'
     → Pointwise R ts ts'
     --------------------------------------
@@ -158,15 +158,15 @@ data CompatCase (@++ R : Relation) : Relation where
 
 data CompatBuiltin (@++ R : Relation) : Relation where
   builtinF :
-    ∀ {X} {b : Builtin}
+    ∀ {n} {b : Builtin}
     -------------------------------------------------
-    → CompatBuiltin R (builtin {n = X} b) (builtin b)
+    → CompatBuiltin R (builtin {n = n} b) (builtin b)
 
 data CompatError (@++ R : Relation) : Relation where
   errorF :
-    ∀ {X}
+    ∀ {n}
     -----------------------------------------------
-    → CompatError R (error {n = X}) (error {n = X})
+    → CompatError R (error {n = n}) (error {n = n})
 ```
 
 Term-compatibility can be constructed by using compatibility rules of all constructors:
@@ -174,59 +174,10 @@ Term-compatibility can be constructed by using compatibility rules of all constr
 ```
 CompatTerm : RelationT
 CompatTerm
-  = CompatVar + CompatLambda + CompatApply + CompatForce + CompatDelay
-  + CompatCon + CompatConstr + CompatCase + CompatBuiltin + CompatError + Empty
+  = CompatVar ⊕ CompatLambda ⊕ CompatApply ⊕ CompatForce ⊕ CompatDelay
+  ⊕ CompatCon ⊕ CompatConstr ⊕ CompatCase ⊕ CompatBuiltin ⊕ CompatError ⊕ Empty
 ```
 
-## Pattern synonyms
-
-Convenient synonyms for constructing/matching cases of `CompatTerm`
-
-```
--- TODO: solve this with metaprogramming or typeclasses
-pattern p0 p = inl p
-pattern p1 p = inr (p0 p)
-pattern p2 p = inr (p1 p)
-pattern p3 p = inr (p2 p)
-pattern p4 p = inr (p3 p)
-pattern p5 p = inr (p4 p)
-pattern p6 p = inr (p5 p)
-pattern p7 p = inr (p6 p)
-pattern p8 p = inr (p7 p)
-pattern p9 p = inr (p8 p)
-
-pattern compat-varF n     = p0 (`F n)
-pattern compat-lambdaF p  = p1 (ƛF p)
-pattern compat-applyF p q = p2 (p ·F q)
-pattern compat-forceF p   = p3 (forceF p)
-pattern compat-delayF p   = p4 (delayF p)
-pattern compat-conF       = p5 conF
-pattern compat-constrF p  = p6 (constrF p)
-pattern compat-caseF p q  = p7 (caseF p q)
-pattern compat-builtinF   = p8 builtinF
-pattern compat-errorF     = p9 errorF
-```
-
-
-## Structures
-
-If a relation has the `CompatTerm` rules, then it forms a `TermCompatible` structure.
-
-```
-CompatTerm-TermCompatible : ∀ {R : Relation} → CompatTerm R ⊆ R → TermCompatible R
-CompatTerm-TermCompatible inj = record
-  { compat-var     = inj (compat-varF _)
-  ; compat-ƛ       = λ RM → inj (compat-lambdaF RM)
-  ; compat-·       = λ RM RN → inj (compat-applyF RM RN)
-  ; compat-force   = λ RM → inj (compat-forceF RM)
-  ; compat-delay   = λ RM → inj (compat-delayF RM)
-  ; compat-constr  = λ RMS → inj (compat-constrF RMS)
-  ; compat-case    = λ RM RMS → inj (compat-caseF RM RMS)
-  ; compat-con     = inj compat-conF
-  ; compat-builtin = inj compat-builtinF
-  ; compat-error   = inj compat-errorF
-  }
-```
 
 
 ## Decision procedures
@@ -245,13 +196,13 @@ DecidableT F =
 ## Decision procedures for combinators
 
 ```
-infixr 5 _+-dec_
-_+-dec_ :
+infixr 5 _⊕-dec_
+_⊕-dec_ :
   ∀ {F G : RelationT}
   → DecidableT F
   → DecidableT G
-  → DecidableT (F + G)
-_+-dec_ F? G? R? M M'
+  → DecidableT (F ⊕ G)
+_⊕-dec_ F? G? R? M M'
   with F? R? M M'
 ... | yes P = yes (inl P)
 ... | no ¬P
@@ -377,16 +328,16 @@ compatError? R? M M'
 compatTerm? : DecidableT CompatTerm
 compatTerm?
   =     compatVar?
-  +-dec compatLam?
-  +-dec compatApply?
-  +-dec compatForce?
-  +-dec compatDelay?
-  +-dec compatCon?
-  +-dec compatConstr?
-  +-dec compatCase?
-  +-dec compatBuiltin?
-  +-dec compatError?
-  +-dec empty?
+  ⊕-dec compatLam?
+  ⊕-dec compatApply?
+  ⊕-dec compatForce?
+  ⊕-dec compatDelay?
+  ⊕-dec compatCon?
+  ⊕-dec compatConstr?
+  ⊕-dec compatCase?
+  ⊕-dec compatBuiltin?
+  ⊕-dec compatError?
+  ⊕-dec empty?
 ```
 
 
@@ -400,7 +351,7 @@ _<|>_ :
   ∀ {F G : RelationT} {R : Relation}
   → Refinement? (F R)
   → Refinement? (G R)
-  → Refinement? ((F + G) R)
+  → Refinement? ((F ⊕ G) R)
 (f <|> g) M
   with f M
 ... | just (N , RMN) = just (N , inl RMN)
@@ -431,7 +382,7 @@ We define a rule for transforming `delay`:
 ```
   data DelayLambda (@++ R : Relation) : Relation where
     delay-lambda :
-      ∀ {X} {M : X ⊢} {M' : suc X ⊢}
+      ∀ {n} {M : n ⊢} {M' : suc n ⊢}
       → R (weaken M) M'
       ----------------------------------------
       → DelayLambda R (delay M) (ƛ M')
@@ -455,7 +406,7 @@ Similarly for the `force` transformation:
 ```
   data ForceApply (@++ R : Relation) : Relation where
     force-apply :
-      ∀ {X} {M M' : X ⊢}
+      ∀ {n} {M M' : n ⊢}
       → R M M'
       ----------------------------------------
       → ForceApply R (force M) (M' · constr 0 [])
@@ -477,24 +428,24 @@ the compatibility rules for force and delay)
 ```
   RemoveFD : Relation
   RemoveFD = Fix
-    ( ForceApply + DelayLambda
-    + CompatVar + CompatLambda + CompatApply
-    + CompatCon + CompatConstr + CompatCase
-    + CompatBuiltin + CompatError
+    ( ForceApply ⊕ DelayLambda
+    ⊕ CompatVar ⊕ CompatLambda ⊕ CompatApply
+    ⊕ CompatCon ⊕ CompatConstr ⊕ CompatCase
+    ⊕ CompatBuiltin ⊕ CompatError
     )
 
   dec-RemoveFD : DecidableRel RemoveFD
   dec-RemoveFD = Fix-dec
     (     dec-ForceApply
-    +-dec dec-DelayLambda
-    +-dec compatVar?
-    +-dec compatLam?
-    +-dec compatApply?
-    +-dec compatCon?
-    +-dec compatConstr?
-    +-dec compatCase?
-    +-dec compatBuiltin?
-    +-dec compatError?
+    ⊕-dec dec-DelayLambda
+    ⊕-dec compatVar?
+    ⊕-dec compatLam?
+    ⊕-dec compatApply?
+    ⊕-dec compatCon?
+    ⊕-dec compatConstr?
+    ⊕-dec compatCase?
+    ⊕-dec compatBuiltin?
+    ⊕-dec compatError?
     )
 ```
 

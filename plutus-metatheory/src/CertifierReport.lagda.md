@@ -12,7 +12,8 @@ open import VerifiedCompilation.Certificate
 open import VerifiedCompilation.UntypedTranslation
 open import VerifiedCompilation.UInline
 open import VerifiedCompilation.UCaseReduce as CR
-open import Untyped.Relation.Binary.Modular hiding (_+_)
+import VerifiedCompilation.FloatOut as FloatOut
+open import Untyped.Relation.Binary.Modular
 open import Untyped.Relation.Binary.Core renaming (Pointwise to PW)
 open import Untyped
 open import Untyped.RenamingSubstitution using (Sub)
@@ -64,9 +65,9 @@ Number of times an optimization is applied on the given term in one compiler pas
 numSites′ : {R : Relation} {M N : 0 ⊢} → Translation R M N → ℕ
 numSites′ = go 0
   where
-  go : {R : Relation} {X : ℕ} {M N : X ⊢} →  ℕ → Translation R M N → ℕ
-  goᵐ : {R : Relation} {X : ℕ} {M N : X ⊢} →  ℕ → TransMatch R M N → ℕ
-  goᵖʷ : {R : Relation} {X : ℕ} {Ms Ns : List (X ⊢)} → ℕ → Pointwise (Translation R) Ms Ns → ℕ
+  go : {R : Relation} {n : ℕ} {M N : n ⊢} →  ℕ → Translation R M N → ℕ
+  goᵐ : {R : Relation} {n : ℕ} {M N : n ⊢} →  ℕ → TransMatch R M N → ℕ
+  goᵖʷ : {R : Relation} {n : ℕ} {Ms Ns : List (n ⊢)} → ℕ → Pointwise (Translation R) Ms Ns → ℕ
 
   go n (istranslation _) = suc n
   go n (match m) = goᵐ n m
@@ -86,18 +87,18 @@ numSites′ = go 0
   goᵖʷ n (x Pointwise.∷ xs) = goᵖʷ (go n x) xs
 
 numSitesInlineᵖʷ :
-  {X : ℕ}
-  {σ : Sub X X}
-  {Ms Ns : List (X ⊢)}
+  {n : ℕ}
+  {σ : Sub n n}
+  {Ms Ns : List (n ⊢)}
   (p : Pointwise (Inline σ □) Ms Ns)
   → ℕ
 
 numSitesInline :
-  {X : ℕ}
-  {σ : Sub X X}
-  {z z′ : X ↝}
+  {n : ℕ}
+  {σ : Sub n n}
+  {z z′ : n ↝}
   {zz : z ≽ z′}
-  {M M′ : X ⊢}
+  {M M′ : n ⊢}
   (p : Inline σ zz M M′)
   → ℕ
 numSitesInline (` x) = 0
@@ -118,32 +119,6 @@ numSitesInline (case r rs) = numSitesInline r + numSitesInlineᵖʷ rs
 numSitesInlineᵖʷ Pointwise.[] = 0
 numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖʷ xs
 
-numSitesCaseReduce :
-  ∀ {X} {M N : X ⊢}
-  → M CR.~ N
-  → ℕ
-numSitesCaseReduce* :
-  ∀ {X} {Ms Ns : List (X ⊢)}
-  → PW _~_ Ms Ns
-  → ℕ
-
-numSitesCaseReduce (cr-reduction _)                = 1
-numSitesCaseReduce (cr-trans p q)                  = numSitesCaseReduce p + numSitesCaseReduce q
-numSitesCaseReduce (cr-sym p)                      = numSitesCaseReduce p
-numSitesCaseReduce (cr-refl)                       = 0
-numSitesCaseReduce (cr-compat (compat-varF n))     = 0
-numSitesCaseReduce (cr-compat (compat-lambdaF p))  = numSitesCaseReduce p
-numSitesCaseReduce (cr-compat (compat-applyF p q)) = numSitesCaseReduce p + numSitesCaseReduce q
-numSitesCaseReduce (cr-compat (compat-forceF p))   = numSitesCaseReduce p
-numSitesCaseReduce (cr-compat (compat-delayF p))   = numSitesCaseReduce p
-numSitesCaseReduce (cr-compat (compat-conF))       = 0
-numSitesCaseReduce (cr-compat (compat-constrF ps)) = numSitesCaseReduce* ps
-numSitesCaseReduce (cr-compat (compat-caseF p qs)) = numSitesCaseReduce p + numSitesCaseReduce* qs
-numSitesCaseReduce (cr-compat (compat-builtinF))   = 0
-numSitesCaseReduce (cr-compat (compat-errorF))     = 0
-
-numSitesCaseReduce* [] = 0
-numSitesCaseReduce* (x ∷ xs) = numSitesCaseReduce x + numSitesCaseReduce* xs
 
 numSites : {M N : 0 ⊢} (tag : CertifiedOptTag) → RelationOf (inj₂ tag) M N → ℕ
 numSites forceDelayT p = numSites′ p
@@ -153,14 +128,14 @@ numSites inlineT p = numSitesInline p
 numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
 numSites {M = M} caseReduceT p = numSitesCaseReduce (CR.sound {M = M} p)
-numSites letFloatOutT p = 0
+numSites letFloatOutT p = FloatOut.numSites p
 
 showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
 showSites (inj₁ _) _ = ""
 showSites (inj₂ t) p = ⇉ "Optimization sites: " ++ showℕ (numSites t p)
 
-termSize : {X : ℕ} → X ⊢ → ℕ
-termSizeᵖʷ : {X : ℕ} → List (X ⊢) → ℕ
+termSize : {n : ℕ} → n ⊢ → ℕ
+termSizeᵖʷ : {n : ℕ} → List (n ⊢) → ℕ
 
 termSize (` _) = 1
 termSize (ƛ M) = 1 + termSize M
@@ -205,8 +180,8 @@ reportPasses :
   (r : Certificate t)
   → List EvalResult
   → String
-reportPasses _ (done _) _ _ = ""
-reportPasses n (step tag _ x trace) (p , proofs) costs =
+reportPasses _ (singleton _) _ _ = ""
+reportPasses n (cons x (tag , _) trace) (p , proofs) costs =
   hl ++
   "Pass " ++ showℕ n ++ ": " ++ showTag tag ++
   hl ++

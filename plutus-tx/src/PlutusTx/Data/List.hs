@@ -146,9 +146,11 @@ However, it does affect how GHC compiles the function's callsites to GHC Core.
 
 In the instance of `caseList`/`caseList'`, if `c` is strict, and is passed a function
 that calls `caseList`/`caseList'`, GHC will end up creating two mutually recursive
-bindings for the application of `caseList`/`caseList'`. Since our inliner currently
-does not inline recursive bindings, the additional binding will end up not being
-inlined, which can lead to significant performance penalty.
+bindings for the application of `caseList`/`caseList'`. The recursive inliner can
+remove these additional bindings in optimized builds when they satisfy its
+single-use/small-helper criteria, but making these parameters non-strict avoids
+creating the extra bindings in the first place and keeps the unoptimized output
+small.
 -}
 
 -- | Matching on the given `List`.

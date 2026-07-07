@@ -11,7 +11,7 @@ module Untyped.Reduction where
 
 ```
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
-open import Untyped.RenamingSubstitution using (_[_])
+open import Untyped.RenamingSubstitution using (_[_]; Sub; sub)
 open import Data.Maybe using (Maybe; just; nothing)
 open import RawU using (TmCon)
 open import Builtin using (Builtin; equals; decBuiltin; arity; arity₀)
@@ -23,8 +23,8 @@ open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc; _<_; _≟_; _<?_; _≤_)
 open import Data.Nat.Properties using (suc-injective)
 open import Data.List using (List; []; _∷_)
-open import Untyped.CEK using (BUILTIN'; lookup?)
-open import Data.List.Relation.Unary.All using (All)
+open import Untyped.CEK using (BUILTIN'; lookup?; Env; env2sub)
+open import Data.List.Relation.Unary.All using (All; map; _∷_; [])
 import Relation.Binary.PropositionalEquality as Eq using (subst; trans; sym)
 open import Relation.Nullary using (yes;no)
 ```
@@ -45,7 +45,7 @@ want-injective₁ refl = refl
 postulate
   interleave-error : ∀ {A : Set} → A
 
-sat : {X : ℕ} → X ⊢ → Arity
+sat : {n : ℕ} → n ⊢ → Arity
 sat (` x) = no-builtin
 sat (ƛ t) = no-builtin
 sat (t · t₁) with sat t
@@ -65,11 +65,11 @@ sat (case t ts) = no-builtin
 sat (builtin b) = want (arity₀ b) (arity b)
 sat error = no-builtin
 
-sat-app-step : {X : ℕ} {a₁ : ℕ} {t t₁ : X ⊢} → sat t ≡ want zero (suc a₁) → sat (t · t₁) ≡ want zero a₁
+sat-app-step : {n : ℕ} {a₁ : ℕ} {t t₁ : n ⊢} → sat t ≡ want zero (suc a₁) → sat (t · t₁) ≡ want zero a₁
 sat-app-step {t = t} sat-t with sat t
 sat-app-step {t = t} sat-t | want zero (suc x₁) = cong (want zero) (suc-injective (want-injective₁ sat-t))
 
-sat-force-step : {X : ℕ} {a₀ a₁ : ℕ} {t : X ⊢} → sat t ≡ want (suc a₀) a₁ → sat (force t) ≡ want a₀ a₁
+sat-force-step : {n : ℕ} {a₀ a₁ : ℕ} {t : n ⊢} → sat t ≡ want (suc a₀) a₁ → sat (force t) ≡ want a₀ a₁
 sat-force-step {t = t} sat-t with sat t
 sat-force-step {t = t} refl | want (suc a₀) a₁ = refl
 
@@ -82,11 +82,11 @@ nat-threshold {suc a} {suc b} (Data.Nat.s≤s a<b) (Data.Nat.s≤s b≤sa) = con
 ## Values
 ```
 variable
-  X Y : ℕ
+  n m : ℕ
 
-data Value {X : ℕ} : X ⊢ → Set where
-  delay : {a : X ⊢} → Value (delay a)
-  ƛ : {a : (suc X) ⊢ } → Value (ƛ a)
+data Value : 0 ⊢ → Set where
+  delay : {a : 0 ⊢} → Value (delay a)
+  ƛ : {a : (suc 0) ⊢ } → Value (ƛ a)
   con : {n : TmCon} → Value (con n)
   builtin : {b : Builtin} → Value (builtin b)
 
@@ -94,7 +94,7 @@ data Value {X : ℕ} : X ⊢ → Set where
   -- after it has been force'd or had something applied
   -- hence, unsat-builtin₀ and unsat-builtin₁ have
   -- (suc (suc _)) requirements.
-  unsat₀ : {t : X ⊢} {a₀ a₁ : ℕ}
+  unsat₀ : {t : 0 ⊢} {a₀ a₁ : ℕ}
             → sat t ≡ want (suc (suc a₀)) a₁
             → Value t
             → Value (force t)
@@ -102,20 +102,20 @@ data Value {X : ℕ} : X ⊢ → Set where
   -- unsat-builtin₀₋₁ handles the case where
   -- we consume the last type argument but
   -- still have some unsaturated term args.
-  unsat₀₋₁ : {t : X ⊢} {a₁ : ℕ}
+  unsat₀₋₁ : {t : 0 ⊢} {a₁ : ℕ}
             → sat t ≡ want (suc zero) (suc a₁)
             → Value t
             → Value (force t)
 
-  unsat₁ : {t t₁ : X ⊢} {a₁ : ℕ}
+  unsat₁ : {t t₁ : 0 ⊢} {a₁ : ℕ}
             → sat t ≡ want zero (suc (suc a₁))
             → Value t
             → Value t₁
             → Value (t · t₁)
 
-  constr : {vs : List (X ⊢)} {n : ℕ} → All Value vs → Value (constr n vs)
+  constr : {vs : List (0 ⊢)} {n : ℕ} → All Value vs → Value (constr n vs)
 
-value-constr-recurse : {i : ℕ} {vs : List (X ⊢)} → Value (constr i vs) → All Value vs
+value-constr-recurse : {i : ℕ} {vs : List (0 ⊢)} → Value (constr i vs) → All Value vs
 value-constr-recurse (constr All.[]) = All.[]
 value-constr-recurse (constr (px All.∷ x)) = px All.∷ x
 
@@ -123,97 +123,193 @@ value-constr-recurse (constr (px All.∷ x)) = px All.∷ x
 ## Reduction Steps
 ```
 
-iterApp : {X : ℕ} → X ⊢ → List (X ⊢) → X ⊢
+iterApp : {n : ℕ} → n ⊢ → List (n ⊢) → n ⊢
 iterApp x [] = x
 iterApp x (v ∷ vs) = iterApp (x · v) vs
 
 -- FIXME: This can use the function from CEK but
 -- it will require building the correct BApp type...
 postulate
-  reduceBuiltin : X ⊢ → X ⊢
+  reduceBuiltin : n ⊢ → n ⊢
 
 infix 5 _⟶_
-data _⟶_ {X : ℕ} : X ⊢ → X ⊢ → Set where
-  ξ₁ : {a a' b : X ⊢} → a ⟶ a' → a · b ⟶ a' · b
+data _⟶_ : 0 ⊢ → 0 ⊢ → Set where
+  ξ₁ : {a a' b : 0 ⊢} → a ⟶ a' → a · b ⟶ a' · b
   -- Value is required in ξ₂ to make this deterministically resolve the left side first
-  ξ₂ : {a b b' : X ⊢} → Value a → b ⟶ b' → a · b ⟶ a · b'
-  ξ₃ : {a a' : X ⊢} → a ⟶ a' → force a ⟶ force a'
-  β : {a : (suc X) ⊢}{b : X ⊢} → Value b → ƛ a · b ⟶ a [ b ]
-  force-delay : {a : X ⊢} → force (delay a) ⟶ a
+  ξ₂ : {a b b' : 0 ⊢} → Value a → b ⟶ b' → a · b ⟶ a · b'
+  ξ₃ : {a a' : 0 ⊢} → a ⟶ a' → force a ⟶ force a'
+  β : {a : (suc 0) ⊢}{b : 0 ⊢} → Value b → ƛ a · b ⟶ a [ b ]
+  force-delay : {a : 0 ⊢} → force (delay a) ⟶ a
 
-  error₁ : {a : X ⊢} → (error · a) ⟶ error
-  error₂ : {a : X ⊢} → (a · error) ⟶ error
+  error₁ : {a : 0 ⊢} → (error · a) ⟶ error
+  error₂ : {a : 0 ⊢} → (a · error) ⟶ error
   force-error : force error ⟶ error
 
   -- Builtins that are saturated will reduce
-  sat-app-builtin : {t₁ t₂ : X ⊢}
+  sat-app-builtin : {t₁ t₂ : 0 ⊢}
               → sat (t₁ · t₂) ≡ want zero zero
               → (t₁ · t₂) ⟶ reduceBuiltin (t₁ · t₂)
-  sat-force-builtin : {t : X ⊢}
+  sat-force-builtin : {t : 0 ⊢}
               → sat (force t) ≡ want zero zero
               → (force t) ⟶ reduceBuiltin (force t)
 
-  case-constr : {i : ℕ} {t : X ⊢} {vs ts : List (X ⊢)}
+  case-constr : {i : ℕ} {t : 0 ⊢} {vs ts : List (0 ⊢)}
               → lookup? i ts ≡ just t
               → case (constr i vs) ts ⟶ iterApp t vs
-  broken-const : {i : ℕ} {vs ts : List (X ⊢)}
+  broken-const : {i : ℕ} {vs ts : List (0 ⊢)}
               → lookup? i ts ≡ nothing
               → case (constr i vs) ts ⟶ error
-  constr-step : {i : ℕ} {v v' : X ⊢} {vs : List (X ⊢)}
+  constr-step : {i : ℕ} {v v' : 0 ⊢} {vs : List (0 ⊢)}
               → v ⟶ v'
               → constr i (v ∷ vs) ⟶ constr i (v' ∷ vs)
-  constr-sub-step : {i : ℕ} {v : X ⊢} {vs vs' : List (X ⊢)}
+  constr-sub-step : {i : ℕ} {v : 0 ⊢} {vs vs' : List (0 ⊢)}
               → constr i vs ⟶ constr i vs'
               → constr i (v ∷ vs) ⟶ constr i (v ∷ vs')
-  constr-error : {i : ℕ} {vs : List (X ⊢)}
+  constr-error : {i : ℕ} {vs : List (0 ⊢)}
               → constr i (error ∷ vs) ⟶ error
-  constr-sub-error : {i : ℕ} {v : X ⊢} {vs : List (X ⊢)}
+  constr-sub-error : {i : ℕ} {v : 0 ⊢} {vs : List (0 ⊢)}
     → constr i vs ⟶ error
     → constr i (v ∷ vs) ⟶ error
 
   -- Many of the things that you can force that aren't delay
-  force-ƛ : {a : suc X ⊢} → force (ƛ a) ⟶ error
+  force-ƛ : {a : suc 0 ⊢} → force (ƛ a) ⟶ error
   force-con : {c : TmCon} → force (con c) ⟶ error
-  force-constr : {i : ℕ} {vs : List (X ⊢)} → force (constr i vs) ⟶ error
+  force-constr : {i : ℕ} {vs : List (0 ⊢)} → force (constr i vs) ⟶ error
 
   -- Currently, this assumes type arguments have to come first
-  force-interleave-error : {a₁ : ℕ} {t : X ⊢}
+  force-interleave-error : {a₁ : ℕ} {t : 0 ⊢}
                → sat t ≡ want zero a₁
                → force t ⟶ error
-  app-interleave-error : {a₀ a₁ : ℕ} {t t₁ : X ⊢}
+  app-interleave-error : {a₀ a₁ : ℕ} {t t₁ : 0 ⊢}
                → sat t ≡ want (suc a₀) a₁
                → (t · t₁) ⟶ error
 
   -- Many of the things that you can apply to that aren't ƛ
-  app-con : {b : X ⊢} {c : TmCon} → (con c) · b ⟶ error
-  app-delay : {a b : X ⊢} → (delay a) · b ⟶ error
-  app-constr : {b : X ⊢} {i : ℕ} {vs : List (X ⊢)} → (constr i vs) · b ⟶ error
+  app-con : {b : 0 ⊢} {c : TmCon} → (con c) · b ⟶ error
+  app-delay : {a b : 0 ⊢} → (delay a) · b ⟶ error
+  app-constr : {b : 0 ⊢} {i : ℕ} {vs : List (0 ⊢)} → (constr i vs) · b ⟶ error
 
   -- Many of the things that you can case that aren't constr
-  case-error : {ts : List (X ⊢)} → case error ts ⟶ error
-  case-ƛ : {t : suc X ⊢} {ts : List (X ⊢)} → case (ƛ t) ts ⟶ error
-  case-delay : {t : X ⊢} {ts : List (X ⊢)} → case (delay t) ts ⟶ error
-  case-con : {c : TmCon} {ts : List (X ⊢)} → case (con c) ts ⟶ error
-  case-builtin : {b : Builtin} {ts : List (X ⊢)} → case (builtin b) ts ⟶ error
-  case-unsat₀ : {t : X ⊢} {ts : List (X ⊢)} {a₀ a₁ : ℕ} → sat t ≡ want (suc a₀) a₁ → case t ts ⟶ error
-  case-unsat₁ : {t : X ⊢} {ts : List (X ⊢)} {a₁ : ℕ} → sat t ≡ want zero (suc a₁) → case t ts ⟶ error
-  case-reduce :  {t t' : X ⊢} {ts : List (X ⊢)}
+  case-error : {ts : List (0 ⊢)} → case error ts ⟶ error
+  case-ƛ : {t : suc 0 ⊢} {ts : List (0 ⊢)} → case (ƛ t) ts ⟶ error
+  case-delay : {t : 0 ⊢} {ts : List (0 ⊢)} → case (delay t) ts ⟶ error
+  case-con : {c : TmCon} {ts : List (0 ⊢)} → case (con c) ts ⟶ error
+  case-builtin : {b : Builtin} {ts : List (0 ⊢)} → case (builtin b) ts ⟶ error
+  case-unsat₀ : {t : 0 ⊢} {ts : List (0 ⊢)} {a₀ a₁ : ℕ} → sat t ≡ want (suc a₀) a₁ → case t ts ⟶ error
+  case-unsat₁ : {t : 0 ⊢} {ts : List (0 ⊢)} {a₁ : ℕ} → sat t ≡ want zero (suc a₁) → case t ts ⟶ error
+  case-reduce :  {t t' : 0 ⊢} {ts : List (0 ⊢)}
               → t ⟶ t'
               → case t ts ⟶ case t' ts
 
 
 infix 5 _⟶*_
-data _⟶*_ {X : ℕ} : X ⊢ → X ⊢ → Set where
-  refl : {M : X ⊢} → M ⟶* M
-  trans : { M P N : X ⊢} → M ⟶ P → P ⟶* N → M ⟶* N
+data _⟶*_ : 0 ⊢ → 0 ⊢ → Set where
+  refl : {M : 0 ⊢} → M ⟶* M
+  trans : { M P N : 0 ⊢} → M ⟶ P → P ⟶* N → M ⟶* N
 
-tran-⟶* : ∀ {X : ℕ}{a b c : X ⊢} → a ⟶* b → b ⟶* c → a ⟶* c
+tran-⟶* : ∀ {a b c : 0 ⊢} → a ⟶* b → b ⟶* c → a ⟶* c
 tran-⟶* refl b→c = b→c
 tran-⟶* (trans x a→b) refl = trans x a→b
 tran-⟶* (trans x a→b) (trans x₁ b→c) = trans x (tran-⟶* a→b (trans x₁ b→c))
+```
+
+## Semantics of values
+
+Irreducible terms cannot take a step:
+
+```
+irred : 0 ⊢ → Set
+irred M = ∀{N} → ¬ (M ⟶ N)
+```
+
+Defining `irred` like this, rather than `irred M = ¬ ∃ (λ N → M ⟶ N)` leverages
+implicit parameters and makes proofs a bit shorter.
+
+```
+value : 0 ⊢ → Set
+value M = irred M × ¬ M ≡ error
+```
+
+A short lemma about constructors:
+
+```
+irred-constr :
+  ∀ {i} {Ms : List (0 ⊢)}
+  → All value Ms
+  → irred (constr i Ms)
+irred-constr ((irred-M , ¬err) ∷ vs) step with step
+... | constr-step step₁ = irred-M step₁
+... | constr-sub-step step₁ = irred-constr vs step₁
+... | constr-error = ¬err refl
+... | constr-sub-error step₁ = irred-constr vs step₁
+```
+
+Unproven lemma about unsaturated built-ins. This will probably change once we have
+a better definitions unsaturated built-ins.
+
+First we capture the current definition of unsaturated terms, which is a bit
+awkward (it uses `Value` for the sub-expression that can only be an unsaturated
+built-in) and incomplete (it disallows interleaving forces and applications):
+
+```
+data unsaturated : (0 ⊢) → Set where
+  arg-arg :
+    ∀ {M N y}
+    → sat M ≡ want 0 (suc (suc y))
+    → Value M
+    → Value N
+    → unsaturated (M · N)
+
+  force-force-args :
+    ∀ {M x y}
+    → sat M ≡ want (suc (suc x)) y
+    → Value M
+    → unsaturated (force M)
+
+  force-args :
+    ∀ {M y}
+    → sat M ≡ want 1 (suc y)
+    → Value M
+    → unsaturated (force M)
+```
+
+Then we assume that any such unsaturated built-in is irreducible.
+
+```
+postulate
+  irred-unsaturated :
+    ∀ {M}
+    → unsaturated M
+    → irred M
+```
+
+Any syntactic value is also semantically a value:
+
+```
+V-v : ∀ {M : 0 ⊢} → Value M → value M
+V-v* : ∀ {Ms : List (0 ⊢)} → All Value Ms → All value Ms
+V-v delay            = (λ ()) , λ ()
+V-v ƛ                = (λ ()) , λ ()
+V-v con              = (λ ()) , λ ()
+V-v (constr vs)      = irred-constr (V-v* vs) , λ ()
+
+V-v builtin          = (λ ()) , λ ()
+V-v (unsat₀ wants val-M)    = irred-unsaturated (force-force-args wants val-M) , λ ()
+V-v (unsat₀₋₁ wants val-M)  = irred-unsaturated (force-args wants val-M) , λ ()
+V-v (unsat₁ wants val-M val-N) = irred-unsaturated (arg-arg wants val-M val-N) , λ ()
+
+V-v* [] = []
+V-v* (px ∷ xs) = V-v px ∷ V-v* xs
+```
+
+The other direction should hold too
+
+```
+postulate
+  value-Value : ∀ {M : 0 ⊢} → value M → Value M
 
 {-
-value-¬⟶ : ∀ {X : ℕ}{M : X ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
+value-¬⟶ : ∀ {n : ℕ}{M : n ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
 value-¬⟶ {M = M} delay = λ ()
 value-¬⟶ {M = M} ƛ = λ ()
 value-¬⟶ {M = M} con = λ ()
@@ -224,10 +320,10 @@ value-¬⟶ {M = M} (unsat₁ x v₁ v₂) = {!!}
 value-¬⟶ {M = M} (constr x) = {!!}
 value-¬⟶ {M = M} error = λ ()
 
-⟶-¬value : ∀ {X : ℕ}{M N : X ⊢} → M ⟶ N → ¬ (Value M)
+⟶-¬value : ∀ {n : ℕ}{M N : n ⊢} → M ⟶ N → ¬ (Value M)
 ⟶-¬value {N = N} M⟶N VM = value-¬⟶ VM (N , M⟶N)
 
-⟶-det : ∀ {X : ℕ}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
+⟶-det : ∀ {n : ℕ}{M N P : n ⊢} → M ⟶ N → M ⟶ P → N ≡ P
 ⟶-det n p = {!!}
 -}
 
@@ -235,12 +331,12 @@ value-¬⟶ {M = M} error = λ ()
 ## Progress
 ```
 
-data Progress {X : ℕ} : (a : X ⊢) → Set where
-  step : {a b : X ⊢}
+data Progress : (a : 0 ⊢) → Set where
+  step : {a b : 0 ⊢}
         → a ⟶ b
         → Progress a
 
-  done : {a : X ⊢}
+  done : {a : 0 ⊢}
         → Value a
         → Progress a
 
@@ -334,16 +430,16 @@ progress error = fail
 ## "Reduction" Equivalence
 ```
 infix 5 _≅_
-data _≅_ {X : ℕ} : X ⊢ → X ⊢ → Set where
-  reduce : {a b c : X ⊢} → a ⟶* c → b ⟶* c → a ≅ b
+data _≅_ : 0 ⊢ → 0 ⊢ → Set where
+  reduce : {a b c : 0 ⊢} → a ⟶* c → b ⟶* c → a ≅ b
 
-refl-≅ : ∀{X : ℕ}{a : X ⊢} → a ≅ a
+refl-≅ : ∀{a : 0 ⊢} → a ≅ a
 refl-≅ = reduce refl refl
 
---tran-≅ : ∀{X : ℕ}{a b c : X ⊢} → a ≅ b → b ≅ c → a ≅ c
+--tran-≅ : ∀{n : ℕ}{a b c : n ⊢} → a ≅ b → b ≅ c → a ≅ c
 --tran-≅ (reduce p₁ p₂) (reduce p₃ p₄) = reduce {!!} {!!}
 
---reduce-≅ : ∀{X : ℕ} {M N : X ⊢} → M ⟶* N → M ≅ N
+--reduce-≅ : ∀{n : ℕ} {M N : n ⊢} → M ⟶* N → M ≅ N
 --reduce-≅ = {!!}
 
 ```
@@ -356,7 +452,7 @@ open import Agda.Builtin.Int using (Int)
 integer : RawU.TyTag
 integer = tag2TyTag RawU.integer
 
-con-integer : {X : ℕ} → ℕ → X ⊢
+con-integer : {n : ℕ} → ℕ → n ⊢
 con-integer n = (con (tmCon integer (Int.pos n)))
 
 _ : ƛ (` zero) · (con-integer {0} 42) ⟶ (con-integer 42)

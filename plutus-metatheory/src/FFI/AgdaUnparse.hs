@@ -5,6 +5,7 @@
 module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
+import Data.List.NonEmptySep
 import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -34,6 +35,15 @@ class AgdaUnparse a where
 -- | Render an 'AgdaUnparse' value to a 'String'.
 renderAgdaUnparse :: AgdaUnparse a => a -> String
 renderAgdaUnparse = renderString . layoutPretty (LayoutOptions Unbounded) . agdaUnparse
+
+instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (NonEmptySep a b) where
+  agdaUnparse (Singleton x) = parens ("singleton" <+> agdaUnparse x)
+  agdaUnparse (Cons x y xs) =
+    parens $
+      "cons"
+        <+> agdaUnparse x
+        <+> agdaUnparse y
+        <+> agdaUnparse xs
 
 instance AgdaUnparse AgdaFFI.UTerm where
   agdaUnparse =
@@ -71,7 +81,7 @@ instance AgdaUnparse UncertifiedOptStage where
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case
     Hints.NoHints -> "none"
-    Hints.Inline x -> "inline" <+> parens (agdaUnparse x)
+    Hints.Inline x -> parens ("inline" <+> agdaUnparse x)
 
 instance AgdaUnparse Hints.Inline where
   agdaUnparse = \case

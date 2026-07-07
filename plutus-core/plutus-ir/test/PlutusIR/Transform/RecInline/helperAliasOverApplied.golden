@@ -1,0 +1,6 @@
+letrec
+  !f : integer -> integer -> integer
+    = \(x : integer) (y : integer) ->
+        (\(x : integer) (y : integer) -> f x y) x y
+in
+f

@@ -15,6 +15,7 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Let
 import PlutusIR.Pass.Test
 import PlutusIR.Test
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.ExpectedFailure (ignoreTest)
@@ -36,7 +37,7 @@ test_lets =
 test_propLets :: TestTree
 test_propLets =
   ignoreTest $ testProperty "lets" $ \letKind ->
-    withMaxSuccess 40000 $
+    BaseQC.withNumTests 40000 $
       testPassProp' @_ @_ @_ @(Provenance ())
         (Original ())
         (\t -> fmap Original t)

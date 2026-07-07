@@ -208,7 +208,7 @@ This example implements a `head` function for boolean lists, which fails if the 
 
 ```uplc
 head :: BuiltinList Bool -> Bool
-head xs = caseList (\_ -> error ()) (\x _ -> x) xs
+head xs = caseList (\x _ -> x) (\_ -> error ()) xs
 ```
 
 :::info

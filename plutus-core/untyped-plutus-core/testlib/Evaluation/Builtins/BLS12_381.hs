@@ -44,6 +44,7 @@ import Data.List as List
   )
 import Text.Printf (printf)
 
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.QuickCheck hiding (Some (..))
 import Test.Tasty
 import Test.Tasty.QuickCheck hiding (Some (..))
@@ -56,7 +57,7 @@ mkTestName :: forall g. TestableAbelianGroup g => String -> String
 mkTestName s = printf "%s_%s" (groupName @g) s
 
 withNTests :: Testable prop => prop -> Property
-withNTests = withMaxSuccess 200
+withNTests = BaseQC.withNumTests 200
 
 -- QuickCheck generators for scalars and group elements as PLC terms
 
@@ -410,7 +411,7 @@ test_uncompress_out_of_group :: forall g. HashAndCompress g => TestTree
 test_uncompress_out_of_group =
   testProperty
     (mkTestName @g "uncompress_out_of_group")
-    . withMaxSuccess 99
+    . BaseQC.withNumTests 99
     $ do
       b <- suchThat (resize 128 arbitrary) correctSize
       let b' = setBits compressionBit $ clearBits infinityBit b
@@ -488,7 +489,7 @@ test_no_hash_collisions =
   let emptyBS = bytestring BS.empty
    in testProperty
         (mkTestName @g "no_hash_collisions")
-        . withMaxSuccess 1
+        . BaseQC.withNumTests 1
         $ do
           msgs <- nub <$> replicateM numHashCollisionInputs arbitrary
           let terms = fmap (\msg -> hashToGroupTerm @g (bytestring msg) emptyBS) msgs
@@ -508,7 +509,7 @@ test_no_hash_collisions_dst =
       maxDstSize = 255
    in testProperty
         (mkTestName @g "no_hash_collisions_dst")
-        . withMaxSuccess 1
+        . BaseQC.withNumTests 1
         $ do
           dsts <- nub <$> replicateM numHashCollisionInputs (resize maxDstSize arbitrary)
           let terms = fmap (\dst -> hashToGroupTerm @g msg (bytestring dst)) dsts

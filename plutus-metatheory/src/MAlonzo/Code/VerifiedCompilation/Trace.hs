@@ -18,13 +18,12 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
 import qualified MAlonzo.RTE
 import qualified Data.Text
 import qualified MAlonzo.Code.Agda.Builtin.List
-import qualified MAlonzo.Code.Agda.Builtin.Maybe
 import qualified MAlonzo.Code.Agda.Builtin.String
-import qualified MAlonzo.Code.RawU
 import qualified MAlonzo.Code.Utils
 
 import UntypedPlutusCore.Transform.Certify.Trace
 import qualified UntypedPlutusCore.Transform.Certify.Hints as Hints
+import qualified Data.List.NonEmptySep as NES
 import FFI.CostInfo
 -- VerifiedCompilation.Trace.UncertifiedOptTag
 d_UncertifiedOptTag_4 = ()
@@ -224,148 +223,47 @@ cover_Hints_80 x
   = case x of
       Hints.Inline _ -> ()
       Hints.NoHints -> ()
--- VerifiedCompilation.Trace.Trace
-d_Trace_88 a0 = ()
-data T_Trace_88
-  = C_step_92 (MAlonzo.Code.Utils.T_Either_6
-                 T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
-              T_Hints_80 AgdaAny T_Trace_88 |
-    C_done_94 AgdaAny
+-- VerifiedCompilation.Trace.NonEmptySep
+d_NonEmptySep_90 a0 a1 = ()
+type T_NonEmptySep_90 a0 a1 = NES.NonEmptySep a0 a1
+pattern C_cons_96 a0 a1 a2 = NES.Cons a0 a1 a2
+pattern C_singleton_98 a0 = NES.Singleton a0
+check_cons_96 ::
+  forall xS.
+    forall xA.
+      xA -> xS -> T_NonEmptySep_90 xS xA -> T_NonEmptySep_90 xS xA
+check_cons_96 = NES.Cons
+check_singleton_98 ::
+  forall xS. forall xA. xA -> T_NonEmptySep_90 xS xA
+check_singleton_98 = NES.Singleton
+cover_NonEmptySep_90 :: NES.NonEmptySep a1 a2 -> ()
+cover_NonEmptySep_90 x
+  = case x of
+      NES.Cons _ _ _ -> ()
+      NES.Singleton _ -> ()
 -- VerifiedCompilation.Trace.head
-d_head_98 :: T_Trace_88 -> AgdaAny
-d_head_98 v0
+d_head_112 :: T_NonEmptySep_90 AgdaAny AgdaAny -> AgdaAny
+d_head_112 v0
   = case coe v0 of
-      C_step_92 v1 v2 v3 v4 -> coe v3
-      C_done_94 v1 -> coe v1
+      C_cons_96 v1 v2 v3 -> coe v1
+      C_singleton_98 v1 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
--- VerifiedCompilation.Trace.Dump
-d_Dump_104 :: ()
-d_Dump_104 = erased
--- VerifiedCompilation.Trace.toTrace
-d_toTrace_106 ::
-  [MAlonzo.Code.Utils.T__'215'__436
-     (MAlonzo.Code.Utils.T_Either_6
-        T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
-     (MAlonzo.Code.Utils.T__'215'__436
-        T_Hints_80
-        (MAlonzo.Code.Utils.T__'215'__436
-           MAlonzo.Code.RawU.T_Untyped_208
-           MAlonzo.Code.RawU.T_Untyped_208))] ->
-  Maybe T_Trace_88
-d_toTrace_106 v0
-  = case coe v0 of
-      [] -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
-      (:) v1 v2
-        -> coe
-             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-             (coe du_go_116 (coe v1) (coe v2))
-      _ -> MAlonzo.RTE.mazUnreachableError
--- VerifiedCompilation.Trace._.go
-d_go_116 ::
-  MAlonzo.Code.Utils.T__'215'__436
-    (MAlonzo.Code.Utils.T_Either_6
-       T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
-    (MAlonzo.Code.Utils.T__'215'__436
-       T_Hints_80
-       (MAlonzo.Code.Utils.T__'215'__436
-          MAlonzo.Code.RawU.T_Untyped_208
-          MAlonzo.Code.RawU.T_Untyped_208)) ->
-  [MAlonzo.Code.Utils.T__'215'__436
-     (MAlonzo.Code.Utils.T_Either_6
-        T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
-     (MAlonzo.Code.Utils.T__'215'__436
-        T_Hints_80
-        (MAlonzo.Code.Utils.T__'215'__436
-           MAlonzo.Code.RawU.T_Untyped_208
-           MAlonzo.Code.RawU.T_Untyped_208))] ->
-  MAlonzo.Code.Utils.T__'215'__436
-    (MAlonzo.Code.Utils.T_Either_6
-       T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
-    (MAlonzo.Code.Utils.T__'215'__436
-       T_Hints_80
-       (MAlonzo.Code.Utils.T__'215'__436
-          MAlonzo.Code.RawU.T_Untyped_208
-          MAlonzo.Code.RawU.T_Untyped_208)) ->
-  [MAlonzo.Code.Utils.T__'215'__436
-     (MAlonzo.Code.Utils.T_Either_6
-        T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
-     (MAlonzo.Code.Utils.T__'215'__436
-        T_Hints_80
-        (MAlonzo.Code.Utils.T__'215'__436
-           MAlonzo.Code.RawU.T_Untyped_208
-           MAlonzo.Code.RawU.T_Untyped_208))] ->
-  T_Trace_88
-d_go_116 ~v0 ~v1 v2 v3 = du_go_116 v2 v3
-du_go_116 ::
-  MAlonzo.Code.Utils.T__'215'__436
-    (MAlonzo.Code.Utils.T_Either_6
-       T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
-    (MAlonzo.Code.Utils.T__'215'__436
-       T_Hints_80
-       (MAlonzo.Code.Utils.T__'215'__436
-          MAlonzo.Code.RawU.T_Untyped_208
-          MAlonzo.Code.RawU.T_Untyped_208)) ->
-  [MAlonzo.Code.Utils.T__'215'__436
-     (MAlonzo.Code.Utils.T_Either_6
-        T_UncertifiedOptTag_4 T_CertifiedOptTag_12)
-     (MAlonzo.Code.Utils.T__'215'__436
-        T_Hints_80
-        (MAlonzo.Code.Utils.T__'215'__436
-           MAlonzo.Code.RawU.T_Untyped_208
-           MAlonzo.Code.RawU.T_Untyped_208))] ->
-  T_Trace_88
-du_go_116 v0 v1
-  = case coe v0 of
-      MAlonzo.Code.Utils.C__'44'__450 v2 v3
-        -> case coe v3 of
-             MAlonzo.Code.Utils.C__'44'__450 v4 v5
-               -> case coe v5 of
-                    MAlonzo.Code.Utils.C__'44'__450 v6 v7
-                      -> case coe v1 of
-                           []
-                             -> coe
-                                  C_step_92 (coe v2) (coe v4) (coe v6) (coe C_done_94 (coe v7))
-                           (:) v8 v9
-                             -> case coe v8 of
-                                  MAlonzo.Code.Utils.C__'44'__450 v10 v11
-                                    -> case coe v11 of
-                                         MAlonzo.Code.Utils.C__'44'__450 v12 v13
-                                           -> case coe v13 of
-                                                MAlonzo.Code.Utils.C__'44'__450 v14 v15
-                                                  -> coe
-                                                       C_step_92 (coe v2) (coe v4) (coe v6)
-                                                       (coe
-                                                          du_go_116
-                                                          (coe
-                                                             MAlonzo.Code.Utils.C__'44'__450
-                                                             (coe v10)
-                                                             (coe
-                                                                MAlonzo.Code.Utils.C__'44'__450
-                                                                (coe v12)
-                                                                (coe
-                                                                   MAlonzo.Code.Utils.C__'44'__450
-                                                                   (coe v7) (coe v15))))
-                                                          (coe v9))
-                                                _ -> MAlonzo.RTE.mazUnreachableError
-                                         _ -> MAlonzo.RTE.mazUnreachableError
-                                  _ -> MAlonzo.RTE.mazUnreachableError
-                           _ -> MAlonzo.RTE.mazUnreachableError
-                    _ -> MAlonzo.RTE.mazUnreachableError
-             _ -> MAlonzo.RTE.mazUnreachableError
-      _ -> MAlonzo.RTE.mazUnreachableError
+-- VerifiedCompilation.Trace.Trace
+d_Trace_118 :: () -> ()
+d_Trace_118 = erased
 -- VerifiedCompilation.Trace.EvalResult
-d_EvalResult_142 = ()
-type T_EvalResult_142 = EvalResult
-pattern C_success_144 a0 a1 = EvalSuccess a0 a1
-pattern C_failure_146 a0 a1 a2 = EvalFailure a0 a1 a2
-check_success_144 :: Integer -> Integer -> T_EvalResult_142
-check_success_144 = EvalSuccess
-check_failure_146 ::
+d_EvalResult_122 = ()
+type T_EvalResult_122 = EvalResult
+pattern C_success_124 a0 a1 = EvalSuccess a0 a1
+pattern C_failure_126 a0 a1 a2 = EvalFailure a0 a1 a2
+check_success_124 :: Integer -> Integer -> T_EvalResult_122
+check_success_124 = EvalSuccess
+check_failure_126 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
-  Integer -> Integer -> T_EvalResult_142
-check_failure_146 = EvalFailure
-cover_EvalResult_142 :: EvalResult -> ()
-cover_EvalResult_142 x
+  Integer -> Integer -> T_EvalResult_122
+check_failure_126 = EvalFailure
+cover_EvalResult_122 :: EvalResult -> ()
+cover_EvalResult_122 x
   = case x of
       EvalSuccess _ _ -> ()
       EvalFailure _ _ _ -> ()

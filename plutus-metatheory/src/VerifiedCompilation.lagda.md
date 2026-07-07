@@ -118,12 +118,12 @@ corresponding certifiers of each pass.
 
 ```
 Certificate : Trace (0 ⊢) → Set
-Certificate (done _) = ⊤
-Certificate (step pass hints t ts) = RelationOf pass t (head ts) × Certificate ts
+Certificate (singleton _) = ⊤
+Certificate (cons t (pass , hints) ts) = RelationOf pass t (head ts) × Certificate ts
 
 certify : (trace : Trace (0 ⊢)) → Either Error (Certificate trace)
-certify (done _) = inj₂ tt
-certify (step pass hints x xs) with certifyPass pass hints x (head xs)
+certify (singleton _) = inj₂ tt
+certify (cons x (pass , hints) xs) with certifyPass pass hints x (head xs)
 ... | ce _ tag _ _ = inj₁ (counterExample tag)
 ... | abort tag _ _ = inj₁ (abort tag)
 ... | proof p =
@@ -150,11 +150,11 @@ checkScope = eitherToMaybe ∘ scopeCheckU0
 
 -- Scope-check all terms in a trace
 checkScopeᵗ : Trace Untyped → Maybe (Trace (0 ⊢))
-checkScopeᵗ (done x) = do
+checkScopeᵗ (singleton x) = do
   x' ← checkScope x
-  return (done x')
-checkScopeᵗ (step pass hints t ts) = do
+  return (singleton x')
+checkScopeᵗ (cons t (pass , hints) ts) = do
   t' ← checkScope t
   ts' ← checkScopeᵗ ts
-  return (step pass hints t' ts')
+  return (cons t' (pass , hints) ts')
 ```

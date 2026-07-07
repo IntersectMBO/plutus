@@ -20,15 +20,14 @@ open import VerifiedCompilation.Trace
 open import VerifiedCompilation.Certificate hiding (_>>=_)
 open import CertifierReport using (makeReport)
 
-runCertifier : Dump → Either Error (Σ (Trace (0 ⊢)) Certificate)
-runCertifier dump = do
-  trace ← try (toTrace dump) emptyDump
+runCertifier : Trace Untyped → Either Error (Σ (Trace (0 ⊢)) Certificate)
+runCertifier trace = do
   trace' ← try (checkScopeᵗ trace) illScoped
   cert ← certify trace'
   return (trace' , cert)
 
 -- FIXME: Instead of `Maybe Bool`, we should use something like `Error` on the Haskell side
-runCertifierMain : Dump → L.List EvalResult → Maybe (Bool × String)
+runCertifierMain : Trace Untyped → L.List EvalResult → Maybe (Bool × String)
 runCertifierMain dump costs =
   let r = runCertifier dump
   in case r of λ where
