@@ -11,7 +11,7 @@ module Untyped.ContextualSemantics where
 
 ```
 open import Untyped
-open import Data.Nat using (ℕ; suc; _+_; _<_; _≤_; _≤ᵇ_)
+open import Data.Nat using (ℕ; zero; suc; _+_; _∸_; _<_; _≤_; _≤ᵇ_)
 open import Data.List using (List; _++_)
 import Data.List as List
 open import Data.List.Relation.Unary.All using (All)
@@ -37,7 +37,12 @@ variable
 
 data B : n ⊢ → Set 
 data Value : n ⊢ → Set
-data A : {X : n ⊢} → B X → Set
+β : {X : n ⊢} → B X → Builtin
+-- the signature of the builtin underlying the spine 'b'
+sigOf : {X : n ⊢} → B X → Sig
+-- the type of a term argument expected by the 'b' builtin
+ArgTy : {X : n ⊢} → B X → Set
+data A : {X : n ⊢} → (b : B X) → ℕ → NE.List⁺ (ArgTy b) → Set
 
 data B where
   builtinB
@@ -53,84 +58,77 @@ data B where
     → B t
     → B (force t)
 
-β : {X : n ⊢} → B X → Builtin 
 β (builtinB b) = b
 β (appB b v) = β b
 β (forceB b) = β b
+
+sigOf b = signature (β b)
+
+ArgTy b = Sig.fv⋆ (sigOf b) / Sig.fv♯ (sigOf b) ⊢⋆
 
 ||_|| : {X : n ⊢} → B X → ℕ
 ||_|| (builtinB b) = 0 
 ||_|| (appB b v) = 1 + || b ||
 ||_|| (forceB b) = 1 + || b ||
 
-||_||ₐ : {X : n ⊢} → B X → ℕ
-||_||ₐ (builtinB b) = 0 
-||_||ₐ (appB b v) = 1 + || b ||
-||_||ₐ (forceB b) = || b ||
-
-||_||ᶠ : {X : n ⊢} → B X → ℕ
-||_||ᶠ (builtinB b) = 0 
-||_||ᶠ (appB b v) = || b ||
-||_||ᶠ (forceB b) = 1 + || b ||
-
 data A where
   builtinA
-    : {t : Builtin}
-    → (b : B {n} (builtin t))
-    → A {n} b
-  appA
-    : {t₁ t₂ : n ⊢}
-    → (b : B (t₁ · t₂))
-    -- we may apply app a number of times equal to the number of term arguments it has
-    → || b ||ₐ ≤ args♯ (signature (β b))
-    -- check that the builtin is not fully saturated
-    → || b || < args♯ (signature (β b)) + fv (signature (β b))
-    → A {n} b
+    : (b : Builtin)
+    → A (builtinB {n} b) (fv (signature b)) (Sig.args (signature b))
   forceA
-    : {t : n ⊢}
-    → (b : B (force t))
-    -- a builtin may be forced the number of times equal to the number of type arguments it has
-    → || b ||ᶠ ≤ fv (signature (β b))
-    -- check that the builtin is not fully saturated
-    → || b || < args♯ (signature (β b)) + fv (signature (β b))
-    → A {n} b
+    : {t : n ⊢} {b : B t} {fl : ℕ}
+      {al : NE.List⁺ (ArgTy b)}
+    -- a force is still expected: consume it, leaving the argument list suffix untouched
+    → A b (suc fl) al
+    → A (forceB b) fl al
+  appA
+    : {t₁ t₂ : n ⊢} {b : B t₁}
+      {τ : ArgTy b}
+      {as : NE.List⁺ (ArgTy b)}
+    -- all forces done: consume the head argument τ, non-empty suffix 'as' remains
+    → A b zero (τ NE.∷⁺ as)
+    → (v : Value t₂)
+    → A (appB b v) zero as
 
-βᴬ : {t : n ⊢} {b : B t} → A b → Builtin
-βᴬ (builtinA b) = β b
-βᴬ (appA b x x₁) = β b
-βᴬ (forceA b x x₁) = β b
+βᴬ : {t : n ⊢} {b : B t} {fl : ℕ}
+     {al : NE.List⁺ (ArgTy b)}
+   → A b fl al → Builtin
+βᴬ {b = b} _ = β b
 
-||_||ᴬ : {t : n ⊢} {b : B t} → A b → ℕ
-||_||ᴬ (builtinA b) = || b ||
-||_||ᴬ (appA b x x₁) = || b ||
-||_||ᴬ (forceA b x x₁) = || b ||
+-- number of forces performed so far: total type variables minus those still expected
+||_||ᶠᴬ
+  : {t : n ⊢} {b : B t} {fl : ℕ} {al : NE.List⁺ (ArgTy b)}
+  → A b fl al
+  → ℕ
+||_||ᶠᴬ {b = b} {fl = fl} _ = fv (sigOf b) ∸ fl
 
-||_||ᶠᴬ : {t : n ⊢} {b : B t} → A b → ℕ
-||_||ᶠᴬ (builtinA b) = || b ||ᶠ
-||_||ᶠᴬ (appA b x x₁) = || b ||ᶠ
-||_||ᶠᴬ (forceA b x x₁) = || b ||ᶠ
+-- number of forces + applications performed so far
+||_||ᴬ
+  : {t : n ⊢} {b : B t} {fl : ℕ} {al : NE.List⁺ (ArgTy b)}
+  → A b fl al
+  → ℕ
+||_||ᴬ {b = b} {fl = fl} {al = al} a =
+  || a ||ᶠᴬ + (args♯ (sigOf b) ∸ NE.length al)
 
--- this doesn't typecheck because i need to use the information
--- that a is a partial application in order to lookup the next argument;
--- that means that the x is always smaller than the total number of args
--- and i should know that from the fact that a is a partial application
+-- The type of the next argument the partial application expects:
+--   - nothing if the next expected argument is a type argument (a force)
+--   - just τ if the next expected argument is a term argument of type τ
 nextᴬ
-  : {n : ℕ} {t : n ⊢} {b : B t}
-  → (a : A b)
-  → Maybe (Sig.fv⋆ (signature (βᴬ a)) / Sig.fv♯ (signature (βᴬ a)) ⊢⋆)
-nextᴬ a with || a ||ᴬ
-... | 0 =
-  if ( || a ||ᶠᴬ ≤ᵇ fv (signature (βᴬ a)) )
-    then nothing
-    else (just (List⁺.head (Sig.args (signature (βᴬ a)))))
-... | x = just (Vec.lookup (List⁺.toVec (Sig.args (signature (βᴬ a)))) {! Fin.fromℕ x  !})
+  : {t : n ⊢} {b : B t} {fl : ℕ} {al : NE.List⁺ (ArgTy b)}
+  → A b fl al
+  → Maybe (ArgTy b)
+nextᴬ {fl = suc _} _ = nothing
+nextᴬ {fl = zero} {al = al} _ = just (NE.head al)
 
 data Value where
   conᵥ : (t : TmCon) → Value {n} (con t)
   delayᵥ : (t : n ⊢) → Value (delay t)
   ƛᵥ : (t : suc n ⊢) → Value (ƛ t)
   constrᵥ : (i : ℕ) (ts : List (n ⊢)) → All Value ts → Value (constr i ts)
-  bAppᵥ : {t : n ⊢} {b : B t} → A b → Value t
+  bAppᵥ
+    : {t : n ⊢} {b : B t} {fl : ℕ} {al : NE.List⁺ (ArgTy b)}
+    → A b fl al
+    → Value t
 
 data Frame : n ⊢ → Set where
   □
