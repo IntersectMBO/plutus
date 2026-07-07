@@ -351,9 +351,9 @@ occurring in the constant to $Q_{ij}$ and everything else to 0.
 Some examples of valid \texttt{value} constants are
 \begin{verbatim}
   (con value []) 
-  (con value [(#1234AB, [(#, 2), (#01, 44), (#05, -3)])]  
-  (con value [(#11, [(#01, 1), (#05, 3), (#, 2)]), 
-              (#3333, [(#0f,  4), (#05, 3)]), (#FF, [])])
+  (con value [(#1234AB, [(#, 2), (#01, 44), (#05, -3)])])
+  (con value [(#11, [(#, 2), (#01, 1), (#05, 3)]), 
+              (#3333, [(#0f,  4), (#1000, -1)])])
 \end{verbatim}
 
 \noindent
@@ -412,10 +412,11 @@ $$Q = \{n \in \Z: -2^{127} \leq n \leq 2^{127}-1\}.$$
                   \newline
                   $\mapsto \left\{
                   \begin{array}{ll}
+                  v[(c,t) \mapsto 0] & \text{if $n = 0$}\\
                   v[(c,t) \mapsto n] & \text{if $c,t\in B^*_{32}$, $n \in Q$}\\
                   \errorX & \text{otherwise}
                   \end{array}\right.$
-                  & Yes & \\[2mm]
+                  & Yes & \ref{note:insertCoin-semantics} \\[2mm]
   \TT{lookupCoin} & $[ \ty{bytestring}, \ty{bytestring}, $
                        $\text{\: \ty{value} ]}$ $\to \ty{integer}$
                   & $ (c,t,v) \mapsto v(c,t) $
@@ -435,13 +436,25 @@ $$Q = \{n \in \Z: -2^{127} \leq n \leq 2^{127}-1\}.$$
 
 
 
+\note{Semantics of \texttt{insertCoin}.}
+\label{note:insertCoin-semantics}
+The \texttt{insertCoin} function updates the quantity $q$ associated with a
+(currency identifier, token identifier) pair $(c,t)$ in a value $v$. If $q=0$
+then the function returns $v$ with the entry for $(c,t)$ (if present) deleted;
+if there is no entry for $(c,t)$ then the function succeeds and $v$ is returned
+unaltered. When $q=0$ there is no limit on the size of the identifiers and the
+function always succeeds.  If $q$ is nonzero and lies in $[-2^{127}, 2^{127}-1]$
+and both $c$ and $t$ are no longer than 32 bytes then the function returns $v$
+updated to map $(c,t)$ to $q$; any previous quantity associated with $(c,t)$ is
+discarded.  If $q \neq0$ and any of $c$, $t$, or $q$ is out of bounds then the
+function fails.
+
 \note{Semantics of \texttt{lookupCoin}.}
 \label{note:lookupCoin-semantics}
-Unlike the other \texttt{value} builtins, \texttt{lookupCoin}
-accepts currency and token identifiers of any length; however, none of the other
-operations allows a value with an identifier more than 32 bytes long, so
-if \texttt{lookupCoin} is called with such an identifier it will always succeed
-and return 0.
+The \texttt{lookupCoin} function always accepts currency and token identifiers
+of any length; however there is no way to create a value where such an
+identifier is associated with a nonzero quantity, so if \texttt{lookupCoin} is
+called with such an identifier it will always succeed and return 0.
 
 \note{Semantics of \texttt{unionValue}.}
 \label{note:unionValue-semantics}

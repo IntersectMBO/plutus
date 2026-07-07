@@ -491,10 +491,11 @@ tags for the basic types together with a tag for a type application operator.
 \newcommand\etype{\mathsf{e}_{\mathsf{type}}}
 \newcommand\dtype{\mathsf{d}_{\mathsf{type}}}
 
-\noindent We define auxiliary functions $\etype: \Uni \rightarrow \N^*$ and
-$\dtype: \N^* \rightharpoonup \N^* \times \Uni$ ($\dtype$ is partial and $\Uni$
-denotes the universe of types defined in Sections~\ref{sec:default-builtins-1},
-\ref{sec:default-builtins-2}, and~\ref{sec:default-builtins-3}).
+\noindent We define auxiliary functions $\etype: \Uni \rightharpoonup \N^*$ and
+$\dtype: \N^* \rightharpoonup \N^* \times \Uni$. Both $\etype$ and $\dtype$ are
+partial and $\Uni$ denotes the universe of types defined in
+Sections~\ref{sec:default-builtins-1}, \ref{sec:default-builtins-2},
+and~\ref{sec:default-builtins-3}.
 
 \begin{alignat*}{2}
   &\etype(\ty{integer})      &&= [0]  \\
@@ -505,8 +506,8 @@ denotes the universe of types defined in Sections~\ref{sec:default-builtins-1},
   &\etype(\listOf{t})        &&= [7,5] \cdot \etype(t) \\
   &\etype(\arrayOf{t})       &&= [7,12] \cdot \etype(t) \\
   &\etype(\pairOf{t_1}{t_2}) &&= [7,7,6] \cdot \etype(t_1) \cdot \etype(t_2)\\
-  &\etype(\ty{data})         &&= [8].11\\
-  &\etype(\ty{value})        &&= [13]
+  &\etype(\ty{data})         &&= [8]\\
+  &\etype(\ty{value})        &&= [13].
 \end{alignat*}
 
 \begin{alignat*}{3}
@@ -629,9 +630,10 @@ inner lists are encoded using the standard list encoding (see
 Section~\ref{sec:flat:lists}) for lists with elements in $\B^*\times \Z$ and
 outer lists are encoded using the standard list encoding for lists with elements
 in $\B^* \times I$.  The decoder reverses this process, but note that we use the
-$\uparrow$ operation, which fails if it finds a bytestring with length greater
-than 32 or an integer value which is zero or lies outside the range $[-2^{127},
-  2^{127}-1]$.
+$\uparrow$ operation, which fails if the currency identifiers or the token
+identifiers for a given currency are not in strictly ascending order; it also
+fails if it encounters a bytestring with length greater than 32 or an integer
+value which is zero or lies outside the range $[-2^{127}, 2^{127}-1]$.
 
 \subsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and
