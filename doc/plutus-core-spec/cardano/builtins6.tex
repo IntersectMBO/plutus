@@ -452,9 +452,10 @@ function fails.
 \note{Semantics of \texttt{lookupCoin}.}
 \label{note:lookupCoin-semantics}
 The \texttt{lookupCoin} function always accepts currency and token identifiers
-of any length; however there is no way to create a value where such an
-identifier is associated with a nonzero quantity, so if \texttt{lookupCoin} is
-called with such an identifier it will always succeed and return 0.
+of any length; however there is no way to create a value where an identifier
+more than 32 bytes long is associated with a nonzero quantity, so
+if \texttt{lookupCoin} is called with such an identifier it will always succeed
+and return 0.
 
 \note{Semantics of \texttt{unionValue}.}
 \label{note:unionValue-semantics}
