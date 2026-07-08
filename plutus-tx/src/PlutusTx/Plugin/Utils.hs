@@ -35,6 +35,12 @@ anchor :: forall (loc :: Symbol) a. a -> a
 anchor a = a
 {-# OPAQUE anchor #-}
 
+{-| This function is used in `typeCheckResultAction` to mark a binding with
+its binder source location. -}
+bindingAnchor :: forall (loc :: Symbol) a. a -> a
+bindingAnchor a = a
+{-# OPAQUE bindingAnchor #-}
+
 {-| This function is used in `typeCheckResultAction` to mark the given expression
 as unsupported by Plinth. -}
 unsupported :: forall (err :: Symbol) (loc :: Symbol) a. a -> a
