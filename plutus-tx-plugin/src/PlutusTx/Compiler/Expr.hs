@@ -617,6 +617,7 @@ hoistExpr
 hoistExpr var t = do
   wrapUnsafeDataAsConstrName <-
     lookupGhcName 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
+  bindingAnchorName <- lookupGhcName 'PlutusTx.Plugin.Utils.bindingAnchor
   let name = GHC.getName var
       lexName = LexName name
 
@@ -635,7 +636,7 @@ hoistExpr var t = do
   -- See Note [Dependency tracking]
   modifyCurDeps (Set.insert lexName)
   maybeDef <- PIR.lookupTerm lexName
-  let varSpan = getVarSourceSpan var
+  let varSpan = findBindingAnchorLoc bindingAnchorName t <|> getVarSourceSpan var
       addSpan = case varSpan of
         Nothing -> id
         Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
@@ -650,7 +651,7 @@ hoistExpr var t = do
         (PIR.Def var' (PIR.mkVar var', PIR.Strict))
         mempty
 
-      t' <- maybeProfileRhs var var' =<< addSpan (compileExpr Nothing t)
+      t' <- maybeProfileRhs varSpan var var' =<< addSpan (compileExpr Nothing t)
       -- See Note [Non-strict let-bindings]
       PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
       pure $ PIR.mkVar var'
@@ -658,19 +659,17 @@ hoistExpr var t = do
 -- 'GHC.Var' in argument is only for extracting srcspan and accurate name.
 maybeProfileRhs
   :: CompilingDefault uni fun m ann
-  => GHC.Var
+  => Maybe GHC.RealSrcSpan
+  -> GHC.Var
   -> PLCVar uni
   -> PIRTerm uni fun
   -> m (PIRTerm uni fun)
-maybeProfileRhs ghcVar var t = do
+maybeProfileRhs mSpan ghcVar var t = do
   CompileContext {ccOpts = compileOpts} <- ask
   let
     nameStr = GHC.occNameString $ GHC.occName $ GHC.varName $ ghcVar
     displayName = T.pack $
-      case getVarSourceSpan ghcVar of
-        -- When module is not compiled and GHC is using cached build from previous build, it will
-        -- lack source span. There's nothing much we can do about this here since this is GHC
-        -- behavior. Issue #7203
+      case mSpan of
         Nothing -> nameStr
         Just src -> nameStr <> " (" <> show (src ^. srcSpanIso) <> ")"
 
@@ -937,6 +936,7 @@ compileExpr mloc e = do
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
   anchorName <- lookupGhcName 'PlutusTx.Plugin.Utils.anchor
+  bindingAnchorName <- lookupGhcName 'PlutusTx.Plugin.Utils.bindingAnchor
   unsupportedName <- lookupGhcName 'PlutusTx.Plugin.Utils.unsupported
 
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
@@ -985,7 +985,8 @@ compileExpr mloc e = do
       throwPlain . UnsupportedError $ T.pack msg
     Nothing -> pure ()
 
-  case extractLoc anchorName maybeModBreaks e of
+  let (_, eWithoutBindingAnchor) = extractBindingAnchor bindingAnchorName e
+  case extractLoc anchorName maybeModBreaks eWithoutBindingAnchor of
     (Just loc, e') -> do
       res <- compileExpr (Just loc) e'
       CompileContext {ccOpts = coverageOpts} <- ask
@@ -995,8 +996,8 @@ compileExpr mloc e = do
         (coverageCompile e' (GHC.exprType e') loc)
         (addSrcSpan (loc ^. srcSpanIso) <$> res)
         anns
-    _ -> traceCompilationL 2 (traceExprMsg mloc GHC.$$ GHC.ppr e) mloc $ do
-      case e of
+    _ -> traceCompilationL 2 (traceExprMsg mloc GHC.$$ GHC.ppr eWithoutBindingAnchor) mloc $ do
+      case eWithoutBindingAnchor of
         -- caseInteger: dispatch on an integer index to select a branch.
         GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
           -- BuiltinCasing: compile to native UPLC case on the integer.
@@ -1328,7 +1329,8 @@ compileExpr mloc e = do
             _ -> compileTypeNorm $ GHC.varType b
           -- See Note [Non-strict let-bindings]
           withVarTyScoped b ty $ \v -> do
-            rhs'' <- maybeProfileRhs b v rhs'
+            let bSpan = findBindingAnchorLoc bindingAnchorName rhs <|> getVarSourceSpan b
+            rhs'' <- maybeProfileRhs bSpan b v rhs'
             let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs''
             body' <- compileExpr Nothing body
             pure $ PIR.Let annMayInline PIR.NonRec binds body'
@@ -1337,7 +1339,8 @@ compileExpr mloc e = do
             -- the bindings are scope in both the body and the args
             -- TODO: this is a bit inelegant matching the vars back up
             binds <- for (zip vars bs) $ \(v, (ghcVar, rhs)) -> do
-              rhs' <- maybeProfileRhs ghcVar v =<< compileExpr Nothing rhs
+              let gvSpan = findBindingAnchorLoc bindingAnchorName rhs <|> getVarSourceSpan ghcVar
+              rhs' <- maybeProfileRhs gvSpan ghcVar v =<< compileExpr Nothing rhs
               -- See Note [Non-strict let-bindings]
               pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs'
             body' <- compileExpr Nothing body
@@ -1725,6 +1728,46 @@ extractLoc anchorName modBreaks = go Nothing
         | Just ss <- getSourceSpan modBreaks tick ->
             go (Just ss) e
       other -> (acc, other)
+
+extractBindingAnchor
+  :: GHC.Name
+  -> GHC.CoreExpr
+  -> (Maybe GHC.RealSrcSpan, GHC.CoreExpr)
+extractBindingAnchor bindingAnchorName expr =
+  case go Nothing expr of
+    (Nothing, _) -> (Nothing, expr)
+    found -> found
+  where
+    go acc = \case
+      GHC.App
+        ( GHC.App
+            (GHC.App (GHC.Var f) (GHC.Type (GHC.LitTy (GHC.StrTyLit loc))))
+            (GHC.Type _eTy)
+          )
+        e
+          | GHC.getName f == bindingAnchorName ->
+              go (acc <|> decodeSrcSpan (GHC.unpackFS loc)) e
+      other -> (acc, other)
+
+findBindingAnchorLoc :: GHC.Name -> GHC.CoreExpr -> Maybe GHC.RealSrcSpan
+findBindingAnchorLoc bindingAnchorName = go
+  where
+    firstJust = foldr ((<|>) . go) Nothing
+    go = \case
+      GHC.App
+        ( GHC.App
+            (GHC.App (GHC.Var f) (GHC.Type (GHC.LitTy (GHC.StrTyLit loc))))
+            (GHC.Type _eTy)
+          )
+        _
+          | GHC.getName f == bindingAnchorName -> decodeSrcSpan (GHC.unpackFS loc)
+      GHC.Lam _ body -> go body
+      GHC.Let (GHC.NonRec _ rhs) body -> go body <|> go rhs
+      GHC.Let (GHC.Rec binds) body -> go body <|> firstJust (map snd binds)
+      GHC.Case _ _ _ alts -> firstJust [rhs | GHC.Alt _ _ rhs <- alts]
+      GHC.Cast body _ -> go body
+      GHC.Tick _ body -> go body
+      _ -> Nothing
 
 extractUnsupported
   :: GHC.Name
