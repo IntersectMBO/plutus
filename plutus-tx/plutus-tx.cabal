@@ -151,7 +151,7 @@ library
     , lens
     , memory
     , mtl
-    , plutus-core            ^>=1.65
+    , plutus-core            ^>=1.66
     , plutus-core:flat
     , plutus-core:plutus-ir
     , prettyprinter
@@ -193,11 +193,11 @@ library plutus-tx-testlib
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.66
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
-    , plutus-tx                        ^>=1.65
+    , plutus-tx                        ^>=1.66
     , prettyprinter
     , serialise
     , tasty
@@ -250,9 +250,9 @@ test-suite plutus-tx-test
     , hedgehog-fn
     , lens
     , mtl
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.66
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.65
+    , plutus-tx                        ^>=1.66
     , plutus-tx:plutus-tx-testlib
     , pretty-show
     , serialise

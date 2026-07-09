@@ -118,8 +118,8 @@ library
     , lens
     , mtl
     , nothunks           >=0.2   && <0.4
-    , plutus-core        ^>=1.65
-    , plutus-tx          ^>=1.65
+    , plutus-core        ^>=1.66
+    , plutus-tx          ^>=1.66
     , prettyprinter
     , serialise
     , tagged
@@ -150,7 +150,7 @@ library plutus-execlib
     , monoidal-containers
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.66
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
@@ -190,10 +190,10 @@ library plutus-ledger-api-testlib
     , bytestring
     , containers
     , lens
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.66
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                ^>=1.65
-    , plutus-tx                        ^>=1.65
+    , plutus-ledger-api                ^>=1.66
+    , plutus-tx                        ^>=1.66
     , prettyprinter
     , QuickCheck
     , serialise
@@ -238,11 +238,11 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core                                  ^>=1.65
+    , plutus-core                                  ^>=1.66
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                            ^>=1.65
+    , plutus-ledger-api                            ^>=1.66
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.65
+    , plutus-tx                                    ^>=1.66
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , serialise
@@ -302,8 +302,8 @@ executable test-onchain-evaluation
     , extra
     , filepath
     , mtl
-    , plutus-core                                  ^>=1.65
-    , plutus-ledger-api                            ^>=1.65
+    , plutus-core                                  ^>=1.66
+    , plutus-ledger-api                            ^>=1.66
     , plutus-ledger-api:plutus-ledger-api-testlib
     , serialise
     , tasty
@@ -322,10 +322,10 @@ executable analyse-script-events
     , filepath
     , lens
     , mtl
-    , plutus-core                                  ^>=1.65
-    , plutus-ledger-api                            ^>=1.65
+    , plutus-core                                  ^>=1.66
+    , plutus-ledger-api                            ^>=1.66
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.65
+    , plutus-tx                                    ^>=1.66
     , primitive
     , serialise
 
@@ -344,7 +344,7 @@ executable dump-cost-model-parameters
     , containers
     , extra
     , optparse-applicative
-    , plutus-core           ^>=1.65
-    , plutus-ledger-api     ^>=1.65
+    , plutus-core           ^>=1.66
+    , plutus-ledger-api     ^>=1.66
     , text
     , vector

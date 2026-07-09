@@ -86,10 +86,10 @@ library
     , base               >=4.9   && <5
     , containers
     , filepath
-    , plutus-core        ^>=1.65
-    , plutus-ledger-api  ^>=1.65
-    , plutus-tx          ^>=1.65
-    , plutus-tx-plugin   ^>=1.65
+    , plutus-core        ^>=1.66
+    , plutus-ledger-api  ^>=1.66
+    , plutus-tx          ^>=1.66
+    , plutus-tx-plugin   ^>=1.66
     , regex-tdfa
     , safe
     , template-haskell
@@ -132,10 +132,10 @@ test-suite cardano-constitution-test
     , containers
     , directory
     , filepath
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.66
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                ^>=1.65
-    , plutus-tx                        ^>=1.65
+    , plutus-ledger-api                ^>=1.66
+    , plutus-tx                        ^>=1.66
     , QuickCheck
     , serialise
     , tasty
@@ -152,4 +152,4 @@ executable create-json-envelope
   build-depends:
     , base
     , cardano-constitution
-    , plutus-ledger-api     ^>=1.65
+    , plutus-ledger-api     ^>=1.66

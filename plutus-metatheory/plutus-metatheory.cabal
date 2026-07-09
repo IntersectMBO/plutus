@@ -86,7 +86,7 @@ library
     , filepath
     , mtl
     , optparse-applicative
-    , plutus-core                       ^>=1.65
+    , plutus-core                       ^>=1.66
     , plutus-ledger-api
     , plutus-ledger-api:plutus-execlib
     , prettyprinter
@@ -409,7 +409,7 @@ executable plc-agda
   main-is:        Main.hs
   build-depends:
     , base
-    , plutus-metatheory  ^>=1.65
+    , plutus-metatheory  ^>=1.66
 
 test-suite test-NEAT
   import:         lang, os-support, ghc-version-support
@@ -422,9 +422,9 @@ test-suite test-NEAT
     , data-default-class
     , lazy-search
     , mtl
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.66
     , plutus-core:plutus-core-testlib
-    , plutus-metatheory                ^>=1.65
+    , plutus-metatheory                ^>=1.66
     , tasty
     , tasty-hunit
 
@@ -442,7 +442,7 @@ test-suite test-certifier
     , base
     , plutus-core
     , plutus-core:untyped-plutus-core-testlib
-    , plutus-metatheory                        ^>=1.65
+    , plutus-metatheory                        ^>=1.66
     , tasty
     , tasty-hunit
     , text
@@ -465,7 +465,7 @@ test-suite test-certifier-report
     , plutus-core
     , plutus-ledger-api
     , plutus-ledger-api:plutus-execlib
-    , plutus-metatheory                 ^>=1.65
+    , plutus-metatheory                 ^>=1.66
     , plutus-tx
     , tasty
     , tasty-golden
