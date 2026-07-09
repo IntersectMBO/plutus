@@ -1,4 +1,23 @@
 
+<a id='changelog-1.66.0.0'></a>
+# 1.66.0.0 — 2026-07-09
+
+## Added
+
+- Exported `inclusiveLowerBound` and `inclusiveUpperBound` from
+  `PlutusLedgerApi.V1.Interval`, `PlutusLedgerApi.V1.Data.Interval`,
+  and all re-exporting modules (`PlutusLedgerApi.V1`/`V2`/`V3` and the
+  `PlutusLedgerApi.Data.V1`/`V2`/`V3` counterparts). These helpers
+  normalise `LowerBound`/`UpperBound` values into an equivalent
+  inclusive `Extended a`, removing the need for validator authors to
+  re-implement the same closure handling locally.
+
+## Changed
+
+- `PlutusLedgerApi.V1.Data.Value.valueOf` rewritten to walk the underlying `BuiltinList` directly via `unsafeDataAsMap` / `unsafeDataAsB` / `unsafeDataAsI` and short-circuit on the first match. The previous implementation went through `Map.lookup`, which materialised a `Maybe` only to deconstruct it immediately. Semantics are unchanged.
+
+- Optimised `unionWith` in `PlutusLedgerApi.V1.Data.Value`: same semantics and signature, but the merge now runs in two outer passes instead of three. A constant-factor speedup, not an algorithmic one.
+
 <a id='changelog-1.60.0.0'></a>
 # 1.60.0.0 — 2026-03-18
 

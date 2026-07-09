@@ -1,4 +1,23 @@
 
+<a id='changelog-1.66.0.0'></a>
+# 1.66.0.0 — 2026-07-09
+
+## Added
+
+- Add RecInline optimization pass that inlines eligible mutually recursive pir function binds.
+
+## Changed
+
+- The parser for textual Plutus Core in the `uplc` executable now requires all
+  keys in a literal built-in `value` to be in strictly ascending lexicographic
+  order; furthermore all currency quantities in a literal `value` must be
+  non-zero and lie in the range [-2^127, ..., 2^127 -1]. This makes it behave
+  in the same way as the `flat` decoder and the `unvalueData` function.
+
+## Fixed
+
+- The UPLC `FloatDelay` compiler pass could produce unsound transformations, this is now fixed.
+
 <a id='changelog-1.65.0.0'></a>
 # 1.65.0.0 — 2026-05-21
 
