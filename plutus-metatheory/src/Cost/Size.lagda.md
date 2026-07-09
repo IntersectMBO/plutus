@@ -41,10 +41,12 @@ postulate g1ElementSize : Utils.Bls12-381-G1-Element → CostingNat
 postulate g2ElementSize : Utils.Bls12-381-G2-Element → CostingNat
 postulate mlResultElementSize : Utils.Bls12-381-MlResult → CostingNat
 postulate dataSize : DATA → CostingNat
+postulate dataNodeCount : DATA → CostingNat
 postulate boolSize : Bool → CostingNat
 postulate unitSize : ⊤ → CostingNat
 postulate stringSize : String → CostingNat
 postulate valueSize : Utils.Value → CostingNat
+postulate valueMaxDepth : Utils.Value → CostingNat
 
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemoryUsage #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.CostStream #-}
@@ -56,10 +58,12 @@ postulate valueSize : Utils.Value → CostingNat
 {-# COMPILE GHC g2ElementSize = size #-}
 {-# COMPILE GHC mlResultElementSize = size #-}
 {-# COMPILE GHC dataSize  = size #-}
+{-# COMPILE GHC dataNodeCount  = size . DataNodeCount #-}
 {-# COMPILE GHC boolSize = size #-}
 {-# COMPILE GHC unitSize = size #-}
 {-# COMPILE GHC stringSize  = size #-}
 {-# COMPILE GHC valueSize = size #-}
+{-# COMPILE GHC valueMaxDepth = size . ValueMaxDepth #-}
 ```
 
 For each constant we return the corresponding size.
