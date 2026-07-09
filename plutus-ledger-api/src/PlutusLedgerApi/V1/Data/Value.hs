@@ -49,6 +49,7 @@ module PlutusLedgerApi.V1.Data.Value
   , currencySymbolValueOf
   , lovelaceValue
   , lovelaceValueOf
+  , unsafeLovelaceValueOf
   , scale
   , symbols
 
@@ -391,6 +392,31 @@ lovelaceValue = singleton adaSymbol adaToken . getLovelace
 lovelaceValueOf :: Value -> Lovelace
 lovelaceValueOf v = Lovelace (valueOf v adaSymbol adaToken)
 {-# INLINEABLE lovelaceValueOf #-}
+
+{-| Get the quantity of Lovelace in a ledger-provided 'Value' by reading the
+first-of-first amount positionally, without looking up the ada key.
+
+The ledger stores a 'TxOut' 'Value' in canonical form: the empty (ada)
+'CurrencySymbol' sorts first, so ada is the first outer entry; its single empty
+'TokenName' entry is the first inner entry; and every 'TxOut' carries ada
+(min-ada). The lovelace quantity is therefore exactly the first amount of the
+first currency, so it can be read as @snd . head@ twice — skipping the two
+'equalsByteString' comparisons and the key unwrapping that 'lovelaceValueOf'
+performs on the way.
+
+PRECONDITION: the 'Value' is canonical as produced by the ledger, i.e. ada is
+present and sorts first. This holds for 'TxOut' values but /not/ for mint values
+or user-constructed 'Value's, where ada may be absent or not sorted first.
+Applied to such a 'Value' this returns the first amount of whichever currency
+happens to be first (a silently wrong answer), or fails on an empty 'Value'.
+Use 'lovelaceValueOf' whenever the invariant is not guaranteed. -}
+unsafeLovelaceValueOf :: Value -> Lovelace
+unsafeLovelaceValueOf (Value mp) =
+  let outer = Map.toBuiltinList mp
+      adaTokens = BI.unsafeDataAsMap (BI.snd (BI.head outer))
+      amount = BI.snd (BI.head adaTokens)
+   in Lovelace (BI.unsafeDataAsI amount)
+{-# INLINEABLE unsafeLovelaceValueOf #-}
 
 -- | A 'Value' containing the given amount of the asset class.
 assetClassValue :: AssetClass -> Integer -> Value
