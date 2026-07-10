@@ -15,6 +15,9 @@ module Cost.Size where
 open import Data.Bool using (Bool)
 open import Data.Unit using (⊤)
 open import Data.Nat using (ℕ;_+_)
+open import Data.Nat using (ℕ;zero;suc;_+_)
+open import Data.Nat.DivMod using (_/_)
+open import Agda.Builtin.Int using (pos)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 
@@ -94,4 +97,21 @@ defaultConstantMeasure (tmCon (pair t u) (x , y)) = 1
 defaultValueMeasure : Value → CostingNat
 defaultValueMeasure (V-con ty x) = defaultConstantMeasure (tmCon ty x)
 defaultValueMeasure _ = 0
+```
+
+Non-standard measures:
+
+```
+valueMaxDepthMeasure : Value → CostingNat
+valueMaxDepthMeasure (V-con (atomic aValue) v) = valueMaxDepth v
+valueMaxDepthMeasure _ = 0
+
+dataNodeCountMeasure : Value → CostingNat
+dataNodeCountMeasure (V-con (atomic aData) d) = dataNodeCount d
+dataNodeCountMeasure _ = 0
+
+numBytesAsWords : Value → CostingNat
+numBytesAsWords (V-con (atomic aInteger) (pos (suc n))) = (n / 8) + 1
+numBytesAsWords _ = 0
+
 ```

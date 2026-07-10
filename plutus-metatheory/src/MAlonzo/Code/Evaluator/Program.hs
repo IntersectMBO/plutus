@@ -1067,13 +1067,13 @@ d_executeUPLC_192 v0 v1
       C_Counting_42 v2
         -> coe
              du_executeUPLCwithMP_144 (coe v2)
-             (coe MAlonzo.Code.Cost.d_machineParameters_140)
-             (coe MAlonzo.Code.Cost.d_countingReport_144) (coe v1)
+             (coe MAlonzo.Code.Cost.d_machineParameters_150)
+             (coe MAlonzo.Code.Cost.d_countingReport_154) (coe v1)
       C_Tallying_44 v2
         -> coe
              du_executeUPLCwithMP_144 (coe v2)
-             (coe MAlonzo.Code.Cost.d_tallyingMachineParameters_220)
-             (coe MAlonzo.Code.Cost.d_tallyingReport_224) (coe v1)
+             (coe MAlonzo.Code.Cost.d_tallyingMachineParameters_230)
+             (coe MAlonzo.Code.Cost.d_tallyingReport_234) (coe v1)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Evaluator.Program.evalProgramNU
 d_evalProgramNU_204 ::

@@ -24,6 +24,7 @@ import qualified MAlonzo.Code.Agda.Builtin.Unit
 import qualified MAlonzo.Code.Builtin.Constant.AtomicType
 import qualified MAlonzo.Code.Builtin.Signature
 import qualified MAlonzo.Code.Cost.Base
+import qualified MAlonzo.Code.Data.Nat.Base
 import qualified MAlonzo.Code.RawU
 import qualified MAlonzo.Code.Untyped.CEK
 import qualified MAlonzo.Code.Utils
@@ -129,4 +130,62 @@ d_defaultValueMeasure_86 v0
            -> coe
                 d_defaultConstantMeasure_28
                 (coe MAlonzo.Code.RawU.C_tmCon_208 (coe v2) (coe v3))
+         _ -> coe v1)
+-- Cost.Size.valueMaxDepthMeasure
+d_valueMaxDepthMeasure_92 ::
+  MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
+d_valueMaxDepthMeasure_92 v0
+  = let v1 = 0 :: Integer in
+    coe
+      (case coe v0 of
+         MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
+           -> case coe v2 of
+                MAlonzo.Code.Builtin.Signature.C_atomic_12 v5
+                  -> case coe v5 of
+                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20
+                         -> coe d_valueMaxDepth_26 v3
+                       _ -> coe v1
+                _ -> coe v1
+         _ -> coe v1)
+-- Cost.Size.dataNodeCountMeasure
+d_dataNodeCountMeasure_96 ::
+  MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
+d_dataNodeCountMeasure_96 v0
+  = let v1 = 0 :: Integer in
+    coe
+      (case coe v0 of
+         MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
+           -> case coe v2 of
+                MAlonzo.Code.Builtin.Signature.C_atomic_12 v5
+                  -> case coe v5 of
+                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
+                         -> coe d_dataNodeCount_16 v3
+                       _ -> coe v1
+                _ -> coe v1
+         _ -> coe v1)
+-- Cost.Size.numBytesAsWords
+d_numBytesAsWords_100 ::
+  MAlonzo.Code.Untyped.CEK.T_Value_14 -> Integer
+d_numBytesAsWords_100 v0
+  = let v1 = 0 :: Integer in
+    coe
+      (case coe v0 of
+         MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v2 v3
+           -> case coe v2 of
+                MAlonzo.Code.Builtin.Signature.C_atomic_12 v5
+                  -> case coe v5 of
+                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
+                         -> case coe v3 of
+                              _ | coe geqInt (coe v3) (coe (1 :: Integer)) ->
+                                  let v6 = subInt (coe v3) (coe (1 :: Integer)) in
+                                  coe
+                                    (coe
+                                       addInt (coe (1 :: Integer))
+                                       (coe
+                                          MAlonzo.Code.Data.Nat.Base.du__'47'__318 (coe v6)
+                                          (coe (8 :: Integer))))
+                              0 -> coe v1
+                              _ -> coe v1
+                       _ -> coe v1
+                _ -> coe v1
          _ -> coe v1)
