@@ -200,6 +200,7 @@ def _check_one(cert_dir: Path) -> tuple[str, str, str]:
 
     Runs in a subprocess worker so must be self-contained.
     """
+    print(f"Checking: {cert_dir.name}")
     name = cert_dir.name
     pass_file = cert_dir / "plinth-certifier-PASS.txt"
     fail_file = cert_dir / "plinth-certifier-FAIL.txt"
