@@ -11,7 +11,7 @@ module Untyped.Equality where
 
 ```
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; isEquivalence; cong)
+open Eq using (_≡_; refl; isEquivalence; cong; cong₂)
 open import Data.Fin using (Fin;suc;zero)
 open import Data.Nat using (ℕ)
 open import Data.Empty using (⊥)
@@ -165,24 +165,23 @@ listDec _ U.[] (x U.∷ ls₂) = no (λ ())
 listDec _ (x₁ U.∷ ls₁) U.[] = no (λ ())
 listDec _≟_ (x₁ U.∷ ls₁) (x₂ U.∷ ls₂) with x₁ ≟ x₂
 ... | no x₁≠x₂ = no λ { refl → x₁≠x₂ refl }
-... | yes refl with listDec _≟_ ls₁ ls₂
+... | yes p with listDec _≟_ ls₁ ls₂
 ...     | no ls₁≠ls₂ = no λ { refl → ls₁≠ls₂ refl }
-...     | yes refl = yes refl
+...     | yes q = yes (cong₂ U._∷_ p q)
 
 pairDec : {A B : Set} → DecidableEquality A → DecidableEquality B → DecidableEquality (A × B)
 pairDec eqA eqB (a₁ , b₁) (a₂ , b₂) with (eqA a₁ a₂) | (eqB b₁ b₂)
-... | yes refl   | yes refl = yes refl
+... | yes p   | yes q = yes (cong₂ U._,_ p q)
 ... | no a₁≠a₂ | _ = no λ { refl → a₁≠a₂ refl }
 ... | _             | no b₁≠b₂ = no λ { refl → b₁≠b₂ refl }
 
 decEq-⊢⋆ [] [] = yes refl
 decEq-⊢⋆ [] (x ∷ ls₂) = no (λ ())
 decEq-⊢⋆ (x₁ ∷ ls₁) [] = no (λ ())
-decEq-⊢⋆ (x₁ ∷ ls₁) (x₂ ∷ ls₂) with decEq-⊢ x₁ x₂
-... | no x₁≠x₂ = no λ { refl → x₁≠x₂ refl }
-... | yes refl with decEq-⊢⋆ ls₁ ls₂
-...     | no ls₁≠ls₂ = no λ { refl → ls₁≠ls₂ refl }
-...     | yes refl = yes refl
+decEq-⊢⋆ (x₁ ∷ ls₁) (x₂ ∷ ls₂) with decEq-⊢ x₁ x₂ | decEq-⊢⋆ ls₁ ls₂
+... | yes p | yes q = yes (cong₂ _∷_ p q)
+... | yes _ | no ¬q = no λ { refl → ¬q refl }
+... | no ¬p | _     = no λ { refl → ¬p refl }
 
 instance
   DecEq-UList : ∀{n} {{DE : DecEq n}} → DecEq (U.List n)
@@ -345,26 +344,26 @@ decEq-⟦ _⊢♯.list t ⟧tag U.[] (x U.∷ v₁) = no λ ()
 decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) U.[] = no (λ ())
 decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) with decEq-⟦ t ⟧tag x x₁
 ... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
-... | yes refl with decEq-⟦ _⊢♯.list t ⟧tag v v₁
-...                  | yes refl = yes refl
+... | yes p with decEq-⟦ _⊢♯.list t ⟧tag v v₁
+...                  | yes q = yes (cong₂ U._∷_ p q)
 ...                  | no ¬v=v₁ = no λ { refl → ¬v=v₁ refl }
 decEq-⟦ _⊢♯.array t ⟧tag = decEq-Array-⟦ t ⟧tag
 decEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag (proj₁ U., proj₂) (proj₃ U., proj₄) with (decEq-⟦ t₁ ⟧tag proj₁ proj₃) ×-dec (decEq-⟦ t₂ ⟧tag proj₂ proj₄)
-... | yes ( refl , refl ) = yes refl
+... | yes ( p , q ) = yes (cong₂ U._,_ p q)
 ... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
 
 decEq-TmCon (tmCon t x) (tmCon t₁ x₁) with t ≟ t₁
 ... | no ¬t=t₁ = no λ { refl → ¬t=t₁ refl }
 ... | yes refl with decEq-⟦ t ⟧tag x x₁
-...   | yes refl = yes refl
-...   | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
+...   | yes p = yes (cong (tmCon t) p)
+...   | no ¬p = no λ { refl → ¬p refl }
 
 ```
 The Decidable Equality of terms needs to use the other instances, so we can present
 that now.
 ```
 decEq-⊢ (` x) (` x₁) with Data.Fin.Properties._≟_ x x₁
-... | yes refl = yes refl
+... | yes p = yes (cong ` p)
 ... | no ¬p = no λ { refl → ¬p refl }
 decEq-⊢ (` x) (ƛ t₁) = no (λ ())
 decEq-⊢ (` x) (t₁ · t₂) = no (λ ())
@@ -389,9 +388,10 @@ decEq-⊢ (ƛ t) (builtin b) = no (λ ())
 decEq-⊢ (ƛ t) error = no (λ ())
 decEq-⊢ (t · t₂) (` x) = no (λ ())
 decEq-⊢ (t · t₂) (ƛ t₁) = no (λ ())
-decEq-⊢ (t · t₂) (t₁ · t₃) with (t ≟ t₁) ×-dec (t₂ ≟ t₃)
-... | yes ( refl , refl )  = yes refl
-... | no ¬p = no λ { refl → ¬p (refl , refl) }
+decEq-⊢ (t · t₂) (t₁ · t₃) with t ≟ t₁ | t₂ ≟ t₃
+... | yes p | yes q = yes (cong₂ _·_ p q)
+... | yes _ | no ¬q = no λ { refl → ¬q refl }
+... | no ¬p | _     = no λ { refl → ¬p refl }
 decEq-⊢ (t · t₂) (force t₁) = no (λ ())
 decEq-⊢ (t · t₂) (delay t₁) = no (λ ())
 decEq-⊢ (t · t₂) (con x) = no (λ ())
@@ -403,7 +403,7 @@ decEq-⊢ (force t) (` x) = no (λ ())
 decEq-⊢ (force t) (ƛ t₁) = no (λ ())
 decEq-⊢ (force t) (t₁ · t₂) = no (λ ())
 decEq-⊢ (force t) (force t₁) with t ≟ t₁
-... | yes refl = yes refl
+... | yes p = yes (cong force p)
 ... | no ¬p = no λ { refl → ¬p refl }
 decEq-⊢ (force t) (delay t₁) = no (λ ())
 decEq-⊢ (force t) (con x) = no (λ ())
@@ -416,7 +416,7 @@ decEq-⊢ (delay t) (ƛ t₁) = no (λ ())
 decEq-⊢ (delay t) (t₁ · t₂) = no (λ ())
 decEq-⊢ (delay t) (force t₁) = no (λ ())
 decEq-⊢ (delay t) (delay t₁) with t ≟ t₁
-... | yes refl = yes refl
+... | yes p = yes (cong delay p)
 ... | no ¬p = no λ { refl → ¬p refl }
 decEq-⊢ (delay t) (con x) = no (λ ())
 decEq-⊢ (delay t) (constr i xs) = no (λ ())
@@ -429,7 +429,7 @@ decEq-⊢ (con x) (t₁ · t₂) = no (λ ())
 decEq-⊢ (con x) (force t₁) = no (λ ())
 decEq-⊢ (con x) (delay t₁) = no (λ ())
 decEq-⊢ (con x) (con x₁) with x ≟ x₁
-... | yes refl = yes refl
+... | yes p = yes (cong con p)
 ... | no ¬p = no λ { refl → ¬p refl }
 decEq-⊢ (con x) (constr i xs) = no (λ ())
 decEq-⊢ (con x) (case t₁ ts) = no (λ ())
@@ -441,9 +441,10 @@ decEq-⊢ (constr i xs) (t₁ · t₂) = no (λ ())
 decEq-⊢ (constr i xs) (force t₁) = no (λ ())
 decEq-⊢ (constr i xs) (delay t₁) = no (λ ())
 decEq-⊢ (constr i xs) (con x) = no (λ ())
-decEq-⊢ (constr i xs) (constr i₁ xs₁) with (i ≟ i₁) ×-dec  (decEq-⊢⋆ xs xs₁)
-... | yes (refl , refl) = yes refl
-... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
+decEq-⊢ (constr i xs) (constr i₁ xs₁) with i ≟ i₁ | decEq-⊢⋆ xs xs₁
+... | yes p | yes q = yes (cong₂ constr p q)
+... | yes _ | no ¬q = no λ { refl → ¬q refl }
+... | no ¬p | _     = no λ { refl → ¬p refl }
 decEq-⊢ (constr i xs) (case t₁ ts) = no (λ ())
 decEq-⊢ (constr i xs) (builtin b) = no (λ ())
 decEq-⊢ (constr i xs) error = no (λ ())
@@ -454,9 +455,10 @@ decEq-⊢ (case t ts) (force t₁) = no (λ ())
 decEq-⊢ (case t ts) (delay t₁) = no (λ ())
 decEq-⊢ (case t ts) (con x) = no (λ ())
 decEq-⊢ (case t ts) (constr i xs) = no (λ ())
-decEq-⊢ (case t ts) (case t₁ ts₁) with (decEq-⊢ t t₁) ×-dec (decEq-⊢⋆ ts ts₁)
-... | yes (refl , refl) = yes refl
-... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
+decEq-⊢ (case t ts) (case t₁ ts₁) with decEq-⊢ t t₁ | decEq-⊢⋆ ts ts₁
+... | yes p | yes q = yes (cong₂ case p q)
+... | yes _ | no ¬q = no λ { refl → ¬q refl }
+... | no ¬p | _     = no λ { refl → ¬p refl }
 decEq-⊢ (case t ts) (builtin b) = no (λ ())
 decEq-⊢ (case t ts) error = no (λ ())
 decEq-⊢ (builtin b) (` x) = no (λ ())
@@ -468,7 +470,7 @@ decEq-⊢ (builtin b) (con x) = no (λ ())
 decEq-⊢ (builtin b) (constr i xs) = no (λ ())
 decEq-⊢ (builtin b) (case t₁ ts) = no (λ ())
 decEq-⊢ (builtin b) (builtin b₁) with b ≟ b₁
-... | yes refl = yes refl
+... | yes p = yes (cong builtin p)
 ... | no ¬p = no λ { refl → ¬p refl }
 decEq-⊢ (builtin b) error = no (λ ())
 decEq-⊢ error (` x) = no (λ ())
