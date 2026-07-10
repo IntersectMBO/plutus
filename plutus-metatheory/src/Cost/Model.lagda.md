@@ -131,47 +131,30 @@ runModel (addedSizes i s) xs = i + s * (sum xs)
 runModel (multipliedSizes i s) xs = i + s * (prod xs)
 runModel (minSize i s) xs = i + s * minimum xs
 runModel (maxSize i s) xs = i + s * maximum xs
-runModel (twoArgumentsLinearInYAndZ i s₁ s₂) (_ ∷ y ∷ z ∷ []) =
-  let a = y
-      b = z
-  in i + s₁ * a + s₂ * b
-runModel (twoArgumentsLinearInMaxYZ i s) (_ ∷ y ∷ z ∷ []) =
-  let a = y
-      b = z
-  in i + s * maximum (a ∷ b ∷ [])
-runModel (twoArgumentsSubtractedSizes i s min) (x ∷ y ∷ []) =
-  let a = x
-      b = y
-  in i + s * (min ⊔ (a ∸ b))
-runModel (twoArgumentsConstAboveDiagonal c m) (x ∷ y ∷ []) =
-  let a = x
-      b = y
-  in if a <ᵇ b
-      then c
-      else runModel m (x ∷ y ∷ [])
-runModel (twoArgumentsConstBelowDiagonal c m) (x ∷ y ∷ []) =
-  let a = x
-      b = y
-  in if b <ᵇ a
-      then c
-      else runModel m (x ∷ y ∷ [])
-runModel (twoArgumentsConstOffDiagonal c m) (x ∷ y ∷ []) =
-  let a = x
-      b = y
-  in if not (a ≡ᵇ b)
-      then c
-      else runModel m (x ∷ y ∷ [])
-runModel (twoArgumentsAboveAndBelowDiagonal _ m) (x ∷ y ∷ []) =
-  let a = x
-      b = y
-  in if b <ᵇ a
-      then runModel m (x ∷ y ∷ [])
-      else runModel m (y ∷ x ∷ [])
-runModel (threeArgumentsExpModCost c00 c11 c12) (x ∷ y ∷ z ∷ []) =
-  let aa = x
-      ee = y
-      mm = z
-      cost0 = c00 + c11 * ee * mm + c12 * ee * mm * mm
+runModel (twoArgumentsLinearInYAndZ i s₁ s₂) (_ ∷ a ∷ b ∷ []) =
+  i + s₁ * a + s₂ * b
+runModel (twoArgumentsLinearInMaxYZ i s) (_ ∷ a ∷ b ∷ []) =
+  i + s * maximum (a ∷ b ∷ [])
+runModel (twoArgumentsSubtractedSizes i s min) (a ∷ b ∷ []) =
+  i + s * (min ⊔ (a ∸ b))
+runModel (twoArgumentsConstAboveDiagonal c m) (a ∷ b ∷ []) =
+  if a <ᵇ b
+    then c
+    else runModel m (a ∷ b ∷ [])
+runModel (twoArgumentsConstBelowDiagonal c m) (a ∷ b ∷ []) =
+  if b <ᵇ a
+    then c
+    else runModel m (a ∷ b ∷ [])
+runModel (twoArgumentsConstOffDiagonal c m) (a ∷ b ∷ []) =
+  if not (a ≡ᵇ b)
+   then c
+   else runModel m (a ∷ b ∷ [])
+runModel (twoArgumentsAboveAndBelowDiagonal _ m) (a ∷ b ∷ []) =
+  if b <ᵇ a
+   then runModel m (a ∷ b ∷ [])
+   else runModel m (b ∷ a ∷ [])
+runModel (threeArgumentsExpModCost c00 c11 c12) (aa ∷ ee ∷ mm ∷ []) =
+  let cost0 = c00 + c11 * ee * mm + c12 * ee * mm * mm
   in if mm <ᵇ aa
      then cost0 + (cost0 / 2)
      else cost0

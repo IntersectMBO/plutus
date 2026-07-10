@@ -910,19 +910,19 @@ d_runUCounting_202 v0 v1
                         (\ v4 ->
                            coe
                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe MAlonzo.Code.Cost.Model.d_lookupModel_596 (coe v4))))
+                             (coe MAlonzo.Code.Cost.Model.d_lookupModel_562 (coe v4))))
                      (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
                      (coe
-                        MAlonzo.Code.Cost.Model.du_allJust_632
+                        MAlonzo.Code.Cost.Model.du_allJust_598
                         (coe
                            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                            (coe
-                              MAlonzo.Code.Cost.Model.d_getModel_554
+                              MAlonzo.Code.Cost.Model.d_getModel_520
                               (coe MAlonzo.Code.Builtin.C_addInteger_4) (coe v3))
                            (coe
                               MAlonzo.Code.Data.List.Base.du_map_22
                               (coe
-                                 (\ v4 -> MAlonzo.Code.Cost.Model.d_getModel_554 (coe v4) (coe v3)))
+                                 (\ v4 -> MAlonzo.Code.Cost.Model.d_getModel_520 (coe v4) (coe v3)))
                               (coe
                                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                  (coe MAlonzo.Code.Builtin.C_subtractInteger_6)
