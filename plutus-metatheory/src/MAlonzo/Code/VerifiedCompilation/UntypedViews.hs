@@ -2844,7 +2844,7 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                                     MAlonzo.Code.Builtin.C_addInteger_4)))
                                                                                            (coe
                                                                                               MAlonzo.Code.Untyped.Equality.d__'8799'__12
-                                                                                              (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
+                                                                                              (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_154
                                                                                                  (coe
                                                                                                     v0))
                                                                                               v6)
@@ -2852,7 +2852,7 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                               v19))
                                                                                         (coe
                                                                                            MAlonzo.Code.Untyped.Equality.d__'8799'__12
-                                                                                           (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
+                                                                                           (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_154
                                                                                               (coe
                                                                                                  v0))
                                                                                            v18
@@ -3069,7 +3069,7 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                                                       MAlonzo.Code.Builtin.C_addInteger_4)))
                                                                                                              (coe
                                                                                                                 MAlonzo.Code.Untyped.Equality.d__'8799'__12
-                                                                                                                (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
+                                                                                                                (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_154
                                                                                                                    (coe
                                                                                                                       v0))
                                                                                                                 v6)
@@ -3077,7 +3077,7 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                                                 v24))
                                                                                                           (coe
                                                                                                              MAlonzo.Code.Untyped.Equality.d__'8799'__12
-                                                                                                             (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
+                                                                                                             (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_154
                                                                                                                 (coe
                                                                                                                    v0))
                                                                                                              v23
