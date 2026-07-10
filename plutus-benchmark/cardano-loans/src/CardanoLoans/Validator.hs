@@ -48,7 +48,6 @@ module CardanoLoans.Validator
   , loanValidatorCode
   ) where
 
-import PlutusLedgerApi.V1.Value (valueOf)
 import PlutusLedgerApi.V3
 import PlutusLedgerApi.V3.Contexts (valueSpent)
 import PlutusTx
