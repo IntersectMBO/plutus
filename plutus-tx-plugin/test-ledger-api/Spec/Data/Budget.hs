@@ -31,6 +31,8 @@ tests =
   runTestNested ["test-ledger-api", "Spec", "Data", "Budget"] . pure . testNestedGhc $
     [ goldenPirReadable "gt" compiledGt
     , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
+    , goldenPirReadable "lovelaceValueOf" compiledLovelaceValueOf
+    , goldenPirReadable "unsafeLovelaceValueOf" compiledUnsafeLovelaceValueOf
     ]
       ++ testCases
 
@@ -48,6 +50,12 @@ compiledMintValueBurned = $$(compile [||MintValue.mintValueBurned||])
 
 compiledCurrencySymbolValueOf :: CompiledCode (Value -> CurrencySymbol -> Integer)
 compiledCurrencySymbolValueOf = $$(compile [||currencySymbolValueOf||])
+
+compiledLovelaceValueOf :: CompiledCode (Value -> Lovelace)
+compiledLovelaceValueOf = $$(compile [||lovelaceValueOf||])
+
+compiledUnsafeLovelaceValueOf :: CompiledCode (Value -> Lovelace)
+compiledUnsafeLovelaceValueOf = $$(compile [||unsafeLovelaceValueOf||])
 
 mkValue :: [(Integer, [(Integer, Integer)])] -> Value
 mkValue = Value . mkCurrencyMap
@@ -108,6 +116,21 @@ value4 =
     , (4, [(400, -401), (402, 403), (404, 405), (406, 407)])
     , (5, [(500, -501), (502, 503), (504, 505), (506, 507), (508, -509)])
     ]
+
+{-| A ledger-shaped @TxOut@ value: ada (the empty 'CurrencySymbol' and
+'TokenName') sorts first, followed by native assets, exactly as the ledger
+presents it to a validator. This is the canonical shape that
+'unsafeLovelaceValueOf' assumes. -}
+txOutValue :: Value
+txOutValue =
+  Value . Map.unsafeFromSOPList $
+    (adaSymbol, Map.unsafeFromSOPList [(adaToken, 2000000)])
+      : fmap
+        (bimap toSymbol (Map.unsafeFromSOPList . fmap (first toToken)))
+        [ (1, [(100, 101)])
+        , (2, [(200, 201), (202, 203)])
+        , (3, [(300, 301), (302, 303), (304, 305)])
+        ]
 
 testCases :: [TestNested]
 testCases =
@@ -186,5 +209,15 @@ testCases =
       "mintValueBurned"
       ( compiledMintValueBurned
           `unsafeApplyCode` liftCodeDef value4
+      )
+  , goldenEvalCekCatchBudget
+      "lovelaceValueOf"
+      ( compiledLovelaceValueOf
+          `unsafeApplyCode` liftCodeDef txOutValue
+      )
+  , goldenEvalCekCatchBudget
+      "unsafeLovelaceValueOf"
+      ( compiledUnsafeLovelaceValueOf
+          `unsafeApplyCode` liftCodeDef txOutValue
       )
   ]
