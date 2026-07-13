@@ -42,7 +42,7 @@ open import RawU using (TmCon; tmCon; TyTag; ⟦_⟧tag) public
 open import Builtin.Constant.AtomicType using (AtomicTyCon) public
 open AtomicTyCon public
 open import Builtin.Signature
-  using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
+  using (_⊢♯;integer;bool;string;pdata;value;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
   public
 open _⊢♯ public
 
@@ -102,6 +102,7 @@ uglyTmCon (tmCon string s)               = "(string " ++ s ++ ")"
 uglyTmCon (tmCon bool false)             = "(bool false)"
 uglyTmCon (tmCon bool true)              = "(bool true)"
 uglyTmCon (tmCon pdata d)                = uglyDATA d
+uglyTmCon (tmCon value v)                = "(value ???)" -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/1872
 uglyTmCon (tmCon bls12-381-g1-element e) = "(bls12-381-g1-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-g2-element e) = "(bls12-381-g2-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-mlresult r)   = "(bls12-381-mlresult ???)"      -- FIXME

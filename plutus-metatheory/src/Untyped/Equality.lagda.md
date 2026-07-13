@@ -91,7 +91,9 @@ decEq-TmCon : DecidableEquality TmCon
 
 decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
 
-decEq-⊢ : ∀{n} → DecidableEquality (n ⊢)
+decEq-⊢ : {n : ℕ} → DecidableEquality (n ⊢)
+
+decEq-⊢⋆ : {n : ℕ} → DecidableEquality (List (n ⊢)) -- {n : ℕ} → (Ms : List (n ⊢)) → (Ns : List (n ⊢)) → Dec (Ms ≡ Ns)
 
 ```
 # Pointwise Decisions
@@ -173,6 +175,15 @@ pairDec eqA eqB (a₁ , b₁) (a₂ , b₂) with (eqA a₁ a₂) | (eqB b₁ b�
 ... | no a₁≠a₂ | _ = no λ { refl → a₁≠a₂ refl }
 ... | _             | no b₁≠b₂ = no λ { refl → b₁≠b₂ refl }
 
+decEq-⊢⋆ [] [] = yes refl
+decEq-⊢⋆ [] (x ∷ ls₂) = no (λ ())
+decEq-⊢⋆ (x₁ ∷ ls₁) [] = no (λ ())
+decEq-⊢⋆ (x₁ ∷ ls₁) (x₂ ∷ ls₂) with decEq-⊢ x₁ x₂
+... | no x₁≠x₂ = no λ { refl → x₁≠x₂ refl }
+... | yes refl with decEq-⊢⋆ ls₁ ls₂
+...     | no ls₁≠ls₂ = no λ { refl → ls₁≠ls₂ refl }
+...     | yes refl = yes refl
+
 instance
   DecEq-UList : ∀{n} {{DE : DecEq n}} → DecEq (U.List n)
   DecEq-UList {{DE}} = record {_≟_ =  listDec (DecEq._≟_ DE)}
@@ -228,7 +239,7 @@ fromDec = record { hsEq = λ x₁ x₂ → isYes (x₁ ≟ x₂) }
 instance
   HsEqBytestring : HsEq U.ByteString
   HsEqBytestring = record { hsEq = U.eqByteString }
-  HsEqArray : {A : Set} {{HE : HasEq A}} {{HS : HsEq A}} → HsEq (U.Array A)
+  HsEqArray : {A : Set} {{HE : HasEq A}} → HsEq (U.Array A)
   HsEqArray {{HE = HE}} = record { hsEq = eqArray {{HE}}}
   HsEqList : {A : Set} {{DE : DecEq A}} → HsEq (U.List A)
   HsEqList = fromDec
@@ -242,6 +253,8 @@ instance
   HsEqBlsMlResult = record { hsEq = U.eqBls12-381-MlResult }
   HsEqDATA : HsEq U.DATA
   HsEqDATA = record { hsEq = U.eqDATA }
+  HsEqValue : HsEq U.Value
+  HsEqValue = record { hsEq = U.eqValue }
 
 HsEq-⟦_⟧tag : (t : TyTag) → HsEq ⟦ t ⟧tag
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = fromDec
@@ -250,32 +263,19 @@ HsEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = fromDec
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = fromDec
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = fromDec
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = HsEqDATA
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = HsEqValue
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = HsEqBlsG1
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = HsEqBlsG2
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = HsEqBlsMlResult
 HsEq-⟦ _⊢♯.list t ⟧tag = HsEqList {A = ⟦ t ⟧tag} {{DE = DecEq-⟦ t ⟧tag }}
-HsEq-⟦ _⊢♯.array t ⟧tag = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}} {{HS = HsEq-⟦ t ⟧tag}}
+HsEq-⟦ _⊢♯.array t ⟧tag = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}}
 HsEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag = HsEqPair {A = ⟦ t₁ ⟧tag} {B = ⟦ t₂ ⟧tag} {{DE-A = DecEq-⟦ t₁ ⟧tag}} {{DE-B = DecEq-⟦ t₂ ⟧tag}}
 ```
 
 ## An example
 
-Let's look at the behavior of `builtinEq (mkByteString "foo") (mkByteString "foo")` vs
-`builtinEq (mkByteString "foo") (mkByteString "bar")`.
-
-At type-checking time, if the two bytestrings are definitionally equal unification will succeed,
-and the function will return `yes refl`. There is no way to return `no` because there is
-no way to prove that the two terms are not equal without extra information about the
-`ByteString` type. But this is enough to make Agda not succesfully type-check the program,
-since it gets stuck while trying to normalize `primTrustMe`.
-
-At runtime, `hsEq` will defer to the Haskell implementation of bytestring equality, and return
-the correct result based on that. In the `yes` case, matching on `refl` will be a no-op,
-while in the `no` case, we return a phony negative proof. This is safe to do because we're
-at runtime and the proof gets erased anyway.
-
 ```
-postulate
+private postulate
   magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
 
 builtinEq : {A : Set} {{HS : HsEq A}} → Binary.Decidable {A = A} _≡_
@@ -283,10 +283,40 @@ builtinEq {A} x y with hsEq x y
 ... | false = no magicNeg
 ... | true with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
 ...             | refl = yes refl
+```
 
+Let's look at the behavior of `builtinEq (mkByteString "foo") (mkByteString "foo")` vs
+`builtinEq (mkByteString "foo") (mkByteString "bar")`.
+
+
+At type-checking time, if the two bytestrings are definitionally equal unification will succeed,
+and the function will return `yes refl`.
+
+```
+_ : isYes (builtinEq (U.mkByteString "") (U.mkByteString "")) ≡ true
+_ = refl
+```
+
+There is no way to return `no` because there is no way to prove that the two
+terms are not equal without extra information about the `ByteString` type. But
+this is enough to make Agda not succesfully type-check the program, since it
+gets stuck while trying to normalize `primTrustMe`:
+
+```
+-- The following does not type check because reduction gets stuck
+-- _ : isNo (builtinEq (U.mkByteString "foo") (U.mkByteString "bar")) ≡ false
+-- _ = refl
+```
+
+At runtime, `hsEq` will defer to the Haskell implementation of bytestring equality, and return
+the correct result based on that. In the `yes` case, matching on `refl` will be a no-op,
+while in the `no` case, we return a phony negative proof. This is safe to do because we're
+at runtime and the proof gets erased anyway.
+
+```
 -- This is split out because the HTML generator can't handle double nested instance arguments!
 hsEqArrayHelper : (t : TyTag) → HsEq (U.Array ⟦ t ⟧tag)
-hsEqArrayHelper t = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}} {{HS = HsEq-⟦ t ⟧tag}}
+hsEqArrayHelper t = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}}
 
 decEq-Array-⟦_⟧tag :
                      (t : TyTag)
@@ -306,6 +336,7 @@ decEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = Data.String.Properties._�
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = Data.Unit.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = Data.Bool.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = builtinEq
@@ -332,9 +363,6 @@ decEq-TmCon (tmCon t x) (tmCon t₁ x₁) with t ≟ t₁
 The Decidable Equality of terms needs to use the other instances, so we can present
 that now.
 ```
--- This terminating declaration shouldn't be needed?
--- It is the mutual recursion with list equality that requires it.
-{-# TERMINATING #-}
 decEq-⊢ (` x) (` x₁) with Data.Fin.Properties._≟_ x x₁
 ... | yes refl = yes refl
 ... | no ¬p = no λ { refl → ¬p refl }
@@ -413,7 +441,7 @@ decEq-⊢ (constr i xs) (t₁ · t₂) = no (λ ())
 decEq-⊢ (constr i xs) (force t₁) = no (λ ())
 decEq-⊢ (constr i xs) (delay t₁) = no (λ ())
 decEq-⊢ (constr i xs) (con x) = no (λ ())
-decEq-⊢ (constr i xs) (constr i₁ xs₁) with (i ≟ i₁) ×-dec  (xs ≟ xs₁)
+decEq-⊢ (constr i xs) (constr i₁ xs₁) with (i ≟ i₁) ×-dec  (decEq-⊢⋆ xs xs₁)
 ... | yes (refl , refl) = yes refl
 ... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
 decEq-⊢ (constr i xs) (case t₁ ts) = no (λ ())
@@ -426,7 +454,7 @@ decEq-⊢ (case t ts) (force t₁) = no (λ ())
 decEq-⊢ (case t ts) (delay t₁) = no (λ ())
 decEq-⊢ (case t ts) (con x) = no (λ ())
 decEq-⊢ (case t ts) (constr i xs) = no (λ ())
-decEq-⊢ (case t ts) (case t₁ ts₁) with (decEq-⊢ t t₁) ×-dec (ts ≟ ts₁)
+decEq-⊢ (case t ts) (case t₁ ts₁) with (decEq-⊢ t t₁) ×-dec (decEq-⊢⋆ ts ts₁)
 ... | yes (refl , refl) = yes refl
 ... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
 decEq-⊢ (case t ts) (builtin b) = no (λ ())

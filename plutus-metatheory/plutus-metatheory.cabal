@@ -79,6 +79,7 @@ library
     , base
     , bytestring
     , composition-prelude
+    , containers
     , deepseq
     , directory
     , extra

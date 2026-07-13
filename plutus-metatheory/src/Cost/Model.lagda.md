@@ -189,38 +189,79 @@ runModel (literalCostIn n m) xs with lookup xs n
 May fail if the model doesn't correspond to the number of arguments.
 
 ```
-convertRawModel : ∀{n} → RawModel → Maybe (CostingModel n)
-convertRawModel (ConstantCost c) = just (constantCost c)
-convertRawModel (AddedSizes (mkLF intercept slope)) = just (addedSizes intercept slope)
-convertRawModel (MultipliedSizes (mkLF intercept slope)) = just (multipliedSizes intercept slope)
-convertRawModel {suc n} (MinSize (mkLF intercept slope)) = just (minSize intercept slope)
-convertRawModel {suc n} (MaxSize (mkLF intercept slope)) = just (maxSize intercept slope)
-convertRawModel {suc n} (LinearInX (mkLF intercept slope)) = just (linearCostIn zero intercept slope)
-convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearCostIn (suc zero) intercept slope)
-convertRawModel {3} (LinearInYAndZ (mkLF2 intercept slope1 slope2)) =
-                   just (twoArgumentsLinearInYAndZ intercept slope1 slope2)
-convertRawModel {suc (suc n)} (LinearInY2 (mkLF intercept slope) _) = just (linearCostIn (suc zero) intercept slope)
-convertRawModel {3} (LinearInMaxYZ (mkLF intercept slope)) = just (twoArgumentsLinearInMaxYZ intercept slope)
-convertRawModel {suc (suc n)} (QuadraticInX (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 zero c0 c1 c2)
-convertRawModel {suc (suc n)} (QuadraticInY (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc zero) c0 c1 c2)
-convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
-convertRawModel {suc (suc (suc (suc n)))} (LinearInU (mkLF intercept slope)) = just (linearCostIn (suc (suc (suc zero))) intercept slope)
-convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc (suc zero)) c0 c1 c2)
-convertRawModel {suc (suc n)} (QuadraticInXAndY (mkQF2 minVal c00 c10 c01 c20 c11 c02)) =
-    just (quadraticCostIn2 zero (suc zero) minVal c00 c10 c01 c20 c11 c02)
-convertRawModel {suc (suc (suc n))} (LiteralInYOrLinearInZ (mkLF intercept slope)) =
-    just (literalCostIn  (suc zero) (linearCostIn (suc (suc zero)) intercept slope))
-convertRawModel {2} (SubtractedSizes (mkLF intercept slope) c) = just (twoArgumentsSubtractedSizes intercept slope c)
-convertRawModel {2} (ConstAboveDiagonal c m) = mapMaybe (twoArgumentsConstAboveDiagonal c) (convertRawModel m)
-convertRawModel {2} (ConstBelowDiagonal c m) = mapMaybe (twoArgumentsConstBelowDiagonal c) (convertRawModel m)
-convertRawModel {2} (ConstOffDiagonal c m) = mapMaybe (twoArgumentsConstOffDiagonal c) (convertRawModel m)
-convertRawModel {2} (AboveAndBelowDiagonal c m) = mapMaybe (twoArgumentsAboveAndBelowDiagonal c) (convertRawModel m)
-convertRawModel {3} (ExpModCost (mkExpModCostingFunction c00 c11 c12)) = just (threeArgumentsExpModCost c00 c11 c12)
-convertRawModel {suc (suc n)} (WithInteractionInXAndY (mkWI c00 c10 c01 c11)) = just (withInteractionIn zero (suc zero) c00 c10 c01 c11)
-convertRawModel _ = nothing
+convertRawModel : RawModel → ∀ n → Maybe (CostingModel n)
+convertRawModel (ConstantCost c) _ = just (constantCost c)
+convertRawModel (AddedSizes (mkLF intercept slope)) _ = just (addedSizes intercept slope)
+convertRawModel (MultipliedSizes (mkLF intercept slope)) _ = just (multipliedSizes intercept slope)
+convertRawModel (MinSize (mkLF intercept slope)) =  λ where
+  (suc n) → just (minSize intercept slope)
+  _ → nothing
+convertRawModel (MaxSize (mkLF intercept slope)) = λ where
+  (suc n) → just (maxSize intercept slope)
+  _ → nothing
+convertRawModel (LinearInX (mkLF intercept slope)) = λ where
+  (suc n) → just (linearCostIn zero intercept slope)
+  _ → nothing
+convertRawModel (LinearInY (mkLF intercept slope)) = λ where
+  (suc (suc n)) → just (linearCostIn (suc zero) intercept slope)
+  _ → nothing
+convertRawModel (LinearInYAndZ (mkLF2 intercept slope1 slope2)) = λ where
+  3 → just (twoArgumentsLinearInYAndZ intercept slope1 slope2)
+  _ → nothing
+convertRawModel (LinearInY2 (mkLF intercept slope) _) = λ where
+  (suc (suc n)) → just (linearCostIn (suc zero) intercept slope)
+  _ → nothing
+convertRawModel (LinearInMaxYZ (mkLF intercept slope)) = λ where
+  3 → just (twoArgumentsLinearInMaxYZ intercept slope)
+  _ → nothing
+convertRawModel (QuadraticInX (mkQF1 c0 c1 c2)) = λ where
+  (suc n) → just (quadraticCostIn1 zero c0 c1 c2)
+  _ → nothing
+convertRawModel (QuadraticInY (mkQF1 c0 c1 c2)) = λ where
+  (suc (suc n)) → just (quadraticCostIn1 (suc zero) c0 c1 c2)
+  _ → nothing
+convertRawModel (LinearInZ (mkLF intercept slope)) = λ where
+  (suc (suc (suc n))) → just (linearCostIn (suc (suc zero)) intercept slope)
+  _ → nothing
+convertRawModel (LinearInU (mkLF intercept slope)) = λ where
+  (suc (suc (suc (suc n)))) → just (linearCostIn (suc (suc (suc zero))) intercept slope)
+  _ → nothing
+convertRawModel (QuadraticInZ (mkQF1 c0 c1 c2)) = λ where
+  (suc (suc (suc n))) → just (quadraticCostIn1 (suc (suc zero)) c0 c1 c2)
+  _ → nothing
+convertRawModel (QuadraticInXAndY (mkQF2 minVal c00 c10 c01 c20 c11 c02)) = λ where
+  (suc (suc n)) → just (quadraticCostIn2 zero (suc zero) minVal c00 c10 c01 c20 c11 c02)
+  _ → nothing
+convertRawModel (LiteralInYOrLinearInZ (mkLF intercept slope)) = λ where
+  (suc (suc (suc n))) → just (literalCostIn  (suc zero) (linearCostIn (suc (suc zero)) intercept slope))
+  _ → nothing
+convertRawModel (SubtractedSizes (mkLF intercept slope) c) = λ where
+  2 → just (twoArgumentsSubtractedSizes intercept slope c)
+  _ → nothing
+convertRawModel (ConstAboveDiagonal c m) = λ where
+  2 → mapMaybe (twoArgumentsConstAboveDiagonal c) (convertRawModel m _)
+  _ → nothing
+convertRawModel (ConstBelowDiagonal c m) = λ where
+  2 → mapMaybe (twoArgumentsConstBelowDiagonal c) (convertRawModel m _)
+  _ → nothing
+convertRawModel (ConstOffDiagonal c m) = λ where
+  2 → mapMaybe (twoArgumentsConstOffDiagonal c) (convertRawModel m _)
+  _ → nothing
+convertRawModel (AboveAndBelowDiagonal c m) = λ where
+  2 → mapMaybe (twoArgumentsAboveAndBelowDiagonal c) (convertRawModel m _)
+  _ → nothing
+convertRawModel (ExpModCost (mkExpModCostingFunction c00 c11 c12)) = λ where
+  3 → just (threeArgumentsExpModCost c00 c11 c12)
+  _ → nothing
+convertRawModel (WithInteractionInXAndY (mkWI c00 c10 c01 c11)) = λ where
+  (suc (suc n)) → just (withInteractionIn zero (suc zero) c00 c10 c01 c11)
+  _ → nothing
+convertRawModel (LinearInXAndY (mkLF2 intercept slope1 slope2)) = λ where
+  (suc (suc n)) → just (withInteractionIn zero (suc zero) intercept slope1 slope2 0)
+  _ → nothing
 
 convertCpuAndMemoryModel : ∀{n} → CpuAndMemoryModel → Maybe (BuiltinModel n)
-convertCpuAndMemoryModel (mkCpuAndMemoryModel cpuModel memoryModel) with convertRawModel cpuModel | convertRawModel memoryModel
+convertCpuAndMemoryModel (mkCpuAndMemoryModel cpuModel memoryModel) with convertRawModel cpuModel _ | convertRawModel memoryModel _
 ... | just cm | just mm = just (record { costingCPU = cm ; costingMem = mm })
 ... | _ | _ = nothing
 ```
