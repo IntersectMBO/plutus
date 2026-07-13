@@ -190,7 +190,7 @@ jobs:
 
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@v3.0.3
+        uses: slackapi/slack-github-action@v3.0.5
         if: ${{ steps.prepare-slack-message.outputs.shouldSendMessage == 'true' }}
         with:
           method: chat.postMessage
