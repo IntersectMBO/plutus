@@ -25,7 +25,6 @@ import Control.Newtype.Generics (Newtype)
 import Data.Data (Data)
 import GHC.Generics (Generic)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address (Network)
-import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..), TokenName)
 import PlutusLedgerApi.V2 qualified as Ledger
   ( Address (..)
@@ -33,6 +32,7 @@ import PlutusLedgerApi.V2 qualified as Ledger
   , PubKeyHash (..)
   , ScriptHash (..)
   , StakingCredential (..)
+  , Value
   )
 import PlutusTx.AsData (asData)
 import PlutusTx.AssocMap (Map)
@@ -77,7 +77,7 @@ type AccountId = Party
 type Timeout = POSIXTime
 
 -- | A multi-asset value.
-type Money = Val.Value
+type Money = Ledger.Value
 
 -- | The name of a choice in a contract.
 type ChoiceName = BuiltinByteString

@@ -9,7 +9,6 @@ module PlutusBenchmark.V2.ScriptContexts where
 
 import Plinth.Plugin ()
 import PlutusLedgerApi.V1.Address
-import PlutusLedgerApi.V1.Value
 import PlutusLedgerApi.V2
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
