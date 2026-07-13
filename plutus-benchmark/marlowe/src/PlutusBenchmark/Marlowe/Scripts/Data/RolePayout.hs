@@ -50,7 +50,7 @@ import PlutusTx.Prelude as PlutusTxPrelude
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
 import Data.ByteString.Short qualified as SBS
-import PlutusLedgerApi.V1.Value qualified as Val
+import PlutusLedgerApi.V2 qualified as Val
 import PlutusTx qualified
 
 -- | Tag for the Marlowe payout validator.

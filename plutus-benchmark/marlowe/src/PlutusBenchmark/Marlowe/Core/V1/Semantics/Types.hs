@@ -25,7 +25,7 @@ import Control.Newtype.Generics (Newtype)
 import Data.Data (Data)
 import GHC.Generics (Generic)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address (Network)
-import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..), TokenName)
+import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..), TokenName (..))
 import PlutusLedgerApi.V2 qualified as Ledger
   ( Address (..)
   , Credential (..)

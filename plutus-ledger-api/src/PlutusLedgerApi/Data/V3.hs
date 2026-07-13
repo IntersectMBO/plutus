@@ -155,15 +155,20 @@ module PlutusLedgerApi.Data.V3
   , V2.currencySymbol
   , V2.currencySymbolValueOf
   , V2.flattenValue
+  , V2.geq
+  , V2.gt
   , V2.isZero
+  , V2.leq
   , V2.lovelaceValue
   , V2.lovelaceValueOf
+  , V2.lt
   , V2.scale
   , V2.split
   , V2.symbols
   , V2.tokenName
   , V2.unsafeLovelaceValueOf
   , V2.valueOf
+  , V2.withCurrencySymbol
 
     -- *** Mint Value
   , MintValue.MintValue

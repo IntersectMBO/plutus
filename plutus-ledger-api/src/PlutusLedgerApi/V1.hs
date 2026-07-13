@@ -105,15 +105,20 @@ module PlutusLedgerApi.V1
   , Value.Lovelace (..)
   , Value.currencySymbolValueOf
   , Value.flattenValue
+  , Value.geq
+  , Value.gt
   , Value.isZero
+  , Value.leq
   , Value.lovelaceValue
   , Value.lovelaceValueOf
+  , Value.lt
   , Value.scale
   , Value.singleton
   , Value.split
   , Value.unionWith
   , Value.unsafeLovelaceValueOf
   , Value.valueOf
+  , Value.withCurrencySymbol
 
     -- ** Currency symbols
   , Value.CurrencySymbol (..)

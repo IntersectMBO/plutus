@@ -94,15 +94,20 @@ module PlutusLedgerApi.Data.V1
   , currencySymbol
   , currencySymbolValueOf
   , flattenValue
+  , geq
+  , gt
   , isZero
+  , leq
   , lovelaceValue
   , lovelaceValueOf
+  , lt
   , scale
   , split
   , symbols
   , tokenName
   , unsafeLovelaceValueOf
   , valueOf
+  , withCurrencySymbol
 
     -- *** Time
   , POSIXTime (..)
