@@ -210,6 +210,9 @@ builtins5 = mkScriptsForBuiltins batch5
 builtins6 :: [(String, SerialisedScript)]
 builtins6 = mkScriptsForBuiltins batch6
 
+builtins7 :: [(String, SerialisedScript)]
+builtins7 = mkScriptsForBuiltins batch7
+
 allBuiltins :: [(String, SerialisedScript)]
 allBuiltins =
   builtins1
@@ -219,6 +222,7 @@ allBuiltins =
     ++ builtins4b
     ++ builtins5
     ++ builtins6
+    ++ builtins7
 
 {-| Test that the builtins that we expect to be allowed in each LL/PV
   combination can be successfully deserialised and that the rest cannot.  This
@@ -261,7 +265,7 @@ testPermittedBuiltins =
                 , mkTest valentinePV builtins1
                 , mkTest changPV builtins1
                 , mkTest plominPV builtins1
-                , mkTest newestPV allBuiltins
+                , mkTest newestPV (allBuiltins \\ builtins7)
                 ]
         , let mkTest = testBuiltins PlutusV2 V2.deserialiseScript
            in testGroup
@@ -274,7 +278,7 @@ testPermittedBuiltins =
                 , mkTest valentinePV $ builtins1 ++ builtins2 ++ builtins3
                 , mkTest changPV $ builtins1 ++ builtins2 ++ builtins3
                 , mkTest plominPV $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4b
-                , mkTest newestPV allBuiltins
+                , mkTest newestPV (allBuiltins \\ builtins7)
                 ]
         , let mkTest = testBuiltins PlutusV3 V3.deserialiseScript
            in testGroup
@@ -287,7 +291,7 @@ testPermittedBuiltins =
                 , mkTest valentinePV []
                 , mkTest changPV $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b
                 , mkTest plominPV $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b ++ builtins5
-                , mkTest newestPV allBuiltins
+                , mkTest newestPV (allBuiltins \\ builtins7)
                 ]
         ]
 

@@ -31,6 +31,7 @@ module PlutusLedgerApi.Common.Versions
   , batch4b
   , batch5
   , batch6
+  , batch7
   , MaxBounds (..)
   , maxBoundsByPV
   ) where
@@ -302,6 +303,12 @@ batch6 =
   , ScaleValue
   ]
 
+-- Builtins that are implemented but not yet approved for release in any protocol
+-- version. See Note [Adding new builtins: protocol versions].
+batch7 :: [DefaultFun]
+batch7 =
+  [MultiIndexArray]
+
 {-| Given a ledger language, return a map indicating which builtin functions were
   introduced in which 'MajorProtocolVersion'.  This __must__ be updated when new
   builtins are added.  It is not necessary to add entries for protocol versions
@@ -314,6 +321,7 @@ builtinsIntroducedIn =
       Map.fromList
         [ (alonzoPV, Set.fromList batch1)
         , (vanRossemPV, Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+        , (futurePV, Set.fromList batch7)
         ]
     PlutusV2 ->
       Map.fromList
@@ -321,12 +329,14 @@ builtinsIntroducedIn =
         , (valentinePV, Set.fromList batch3)
         , (plominPV, Set.fromList batch4b)
         , (vanRossemPV, Set.fromList (batch4a ++ batch5 ++ batch6))
+        , (futurePV, Set.fromList batch7)
         ]
     PlutusV3 ->
       Map.fromList
         [ (changPV, Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
         , (plominPV, Set.fromList batch5)
         , (vanRossemPV, Set.fromList batch6)
+        , (futurePV, Set.fromList batch7)
         ]
 
 {-| Return a set containing the builtins which are available in a given LL in a
