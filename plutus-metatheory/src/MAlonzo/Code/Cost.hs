@@ -426,24 +426,24 @@ d_builtinCost_100 v0 v1 v2
          MAlonzo.Code.Cost.Model.d_runModel_104
          (coe MAlonzo.Code.Builtin.d_arity_318 (coe v0))
          (coe MAlonzo.Code.Cost.Model.d_costingCPU_76 (coe v1))
-         (coe du_sizes_112 (coe v0) (coe v2)))
+         (coe du_argSizes_112 (coe v0) (coe v2)))
       (coe
          MAlonzo.Code.Cost.Model.d_runModel_104
          (coe MAlonzo.Code.Builtin.d_arity_318 (coe v0))
          (coe MAlonzo.Code.Cost.Model.d_costingMem_78 (coe v1))
-         (coe du_sizes_112 (coe v0) (coe v2)))
--- Cost._.sizes
-d_sizes_112 ::
+         (coe du_argSizes_112 (coe v0) (coe v2)))
+-- Cost._.argSizes
+d_argSizes_112 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   MAlonzo.Code.Cost.Model.T_BuiltinModel_68 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28
-d_sizes_112 v0 ~v1 v2 = du_sizes_112 v0 v2
-du_sizes_112 ::
+d_argSizes_112 v0 ~v1 v2 = du_argSizes_112 v0 v2
+du_argSizes_112 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28
-du_sizes_112 v0 v1
+du_argSizes_112 v0 v1
   = coe
       MAlonzo.Code.Data.Vec.Base.du_zipWith_242 (coe (\ v2 -> v2))
       (coe d_measures_96 (coe v0)) (coe v1)

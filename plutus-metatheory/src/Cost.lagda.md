@@ -100,8 +100,8 @@ isMonoidExBudget = record {
 
 ## Cost of executing a builtin
 
-To calculate the cost of a builtin we first define what measure functions to use
-for its arguments. A few built-ins require non-standard measures:
+To calculate the cost of a given builtin, we first define what measure functions
+to use for its arguments. Some builtins require non-default measures:
 
 ```
 measures : (b : Builtin) → Vec (Value → CostingNat) (arity b)
@@ -112,15 +112,15 @@ measures integerToByteString = defaultValueMeasure ∷ numBytesAsWords ∷ defau
 measures _                   = replicate _ defaultValueMeasure
 ```
 
-obtain the corresponding builtin model, and run the cpu and memory model using
-the vector of argument sizes.
+The cost of an applied builtin is then obtained by measuring the arguments sizes
+and running the associated cpu and memory models.
 
 ```
 builtinCost : (b : Builtin) → BuiltinModel (arity b) → Vec Value (arity b) → ExBudget
-builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) sizes) (runModel (costingMem bc) sizes)
+builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) argSizes) (runModel (costingMem bc) argSizes)
   where
-    sizes : Vec CostingNat (arity b)
-    sizes = zipWith _$_ (measures b) cs
+    argSizes : Vec CostingNat (arity b)
+    argSizes = zipWith _$_ (measures b) cs
 ```
 
 
