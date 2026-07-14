@@ -7,7 +7,6 @@ module PlutusBenchmark.Coop.Utils where
 import PlutusTx.Prelude
 import Prelude ()
 
-import PlutusLedgerApi.V1.Value (Value (Value), flattenValue, valueOf, withCurrencySymbol)
 import PlutusLedgerApi.V2
   ( CurrencySymbol
   , Datum (Datum)
@@ -20,6 +19,10 @@ import PlutusLedgerApi.V2
   , TxInfo (TxInfo, txInfoInputs, txInfoMint)
   , TxOut (TxOut, txOutValue)
   , TxOutRef (TxOutRef)
+  , Value (Value)
+  , flattenValue
+  , valueOf
+  , withCurrencySymbol
   )
 import PlutusTx.AssocMap (Map, lookup)
 import PlutusTx.AssocMap qualified as AssocMap

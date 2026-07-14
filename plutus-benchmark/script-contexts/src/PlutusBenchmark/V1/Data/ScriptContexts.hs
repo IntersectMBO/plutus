@@ -9,7 +9,6 @@ module PlutusBenchmark.V1.Data.ScriptContexts where
 import Plinth.Plugin ()
 import PlutusLedgerApi.Data.V1
 import PlutusLedgerApi.V1.Data.Address
-import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Data.List qualified as Data.List

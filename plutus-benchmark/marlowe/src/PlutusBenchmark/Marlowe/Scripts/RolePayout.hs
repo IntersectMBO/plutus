@@ -19,7 +19,6 @@ import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
 import Data.ByteString.Short qualified as SBS
 import Plinth.Plugin ()
-import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2
   ( CurrencySymbol
   , ScriptContext (scriptContextTxInfo)
@@ -28,6 +27,7 @@ import PlutusLedgerApi.V2
   , TokenName
   , serialiseCompiledCode
   )
+import PlutusLedgerApi.V2 qualified as Val
 import PlutusLedgerApi.V2.Contexts (valueSpent)
 import PlutusTx (CompiledCode, unsafeFromBuiltinData)
 import PlutusTx qualified

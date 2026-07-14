@@ -28,8 +28,7 @@ module LinearVesting.Validator
   )
 where
 
-import PlutusLedgerApi.Data.V3 (Address)
-import PlutusLedgerApi.V1.Data.Value (AssetClass)
+import PlutusLedgerApi.Data.V3 (Address, AssetClass)
 import PlutusTx (CompiledCode, compile, makeIsDataIndexed, makeLift)
 import PlutusTx.Bool (Bool (..), not, otherwise)
 import PlutusTx.Builtins.HasOpaque ()
