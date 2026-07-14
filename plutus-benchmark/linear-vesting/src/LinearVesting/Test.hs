@@ -12,6 +12,7 @@ import PlutusTx
 import PlutusTx.Prelude hiding ((<>))
 
 import LinearVesting.Validator (VestingDatum (..), VestingRedeemer (..), validatorCode)
+import PlutusLedgerApi.Data.V3 (assetClass)
 import PlutusLedgerApi.Data.V3 qualified as PV3D
 import PlutusLedgerApi.Test.ScriptContextBuilder.Builder
   ( buildScriptContext
@@ -22,7 +23,6 @@ import PlutusLedgerApi.Test.ScriptContextBuilder.Builder
   , withSpendingScript
   , withValidRange
   )
-import PlutusLedgerApi.V1.Data.Value (assetClass)
 import PlutusLedgerApi.V3 qualified as PV3
 import Prelude ((<>))
 

@@ -134,6 +134,22 @@ test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
   let (valueL, valueR) = split value
    in Numeric.negate valueL <> valueR <=> value
 
+{-| 'unsafeLovelaceValueOf' reads the lovelace quantity of a ledger-shaped
+'Value' (ada present and sorted first) and agrees with 'lovelaceValueOf'. -}
+test_unsafeLovelaceValueOf :: TestTree
+test_unsafeLovelaceValueOf =
+  testProperty "unsafeLovelaceValueOf" . scaleTestsBy 5 $ \value lovelace ->
+    let
+      -- Put ada first with a known amount, dropping any ada the arbitrary
+      -- value already carried, to reproduce the ledger's canonical layout.
+      rest = filter ((/= adaSymbol) . fst) (valueToLists value)
+      canonical = listsToValue ((adaSymbol, [(adaToken, lovelace)]) : rest)
+     in
+      conjoin
+        [ unsafeLovelaceValueOf canonical === Lovelace lovelace
+        , unsafeLovelaceValueOf canonical === lovelaceValueOf canonical
+        ]
+
 -- | Test that the Show instance for TokenName always displays hex-encoded bytes.
 test_showTokenName :: TestTree
 test_showTokenName =
@@ -169,5 +185,6 @@ test_Value =
     , test_updateSomeTokenNames
     , test_shuffle
     , test_split
+    , test_unsafeLovelaceValueOf
     , test_showTokenName
     ]

@@ -114,64 +114,47 @@ minimum (a ∷ xs) = foldr _ _⊓_ a xs
 Given a model and the sizes of the arguments we can compute a cost.
 
 ```
-runModel : ∀{n} → CostingModel n → Vec Value n → CostingNat
+runModel : ∀{n} → CostingModel n → Vec CostingNat n → CostingNat
 runModel (constantCost x) _ = x
-runModel (linearCostIn n i s) xs = i + s * sizeOf (lookup xs n)
-runModel (quadraticCostIn1 n c0 c1 c2) xs = let x = sizeOf (lookup xs n) in c0 + c1 * x + c2 * x * x
+runModel (linearCostIn n i s) xs = i + s * lookup xs n
+runModel (quadraticCostIn1 n c0 c1 c2) xs = let x = lookup xs n in c0 + c1 * x + c2 * x * x
 runModel (quadraticCostIn2 m n min c00 c10 c01 c20 c11 c02) xs =
-  let x = sizeOf (lookup xs m)
-      y = sizeOf (lookup xs n)
+  let x = lookup xs m
+      y = lookup xs n
       r = c00 + c10 * x + c01 * y + c20 * x * x + c11 * x * y + c02 * y * y
   in min ⊔ r
 runModel (withInteractionIn m n c00 c10 c01 c11) xs =
-  let x = sizeOf (lookup xs m)
-      y = sizeOf (lookup xs n)
+  let x = lookup xs m
+      y = lookup xs n
   in c00 + c10 * x + c01 * y + c11 * x * y
-runModel (addedSizes i s) xs = i + s * (sum (map sizeOf xs))
-runModel (multipliedSizes i s) xs = i + s * (prod (map sizeOf xs))
-runModel (minSize i s) xs = i + s * minimum (map sizeOf xs)
-runModel (maxSize i s) xs = i + s * maximum (map sizeOf xs)
-runModel (twoArgumentsLinearInYAndZ i s₁ s₂) (_ ∷ y ∷ z ∷ []) =
-  let a = sizeOf y
-      b = sizeOf z
-  in i + s₁ * a + s₂ * b
-runModel (twoArgumentsLinearInMaxYZ i s) (_ ∷ y ∷ z ∷ []) =
-  let a = sizeOf y
-      b = sizeOf z
-  in i + s * maximum (a ∷ b ∷ [])
-runModel (twoArgumentsSubtractedSizes i s min) (x ∷ y ∷ []) =
-  let a = sizeOf x
-      b = sizeOf y
-  in i + s * (min ⊔ (a ∸ b))
-runModel (twoArgumentsConstAboveDiagonal c m) (x ∷ y ∷ []) =
-  let a = sizeOf x
-      b = sizeOf y
-  in if a <ᵇ b
-      then c
-      else runModel m (x ∷ y ∷ [])
-runModel (twoArgumentsConstBelowDiagonal c m) (x ∷ y ∷ []) =
-  let a = sizeOf x
-      b = sizeOf y
-  in if b <ᵇ a
-      then c
-      else runModel m (x ∷ y ∷ [])
-runModel (twoArgumentsConstOffDiagonal c m) (x ∷ y ∷ []) =
-  let a = sizeOf x
-      b = sizeOf y
-  in if not (a ≡ᵇ b)
-      then c
-      else runModel m (x ∷ y ∷ [])
-runModel (twoArgumentsAboveAndBelowDiagonal _ m) (x ∷ y ∷ []) =
-  let a = sizeOf x
-      b = sizeOf y
-  in if b <ᵇ a
-      then runModel m (x ∷ y ∷ [])
-      else runModel m (y ∷ x ∷ [])
-runModel (threeArgumentsExpModCost c00 c11 c12) (x ∷ y ∷ z ∷ []) =
-  let aa = sizeOf x
-      ee = sizeOf y
-      mm = sizeOf z
-      cost0 = c00 + c11 * ee * mm + c12 * ee * mm * mm
+runModel (addedSizes i s) xs = i + s * (sum xs)
+runModel (multipliedSizes i s) xs = i + s * (prod xs)
+runModel (minSize i s) xs = i + s * minimum xs
+runModel (maxSize i s) xs = i + s * maximum xs
+runModel (twoArgumentsLinearInYAndZ i s₁ s₂) (_ ∷ a ∷ b ∷ []) =
+  i + s₁ * a + s₂ * b
+runModel (twoArgumentsLinearInMaxYZ i s) (_ ∷ a ∷ b ∷ []) =
+  i + s * maximum (a ∷ b ∷ [])
+runModel (twoArgumentsSubtractedSizes i s min) (a ∷ b ∷ []) =
+  i + s * (min ⊔ (a ∸ b))
+runModel (twoArgumentsConstAboveDiagonal c m) (a ∷ b ∷ []) =
+  if a <ᵇ b
+    then c
+    else runModel m (a ∷ b ∷ [])
+runModel (twoArgumentsConstBelowDiagonal c m) (a ∷ b ∷ []) =
+  if b <ᵇ a
+    then c
+    else runModel m (a ∷ b ∷ [])
+runModel (twoArgumentsConstOffDiagonal c m) (a ∷ b ∷ []) =
+  if not (a ≡ᵇ b)
+   then c
+   else runModel m (a ∷ b ∷ [])
+runModel (twoArgumentsAboveAndBelowDiagonal _ m) (a ∷ b ∷ []) =
+  if b <ᵇ a
+   then runModel m (a ∷ b ∷ [])
+   else runModel m (b ∷ a ∷ [])
+runModel (threeArgumentsExpModCost c00 c11 c12) (aa ∷ ee ∷ mm ∷ []) =
+  let cost0 = c00 + c11 * ee * mm + c12 * ee * mm * mm
   in if mm <ᵇ aa
      then cost0 + (cost0 / 2)
      else cost0
@@ -179,9 +162,8 @@ runModel (threeArgumentsExpModCost c00 c11 c12) (x ∷ y ∷ z ∷ []) =
   -- ^ THIS IS INCOMPLETE: the real costing function branches if a > 5*c; however we measure
   -- sizes in bytes instead of words for expModInteger, so it gives incorrect results anyway.
 runModel (literalCostIn n m) xs with lookup xs n
-... | V-con (atomic aInteger) (pos (suc n)) = (n / 8) + 1
-  --only uses the literal size if positive integer.
-... | _ = runModel m xs
+... | suc n = suc n
+... | zero = runModel m xs
 ```
 
 ## Convert from Raw Model

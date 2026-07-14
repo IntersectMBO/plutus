@@ -18,9 +18,9 @@ module Spec.Data.MintValue.V3 where
 import PlutusTx.Prelude
 
 import Data.Coerce (coerce)
+import PlutusLedgerApi.Data.V3 (AssetClass (..), Value (..), flattenValue)
 import PlutusLedgerApi.Test.V1.Data.Value ()
 import PlutusLedgerApi.Test.V3.Data.MintValue ()
-import PlutusLedgerApi.V1.Data.Value (AssetClass (..), Value (..), flattenValue)
 import PlutusLedgerApi.V3.Data.MintValue (MintValue (..), mintValueBurned, mintValueMinted)
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Data.AssocMap qualified as Map

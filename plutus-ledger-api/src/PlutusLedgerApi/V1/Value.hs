@@ -48,6 +48,7 @@ module PlutusLedgerApi.V1.Value
   , currencySymbolValueOf
   , lovelaceValue
   , lovelaceValueOf
+  , unsafeLovelaceValueOf
   , scale
   , symbols
 
@@ -395,6 +396,15 @@ lovelaceValue = singleton adaSymbol adaToken . getLovelace
 lovelaceValueOf :: Value -> Lovelace
 lovelaceValueOf v = Lovelace (valueOf v adaSymbol adaToken)
 {-# INLINEABLE lovelaceValueOf #-}
+
+{-| Assumes that the first token of the first currency in the 'Value'
+represents lovelace. Returns a silently wrong answer or fails if that's not
+the case. It is thus much faster than 'lovelaceValueOf'. -}
+unsafeLovelaceValueOf :: Value -> Lovelace
+unsafeLovelaceValueOf (Value mp) =
+  let adaTokens = snd (List.head (Map.toList mp))
+   in Lovelace (snd (List.head (Map.toList adaTokens)))
+{-# INLINEABLE unsafeLovelaceValueOf #-}
 
 -- | A 'Value' containing the given amount of the asset class.
 assetClassValue :: AssetClass -> Integer -> Value

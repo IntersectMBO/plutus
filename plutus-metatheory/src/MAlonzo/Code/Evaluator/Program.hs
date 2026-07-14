@@ -573,19 +573,19 @@ du_executeUPLCwithMP_144 v0 v1 v2 v3
                         (\ v6 ->
                            coe
                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                             (coe MAlonzo.Code.Cost.Model.d_lookupModel_596 (coe v6))))
+                             (coe MAlonzo.Code.Cost.Model.d_lookupModel_562 (coe v6))))
                      (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
                      (coe
-                        MAlonzo.Code.Cost.Model.du_allJust_632
+                        MAlonzo.Code.Cost.Model.du_allJust_598
                         (coe
                            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                            (coe
-                              MAlonzo.Code.Cost.Model.d_getModel_554
+                              MAlonzo.Code.Cost.Model.d_getModel_520
                               (coe MAlonzo.Code.Builtin.C_addInteger_4) (coe v5))
                            (coe
                               MAlonzo.Code.Data.List.Base.du_map_22
                               (coe
-                                 (\ v6 -> MAlonzo.Code.Cost.Model.d_getModel_554 (coe v6) (coe v5)))
+                                 (\ v6 -> MAlonzo.Code.Cost.Model.d_getModel_520 (coe v6) (coe v5)))
                               (coe
                                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                                  (coe MAlonzo.Code.Builtin.C_subtractInteger_6)
@@ -1067,13 +1067,13 @@ d_executeUPLC_192 v0 v1
       C_Counting_42 v2
         -> coe
              du_executeUPLCwithMP_144 (coe v2)
-             (coe MAlonzo.Code.Cost.d_machineParameters_140)
-             (coe MAlonzo.Code.Cost.d_countingReport_144) (coe v1)
+             (coe MAlonzo.Code.Cost.d_machineParameters_150)
+             (coe MAlonzo.Code.Cost.d_countingReport_154) (coe v1)
       C_Tallying_44 v2
         -> coe
              du_executeUPLCwithMP_144 (coe v2)
-             (coe MAlonzo.Code.Cost.d_tallyingMachineParameters_220)
-             (coe MAlonzo.Code.Cost.d_tallyingReport_224) (coe v1)
+             (coe MAlonzo.Code.Cost.d_tallyingMachineParameters_230)
+             (coe MAlonzo.Code.Cost.d_tallyingReport_234) (coe v1)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Evaluator.Program.evalProgramNU
 d_evalProgramNU_204 ::
