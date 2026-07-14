@@ -218,6 +218,8 @@ data DefaultFun
   | ValueData
   | UnValueData
   | ScaleValue
+  | -- Batch 7
+    MultiIndexArray
   deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
   deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2471,6 +2473,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           scaleValueDenotation
           (runCostingFunTwoArguments . paramScaleValue)
+  toBuiltinMeaning _semvar MultiIndexArray =
+    let multiIndexArrayDenotation
+          :: [Integer] -> SomeConstant uni (Vector a) -> BuiltinResult (Opaque val [a])
+        multiIndexArrayDenotation indices (SomeConstant (Some (ValueOf uni vec))) =
+          case uni of
+            DefaultUniArray uniA ->
+              let len = toInteger (Vector.length vec)
+                  lookupIndex i
+                    | 0 <= i && i < len = pure $ Vector.unsafeIndex vec $ fromInteger i
+                    | otherwise = fail "Array index out of bounds"
+               in fromValueOf (DefaultUniList uniA) <$> traverse lookupIndex indices
+            _ ->
+              throwError $ structuralUnliftingError "Expected an array but got something else"
+        {-# INLINE multiIndexArrayDenotation #-}
+     in makeBuiltinMeaning
+          multiIndexArrayDenotation
+          (runCostingFunTwoArguments . unimplementedCostingFun)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 
@@ -2614,6 +2633,7 @@ instance Flat DefaultFun where
       ValueData -> 98
       UnValueData -> 99
       ScaleValue -> 100
+      MultiIndexArray -> 101
 
   decode = go =<< decodeBuiltin
     where
@@ -2718,6 +2738,7 @@ instance Flat DefaultFun where
       go 98 = pure ValueData
       go 99 = pure UnValueData
       go 100 = pure ScaleValue
+      go 101 = pure MultiIndexArray
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth
