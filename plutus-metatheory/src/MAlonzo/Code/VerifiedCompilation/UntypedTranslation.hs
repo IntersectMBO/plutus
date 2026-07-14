@@ -2535,27 +2535,27 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                              coe
                                                                MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
                                                                (coe
-                                                                  MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                  MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                   (coe v7)))
                                                           (coe
                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                                                              (coe
                                                                 eqInt
                                                                 (coe
-                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                    (coe v7))
                                                                 (coe
-                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                    (coe v9)))
                                                              (coe
                                                                 MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
                                                                 (coe
                                                                    eqInt
                                                                    (coe
-                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                       (coe v7))
                                                                    (coe
-                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_426
+                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                       (coe v9))))) in
                                                 coe
                                                   (case coe v13 of

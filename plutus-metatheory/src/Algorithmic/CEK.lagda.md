@@ -36,7 +36,7 @@ open _⊢_
 open _∋_
 open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
 open import Builtin
-open import Utils hiding (List;length) renaming (_,_ to _,,_)
+open import Utils hiding (List;length;Value) renaming (_,_ to _,,_)
 
 open import Builtin.Constant.AtomicType
 open import Builtin.Constant.Type using (TyCon)
@@ -267,6 +267,25 @@ BUILTIN unMapData (base $ V-con _) =  inj₁ (con (ne (^ (atomic aData))))
 BUILTIN unListData (base $ V-con (ListDATA x)) = inj₂ (V-con x)
 BUILTIN unListData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
 BUILTIN serialiseData (base $ V-con d) = inj₂ (V-con (serialiseDATA d))
+BUILTIN insertCoin (base $ V-con ccy $ V-con tok $ V-con x $ V-con v) with insertCOIN ccy tok x v
+... | just v' = inj₂ (V-con v')
+... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+BUILTIN lookupCoin (base $ V-con ccy $ V-con tok $ V-con v)  = inj₂ (V-con (lookupCOIN ccy tok v))
+BUILTIN unionValue (base $ V-con v1 $ V-con v2) with unionVALUE v1 v2
+... | just v' = inj₂ (V-con v')
+... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+BUILTIN valueContains (base $ V-con v1 $ V-con v2) with valueCONTAINS v1 v2
+... | just b = inj₂ (V-con b)
+... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+BUILTIN scaleValue (base $ V-con n $ V-con v) with scaleVALUE n v
+... | just v' = inj₂ (V-con v')
+... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+BUILTIN valueData (base $ V-con v) with valueDATA v
+... | just d = inj₂ (V-con d)
+... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+BUILTIN unValueData (base $ V-con d) with unValueDATA d
+... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+... | just v  = inj₂ (V-con v)
 BUILTIN mkNilData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN mkNilPairData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN chooseUnit (Λ̂ A $ x $ V-con _) = inj₂ x

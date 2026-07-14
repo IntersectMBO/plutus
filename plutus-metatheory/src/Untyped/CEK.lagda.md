@@ -31,10 +31,10 @@ open Eq using (_≡_; refl)
 open import Untyped using (_⊢)
 open _⊢
 open import Untyped.RenamingSubstitution using (Sub;sub;lifts)
-open import Utils hiding (List;length)
+open import Utils hiding (List;length;Value)
 open import Builtin
 open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
-            using (integer;bool;bytestring;string;pdata;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
+            using (integer;bool;bytestring;string;pdata;value;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open Sig
 open import RawU using (TmCon;tmCon;TyTag;decTyTag;⟦_⟧tag)
@@ -324,6 +324,41 @@ BUILTIN serialiseData = λ
   { (app base (V-con pdata d)) -> inj₂ (V-con bytestring (serialiseDATA d))
   ; _ -> inj₁ userError
   }
+BUILTIN insertCoin
+  (app (app (app (app base (V-con bytestring b)) (V-con bytestring b')) (V-con integer n)) (V-con value v))
+  with insertCOIN b b' n v
+... | just v' = inj₂ (V-con value v')
+... | nothing = inj₁ userError
+BUILTIN insertCoin _ = inj₁ userError
+BUILTIN lookupCoin = λ
+  { (app (app (app base (V-con bytestring b)) (V-con bytestring b')) (V-con value v)) -> inj₂ (V-con integer (lookupCOIN b b' v))
+  ; _ -> inj₁ userError
+  }
+BUILTIN unionValue (app (app base (V-con value v1)) (V-con value v2))
+  with unionVALUE v1 v2
+... | just v' = inj₂ (V-con value v')
+... | nothing = inj₁ userError
+BUILTIN unionValue _ = inj₁ userError
+BUILTIN valueContains (app (app base (V-con value v1)) (V-con value v2))
+  with (valueCONTAINS v1 v2)
+... | just b = inj₂ (V-con bool b)
+... | nothing = inj₁ userError
+BUILTIN valueContains _ =  inj₁ userError
+BUILTIN scaleValue (app (app base (V-con integer n)) (V-con value v))
+  with scaleVALUE n v
+... | just v' = inj₂ (V-con value v')
+... | nothing = inj₁ userError
+BUILTIN scaleValue _ = inj₁ userError
+BUILTIN valueData (app base (V-con value v))
+  with valueDATA v
+... | just d = inj₂ (V-con pdata d)
+... | nothing = inj₁ userError
+BUILTIN valueData _ = inj₁ userError
+BUILTIN unValueData (app base (V-con pdata d))
+  with unValueDATA d
+... | (just v) = inj₂ (V-con value v)
+... | nothing  = inj₁ userError
+BUILTIN unValueData _ = inj₁ userError
 BUILTIN chooseUnit = λ
   { (app (app (app⋆ base) (V-con unit tt)) v) -> inj₂ v
   ; _ -> inj₁ userError

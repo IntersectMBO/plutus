@@ -17,7 +17,7 @@ module Cost where
 
 ```
 open import Agda.Builtin.Unit using (tt)
-open import Function using (_∘_)
+open import Function using (_∘_;_$_)
 open import Data.Bool using (if_then_else_)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.Nat using (ℕ;zero;suc;_+_)
@@ -30,7 +30,7 @@ import Data.List as L
 open import Data.Maybe using (Maybe;just;nothing;maybe′;fromMaybe) renaming (map to mapMaybe; _>>=_ to _>>=m_ )
 open import Data.Product using () renaming (_,_ to _,,_)
 open import Data.String using (String;_++_;padLeft;padRight;length)
-open import Data.Vec using (Vec;replicate;[];_∷_;foldr)
+open import Data.Vec using (Vec;replicate;[];_∷_;foldr;zipWith)
 open import Algebra using (IsMonoid)
 open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;isEquivalence;cong₂)
@@ -51,7 +51,7 @@ open import Builtin.Constant.AtomicType using (AtomicTyCon)
 open AtomicTyCon
 
 open import Cost.Base
-open import Cost.Size using (defaultValueMeasure)
+open import Cost.Size
 open import Cost.Model
 open import Cost.Raw
 open import Untyped.CEK using (Value;V-con)
@@ -100,12 +100,27 @@ isMonoidExBudget = record {
 
 ## Cost of executing a builtin
 
-To calculate the cost of a builtin we obtain the corresponding builtin model,
-and run the cpu and memory model using the vector of argument sizes.
+To calculate the cost of a builtin we first define what measure functions to use
+for its arguments. A few built-ins require non-standard measures:
+
+```
+measures : (b : Builtin) → Vec (Value → CostingNat) (arity b)
+measures insertCoin          = defaultValueMeasure ∷ defaultValueMeasure ∷ defaultValueMeasure ∷ valueMaxDepthMeasure ∷ []
+measures lookupCoin          = defaultValueMeasure ∷ defaultValueMeasure ∷ valueMaxDepthMeasure ∷ []
+measures unValueData         = dataNodeCountMeasure ∷ []
+measures integerToByteString = defaultValueMeasure ∷ numBytesAsWords ∷ defaultValueMeasure ∷ []
+measures _                   = replicate _ defaultValueMeasure
+```
+
+obtain the corresponding builtin model, and run the cpu and memory model using
+the vector of argument sizes.
 
 ```
 builtinCost : (b : Builtin) → BuiltinModel (arity b) → Vec Value (arity b) → ExBudget
-builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costingMem bc) cs)
+builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) sizes) (runModel (costingMem bc) sizes)
+  where
+    sizes : Vec CostingNat (arity b)
+    sizes = zipWith _$_ (measures b) cs
 ```
 
 

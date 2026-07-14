@@ -6,7 +6,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wall #-}
--- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1796)
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Raw where
@@ -38,6 +37,7 @@ data AtomicTyCon
   | ATyConUnit
   | ATyConBool
   | ATyConData
+  | ATyConValue
   | ATyConBLS12_381_G1_Element
   | ATyConBLS12_381_G2_Element
   | ATyConBLS12_381_MlResult
@@ -96,6 +96,7 @@ convTyCon (SomeTypeIn DefaultUniString) = RTyCon (RTyConAtom ATyConStr)
 convTyCon (SomeTypeIn DefaultUniBool) = RTyCon (RTyConAtom ATyConBool)
 convTyCon (SomeTypeIn DefaultUniUnit) = RTyCon (RTyConAtom ATyConUnit)
 convTyCon (SomeTypeIn DefaultUniData) = RTyCon (RTyConAtom ATyConData)
+convTyCon (SomeTypeIn DefaultUniValue) = RTyCon (RTyConAtom ATyConValue)
 convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
 convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
 convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult) = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
@@ -150,6 +151,7 @@ unconvTyCon (RTyConAtom ATyConStr) = SomeTypeIn DefaultUniString
 unconvTyCon (RTyConAtom ATyConBool) = SomeTypeIn DefaultUniBool
 unconvTyCon (RTyConAtom ATyConUnit) = SomeTypeIn DefaultUniUnit
 unconvTyCon (RTyConAtom ATyConData) = SomeTypeIn DefaultUniData
+unconvTyCon (RTyConAtom ATyConValue) = SomeTypeIn DefaultUniValue
 unconvTyCon (RTyConAtom ATyConBLS12_381_G1_Element) =
   SomeTypeIn DefaultUniBLS12_381_G1_Element
 unconvTyCon (RTyConAtom ATyConBLS12_381_G2_Element) =
