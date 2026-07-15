@@ -66,13 +66,15 @@ import Witherable (Witherable (wither))
 
 -- Common functions for all tests
 
-{-| The default shown text when a parse error occurs.
-We don't want to show the detailed parse errors so that
-users of the test suite can produce the expected output more easily. -}
+{-| The text shown when a file fails to parse or decode.  We don't want to
+show the detailed errors so that users of the test suite can produce the
+expected output more easily. This is used in .uplc.expected and .budget.expected
+files. -}
 shownParseError :: T.Text
-shownParseError = "parse error"
+shownParseError = "parse/decode error"
 
--- | The default shown text when evaluation fails.
+{-| The text shown when evaluation fails.  This is used in .uplc.expected and
+.budget.expected files. -}
 shownEvaluationFailure :: T.Text
 shownEvaluationFailure = "evaluation failure"
 
@@ -318,7 +320,7 @@ getInputProg Flat file = do
         -- expected budget file, which will contatin "evaluation failed".
         -- Perhaps the budget file should just say "error" in that case
         -- without trying to distinguish parse errors and evaluation errors.
-        Left _ -> Left shownEvaluationFailure
+        Left _ -> Left shownParseError
         Right p -> Right p
 
 {-| Get the tested value from a test-case input file in the given `Format`.
