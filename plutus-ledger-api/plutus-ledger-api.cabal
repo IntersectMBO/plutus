@@ -57,6 +57,7 @@ library
     PlutusLedgerApi.Data.V1
     PlutusLedgerApi.Data.V2
     PlutusLedgerApi.Data.V3
+    PlutusLedgerApi.Data.V4
     PlutusLedgerApi.Envelope
     PlutusLedgerApi.MachineParameters
     PlutusLedgerApi.V1
@@ -97,6 +98,9 @@ library
     PlutusLedgerApi.V3.MintValue
     PlutusLedgerApi.V3.ParamName
     PlutusLedgerApi.V3.Tx
+    PlutusLedgerApi.V4
+    PlutusLedgerApi.V4.Contexts
+    PlutusLedgerApi.V4.Data.Contexts
 
   other-modules:
     PlutusLedgerApi.Common.Eval
