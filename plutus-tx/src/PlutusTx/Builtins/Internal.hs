@@ -688,6 +688,13 @@ indexArray (BuiltinArray v) i
   | otherwise = Haskell.error "array index out of bounds"
 {-# OPAQUE indexArray #-}
 
+{-| Returns the elements at the given indices, in index-list order with duplicates preserved.
+  Fails if any index is not in the range @[0..j)@, where @j@ is the length of the array. -}
+multiIndexArray :: BuiltinList BuiltinInteger -> BuiltinArray a -> BuiltinList a
+multiIndexArray (BuiltinList is) (BuiltinArray v) =
+  BuiltinList (map (\i -> v Vector.! fromInteger i) is)
+{-# OPAQUE multiIndexArray #-}
+
 {-
 BLS12_381
 -}

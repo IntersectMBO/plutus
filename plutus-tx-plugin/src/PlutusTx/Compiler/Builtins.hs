@@ -234,6 +234,7 @@ builtinNames =
   , 'Builtins.lengthOfArray
   , 'Builtins.listToArray
   , 'Builtins.indexArray
+  , 'Builtins.multiIndexArray
   , ''Builtins.BuiltinData
   , 'Builtins.chooseData
   , 'Builtins.equalsData
@@ -747,8 +748,7 @@ defineBuiltinTerms = do
           PLC.LengthOfArray -> defineBuiltinInl 'Builtins.lengthOfArray
           PLC.ListToArray -> defineBuiltinInl 'Builtins.listToArray
           PLC.IndexArray -> defineBuiltinInl 'Builtins.indexArray
-          -- Not exposed to Plinth yet: core-language only for now (CIP-0156).
-          PLC.MultiIndexArray -> pure ()
+          PLC.MultiIndexArray -> defineBuiltinInl 'Builtins.multiIndexArray
           -- Data
           PLC.ChooseData -> defineBuiltinInl 'Builtins.chooseData
           PLC.EqualsData -> defineBuiltinInl 'Builtins.equalsData

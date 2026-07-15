@@ -15,6 +15,7 @@ module Array.Spec where
 
 import PlutusCore.Test (goldenUEval)
 import PlutusTx
+import PlutusTx.Builtins (mkNil)
 import PlutusTx.Builtins.Internal
 import PlutusTx.Test (goldenPirReadable, goldenUPlcReadable)
 import Test.Tasty.Extras
@@ -33,6 +34,9 @@ smokeTests =
         , goldenPirReadable "compiledIndexArray" compiledIndexArray
         , goldenUPlcReadable "compiledIndexArray" compiledIndexArray
         , goldenUEval "compiledIndexArray" [compiledIndexArray]
+        , goldenPirReadable "compiledMultiIndexArray" compiledMultiIndexArray
+        , goldenUPlcReadable "compiledMultiIndexArray" compiledMultiIndexArray
+        , goldenUEval "compiledMultiIndexArray" [compiledMultiIndexArray]
         ]
     ]
 
@@ -63,3 +67,13 @@ compiledIndexArray =
   $$(compile [||indexArray||])
     `unsafeApplyCode` compiledListToArray
     `unsafeApplyCode` liftCodeDef 2
+
+compiledMultiIndexArray :: CompiledCode (BuiltinList BuiltinData)
+compiledMultiIndexArray =
+  $$(compile [||multiIndexArray||])
+    `unsafeApplyCode` compiledIndices
+    `unsafeApplyCode` compiledListToArray
+
+compiledIndices :: CompiledCode (BuiltinList BuiltinInteger)
+compiledIndices =
+  $$(compile [||mkCons 2 (mkCons 0 (mkCons 0 (mkCons 1 mkNil)))||])
