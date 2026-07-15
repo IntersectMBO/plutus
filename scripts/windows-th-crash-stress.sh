@@ -6,6 +6,12 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 HN_REF="github:input-output-hk/haskell.nix/d93d6ed0f367d732b146666cee65cded175c6160"
+# Pin haskell.nix's nested nixpkgs to the project's locked rev (flake.lock,
+# nixpkgs-unstable). Without this the haskell-nix override also swaps in a
+# newer nixpkgs whose Wine hangs during headless prefix init; pinning it keeps
+# Wine identical across all arms, so only the GHC toolchain varies.
+NIXPKGS_REF="github:NixOS/nixpkgs/a683adc19ff5228af548c6539dbc3440509bfed3"
+HN_OVERRIDE="--override-input haskell-nix $HN_REF --override-input haskell-nix/nixpkgs-unstable $NIXPKGS_REF"
 
 declare -A GHC_VARIANT=(
   [ghc96]="ghc96"
@@ -15,17 +21,18 @@ declare -A GHC_VARIANT=(
 declare -A GHC_OVERRIDE=(
   [ghc96]=""
   [ghc912]=""
-  [ghc9123]="--override-input haskell-nix $HN_REF"
+  [ghc9123]="$HN_OVERRIDE"
 )
 variant_for() { echo "${GHC_VARIANT[$1]:-$1}"; }
 override_for() {
   if [ -n "${GHC_OVERRIDE[$1]+set}" ]; then echo "${GHC_OVERRIDE[$1]}";
-  else echo "--override-input haskell-nix $HN_REF"; fi
+  else echo "$HN_OVERRIDE"; fi
 }
 
 GHCS=(ghc96 ghc912 ghc9123)
 MAX_ITERS=0
 MAX_HOURS=0
+MAX_SILENT=3600
 RESULTS_DIR="$REPO_ROOT/windows-th-crash-stress-results"
 SYSTEM=""
 EXTRA_NIX_ARGS=()
@@ -39,6 +46,8 @@ Usage: scripts/windows-th-crash-stress.sh [-g "ghc96 ghc912 ghc9123"] [-n N]
   -g "A B ..."  Space-separated build arms. Default: "ghc96 ghc912 ghc9123".
   -n N          Stop after N iterations PER arm (0 = unlimited). Default: 0.
   -H HOURS      Stop after ~HOURS hours (fractional ok, 0 = no limit). Default: 0.
+  -t SECONDS    Kill a build after SECONDS with no output (hung Wine guard,
+                0 = disabled). Default: 3600.
   -d DIR        Results directory. Default: <repo>/windows-th-crash-stress-results
   -s SYSTEM     Nix system. Default: autodetected (e.g. x86_64-linux).
   --            Everything after is passed verbatim to 'nix build'.
@@ -47,11 +56,12 @@ Stop with Ctrl-C or:  touch <DIR>/STOP
 EOF
 }
 
-while getopts ":g:n:H:d:s:h" opt; do
+while getopts ":g:n:H:t:d:s:h" opt; do
   case "$opt" in
     g) read -r -a GHCS <<< "$OPTARG" ;;
     n) MAX_ITERS="$OPTARG" ;;
     H) MAX_HOURS="$OPTARG" ;;
+    t) MAX_SILENT="$OPTARG" ;;
     d) RESULTS_DIR="$OPTARG" ;;
     s) SYSTEM="$OPTARG" ;;
     h) usage; exit 0 ;;
@@ -118,12 +128,14 @@ run_build() {
   local g="$1" log="$2" rc
   local attr; attr=$(attr_for "$g")
   local ovarr; read -r -a ovarr <<< "$(override_for "$g")"
+  local silentarr=()
+  [ "$MAX_SILENT" != 0 ] && silentarr=(--max-silent-time "$MAX_SILENT")
   nix build "$attr" --rebuild --no-link --print-build-logs \
-    "${ovarr[@]}" "${EXTRA_NIX_ARGS[@]}" > "$log" 2>&1
+    "${silentarr[@]}" "${ovarr[@]}" "${EXTRA_NIX_ARGS[@]}" > "$log" 2>&1
   rc=$?
   if [ "$rc" -ne 0 ] && grep -q "$CHECKIMPOSSIBLE_RE" "$log"; then
     nix build "$attr" --no-link --print-build-logs \
-      "${ovarr[@]}" "${EXTRA_NIX_ARGS[@]}" > "$log" 2>&1
+      "${silentarr[@]}" "${ovarr[@]}" "${EXTRA_NIX_ARGS[@]}" > "$log" 2>&1
     rc=$?
   fi
   echo "$rc"
