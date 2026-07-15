@@ -20,6 +20,32 @@ The tests currently cover or will cover the Haskell and Agda implementation of:
 ## Organisation of tests
 The tests mostly take the form of golden tests of fairly simple UPLC programs.  The input files for the tests are organised in a tree of directories under the [test-cases](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases) directory.  If a directory in this tree contains one or more subdirectories then any other files in the directory are ignored and the subdirectories are recursively searched for test cases.  If a directory `<name>` has no subdirectories then it is expected to contain a file called `<name>.uplc` and no other files with the `.uplc` extension. The file `<name>.uplc` should contain textual source code for a  UPLC program, and the directory should also contain a file called `<name>.uplc.expected` containing the expected output of the program and a file called `<name>.uplc.budget.expected`containing the expected CPU and memory budgets.  Any other files (for example `README` files) in the directory are ignored.  See the [addInteger-01](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-01) for an example of the expected format.  To avoid difficulties with case-insensitive filesystems no two subdirectories of a test directory should have names which differ only by case (eg `True` and `true`).
 
+### Flat encoding
+
+Some test-case directories also contain a `<name>.flat` file (and a
+`<name>.flat.expected` file), containing the `flat`-encoded version of the
+`.uplc` (respectively `.uplc.expected`) program in the same directory. The
+`conformance-consistency` test suite checks that decoding a `.flat` file
+produces the same AST as parsing the corresponding `.uplc` file, and
+likewise for the `.flat.expected`/`.uplc.expected` pair.  A `.flat.expected`
+file is empty if the corresponding `.uplc.expected` file records a parse or
+evaluation failure rather than a program.  Test-case directories which don't
+yet have a `.flat` file are skipped, as are any directories listed in the
+`skippedFlatDecodingTests` list in
+[consistency/Spec.hs](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/consistency/Spec.hs).
+
+By default, the UPLC evaluation test suites (`haskell-conformance`,
+`haskell-steppable-conformance`, and `agda-conformance`) run their tests
+against the textual `<name>.uplc` files.  Passing `--format=flat` as a
+test option makes them run against the `<name>.flat` files instead (see
+[`Format`](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/src/PlutusConformance/Common.hs)),
+eg:
+
+`cabal test haskell-conformance --test-options=--format=flat`
+
+Test-case directories which don't yet have a `.flat` file are silently
+skipped when `--format=flat` is used.
+
 ### Adding/updating test outputs
 
 To update or add test outputs, use the accept test option of the tests. E.g., to have the test results overwrite the `.expected` files in the Haskell implementation test suite (`haskell-conformance`) , run:

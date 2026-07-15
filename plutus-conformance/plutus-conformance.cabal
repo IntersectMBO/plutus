@@ -54,10 +54,13 @@ library
   exposed-modules: PlutusConformance.Common
   build-depends:
     , base
+    , bytestring
     , directory
     , filepath
     , plutus-core                      ^>=1.65
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
+    , tagged
     , tasty
     , tasty-expected-failure
     , tasty-golden
@@ -108,3 +111,23 @@ test-suite agda-conformance
     , plutus-core         ^>=1.65
     , plutus-metatheory   ^>=1.65
     , transformers
+
+test-suite conformance-consistency
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs: consistency test-cases
+  other-modules:
+  build-depends:
+    , base                >=4.9   && <5
+    , bytestring
+    , directory
+    , filepath
+    , plutus-conformance
+    , plutus-core         ^>=1.65
+    , tasty
+    , tasty-golden
+    , tasty-hunit
+    , text
+    , witherable
