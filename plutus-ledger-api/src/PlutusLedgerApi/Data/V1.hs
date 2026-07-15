@@ -105,6 +105,7 @@ module PlutusLedgerApi.Data.V1
   , split
   , symbols
   , tokenName
+  , unsafeEqValue
   , unsafeLovelaceValueOf
   , valueOf
   , withCurrencySymbol

@@ -116,6 +116,7 @@ module PlutusLedgerApi.V1
   , Value.singleton
   , Value.split
   , Value.unionWith
+  , Value.unsafeEqValue
   , Value.unsafeLovelaceValueOf
   , Value.valueOf
   , Value.withCurrencySymbol

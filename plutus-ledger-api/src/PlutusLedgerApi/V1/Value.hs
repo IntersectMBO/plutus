@@ -49,6 +49,7 @@ module PlutusLedgerApi.V1.Value
   , lovelaceValue
   , lovelaceValueOf
   , unsafeLovelaceValueOf
+  , unsafeEqValue
   , scale
   , symbols
 
@@ -617,6 +618,30 @@ currency have multiple entries. -}
 eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
 {-# INLINEABLE eq #-}
+
+{-| Checks equality of two 'Value's positionally, assuming both are in the canonical
+ledger form: entries sorted by key, no duplicate keys, no zero or empty entries.
+Values from @txInfoInputs@ and @txInfoOutputs@ are canonical; for other values this
+returns a silently wrong answer. It is thus much faster than '=='. -}
+unsafeEqValue :: Value -> Value -> Bool
+unsafeEqValue (Value currs1) (Value currs2) =
+  goOuter (Map.toList currs1) (Map.toList currs2)
+  where
+    goOuter
+      :: [(CurrencySymbol, Map TokenName Integer)]
+      -> [(CurrencySymbol, Map TokenName Integer)]
+      -> Bool
+    goOuter [] [] = True
+    goOuter ((c1, tokens1) : rest1) ((c2, tokens2) : rest2) =
+      c1 == c2 && goInner (Map.toList tokens1) (Map.toList tokens2) && goOuter rest1 rest2
+    goOuter _ _ = False
+
+    goInner :: [(TokenName, Integer)] -> [(TokenName, Integer)] -> Bool
+    goInner [] [] = True
+    goInner ((t1, q1) : rest1) ((t2, q2) : rest2) =
+      t1 == t2 && q1 == q2 && goInner rest1 rest2
+    goInner _ _ = False
+{-# INLINEABLE unsafeEqValue #-}
 
 newtype Lovelace = Lovelace {getLovelace :: Integer}
   deriving stock (Generic)

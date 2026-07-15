@@ -23,6 +23,7 @@ import PlutusTx.AssocMap as Map
 import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
 import PlutusTx.Code
 import PlutusTx.Lift (liftCodeDef)
+import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.TH (compile)
 import PlutusTx.Test
 
@@ -33,6 +34,8 @@ tests =
     , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
     , goldenPirReadable "lovelaceValueOf" compiledLovelaceValueOf
     , goldenPirReadable "unsafeLovelaceValueOf" compiledUnsafeLovelaceValueOf
+    , goldenPirReadable "eqValue" compiledEqValue
+    , goldenPirReadable "unsafeEqValue" compiledUnsafeEqValue
     ]
       ++ testCases
 
@@ -50,6 +53,15 @@ compiledLovelaceValueOf = $$(compile [||lovelaceValueOf||])
 
 compiledUnsafeLovelaceValueOf :: CompiledCode (Value -> Lovelace)
 compiledUnsafeLovelaceValueOf = $$(compile [||unsafeLovelaceValueOf||])
+
+eqValue :: Value -> Value -> Bool
+eqValue = (PlutusTx.==)
+
+compiledEqValue :: CompiledCode (Value -> Value -> Bool)
+compiledEqValue = $$(compile [||eqValue||])
+
+compiledUnsafeEqValue :: CompiledCode (Value -> Value -> Bool)
+compiledUnsafeEqValue = $$(compile [||unsafeEqValue||])
 
 mkValue :: [(Integer, [(Integer, Integer)])] -> Value
 mkValue =
@@ -107,6 +119,18 @@ txOutValue =
         [ (1, [(100, 101)])
         , (2, [(200, 201), (202, 203)])
         , (3, [(300, 301), (302, 303), (304, 305)])
+        ]
+
+-- | Same as 'txOutValue' except the quantity of the last token differs.
+txOutValueChanged :: Value
+txOutValueChanged =
+  Value . Map.unsafeFromList $
+    (adaSymbol, Map.unsafeFromList [(adaToken, 2000000)])
+      : fmap
+        (bimap toSymbol (Map.unsafeFromList . fmap (first toToken)))
+        [ (1, [(100, 101)])
+        , (2, [(200, 201), (202, 203)])
+        , (3, [(300, 301), (302, 303), (304, 999)])
         ]
 
 testCases :: [TestNested]
@@ -186,5 +210,29 @@ testCases =
       "unsafeLovelaceValueOf"
       ( compiledUnsafeLovelaceValueOf
           `unsafeApplyCode` liftCodeDef txOutValue
+      )
+  , goldenEvalCekCatchBudget
+      "eqValue"
+      ( compiledEqValue
+          `unsafeApplyCode` liftCodeDef txOutValue
+          `unsafeApplyCode` liftCodeDef txOutValue
+      )
+  , goldenEvalCekCatchBudget
+      "eqValueUnequal"
+      ( compiledEqValue
+          `unsafeApplyCode` liftCodeDef txOutValue
+          `unsafeApplyCode` liftCodeDef txOutValueChanged
+      )
+  , goldenEvalCekCatchBudget
+      "unsafeEqValue"
+      ( compiledUnsafeEqValue
+          `unsafeApplyCode` liftCodeDef txOutValue
+          `unsafeApplyCode` liftCodeDef txOutValue
+      )
+  , goldenEvalCekCatchBudget
+      "unsafeEqValueUnequal"
+      ( compiledUnsafeEqValue
+          `unsafeApplyCode` liftCodeDef txOutValue
+          `unsafeApplyCode` liftCodeDef txOutValueChanged
       )
   ]

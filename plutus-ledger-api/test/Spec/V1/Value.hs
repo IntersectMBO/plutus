@@ -9,7 +9,7 @@ import PlutusTx.Numeric qualified as Numeric
 
 import Control.Lens
 import Data.ByteString qualified as BS
-import Data.List (sort)
+import Data.List (sort, sortOn)
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty
 import Test.Tasty.HUnit (testCase, (@?=))
@@ -135,6 +135,34 @@ test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
   let (valueL, valueR) = split value
    in Numeric.negate valueL <> valueR <=> value
 
+{-| Reduce a 'Value' to the canonical ledger form: entries sorted by key at both
+levels, no zero quantities, no empty inner maps. Key uniqueness is already
+guaranteed by the generator. -}
+canonicalValue :: Value -> Value
+canonicalValue value =
+  listsToValue $
+    sortOn
+      fst
+      [ (c, sortOn fst tokens')
+      | (c, tokens) <- valueToLists value
+      , let tokens' = filter ((/= 0) . snd) tokens
+      , not (null tokens')
+      ]
+
+{-| 'unsafeEqValue' agrees with '==' on canonical ledger-shaped 'Value's, both
+when the values are equal and when they differ. -}
+test_unsafeEqValue :: TestTree
+test_unsafeEqValue =
+  testProperty "unsafeEqValue" . scaleTestsBy 5 $ \value1 value2 ->
+    let c1 = canonicalValue value1
+        c2 = canonicalValue value2
+     in conjoin
+          [ unsafeEqValue c1 c1 === True
+          , unsafeEqValue c2 c2 === True
+          , unsafeEqValue c1 c2 === (c1 == c2)
+          , unsafeEqValue c2 c1 === (c2 == c1)
+          ]
+
 {-| 'unsafeLovelaceValueOf' reads the lovelace quantity of a ledger-shaped
 'Value' (ada present and sorted first) and agrees with 'lovelaceValueOf'. -}
 test_unsafeLovelaceValueOf :: TestTree
@@ -203,6 +231,7 @@ test_Value =
     , test_updateSomeTokenNames
     , test_shuffle
     , test_split
+    , test_unsafeEqValue
     , test_unsafeLovelaceValueOf
     , test_toData
     , test_fromData

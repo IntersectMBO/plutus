@@ -166,6 +166,7 @@ module PlutusLedgerApi.Data.V3
   , V2.split
   , V2.symbols
   , V2.tokenName
+  , V2.unsafeEqValue
   , V2.unsafeLovelaceValueOf
   , V2.valueOf
   , V2.withCurrencySymbol

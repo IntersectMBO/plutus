@@ -50,6 +50,7 @@ module PlutusLedgerApi.V1.Data.Value
   , lovelaceValue
   , lovelaceValueOf
   , unsafeLovelaceValueOf
+  , unsafeEqValue
   , scale
   , symbols
 
@@ -687,6 +688,15 @@ eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) =
   eqMapOfMapsWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
 {-# INLINEABLE eq #-}
+
+{-| Checks equality of two 'Value's structurally, as a single 'B.equalsData' call on
+the underlying representations, assuming both are in the canonical ledger form:
+entries sorted by key, no duplicate keys, no zero or empty entries. Values from
+@txInfoInputs@ and @txInfoOutputs@ are canonical; for other values this returns a
+silently wrong answer. It is thus much faster than '=='. -}
+unsafeEqValue :: Value -> Value -> Bool
+unsafeEqValue (Value m1) (Value m2) = toBuiltinData m1 == toBuiltinData m2
+{-# INLINEABLE unsafeEqValue #-}
 
 newtype Lovelace = Lovelace {getLovelace :: Integer}
   deriving stock (Generic)
