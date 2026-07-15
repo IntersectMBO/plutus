@@ -692,7 +692,17 @@ indexArray (BuiltinArray v) i
   Fails if any index is not in the range @[0..j)@, where @j@ is the length of the array. -}
 multiIndexArray :: BuiltinList BuiltinInteger -> BuiltinArray a -> BuiltinList a
 multiIndexArray (BuiltinList is) (BuiltinArray v) =
-  BuiltinList (map (\i -> v Vector.! fromInteger i) is)
+  -- All indices are checked eagerly in the 'Integer' domain, matching the builtin: an index
+  -- exceeding @maxBound :: Int@ is out-of-bounds rather than wrapping on conversion, and any
+  -- out-of-bounds index fails the whole call even if the result list is never fully demanded.
+  case traverse lookupIndex is of
+    Just els -> BuiltinList els
+    Nothing -> Haskell.error "array index out of bounds"
+  where
+    len = toInteger (Vector.length v)
+    lookupIndex i
+      | 0 <= i && i < len = Just (Vector.unsafeIndex v (fromInteger i))
+      | otherwise = Nothing
 {-# OPAQUE multiIndexArray #-}
 
 {-
