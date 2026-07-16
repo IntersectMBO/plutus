@@ -51,14 +51,7 @@ failingEvaluationTests = []
  directory containing the test, eg
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1" -}
 failingBudgetTests :: [FilePath]
-failingBudgetTests = ["test-cases/uplc/evaluation/term/var"]
-
-{- FIXME: The above test succeeds with the .uplc file but fails with the .flat
-file.  The .budget.expected file contains "evaluation failure" which is correct
-for the .uplc file but incorrect for the .flat file.  The problem is that the
-file contains a free variable.  This causes a failure during flat decoding, but
-not during parsing: in that case the error is only detected when the program is
-de Bruijn-ified, and this is currently reported as an evaluation failure. -}
+failingBudgetTests = []
 
 main :: IO ()
 main =

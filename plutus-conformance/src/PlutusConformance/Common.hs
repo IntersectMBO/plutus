@@ -150,7 +150,7 @@ data UplcEvaluator
    instead contain `modInteger-15.flat`, a `flat`-encoded UPLC program.  The
    evaluation golden file is named to match: `modInteger-15.uplc.expected`
    for `Textual`, or `modInteger-15.flat.expected` for `Flat`.  The budget
-   golden file, however, is always `modInteger-15.uplc.budget.expected`
+   golden file, however, is always `modInteger-15.budget.expected`
    regardless of format, since there's no per-format budget convention (the
    budget only depends on the AST, not on how it was obtained). These golden
    files will be created by the testing machinery if they aren't already
@@ -227,10 +227,10 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
     -- which are always named using the `.uplc` extension regardless of the
     -- input format: there's no per-format budget golden file convention,
     -- since the budget only depends on the AST, not on how it was obtained.
-    goldenBasePath dir = dir </> takeBaseName dir <.> "uplc"
+    goldenBasePath dir = dir </> takeBaseName dir
     testForEval :: FilePath -> FilePath -> UplcEvaluatorFun UplcProg -> TestTree
     testForEval dir inputFilePath e =
-      let goldenFilePath = dir </> takeBaseName dir <.> ext <.> "expected"
+      let goldenFilePath = goldenBasePath dir <.> ext <.> "expected"
           test =
             goldenTest
               (takeFileName inputFilePath ++ " (evaluation)")
