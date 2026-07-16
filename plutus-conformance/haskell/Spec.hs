@@ -3,28 +3,39 @@
 -- | Conformance tests for the Haskell implementation.
 module Main (main) where
 
-import PlutusConformance.Common (UplcEvaluator (..), runUplcEvalTests)
+import PlutusConformance.Common
+  ( EvaluationResult (..)
+  , UplcEvaluator (..)
+  , runUplcEvalTests
+  )
 import PlutusCore.Evaluation.Machine.MachineParameters qualified as UPLC
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusPrelude (def)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (CountingSt (..), counting, runCekNoEmit)
+import UntypedPlutusCore.Evaluation.Machine.Cek
+  ( CountingSt (..)
+  , counting
+  , runCekNoEmit
+  )
 
 -- | Our `evaluator` for the Haskell UPLC tests is the CEK machine.
 evalUplcProg :: UplcEvaluator
 evalUplcProg = UplcEvaluatorWithCosting $ \modelParams (UPLC.Program a v t) ->
-  do
-    params <- case mkMachineVariantParametersFor [def] modelParams of
-      Left _ -> Nothing
-      Right machParamsList -> UPLC.MachineParameters def <$> lookup def machParamsList
-    -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with
-    -- free variables, that is why we manually check first for any free vars
-    case UPLC.deBruijnTerm t of
-      Left (_ :: UPLC.FreeVariableError) -> Nothing
-      Right _ -> Just ()
-    case runCekNoEmit params counting t of
-      (Left _, _) -> Nothing
-      (Right prog, CountingSt cost) -> Just (UPLC.Program a v prog, cost)
+  case mkMachineVariantParametersFor [def] modelParams of
+    Left _ -> BadMachineParameters
+    Right machParamsList ->
+      case lookup def machParamsList of
+        Nothing -> BadMachineParameters
+        Just p ->
+          let params = UPLC.MachineParameters def p
+           in -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with
+              -- free variables, that is why we manually check first for any free vars
+              case UPLC.deBruijnTerm t of
+                Left (_ :: UPLC.FreeVariableError) -> DecodeError
+                Right _ ->
+                  case runCekNoEmit params counting t of
+                    (Left _, _) -> EvalFailure
+                    (Right prog, CountingSt cost) -> EvalSuccess (UPLC.Program a v prog, cost)
 
 {-| A list of evaluation tests which are currently expected to fail.  Once a fix
  for a test is pushed, the test will succeed and should be removed from the
@@ -40,7 +51,14 @@ failingEvaluationTests = []
  directory containing the test, eg
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1" -}
 failingBudgetTests :: [FilePath]
-failingBudgetTests = []
+failingBudgetTests = ["test-cases/uplc/evaluation/term/var"]
+
+{- FIXME: The above test succeeds with the .uplc file but fails with the .flat
+file.  The .budget.expected file contains "evaluation failure" which is correct
+for the .uplc file but incorrect for the .flat file.  The problem is that the
+file contains a free variable.  This causes a failure during flat decoding, but
+not during parsing: in that case the error is only detected when the program is
+de Bruijn-ified, and this is currently reported as an evaluation failure. -}
 
 main :: IO ()
 main =

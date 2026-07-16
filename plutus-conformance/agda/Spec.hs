@@ -16,7 +16,8 @@ import MAlonzo.Code.Evaluator.Term
   )
 
 import PlutusConformance.Common
-  ( UplcEvaluator (..)
+  ( EvaluationResult (..)
+  , UplcEvaluator (..)
   , runUplcEvalTests
   )
 import PlutusCore (Error (..))
@@ -104,25 +105,24 @@ agdaEvalUplcProg WithCosting =
       tmUDB = deBruijnTerm tmU
      in
       case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
-        -- if there's an exception, evaluation failed, should return `Nothing`.
-        Left _ -> Nothing
+        Left _ -> DecodeError
         -- evaluate the untyped term with the CEK evaluator
         Right tmUDBSuccess ->
           case runUCountingAgda (toRawCostModel modelParams) tmUDBSuccess of
-            Left _ -> Nothing
+            Left _ -> EvalFailure
             Right (tmEvaluated, (cpuCost, memCost)) ->
               -- turn it back into a named term
               case runQuote $
                 runExceptT $
                   withExceptT FreeVariableErrorE $
                     unDeBruijnTerm tmEvaluated of
-                Left _ -> Nothing
+                Left _ -> DecodeError
                 Right namedTerm ->
                   let cost =
                         ExBudget
                           (ExCPU (fromInteger cpuCost))
                           (ExMemory (fromInteger memCost))
-                   in Just (UPLC.Program () version namedTerm, cost)
+                   in EvalSuccess (UPLC.Program () version namedTerm, cost)
 agdaEvalUplcProg WithoutCosting =
   UplcEvaluatorWithoutCosting $ \(UPLC.Program () version tmU) ->
     let tmUDB
@@ -132,17 +132,17 @@ agdaEvalUplcProg WithoutCosting =
                (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
         tmUDB = deBruijnTerm tmU
      in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
-          Left _ -> Nothing
+          Left _ -> DecodeError
           Right tmUDBSuccess ->
             case runUAgda tmUDBSuccess of
-              Left _ -> Nothing
+              Left _ -> EvalFailure
               Right tmEvaluated ->
                 case runQuote $
                   runExceptT $
                     withExceptT FreeVariableErrorE $
                       unDeBruijnTerm tmEvaluated of
-                  Left _ -> Nothing
-                  Right namedTerm -> Just $ UPLC.Program () version namedTerm
+                  Left _ -> EvalFailure -- Shouldn't happen unless there's something wrong with the Agda code.
+                  Right namedTerm -> EvalSuccess $ UPLC.Program () version namedTerm
 
 {-| A list of evaluation tests which are currently expected to fail.  Once a fix
  for a test is pushed, the test will succeed and should be removed from the

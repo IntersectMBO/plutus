@@ -30,17 +30,21 @@ failingBudgetTests = []
 evalSteppableUplcProg :: UplcEvaluator
 evalSteppableUplcProg = UplcEvaluatorWithCosting $
   \modelParams (UPLC.Program a v t) -> do
-    params <- case mkMachineVariantParametersFor [def] modelParams of
-      Left _ -> Nothing
-      Right machParamsList -> UPLC.MachineParameters def <$> lookup def machParamsList
-    -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with
-    -- free variables, that is why we manually check first for any free vars
-    case UPLC.deBruijnTerm t of
-      Left (_ :: UPLC.FreeVariableError) -> Nothing
-      Right _ -> Just ()
-    case SCek.runCekNoEmit params counting t of
-      (Left _, _) -> Nothing
-      (Right t', CountingSt cost) -> Just (UPLC.Program a v t', cost)
+    case mkMachineVariantParametersFor [def] modelParams of
+      Left _ -> BadMachineParameters
+      Right machParamsList ->
+        case lookup def machParamsList of
+          Nothing -> BadMachineParameters
+          Just p ->
+            let params = UPLC.MachineParameters def p
+             in -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with
+                -- free variables, that is why we manually check first for any free vars
+                case UPLC.deBruijnTerm t of
+                  Left (_ :: UPLC.FreeVariableError) -> DecodeError
+                  Right _ ->
+                    case SCek.runCekNoEmit params counting t of
+                      (Left _, _) -> EvalFailure
+                      (Right prog, CountingSt cost) -> EvalSuccess (UPLC.Program a v prog, cost)
 
 main :: IO ()
 main =

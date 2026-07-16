@@ -57,6 +57,7 @@ library
     , bytestring
     , directory
     , filepath
+    , mtl
     , plutus-core                      ^>=1.65
     , plutus-core:flat
     , plutus-core:plutus-core-testlib

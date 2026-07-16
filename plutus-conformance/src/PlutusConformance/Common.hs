@@ -5,6 +5,7 @@
 -- | Plutus conformance test suite library.
 module PlutusConformance.Common where
 
+import Control.Monad.Except (runExcept)
 import Data.ByteString qualified as BS
 import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (Proxy))
@@ -25,6 +26,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
   )
 import PlutusCore.Flat
   ( DecodeException
+  , flat
   , unflat
   )
 import PlutusCore.Name.Unique (Name)
@@ -118,8 +120,12 @@ instance IsOption Format where
 
 -- UPLC evaluation test functions
 
+-- A type to contain a result or one of several kinds of failure
+data EvaluationResult res = BadMachineParameters | DecodeError | EvalFailure | EvalSuccess res
+  deriving stock (Functor)
+
 -- convenience type synonym
-type UplcEvaluatorFun res = UplcProg -> Maybe res
+type UplcEvaluatorFun res = UplcProg -> EvaluationResult res
 
 -- TODO: consider splitting up the evaluator with costing into a part that
 -- parses the model and a part that consumes it. Currently the tests are fast
@@ -141,23 +147,23 @@ data UplcEvaluator
    of the directory. For example, if the `Format` is `UPLC` then the directory
    `modInteger-15` should contain `modInteger-15.uplc`, and that file should
    contain a textual UPLC program; if the `Format` is `Flat` then it should
-   instead contain `modInteger-15.flat`, a `flat`-encoded UPLC program.  Note
-   that whichever input format is used, the golden files are always named
-   `modInteger-15.uplc.expected` (containing the expected output of the
-   program) and `modInteger-15.uplc.budget.expected` (containing the expected
-   execution budget): the input format only affects how the input program
-   itself is obtained, not how the expected results are represented. These
-   golden files will be created by the testing machinery if they aren't
-   already present.
+   instead contain `modInteger-15.flat`, a `flat`-encoded UPLC program.  The
+   evaluation golden file is named to match: `modInteger-15.uplc.expected`
+   for `Textual`, or `modInteger-15.flat.expected` for `Flat`.  The budget
+   golden file, however, is always `modInteger-15.uplc.budget.expected`
+   regardless of format, since there's no per-format budget convention (the
+   budget only depends on the AST, not on how it was obtained). These golden
+   files will be created by the testing machinery if they aren't already
+   present.
 
    Not every test-case directory necessarily has an input file for every
    `Format` yet (for example `.flat` files don't make sense for the tests
-   under `test-cases/uplc/evaluation/builtin/constant`, which test the
-   handling of constants by the textual parser): such directories are simply
+   under `test-cases/uplc/evaluation/builtin/parser`, which test the
+   handling of constants by the textual parser): such directories are
    skipped rather than treated as an error. -}
 discoverTests
   :: Format
-  -- ^ The format of the test-case input files to run the tests against.
+  -- ^ The format of the test-case input files to run the tests against (.uplc or .flat).
   -> UplcEvaluator
   -- ^ The evaluator to be tested.
   -> CostModelParams
@@ -217,21 +223,23 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
                   UplcEvaluatorWithoutCosting f -> testForEval dir inputFilePath f
         -- has children, so it's a grouping directory
         else testGroup name <$> traverse go subdirs
-    -- The base path (without extension) used for the golden files, which are
-    -- always named using the `.uplc` extension regardless of the input format.
+    -- The base path (without extension) used for the budget golden files,
+    -- which are always named using the `.uplc` extension regardless of the
+    -- input format: there's no per-format budget golden file convention,
+    -- since the budget only depends on the AST, not on how it was obtained.
     goldenBasePath dir = dir </> takeBaseName dir <.> "uplc"
     testForEval :: FilePath -> FilePath -> UplcEvaluatorFun UplcProg -> TestTree
     testForEval dir inputFilePath e =
-      let goldenFilePath = goldenBasePath dir <.> "expected"
+      let goldenFilePath = dir </> takeBaseName dir <.> ext <.> "expected"
           test =
             goldenTest
               (takeFileName inputFilePath ++ " (evaluation)")
               -- get the golden test value
-              (expectedToProg <$> T.readFile goldenFilePath)
+              (getExpectedProg fmt goldenFilePath)
               -- get the tested value
               (getTestedValue fmt e inputFilePath)
-              (\x y -> pure $ compareAlphaEq x y) -- comparison function
-              (updateGoldenFile goldenFilePath) -- update the golden file
+              (\x y -> pure $ compareAlphaEq fmt x y) -- comparison function
+              (updateGoldenFile fmt goldenFilePath) -- update the golden file
        in possiblyFailingTest (evaluationFailureExpected dir) test
     testForBudget :: FilePath -> FilePath -> UplcEvaluatorFun ExBudget -> TestTree
     testForBudget dir inputFilePath e =
@@ -286,6 +294,24 @@ expectedToProg txt
         Left _ -> Left txt
         Right p -> Right $ void p
 
+{-| Obtain the expected `UplcProg` from a golden `.expected` file in the given
+`Format`: parsed as text for `Textual` (via `expectedToProg`), or
+`flat`-decoded for `Flat`.  An empty `.flat.expected` file means the test is
+expected to fail, without recording whether that's a parse/decode error or
+an evaluation failure -- the `.flat.expected` convention can't distinguish
+the two (see the comment on `getInputProg`'s `Flat` case). `compareAlphaEq`
+knows not to require the failure reason to match in that case. -}
+getExpectedProg :: Format -> FilePath -> IO (Either T.Text UplcProg)
+getExpectedProg Textual file = expectedToProg <$> T.readFile file
+getExpectedProg Flat file = do
+  input <- BS.readFile file
+  pure $
+    if BS.null input
+      then Left T.empty
+      else case decodeFlatProg input of
+        Left _ -> Left T.empty
+        Right p -> Right p
+
 {-| Obtain the input `UplcProg` from a test-case input file in the given
 `Format`, either by parsing it (for `textual`) or by `flat`-decoding it (for
 `Flat`). Rather than relying on the parser or decoder itself to fail, we check
@@ -337,27 +363,37 @@ getTestedValue fmt eval file = do
     Left err -> Left err
     Right p ->
       case eval p of
-        Nothing -> Left shownEvaluationFailure
-        Just prog -> Right prog
+        BadMachineParameters -> Left shownEvaluationFailure -- questionable, but this should never happen,
+        DecodeError -> Left shownParseError
+        EvalFailure -> Left shownEvaluationFailure
+        EvalSuccess prog -> Right prog
 
 {-| The comparison function used for the golden test.
 This function checks alpha-equivalence of programs when the output is a program. -}
 compareAlphaEq
-  :: Either T.Text UplcProg
+  :: Format
+  {-^ The format the golden value was read from.  A `Left` golden value
+  read from a `.flat.expected` file only records "some failure was
+  expected", not which specific reason (a `.flat.expected` file is simply
+  empty for both a parse/decode error and an evaluation failure), so in
+  that case we don't require the failure reason to match; for `Textual`
+  golden values (`.uplc.expected`) the reason is recorded precisely, so we
+  do require it to match. -}
+  -> Either T.Text UplcProg
   -- ^ golden value
   -> Either T.Text UplcProg
   -- ^ tested value
   -> Maybe String
   {-^ If two values are the same, it returns `Nothing`.
   If they are different, it returns an error that will be printed to the user. -}
-compareAlphaEq (Left expectedTxt) (Left actualTxt) =
-  if actualTxt == expectedTxt
+compareAlphaEq fmt (Left expectedTxt) (Left actualTxt) =
+  if fmt == Flat || actualTxt == expectedTxt
     then Nothing
     else
       Just $
         "Test failed, the output failed to parse or evaluate: \n"
           <> T.unpack actualTxt
-compareAlphaEq (Right expected) (Right actual) =
+compareAlphaEq _ (Right expected) (Right actual) =
   if actual == expected
     then Nothing
     else
@@ -373,13 +409,13 @@ compareAlphaEq (Right expected) (Right actual) =
           -- but they can't see the unique names
           <> "\n But the expected result, with the unique names shown is: \n"
           <> show expected
-compareAlphaEq (Right expected) (Left actualTxt) =
+compareAlphaEq _ (Right expected) (Left actualTxt) =
   pure $
     "Test failed, the output failed to parse or evaluate: \n"
       <> T.unpack actualTxt
       <> "\n But the expected result, with the unique names shown is: \n"
       <> show expected
-compareAlphaEq (Left txt) (Right actual) =
+compareAlphaEq _ (Left txt) (Right actual) =
   {- this is to catch the case when the expected program failed to parse because
   our parser doesn't support `data` atm. In this case, if the textual program is
   the same as the actual, the test succeeds. -}
@@ -394,15 +430,21 @@ compareAlphaEq (Left txt) (Right actual) =
           <> ". But the expected result is: "
           <> T.unpack txt
 
-{-| Update the golden file with the tested value.
+{-| Update the golden file with the tested value, in the given `Format`: as
+text for `Textual` (unchanged from before), or as `flat`-encoded bytes for
+`Flat` (an empty file for a failure, matching the established
+`.flat.expected` convention).
 TODO abstract out for other tests. -}
 updateGoldenFile
-  :: FilePath
+  :: Format
+  -> FilePath
   -- ^ the path to write the golden file to
   -> Either T.Text UplcProg
   -> IO ()
-updateGoldenFile goldenPath (Left txt) = T.writeFile goldenPath txt
-updateGoldenFile goldenPath (Right p) = T.writeFile goldenPath (display p)
+updateGoldenFile Textual goldenPath (Left txt) = T.writeFile goldenPath txt
+updateGoldenFile Textual goldenPath (Right p) = T.writeFile goldenPath (display p)
+updateGoldenFile Flat goldenPath (Left _) = BS.writeFile goldenPath BS.empty
+updateGoldenFile Flat goldenPath (Right p) = BS.writeFile goldenPath (encodeFlatProg p)
 
 {-| Run the UPLC evaluation tests given an `evaluator` that evaluates UPLC
 programs.  By default the tests are run against the textual `.uplc` test-case
@@ -468,3 +510,21 @@ decodeFlatProg bs =
            DecodeException
            (UPLC.UnrestrictedProgram UPLC.DeBruijn DefaultUni DefaultFun ())
     decoded = unflat bs
+
+{-| Encode a `UplcProg` as `flat` bytes: the inverse of `decodeFlatProg`.
+Converts the program's names to de Bruijn indices first (that's the
+representation `flat` actually encodes), then encodes it via the same
+`UnrestrictedProgram` wrapper `decodeFlatProg` uses, for the same reason
+(avoiding rejecting programs on the grounds of builtins/term constructs
+unavailable in the declared version). Used to write `.flat.expected` golden
+files when accepting a `Flat`-format test result.  Programs written to a
+golden file are always closed (they come from a successful evaluation), so
+the free-variable case should never actually arise. -}
+encodeFlatProg :: UplcProg -> BS.ByteString
+encodeFlatProg (UPLC.Program ann ver t) =
+  case runExcept (UPLC.deBruijnTerm t) of
+    Left err -> error $ "encodeFlatProg: " <> show err
+    Right namedDbTerm ->
+      flat $
+        UPLC.UnrestrictedProgram $
+          UPLC.programMapNames UPLC.unNameDeBruijn (UPLC.Program ann ver namedDbTerm)
