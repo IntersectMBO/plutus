@@ -672,7 +672,9 @@ listToArray (BuiltinList l) = BuiltinArray (Vector.fromList l)
 {-| Returns the n-th element from the array. Fails if the given index is not in the range @[0..j)@,
   where @j@ is the length of the array. -}
 indexArray :: BuiltinArray a -> BuiltinInteger -> a
-indexArray (BuiltinArray v) i = v Vector.! fromInteger i
+indexArray (BuiltinArray v) i
+  | 0 <= i && i < toInteger (Vector.length v) = Vector.unsafeIndex v (fromInteger i)
+  | otherwise = Haskell.error "array index out of bounds"
 {-# OPAQUE indexArray #-}
 
 {-
