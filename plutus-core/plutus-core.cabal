@@ -485,6 +485,7 @@ library untyped-plutus-core-testlib
     Evaluation.Golden
     Evaluation.Helpers
     Evaluation.Machines
+    Evaluation.Patterns
     Evaluation.Regressions
     Flat.Spec
     Generators.Spec

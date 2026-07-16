@@ -146,8 +146,8 @@ goldenBudget name compiledCode = do
 
 goldenBundle
   :: TestName
-  -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a
-  -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun b
+  -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun PLC.DefaultBuiltinPattern a
+  -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun PLC.DefaultBuiltinPattern b
   -> TestNested
 goldenBundle name x y = do
   goldenPirReadable name x
@@ -156,7 +156,7 @@ goldenBundle name x y = do
 
 goldenBundle'
   :: TestName
-  -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a
+  -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun PLC.DefaultBuiltinPattern a
   -> TestNested
 goldenBundle' name x = goldenBundle name x x
 
@@ -164,7 +164,7 @@ goldenBundle' name x = goldenBundle name x x
 goldenPir
   :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
   => TestName
-  -> CompiledCodeIn uni fun a
+  -> CompiledCodeIn uni fun pat a
   -> TestNested
 goldenPir name value =
   nestedGoldenVsDoc name ".pir"
@@ -177,7 +177,7 @@ goldenPir name value =
 goldenPirReadable
   :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
   => TestName
-  -> CompiledCodeIn uni fun a
+  -> CompiledCodeIn uni fun pat a
   -> TestNested
 goldenPirReadable name value =
   nestedGoldenVsDoc name ".pir"
@@ -192,7 +192,7 @@ change if all uniques are printed. It is nonetheless useful sometimes. -}
 goldenPirReadableU
   :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
   => TestName
-  -> CompiledCodeIn uni fun a
+  -> CompiledCodeIn uni fun pat a
   -> TestNested
 goldenPirReadableU name value =
   nestedGoldenVsDoc name ".pir"
@@ -203,13 +203,13 @@ goldenPirBy
   :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
   => PrettyConfigClassic PrettyConfigName
   -> TestName
-  -> CompiledCodeIn uni fun a
+  -> CompiledCodeIn uni fun pat a
   -> TestNested
 goldenPirBy config name value =
   nestedGoldenVsDoc name ".pir" $ prettyBy config $ getPir value
 
 goldenEvalCek
-  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
   => TestName
   -> a
   -> TestNested
@@ -218,7 +218,7 @@ goldenEvalCek name value =
     prettyPlcClassicSimple <$> rethrow (runPlcCek value)
 
 goldenEvalCekCatch
-  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
   => TestName -> a -> TestNested
 goldenEvalCekCatch name value =
   nestedGoldenVsDocM name ".eval" $
@@ -239,7 +239,7 @@ goldenEvalCekCatchBudget name compiledCode =
     pure (render @Text contents)
 
 goldenEvalCekLog
-  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
   => TestName -> a -> TestNested
 goldenEvalCekLog name value =
   nestedGoldenVsDocM name ".eval" $
@@ -262,7 +262,9 @@ of bytes when the given program serialized into bytestring using binary flat enc
 Cost of storing smart contract onchain is partially determined by the Flat size. So it
 is useful to have Flat size measurement in case we adopt new or introduce optimizations
 to the flat encoding format. -}
-prettyCodeSize :: CompiledCodeIn PLC.DefaultUni PLC.DefaultFun a -> Doc ann
+prettyCodeSize
+  :: CompiledCodeIn PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern a
+  -> Doc ann
 prettyCodeSize compiledCode =
   vsep
     [ fill 10 "AST Size:" <+> prettyIntRightAligned astSize

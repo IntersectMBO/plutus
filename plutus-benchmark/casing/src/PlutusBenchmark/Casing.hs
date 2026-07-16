@@ -14,8 +14,8 @@ import PlutusCore.MkPlc
 import UntypedPlutusCore qualified as UPLC
 
 debruijnTermUnsafe
-  :: UPLC.Term UPLC.Name uni fun ann
-  -> UPLC.Term UPLC.NamedDeBruijn uni fun ann
+  :: UPLC.Term UPLC.Name uni fun pat ann
+  -> UPLC.Term UPLC.NamedDeBruijn uni fun pat ann
 debruijnTermUnsafe =
   fromRight (Prelude.error "debruijnTermUnsafe")
     . runExcept @UPLC.FreeVariableError

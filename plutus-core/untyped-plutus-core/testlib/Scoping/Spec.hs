@@ -38,7 +38,7 @@ test_mangle =
 
 -- | Test equality of a program and its renamed version, given a renamer.
 prop_equalityFor
-  :: program ~ Program Name DefaultUni DefaultFun ()
+  :: program ~ Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
   => (program -> Quote program)
   -> Property
 prop_equalityFor ren = property $ do

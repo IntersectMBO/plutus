@@ -24,7 +24,7 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
 import Test.Tasty.HUnit (testCase, (@?=))
 import Transform.Lib (builtinTrue, case_, con, constr, err, ite, sopFalse, sopTrue, var)
-import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
+import UntypedPlutusCore (DefaultBuiltinPattern, DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
   ( CekMachineCosts
@@ -47,7 +47,7 @@ test_caseOfCase =
     , testCaseOfCaseWithError
     ]
 
-caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 caseOfCase1 =
   case_
     (ite (var "b") sopTrue sopFalse)
@@ -58,12 +58,12 @@ caseOfCase1 =
 {-| This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
 Unless both branches are known constructors, the case-of-case transformation
 may increase the program size. -}
-caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 caseOfCase2 = case_ (ite (var "b") (var "t") sopFalse) [con 1, con 2]
 
 {-| Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
 @[Integer]@ rather than Bool (note that @constr 0@ has two parameters, @x@ and @xs@). -}
-caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 caseOfCase3 =
   case_
     (ite (var "b") (constr 0 [var "x", var "xs"]) sopFalse)
@@ -85,7 +85,7 @@ After the `CaseOfCase` transformation the program should evaluate to `()` as wel
 @
   force ((force ifThenElse) True (delay ()) (delay _|_))
 @ -}
-caseOfCaseWithError :: Term Name DefaultUni DefaultFun ()
+caseOfCaseWithError :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 caseOfCaseWithError = case_ (ite builtinTrue sopTrue sopFalse) [mkConstant @() () (), err]
 
 testCaseOfCaseWithError :: TestTree
@@ -98,13 +98,13 @@ testCaseOfCaseWithError =
 -- Helper functions --------------------------------------------------------------------------------
 
 evalCaseOfCase
-  :: Term Name DefaultUni DefaultFun ()
-  -> Term Name DefaultUni DefaultFun ()
+  :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 evalCaseOfCase term = evalOptimizer $ caseOfCase term
 
 evaluateUplc
-  :: UPLC.Term Name DefaultUni DefaultFun ()
-  -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
+  :: UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ())
 evaluateUplc = unsafeSplitStructuralOperational . fst <$> evaluateCek noEmitter machineParameters
   where
     costModel :: CostModel CekMachineCosts BuiltinCostModel
@@ -114,9 +114,10 @@ evaluateUplc = unsafeSplitStructuralOperational . fst <$> evaluateCek noEmitter 
     machineParameters :: DefaultMachineParameters
     machineParameters =
       -- TODO: proper semantic variant. What should def be?
-      MachineParameters def $ mkMachineVariantParameters def costModel
+      MachineParameters def def $ mkMachineVariantParameters def costModel
 
-goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
+goldenVsSimplified
+  :: String -> Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern () -> TestTree
 goldenVsSimplified testName =
   goldenVsString
     testName

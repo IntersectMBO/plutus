@@ -293,7 +293,7 @@ test_ScottToMetaUnit =
     -- @scottToMetaUnit Scott.unitval@ is well-typed and runs successfully.
     typecheckEvaluateCekNoEmit def () (applyTerm Scott.unitval) @?= Right res
     let runtime =
-          MachineParameters def . mkMachineVariantParameters def $
+          MachineParameters def def . mkMachineVariantParameters def $
             CostModel defaultCekMachineCostsForTesting ()
     -- @scottToMetaUnit Scott.map@ is ill-typed, but still runs successfully, since the builtin
     -- doesn't look at the argument.

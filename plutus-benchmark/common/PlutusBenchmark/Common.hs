@@ -85,7 +85,9 @@ getConfig limit = do
       }
 
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
-getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
+getCostsCek
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
   case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
     Cek.CekReport _res (Cek.TallyingSt _ budget) _logs ->
@@ -107,7 +109,8 @@ mkEvalCtx ll semvar =
       let errOrCtx =
             LedgerApi.mkDynEvaluationContext
               ll
-              (\_ -> PLC.CaserBuiltin PLC.caseBuiltin)
+              (\_ -> PLC.availableCaserBuiltin)
+              (PLC.unavailableMatcherBuiltin . LedgerApi.getMajorProtocolVersion)
               [semvar]
               (const semvar)
               p
@@ -124,10 +127,26 @@ mkMostRecentEvalCtx = mkEvalCtx maxBound maxBound
 -- | Evaluate a term as it would be evaluated using the on-chain evaluator.
 evaluateCekLikeInProd
   :: LedgerApi.EvaluationContext
-  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -> UPLC.Term
+       PLC.NamedDeBruijn
+       PLC.DefaultUni
+       PLC.DefaultFun
+       PLC.DefaultBuiltinPattern
+       ()
   -> Either
-       (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-       (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+       ( UPLC.CekEvaluationException
+           UPLC.NamedDeBruijn
+           UPLC.DefaultUni
+           UPLC.DefaultFun
+           UPLC.DefaultBuiltinPattern
+       )
+       ( UPLC.Term
+           UPLC.NamedDeBruijn
+           UPLC.DefaultUni
+           UPLC.DefaultFun
+           PLC.DefaultBuiltinPattern
+           ()
+       )
 evaluateCekLikeInProd evalCtx term =
   let
     -- The validation benchmarks were all created from PlutusV1 scripts
@@ -140,7 +159,12 @@ evaluateCekLikeInProd evalCtx term =
 Useful for benchmarking. -}
 evaluateCekForBench
   :: LedgerApi.EvaluationContext
-  -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -> UPLC.Term
+       PLC.NamedDeBruijn
+       PLC.DefaultUni
+       PLC.DefaultFun
+       PLC.DefaultBuiltinPattern
+       ()
   -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
 
@@ -187,7 +211,7 @@ protocol parameters. -}
 printSizeStatistics
   :: Handle
   -> TestSize
-  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
   -> IO ()
 printSizeStatistics h n script = do
   let serialised = Flat.flat (UPLC.UnrestrictedProgram $ toAnonDeBruijnProg script)
