@@ -96,8 +96,8 @@ postulate
 {-# COMPILE GHC convP = convP #-}
 {-# COMPILE GHC deBruijnify = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm #-}
 
-{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
-{-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun DefaultBuiltinPattern PlutusCore.SrcSpan #-}
+{-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern () #-}
 {-# COMPILE GHC deBruijnifyU = \ (U.Program ann ver tm) -> second (void . U.Program ann ver) . runExcept $ U.deBruijnTerm tm #-}
 {-# COMPILE GHC convPU = U.convP #-}
 
@@ -231,4 +231,3 @@ typeCheckProgramN namedprog = do
  -}
   return (prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ A))))
 ```
-

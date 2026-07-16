@@ -27,12 +27,18 @@ import Data.Text qualified as T
 type Trace a = NonEmptySep (OptStage, Hints) a
 
 mkFfiOptimizerTrace
-  :: OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  :: OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
   -> Trace FFI.UTerm
 mkFfiOptimizerTrace (OptimizerTrace simplNonEmptySep) = go (reverse simplNonEmptySep)
   where
     go
-      :: [Optimization UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a]
+      :: [ Optimization
+             UPLC.Name
+             UPLC.DefaultUni
+             UPLC.DefaultFun
+             UPLC.DefaultBuiltinPattern
+             a
+         ]
       -> Trace FFI.UTerm
     go [] = error "Empty trace"
     go [Optimization before stage hints after] =
@@ -52,7 +58,8 @@ mkFfiOptimizerTrace (OptimizerTrace simplNonEmptySep) = go (reverse simplNonEmpt
         Left (err :: UPLC.FreeVariableError) -> error $ show err
 
 toEvalResult
-  :: Maybe (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+  :: Maybe
+       (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern)
   -> ExBudget
   -> EvalResult
 toEvalResult res budget = case res of

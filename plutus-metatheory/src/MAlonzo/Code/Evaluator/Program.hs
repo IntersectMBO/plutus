@@ -94,13 +94,13 @@ d_deBruijnify_24
   = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm
 -- Evaluator.Program.ProgramNU
 type T_ProgramNU_26 =
-  U.Program Name DefaultUni DefaultFun PlutusCore.SrcSpan
+  U.Program Name DefaultUni DefaultFun DefaultBuiltinPattern PlutusCore.SrcSpan
 d_ProgramNU_26
   = error
       "MAlonzo Runtime Error: postulate evaluated: Evaluator.Program.ProgramNU"
 -- Evaluator.Program.ProgramU
 type T_ProgramU_28 =
-  U.Program NamedDeBruijn DefaultUni DefaultFun ()
+  U.Program NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 d_ProgramU_28
   = error
       "MAlonzo Runtime Error: postulate evaluated: Evaluator.Program.ProgramU"

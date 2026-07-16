@@ -36,7 +36,7 @@ type OptimizerReport = [ReportEntry]
 -- FIXME: we need a lot of `reverse` here because `OptimizerTrace` contains the passes
 -- in reverse order.
 buildReport
-  :: OptimizerTrace UPLC.Name uni fun a
+  :: OptimizerTrace UPLC.Name uni fun pat a
   -> [(Maybe err, ExBudget)]
   -> OptimizerReport
 buildReport trace (reverse -> costs) =

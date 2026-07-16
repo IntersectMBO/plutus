@@ -10,7 +10,7 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.IO qualified as Text.IO
 import Formatting qualified as F
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default (DefaultBuiltinPattern, DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.ExMemory (CostingInteger)
 import PlutusCore.Test (runUPlcFull)
 import PlutusLedgerApi.V3 (ExBudget (..), ExCPU (..), ExMemory (..), fromSatInt)
@@ -28,7 +28,7 @@ import UntypedPlutusCore.Core.Type qualified as UPLC
 
 -- | Measure the given program's execution budget and size.
 measureProgram
-  :: UPLC.Program NamedDeBruijn DefaultUni DefaultFun ()
+  :: UPLC.Program NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
   -> IO (ExCPU, ExMemory, UPLC.AstSize)
 measureProgram program =
   runExceptT (runUPlcFull [program]) >>= \case

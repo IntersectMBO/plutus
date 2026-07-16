@@ -30,12 +30,12 @@ import qualified MAlonzo.Code.VerifiedCompilation.Trace
 
 -- Certifier.runCertifier
 d_runCertifier_2 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_90
+  MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_92
     (MAlonzo.Code.Utils.T__'215'__436
        (MAlonzo.Code.Utils.T_Either_6
           MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
           MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
-       MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_80)
+       MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_82)
     MAlonzo.Code.RawU.T_Untyped_208 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.T_Error_2
@@ -61,29 +61,29 @@ d_runCertifier_2 v0
                          MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 (coe v1) (coe v2))))))
 -- Certifier.runCertifierMain
 runCertifierMain ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_90
+  MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_92
     (MAlonzo.Code.Utils.T__'215'__436
        (MAlonzo.Code.Utils.T_Either_6
           MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
           MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
-       MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_80)
+       MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_82)
     MAlonzo.Code.RawU.T_Untyped_208 ->
   MAlonzo.Code.Agda.Builtin.List.T_List_10
-    () MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_122 ->
+    () MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_124 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     ()
     (MAlonzo.Code.Utils.T__'215'__436
        Bool MAlonzo.Code.Agda.Builtin.String.T_String_6)
 runCertifierMain = coe d_runCertifierMain_10
 d_runCertifierMain_10 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_90
+  MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_92
     (MAlonzo.Code.Utils.T__'215'__436
        (MAlonzo.Code.Utils.T_Either_6
           MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
           MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
-       MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_80)
+       MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_82)
     MAlonzo.Code.RawU.T_Untyped_208 ->
-  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_122] ->
+  [MAlonzo.Code.VerifiedCompilation.Trace.T_EvalResult_124] ->
   Maybe
     (MAlonzo.Code.Utils.T__'215'__436
        Bool MAlonzo.Code.Agda.Builtin.String.T_String_6)

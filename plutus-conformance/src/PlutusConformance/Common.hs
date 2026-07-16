@@ -9,7 +9,7 @@ import Data.Maybe (fromJust)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import PlutusCore.Annotation
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default (DefaultBuiltinPattern, DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudget
@@ -44,11 +44,13 @@ shownEvaluationFailure = "evaluation failure"
 -- | The default parser to parse UPLC program inputs.
 parseTxt
   :: T.Text
-  -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SrcSpan)
+  -> Either
+       ParserErrorBundle
+       (UPLC.Program Name DefaultUni DefaultFun DefaultBuiltinPattern SrcSpan)
 parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
 -- | The input/output UPLC program type.
-type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
+type UplcProg = UPLC.Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 
 -- UPLC evaluation test functions
 

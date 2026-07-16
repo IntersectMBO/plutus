@@ -9,6 +9,7 @@ module PlutusBenchmark.ForceDelay.Common
 
 import PlutusBenchmark.Common (benchTermCek, getConfig, getDataDir, mkEvalCtx)
 import PlutusBenchmark.NaturalSort
+import PlutusCore.Default (DefaultBuiltinPattern)
 import PlutusCore.Flat
 import UntypedPlutusCore qualified as UPLC
 
@@ -26,7 +27,9 @@ getScriptDirectory = do
   return $ root </> "force-delay" </> "data"
 
 unsafeUnflat
-  :: String -> BS.ByteString -> UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+  :: String
+  -> BS.ByteString
+  -> UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun DefaultBuiltinPattern ()
 unsafeUnflat file contents =
   case unflat contents of
     Left e -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e

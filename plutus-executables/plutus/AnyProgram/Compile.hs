@@ -180,9 +180,11 @@ pirTypecheck sngA p = PLC.runQuoteT $ do
 plcToUplcViaName
   :: (PLC.MonadQuote m, MonadError (PIR.Error uni fun ann) m)
   => SNaming n
-  -> (PLC.Program PLC.TyName PLC.Name uni fun a -> m (UPLC.Program PLC.Name uni fun a))
+  -> ( PLC.Program PLC.TyName PLC.Name uni fun a
+       -> m (UPLC.Program PLC.Name uni fun pat a)
+     )
   -> PLC.Program (FromNameTy n) (FromName n) uni fun a
-  -> m (UPLC.Program (FromName n) uni fun a)
+  -> m (UPLC.Program (FromName n) uni fun pat a)
 plcToUplcViaName sngN act = case sngN of
   SName -> act
   SNamedDeBruijn ->
@@ -211,10 +213,10 @@ plcToName sngN act = case sngN of
 
 uplcViaName
   :: (PLC.MonadQuote m, MonadError (PIR.Error uni fun ann) m)
-  => (UPLC.Program PLC.Name uni fun a -> m (UPLC.Program PLC.Name uni fun a))
+  => (UPLC.Program PLC.Name uni fun pat a -> m (UPLC.Program PLC.Name uni fun pat a))
   -> SNaming n
-  -> UPLC.Program (FromName n) uni fun a
-  -> m (UPLC.Program (FromName n) uni fun a)
+  -> UPLC.Program (FromName n) uni fun pat a
+  -> m (UPLC.Program (FromName n) uni fun pat a)
 uplcViaName act sngN = case sngN of
   SName -> act
   SNamedDeBruijn ->
@@ -247,8 +249,20 @@ uplcOptimise
      , MonadError (PIR.Error DefaultUni DefaultFun a) m
      )
   => SNaming n1
-  -> UPLC.UnrestrictedProgram (FromName n1) DefaultUni DefaultFun a
-  -> m (UPLC.UnrestrictedProgram (FromName n1) DefaultUni DefaultFun a)
+  -> UPLC.UnrestrictedProgram
+       (FromName n1)
+       DefaultUni
+       DefaultFun
+       DefaultBuiltinPattern
+       a
+  -> m
+       ( UPLC.UnrestrictedProgram
+           (FromName n1)
+           DefaultUni
+           DefaultFun
+           DefaultBuiltinPattern
+           a
+       )
 uplcOptimise =
   case _optimiseLvl ?opts of
     NoOptimise -> const pure -- short-circuit to avoid renaming
@@ -264,11 +278,11 @@ uplcOptimise =
 
 -- | We do not have a typechecker for uplc, but we could pretend that scopecheck is a "typechecker"
 uplcTypecheck
-  :: forall sN sA uni fun m
+  :: forall sN sA uni fun pat m
    . MonadError (PLC.Error uni fun (FromAnn sA)) m
   => SNaming sN
   -> SAnn sA
-  -> UPLC.UnrestrictedProgram (FromName sN) uni fun (FromAnn sA)
+  -> UPLC.UnrestrictedProgram (FromName sN) uni fun pat (FromAnn sA)
   -> m ()
 uplcTypecheck sngN sngA ast = case sngN of
   SName ->
@@ -314,16 +328,16 @@ uplcToOutName
   :: MonadError FreeVariableError m
   => SNaming s1
   -> SNaming s2
-  -> UPLC.UnrestrictedProgram (FromName s1) uni fun ann
-  -> m (UPLC.UnrestrictedProgram (FromName s2) uni fun ann)
+  -> UPLC.UnrestrictedProgram (FromName s1) uni fun pat ann
+  -> m (UPLC.UnrestrictedProgram (FromName s2) uni fun pat ann)
 uplcToOutName = fmap _Wrapped . uplcToOutName'
 
 uplcToOutName'
   :: MonadError FreeVariableError m
   => SNaming s1
   -> SNaming s2
-  -> UPLC.Program (FromName s1) uni fun ann
-  -> m (UPLC.Program (FromName s2) uni fun ann)
+  -> UPLC.Program (FromName s1) uni fun pat ann
+  -> m (UPLC.Program (FromName s2) uni fun pat ann)
 uplcToOutName' sng1 ((sng1 %~) -> Proved Refl) = pure
 uplcToOutName' SName SNamedDeBruijn = UPLC.progTerm UPLC.deBruijnTerm
 uplcToOutName' SNamedDeBruijn SName = PLC.runQuoteT . UPLC.progTerm UPLC.unDeBruijnTerm

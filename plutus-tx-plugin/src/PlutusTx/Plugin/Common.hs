@@ -896,7 +896,7 @@ generateCertificate
   :: String
   -> String
   -> PluginOptions
-  -> OptimizerTrace PLC.Name PLC.DefaultUni PLC.DefaultFun a
+  -> OptimizerTrace PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern a
   -> String
   -> IO ()
 generateCertificate packageName moduleName opts simplTrace certifyPath = do

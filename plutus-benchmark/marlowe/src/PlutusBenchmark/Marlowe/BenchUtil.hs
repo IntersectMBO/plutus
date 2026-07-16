@@ -56,7 +56,8 @@ import System.FilePath ((<.>), (</>))
 import UntypedPlutusCore (NamedDeBruijn, applyProgram)
 import UntypedPlutusCore qualified as UPLC
 
-type Program a = UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun a
+type Program a =
+  UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern a
 
 -- | Turn a `PlutusBenchmark.Marlowe.Types.Benchmark` to a UPLC program.
 benchmarkToUPLC

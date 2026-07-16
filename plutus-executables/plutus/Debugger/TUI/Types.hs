@@ -51,13 +51,15 @@ makeLenses ''BudgetData
 data CustomBrickEvent
   = {-| the driver passes a new cek state to the brick client
     this should mean that the brick client should update its tui -}
-    UpdateClientEvent BudgetData (CekState DefaultUni DefaultFun DAnn)
+    UpdateClientEvent BudgetData (CekState DefaultUni DefaultFun DefaultBuiltinPattern DAnn)
   | -- | the driver logged some text, the brick client can decide to show it in the tui
     DriverLogEvent Text
   | -- | the underlying cek machine emitted some text (using a trace or other builtin)
     CekEmitEvent Text
   | -- | the underlying cek machine errored (either by call to Error, builtin or type failure)
-    CekErrorEvent BudgetData (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+    CekErrorEvent
+      BudgetData
+      (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern)
 
 data KeyBindingsMode = KeyBindingsShown | KeyBindingsHidden
   deriving stock (Eq, Ord, Show)

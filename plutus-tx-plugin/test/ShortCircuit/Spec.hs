@@ -11,7 +11,7 @@ import ShortCircuit.WithGHCOptimisations qualified as WithOptimisations
 import ShortCircuit.WithoutGHCOptimisations qualified as WithoutOptimisations
 
 import Control.Lens ((&))
-import PlutusCore.Default (DefaultFun, DefaultUni, someValue)
+import PlutusCore.Default (DefaultBuiltinPattern, DefaultFun, DefaultUni, someValue)
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.TH (compile)
@@ -45,7 +45,7 @@ tests =
 ----------------------------------------------------------------------------------------------------
 -- Helpers -----------------------------------------------------------------------------------------
 
-assertResult :: NTerm DefaultUni DefaultFun () -> CompiledCode a -> Assertion
+assertResult :: NTerm DefaultUni DefaultFun DefaultBuiltinPattern () -> CompiledCode a -> Assertion
 assertResult expected code =
   case evalResult (evaluateCompiledCode code) of
     Left ex -> assertFailure $ show ex
@@ -57,8 +57,8 @@ false' = liftCodeDef False
 true' :: CompiledCode Bool
 true' = liftCodeDef True
 
-termFalse :: NTerm DefaultUni DefaultFun ()
+termFalse :: NTerm DefaultUni DefaultFun DefaultBuiltinPattern ()
 termFalse = Constant () $ someValue False
 
-termTrue :: NTerm DefaultUni DefaultFun ()
+termTrue :: NTerm DefaultUni DefaultFun DefaultBuiltinPattern ()
 termTrue = Constant () $ someValue True

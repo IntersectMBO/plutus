@@ -37,7 +37,7 @@ import Test.Tasty.HUnit
 
 -- See Note [Direct UPLC code]
 
-type T = Term DeBruijn DefaultUni DefaultFun ()
+type T = Term DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 
 {-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
 Notably, this goes via serialising and deserialising the program, so we can see any errors that might arise from that. -}

@@ -59,17 +59,21 @@ showPV (MajorProtocolVersion pv) =
 errorScript :: SerialisedScript
 errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
 
-v100script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+v100script
+  :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()
 v100script =
   UPLC.Program () PLC.plcVersion100 $ UPLC.Constant () (PLC.Some (PLC.ValueOf PLC.DefaultUniUnit ()))
 
-v110script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+v110script
+  :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()
 v110script = UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 mempty
 
-badConstrScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+badConstrScript
+  :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()
 badConstrScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 mempty
 
-badCaseScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+badCaseScript
+  :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()
 badCaseScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) mempty
 
 {- Given a UPLC term, serialise it then deserialise it for use in a particular
@@ -83,8 +87,8 @@ badCaseScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ())
 mkTestTerm
   :: PlutusLedgerLanguage
   -> MajorProtocolVersion
-  -> UPLC.Program DeBruijn DefaultUni DefaultFun ()
-  -> Either ScriptDecodeError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+  -> UPLC.Program DeBruijn DefaultUni DefaultFun UPLC.DefaultBuiltinPattern ()
+  -> Either ScriptDecodeError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
 mkTestTerm ll pv prog =
   case deserialiseScript ll pv $ serialiseUPLC prog of
     Right s ->

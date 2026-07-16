@@ -35,10 +35,10 @@ loadFrom name = do
   pure . runQuote $ mkFfiOptimizerTrace . snd <$> simplify term
 
 simplify
-  :: Term Name DefaultUni DefaultFun ()
+  :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
   -> Quote
-       ( Term Name DefaultUni DefaultFun ()
-       , OptimizerTrace Name DefaultUni DefaultFun ()
+       ( Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+       , OptimizerTrace Name DefaultUni DefaultFun DefaultBuiltinPattern ()
        )
 simplify =
   runOptimizerT

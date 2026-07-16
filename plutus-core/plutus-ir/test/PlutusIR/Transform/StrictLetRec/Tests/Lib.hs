@@ -11,7 +11,7 @@ import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Reader (runReaderT)
 import Data.Text (Text)
 import Data.Text.IO qualified as Text
-import PlutusCore (Name, SrcSpan, latestVersion)
+import PlutusCore (DefaultBuiltinPattern, Name, SrcSpan, latestVersion)
 import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
@@ -66,7 +66,7 @@ pirTermAsProgram = PIR.Program () latestVersion
 evalPirProgramWithTracesOrFail
   :: MonadFail m
   => PIR.Program PIR.TyName PIR.Name DefaultUni DefaultFun ()
-  -> m (EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ()), [Text])
+  -> m (EvaluationResult (UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()), [Text])
 evalPirProgramWithTracesOrFail pirProgram = do
   plcProgram <- compilePirProgramOrFail pirProgram
   evaluateUplcProgramWithTraces <$> compileTplcProgramOrFail plcProgram
@@ -88,7 +88,7 @@ compilePirProgramOrFail pirProgram = do
 compileTplcProgramOrFail
   :: MonadFail m
   => TPLC.Program PIR.TyName PIR.Name DefaultUni DefaultFun ()
-  -> m (UPLC.Program Name DefaultUni DefaultFun ())
+  -> m (UPLC.Program Name DefaultUni DefaultFun DefaultBuiltinPattern ())
 compileTplcProgramOrFail plcProgram =
   handlePirErrorByFailing @SrcSpan =<< do
     TPLC.compileProgram plcProgram
@@ -97,8 +97,8 @@ compileTplcProgramOrFail plcProgram =
       & runExceptT
 
 evaluateUplcProgramWithTraces
-  :: UPLC.Program Name DefaultUni DefaultFun ()
-  -> (EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ()), [Text])
+  :: UPLC.Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> (EvaluationResult (UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()), [Text])
 evaluateUplcProgramWithTraces uplcProg =
   first unsafeSplitStructuralOperational $
     evaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
@@ -109,7 +109,7 @@ evaluateUplcProgramWithTraces uplcProg =
 
     machineParameters :: DefaultMachineParameters
     machineParameters =
-      MachineParameters def $ mkMachineVariantParameters def costModel
+      MachineParameters def def $ mkMachineVariantParameters def costModel
 
 defaultCompilationCtx
   :: Either

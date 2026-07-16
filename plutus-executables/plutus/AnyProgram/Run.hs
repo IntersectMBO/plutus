@@ -62,7 +62,7 @@ runPlc (PLC.Program _ _ t)
 -- TODO: add a semantic variant here to get the right machine parameters
 runUplc
   :: (?opts :: Opts, Typeable a)
-  => UPLC.UnrestrictedProgram NamedDeBruijn DefaultUni DefaultFun a -> IO ()
+  => UPLC.UnrestrictedProgram NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern a -> IO ()
 runUplc (UPLC.UnrestrictedProgram (UPLC.Program _ _ t)) =
   case (\(UPLC.CekReport res cost logs) -> (UPLC.cekResultToEither res, cost, logs)) $
     UPLC.runCekDeBruijn defaultCekParametersForTesting exBudgetMode logEmitter t of
@@ -89,6 +89,6 @@ runUplc (UPLC.UnrestrictedProgram (UPLC.Program _ _ t)) =
     -- See Note [Budgeting implementation for the debugger]
     coerceMode
       :: Coercible cost ExBudget
-      => ExBudgetMode cost DefaultUni DefaultFun
-      -> ExBudgetMode ExBudget DefaultUni DefaultFun
+      => ExBudgetMode cost DefaultUni DefaultFun DefaultBuiltinPattern
+      -> ExBudgetMode ExBudget DefaultUni DefaultFun DefaultBuiltinPattern
     coerceMode = coerce

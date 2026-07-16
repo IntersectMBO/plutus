@@ -101,6 +101,10 @@ testMachineCostModel
       cekBuiltinBudget
       cekConstrBudget
       cekCaseBudget
+      cekMatchBudget
+      cekPatternBudget
+      cekPatternStructuralBudget
+      cekPatternFailureBudget
     ) = do
     checkBudget cekStartupBudget
     checkBudget cekVarBudget
@@ -112,6 +116,10 @@ testMachineCostModel
     checkBudget cekBuiltinBudget
     checkBudget cekConstrBudget
     checkBudget cekCaseBudget
+    checkBudget cekMatchBudget
+    checkBudget cekPatternBudget
+    checkBudget cekPatternStructuralBudget
+    checkBudget cekPatternFailureBudget
 
 -- Builtin costs
 

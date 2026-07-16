@@ -13,7 +13,7 @@ import Prelude qualified as Haskell
 
 import Control.Lens ((&), (^.))
 import Data.ByteString.Short qualified as SBS
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default (DefaultBuiltinPattern, DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusCore.StdLib.Data.Unit (unitval)
 import PlutusLedgerApi.V2 qualified as V2
@@ -200,7 +200,7 @@ dummyScriptContext =
           (Haskell.Just (V3.Datum (V3.toBuiltinData expected)))
     }
 
-assertResult :: NTerm DefaultUni DefaultFun () -> CompiledCode a -> Assertion
+assertResult :: NTerm DefaultUni DefaultFun DefaultBuiltinPattern () -> CompiledCode a -> Assertion
 assertResult expectedResult code = do
   let plc = getPlc code ^. progTerm
       tidy = cekResultToEither . _cekReportResult

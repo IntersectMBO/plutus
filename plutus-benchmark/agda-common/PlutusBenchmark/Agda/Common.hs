@@ -5,7 +5,7 @@ module PlutusBenchmark.Agda.Common
 where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default (DefaultBuiltinPattern, DefaultFun, DefaultUni)
 import UntypedPlutusCore qualified as UPLC
 
 import MAlonzo.Code.Evaluator.Term (runUAgda)
@@ -14,8 +14,8 @@ import Criterion.Main (Benchmarkable, nf)
 
 -- This code is in its own file so that we only build the metatheory when we really need it.
 
-type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
-type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ()
+type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 
 ---------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
 

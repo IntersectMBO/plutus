@@ -106,7 +106,8 @@ data BudgetMode
 data SomeBudgetMode
   = forall cost.
     (Eq cost, NFData cost, PrintBudgetState cost) =>
-    SomeBudgetMode (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
+    SomeBudgetMode
+      (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern)
 
 data EvalOptions
   = EvalOptions
@@ -492,10 +493,10 @@ optimiseProgram
   :: forall m name a
    . (UPLC.HasUnique name UPLC.TermUnique, Monad m, Ord name, Typeable name)
   => UPLC.OptimizeOpts name a
-  -> UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
+  -> UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
   -> m
-       ( UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
-       , UPLC.OptimizerTrace name UPLC.DefaultUni UPLC.DefaultFun a
+       ( UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
+       , UPLC.OptimizerTrace name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
        )
 optimiseProgram opts prog = PLC.runQuoteT $ do
   renamed <- PLC.rename prog
@@ -504,11 +505,16 @@ optimiseProgram opts prog = PLC.runQuoteT $ do
   UPLC.optimizeProgramWithTrace opts defaultBuiltinSemanticsVariant renamed
 
 execCertifier
-  :: UPLC.OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  :: UPLC.OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
   -> CertName
   -> CertifierOutput
   -> [ ( Maybe
-           (Cek.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+           ( Cek.CekEvaluationException
+               UPLC.NamedDeBruijn
+               UPLC.DefaultUni
+               UPLC.DefaultFun
+               UPLC.DefaultBuiltinPattern
+           )
        , ExBudget
        )
      ]
@@ -836,9 +842,9 @@ instance D.Breakpointable DAnn MaybeBreakpoint where
 
 -- Peel off one layer
 handleDbg
-  :: Cek.ThrowableBuiltins uni fun
-  => D.CekTrans uni fun DAnn RealWorld
-  -> D.DebugF uni fun DAnn MaybeBreakpoint (Repl.InputT IO ())
+  :: (Cek.ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => D.CekTrans uni fun pat DAnn RealWorld
+  -> D.DebugF uni fun pat DAnn MaybeBreakpoint (Repl.InputT IO ())
   -> Repl.InputT IO ()
 handleDbg cekTrans = \case
   D.StepF prevState k -> do

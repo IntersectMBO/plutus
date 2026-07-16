@@ -29,7 +29,13 @@ import PlutusTx.Builtins.HasOpaque
 import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
-import UntypedPlutusCore (DefaultFun, NamedDeBruijn, Program (_progTerm), Term (Constant))
+import UntypedPlutusCore
+  ( DefaultBuiltinPattern
+  , DefaultFun
+  , NamedDeBruijn
+  , Program (_progTerm)
+  , Term (Constant)
+  )
 
 tests :: TestTree
 tests =
@@ -247,10 +253,10 @@ test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex =
             ||]
         )
 
-term :: CompiledCode a -> Term NamedDeBruijn DefaultUni DefaultFun ()
+term :: CompiledCode a -> Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 term = _progTerm . getPlcNoAnn
 
-expectedUplc :: Term NamedDeBruijn DefaultUni DefaultFun ()
+expectedUplc :: Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 expectedUplc =
   Constant () $
     someValue @ByteString

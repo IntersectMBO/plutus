@@ -56,7 +56,7 @@ mkBM (sz, a) =
 mkProg
   :: DefaultUni `Contains` a
   => a
-  -> UPLC.Program DeBruijn DefaultUni DefaultFun ()
+  -> UPLC.Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkProg a = UPLC.Program () plcVersion100 $ mkConstant () a
 
 main :: IO ()
