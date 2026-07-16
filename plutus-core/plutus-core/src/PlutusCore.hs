@@ -36,6 +36,7 @@ module PlutusCore
   , HasTermLevel
   , HasTypeAndTermLevel
   , DefaultUni (..)
+  , DefaultBuiltinPattern (..)
   , pattern DefaultUniList
   , pattern DefaultUniPair
   , pattern DefaultUniArray

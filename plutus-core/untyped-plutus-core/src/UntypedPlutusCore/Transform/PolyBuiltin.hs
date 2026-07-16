@@ -33,20 +33,20 @@ import Data.Proxy (Proxy (..))
 import Data.Traversable (for)
 
 polyBuiltin
-  :: forall m uni fun a
+  :: forall m uni fun pat a
    . ( MonadQuote m
      , Hashable fun
      , ToBuiltinMeaning uni fun
      )
   => BuiltinSemanticsVariant fun
-  -> Term Name uni fun a
-  -> OptimizerT Name uni fun a m (Term Name uni fun a)
+  -> Term Name uni fun pat a
+  -> OptimizerT Name uni fun pat a m (Term Name uni fun pat a)
 polyBuiltin semvar term = do
   let numForces :: fun -> Int
       numForces = length . takeWhile (== TypeParam) . builtinArity (Proxy @uni) semvar
 
       -- If it is a fully forced polymorphic builtin, return `Just (ann, fun, number of forces)`.
-      checkFullyForced :: Term Name uni fun a -> Maybe (a, fun, Int)
+      checkFullyForced :: Term Name uni fun pat a -> Maybe (a, fun, Int)
       checkFullyForced t = case t' of
         Builtin _ fun
           | n >= 1
@@ -83,18 +83,18 @@ polyBuiltin semvar term = do
   recordOptimization term PolyBuiltinStage result
   pure result
 
-peelForces :: Term name uni fun a -> (Int, Term name uni fun a)
+peelForces :: Term name uni fun pat a -> (Int, Term name uni fun pat a)
 peelForces = go 0
   where
     go !k (Force _ t) = go (k + 1) t
     go !k t = (k, t)
 
 wrap
-  :: forall uni fun a
+  :: forall uni fun pat a
    . a
   -> [(fun, (Name, Int))]
-  -> Term Name uni fun a
-  -> Term Name uni fun a
+  -> Term Name uni fun pat a
+  -> Term Name uni fun pat a
 wrap ann entries body =
   let lams = foldr (\(_, (name, _)) -> LamAbs ann name) body entries
    in F.foldl'
@@ -102,6 +102,6 @@ wrap ann entries body =
         lams
         entries
   where
-    applyForces :: Int -> Term Name uni fun a -> Term Name uni fun a
+    applyForces :: Int -> Term Name uni fun pat a -> Term Name uni fun pat a
     applyForces 0 = id
     applyForces n = applyForces (n - 1) . Force ann

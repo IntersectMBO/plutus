@@ -21,8 +21,8 @@ type MonadRename m = (MonadQuote m, MonadReader (Renaming TermUnique) m)
 
 -- | Rename a 'Term' in the 'RenameM' monad.
 renameTermM
-  :: (MonadRename m, HasUniques (Term name uni fun ann))
-  => Term name uni fun ann -> m (Term name uni fun ann)
+  :: (MonadRename m, HasUniques (Term name uni fun pat ann))
+  => Term name uni fun pat ann -> m (Term name uni fun pat ann)
 renameTermM (LamAbs ann name body) =
   withFreshenedName name $ \nameFr -> LamAbs ann nameFr <$> renameTermM body
 renameTermM (Apply ann fun arg) = Apply ann <$> renameTermM fun <*> renameTermM arg
@@ -32,11 +32,13 @@ renameTermM (Delay ann term) = Delay ann <$> renameTermM term
 renameTermM (Force ann term) = Force ann <$> renameTermM term
 renameTermM (Constr ann i es) = Constr ann i <$> traverse renameTermM es
 renameTermM (Case ann arg cs) = Case ann <$> renameTermM arg <*> traverse renameTermM cs
+renameTermM (Match ann arg alternatives) =
+  Match ann <$> renameTermM arg <*> traverse (traverse renameTermM) alternatives
 renameTermM con@Constant {} = pure con
 renameTermM bi@Builtin {} = pure bi
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM
-  :: (MonadRename m, HasUniques (Program name uni fun ann))
-  => Program name uni fun ann -> m (Program name uni fun ann)
+  :: (MonadRename m, HasUniques (Program name uni fun pat ann))
+  => Program name uni fun pat ann -> m (Program name uni fun pat ann)
 renameProgramM (Program ann ver term) = Program ann ver <$> renameTermM term

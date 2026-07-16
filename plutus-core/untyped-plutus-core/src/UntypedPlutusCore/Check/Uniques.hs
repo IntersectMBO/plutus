@@ -21,7 +21,7 @@ checkProgram
      , MonadError (UniqueError ann) m
      )
   => (UniqueError ann -> Bool)
-  -> Program name uni fun ann
+  -> Program name uni fun pat ann
   -> m ()
 checkProgram p (Program _ _ t) = checkTerm p t
 
@@ -31,7 +31,7 @@ checkTerm
      , MonadError (UniqueError ann) m
      )
   => (UniqueError ann -> Bool)
-  -> Term name uni fun ann
+  -> Term name uni fun pat ann
   -> m ()
 checkTerm p t = do
   (_, errs) <- runTermDefs t

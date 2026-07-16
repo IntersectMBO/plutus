@@ -43,22 +43,22 @@ import Data.Typeable
 import Data.Vector.Orphans ()
 
 optimizeProgram
-  :: forall name uni fun m a
-   . Compiling m uni fun name a
+  :: forall name uni fun pat m a
+   . Compiling m uni fun pat name a
   => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
-  -> Program name uni fun a
-  -> m (Program name uni fun a)
+  -> Program name uni fun pat a
+  -> m (Program name uni fun pat a)
 optimizeProgram opts builtinSemanticsVariant (Program a v t) =
   Program a v <$> optimizeTerm opts builtinSemanticsVariant t
 
 optimizeProgramWithTrace
-  :: forall name uni fun m a
-   . Compiling m uni fun name a
+  :: forall name uni fun pat m a
+   . Compiling m uni fun pat name a
   => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
-  -> Program name uni fun a
-  -> m (Program name uni fun a, OptimizerTrace name uni fun a)
+  -> Program name uni fun pat a
+  -> m (Program name uni fun pat a, OptimizerTrace name uni fun pat a)
 optimizeProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
   (result, trace) <-
     runOptimizerT $
@@ -66,22 +66,22 @@ optimizeProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
   pure (Program a v result, trace)
 
 optimizeTerm
-  :: forall name uni fun m a
-   . Compiling m uni fun name a
+  :: forall name uni fun pat m a
+   . Compiling m uni fun pat name a
   => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
-  -> Term name uni fun a
-  -> m (Term name uni fun a)
+  -> Term name uni fun pat a
+  -> m (Term name uni fun pat a)
 optimizeTerm opts builtinSemanticsVariant term =
   evalOptimizerT $ termOptimizer opts builtinSemanticsVariant term
 
 termOptimizer
-  :: forall name uni fun m a
-   . Compiling m uni fun name a
+  :: forall name uni fun pat m a
+   . Compiling m uni fun pat name a
   => OptimizeOpts name a
   -> BuiltinSemanticsVariant fun
-  -> Term name uni fun a
-  -> OptimizerT name uni fun a m (Term name uni fun a)
+  -> Term name uni fun pat a
+  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
 termOptimizer opts builtinSemanticsVariant =
   simplifyNTimes (_ooMaxSimplifierIterations opts)
     >=> runStage CseStage
@@ -91,23 +91,23 @@ termOptimizer opts builtinSemanticsVariant =
     -- Run the simplifier @n@ times
     simplifyNTimes
       :: Int
-      -> Term name uni fun a
-      -> OptimizerT name uni fun a m (Term name uni fun a)
+      -> Term name uni fun pat a
+      -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
     simplifyNTimes n = List.foldl' (>=>) pure $ map simplifyStep [1 .. n]
 
     -- Run CSE @n@ times, interleaved with the simplifier.
     -- See Note [CSE]
     cseNTimes
       :: Int
-      -> Term name uni fun a
-      -> OptimizerT name uni fun a m (Term name uni fun a)
+      -> Term name uni fun pat a
+      -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
     cseNTimes n = foldl' (>=>) pure $ concatMap (\i -> [cseStep i, simplifyStep i]) [1 .. n]
 
     -- generate simplification step
     simplifyStep
       :: Int
-      -> Term name uni fun a
-      -> OptimizerT name uni fun a m (Term name uni fun a)
+      -> Term name uni fun pat a
+      -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
     simplifyStep _ =
       runStage FloatDelayStage
         >=> runStage ForceCaseDelayStage
@@ -163,16 +163,16 @@ termOptimizer opts builtinSemanticsVariant =
           PolyBuiltinStage -> if _ooHoistPolyBuiltins opts then polyBuiltinStep else pure
 
     caseOfCase'
-      :: Term name uni fun a
-      -> OptimizerT name uni fun a m (Term name uni fun a)
+      :: Term name uni fun pat a
+      -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
     caseOfCase' = case eqT @fun @DefaultFun of
       Just Refl -> caseOfCase
       Nothing -> pure
 
     cseStep
       :: Int
-      -> Term name uni fun a
-      -> OptimizerT name uni fun a m (Term name uni fun a)
+      -> Term name uni fun pat a
+      -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
     cseStep _ =
       case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
         (Just Refl, Just Refl) -> cse (_ooCseWhichSubterms opts) builtinSemanticsVariant
@@ -181,8 +181,8 @@ termOptimizer opts builtinSemanticsVariant =
     cseTimes = if _ooConservativeOpts opts then 0 else _ooMaxCseIterations opts
 
     polyBuiltinStep
-      :: Term name uni fun a
-      -> OptimizerT name uni fun a m (Term name uni fun a)
+      :: Term name uni fun pat a
+      -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
     polyBuiltinStep = case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
       (Just Refl, Just Refl) -> polyBuiltin builtinSemanticsVariant
       _ -> pure

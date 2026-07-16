@@ -48,6 +48,25 @@ data CekMachineCostsBase f
   happen if calling 'Error' caused the budget to be exceeded? -}
   , cekConstrCost :: f ExBudget
   , cekCaseCost :: f ExBudget
+  , cekMatchCost :: f ExBudget
+  {-^ Fixed cost of entering a 'Match' node. This is separate from 'cekPatternCost' so repeated
+  shallow matches remain bounded without making wide structural matching more expensive than the
+  equivalent builtin program. -}
+  , cekPatternCost :: f ExBudget
+  {-^ Cost of cheap, incrementally spent Match work: an alternative/root probe, one compared
+  64-bit bytestring word, or one unit of reached-capture work. Each reached capture spends two
+  units before retention: one for its eventual strict spine cell and one for its implicit handler
+  application. -}
+  , cekPatternStructuralCost :: f ExBudget
+  {-^ Cost of one reached Match child/field edge, including dispatch of that child and the bounded
+  exact-arity probe at the edge. It is separate because direct affordability spending plus
+  structural traversal is materially more expensive than scalar work. -}
+  , cekPatternFailureCost :: f ExBudget
+  {-^ Cost of abandoning a known-failed alternative, advancing, and probing the next ordered
+  alternative. The work that discovers the mismatch is covered by its preceding base or structural
+  charge; this cost is spent before the transition and next probe. There is no pattern pre-scan,
+  cached measure, or refund. Reached captures retain their earlier materialization/application
+  charge even when later work abandons the alternative. -}
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)
@@ -96,6 +115,10 @@ unitCekMachineCosts =
     , cekBuiltinCost = unitCost
     , cekConstrCost = unitCost
     , cekCaseCost = unitCost
+    , cekMatchCost = unitCost
+    , cekPatternCost = unitCost
+    , cekPatternStructuralCost = unitCost
+    , cekPatternFailureCost = unitCost
     }
   where
     zeroCost = Identity $ ExBudget 0 0

@@ -28,6 +28,6 @@ allUsed = MSet.toSet
 
 termUsages
   :: PLC.HasUnique name PLC.TermUnique
-  => Term name uni fun a
+  => Term name uni fun pat a
   -> Usages
 termUsages = multiSetOf (vTerm . PLC.theUnique)

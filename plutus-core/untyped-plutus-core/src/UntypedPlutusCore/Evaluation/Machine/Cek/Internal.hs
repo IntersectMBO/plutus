@@ -5,6 +5,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -93,7 +94,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Exception qualified as Exception
-import Control.Monad (unless, when)
+import Control.Monad (when)
 import Control.Monad.Catch
 import Control.Monad.Except (MonadError, catchError, throwError, tryError)
 import Control.Monad.Primitive (PrimMonad (..))
@@ -168,17 +169,17 @@ this can make a surprisingly large difference.
 
 {-| The 'Term's that CEK can execute must have DeBruijn binders
 'Name' is not necessary but we leave it here for simplicity and debuggability. -}
-type NTerm uni fun = Term NamedDeBruijn uni fun
+type NTerm uni fun pat = Term NamedDeBruijn uni fun pat
 
 -- | The result of evaluating a term with the CEK machine.
-data CekResult name uni fun
-  = CekFailure (CekEvaluationException name uni fun)
+data CekResult name uni fun pat
+  = CekFailure (CekEvaluationException name uni fun pat)
   | CekSuccessConstant (Some (ValueOf uni))
-  | CekSuccessNonConstant (Term name uni fun ())
+  | CekSuccessNonConstant (Term name uni fun pat ())
 
 -- | All info produced by a CEK machine run.
-data CekReport cost name uni fun = CekReport
-  { _cekReportResult :: CekResult name uni fun
+data CekReport cost name uni fun pat = CekReport
+  { _cekReportResult :: CekResult name uni fun pat
   -- ^ The result of evaluation.
   , _cekReportCost :: cost
   -- ^ The final @cost@ value.
@@ -190,17 +191,17 @@ data CekReport cost name uni fun = CekReport
 This is useful, because in the ledger API we care whether the result is a constant or not, but in
 tests, executables etc we don't and so handling an either-error-or-term is more natural. -}
 cekResultToEither
-  :: CekResult name uni fun
-  -> Either (CekEvaluationException name uni fun) (Term name uni fun ())
+  :: CekResult name uni fun pat
+  -> Either (CekEvaluationException name uni fun pat) (Term name uni fun pat ())
 cekResultToEither (CekFailure err) = Left err
 cekResultToEither (CekSuccessConstant val) = Right $ Constant () val
 cekResultToEither (CekSuccessNonConstant term) = Right term
 
 -- | Apply the given function to the 'Term' (if any) stored in the given 'CekResult'.
 mapTermCekResult
-  :: (Term name uni fun () -> Term name' uni fun ())
-  -> CekResult name uni fun
-  -> CekResult name' uni fun
+  :: (Term name uni fun pat () -> Term name' uni fun pat ())
+  -> CekResult name uni fun pat
+  -> CekResult name' uni fun pat
 mapTermCekResult f (CekFailure err) = CekFailure $ f <$> err
 mapTermCekResult _ (CekSuccessConstant val) = CekSuccessConstant val
 mapTermCekResult f (CekSuccessNonConstant term) = CekSuccessNonConstant $ f term
@@ -215,6 +216,7 @@ data StepKind
   | BBuiltin -- Cost of evaluating a Builtin AST node, not the function itself
   | BConstr
   | BCase
+  | BMatch
   deriving stock (Show, Eq, Ord, Generic, Enum, Bounded)
   deriving anyclass (NFData, Hashable)
 
@@ -230,9 +232,11 @@ cekStepCost costs =
     BBuiltin -> cekBuiltinCost costs
     BConstr -> cekConstrCost costs
     BCase -> cekCaseCost costs
+    BMatch -> cekMatchCost costs
 
 data ExBudgetCategory fun
   = BStep StepKind
+  | BPattern -- Fixed Match entry and incrementally spent pattern work
   | BBuiltinApp fun -- Cost of evaluating a fully applied builtin function
   | BStartup
   deriving stock (Show, Eq, Ord, Generic)
@@ -249,48 +253,48 @@ but functions are not printable and hence we provide a dummy instance.
 -}
 
 -- See Note [Show instance for BuiltinRuntime].
-instance Show (BuiltinRuntime (CekValue uni fun ann)) where
+instance Show (BuiltinRuntime (CekValue uni fun pat ann)) where
   show _ = "<builtin_runtime>"
 
 {-| A LIFO stack of 'CekValue's, used to record multiple arguments that need to be pushed
 onto the context in reverse order.  Currently used by 'FrameConstr' for collecting the
 elements of a 'Constr' as it is cheap to prepend new elements in 'ArgStack'. -}
-data ArgStack uni fun ann
+data ArgStack uni fun pat ann
   = NilStack
-  | ConsStack !(CekValue uni fun ann) !(ArgStack uni fun ann)
+  | ConsStack !(CekValue uni fun pat ann) !(ArgStack uni fun pat ann)
 
 {-| A non-empty variant of 'ArgStack', used in 'FrameAwaitFunValueN' to store arguments
 that will be applied to a term. More efficient than 'ArgStack', since this saves one
 evaluation cycle by ensuring there is no 'NilStack'. -}
-data ArgStackNonEmpty uni fun ann
-  = LastStackNonEmpty !(CekValue uni fun ann)
-  | ConsStackNonEmpty !(CekValue uni fun ann) !(ArgStackNonEmpty uni fun ann)
+data ArgStackNonEmpty uni fun pat ann
+  = LastStackNonEmpty !(CekValue uni fun pat ann)
+  | ConsStackNonEmpty !(CekValue uni fun pat ann) !(ArgStackNonEmpty uni fun pat ann)
 
 {-| An alternative version of 'ArgStack' that uses 'ArgNonEmptyStack' when non-empty.
 Used in 'VConstr'. Once all evaluated elements of 'Constr' is collecting to 'ArgStack'
 in 'FrameConstr', the collected elements gets reversed and put into 'VConstr' as
 `EmptyOrMultiStack`. 'VConstr' using `EmptyOrMultiStack` is more efficient than 'ArgStack' when casing,
 since 'FrameAwaitFunValueN' can be dispatched with a single pattern match. -}
-data EmptyOrMultiStack uni fun ann
+data EmptyOrMultiStack uni fun pat ann
   = EmptyStack
-  | MultiStack !(ArgStackNonEmpty uni fun ann)
+  | MultiStack !(ArgStackNonEmpty uni fun pat ann)
 
 deriving stock instance
-  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-  => Show (ArgStack uni fun ann)
+  (GShow uni, Everywhere uni Show, Show fun, Show pat, Show ann, Closed uni)
+  => Show (ArgStack uni fun pat ann)
 deriving stock instance
-  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-  => Show (EmptyOrMultiStack uni fun ann)
+  (GShow uni, Everywhere uni Show, Show fun, Show pat, Show ann, Closed uni)
+  => Show (EmptyOrMultiStack uni fun pat ann)
 deriving stock instance
-  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-  => Show (ArgStackNonEmpty uni fun ann)
+  (GShow uni, Everywhere uni Show, Show fun, Show pat, Show ann, Closed uni)
+  => Show (ArgStackNonEmpty uni fun pat ann)
 
 -- 'Values' for the modified CEK machine.
-data CekValue uni fun ann
+data CekValue uni fun pat ann
   = -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
-  | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann)
-  | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
+  | VDelay !(NTerm uni fun pat ann) !(CekValEnv uni fun pat ann)
+  | VLamAbs !NamedDeBruijn !(NTerm uni fun pat ann) !(CekValEnv uni fun pat ann)
   | {-| A partial builtin application, accumulating arguments for eventual full application.
     We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
     values always store their corresponding 'Term's fully discharged, see the comments at
@@ -302,37 +306,37 @@ data CekValue uni fun ann
       consistently slowing evaluation down by half a percent. Might be noise, might be not, but
       at least we know that removing this @fun@ is not helpful anyway. See this commit reversing
       the change: https://github.com/IntersectMBO/plutus/pull/4778/commits/86a3e24ca3c671cc27c6f4344da2bcd14f961706 -}
-      (NTerm uni fun ())
+      (NTerm uni fun pat ())
       {-^ This must be lazy. It represents the fully discharged partial application of the builtin
       function that we're going to run when it's fully saturated.  We need the 'Term' to be able
       to return it in case full saturation is never achieved and a partial application needs to
       be returned in the result. The laziness is important, because the arguments are discharged
       values and discharging is expensive, so we don't want to do it unless we really have
       to. Making this field strict resulted in a 3-4.5% slowdown at the time of writing. -}
-      !(BuiltinRuntime (CekValue uni fun ann))
+      !(BuiltinRuntime (CekValue uni fun pat ann))
       {-^ The partial application and its costing function.
       Check the docs of 'BuiltinRuntime' for details.
       | A constructor value, including fully computed arguments and the tag. -}
-  | VConstr {-# UNPACK #-} !Word64 !(EmptyOrMultiStack uni fun ann)
+  | VConstr {-# UNPACK #-} !Word64 !(EmptyOrMultiStack uni fun pat ann)
 
 deriving stock instance
-  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-  => Show (CekValue uni fun ann)
+  (GShow uni, Everywhere uni Show, Show fun, Show pat, Show ann, Closed uni)
+  => Show (CekValue uni fun pat ann)
 
-type CekValEnv uni fun ann = Env.RAList (CekValue uni fun ann)
+type CekValEnv uni fun pat ann = Env.RAList (CekValue uni fun pat ann)
 
 {-| The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
 of all possible budgeting state types during evaluation. -}
-newtype CekBudgetSpender uni fun s = CekBudgetSpender
-  { unCekBudgetSpender :: ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
+newtype CekBudgetSpender uni fun pat s = CekBudgetSpender
+  { unCekBudgetSpender :: ExBudgetCategory fun -> ExBudget -> CekM uni fun pat s ()
   }
 
 -- General enough to be able to handle a spender having one, two or any number of 'STRef's
 -- under the hood.
 -- | Runtime budgeting info.
-data ExBudgetInfo cost uni fun s = ExBudgetInfo
-  { _exBudgetModeSpender :: !(CekBudgetSpender uni fun s)
+data ExBudgetInfo cost uni fun pat s = ExBudgetInfo
+  { _exBudgetModeSpender :: !(CekBudgetSpender uni fun pat s)
   -- ^ A spending function.
   , _exBudgetModeGetFinal :: !(ST s cost)
   -- ^ For accessing the final state.
@@ -343,8 +347,8 @@ data ExBudgetInfo cost uni fun s = ExBudgetInfo
 -- We make a separate data type here just to save the caller of the CEK machine from those pesky
 -- 'ST'-related details.
 -- | A budgeting mode to execute the CEK machine in.
-newtype ExBudgetMode cost uni fun = ExBudgetMode
-  { unExBudgetMode :: forall s. ST s (ExBudgetInfo cost uni fun s)
+newtype ExBudgetMode cost uni fun pat = ExBudgetMode
+  { unExBudgetMode :: forall s. ST s (ExBudgetInfo cost uni fun pat s)
   }
 
 {- Note [Cost slippage]
@@ -381,10 +385,12 @@ we opted for option 1, which also happens to be simpler to implement.
 {- Note [Structure of the step counter]
 The step counter is kept in a 'MutablePrimArray', which is a fast way of storing a bunch of
 mutable 'Word8's.
-This suits our purposes, as we need one counter for every step type, and one for the total number.
+This suits our purposes, as we need one counter for every step type and one for the total number.
 
 We keep the counters for each step in the first indices, so we can index them simply by using
-the 'Enum' instance of 'StepKind', and the total counter in the last index.
+the 'Enum' instance of 'StepKind'. The total counter follows those indices. Pattern matching is
+charged incrementally through direct affordability spends, so it must not share this
+bounded-slippage counter.
 -}
 
 -- So that we don't need to update 'NumberOfStepCounters' manually, which would be extremely
@@ -405,7 +411,7 @@ type family CountConstructorsEnum rep where
 of 'StepKind'. -}
 type NumberOfStepCounters = CountConstructorsEnum (Rep StepKind)
 
-{-| The total number of counters that we need, one extra for the total counter.
+{-| The total number of counters that we need: one extra for the total step counter.
 See Note [Structure of the step counter] -}
 type CounterSize = NumberOfStepCounters + 1
 
@@ -430,17 +436,17 @@ https://github.com/IntersectMBO/plutus/pull/4421#issuecomment-1059186586
 
 -- See Note [DList-based emitting].
 -- | The CEK machine is parameterized over an emitter function, similar to 'CekBudgetSpender'.
-type CekEmitter uni fun s = DList.DList Text -> CekM uni fun s ()
+type CekEmitter uni fun pat s = DList.DList Text -> CekM uni fun pat s ()
 
 -- | Runtime emitter info, similar to 'ExBudgetInfo'.
-data CekEmitterInfo uni fun s = CekEmitterInfo
-  { _cekEmitterInfoEmit :: !(CekEmitter uni fun s)
+data CekEmitterInfo uni fun pat s = CekEmitterInfo
+  { _cekEmitterInfoEmit :: !(CekEmitter uni fun pat s)
   , _cekEmitterInfoGetFinal :: !(ST s [Text])
   }
 
 -- | An emitting mode to execute the CEK machine in, similar to 'ExBudgetMode'.
-newtype EmitterMode uni fun = EmitterMode
-  { unEmitterMode :: forall s. ST s ExBudget -> ST s (CekEmitterInfo uni fun s)
+newtype EmitterMode uni fun pat = EmitterMode
+  { unEmitterMode :: forall s. ST s ExBudget -> ST s (CekEmitterInfo uni fun pat s)
   }
 
 {- Note [Implicit parameters in the machine]
@@ -469,26 +475,30 @@ they don't actually take the context as an argument even at the source level.
 -}
 
 -- | Implicit parameter for the builtin runtime.
-type GivenCekRuntime uni fun ann = (?cekRuntime :: BuiltinsRuntime fun (CekValue uni fun ann))
+type GivenCekRuntime uni fun pat ann =
+  (?cekRuntime :: BuiltinsRuntime fun (CekValue uni fun pat ann))
 
 type GivenCekCaserBuiltin uni = (?cekCaserBuiltin :: CaserBuiltin uni)
 
+type GivenCekMatcherBuiltin uni pat = (?cekMatcherBuiltin :: MatcherBuiltin uni pat)
+
 -- | Implicit parameter for the log emitter reference.
-type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
+type GivenCekEmitter uni fun pat s = (?cekEmitter :: CekEmitter uni fun pat s)
 
 -- | Implicit parameter for budget spender.
-type GivenCekSpender uni fun s = (?cekBudgetSpender :: CekBudgetSpender uni fun s)
+type GivenCekSpender uni fun pat s = (?cekBudgetSpender :: CekBudgetSpender uni fun pat s)
 
 type GivenCekSlippage = (?cekSlippage :: Slippage)
 type GivenCekStepCounter s = (?cekStepCounter :: StepCounter CounterSize s)
 type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 
 -- | Constraint requiring all of the machine's implicit parameters.
-type GivenCekReqs uni fun ann s =
-  ( GivenCekRuntime uni fun ann
+type GivenCekReqs uni fun pat ann s =
+  ( GivenCekRuntime uni fun pat ann
   , GivenCekCaserBuiltin uni
-  , GivenCekEmitter uni fun s
-  , GivenCekSpender uni fun s
+  , GivenCekMatcherBuiltin uni pat
+  , GivenCekEmitter uni fun pat s
+  , GivenCekSpender uni fun pat s
   , GivenCekSlippage
   , GivenCekStepCounter s
   , GivenCekCosts
@@ -497,6 +507,8 @@ type GivenCekReqs uni fun ann s =
 data CekUserError
   = -- | 'Case' over a value of a built-in type failed.
     CekCaseBuiltinError Text
+  | -- | Built-in matching was unavailable, invalid for the scrutinee, or no pattern matched.
+    CekPatternMatchError Text
   | -- | The final overspent (i.e. negative) budget.
     CekOutOfExError !ExRestrictingBudget
   | -- | Error has been called or a builtin application has failed
@@ -504,17 +516,18 @@ data CekUserError
   deriving stock (Show, Eq, Generic)
   deriving anyclass (NFData)
 
-type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
+type CekM
+  :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 
 -- | The monad the CEK machine runs in.
-newtype CekM uni fun s a = CekM
+newtype CekM uni fun pat s a = CekM
   { unCekM :: ST s a
   }
   deriving newtype (Functor, Applicative, Monad, PrimMonad)
 
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException name uni fun =
-  EvaluationException (MachineError fun) CekUserError (Term name uni fun ())
+type CekEvaluationException name uni fun pat =
+  EvaluationException (MachineError fun) CekUserError (Term name uni fun pat ())
 
 instance BuiltinErrorToEvaluationError (MachineError fun) CekUserError where
   builtinErrorToEvaluationError (BuiltinUnliftingEvaluationError err) =
@@ -553,15 +566,15 @@ But in our case this is okay, because:
 {-| Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 'throwErrorWithCause' as the cause of the failure. -}
 throwErrorDischarged
-  :: ThrowableBuiltins uni fun
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
   => EvaluationError (MachineError fun) CekUserError
-  -> CekValue uni fun ann
-  -> CekM uni fun s x
+  -> CekValue uni fun pat ann
+  -> CekM uni fun pat s x
 throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dischargeCekValue
 
 instance
-  ThrowableBuiltins uni fun
-  => MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s)
+  (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => MonadError (CekEvaluationException NamedDeBruijn uni fun pat) (CekM uni fun pat s)
   where
   -- See Note [Throwing exceptions in ST].
   throwError = CekM . throwM
@@ -569,9 +582,9 @@ instance
   -- See Note [Catching exceptions in ST].
   catchError
     :: forall a
-     . CekM uni fun s a
-    -> (CekEvaluationException NamedDeBruijn uni fun -> CekM uni fun s a)
-    -> CekM uni fun s a
+     . CekM uni fun pat s a
+    -> (CekEvaluationException NamedDeBruijn uni fun pat -> CekM uni fun pat s a)
+    -> CekM uni fun pat s a
   a `catchError` h =
     -- Here in addition to catching 'CekEvaluationException' we also catch common GHC exceptions
     -- in case one of them somehow gets triggered during script execution (which would be a bug
@@ -596,7 +609,7 @@ instance
 
       -- Unsafely run a 'CekM' computation in the 'IO' monad by converting the underlying 'ST' to
       -- it.
-      unsafeRunCekM :: CekM uni fun s a -> IO a
+      unsafeRunCekM :: CekM uni fun pat s a -> IO a
       unsafeRunCekM = unsafeSTToIO . unCekM
 
       panicHandler :: forall e. Exception e => Handler IO a
@@ -613,6 +626,11 @@ instance Pretty CekUserError where
       [ "'case' over a value of a built-in type failed with"
       , pretty err
       ]
+  pretty (CekPatternMatchError err) =
+    vcat
+      [ "Pattern matching failed with"
+      , pretty err
+      ]
   pretty (CekOutOfExError (ExRestrictingBudget res)) =
     cat
       [ "The machine terminated part way through evaluation due to overspending the budget."
@@ -623,42 +641,46 @@ instance Pretty CekUserError where
   pretty CekEvaluationFailure =
     "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
-argNonEmptyStackToList :: ArgStackNonEmpty uni fun ann -> [CekValue uni fun ann]
+argNonEmptyStackToList :: ArgStackNonEmpty uni fun pat ann -> [CekValue uni fun pat ann]
 argNonEmptyStackToList (LastStackNonEmpty val) = [val]
 argNonEmptyStackToList (ConsStackNonEmpty val stack) = val : argNonEmptyStackToList stack
 
 -- | Convert the given 'EmptyOrMultiStack to a list.
-argStackToList :: EmptyOrMultiStack uni fun ann -> [CekValue uni fun ann]
+argStackToList :: EmptyOrMultiStack uni fun pat ann -> [CekValue uni fun pat ann]
 argStackToList EmptyStack = []
 argStackToList (MultiStack stack) = argNonEmptyStackToList stack
 
 -- | The result of 'dischargeCekValue'.
-data DischargeResult uni fun
+data DischargeResult uni fun pat
   = DischargeConstant (Some (ValueOf uni))
-  | DischargeNonConstant (NTerm uni fun ())
+  | DischargeNonConstant (NTerm uni fun pat ())
 
 deriving stock instance
-  (GShow uni, Everywhere uni Show, Show fun, Closed uni)
-  => Show (DischargeResult uni fun)
+  (GShow uni, Everywhere uni Show, Show fun, Show pat, Closed uni)
+  => Show (DischargeResult uni fun pat)
 
 deriving stock instance
-  (GEq uni, Everywhere uni Eq, Eq fun, Closed uni)
-  => Eq (DischargeResult uni fun)
+  (GEq uni, Everywhere uni Eq, Eq fun, Eq pat, Closed uni)
+  => Eq (DischargeResult uni fun pat)
 
-instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (DischargeResult uni fun) where
+instance
+  (PrettyUni uni, Pretty fun, Pretty pat)
+  => PrettyBy PrettyConfigPlc (DischargeResult uni fun pat)
+  where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm
 
-dischargeResultToTerm :: DischargeResult uni fun -> NTerm uni fun ()
+dischargeResultToTerm :: DischargeResult uni fun pat -> NTerm uni fun pat ()
 dischargeResultToTerm (DischargeConstant val) = Constant () val
 dischargeResultToTerm (DischargeNonConstant term) = term
 
 {-| Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 they're bound to (which themselves have to be obtained by recursively discharging values). -}
-dischargeCekValue :: forall uni fun ann. CekValue uni fun ann -> DischargeResult uni fun
+dischargeCekValue
+  :: forall uni fun pat ann. CekValue uni fun pat ann -> DischargeResult uni fun pat
 dischargeCekValue (VCon val) = DischargeConstant val
 dischargeCekValue value0 = DischargeNonConstant $ goValue value0
   where
-    goValue :: CekValue uni fun ann -> NTerm uni fun ()
+    goValue :: CekValue uni fun pat ann -> NTerm uni fun pat ()
     goValue = \case
       VCon val -> Constant () val
       VDelay body env -> Delay () $ goValEnv env 0 body
@@ -673,12 +695,16 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
-    goValEnv :: CekValEnv uni fun ann -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
+    goValEnv
+      :: CekValEnv uni fun pat ann
+      -> Word64
+      -> NTerm uni fun pat ann
+      -> NTerm uni fun pat ()
     goValEnv env = go
       where
         -- @shift@ is just a counter that measures how many lambda-abstractions we have descended
         -- into so far.
-        go :: Word64 -> NTerm uni fun ann -> NTerm uni fun ()
+        go :: Word64 -> NTerm uni fun pat ann -> NTerm uni fun pat ()
         go !shift = \case
           LamAbs _ name body -> LamAbs () name $ go (shift + 1) body
           Var _ named@(NamedDeBruijn _ (coerce -> idx)) ->
@@ -702,13 +728,18 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
           Error _ -> Error ()
           Constr _ ind args -> Constr () ind $ map (go shift) args
           Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
+          Match _ scrut alternatives ->
+            Match () (go shift scrut) $ fmap (fmap (go shift)) alternatives
 
-instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
+instance
+  (PrettyUni uni, Pretty fun, Pretty pat)
+  => PrettyBy PrettyConfigPlc (CekValue uni fun pat ann)
+  where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
 
-type instance UniOf (CekValue uni fun ann) = uni
+type instance UniOf (CekValue uni fun pat ann) = uni
 
-instance HasConstant (CekValue uni fun ann) where
+instance HasConstant (CekValue uni fun pat ann) where
   asConstant (VCon val) = pure val
   asConstant _ = throwError notAConstant
   {-# INLINE asConstant #-}
@@ -721,35 +752,49 @@ The context in which the machine operates.
 
 Morally, this is a stack of frames, but we use the "intrusive list" representation so that
 we can match on context and the top frame in a single, strict pattern match. -}
-data Context uni fun ann
+data Context uni fun pat ann
   = -- | @[V _]@
-    FrameAwaitArg !(CekValue uni fun ann) !(Context uni fun ann)
+    FrameAwaitArg !(CekValue uni fun pat ann) !(Context uni fun pat ann)
   | -- | @[_ N]@
-    FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
+    FrameAwaitFunTerm
+      !(CekValEnv uni fun pat ann)
+      !(NTerm uni fun pat ann)
+      !(Context uni fun pat ann)
   | -- | @[_ V]@
-    FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
+    FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun pat ann)
   | -- | @[_ V1 .. Vn]@
-    FrameAwaitFunValueN !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
+    FrameAwaitFunValueN !(ArgStackNonEmpty uni fun pat ann) !(Context uni fun pat ann)
   | {-| @(force _)@
     See Note [Accumulators for terms] -}
-    FrameForce !(Context uni fun ann)
+    FrameForce !(Context uni fun pat ann)
   | -- | @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     FrameConstr
-      !(CekValEnv uni fun ann)
+      !(CekValEnv uni fun pat ann)
       {-# UNPACK #-} !Word64
-      ![NTerm uni fun ann]
-      !(ArgStack uni fun ann)
-      !(Context uni fun ann)
+      ![NTerm uni fun pat ann]
+      !(ArgStack uni fun pat ann)
+      !(Context uni fun pat ann)
   | -- | @(case _ C0 .. Cn)@
-    FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+    FrameCases
+      !(CekValEnv uni fun pat ann)
+      !(V.Vector (NTerm uni fun pat ann))
+      !(Context uni fun pat ann)
+  | -- | @(match _ (P0,H0) .. (Pn,Hn))@
+    FrameMatches
+      !(CekValEnv uni fun pat ann)
+      !(V.Vector (pat, NTerm uni fun pat ann))
+      !(Context uni fun pat ann)
   | NoFrame
 
 deriving stock instance
-  (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-  => Show (Context uni fun ann)
+  (GShow uni, Everywhere uni Show, Show fun, Show pat, Show ann, Closed uni)
+  => Show (Context uni fun pat ann)
 
 -- See Note [ExMemoryUsage instances for non-constants].
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
+instance
+  (Closed uni, uni `Everywhere` ExMemoryUsage)
+  => ExMemoryUsage (CekValue uni fun pat ann)
+  where
   memoryUsage = \case
     VCon c -> memoryUsage c
     VDelay {} -> singletonRose 1
@@ -773,15 +818,18 @@ directly to the head of the application. Which is why 'transferSpine' is a right
 -}
 
 runCekM
-  :: forall cost uni fun ann
-   . ThrowableBuiltins uni fun
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> ExBudgetMode cost uni fun
-  -> EmitterMode uni fun
-  -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s (DischargeResult uni fun))
-  -> CekReport cost NamedDeBruijn uni fun
+  :: forall cost uni fun pat ann
+   . (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> ExBudgetMode cost uni fun pat
+  -> EmitterMode uni fun pat
+  -> ( forall s
+        . GivenCekReqs uni fun pat ann s
+       => CekM uni fun pat s (DischargeResult uni fun pat)
+     )
+  -> CekReport cost NamedDeBruijn uni fun pat
 runCekM
-  (MachineParameters caser (MachineVariantParameters costs runtime))
+  (MachineParameters caser matcher (MachineVariantParameters costs runtime))
   (ExBudgetMode getExBudgetInfo)
   (EmitterMode getEmitterMode)
   a = runST $ do
@@ -792,6 +840,7 @@ runCekM
     ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
         ?cekCaserBuiltin = caser
+        ?cekMatcherBuiltin = matcher
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
@@ -807,17 +856,55 @@ runCekM
     pure $ CekReport res st logs
 {-# INLINE runCekM #-}
 
+{-| Keep the universe-specific case and match operations and the pattern-spending function behind
+a single pointer in the production evaluator's hot recursive group. This value is constructed once
+per evaluator invocation, not once per 'Match' node. -}
+data CekCaseMatchers uni fun pat s
+  = CekCaseMatchers
+      !(CaserBuiltin uni)
+      !(MatcherBuiltin uni pat)
+      !(PatternWork -> CekM uni fun pat s ())
+
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
-  :: forall uni fun ann s
-   . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
-  => Context uni fun ann
-  -> CekValEnv uni fun ann
-  -> NTerm uni fun ann
-  -> CekM uni fun s (DischargeResult uni fun)
+  :: forall uni fun pat ann s
+   . ( ThrowableBuiltins uni fun
+     , Pretty pat
+     , Typeable pat
+     , GivenCekReqs uni fun pat ann s
+     )
+  => Context uni fun pat ann
+  -> CekValEnv uni fun pat ann
+  -> NTerm uni fun pat ann
+  -> CekM uni fun pat s (DischargeResult uni fun pat)
 enterComputeCek = computeCek
   where
+    -- This is deliberately shared by the whole recursive group. The old implicit parameters stay
+    -- at the exported boundary for the steppable evaluator, while the production worker captures
+    -- one packed pointer in place of separate case, match, and pattern-spending references.
+    !patternCost = runIdentity $ cekPatternCost ?cekCosts
+    !patternStructuralCost = runIdentity $ cekPatternStructuralCost ?cekCosts
+    !patternFailureCost = runIdentity $ cekPatternFailureCost ?cekCosts
+    !spendPattern = \case
+      PatternWork units -> case units of
+        0 -> pure ()
+        1 -> unCekBudgetSpender ?cekBudgetSpender BPattern patternCost
+        _ ->
+          unCekBudgetSpender
+            ?cekBudgetSpender
+            BPattern
+            (stimes (toInteger units) patternCost)
+      PatternStructuralWork ->
+        unCekBudgetSpender ?cekBudgetSpender BPattern patternStructuralCost
+      PatternFailureWork ->
+        unCekBudgetSpender ?cekBudgetSpender BPattern patternFailureCost
+    !caseMatchers =
+      CekCaseMatchers
+        ?cekCaserBuiltin
+        ?cekMatcherBuiltin
+        spendPattern
+
     -- \| The computing part of the CEK machine.
     -- Either
     -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
@@ -825,10 +912,10 @@ enterComputeCek = computeCek
     -- 3. throws 'EvaluationFailure' ('Error')
     -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
     computeCek
-      :: Context uni fun ann
-      -> CekValEnv uni fun ann
-      -> NTerm uni fun ann
-      -> CekM uni fun s (DischargeResult uni fun)
+      :: Context uni fun pat ann
+      -> CekValEnv uni fun pat ann
+      -> NTerm uni fun pat ann
+      -> CekM uni fun pat s (DischargeResult uni fun pat)
     -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
     computeCek !ctx !env (Var _ varName) = do
       stepAndMaybeSpend BVar
@@ -870,6 +957,10 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Case _ scrut cs) = do
       stepAndMaybeSpend BCase
       computeCek (FrameCases env cs ctx) env scrut
+    -- s ; ρ ▻ match S (P0,H0) ... (Pn,Hn)  ↦  s , match _ (...) ; ρ ▻ S
+    computeCek !ctx !env (Match _ scrut alternatives) = do
+      stepAndMaybeSpend BMatch
+      computeCek (FrameMatches env alternatives ctx) env scrut
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
       throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
@@ -884,9 +975,9 @@ enterComputeCek = computeCek
     --          stored in the frame to an argument.
     --
     returnCek
-      :: Context uni fun ann
-      -> CekValue uni fun ann
-      -> CekM uni fun s (DischargeResult uni fun)
+      :: Context uni fun pat ann
+      -> CekValue uni fun pat ann
+      -> CekM uni fun pat s (DischargeResult uni fun pat)
     --- Instantiate all the free variable of the resulting term in case there are any.
     -- . ◅ V           ↦  [] V
     returnCek NoFrame val = do
@@ -902,16 +993,27 @@ enterComputeCek = computeCek
     -- add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
       applyEvaluate ctx fun arg
-    -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
+    -- Apply the constant spine exposed by an implicit builtin Case or Match branch.
     returnCek (FrameAwaitFunConN args ctx) fun =
       -- In the future, if we want to revert back to more general
       -- 'FrameAwaitFunValue (CekValue uni fun ann)', we can use optimization proposed in
       -- https://github.com/IntersectMBO/plutus/pull/7288.  #7288 have almost equivalent
       -- performance improvement as using 'FrameAwaitFunConN' while keeping more general
       -- 'FrameAwaitFunValue'.
-      case args of
-        SpineLast arg -> applyEvaluate ctx fun (VCon arg)
-        SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
+      case fun of
+        VLamAbs {} -> applyConstant
+        VBuiltin {} -> applyConstant
+        -- The implicit application did not inspect the handler, so recursively discharging a
+        -- constructor-shaped handler merely to populate the cause would be unbudgeted work.
+        _ -> do
+          spendAccumulatedBudget
+          throwError $
+            ErrorWithCause (StructuralError NonFunctionalApplicationMachineError) Nothing
+      where
+        applyConstant =
+          case args of
+            SpineLast arg -> applyEvaluate ctx fun (VCon arg)
+            SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
     returnCek (FrameAwaitFunValueN args ctx) fun =
       case args of
@@ -943,11 +1045,40 @@ enterComputeCek = computeCek
           MultiStack rest -> computeCek (FrameAwaitFunValueN rest ctx) env t
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
       -- Proceed with caser when expression given is not Constr.
-      VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-        HeadError err -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-        HeadOnly fX -> computeCek ctx env fX
-        HeadSpine f xs -> computeCek (FrameAwaitFunConN xs ctx) env f
+      VCon val -> case caseMatchers of
+        CekCaseMatchers caser _ _ -> case unCaserBuiltin caser val cs of
+          HeadError err -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+          HeadOnly fX -> computeCek ctx env fX
+          HeadSpine f xs -> computeCek (FrameAwaitFunConN xs ctx) env f
       _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
+    returnCek (FrameMatches env alternatives ctx) scrutinee = do
+      -- Pattern work is spent without slippage. Flush ordinary CEK work once so subsequent matcher
+      -- spends are direct affordability barriers. A reached-capture spend intentionally reserves
+      -- its later spine materialization and implicit handler application.
+      spendAccumulatedBudget
+      case scrutinee of
+        VCon con -> case caseMatchers of
+          CekCaseMatchers _ matcher spendMatchPattern ->
+            ( CekM $
+                runPatternMatchM
+                  (unMatchBuiltin matcher con alternatives)
+                  (\work -> unCekM $ spendMatchPattern work)
+            )
+              >>= \case
+                HeadError err ->
+                  -- Do not attach the scrutinee: rendering the diagnostic could discharge an
+                  -- arbitrarily deep constructor value outside the budgeted pattern walk.
+                  throwError $ ErrorWithCause (OperationalError $ CekPatternMatchError err) Nothing
+                HeadOnly handler -> computeCek ctx env handler
+                HeadSpine handler captures ->
+                  computeCek (FrameAwaitFunConN captures ctx) env handler
+        _ ->
+          -- Do not attach the scrutinee: rendering the diagnostic could discharge an arbitrarily
+          -- deep constructor value outside the budgeted pattern walk.
+          throwError $
+            ErrorWithCause
+              (OperationalError $ CekPatternMatchError "match scrutinee is not a built-in value")
+              Nothing
 
     -- \| @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -956,9 +1087,9 @@ enterComputeCek = computeCek
     -- representation depending on whether the application is saturated or not,
     -- if v is anything else, fail.
     forceEvaluate
-      :: Context uni fun ann
-      -> CekValue uni fun ann
-      -> CekM uni fun s (DischargeResult uni fun)
+      :: Context uni fun pat ann
+      -> CekValue uni fun pat ann
+      -> CekM uni fun pat s (DischargeResult uni fun pat)
     forceEvaluate !ctx (VDelay body env) = computeCek ctx env body
     forceEvaluate !ctx (VBuiltin fun term runtime) = do
       -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
@@ -984,10 +1115,10 @@ enterComputeCek = computeCek
     -- representation depending on whether the application is saturated or not.
     -- If v is anything else, fail.
     applyEvaluate
-      :: Context uni fun ann
-      -> CekValue uni fun ann -- lhs of application
-      -> CekValue uni fun ann -- rhs of application
-      -> CekM uni fun s (DischargeResult uni fun)
+      :: Context uni fun pat ann
+      -> CekValue uni fun pat ann -- lhs of application
+      -> CekValue uni fun pat ann -- rhs of application
+      -> CekM uni fun pat s (DischargeResult uni fun pat)
     applyEvaluate !ctx (VLamAbs _ body env) arg =
       computeCek ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
@@ -1008,7 +1139,7 @@ enterComputeCek = computeCek
       throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
 
     -- \| Spend the budget that has been accumulated for a number of machine steps.
-    spendAccumulatedBudget :: CekM uni fun s ()
+    spendAccumulatedBudget :: CekM uni fun pat s ()
     spendAccumulatedBudget = do
       let ctr = ?cekStepCounter
       iforCounter_ ctr spend
@@ -1019,15 +1150,26 @@ enterComputeCek = computeCek
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
-    -- Skip index 7, that's the total counter!
+    -- Skip the total-count index and turn every other index back into its 'StepKind'. Fixed Match
+    -- steps retain the public 'BPattern' category even though they use the regular bounded step
+    -- counter. Matcher work is spent directly through its supplied spending function.
     -- See Note [Structure of the step counter]
     spend !i !w =
-      unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
-        let kind = toEnum i in spendBudget (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
+      if i == totalCountIndex
+        then pure ()
+        else
+          let kind = toEnum i
+           in case kind of
+                BMatch ->
+                  when (w /= 0) $ spendBudget BPattern $ stimes w (cekStepCost ?cekCosts kind)
+                _ -> spendBudget (BStep kind) $ stimes w (cekStepCost ?cekCosts kind)
+      where
+        totalCountIndex = fromIntegral $ natVal $ Proxy @TotalCountIndex
     {-# INLINE spend #-}
 
-    -- \| Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
-    stepAndMaybeSpend :: StepKind -> CekM uni fun s ()
+    -- \| Accumulate a machine step, and maybe spend the budget that has accumulated, but only if
+    -- we've exceeded our slippage.
+    stepAndMaybeSpend :: StepKind -> CekM uni fun pat s ()
     stepAndMaybeSpend !kind = do
       -- See Note [Structure of the step counter]
       -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
@@ -1050,11 +1192,11 @@ enterComputeCek = computeCek
     --
     -- and proceed with the returning phase of the CEK machine.
     evalBuiltinApp
-      :: Context uni fun ann
+      :: Context uni fun pat ann
       -> fun
-      -> NTerm uni fun ()
-      -> BuiltinRuntime (CekValue uni fun ann)
-      -> CekM uni fun s (DischargeResult uni fun)
+      -> NTerm uni fun pat ()
+      -> BuiltinRuntime (CekValue uni fun pat ann)
+      -> CekM uni fun pat s (DischargeResult uni fun pat)
     evalBuiltinApp ctx fun term runtime = case runtime of
       BuiltinCostedResult budgets0 getFXs -> do
         let exCat = BBuiltinApp fun
@@ -1074,12 +1216,15 @@ enterComputeCek = computeCek
       _ -> returnCek ctx $ VBuiltin fun term runtime
     {-# INLINE evalBuiltinApp #-}
 
-    spendBudget :: ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
+    spendBudget :: ExBudgetCategory fun -> ExBudget -> CekM uni fun pat s ()
     spendBudget = unCekBudgetSpender ?cekBudgetSpender
     {-# INLINE spendBudget #-}
 
     -- \| Look up a variable name in the environment.
-    lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+    lookupVarName
+      :: NamedDeBruijn
+      -> CekValEnv uni fun pat ann
+      -> CekM uni fun pat s (CekValue uni fun pat ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
       Env.contIndexOne
         (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
@@ -1091,12 +1236,12 @@ enterComputeCek = computeCek
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
-  :: ThrowableBuiltins uni fun
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> ExBudgetMode cost uni fun
-  -> EmitterMode uni fun
-  -> NTerm uni fun ann
-  -> CekReport cost NamedDeBruijn uni fun
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> ExBudgetMode cost uni fun pat
+  -> EmitterMode uni fun pat
+  -> NTerm uni fun pat ann
+  -> CekReport cost NamedDeBruijn uni fun pat
 runCekDeBruijn params mode emitMode term =
   runCekM params mode emitMode $ do
     unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts

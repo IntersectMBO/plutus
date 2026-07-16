@@ -24,6 +24,7 @@ module PlutusLedgerApi.Common.SerialisedScript
 
 import PlutusCore
 import PlutusCore.Default (defaultUniSize)
+import PlutusCore.Version (plcVersion120)
 import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
@@ -146,13 +147,14 @@ serialiseCompiledCode =
   serialiseUPLC . toNameless . getPlcNoAnn
   where
     toNameless
-      :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-      -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+      :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun UPLC.DefaultBuiltinPattern ()
+      -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun UPLC.DefaultBuiltinPattern ()
     toNameless = over UPLC.progTerm $ UPLC.termMapNames UPLC.unNameDeBruijn
 
 {-| Turns a program's AST (most likely manually constructed)
 into a binary format that is understood by the network and can be stored on-chain. -}
-serialiseUPLC :: UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> SerialisedScript
+serialiseUPLC
+  :: UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun UPLC.DefaultBuiltinPattern () -> SerialisedScript
 serialiseUPLC =
   -- See Note [Using Flat for serialising/deserialising Script]
   -- Currently, this is off because the old implementation didn't actually work, so we
@@ -161,13 +163,15 @@ serialiseUPLC =
 
 {-| Deserialises a 'SerialisedScript' back into an AST. Does *not* do
 ledger-language-version-specific checks like for allowable builtins. -}
-uncheckedDeserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+uncheckedDeserialiseUPLC
+  :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun UPLC.DefaultBuiltinPattern ()
 uncheckedDeserialiseUPLC =
   UPLC.unUnrestrictedProgram . unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
 
 -- | A script with named de-bruijn indices.
 newtype ScriptNamedDeBruijn
-  = ScriptNamedDeBruijn (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+  = ScriptNamedDeBruijn
+      (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun UPLC.DefaultBuiltinPattern ())
   deriving stock (Eq, Show, Generic)
   deriving anyclass (NFData)
 
@@ -202,7 +206,7 @@ scriptCBORDecoder ll pv =
       maxBounds = maxBoundsByPV pv
       maxBoundHeader = mbHeader maxBounds
       maxBoundConstr = mbConstr maxBounds
-      flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin checkConstr
+      flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin checkConstr checkPattern
 
       checkConstant (Some (ValueOf uni _))
         | defaultUniSize uni <= maxBoundHeader = Nothing
@@ -232,9 +236,35 @@ scriptCBORDecoder ll pv =
                 ++ show n
                 ++ " fields is not available in protocol version "
                 ++ show (pretty pv)
+
+      -- Pattern descriptors are part of the PLC language version, just like term constructors.
+      -- Keep this exhaustive so adding a descriptor requires an explicit compatibility decision.
+      checkPattern version pat
+        | patternIntroducedIn pat <= version = Nothing
+        | otherwise =
+            Just $
+              "built-in pattern "
+                ++ show pat
+                ++ " is not available in Plutus Core version "
+                ++ show (pretty version)
+
+      patternIntroducedIn = \case
+        DefaultPatternWildcard -> plcVersion120
+        DefaultPatternCapture -> plcVersion120
+        DefaultPatternInteger {} -> plcVersion120
+        DefaultPatternByteString {} -> plcVersion120
+        DefaultPatternBool {} -> plcVersion120
+        DefaultPatternUnit -> plcVersion120
+        DefaultPatternList {} -> plcVersion120
+        DefaultPatternPair {} -> plcVersion120
+        DefaultPatternDataConstr {} -> plcVersion120
+        DefaultPatternDataMap {} -> plcVersion120
+        DefaultPatternDataList {} -> plcVersion120
+        DefaultPatternDataI {} -> plcVersion120
+        DefaultPatternDataB {} -> plcVersion120
    in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
-        (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <-
+        (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun UPLC.DefaultBuiltinPattern ()) <-
           decodeViaFlatWith flatDecoder
         pure $ coerce p
 

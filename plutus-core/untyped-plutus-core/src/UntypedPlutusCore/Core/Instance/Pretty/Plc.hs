@@ -14,12 +14,12 @@ import UntypedPlutusCore.Core.Type
 import PlutusCore.Pretty.Plc
 
 deriving via
-  PrettyAny (Term name uni fun ann)
+  PrettyAny (Term name uni fun pat ann)
   instance
-    DefaultPrettyPlcStrategy (Term name uni fun ann)
-    => PrettyBy PrettyConfigPlc (Term name uni fun ann)
+    DefaultPrettyPlcStrategy (Term name uni fun pat ann)
+    => PrettyBy PrettyConfigPlc (Term name uni fun pat ann)
 deriving via
-  PrettyAny (Program name uni fun ann)
+  PrettyAny (Program name uni fun pat ann)
   instance
-    DefaultPrettyPlcStrategy (Program name uni fun ann)
-    => PrettyBy PrettyConfigPlc (Program name uni fun ann)
+    DefaultPrettyPlcStrategy (Program name uni fun pat ann)
+    => PrettyBy PrettyConfigPlc (Program name uni fun pat ann)

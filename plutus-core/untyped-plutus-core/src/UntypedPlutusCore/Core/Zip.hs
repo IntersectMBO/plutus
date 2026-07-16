@@ -21,8 +21,8 @@ Throws an error if the input programs are not "equal" modulo annotations.
 Note that the function is "left-biased", so in case that the 2 input programs contain `Name`s,
 the output program will contain just the `Name`s of the first input program. -}
 pzipWith
-  :: forall p name uni fun ann1 ann2 ann3 m
-   . (p ~ Program name uni fun, (Eq (Term name uni fun ())), MonadError String m)
+  :: forall p name uni fun pat ann1 ann2 ann3 m
+   . (p ~ Program name uni fun pat, (Eq (Term name uni fun pat ())), MonadError String m)
   => (ann1 -> ann2 -> ann3)
   -> p ann1
   -> p ann2
@@ -39,8 +39,8 @@ Note that the function is "left-biased", so in case that the 2 input terms conta
 the output term will contain just the `Name`s of the first input term.
 TODO: this is not an optimal implementation -}
 tzipWith
-  :: forall t name uni fun ann1 ann2 ann3 m
-   . (t ~ Term name uni fun, Eq (t ()), MonadError String m)
+  :: forall t name uni fun pat ann1 ann2 ann3 m
+   . (t ~ Term name uni fun pat, Eq (t ()), MonadError String m)
   => (ann1 -> ann2 -> ann3)
   -> t ann1
   -> t ann2
@@ -66,6 +66,10 @@ tzipWith f term1 term2 = do
     go (Constr a1 i1 ts1) (Constr a2 _i2 ts2) = Constr (f a1 a2) i1 <$> zipExactWithM go ts1 ts2
     go (Case a1 t1 vs1) (Case a2 t2 vs2) =
       Case (f a1 a2) <$> go t1 t2 <*> (fromList <$> zipExactWithM go (toList vs1) (toList vs2))
+    go (Match a1 t1 as1) (Match a2 t2 as2) =
+      Match (f a1 a2)
+        <$> go t1 t2
+        <*> (fromList <$> zipExactWithM goAlternative (toList as1) (toList as2))
     go _ _ =
       throwError "zip: This should not happen, because we prior established term equality."
 
@@ -74,9 +78,13 @@ tzipWith f term1 term2 = do
     zipExactWithM _ [] [] = pure []
     zipExactWithM _ _ _ = throwError "zipExactWithM: not exact"
 
+    goAlternative (pat, handler1) (_, handler2) = do
+      handler <- go handler1 handler2
+      pure (pat, handler)
+
 -- | Zip 2 programs by pairing their annotations
 pzip
-  :: (p ~ Program name uni fun, Eq (Term name uni fun ()), MonadError String m)
+  :: (p ~ Program name uni fun pat, Eq (Term name uni fun pat ()), MonadError String m)
   => p ann1
   -> p ann2
   -> m (p (ann1, ann2))
@@ -84,7 +92,7 @@ pzip = pzipWith (,)
 
 -- | Zip 2 terms by pairing their annotations
 tzip
-  :: (t ~ Term name uni fun, Eq (t ()), MonadError String m)
+  :: (t ~ Term name uni fun pat, Eq (t ()), MonadError String m)
   => t ann1
   -> t ann2
   -> m (t (ann1, ann2))

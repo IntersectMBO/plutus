@@ -77,13 +77,13 @@ import PlutusCore.Builtin.Meaning (ToBuiltinMeaning)
 
 floatDelay
   :: ( PLC.MonadQuote m
-     , PLC.Rename (Term name uni fun a)
+     , PLC.Rename (Term name uni fun pat a)
      , PLC.HasUnique name PLC.TermUnique
      , ToBuiltinMeaning uni fun
      )
   => BuiltinSemanticsVariant fun
-  -> Term name uni fun a
-  -> OptimizerT name uni fun a m (Term name uni fun a)
+  -> Term name uni fun pat a
+  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
 floatDelay semvar term = do
   result <-
     PLC.rename term >>= \t ->
@@ -94,13 +94,13 @@ floatDelay semvar term = do
 {-| First pass. Returns the names of all variables, at least one occurrence
 of which is not under `Force`. -}
 unforcedVars
-  :: forall name uni fun a
+  :: forall name uni fun pat a
    . PLC.HasUnique name PLC.TermUnique
-  => Term name uni fun a
+  => Term name uni fun pat a
   -> PLC.UniqueSet PLC.TermUnique
 unforcedVars = execWriter . go
   where
-    go :: Term name uni fun a -> Writer (PLC.UniqueSet PLC.TermUnique) ()
+    go :: Term name uni fun pat a -> Writer (PLC.UniqueSet PLC.TermUnique) ()
     go = \case
       Var _ n -> tell (USet.singletonName n)
       Force _ Var {} -> pure ()
@@ -109,18 +109,20 @@ unforcedVars = execWriter . go
 {-| Second pass. Removes `Delay` from eligible arguments, and returns
 the names of variables whose corresponding arguments are modified. -}
 simplifyArgs
-  :: forall name uni fun a
+  :: forall name uni fun pat a
    . ( PLC.HasUnique name PLC.TermUnique
      , ToBuiltinMeaning uni fun
      )
   => BuiltinSemanticsVariant fun
   -> PLC.UniqueSet PLC.TermUnique
   -- ^ The set of variables returned by `unforcedVars`.
-  -> Term name uni fun a
-  -> (Term name uni fun a, PLC.UniqueMap PLC.TermUnique a)
+  -> Term name uni fun pat a
+  -> (Term name uni fun pat a, PLC.UniqueMap PLC.TermUnique a)
 simplifyArgs semvar blacklist = runWriter . go
   where
-    go :: Term name uni fun ann -> Writer (PLC.UniqueMap PLC.TermUnique ann) (Term name uni fun ann)
+    go
+      :: Term name uni fun pat ann
+      -> Writer (PLC.UniqueMap PLC.TermUnique ann) (Term name uni fun pat ann)
     go = \case
       Apply appAnn (LamAbs lamAnn n lamBody) (Delay delayAnn arg)
         | isPure semvar arg
@@ -134,8 +136,8 @@ simplifyArgs semvar blacklist = runWriter . go
 simplifyBodies
   :: PLC.HasUnique name PLC.TermUnique
   => PLC.UniqueMap PLC.TermUnique a
-  -> Term name uni fun a
-  -> Term name uni fun a
+  -> Term name uni fun pat a
+  -> Term name uni fun pat a
 simplifyBodies whitelist = transformOf termSubterms $ \case
   var@(Var _ n)
     | Just ann <- UMap.lookupName n whitelist -> Delay ann var

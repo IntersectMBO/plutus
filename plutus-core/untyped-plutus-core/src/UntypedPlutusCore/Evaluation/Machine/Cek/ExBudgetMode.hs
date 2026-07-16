@@ -48,7 +48,7 @@ import Text.PrettyBy (IgnorePrettyConfig (..))
 {-| Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.
 The value then gets added to the current state via @(<>)@. -}
 monoidalBudgeting
-  :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun
+  :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun pat
 monoidalBudgeting toCost = ExBudgetMode $ do
   costRef <- newSTRef mempty
   budgetRef <- newSTRef mempty
@@ -69,7 +69,7 @@ instance Pretty CountingSt where
   pretty (CountingSt budget) = parens $ "required budget:" <+> pretty budget <> line
 
 -- | For calculating the cost of execution.
-counting :: ExBudgetMode CountingSt uni fun
+counting :: ExBudgetMode CountingSt uni fun pat
 counting = monoidalBudgeting $ const CountingSt
 
 {-| For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
@@ -109,7 +109,7 @@ instance (Show fun, Ord fun) => Pretty (TallyingSt fun) where
         ]
 
 -- | For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
-tallying :: Hashable fun => ExBudgetMode (TallyingSt fun) uni fun
+tallying :: Hashable fun => ExBudgetMode (TallyingSt fun) uni fun pat
 tallying =
   monoidalBudgeting $ \key budgetToSpend ->
     TallyingSt (CekExTally $ singleton key budgetToSpend) budgetToSpend
@@ -124,8 +124,8 @@ instance Pretty RestrictingSt where
 
 -- | For execution, to avoid overruns.
 restricting
-  :: ThrowableBuiltins uni fun
-  => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun pat
 restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMode $ do
   -- We keep the counters in a PrimArray. This is better than an STRef since it stores its contents unboxed.
   --
@@ -172,9 +172,13 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
   pure $ ExBudgetInfo spender final cumulative
 
 -- | 'restricting' instantiated at 'largeBudget'.
-restrictingLarge :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
+restrictingLarge
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => ExBudgetMode RestrictingSt uni fun pat
 restrictingLarge = restricting largeBudget
 
 -- | 'restricting' instantiated at 'enormousBudget'.
-restrictingEnormous :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
+restrictingEnormous
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => ExBudgetMode RestrictingSt uni fun pat
 restrictingEnormous = restricting enormousBudget

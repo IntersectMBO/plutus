@@ -19,11 +19,11 @@ import Control.Monad.Reader (MonadReader)
 
 -- | Compile a PLC term to UPLC, and optimize it.
 compileTerm
-  :: ( Compiling m uni fun name a
+  :: ( Compiling m uni fun pat name a
      , MonadReader (CompilationOpts name fun a) m
      )
   => Term tyname name uni fun a
-  -> m (UPLC.Term name uni fun a)
+  -> m (UPLC.Term name uni fun pat a)
 compileTerm t = do
   optimizeOpts <- view coOptimizeOpts
   builtinSemanticsVariant <- view coBuiltinSemanticsVariant
@@ -33,21 +33,21 @@ compileTerm t = do
 
 -- | Compile a PLC program to UPLC, and optimize it.
 compileProgram
-  :: ( Compiling m uni fun name a
+  :: ( Compiling m uni fun pat name a
      , MonadReader (CompilationOpts name fun a) m
      )
   => Program tyname name uni fun a
-  -> m (UPLC.Program name uni fun a)
+  -> m (UPLC.Program name uni fun pat a)
 compileProgram (Program a v t) = UPLC.Program a v <$> compileTerm t
 
 {-| Compile a PLC program to UPLC, and optimize it. This includes
 the compilation trace in the result. -}
 compileProgramWithTrace
-  :: ( Compiling m uni fun name a
+  :: ( Compiling m uni fun pat name a
      , MonadReader (CompilationOpts name fun a) m
      )
   => Program tyname name uni fun a
-  -> m (UPLC.Program name uni fun a, UPLC.OptimizerTrace name uni fun a)
+  -> m (UPLC.Program name uni fun pat a, UPLC.OptimizerTrace name uni fun pat a)
 compileProgramWithTrace (Program a v t) = do
   optimizeOpts <- view coOptimizeOpts
   builtinSemanticsVariant <- view coBuiltinSemanticsVariant

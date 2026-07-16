@@ -69,6 +69,7 @@ import UntypedPlutusCore.Evaluation.Machine.CommonAPI qualified as Common
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name.Unique
+import PlutusCore.Pretty (Pretty)
 
 import Data.Text (Text)
 
@@ -76,48 +77,52 @@ import Data.Text (Text)
 A wrapper around the internal runCek to debruijn input and undebruijn output.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCek
-  :: ThrowableBuiltins uni fun
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> ExBudgetMode cost uni fun
-  -> EmitterMode uni fun
-  -> Term Name uni fun ann
-  -> CekReport cost Name uni fun
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> ExBudgetMode cost uni fun pat
+  -> EmitterMode uni fun pat
+  -> Term Name uni fun pat ann
+  -> CekReport cost Name uni fun pat
 runCek = Common.runCek runCekDeBruijn
 
 {-| Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCekNoEmit
-  :: ThrowableBuiltins uni fun
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> ExBudgetMode cost uni fun
-  -> Term Name uni fun ann
-  -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> ExBudgetMode cost uni fun pat
+  -> Term Name uni fun pat ann
+  -> (Either (CekEvaluationException Name uni fun pat) (Term Name uni fun pat ()), cost)
 runCekNoEmit = Common.runCekNoEmit runCekDeBruijn
 
 {-| Evaluate a term using the CEK machine with logging enabled.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCek
-  :: ThrowableBuiltins uni fun
-  => EmitterMode uni fun
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> Term Name uni fun ann
-  -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => EmitterMode uni fun pat
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> Term Name uni fun pat ann
+  -> (Either (CekEvaluationException Name uni fun pat) (Term Name uni fun pat ()), [Text])
 evaluateCek = Common.evaluateCek runCekDeBruijn
 
 {-| Evaluate a term using the CEK machine with logging disabled.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCekNoEmit
-  :: ThrowableBuiltins uni fun
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> Term Name uni fun ann
-  -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> Term Name uni fun pat ann
+  -> Either (CekEvaluationException Name uni fun pat) (Term Name uni fun pat ())
 evaluateCekNoEmit = Common.evaluateCekNoEmit runCekDeBruijn
 
 {-| Unlift a value using the CEK machine.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 readKnownCek
-  :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
-  => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> Term Name uni fun ann
-  -> Either (CekEvaluationException Name uni fun) a
+  :: ( ThrowableBuiltins uni fun
+     , Pretty pat
+     , Typeable pat
+     , ReadKnown (Term Name uni fun pat ()) a
+     )
+  => MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> Term Name uni fun pat ann
+  -> Either (CekEvaluationException Name uni fun pat) a
 readKnownCek = Common.readKnownCek runCekDeBruijn

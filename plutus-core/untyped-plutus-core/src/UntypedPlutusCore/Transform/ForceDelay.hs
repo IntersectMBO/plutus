@@ -170,8 +170,8 @@ import Data.Foldable as Foldable (foldl')
 forceDelay
   :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
   => BuiltinSemanticsVariant fun
-  -> Term name uni fun a
-  -> OptimizerT name uni fun a m (Term name uni fun a)
+  -> Term name uni fun pat a
+  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
 forceDelay semVar term = do
   let result = transformOf termSubterms (processTerm semVar) term
   recordOptimization term ForceDelayStage result
@@ -181,7 +181,9 @@ forceDelay semVar term = do
  the 'Force' down into the underlying lambda abstractions. -}
 processTerm
   :: (uni ~ DefaultUni, fun ~ DefaultFun)
-  => BuiltinSemanticsVariant fun -> Term name uni fun a -> Term name uni fun a
+  => BuiltinSemanticsVariant fun
+  -> Term name uni fun pat a
+  -> Term name uni fun pat a
 processTerm semVar = \case
   Force _ (Delay _ t) -> t
   -- Remove @Delay@s from @ifThenElse@ branches if the latter is @Force@d and the delayed term are
@@ -207,7 +209,7 @@ processTerm semVar = \case
  multiple applications on top of multiple abstractions. Checks whether the lambda
  will eventually get "exactly reduced" and applies the optimisation.
  Returns 'Nothing' if the optimisation cannot be applied. -}
-optimisationProcedure :: Term name uni fun a -> Maybe (Term name uni fun a)
+optimisationProcedure :: Term name uni fun pat a -> Maybe (Term name uni fun pat a)
 optimisationProcedure term = do
   asMultiApply <- toMultiApply term
   innerMultiAbs <- toMultiAbs . appHead $ asMultiApply
@@ -220,12 +222,12 @@ optimisationProcedure term = do
        in pure . fromMultiApply $ optimisedMultiApply
     _ -> Nothing
 
-data MultiApply name uni fun a = MultiApply
-  { appHead :: Term name uni fun a
-  , appSpineRev :: [(a, Term name uni fun a)]
+data MultiApply name uni fun pat a = MultiApply
+  { appHead :: Term name uni fun pat a
+  , appSpineRev :: [(a, Term name uni fun pat a)]
   }
 
-toMultiApply :: Term name uni fun a -> Maybe (MultiApply name uni fun a)
+toMultiApply :: Term name uni fun pat a -> Maybe (MultiApply name uni fun pat a)
 toMultiApply term =
   case term of
     Apply _ _ _ -> run [] term
@@ -236,16 +238,16 @@ toMultiApply term =
     run acc t =
       pure $ MultiApply t acc
 
-fromMultiApply :: MultiApply name uni fun a -> Term name uni fun a
+fromMultiApply :: MultiApply name uni fun pat a -> Term name uni fun pat a
 fromMultiApply (MultiApply term ts) =
   Foldable.foldl' (\acc (ann, arg) -> Apply ann acc arg) term ts
 
-data MultiAbs name uni fun a = MultiAbs
+data MultiAbs name uni fun pat a = MultiAbs
   { absVars :: [(a, name)]
-  , absRhs :: Term name uni fun a
+  , absRhs :: Term name uni fun pat a
   }
 
-toMultiAbs :: Term name uni fun a -> Maybe (MultiAbs name uni fun a)
+toMultiAbs :: Term name uni fun pat a -> Maybe (MultiAbs name uni fun pat a)
 toMultiAbs term =
   case term of
     LamAbs _ _ _ -> run [] term
@@ -256,6 +258,6 @@ toMultiAbs term =
     run acc t =
       pure $ MultiAbs acc t
 
-fromMultiAbs :: MultiAbs name uni fun a -> Term name uni fun a
+fromMultiAbs :: MultiAbs name uni fun pat a -> Term name uni fun pat a
 fromMultiAbs (MultiAbs vars term) =
   Foldable.foldl' (\acc (ann, name) -> LamAbs ann name acc) term vars

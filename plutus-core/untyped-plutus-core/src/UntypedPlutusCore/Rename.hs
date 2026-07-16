@@ -17,10 +17,10 @@ import PlutusCore.Core (HasUniques)
 import PlutusCore.Name.Unique
 import PlutusCore.Rename (Rename (..))
 
-instance HasUniques (Term name uni fun ann) => Rename (Term name uni fun ann) where
+instance HasUniques (Term name uni fun pat ann) => Rename (Term name uni fun pat ann) where
   -- See Note [Marking].
   rename = through markNonFreshTerm >=> runRenameT . renameTermM
 
-instance HasUniques (Program name uni fun ann) => Rename (Program name uni fun ann) where
+instance HasUniques (Program name uni fun pat ann) => Rename (Program name uni fun pat ann) where
   -- See Note [Marking].
   rename = through markNonFreshProgram >=> runRenameT . renameProgramM

@@ -16,13 +16,13 @@ import UntypedPlutusCore.Core.Instance.Pretty.Classic ()
 import UntypedPlutusCore.Core.Type
 
 instance
-  (PrettyClassic name, PrettyUni uni, Pretty fun, Pretty ann)
-  => Pretty (Term name uni fun ann)
+  (PrettyClassic name, PrettyUni uni, Pretty fun, Pretty pat, Pretty ann)
+  => Pretty (Term name uni fun pat ann)
   where
   pretty = prettyClassic
 
 instance
-  (PrettyClassic name, PrettyUni uni, Pretty fun, Pretty ann)
-  => Pretty (Program name uni fun ann)
+  (PrettyClassic name, PrettyUni uni, Pretty fun, Pretty pat, Pretty ann)
+  => Pretty (Program name uni fun pat ann)
   where
   pretty = prettyClassic

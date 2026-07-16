@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -49,8 +50,8 @@ Additionally, the first 7 (or 3 on 32-bit systems) constructors will get *pointe
 more efficient access when casing on them. So we ideally want to keep the number of constructors
 at 7 or fewer.
 
-We've got 8 constructors, *but* the last one is Error, which is only going to be seen at most
-once per program, so it's not too big a deal if it doesn't get a tag.
+The family has grown beyond the pointer-tag limit. The ordering still keeps the most common
+constructors first; 'Match' is intentionally last because it is expected to be comparatively rare.
 
 See the GHC Notes "Tagging big families" and "Double switching for big families" in
 GHC.StgToCmm.Expr for more details.
@@ -64,7 +65,9 @@ However in https://github.com/IntersectMBO/plutus/issues/6602 we decided that th
 speed up processing values of built-in types is to extend 'Case' such that it supports pattern
 matching on those.
 
-Currently, 'Case' only supports booleans and integers, but we plan to extend it to lists and data.
+Legacy built-in casing supports unit, booleans, integers, lists and pairs.  The separate 'Match'
+node provides ordered, first-match-wins pattern semantics, including structural matching on 'Data'.
+Keeping it separate preserves the behavior and cost of every existing 'Case'.
 
 See the @CaseBuiltin DefaultUni@ instance for how casing behaves for supported built-in types.
 -}
@@ -85,12 +88,12 @@ serve exactly this purpose. -}
 
 -- Making all the fields strict gives us a couple of percent in benchmarks
 -- See Note [Term constructor ordering and numbers]
-data Term name uni fun ann
+data Term name uni fun pat ann
   = Var !ann !name
-  | LamAbs !ann !name !(Term name uni fun ann)
-  | Apply !ann !(Term name uni fun ann) !(Term name uni fun ann)
-  | Force !ann !(Term name uni fun ann)
-  | Delay !ann !(Term name uni fun ann)
+  | LamAbs !ann !name !(Term name uni fun pat ann)
+  | Apply !ann !(Term name uni fun pat ann) !(Term name uni fun pat ann)
+  | Force !ann !(Term name uni fun pat ann)
+  | Delay !ann !(Term name uni fun pat ann)
   | Constant !ann !(Some (ValueOf uni))
   | Builtin !ann !fun
   | -- This is the cutoff at which constructors won't get pointer tags
@@ -98,45 +101,87 @@ data Term name uni fun ann
     Error !ann
   | -- TODO: worry about overflow, maybe use an Integer
     -- See Note [Constr tag type]
-    Constr !ann !Word64 ![Term name uni fun ann]
+    Constr !ann !Word64 ![Term name uni fun pat ann]
   | -- See Note [Supported case-expressions].
-    Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
+    Case !ann !(Term name uni fun pat ann) !(Vector (Term name uni fun pat ann))
+  | {-| Ordered, first-match-wins pattern alternatives.
+    The pattern type and capture semantics are supplied by the built-in universe. -}
+    Match
+      !ann
+      !(Term name uni fun pat ann)
+      !(Vector (pat, Term name uni fun pat ann))
   deriving stock (Functor, Generic)
 
+type role Term representational representational representational representational representational
+
 deriving stock instance
-  (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-  => Show (Term name uni fun ann)
+  ( Show name
+  , GShow uni
+  , Everywhere uni Show
+  , Show fun
+  , Show pat
+  , Show ann
+  , Closed uni
+  )
+  => Show (Term name uni fun pat ann)
 
 deriving anyclass instance
-  (NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
-  => NFData (Term name uni fun ann)
+  ( NFData name
+  , NFData fun
+  , NFData pat
+  , NFData ann
+  , Everywhere uni NFData
+  , Closed uni
+  )
+  => NFData (Term name uni fun pat ann)
 
 -- See Note [ExMemoryUsage instances for non-constants].
-instance ExMemoryUsage (Term name uni fun ann) where
+instance ExMemoryUsage (Term name uni fun pat ann) where
   memoryUsage =
     Prelude.error "Internal error: 'memoryUsage' for UPLC 'Term' is not supposed to be forced"
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-data Program name uni fun ann = Program
+type role
+  Program
+    representational
+    representational
+    representational
+    representational
+    representational
+
+data Program name uni fun pat ann = Program
   { _progAnn :: ann
   , _progVer :: TPLC.Version
-  , _progTerm :: Term name uni fun ann
+  , _progTerm :: Term name uni fun pat ann
   }
   deriving stock (Functor, Generic)
 
 makeLenses ''Program
 
 deriving stock instance
-  (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-  => Show (Program name uni fun ann)
+  ( Show name
+  , GShow uni
+  , Everywhere uni Show
+  , Show fun
+  , Show pat
+  , Show ann
+  , Closed uni
+  )
+  => Show (Program name uni fun pat ann)
 
 deriving anyclass instance
-  (NFData name, Everywhere uni NFData, NFData fun, NFData ann, Closed uni)
-  => NFData (Program name uni fun ann)
+  ( NFData name
+  , Everywhere uni NFData
+  , NFData fun
+  , NFData pat
+  , NFData ann
+  , Closed uni
+  )
+  => NFData (Program name uni fun pat ann)
 
-type instance TPLC.UniOf (Term name uni fun ann) = uni
+type instance TPLC.UniOf (Term name uni fun pat ann) = uni
 
-instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
+instance TermLike (Term name uni fun pat) TPLC.TyName name uni fun where
   var = Var
   tyAbs = \ann _ _ -> Delay ann
   lamAbs = \ann name _ -> LamAbs ann name
@@ -150,14 +195,16 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
   constr = \ann _ i es -> Constr ann i es
   kase = \ann _ arg cs -> Case ann arg (fromList cs)
 
-instance TPLC.HasConstant (Term name uni fun ()) where
+instance TPLC.HasConstant (Term name uni fun pat ()) where
   asConstant (Constant _ val) = pure val
   asConstant _ = throwError TPLC.notAConstant
 
   fromConstant = Constant ()
 
-type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
-type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
+type instance TPLC.HasUniques (Term name uni fun pat ann) = TPLC.HasUnique name TPLC.TermUnique
+type instance
+  TPLC.HasUniques (Program name uni fun pat ann) =
+    TPLC.HasUniques (Term name uni fun pat ann)
 
 -- | An untyped "variable declaration", i.e. a name for a variable.
 data UVarDecl name ann = UVarDecl
@@ -169,7 +216,7 @@ data UVarDecl name ann = UVarDecl
 makeLenses ''UVarDecl
 
 -- | Return the outermost annotation of a 'Term'.
-instance HasAnn (Term name uni fun) where
+instance HasAnn (Term name uni fun pat) where
   getAnn (Constant ann _) = ann
   getAnn (Builtin ann _) = ann
   getAnn (Var ann _) = ann
@@ -180,6 +227,7 @@ instance HasAnn (Term name uni fun) where
   getAnn (Error ann) = ann
   getAnn (Constr ann _ _) = ann
   getAnn (Case ann _ _) = ann
+  getAnn (Match ann _ _) = ann
   modifyAnn f = \case
     Constant ann c -> Constant (f ann) c
     Builtin ann b -> Builtin (f ann) b
@@ -191,12 +239,13 @@ instance HasAnn (Term name uni fun) where
     Error ann -> Error (f ann)
     Constr ann i args -> Constr (f ann) i args
     Case ann scrut alts -> Case (f ann) scrut alts
+    Match ann scrut alts -> Match (f ann) scrut alts
 
 bindFunM
   :: Monad m
-  => (ann -> fun -> m (Term name uni fun' ann))
-  -> Term name uni fun ann
-  -> m (Term name uni fun' ann)
+  => (ann -> fun -> m (Term name uni fun' pat ann))
+  -> Term name uni fun pat ann
+  -> m (Term name uni fun' pat ann)
 bindFunM f = go
   where
     go (Constant ann val) = pure $ Constant ann val
@@ -209,12 +258,14 @@ bindFunM f = go
     go (Error ann) = pure $ Error ann
     go (Constr ann i args) = Constr ann i <$> traverse go args
     go (Case ann arg cs) = Case ann <$> go arg <*> traverse go cs
+    go (Match ann arg alternatives) =
+      Match ann <$> go arg <*> traverse (traverse go) alternatives
 
 bindFun
-  :: (ann -> fun -> Term name uni fun' ann)
-  -> Term name uni fun ann
-  -> Term name uni fun' ann
+  :: (ann -> fun -> Term name uni fun' pat ann)
+  -> Term name uni fun pat ann
+  -> Term name uni fun' pat ann
 bindFun f = runIdentity . bindFunM (coerce f)
 
-mapFun :: (ann -> fun -> fun') -> Term name uni fun ann -> Term name uni fun' ann
+mapFun :: (ann -> fun -> fun') -> Term name uni fun pat ann -> Term name uni fun' pat ann
 mapFun f = bindFun $ \ann fun -> Builtin ann (f ann fun)
