@@ -39,18 +39,24 @@ import GHC.Exts (fromString)
 import GHC.Ix
 import GHC.TypeNats (natVal)
 import Hedgehog hiding (Size, Var, eval)
+import Prettyprinter (hardline)
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Golden
+import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.Hedgehog
 
 testMachine
   :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc structural)
   => String
-  -> ( Term Name uni fun ()
+  -> ( Term Name uni fun DefaultBuiltinPattern ()
        -> Either
-            (EvaluationException structural operational (Term Name uni fun ()))
-            (Term Name uni fun ())
+            ( EvaluationException
+                structural
+                operational
+                (Term Name uni fun DefaultBuiltinPattern ())
+            )
+            (Term Name uni fun DefaultBuiltinPattern ())
      )
   -> TestTree
 testMachine machine eval =
@@ -72,9 +78,9 @@ test_machines =
 
 testBudget
   :: (Ix fun, Show fun, Hashable fun, Pretty fun, Typeable fun)
-  => BuiltinsRuntime fun (CekValue DefaultUni fun ())
+  => BuiltinsRuntime fun (CekValue DefaultUni fun DefaultBuiltinPattern ())
   -> TestName
-  -> Term Name DefaultUni fun ()
+  -> Term Name DefaultUni fun DefaultBuiltinPattern ()
   -> TestNested
 testBudget runtime name term =
   nestedGoldenVsText
@@ -83,7 +89,7 @@ testBudget runtime name term =
     ( render $
         prettyPlcReadable $
           runCekNoEmit
-            ( MachineParameters def $
+            ( MachineParameters def def $
                 MachineVariantParameters Plc.defaultCekMachineCostsForTesting runtime
             )
             Cek.tallying
@@ -149,7 +155,7 @@ test_budget =
     folder runtime =
       foldPlcFolderContents testNested mempty (\name -> testBudget runtime name . eraseTerm)
 
-testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
+testTallying :: TestName -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern () -> TestNested
 testTallying name term =
   nestedGoldenVsText
     name
@@ -166,6 +172,11 @@ test_tallying =
 
 test_NumberOfStepCounters :: TestTree
 test_NumberOfStepCounters =
-  runTestNestedM ["untyped-plutus-core", "test", "Evaluation", "Machines"] $ do
-    nestedGoldenVsDoc "NumberOfStepCounters" "" . pretty . natVal $ Proxy @NumberOfStepCounters
-    nestedGoldenVsDoc "NumberOfStepCounters" "" . pretty . length $ enumerate @StepKind
+  testGroup
+    "NumberOfStepCounters"
+    [ runTestNestedM ["untyped-plutus-core", "test", "Evaluation", "Machines"] $ do
+        nestedGoldenVsDoc "NumberOfStepCounters" "" . (<> hardline) . pretty . natVal $
+          Proxy @NumberOfStepCounters
+    , testCase "type-level counter agrees with the StepKind enumeration" $
+        natVal (Proxy @NumberOfStepCounters) @?= fromIntegral (length $ enumerate @StepKind)
+    ]

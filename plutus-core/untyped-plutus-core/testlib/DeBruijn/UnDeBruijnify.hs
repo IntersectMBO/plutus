@@ -19,7 +19,7 @@ import Control.Monad.Except
 import Control.Monad.State
 import Test.Tasty.Extras
 
-type T = Term DeBruijn DefaultUni DefaultFun ()
+type T = Term DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 
 -- | (lam0 [2 1 4 (lam1 [1 4 3 5])])
 graceElaborate :: T

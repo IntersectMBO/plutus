@@ -5,7 +5,7 @@ module Analysis.Lib where
 import Data.Text qualified as Text
 import Numeric.Natural (Natural)
 import PlutusCore.Builtin (BuiltinSemanticsVariant)
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default (DefaultBuiltinPattern, DefaultFun, DefaultUni)
 import PlutusCore.Default.Builtins (DefaultFun (..))
 import PlutusCore.MkPlc (mkConstant, mkIterAppNoAnn)
 import PlutusCore.Name.Unique (Name (..), Unique (..))
@@ -19,7 +19,7 @@ import UntypedPlutusCore.Purity (termEvaluationOrder)
 builtinSemantics :: BuiltinSemanticsVariant DefaultFun
 builtinSemantics = def
 
-goldenEvalOrder :: String -> Term Name DefaultUni DefaultFun () -> TestNested
+goldenEvalOrder :: String -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern () -> TestNested
 goldenEvalOrder name tm =
   let order = termEvaluationOrder builtinSemantics tm
    in nestedGoldenVsDoc name "" (prettyPlcReadable order)
@@ -27,7 +27,7 @@ goldenEvalOrder name tm =
 --------------------------------------------------------------------------------
 -- Terms for testing -----------------------------------------------------------
 
-termIfThenElse :: Term Name DefaultUni DefaultFun ()
+termIfThenElse :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 termIfThenElse =
   Apply
     ()
@@ -38,13 +38,13 @@ termIfThenElse =
     )
     (termVar 3)
 
-termVar :: Natural -> Term Name DefaultUni DefaultFun ()
+termVar :: Natural -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 termVar n =
   Var () (Name ("var" <> Text.pack (show n)) (Unique (fromIntegral n)))
 
 -- that the computation is lazy
 -- [ [ n m ] (constr 1 [undefined]) ]
-dangerTerm :: Term Name DefaultUni DefaultFun ()
+dangerTerm :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 dangerTerm = runQuote $ do
   n <- freshName "n"
   m <- freshName "m"
@@ -53,7 +53,7 @@ dangerTerm = runQuote $ do
   -- arguments for now.
   pure $ Apply () (Apply () (Var () n) (Var () m)) (Constr () 1 [undefined])
 
-letFun :: Term Name DefaultUni DefaultFun ()
+letFun :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 letFun = runQuote $ do
   n <- freshName "n"
   let intConst = mkConstant () (1 :: Integer)
@@ -63,7 +63,7 @@ letFun = runQuote $ do
       (LamAbs () n (mkIterAppNoAnn (Var () n) [intConst, intConst]))
       (Builtin () AddInteger)
 
-letImpure :: Term Name DefaultUni DefaultFun ()
+letImpure :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 letImpure = runQuote $ do
   n <- freshName "n"
   m <- freshName "m"

@@ -11,7 +11,7 @@ import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree, testGroup)
 import Transform.Lib (app, builtin, builtinTrue, con, force, ite, lam, text, var)
 import Transform.Simplify.Lib (goldenVsPretty)
-import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
+import UntypedPlutusCore (DefaultBuiltinPattern, DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Transform.EvaluateBuiltins (evaluateBuiltinsPass)
 import UntypedPlutusCore.Transform.Optimizer (evalOptimizer)
 
@@ -36,46 +36,47 @@ test_evaluateBuiltins =
         , ("uncompressAndEqualBlsNonConservative", uncompressAndEqualBlsTerm)
         ]
 
-goldenVsEvaluated :: Bool -> String -> Term Name DefaultUni DefaultFun () -> TestTree
+goldenVsEvaluated
+  :: Bool -> String -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern () -> TestTree
 goldenVsEvaluated conservative testName =
   goldenVsPretty ".golden.uplc" ("EvaluateBuiltins/" ++ testName)
     . runEvaluateBuiltins conservative
 
 runEvaluateBuiltins
   :: Bool
-  -> Term Name DefaultUni DefaultFun ()
-  -> Term Name DefaultUni DefaultFun ()
+  -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 runEvaluateBuiltins conservative = evalOptimizer . evaluateBuiltinsPass conservative def def
 
-addIntegerTerm :: Term Name DefaultUni DefaultFun ()
+addIntegerTerm :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 addIntegerTerm = builtin PLC.AddInteger `app` con 1 `app` con 2
 
-ifThenElseTerm :: Term Name DefaultUni DefaultFun ()
+ifThenElseTerm :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 ifThenElseTerm = ite builtinTrue (con 1) (con 2)
 
 -- Used for both traceConservative (unchanged) and traceNonConservative (reduced to 1)
-traceTerm :: Term Name DefaultUni DefaultFun ()
+traceTerm :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 traceTerm = force (builtin PLC.Trace) `app` text "hello" `app` con 1
 
 -- Division by zero; evaluates to error so should be left in place
-failingBuiltinTerm :: Term Name DefaultUni DefaultFun ()
+failingBuiltinTerm :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 failingBuiltinTerm = builtin PLC.DivideInteger `app` con 1 `app` con 0
 
 -- The variable argument prevents evaluation
-nonConstantArgTerm :: Term Name DefaultUni DefaultFun ()
+nonConstantArgTerm :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 nonConstantArgTerm = builtin PLC.AddInteger `app` var "x" `app` con 2
 
 -- ifThenElse returns a function (lambda), then applied to an extra argument
-overApplicationTerm :: Term Name DefaultUni DefaultFun ()
+overApplicationTerm :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 overApplicationTerm = ite builtinTrue (lam "x" (con 1)) (lam "x" (con 2)) `app` con 3
 
 -- Missing an argument, should be left unchanged
-underApplicationTerm :: Term Name DefaultUni DefaultFun ()
+underApplicationTerm :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 underApplicationTerm = builtin PLC.AddInteger `app` con 1
 
 -- In both conservative and non-conservative mode: left unchanged because the
 -- result (a G2 element) is an unserializable constant
-uncompressBlsG2Term :: Term Name DefaultUni DefaultFun ()
+uncompressBlsG2Term :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 uncompressBlsG2Term =
   builtin PLC.Bls12_381_G2_uncompress `app` mkConstant @BS.ByteString () blsG2Bytes
   where
@@ -87,7 +88,7 @@ uncompressBlsG2Term =
 
 -- In non-conservative mode: left unchanged because intermediate results
 -- (G1 elements) are unserializable, so we can't evaluate through them
-uncompressAndEqualBlsTerm :: Term Name DefaultUni DefaultFun ()
+uncompressAndEqualBlsTerm :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 uncompressAndEqualBlsTerm =
   builtin PLC.Bls12_381_G1_equal
     `app` (builtin PLC.Bls12_381_G1_uncompress `app` blsG1BytesTerm)

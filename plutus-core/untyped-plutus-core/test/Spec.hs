@@ -12,6 +12,7 @@ import Evaluation.Debug (test_debug)
 import Evaluation.FreeVars (test_freevars)
 import Evaluation.Golden (test_golden)
 import Evaluation.Machines (test_NumberOfStepCounters, test_budget, test_machines, test_tallying)
+import Evaluation.Patterns (test_patterns)
 import Evaluation.Regressions (schnorrVerifyRegressions)
 import Flat.Spec (test_flat)
 import Generators.Spec (test_parsing)
@@ -30,6 +31,7 @@ main = do
     testGroup
       "Untyped Plutus Core"
       [ test_machines
+      , test_patterns
       , test_builtins
       , test_budget
       , test_caseOfCase

@@ -25,6 +25,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
+import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Monad.Except
@@ -445,14 +446,19 @@ goldenVsPretty extn name value =
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCK name =
   goldenVsPretty ".golden.plc" name
-    . bimap (fmap eraseTerm) eraseTerm
+    . bimap (fmap eraseDefault) eraseDefault
     . evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name =
   goldenVsPretty ".golden.uplc" name
     . evaluateCekNoEmit defaultCekParametersForTesting
-    . eraseTerm
+    . eraseDefault
+
+eraseDefault
+  :: Term TyName Name DefaultUni DefaultFun ()
+  -> UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+eraseDefault = eraseTerm
 
 runTypecheck
   :: Term TyName Name DefaultUni DefaultFun ()

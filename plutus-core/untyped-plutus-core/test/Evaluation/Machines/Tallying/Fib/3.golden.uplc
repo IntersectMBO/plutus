@@ -6,8 +6,6 @@
 | BStep BDelay causes ({cpu: 192000 | mem: 1200})
 | BStep BForce causes ({cpu: 272000 | mem: 1700})
 | BStep BBuiltin causes ({cpu: 256000 | mem: 1600})
-| BStep BConstr causes ({cpu: 0 | mem: 0})
-| BStep BCase causes ({cpu: 0 | mem: 0})
 | BBuiltinApp AddInteger causes ({cpu: 202416 | mem: 4})
 | BBuiltinApp SubtractInteger causes ({cpu: 404832 | mem: 8})
 | BBuiltinApp LessThanEqualsInteger causes ({cpu: 219185 | mem: 5})

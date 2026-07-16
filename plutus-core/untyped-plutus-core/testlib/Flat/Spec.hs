@@ -12,23 +12,42 @@ import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char (ord)
+import Data.Vector qualified as Vector
 import Data.Word
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
-import PlutusCore.Default (DefaultFun (..), DefaultUni (..))
+import PlutusCore.Default
+  ( DefaultBuiltinPattern (..)
+  , DefaultFun (..)
+  , DefaultUni (..)
+  )
 import PlutusCore.Flat
 import PlutusCore.Flat.Bits (asBytes, bits)
+import PlutusCore.FlatInstances (safeEncodeBits)
 import PlutusCore.Generators.QuickCheck.Builtin ()
 import PlutusCore.Name.Unique (Name (..), TyName (..), Unique (..))
+import PlutusCore.Version (knownVersions, latestVersion, plcVersion110, plcVersion120)
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck hiding (Some)
+import Test.Tasty.QuickCheck hiding (Some, getSize)
 import Universe (Some (..), ValueOf (..))
 import UntypedPlutusCore.Core.Type
 
 -- Also brings the Flat (Strict.Vector a) orphan instance into scope:
-import UntypedPlutusCore (UnrestrictedProgram (..))
+import UntypedPlutusCore
+  ( UnrestrictedProgram (..)
+  , decodeProgram
+  , decodeTerm
+  )
+
+-- | An encode-only value for exercising reserved Flat tags through the real decoders.
+data RawTag = RawTag Int Word8
+
+instance Flat RawTag where
+  encode (RawTag width tag) = safeEncodeBits width tag
+  decode = fail "RawTag is encode-only"
+  size (RawTag width _) n = width + n
 
 test_deBruijnIso :: TestTree
 test_deBruijnIso = testProperty "deBruijnIso" $ \d ->
@@ -415,11 +434,232 @@ test_uplcProgramFlat =
         flatBytes (UnrestrictedProgram prog) @?= [1, 1, 0, 72, 0, 0]
     ]
   where
-    prog :: Program DeBruijn DefaultUni DefaultFun () =
+    prog :: Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern () =
       Program
         ()
         (Version 1 1 0)
         (Constant () (Some (ValueOf DefaultUniInteger (0 :: Integer))))
+
+test_patternProgramFlat :: TestTree
+test_patternProgramFlat =
+  testGroup
+    "UPLC Match Programs"
+    [ testCase "version 1.2 match roundtrip" $
+        let program = matchProg $ Version 1 2 0
+         in unrestrictedDecode (flat $ UnrestrictedProgram program) @?= Right program
+    , testCase "all default built-in pattern descriptors roundtrip" $
+        mapM_
+          (\pat -> unflat (flat pat) @?= (Right pat :: Either DecodeException DefaultBuiltinPattern))
+          [ DefaultPatternWildcard
+          , DefaultPatternCapture
+          , DefaultPatternInteger (-42)
+          , DefaultPatternInteger minBound
+          , DefaultPatternInteger maxBound
+          , DefaultPatternByteString "pattern-bytes"
+          , DefaultPatternBool True
+          , DefaultPatternUnit
+          , DefaultPatternList emptyChildren
+          , DefaultPatternPair
+              DefaultPatternWildcard
+              DefaultPatternCapture
+          , DefaultPatternDataConstr maxBound emptyChildren
+          , DefaultPatternDataMap emptyChildren
+          , DefaultPatternDataList emptyChildren
+          , DefaultPatternDataI Nothing
+          , DefaultPatternDataB Nothing
+          ]
+    , testCase "version 1.2 match stable encoding" $
+        flatBytes (UnrestrictedProgram $ matchProg (Version 1 2 0))
+          @?= [1, 2, 0, 164, 128, 3, 88, 0, 136, 144, 42, 65, 32, 0, 0]
+    , testCase "all default built-in pattern descriptors have stable encodings" $
+        mapM_
+          (\(pat, expected) -> flatBytes pat @?= expected)
+          [ (DefaultPatternWildcard, [0])
+          , (DefaultPatternCapture, [16])
+          , (DefaultPatternInteger 0, [32, 0])
+          , (DefaultPatternByteString mempty, [49, 0])
+          , (DefaultPatternBool False, [64])
+          , (DefaultPatternUnit, [80])
+          , (DefaultPatternList emptyChildren, [96])
+          ,
+            ( DefaultPatternPair
+                DefaultPatternWildcard
+                DefaultPatternCapture
+            , [112, 16]
+            )
+          , (DefaultPatternDataConstr 0 emptyChildren, [128, 0])
+          , (DefaultPatternDataConstr 1 emptyChildren, [128, 16])
+          , (DefaultPatternDataMap emptyChildren, [144])
+          , (DefaultPatternDataList emptyChildren, [160])
+          , (DefaultPatternDataI Nothing, [176])
+          , (DefaultPatternDataB Nothing, [192])
+          ]
+    , testCase "match is rejected before version 1.2" $ do
+        assertUnrestrictedRejects "pre-1.2 match program" $ matchProg (Version 1 1 0)
+    , testCase "restricted decoder accepts match-alternative arity at its limit" $
+        let withinLimit = wideMatchProg 3
+         in restrictedDecode (flat $ UnrestrictedProgram withinLimit) @?= Right withinLimit
+    , testCase "restricted decoder rejects oversized match-alternative arity" $
+        assertRestrictedRejects "oversized match alternative" $
+          wideMatchProg 4
+    , testCase "restricted decoder rejects unavailable built-in pattern descriptor" $
+        assertPatternRestrictedRejects "unavailable built-in pattern descriptor" $
+          matchProg (Version 1 2 0)
+    , testCase "reserved term tags are rejected" $
+        mapM_ assertReservedTermTag [11 .. 15]
+    , testCase "reserved default built-in pattern tags are rejected" $
+        mapM_ assertReservedDefaultPatternTag [13 .. 15]
+    , testCase "truncated built-in pattern descriptor payloads are rejected" $
+        mapM_
+          assertTruncatedDefaultPattern
+          [ DefaultPatternInteger maxBound
+          , DefaultPatternByteString $ BS.pack [1 .. 8]
+          , DefaultPatternDataConstr maxBound emptyChildren
+          ]
+    ]
+  where
+    emptyChildren = Vector.empty
+
+    matchProg
+      :: Version
+      -> Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+    matchProg version = Program () version matchBody
+
+    nestedPattern :: DefaultBuiltinPattern
+    nestedPattern =
+      DefaultPatternDataList $
+        Vector.singleton
+          ( DefaultPatternDataConstr
+              0
+              (Vector.singleton DefaultPatternCapture)
+          )
+
+    matchBody :: Term DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+    matchBody =
+      Match
+        ()
+        (Constant () $ Some (ValueOf DefaultUniInteger (0 :: Integer)))
+        ( Vector.fromList
+            [ (nestedPattern, Constant () $ Some (ValueOf DefaultUniInteger (42 :: Integer)))
+            , (DefaultPatternWildcard, Constant () $ Some (ValueOf DefaultUniInteger (0 :: Integer)))
+            ]
+        )
+
+    wideMatchProg
+      :: Int
+      -> Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+    wideMatchProg childCount =
+      Program
+        ()
+        (Version 1 2 0)
+        ( Match
+            ()
+            (Constant () $ Some (ValueOf DefaultUniInteger (0 :: Integer)))
+            ( Vector.singleton
+                ( DefaultPatternList $ Vector.replicate childCount DefaultPatternWildcard
+                , Constant () $ Some (ValueOf DefaultUniInteger (0 :: Integer))
+                )
+            )
+        )
+
+    unrestrictedDecode
+      :: BS.ByteString
+      -> Either
+           DecodeException
+           (Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+    unrestrictedDecode = fmap unUnrestrictedProgram . unflat
+
+    restrictedDecode
+      :: BS.ByteString
+      -> Either
+           DecodeException
+           (Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+    restrictedDecode =
+      unflatWith $
+        decodeProgram
+          (const Nothing)
+          (const Nothing)
+          (const Nothing)
+          (const checkPatternArity)
+
+    patternRestrictedDecode
+      :: BS.ByteString
+      -> Either
+           DecodeException
+           (Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+    patternRestrictedDecode =
+      unflatWith $
+        decodeProgram
+          (const Nothing)
+          (const Nothing)
+          (const Nothing)
+          (const checkPatternDescriptor)
+
+    checkPatternArity (DefaultPatternList children)
+      | Vector.length children > 3 =
+          Just "pattern has too many children"
+    checkPatternArity _ = Nothing
+
+    checkPatternDescriptor (DefaultPatternDataList _) = Just "data-list patterns are unavailable"
+    checkPatternDescriptor _ = Nothing
+
+    assertUnrestrictedRejects description program =
+      case unrestrictedDecode . flat $ UnrestrictedProgram program of
+        Left _ -> pure ()
+        Right result -> assertFailure $ "decoded a " <> description <> ": " <> show result
+
+    assertRestrictedRejects description program =
+      case restrictedDecode . flat $ UnrestrictedProgram program of
+        Left _ -> pure ()
+        Right result -> assertFailure $ "decoded an " <> description <> ": " <> show result
+
+    assertPatternRestrictedRejects description program =
+      case patternRestrictedDecode . flat $ UnrestrictedProgram program of
+        Left _ -> pure ()
+        Right result -> assertFailure $ "decoded an " <> description <> ": " <> show result
+
+    assertReservedTermTag tag =
+      assertDecodeRejects
+        ("reserved term tag " <> show tag)
+        ( unflatWith
+            ( decodeTerm
+                (Version 1 2 0)
+                (const Nothing)
+                (const Nothing)
+                (const Nothing)
+                (const Nothing)
+            )
+            (flat $ RawTag 4 tag)
+            :: Either
+                 DecodeException
+                 (Term DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+        )
+
+    assertReservedDefaultPatternTag tag =
+      assertDecodeRejects
+        ("reserved default built-in pattern tag " <> show tag)
+        ( unflat (flat $ RawTag 4 tag)
+            :: Either DecodeException DefaultBuiltinPattern
+        )
+
+    assertTruncatedDefaultPattern pat =
+      let encoded = flat pat
+          truncated = BS.take (BS.length encoded - 2) encoded
+       in assertDecodeRejects
+            ("truncated default built-in pattern " <> show pat)
+            (unflat truncated :: Either DecodeException DefaultBuiltinPattern)
+
+    assertDecodeRejects description result =
+      case result of
+        Left _ -> pure ()
+        Right value -> assertFailure $ "decoded " <> description <> ": " <> show value
+
+test_matchVersionRemainsExperimental :: TestTree
+test_matchVersionRemainsExperimental =
+  testCase "Plutus Core 1.2 Match remains experimental" $ do
+    latestVersion @?= plcVersion110
+    assertBool "Plutus Core 1.2 unexpectedly appears in knownVersions" $
+      plcVersion120 `notElem` knownVersions
 
 test_flat :: TestTree
 test_flat =
@@ -434,6 +674,8 @@ test_flat =
     , test_binderStaticEncoding
     , test_binderNewtypeRoundtrip
     , test_uplcProgramFlat
+    , test_patternProgramFlat
+    , test_matchVersionRemainsExperimental
     , test_canonicalData
     , test_canonicalByteString
     , test_nonCanonicalByteStringDecoding

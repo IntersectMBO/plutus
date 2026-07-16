@@ -7,7 +7,7 @@ module Transform.Inline.Spec where
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (runStateT)
 import PlutusCore.Annotation (Inline (MayInline))
-import PlutusCore.Default (DefaultFun (..), DefaultUni)
+import PlutusCore.Default (DefaultBuiltinPattern, DefaultFun (..), DefaultUni)
 import PlutusCore.Name.Unique (Name)
 import PlutusCore.Quote (runQuote)
 import PlutusPrelude (def)
@@ -64,7 +64,7 @@ testVarBeforeAfterEffects = do
   assertBool "c is not evaluated before effects" $ not do
     isFirstVarBeforeEffects def (name "c") term
   where
-    term :: Term Name DefaultUni DefaultFun ()
+    term :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
     term =
       {- Evaluation order:
 
@@ -85,7 +85,7 @@ testVarIsEventuallyEvaluatedDelay = do
   assertBool "it's not known if var 'c' is eventually evaluated" $
     not (isStrictIn (name "c") term)
   where
-    term :: Term Name DefaultUni DefaultFun ()
+    term :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
     term = delay (var "a" `plus` var "b") `plus` var "b"
 
 testVarIsEventuallyEvaluatedLambda :: Assertion
@@ -97,7 +97,7 @@ testVarIsEventuallyEvaluatedLambda = do
   assertBool "it's not known if var 'd' is eventually evaluated" $
     not (isStrictIn (name "d") term)
   where
-    term :: Term Name DefaultUni DefaultFun ()
+    term :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
     term = lam "b" (var "a" `plus` var "c") `app` var "c"
 
 testVarIsEventuallyEvaluatedCaseBranch :: Assertion
@@ -109,7 +109,7 @@ testVarIsEventuallyEvaluatedCaseBranch = do
   assertBool "it is not known if var 'd' is eventually evaluated" $
     not (isStrictIn (name "d") term)
   where
-    term :: Term Name DefaultUni DefaultFun ()
+    term :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
     term = case_ (var "b") [var "a", var "b", var "c"]
 
 testEffectSafePreservedLogs :: Assertion
@@ -119,7 +119,7 @@ testEffectSafePreservedLogs = do
   assertBool "a var before effects is \"effect safe\"" $
     runInlineWithLogging (effectSafe term (name "a") False)
   where
-    term :: Term Name DefaultUni DefaultFun ()
+    term :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
     term = (var "a" `plus` var "b") `plus` var "c"
 
 testEffectSafeWithoutPreservedLogs :: Assertion
@@ -129,19 +129,26 @@ testEffectSafeWithoutPreservedLogs = do
   assertBool "a var before effects is \"effect safe\"" $
     runInlineWithoutLogging (effectSafe term (name "a") False)
   where
-    term :: Term Name DefaultUni DefaultFun ()
+    term :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
     term = (var "a" `plus` var "b") `plus` var "c"
 
 --------------------------------------------------------------------------------
 -- InlineM runner --------------------------------------------------------------
 
-runInlineWithoutLogging :: InlineM Name DefaultUni DefaultFun () r -> r
+runInlineWithoutLogging
+  :: InlineM Name DefaultUni DefaultFun DefaultBuiltinPattern () r
+  -> r
 runInlineWithoutLogging = runInlineM False
 
-runInlineWithLogging :: InlineM Name DefaultUni DefaultFun () r -> r
+runInlineWithLogging
+  :: InlineM Name DefaultUni DefaultFun DefaultBuiltinPattern () r
+  -> r
 runInlineWithLogging = runInlineM True
 
-runInlineM :: Bool -> InlineM Name DefaultUni DefaultFun () r -> r
+runInlineM
+  :: Bool
+  -> InlineM Name DefaultUni DefaultFun DefaultBuiltinPattern () r
+  -> r
 runInlineM preserveLogging m = result
   where
     (result, _finalState) =
@@ -157,7 +164,7 @@ runInlineM preserveLogging m = result
         , _iiInlineCallsiteGrowth = AstSize 1_000_000
         , _iiPreserveLogging = preserveLogging
         }
-    initialState :: S Name DefaultUni DefaultFun (Ann ())
+    initialState :: S Name DefaultUni DefaultFun DefaultBuiltinPattern (Ann ())
     initialState = S {_subst = Subst (TermEnv mempty), _vars = mempty}
 
 --------------------------------------------------------------------------------

@@ -25,8 +25,8 @@ import PlutusCore.Flat (Flat)
 import Test.Tasty.Extras ()
 
 instance
-  (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-  => ToUPlc (CompiledCodeIn uni fun a) uni fun
+  (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, Flat pat)
+  => ToUPlc (CompiledCodeIn uni fun pat a) uni fun pat
   where
   toUPlc compiledCode = toUPlc =<< catchAll (getPlcNoAnn compiledCode)
 
@@ -44,7 +44,7 @@ instance
   , Default (PIR.BuiltinsInfo uni fun)
   , Default (PIR.RewriteRules uni fun)
   )
-  => ToTPlc (CompiledCodeIn uni fun a) uni fun
+  => ToTPlc (CompiledCodeIn uni fun pat a) uni fun
   where
   toTPlc compiledCode =
     catchAll (getPir compiledCode) >>= \case

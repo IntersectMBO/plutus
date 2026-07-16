@@ -24,15 +24,21 @@ import Test.Tasty.Extras ()
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
-type Term = UPLC.Term PLC.Name DefaultUni DefaultFun ()
+type Term = UPLC.Term PLC.Name DefaultUni DefaultFun PLC.DefaultBuiltinPattern ()
 
 runPlcCek
-  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
   => a
   -> ExceptT
        SomeException
        IO
-       (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+       ( UPLC.Term
+           PLC.Name
+           PLC.DefaultUni
+           PLC.DefaultFun
+           PLC.DefaultBuiltinPattern
+           ()
+       )
 runPlcCek val = do
   term <- toUPlc val
   fromRightM (throwError . SomeException) $
@@ -41,14 +47,14 @@ runPlcCek val = do
       (term ^. UPLC.progTerm)
 
 runPlcCekTrace
-  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
   => a
   -> ExceptT
        SomeException
        IO
        ( [Text]
        , UPLC.CekExTally PLC.DefaultFun
-       , UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
+       , UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
        )
 runPlcCekTrace value = do
   term <- toUPlc value
@@ -62,12 +68,14 @@ runPlcCekTrace value = do
   pure (logOut, tally, res)
 
 runPlcCekBudget
-  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
   => a
   -> ExceptT
        SomeException
        IO
-       (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun (), PLC.ExBudget)
+       ( UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+       , PLC.ExBudget
+       )
 runPlcCekBudget val = do
   term <- toUPlc val
   fromRightM (throwError . SomeException) $ do

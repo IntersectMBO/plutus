@@ -22,6 +22,7 @@ import Control.Monad.ST
 import Control.Monad.Writer
 import Data.ByteString.Lazy.Char8 qualified as BS
 import Data.Text qualified as T
+import Data.Typeable (Typeable)
 import Data.Void
 import Prettyprinter
 import System.FilePath
@@ -41,7 +42,12 @@ newtype EmptyAnn = EmptyAnn ()
 instance Breakpointable EmptyAnn Breakpoints where
   hasBreakpoints _ = absurd
 
-examples :: [(String, [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn)]
+examples
+  :: [ ( String
+       , [Cmd Breakpoints]
+       , NTerm DefaultUni DefaultFun DefaultBuiltinPattern EmptyAnn
+       )
+     ]
 examples =
   [ ("ex1", repeat Step, Delay mempty $ Error mempty)
   , ("ex2", replicate 4 Step, Force mempty $ Delay mempty $ Error mempty)
@@ -49,7 +55,12 @@ examples =
   , ("ex4", repeat Step, Error mempty)
   ]
 
-goldenVsDebug :: (TestName, [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn) -> TestTree
+goldenVsDebug
+  :: ( TestName
+     , [Cmd Breakpoints]
+     , NTerm DefaultUni DefaultFun DefaultBuiltinPattern EmptyAnn
+     )
+  -> TestTree
 goldenVsDebug (name, cmds, term) =
   goldenVsString
     name
@@ -63,7 +74,7 @@ goldenVsDebug (name, cmds, term) =
 mock
   :: [Cmd Breakpoints]
   -- ^ commands to feed
-  -> NTerm DefaultUni DefaultFun EmptyAnn
+  -> NTerm DefaultUni DefaultFun DefaultBuiltinPattern EmptyAnn
   -- ^ term to debug
   -> [String]
   -- ^ mocking output
@@ -84,15 +95,17 @@ mock cmds t = runST $ unCekM $ do
 -------------------------------
 
 handle
-  :: forall uni fun s m
+  :: forall uni fun pat s m
    . ( ThrowableBuiltins uni fun
+     , Pretty pat
+     , Typeable pat
      , MonadWriter [String] m
      , MonadReader [Cmd Breakpoints] m
      , PrimMonad m
      , PrimState m ~ s
      )
-  => CekTrans uni fun EmptyAnn s
-  -> DebugF uni fun EmptyAnn Breakpoints (m ())
+  => CekTrans uni fun pat EmptyAnn s
+  -> DebugF uni fun pat EmptyAnn Breakpoints (m ())
   -> m ()
 handle cekTrans = \case
   StepF prevState k -> do

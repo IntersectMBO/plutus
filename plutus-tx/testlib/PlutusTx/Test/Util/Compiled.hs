@@ -27,8 +27,8 @@ import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
-type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ()
+type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 
 {-| The size of a 'CompiledCodeIn' as measured in Flat bytes.
 
@@ -58,23 +58,27 @@ countFlatBytes =
    call unDeBruijn, that will rename the variables to things like "v123", where
    123 is the relevant de Bruijn index. -}
 toNamedDeBruijnTerm
-  :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
-  -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+  :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 toNamedDeBruijnTerm = UPLC.termMapNames UPLC.fakeNameDeBruijn
 
 -- | Remove the textual names from a NamedDeBruijn term
-toAnonDeBruijnTerm :: Term -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
+toAnonDeBruijnTerm
+  :: Term
+  -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 toAnonDeBruijnTerm = UPLC.termMapNames UPLC.unNameDeBruijn
 
 toAnonDeBruijnProg
-  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-  -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 toAnonDeBruijnProg (UPLC.Program () ver body) =
   UPLC.Program () ver $ toAnonDeBruijnTerm body
 
 {-| Just extract the body of a program wrapped in a 'CompiledCodeIn'.
 We use this a lot. -}
-compiledCodeToTerm :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
+compiledCodeToTerm
+  :: Tx.CompiledCodeIn DefaultUni DefaultFun DefaultBuiltinPattern a
+  -> Term
 compiledCodeToTerm code = let UPLC.Program _ _ body = Tx.getPlcNoAnn code in body
 
 {-| Evaluate a PLC term and check that the result matches a given Haskell value

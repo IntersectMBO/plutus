@@ -49,8 +49,6 @@
 | BStep BDelay causes ({cpu: 656000 | mem: 4100})
 | BStep BForce causes ({cpu: 528000 | mem: 3300})
 | BStep BBuiltin causes ({cpu: 64000 | mem: 400})
-| BStep BConstr causes ({cpu: 0 | mem: 0})
-| BStep BCase causes ({cpu: 0 | mem: 0})
 | BBuiltinApp IfThenElse causes ({cpu: 304196 | mem: 4})
 | BStartup causes ({cpu: 100 | mem: 100})})
 | budget: ({cpu: 7888296

@@ -33,7 +33,7 @@ import Data.Text (Text)
 Haskell value. -}
 makeRead
   :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-     , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
+     , ReadKnown (UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()) a
      )
   => a -> EvaluationResult a
 makeRead x = do
@@ -49,7 +49,7 @@ makeRead x = do
 
 builtinRoundtrip
   :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-     , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
+     , ReadKnown (UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()) a
      , Show a
      , Eq a
      )

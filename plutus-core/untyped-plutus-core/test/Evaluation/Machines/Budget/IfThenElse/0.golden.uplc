@@ -42,15 +42,11 @@
                                                                                            (\z-20
                                                                                              f-21 ->
                                                                                               z-20))))))))))))))))))))))
-, ({ tally: ({BStep BConst causes ({cpu: 0 | mem: 0})
-| BStep BVar causes ({cpu: 2176000 | mem: 13600})
+, ({ tally: ({BStep BVar causes ({cpu: 2176000 | mem: 13600})
 | BStep BLamAbs causes ({cpu: 1472000 | mem: 9200})
 | BStep BApply causes ({cpu: 1904000 | mem: 11900})
 | BStep BDelay causes ({cpu: 576000 | mem: 3600})
 | BStep BForce causes ({cpu: 400000 | mem: 2500})
-| BStep BBuiltin causes ({cpu: 0 | mem: 0})
-| BStep BConstr causes ({cpu: 0 | mem: 0})
-| BStep BCase causes ({cpu: 0 | mem: 0})
 | BStartup causes ({cpu: 100 | mem: 100})})
 | budget: ({cpu: 6528100
 | mem: 40900})

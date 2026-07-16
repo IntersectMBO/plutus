@@ -39,7 +39,8 @@ goldenVsPretty extn name value =
     pure . BSL.fromStrict . encodeUtf8 . render $
       prettyPlcReadableSimple value
 
-goldenVsOptimized :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
+goldenVsOptimized
+  :: String -> Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern () -> TestTree
 goldenVsOptimized name t =
   testGroup
     name
@@ -54,7 +55,14 @@ goldenVsOptimized name t =
     (t', trace) = PLC.runQuote (testOptimize t)
     hintsPath = "untyped-plutus-core/test/Transform/" ++ name ++ ".golden.certifier-hints"
 
-renderCertifierHints :: Trace.OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun () -> Text
+renderCertifierHints
+  :: Trace.OptimizerTrace
+       Name
+       PLC.DefaultUni
+       PLC.DefaultFun
+       PLC.DefaultBuiltinPattern
+       ()
+  -> Text
 renderCertifierHints (Trace.OptimizerTrace ss)
   | null ss = "<no certifier hints in trace>"
   | otherwise =
@@ -91,16 +99,20 @@ renderCertifierHints (Trace.OptimizerTrace ss)
         line i "InlCase"
           <> renderInlineHints (i + 2) scrut
           <> foldMap (renderInlineHints (i + 2)) alts
+      Hints.InlMatch scrut alternatives ->
+        line i "InlMatch"
+          <> renderInlineHints (i + 2) scrut
+          <> foldMap (renderInlineHints (i + 2)) alternatives
       Hints.InlExpand x -> line i "InlExpand" <> renderInlineHints (i + 2) x
       Hints.InlDrop x -> line i "InlDrop" <> renderInlineHints (i + 2) x
 
     line i payload = T.replicate i " " <> payload <> "\n"
 
 testOptimize
-  :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+  :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
   -> PLC.Quote
-       ( Term Name PLC.DefaultUni PLC.DefaultFun ()
-       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun ()
+       ( Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
        )
 testOptimize =
   runOptimizerT
@@ -117,7 +129,7 @@ testOptimize =
 goldenVsCse
   :: CseWhichSubterms
   -> String
-  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
+  -> Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
   -> TestTree
 goldenVsCse whichSubterms name =
   goldenVsPretty ".golden.uplc" name
@@ -127,10 +139,10 @@ goldenVsCse whichSubterms name =
 
 testCse
   :: CseWhichSubterms
-  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
+  -> Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
   -> PLC.Quote
-       ( Term Name PLC.DefaultUni PLC.DefaultFun ()
-       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun ()
+       ( Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
        )
 testCse whichSubterms =
   runOptimizerT

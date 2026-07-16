@@ -5,7 +5,7 @@
 module Analysis.Spec where
 
 import Analysis.Lib
-import PlutusCore.Default (DefaultFun (..), DefaultUni)
+import PlutusCore.Default (DefaultBuiltinPattern, DefaultFun (..), DefaultUni)
 import PlutusCore.Name.Unique (Name (..))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Extras (embed, runTestNested)
@@ -76,7 +76,7 @@ testSomeTypeSomeTermArgsLeft =
   testCase "some type args and some term args are unapplied" $
     map (isPure builtinSemantics) terms @?= [True, True]
   where
-    terms :: [Term Name DefaultUni DefaultFun ()] =
+    terms :: [Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()] =
       [ Builtin () Trace -- 1 type arg and 2 term args are unapplied
       , Force () (Builtin () FstPair) -- 2 type args, 1 applied and 1 left
       ]
@@ -86,7 +86,7 @@ testNoTypeSomeTermArgsLeft =
   testCase "no type args and some term args are unapplied" $
     map (isPure builtinSemantics) terms @?= [True, True]
   where
-    terms :: [Term Name DefaultUni DefaultFun ()] =
+    terms :: [Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()] =
       [ Builtin () EncodeUtf8 -- no type args, 1 term arg left to apply
       , Force () (Builtin () Trace) -- 1 type arg applied, 2 term args left
       ]
@@ -102,7 +102,7 @@ testNoTypeNoTermArgsLeft =
     testAddInteger :: TestTree =
       testCase "AddInteger" $ isPure builtinSemantics term @?= False
       where
-        term :: Term Name DefaultUni DefaultFun () =
+        term :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern () =
           Apply () (Apply () (Builtin () AddInteger) (termVar 1)) (termVar 2)
 
     testIfThenElse :: TestTree =
@@ -124,7 +124,7 @@ testApplyNoTermParam =
         isPure builtinSemantics termSaturated @?= False
     ]
   where
-    termExpectingType :: Term Name DefaultUni DefaultFun () =
+    termExpectingType :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern () =
       Apply () (Builtin () Trace) (termVar 1)
-    termSaturated :: Term Name DefaultUni DefaultFun () =
+    termSaturated :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern () =
       Apply () (Builtin () EncodeUtf8) (termVar 1)

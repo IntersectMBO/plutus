@@ -24,6 +24,7 @@ import Transform.Lib
 import Transform.Simplify.Lib (goldenVsCse, goldenVsOptimized)
 import UntypedPlutusCore
   ( CseWhichSubterms (..)
+  , DefaultBuiltinPattern
   , DefaultFun
   , DefaultUni
   , Name
@@ -32,41 +33,41 @@ import UntypedPlutusCore
   )
 import UntypedPlutusCore.MkUPlc (mkIterLamAbs)
 
-basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+basic :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 basic = force $ delay $ con 1
 
-nested :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+nested :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 nested = force $ force $ delay $ delay $ con 1
 
-extraDelays :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+extraDelays :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 extraDelays = force $ delay $ delay $ con 1
 
-interveningLambda :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+interveningLambda :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 interveningLambda = force (lam "a" (delay (var "a" `app` var "a")) `app` con 1)
 
-caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 caseOfCase1 = case_ (ite (var "b") sopTrue sopFalse) [con 1, con 2]
 
 {-| This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
 Unless both branches are known constructors, the case-of-case transformation
 may increase the program size. -}
-caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 caseOfCase2 = case_ (ite (var "b") (var "t") sopFalse) [con 1, con 2]
 
 {-| Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
 @[Integer]@ rather than Bool (note that @Constr 0@ has two parameters, @x@ and @xs@). -}
-caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 caseOfCase3 = case_ (ite (var "b") trueBranch sopFalse) [var "f", con 2]
   where
     trueBranch = constr 0 [var "x", var "xs"]
 
 -- | The `Delay` should be floated into the lambda.
-floatDelay1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+floatDelay1 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 floatDelay1 = lam "a" (force (var "a") `plus` force (var "a")) `app` delay (con 1)
 
 {-| The `Delay` should not be floated into the lambda, because the argument (1 + 2)
 is not work-free. -}
-floatDelay2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+floatDelay2 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 floatDelay2 =
   lam "a" (force (var "a") `plus` force (var "a"))
     `app` delay (con 1 `plus` con 2)
@@ -74,19 +75,19 @@ floatDelay2 =
 {-| The `Delay` should not be floated into the lambda in the first simplifier iteration,
 because one of the occurrences of `a` is not under `Force`. It should be floated into
 the lambda in the second simplifier iteration, after `b` is inlined. -}
-floatDelay3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+floatDelay3 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 floatDelay3 =
   lam "a" (force (var "a") `plus` force (lam "b" (var "b") `app` var "a"))
     `app` delay (con 1)
 
 {-| The 'Delay' should not be floated into the lambda because the argument to the 'Delay' is
 not pure. -}
-floatDelay4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+floatDelay4 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 floatDelay4 = lam "a" body `app` delay (constr 0 [err])
   where
     body = case_ (constr 0 []) [con 1, force (var "a")]
 
-basicInline :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+basicInline :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 basicInline = lam "a" (var "a") `app` con 1
 
 {-| A helper function to create a term which tests whether the inliner
@@ -95,22 +96,22 @@ together with a list of its free variables. The free variables are bound
 at the top level of the final term in order to ensure that the produced
 final term is well-scoped. -}
 mkInlinePurityTest
-  :: ([Name], Term Name PLC.DefaultUni PLC.DefaultFun ())
-  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
+  :: ([Name], Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ())
+  -> Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 mkInlinePurityTest (freeVars, term) =
   -- In `[(\a . \b . a) term]`, `term` will be inlined if and only if it is pure.
   mkIterLamAbs (UVarDecl () <$> freeVars) $
     lam "a" (lam "b" (var "a")) `app` term
 
 -- | A single @Var@ is pure.
-inlinePure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure1 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 inlinePure1 = mkInlinePurityTest ([name "a"], var "a")
 
 {-| @force (delay a)@ is pure.
 
 Note that this relies on @forceDelayCancel@ to cancel the @force@ and the @delay@,
 otherwise the inliner would treat the term as impure. -}
-inlinePure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure2 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 inlinePure2 = mkInlinePurityTest ([name "a"], force $ delay (var "a"))
 
 {-| @[(\x -> \y -> [x x]) (con integer 1)]@ is pure.
@@ -118,7 +119,7 @@ inlinePure2 = mkInlinePurityTest ([name "a"], force $ delay (var "a"))
 Note that the @(con integer 1)@ won't get inlined: it isn't pre-inlined because
 @x@ occurs twice, and it isn't post-inlined because @costIsAcceptable Constant{} = False@.
 However, the entire term will be inlined since it is pure. -}
-inlinePure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure3 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 inlinePure3 =
   mkInlinePurityTest
     ([], app (lam "x" $ lam "y" $ var "x" `app` var "x") (con 1))
@@ -126,7 +127,7 @@ inlinePure3 =
 {-| @force ([(\x -> delay (\y -> [x x])) (delay ([error (con integer 1)]))])@ is pure,
 but it is very tricky to see so. It requires us to match up a force and a
 delay through several steps of intervening computation. -}
-inlinePure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure4 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 inlinePure4 =
   mkInlinePurityTest
     ( []
@@ -136,22 +137,22 @@ inlinePure4 =
     )
 
 -- | @error@ is impure.
-inlineImpure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure1 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 inlineImpure1 = mkInlinePurityTest ([], err)
 
 -- | @force (delay error)@ is impure.
-inlineImpure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure2 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 inlineImpure2 = mkInlinePurityTest ([], force (delay err))
 
 {-| @force (force (force (delay (delay (delay (error))))))@ is impure, since it
 is the same as @error@. -}
-inlineImpure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure3 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 inlineImpure3 =
   mkInlinePurityTest ([], force . force . force . delay . delay $ delay err)
 
 {-| @force (force (force (delay (delay a))))@ is impure, since @a@ may expand
 to an impure term such as @error@. -}
-inlineImpure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure4 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 inlineImpure4 =
   mkInlinePurityTest
     ( [name "a"]
@@ -165,7 +166,7 @@ the size or the cost.
 
 The second occurrence of `a` should be unconditionally inlined in the second simplifier
 iteration, but in this test we are only running one iteration. -}
-callsiteInline :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+callsiteInline :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 callsiteInline = lam "f" $ lam "g" $ app fun arg
   where
     fun =
@@ -179,7 +180,7 @@ callsiteInline = lam "f" $ lam "g" $ app fun arg
       lam "x" . lam "y" $
         mkIterAppNoAnn (var "g") [var "y", var "x"]
 
-multiApp :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+multiApp :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 multiApp = mkIterAppNoAnn applyLam [con 1, con 2, con 3]
   where
     applyLam =
@@ -188,10 +189,10 @@ multiApp = mkIterAppNoAnn applyLam [con 1, con 2, con 3]
           lam "c" $
             mkIterAppNoAnn (var "c") [var "a", var "b"]
 
-forceDelayNoApps :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayNoApps :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceDelayNoApps = force $ delay $ force $ delay $ force $ delay $ con 1
 
-forceDelayNoAppsLayered :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayNoAppsLayered :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceDelayNoAppsLayered = force $ force $ force $ delay $ delay $ delay $ con 1
 
 {-| The UPLC term in this test should come from the following TPLC term after erasing its types:
@@ -201,14 +202,14 @@ forceDelayNoAppsLayered = force $ force $ force $ delay $ delay $ delay $ con 1
 
 This case is simple in the sense that each type abstraction
 is followed by a single term abstraction. -}
-forceDelaySimple :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelaySimple :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceDelaySimple = force (force (force t `app` con 1) `app` con 2) `app` con 3
   where
     t = delay (lam "x" (delay (lam "y" (delay (lam "z" (var "z"))))))
 
 {-| A test for the case when there are multiple applications between the 'Force' at the top
 and the 'Delay' at the top of the term inside the abstractions/applications. -}
-forceDelayMultiApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayMultiApply :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceDelayMultiApply =
   lam "funcVar" $
     force $
@@ -224,7 +225,7 @@ forceDelayMultiApply =
 
 {-| A test for the case when there are multiple type abstractions over a single term
 abstraction/application. -}
-forceDelayMultiForce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayMultiForce :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceDelayMultiForce =
   force $ force $ force $ app (lam "x" $ delay $ delay $ delay (var "x")) (con 1)
 
@@ -239,7 +240,7 @@ forceDelayMultiForce =
 > (funcVar : Int -> Int -> String -> String -> Int -> String)
 
 Note this term has multiple interleaved type and term instantiations/applications. -}
-forceDelayComplex :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayComplex :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceDelayComplex = whole
   where
     term =
@@ -285,29 +286,29 @@ forceDelayComplex = whole
           )
           (var "funcVar")
 
-forceCaseDelayNoApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayNoApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceCaseDelayNoApps1 =
   lam "scrut" $ force $ case_ (var "scrut") [delay (con 1)]
 
-forceCaseDelayWithApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayWithApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceCaseDelayWithApps1 =
   lam "scrut" $ force $ case_ (var "scrut") [lam "x" $ delay (con 1)]
 
-forceCaseDelayNoApps2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayNoApps2 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceCaseDelayNoApps2 =
   lam "scrut" $ force $ case_ (var "scrut") [delay (con 1), delay (con 2)]
 
-forceCaseDelayWithApps2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayWithApps2 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceCaseDelayWithApps2 =
   lam "scrut" $
     force $
       case_ (var "scrut") [lam "x" $ delay (con 1), delay (con 2)]
 
-forceCaseDelayNoApps2Fail :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayNoApps2Fail :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceCaseDelayNoApps2Fail =
   lam "scrut" $ force $ case_ (var "scrut") [delay (con 1), con 2]
 
-forceCaseDelayWithApps2Fail :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayWithApps2Fail :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 forceCaseDelayWithApps2Fail =
   lam "scrut" $
     force $
@@ -318,25 +319,25 @@ forceCaseDelayWithApps2Fail =
         ]
 
 -- case ((\x -> constr 0 []) 1) [42]
-letFloatOutCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+letFloatOutCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 letFloatOutCase1 = case_ (lam "x" sopTrue `app` con 1) [con 42]
 
 -- \a -> case ((\x -> constr 0 [x, x]) a) addInteger
-letFloatOutCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+letFloatOutCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 letFloatOutCase2 = lam "a" $ case_ binding [builtin PLC.AddInteger]
   where
     body = constr 0 [var "x", var "x"]
     binding = lam "x" body `app` var "a"
 
 -- \a -> force ((\x -> delay x) a)
-letFloatOutForce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+letFloatOutForce :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 letFloatOutForce = lam "a" (force binding)
   where
     delayLam = lam "x" (delay (var "x"))
     binding = delayLam `app` var "a"
 
 -- | This is the first example in Note [CSE].
-cse1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+cse1 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 cse1 = lam "x" (lam "y" (plus onePlusTwoPlusX caseExpr))
   where
     twoPlusX = plus (con 2) (var "x")
@@ -349,7 +350,7 @@ cse1 = lam "x" (lam "y" (plus onePlusTwoPlusX caseExpr))
     caseExpr = case_ (var "y") [branch1, branch2, branch3]
 
 -- | This is the second example in Note [CSE].
-cse2 :: Term Name DefaultUni DefaultFun ()
+cse2 :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 cse2 = force (force body)
   where
     body = mkIterApp (builtin PLC.IfThenElse) [((), cond), ((), trueBranch), ((), falseBranch)]
@@ -358,7 +359,7 @@ cse2 = force (force body)
     falseBranch = delay (plus (con 1) (con 2))
 
 -- | This is the third example in Note [CSE].
-cse3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+cse3 :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
 cse3 = lam "f" $ lam "x" $ var "f" `app` arg1 `app` arg2
   where
     arg1 =
@@ -371,13 +372,13 @@ cse3 = lam "f" $ lam "x" $ var "f" `app` arg1 `app` arg2
 --  ((1+2) + (3+4) + ...)
 --  +
 --  ((1+2) + (3+4) + ...)
-cseExpensive :: Term Name DefaultUni DefaultFun ()
+cseExpensive :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 cseExpensive = mkArg [0 .. 200] `plus` mkArg [0 .. 200]
   where
     mkArg = foldl1 plus . map (\i -> plus (con (2 * i)) (con (2 * i + 1)))
 
 -- tree where nodes are + and leaves are constants
-csePlusTree :: Term Name DefaultUni DefaultFun ()
+csePlusTree :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 csePlusTree = go 5
   where
     go :: Int -> T
@@ -387,14 +388,15 @@ csePlusTree = go 5
 -- (1 + (1 + ... + 0))
 -- optimised to
 -- let f = (1 +) in f (f (... 0))
-cseRepeatPlus :: Term Name DefaultUni DefaultFun ()
+cseRepeatPlus :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 cseRepeatPlus = go 5
   where
     go :: Int -> T
     go 0 = con 0
     go n = plus (con 1) (go (n - 1))
 
-testSimplifyInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+testSimplifyInputs
+  :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ())]
 testSimplifyInputs =
   [ ("basic", basic)
   , ("nested", nested)
@@ -432,7 +434,7 @@ testSimplifyInputs =
   , ("letFloatOutForce", letFloatOutForce)
   ]
 
-testCseInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+testCseInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ())]
 testCseInputs =
   [ ("cse1", cse1)
   , ("cse2", cse2)
@@ -440,7 +442,8 @@ testCseInputs =
   , ("cseExpensive", cseExpensive)
   ]
 
-testCseInputsWorkFree :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+testCseInputsWorkFree
+  :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ())]
 testCseInputsWorkFree =
   [ ("cse1WorkFree", cse1)
   , ("csePlusTree", csePlusTree)

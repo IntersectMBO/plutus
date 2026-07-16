@@ -10,23 +10,29 @@ import PlutusPrelude (display, fold, getAnn, void, (&&&))
 import Control.Lens (view)
 import Data.Text (Text)
 import Data.Text qualified as T
+import Data.Vector qualified as Vector
 import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore (Name)
 import PlutusCore.Annotation (SrcSpan (..))
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default
+  ( DefaultBuiltinPattern (..)
+  , DefaultFun
+  , DefaultUni
+  )
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Flat (flat, unflat)
 import PlutusCore.Generators.Hedgehog (forAllPretty)
 import PlutusCore.Generators.Hedgehog.AST (runAstGen)
+import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlc)
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Test (isSerialisable)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
-import Test.Tasty.HUnit (testCase, (@?=))
+import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Text.Megaparsec (errorBundlePretty)
 
@@ -47,6 +53,7 @@ test_parsing =
     "Parsing"
     [ propFlat
     , propParser
+    , propMatchParser
     , propTermSrcSpan
     , propUnit
     , propDefaultUni
@@ -79,8 +86,93 @@ propParser = testPropertyNamed "Parser" "parser" $ property $ do
   tripping prog displayPlc (fmap void . parseProg)
   where
     parseProg
-      :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SrcSpan)
+      :: T.Text
+      -> Either
+           ParserErrorBundle
+           (Program Name DefaultUni DefaultFun DefaultBuiltinPattern SrcSpan)
     parseProg = runQuoteT . parseProgram
+
+propMatchParser :: TestTree
+propMatchParser =
+  testGroup
+    "Match classic parser"
+    [ testCase "version 1.2 roundtrip" $ do
+        let original = matchParserProgram $ UPLC.Version 1 2 0
+            source = displayPlc original
+        assertBool ("expected classic Match syntax in: " <> T.unpack source) $ "(match" `T.isInfixOf` source
+        case runQuoteT $ parseProgram source of
+          Left err -> assertFailure $ display err
+          Right parsed -> void parsed @?= original
+    , testCase "fixed-width pattern boundaries roundtrip" $ do
+        let original = boundaryMatchParserProgram
+        case runQuoteT . parseProgram $ displayPlc original of
+          Left err -> assertFailure $ display err
+          Right parsed -> void parsed @?= original
+    , testCase "rejects Match before version 1.2" $ do
+        let source = displayPlc . matchParserProgram $ UPLC.Version 1 1 0
+        case runQuoteT $ parseProgram source of
+          Left _ -> pure ()
+          Right parsed -> assertFailure $ "parsed pre-1.2 Match program: " <> show parsed
+    , testCase "rejects integer patterns outside the Int64 range" $ do
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con integer 0) "
+            <> "(pattern (integer 9223372036854775808) (con integer 0))))"
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con integer 0) "
+            <> "(pattern (integer -9223372036854775809) (con integer 0))))"
+    , testCase "rejects Data.Constr pattern tags outside the Word64 range" $ do
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con integer 0) "
+            <> "(pattern (data-constr -1) (con integer 0))))"
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con integer 0) "
+            <> "(pattern (data-constr 18446744073709551616) (con integer 0))))"
+    ]
+  where
+    assertMatchParseRejects source =
+      case runQuoteT $ parseProgram source of
+        Left _ -> pure ()
+        Right parsed -> assertFailure $ "parsed out-of-range Match pattern: " <> show parsed
+
+matchParserProgram
+  :: UPLC.Version
+  -> Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+matchParserProgram version =
+  UPLC.Program
+    ()
+    version
+    ( UPLC.Match
+        ()
+        (mkConstant @[Integer] () [1])
+        ( Vector.fromList
+            [
+              ( DefaultPatternList $ Vector.singleton (DefaultPatternInteger 1)
+              , mkConstant @Integer () 42
+              )
+            , (DefaultPatternWildcard, mkConstant @Integer () 0)
+            ]
+        )
+    )
+
+boundaryMatchParserProgram
+  :: Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+boundaryMatchParserProgram =
+  UPLC.Program
+    ()
+    (UPLC.Version 1 2 0)
+    ( UPLC.Match
+        ()
+        (mkConstant @Integer () 0)
+        ( Vector.fromList
+            [ (DefaultPatternInteger minBound, mkConstant @Integer () 0)
+            , (DefaultPatternInteger maxBound, mkConstant @Integer () 1)
+            ,
+              ( DefaultPatternDataConstr maxBound Vector.empty
+              , mkConstant @Integer () 2
+              )
+            ]
+        )
+    )
 
 -- | The `SrcSpan` of a parsed `Term` should not including trailing whitespaces.
 propTermSrcSpan :: TestTree

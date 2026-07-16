@@ -22,26 +22,27 @@ import Universe
 regenConstantsUntil
   :: MonadGen m
   => (Some (ValueOf DefaultUni) -> Bool)
-  -> Program name DefaultUni fun ann
-  -> m (Program name DefaultUni fun ann)
+  -> Program name DefaultUni fun DefaultBuiltinPattern ann
+  -> m (Program name DefaultUni fun DefaultBuiltinPattern ann)
 regenConstantsUntil p =
   progTerm . termSubstConstantsM $ \ann -> fmap (fmap $ Constant ann) . PLC.regenConstantUntil p
 
 genTerm
   :: forall fun
    . (Bounded fun, Enum fun)
-  => PLC.AstGen (Term Name DefaultUni fun ())
+  => PLC.AstGen (Term Name DefaultUni fun DefaultBuiltinPattern ())
 genTerm = fmap eraseTerm PLC.genTerm
 
 genProgram
   :: forall fun
-   . (Bounded fun, Enum fun) => PLC.AstGen (Program Name DefaultUni fun ())
+   . (Bounded fun, Enum fun)
+  => PLC.AstGen (Program Name DefaultUni fun DefaultBuiltinPattern ())
 genProgram = fmap eraseProgram PLC.genProgram
 
 -- See Note [Name mangling]
 mangleNames
-  :: Term Name DefaultUni DefaultFun ()
-  -> PLC.AstGen (Maybe (Term Name DefaultUni DefaultFun ()))
+  :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> PLC.AstGen (Maybe (Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()))
 mangleNames term = do
   mayMang <- PLC.genNameMangler $ setOf vTerm term
   for mayMang $ \mang -> termSubstNamesM (const . fmap (fmap $ UPLC.Var ()) . mang) term
