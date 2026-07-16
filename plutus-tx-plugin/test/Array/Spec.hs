@@ -15,7 +15,7 @@ module Array.Spec where
 
 import PlutusCore.Test (goldenUEval)
 import PlutusTx
-import PlutusTx.Builtins (mkNil)
+import PlutusTx.Builtins (toBuiltin)
 import PlutusTx.Builtins.Internal
 import PlutusTx.Test (goldenPirReadable, goldenUPlcReadable)
 import Test.Tasty.Extras
@@ -71,9 +71,5 @@ compiledIndexArray =
 compiledMultiIndexArray :: CompiledCode (BuiltinList BuiltinData)
 compiledMultiIndexArray =
   $$(compile [||multiIndexArray||])
-    `unsafeApplyCode` compiledIndices
+    `unsafeApplyCode` liftCodeDef (toBuiltin ([2, 0, 0, 1] :: [Integer]))
     `unsafeApplyCode` compiledListToArray
-
-compiledIndices :: CompiledCode (BuiltinList BuiltinInteger)
-compiledIndices =
-  $$(compile [||mkCons 2 (mkCons 0 (mkCons 0 (mkCons 1 mkNil)))||])

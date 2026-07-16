@@ -3,13 +3,7 @@
       = multiIndexArray
   in
   multiIndexArray {data})
-  (let
-    !mkCons : all a. a -> list a -> list a = mkCons
-  in
-  mkCons
-    {integer}
-    2
-    (mkCons {integer} 0 (mkCons {integer} 0 (mkCons {integer} 1 []))))
+  [2,0,0,1]
   (let
     !unitval : unit = ()
   in
