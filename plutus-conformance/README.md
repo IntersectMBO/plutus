@@ -2,7 +2,7 @@
 
 **Note: This package is a work-in-progress.**
 
-This package aims to provide an official and comprehensive test suite that checks that the behaviour of Plutus conforms with the specified behaviour. We run all the tests in our CI to ensure continuous conformance. Users are encouraged to contribute test cases to this collection of tests and utilize the suite (e.g., running the tests on alternative implementations of Plutus Core).
+This package aims to provide an official and comprehensive test suite that checks that the behaviour of Plutus conforms with the specified behaviour. We run all the tests in our CI to ensure continuous conformance.  Users are encouraged to contribute test cases to this collection of tests and utilize the suite themselves, e.g., by running alternative implementations of Plutus Core evaluators on the input files and checking that the expected results are obtained.
 
 ## Specification
 
@@ -11,44 +11,56 @@ This suite tests the latest version of Plutus. Testing of older versions may be 
 The tests currently cover or will cover the Haskell and Agda implementation of:
 
 - Untyped Plutus Core (UPLC) evaluation
+- CPU/memory costing of scripts
+- Coverage test
 - Typechecking for Typed Plutus Core (TPLC), including checking of alpha equivalence. (`tplc-typecheck-test`)
 - TPLC evaluation
 - Erasure of TPLC to UPLC
-- Coverage test
-- CPU/memory costing of scripts
 
 ## Organisation of tests
 The tests mostly take the form of golden tests of fairly simple UPLC programs.  The input files for the tests are organised in a tree of directories under the [test-cases](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases) directory.  If a directory in this tree contains one or more subdirectories then any other files in the directory are ignored and the subdirectories are recursively searched for test cases.  If a directory `<name>` has no subdirectories then it is expected to contain a file called `<name>.uplc` and no other files with the `.uplc` extension. The file `<name>.uplc` should contain textual source code for a  UPLC program, and the directory should also contain a file called `<name>.uplc.expected` containing the expected output of the program and a file called `<name>.budget.expected`containing the expected CPU and memory budgets.  Any other files (for example `README` files) in the directory are ignored.  See the [addInteger-01](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-01) for an example of the expected format.  To avoid difficulties with case-insensitive filesystems no two subdirectories of a test directory should have names which differ only by case (eg `True` and `true`).
 
 ### Flat encoding
 
-Some test-case directories also contain a `<name>.flat` file (and a
+Most test-case directories also contain a `<name>.flat` file (and a
 `<name>.flat.expected` file), containing the `flat`-encoded version of the
-`.uplc` (respectively `.uplc.expected`) program in the same directory. The
-`conformance-consistency` test suite checks that decoding a `.flat` file
-produces the same AST as parsing the corresponding `.uplc` file, and
-likewise for the `.flat.expected`/`.uplc.expected` pair.  A `.flat.expected`
-file is empty if the corresponding `.uplc.expected` file records a parse or
-evaluation failure rather than a program.  Every `.uplc` file is expected to
-have a corresponding `.flat` file (and vice versa): the consistency suite
+`.uplc` (respectively `.uplc.expected`) program in the same directory. 
+
+Some textual test cases may not have flat equivalents: for example there are test cases which
+check that the textual parser rejects ill-formed constants (for example a literal bytestring
+containing nox-hexadecimal characters or which contains an odd number of hexadecimal digits),
+but these may just be unrepresentable in the flat format.
+
+Note also that the `uplc convert` command can be used to convert `.uplc` files to `.flat` files,
+but this may not work for some failing programs (for example, a version 1.0.0 program containing
+`constr`, which will be rejected by `uplc convert`).  In such cases it will be necessary to 
+construct the corresponding `.flat` file by some other means. 
+
+#### Consistency checking
+The majority of `.uplc` files are expected to
+have a corresponding `.flat` file, and vice versa: the consistency test
+(`conformance-consistency`, run in CI)
 fails a test-case directory that has one but not the other, as a reminder to
 add both when a new test is added.  The exception is directories listed in
 the `skippedConsistencyTests` list in
 [consistency/Spec.hs](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/consistency/Spec.hs),
 which are skipped entirely because `.flat` files don't make sense for them
-(for example the parser tests, which test the textual parser's handling of
-constants and so have no `flat`-encoded equivalent).
+(see above).  If a directory contains both a `.uplc`
+file and a `.flat` file then the test also checks that the abstract syntax tree
+obtained by parsing the `.uplc` file is identical to that obtained by decoding the `.flat` file,
+and similarly for the `.uplc.expected` and `.flat.expected` files (or that both files indicate failure).
 
+### Haskell test suites
 By default, the UPLC evaluation test suites (`haskell-conformance`,
 `haskell-steppable-conformance`, and `agda-conformance`) run their tests
-against the textual `<name>.uplc` files.  Passing `--format=flat` as a
+against the textual `<name>.uplc` files.  Passing `--format flat` as a
 test option makes them run against the `<name>.flat` files instead (see
 [`Format`](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/src/PlutusConformance/Common.hs)),
 eg:
 
-`cabal test haskell-conformance --test-options=--format=flat`
+`cabal test haskell-conformance --test-options "--format flat"`
 
-Test-case directories which don't yet have a `.flat` file are silently
+Test-case directories which don't have a `.flat` file are silently
 skipped when `--format=flat` is used.
 
 ### Adding/updating test outputs
@@ -65,21 +77,13 @@ By default this overwrites the `.uplc.expected` (and `.budget.expected`) files, 
 
 The library provides functions that users can import and run conformance tests with their own implementation. At the moment the tests can only be run against another Haskell implementation. More support will be added later. Of course, one can wrap an arbitrary executable in Haskell. See an explanation [here](https://www.fpcomplete.com/blog/2017/02/typed-process/) and [the related documentation](https://www.stackage.org/haddock/lts-19.11/typed-process-0.2.10.1/System-Process-Typed.html).
 
-## Untyped Plutus Core Program Evaluation
+### Expected outputs for textual `.uplc` files
 
-The UPLC evaluation tests ensure conformance of evaluation of untyped plutus core programs.
+The expected output (`<name>.uplc.expected`) may contain:
 
-### The CEK machine
+#### "parse/decode error"
 
-Currently we have tested the conformance of UPLC evaluation against our *Haskell* and *Agda* implementations of the CEK machine. Note that we are not testing conformance of a *reducer*. We are testing an *evaluator*. One noticeable difference between a reducer and an evaluator is that a reducer reduces an ill-defined term to an `error` term while an evaluator has a special *error state*. See section 6.1 of our specification for more details. <!--TODO add link to the spec when it's ready. -->
-
-### Expected outputs
-
-The expected output may contain:
-
-#### "parse error"
-
-The input files are expected to have the concrete syntax. The expected output will show "parse error" when the parser fails to parse the input file.
+The input files are expected to have the correct concrete syntax of a UPLC program. The expected output will show "parse/decode error" if the parser fails to parse the input file.
 
 #### "evaluation failure"
 
@@ -87,7 +91,7 @@ If evaluation fails with an error, the expected output will show "evaluation fai
 
 #### An untyped plutus core program
 
-This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.  An evaluator need not produce a program which is precisely syntactically identical to the expected output, but the two should be equal up to whitespace and α-equivalence (ie, renaming of variables).  Thus
+This means that the input file successfully evaluates to the output program. The evaluated program is represented in the concrete syntax.  An evaluator need not produce a program which is precisely syntactically identical to the expected output, but the two should be equal up to whitespace and α-equivalence (ie, renaming of variables).  Thus
 ```
 lam x (lam y x))
 ```
@@ -101,9 +105,39 @@ var1            )
 ```
 are considered to be equal.
 
-### Testing alternative implementations
+### Expected outputs for `.flat` files
 
-In the library we provide a function named `runUplcEvalTests` with the following signature:
+The expected output (`<name>.flat.expected`) may either be:
+
+#### Empty
+This will happen if the `.flat` file either fails to decode correctly or if it fails during evaluation.
+
+
+#### A flat-encoded untyped plutus core program
+This will happen if the `.flat` file decodes and executes correctly, in which case the `.flat.expected` file
+will contain the flat-encoded form of the program result.
+
+## Expected budgets
+The test directories also contain `.budget.expected` files.  These indicate the minimum CPU and memory budgets required
+to execute the program (in either `.uplc` or `.flat` form: since these are expected to parse/decode to the
+same AST the execution budget for both should be the same).  Note that the budgets are calculated using the 
+current cost model in the `plutus` repository, which may differ from that currently in use on the 
+Cardano chain: in particular, the version in `plutus` may contain costing information for built-in
+functions which have not yet been deployed on the chain and so are not accounted for in the on-chain
+cost model.  Also, we may from time to time alter the costs of existing functionality, and such 
+alterations may take some time to appear on the chain. 
+
+The `.budget.expected` files for succeeding test cases look like this:
+```
+({cpu: 181308
+| mem: 602})
+```
+
+For failing test cases the file will contain either "parse/decode error" or "evaluation failure", as for `.uplc.expected`. 
+
+## Testing alternative implementations
+
+Users are free to use their own test harnesses to consume the test cases, but we also provide some Haskell machinery for running external tools.  In the library we provide a function named `runUplcEvalTests` with the following signature:
 
 ```haskell
 import UntypedPlutusCore.Core.Type qualified as UPLC
@@ -123,15 +157,6 @@ runUplcEvalTests :: UplcEvaluator -> (FilePath -> Bool) -> (FilePath -> Bool) ->
 
 Users can call this function with their own `UplcEvaluatorFun`, which should evaluate a UPLC program and return an `EvaluationResult UplcProg`, or an `EvaluationResult (UplcProg, ExBudget)` if the budget tests are to be performed as well. Given a UPLC program, the runner should return `EvalSuccess` with the evaluated program. In case of evaluation failure it should return `EvalFailure`, and `DecodeError` or `BadMachineParameters` for the other respective failure modes.  The two arguments of type `FilePath -> Bool` allow selected evaluation and budget tests (the ones for which the function returns `True`) to be ignored if desired.  Note that [Name](https://github.com/IntersectMBO/plutus/blob/f02a8d77cb4f1167dff7f86279f641127873cc0a/plutus-core/plutus-core/src/PlutusCore/Name/Unique.hs#L56) objects contain `Unique` values which wrap an `Int`: these are used to disambiguate duplicated names, and in the conformance tests equality of `Unique` IDs is used to check that programs are identical up to α-equivalence.  `Unique` IDs are generated automatically when a textual program is loaded and are included in the names of variables (eg, `x-182`) in the expected results of the tests.
 
-<!--
-### Type checker
-
-The type checker synthesizes the kind of a given type and the type of a given term. This does not involve any form of inference as Plutus Core is already fully typed. It merely checks the consistency of all variable declarations and the well-formedness of types and terms, while deriving the kind or type of the given type or term.
-
-NB: The type checker requires terms to meet the global uniqueness property. If this is not a given, use a renamer pass to suitably pre-process the term in question.
-
-The `plc` executable can be used to type check programs. Run `cabal run plc typecheck -- -h` in the plutus directory for a full list of options.
- -->
 
 ## Contributing
 
