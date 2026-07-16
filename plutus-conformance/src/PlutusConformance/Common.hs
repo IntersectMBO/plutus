@@ -80,7 +80,9 @@ shownParseError = "parse/decode error"
 shownEvaluationFailure :: T.Text
 shownEvaluationFailure = "evaluation failure"
 
--- | The default parser to parse UPLC program inputs.
+{-| The default parser to parse UPLC program inputs.
+FIXME: unlike the flat decoder, this does not detect free variables: they will
+only be detected if/when we deBruijnify the program. -}
 parseTxt
   :: T.Text
   -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SrcSpan)

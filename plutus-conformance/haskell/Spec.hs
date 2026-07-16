@@ -31,7 +31,7 @@ evalUplcProg = UplcEvaluatorWithCosting $ \modelParams (UPLC.Program a v t) ->
            in -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with
               -- free variables, that is why we manually check first for any free vars
               case UPLC.deBruijnTerm t of
-                Left (_ :: UPLC.FreeVariableError) -> DecodeError
+                Left (_ :: UPLC.FreeVariableError) -> DecodeError -- For consistency with the flat decoder.
                 Right _ ->
                   case runCekNoEmit params counting t of
                     (Left _, _) -> EvalFailure

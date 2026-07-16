@@ -23,14 +23,18 @@ import Witherable (Witherable (wither))
 
 {-| A list of directories which should be skipped because for one reason or another
     we don't have flat files or don't currently expect the test to pass. -}
-skippedFlatDecodingTests :: [FilePath]
-skippedFlatDecodingTests =
+skippedConsistencyTests :: [FilePath]
+skippedConsistencyTests =
   [ -- The tests in `constant` are supposed to test that the textual parser
     -- parses constants correctly. This doesn't really make sense for `flat`
     -- files, so we skip them.
     "test-cases/uplc/evaluation/builtin/parser"
   , "test-cases/uplc/evaluation/term/parser"
-  , -- `var` has a free variable; not sure what the problem is.
+  , -- We skip this test for the time being.  It involves a program with a free
+    -- variable, and this will not be detected by the parser but will be detected
+    -- by the flat decoder.  It's OK in the main conformance tests because free
+    -- variables are detected by deBruijnTerm, which we call before executing the
+    -- textual test cases.
     "test-cases/uplc/evaluation/term/var"
   ]
 
@@ -93,7 +97,7 @@ all: if one is present without the other, that's reported as a failing test
 add a new `.uplc` file, and vice versa).  If both are present, we check that
 the `.flat` file decodes to the same AST as the `.uplc` file, and likewise
 for the `.flat.expected`/`.uplc.expected` pair. -}
-discoverFlatDecodingTests
+discoverTestcases
   :: [FilePath]
   {-^ Paths, relative to the root of plutus-conformance, of directories to
   skip entirely (along with any subdirectories), eg
@@ -102,7 +106,7 @@ discoverFlatDecodingTests
   -> FilePath
   -- ^ The directory to search for tests.
   -> IO TestTree
-discoverFlatDecodingTests skippedDirs = go
+discoverTestcases skippedDirs = go
   where
     go dir
       | dir `elem` skippedDirs = pure $ testGroup (takeBaseName dir) []
@@ -150,14 +154,14 @@ discoverFlatDecodingTests skippedDirs = go
 {-| Run the tests that check that every `.uplc` file (outside `skippedDirs`)
 has a corresponding `.flat` file (and vice versa), and that `.flat` files
 decode to the same AST as their corresponding `.uplc` files. -}
-runFlatDecodingTests
+runConsistencyTests
   :: [FilePath]
   {-^ Paths, relative to the root of plutus-conformance, of test-case
   directories to skip entirely. -}
   -> IO ()
-runFlatDecodingTests skippedDirs = do
-  tests <- discoverFlatDecodingTests skippedDirs "test-cases/uplc/evaluation"
+runConsistencyTests skippedDirs = do
+  tests <- discoverTestcases skippedDirs "test-cases"
   defaultMain $ testGroup "Flat/UPLC decoding tests" [tests]
 
 main :: IO ()
-main = runFlatDecodingTests skippedFlatDecodingTests
+main = runConsistencyTests skippedConsistencyTests
