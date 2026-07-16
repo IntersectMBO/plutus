@@ -2,7 +2,13 @@
 
 **Note: This package is a work-in-progress.**
 
-This package aims to provide an official and comprehensive test suite that checks that the behaviour of Plutus conforms with the specified behaviour. We run all the tests in our CI to ensure continuous conformance.  Users are encouraged to contribute test cases to this collection of tests and utilize the suite themselves, e.g., by running alternative implementations of Plutus Core evaluators on the input files and checking that the expected results are obtained.
+This package aims to provide an official and comprehensive test suite that
+checks that the behaviour of Plutus conforms with the specified behaviour. We
+run all the tests in our CI to ensure continuous conformance.  Users are
+encouraged to contribute test cases to this collection of tests and utilise the
+suite themselves, e.g., by running alternative implementations of Plutus Core
+evaluators on the input files and checking that the expected results are
+obtained.
 
 ## Specification
 
@@ -79,25 +85,21 @@ The library provides functions that users can import and run conformance tests w
 
 ### Expected outputs for textual `.uplc` files
 
-The expected output (`<name>.uplc.expected`) may contain:
+If a textual `.uplc` file is expected to fail to parse correctly then the `.uplc.expected` file will contain the string  "parse/decode error"
 
-#### "parse/decode error"
+If the file is expected to parse correctly but an error is expected to occur during evaluation then the `.uplc.expected` file will contain the string "parse/decode error".
 
-The input files are expected to have the correct concrete syntax of a UPLC program. The expected output will show "parse/decode error" if the parser fails to parse the input file.
 
-#### "evaluation failure"
+If the program is expected to parse and execute without error then the
+`.uplc.expected file` will contain a textual UPLC program containing the
+expected output.
 
-If evaluation fails with an error, the expected output will show "evaluation failure".
-
-#### An untyped plutus core program
-
-This means that the input file successfully evaluates to the output program. The evaluated program is represented in the concrete syntax.  An evaluator need not produce a program which is precisely syntactically identical to the expected output, but the two should be equal up to whitespace and α-equivalence (ie, renaming of variables).  Thus
-```
-lam x (lam y x))
-```
+An evaluator need not produce a program which is precisely syntactically
+identical to the expected output, but the two should be equal up to whitespace
+and α-equivalence (ie, renaming of variables).  Thus ``` lam x (lam y x)) ```
 and
-```
-(
+
+``` (
 
       lam var1          (  lam    VARIABLE_1707
 var1            )
@@ -107,15 +109,11 @@ are considered to be equal.
 
 ### Expected outputs for `.flat` files
 
-The expected output (`<name>.flat.expected`) may either be:
-
-#### Empty
-This will happen if the `.flat` file either fails to decode correctly or if it fails during evaluation.
-
-
-#### A flat-encoded untyped plutus core program
-This will happen if the `.flat` file decodes and executes correctly, in which case the `.flat.expected` file
-will contain the flat-encoded form of the program result.
+If evaluation of a `.flat` file is expected to fail (either because it fails to
+decode correctly or because of an error during evaluation) then the
+`.flat.expected` file will be empty. If the `.flat` file decodes and executes
+correctly, then the `.flat.expected` file will contain the flat-encoded
+form of the program result.
 
 ## Expected budgets
 The test directories also contain `.budget.expected` files.  These indicate the minimum CPU and memory budgets required
@@ -137,7 +135,9 @@ For failing test cases the file will contain either "parse/decode error" or "eva
 
 ## Testing alternative implementations
 
-Users are free to use their own test harnesses to consume the test cases, but we also provide some Haskell machinery for running external tools.  In the library we provide a function named `runUplcEvalTests` with the following signature:
+Users are free to use their own test harnesses to consume the test cases, but we
+also provide some Haskell machinery for running external tools.  In the library
+we provide a function named `runUplcEvalTests` with the following signature:
 
 ```haskell
 import UntypedPlutusCore.Core.Type qualified as UPLC
@@ -155,7 +155,22 @@ data UplcEvaluator =
 runUplcEvalTests :: UplcEvaluator -> (FilePath -> Bool) -> (FilePath -> Bool) -> IO ()
 ```
 
-Users can call this function with their own `UplcEvaluatorFun`, which should evaluate a UPLC program and return an `EvaluationResult UplcProg`, or an `EvaluationResult (UplcProg, ExBudget)` if the budget tests are to be performed as well. Given a UPLC program, the runner should return `EvalSuccess` with the evaluated program. In case of evaluation failure it should return `EvalFailure`, and `DecodeError` or `BadMachineParameters` for the other respective failure modes.  The two arguments of type `FilePath -> Bool` allow selected evaluation and budget tests (the ones for which the function returns `True`) to be ignored if desired.  Note that [Name](https://github.com/IntersectMBO/plutus/blob/f02a8d77cb4f1167dff7f86279f641127873cc0a/plutus-core/plutus-core/src/PlutusCore/Name/Unique.hs#L56) objects contain `Unique` values which wrap an `Int`: these are used to disambiguate duplicated names, and in the conformance tests equality of `Unique` IDs is used to check that programs are identical up to α-equivalence.  `Unique` IDs are generated automatically when a textual program is loaded and are included in the names of variables (eg, `x-182`) in the expected results of the tests.
+Users can call this function with their own `UplcEvaluatorFun`, which should
+evaluate a UPLC program and return an `EvaluationResult UplcProg`, or an
+`EvaluationResult (UplcProg, ExBudget)` if the budget tests are to be performed
+as well. Given a UPLC program, the runner should return `EvalSuccess` with the
+evaluated program. In case of evaluation failure it should return `EvalFailure`,
+and `DecodeError` or `BadMachineParameters` for the other respective failure
+modes.  The two arguments of type `FilePath -> Bool` allow selected evaluation
+and budget tests (the ones for which the function returns `True`) to be ignored
+if desired.  Note that
+[Name](https://github.com/IntersectMBO/plutus/blob/f02a8d77cb4f1167dff7f86279f641127873cc0a/plutus-core/plutus-core/src/PlutusCore/Name/Unique.hs#L56)
+objects contain `Unique` values which wrap an `Int`: these are used to
+disambiguate duplicated names, and in the conformance tests equality of `Unique`
+IDs is used to check that programs are identical up to α-equivalence.  `Unique`
+IDs are generated automatically when a textual program is loaded and are
+included in the names of variables (eg, `x-182`) in the expected results of the
+tests.
 
 
 ## Contributing
