@@ -1,0 +1,7 @@
+(program 1.2.0
+  (constr 0
+    (con integer 11)
+    (con data (I 22))
+    (con bytestring #aa)
+    (con bytestring #bb))
+)

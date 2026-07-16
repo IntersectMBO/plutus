@@ -73,7 +73,7 @@ In the library we provide a function named `runUplcEvalTests` with the following
 ```haskell
 import UntypedPlutusCore.Core.Type qualified as UPLC
 
-type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
+type UplcProg = UPLC.Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 
 type UplcEvaluatorFun res = UplcProg -> Maybe res
 
