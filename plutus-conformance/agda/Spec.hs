@@ -53,6 +53,7 @@ import Data.Aeson
   , fromJSON
   , toJSON
   )
+import Data.List (isPrefixOf)
 
 -- This type corresponds to Cost.Raw.RawCostModel in plutus-metaheory.
 type RawCostModel = (CekMachineCosts, BuiltinCostMap)
@@ -423,9 +424,18 @@ failingBudgetTests =
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
+-- Agda does not yet model Match. Keep exercising parser rejection cases, but do not invoke
+-- the Agda evaluator for well-formed Match programs until the metatheory supports the node.
+unsupportedMatchTest :: FilePath -> Bool
+unsupportedMatchTest path =
+  matchTestPrefix `isPrefixOf` path && not (matchSyntaxPrefix `isPrefixOf` path)
+  where
+    matchTestPrefix = "test-cases/uplc/evaluation/term/match/"
+    matchSyntaxPrefix = matchTestPrefix <> "syntax/"
+
 main :: IO ()
 main =
   runUplcEvalTests
     (agdaEvalUplcProg WithCosting)
-    (flip elem failingEvaluationTests)
-    (flip elem failingBudgetTests)
+    (\path -> unsupportedMatchTest path || path `elem` failingEvaluationTests)
+    (\path -> unsupportedMatchTest path || path `elem` failingBudgetTests)
