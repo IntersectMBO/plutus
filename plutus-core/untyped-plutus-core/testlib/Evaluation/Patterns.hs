@@ -87,8 +87,8 @@ assertBothFail term = do
       Left _ -> pure ()
       Right result -> assertFailure $ machine <> " unexpectedly returned " <> show result
 
-assertBothFailNonFunctionalWithoutCause :: UTerm -> IO ()
-assertBothFailNonFunctionalWithoutCause term = do
+assertBothFailNonFunctionalWithCause :: UTerm -> UTerm -> IO ()
+assertBothFailNonFunctionalWithCause expectedCause term = do
   assertExpectedFailure "CEK" $ Cek.evaluateCekNoEmit defaultCekParametersForTesting term
   assertExpectedFailure "steppable CEK" $
     SteppableCek.evaluateCekNoEmit defaultCekParametersForTesting term
@@ -97,11 +97,29 @@ assertBothFailNonFunctionalWithoutCause term = do
       Left
         ( Cek.ErrorWithCause
             (Cek.StructuralError NonFunctionalApplicationMachineError)
-            Nothing
-          ) -> pure ()
+            (Just actualCause)
+          )
+          | actualCause == expectedCause -> pure ()
       result ->
         assertFailure $
-          machine <> " did not fail with a cause-free non-functional application: " <> show result
+          machine <> " did not fail with the expected non-functional application cause: " <> show result
+
+assertBothFailPatternWithCause :: UTerm -> UTerm -> IO ()
+assertBothFailPatternWithCause expectedCause term = do
+  assertExpectedFailure "CEK" $ Cek.evaluateCekNoEmit defaultCekParametersForTesting term
+  assertExpectedFailure "steppable CEK" $
+    SteppableCek.evaluateCekNoEmit defaultCekParametersForTesting term
+  where
+    assertExpectedFailure machine = \case
+      Left
+        ( Cek.ErrorWithCause
+            (Cek.OperationalError (Cek.CekPatternMatchError _))
+            (Just actualCause)
+          )
+          | actualCause == expectedCause -> pure ()
+      result ->
+        assertFailure $
+          machine <> " did not fail with the expected pattern-match cause: " <> show result
 
 assertBothRunOutOfBudget :: UTerm -> IO ()
 assertBothRunOutOfBudget term = do
@@ -437,9 +455,10 @@ test_patterns =
         assertBothEvaluateTo (constantInteger 11) $ term 0
         assertBothEvaluateTo (constantData $ PLC.I 22) $ term 1
         assertBothEvaluateTo (mkConstant @BS.ByteString () "abc") $ term 2
-    , testCase "single-alternative Data Constr match rejects the wrong arity" $ do
+    , testCase "single-alternative Data Constr match rejects the wrong arity with a cause" $ do
         let wrongArity = constantData $ PLC.Constr 1 [PLC.I 1, PLC.I 2]
-        assertBothFail $ matchSingle capturePattern captureHandler wrongArity
+        assertBothFailPatternWithCause wrongArity $
+          matchSingle capturePattern captureHandler wrongArity
     , testCase "deep matching exhausts incrementally without stack overflow" $ do
         let depth :: Int
             depth = 100000
@@ -523,7 +542,7 @@ test_patterns =
         steppablePatternBudget shallowTerm @?= shallowBudget
         patternBudget deepTerm @?= shallowBudget
         steppablePatternBudget deepTerm @?= shallowBudget
-    , testCase "captured application rejects a deep non-functional handler without a cause" $ do
+    , testCase "captured application rejects a deep non-functional handler with a cause" $ do
         let depth :: Int
             depth = 4096
             deepHandler =
@@ -532,7 +551,7 @@ test_patterns =
                 (UPLC.Constr () 0 [])
                 [1 .. depth]
             term = matchSingle DefaultPatternCapture deepHandler (constantInteger 0)
-        deepHandler `seq` assertBothFailNonFunctionalWithoutCause term
+        deepHandler `seq` assertBothFailNonFunctionalWithCause deepHandler term
     , testCase "pattern work and synthetic capture applications are explicitly charged" $ do
         let exactConstr n child =
               matchSingle

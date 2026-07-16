@@ -991,20 +991,9 @@ enterComputeCek = computeCek
       -- https://github.com/IntersectMBO/plutus/pull/7288.  #7288 have almost equivalent
       -- performance improvement as using 'FrameAwaitFunConN' while keeping more general
       -- 'FrameAwaitFunValue'.
-      case fun of
-        VLamAbs {} -> applyConstant
-        VBuiltin {} -> applyConstant
-        -- The implicit application did not inspect the handler, so recursively discharging a
-        -- constructor-shaped handler merely to populate the cause would be unbudgeted work.
-        _ -> do
-          spendAccumulatedBudget
-          throwError $
-            ErrorWithCause (StructuralError NonFunctionalApplicationMachineError) Nothing
-      where
-        applyConstant =
-          case args of
-            SpineLast arg -> applyEvaluate ctx fun (VCon arg)
-            SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
+      case args of
+        SpineLast arg -> applyEvaluate ctx fun (VCon arg)
+        SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN rest ctx) fun (VCon arg)
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
     returnCek (FrameAwaitFunValueN args ctx) fun =
       case args of
@@ -1053,9 +1042,7 @@ enterComputeCek = computeCek
             )
               >>= \case
                 HeadError err ->
-                  -- Do not attach the scrutinee: rendering the diagnostic could discharge an
-                  -- arbitrarily deep constructor value outside the budgeted pattern walk.
-                  throwError $ ErrorWithCause (OperationalError $ CekPatternMatchError err) Nothing
+                  throwErrorDischarged (OperationalError $ CekPatternMatchError err) scrutinee
                 HeadOnly handler -> computeCek ctx env handler
                 HeadSpine handler captures ->
                   computeCek (FrameAwaitFunConN captures ctx) env handler

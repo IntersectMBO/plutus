@@ -211,20 +211,9 @@ returnCek (FrameAwaitArg _ fun ctx) arg =
   applyEvaluate ctx fun arg
 -- Apply the constant spine exposed by an implicit builtin Case or Match branch.
 returnCek (FrameAwaitFunConN ann args ctx) fun =
-  case fun of
-    VLamAbs {} -> applyConstant
-    VBuiltin {} -> applyConstant
-    -- The implicit application did not inspect the handler, so recursively discharging a
-    -- constructor-shaped handler merely to populate the cause would be unbudgeted work.
-    _ -> do
-      spendAccumulatedBudget
-      throwError $
-        ErrorWithCause (StructuralError NonFunctionalApplicationMachineError) Nothing
-  where
-    applyConstant =
-      case args of
-        SpineLast arg -> applyEvaluate ctx fun (VCon arg)
-        SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN ann rest ctx) fun (VCon arg)
+  case args of
+    SpineLast arg -> applyEvaluate ctx fun (VCon arg)
+    SpineCons arg rest -> applyEvaluate (FrameAwaitFunConN ann rest ctx) fun (VCon arg)
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
 returnCek (FrameAwaitFunValueN ann args ctx) fun =
   case args of
@@ -332,11 +321,9 @@ patternFailure
      , Typeable pat
      )
   => Text
+  -> CekValue uni fun pat ann
   -> CekM uni fun pat s a
-patternFailure err = do
-  -- Keep the debugger path identical to the production CEK and avoid lazily discharging an
-  -- arbitrarily deep scrutinee if the operational error is subsequently rendered.
-  throwError $ ErrorWithCause (OperationalError $ CekPatternMatchError err) Nothing
+patternFailure err = throwErrorDischarged (OperationalError $ CekPatternMatchError err)
 
 enterMatchAlternatives
   :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat, GivenCekReqs uni fun pat ann s)
@@ -355,7 +342,13 @@ enterMatchAlternatives ann ctx env alternatives scrutinee = do
             (\work -> unCekM $ spendPattern work)
       )
         >>= enterSelected
-    _ -> patternFailure "match scrutinee is not a built-in value"
+    _ -> do
+      -- Keep the debugger path identical to the production CEK and avoid lazily discharging an
+      -- arbitrarily deep scrutinee if the operational error is subsequently rendered.
+      throwError $
+        ErrorWithCause
+          (OperationalError $ CekPatternMatchError "match scrutinee is not a built-in value")
+          Nothing
   where
     !spendPattern = \case
       PatternWork units -> stepAndMaybeSpendN BPattern units
@@ -363,7 +356,7 @@ enterMatchAlternatives ann ctx env alternatives scrutinee = do
       PatternMatchNextWork -> stepAndMaybeSpend BMatchNext
 
     enterSelected = \case
-      HeadError err -> patternFailure err
+      HeadError err -> patternFailure err scrutinee
       HeadOnly selectedHandler -> computeCek ctx env selectedHandler
       HeadSpine selectedHandler captures ->
         computeCek (FrameAwaitFunConN ann captures ctx) env selectedHandler
