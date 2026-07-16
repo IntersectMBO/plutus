@@ -242,9 +242,12 @@ appendByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinByteStri
   - For builtin semantics variant A and B, that is for PlutusV1 and PlutusV2, this reduces the first argument
     modulo 256 and will never fail.
   - For builtin semantics variant C, that is for PlutusV3, this will expect first argument to be in range
-    @[0..255]@ and fail otherwise. -}
+    @[0..255]@ and fail otherwise.
+  This definition follows the PlutusV3 semantics. -}
 consByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-consByteString n (BuiltinByteString b) = BuiltinByteString $ BS.cons (fromIntegral n) b
+consByteString n (BuiltinByteString b)
+  | 0 <= n && n <= 255 = BuiltinByteString (BS.cons (fromInteger n) b)
+  | otherwise = Haskell.error "byte out of range"
 {-# OPAQUE consByteString #-}
 
 {-| Slices the given bytestring. The first integer marks the beginning index and the

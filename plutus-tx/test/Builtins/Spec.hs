@@ -28,6 +28,12 @@ builtinsTests =
             throwsErrorCall (BI.indexArray arr (2 ^ (64 :: Int) + 2))
         ]
     , testGroup
+        "consByteString"
+        [ testCase "in-range byte" $ unBS (BI.consByteString 65 abc) @?= C8.pack "Aabc"
+        , testCase "byte above 255 fails" $ throwsErrorCall (BI.consByteString 256 abc)
+        , testCase "negative byte fails" $ throwsErrorCall (BI.consByteString (-1) abc)
+        ]
+    , testGroup
         "indexByteString"
         [ testCase "in-range index" $ BI.indexByteString abc 2 @?= 99
         , testCase "index equal to length fails" $ throwsErrorCall (BI.indexByteString abc 3)
