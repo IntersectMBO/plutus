@@ -18,7 +18,7 @@ The tests currently cover or will cover the Haskell and Agda implementation of:
 - CPU/memory costing of scripts
 
 ## Organisation of tests
-The tests mostly take the form of golden tests of fairly simple UPLC programs.  The input files for the tests are organised in a tree of directories under the [test-cases](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases) directory.  If a directory in this tree contains one or more subdirectories then any other files in the directory are ignored and the subdirectories are recursively searched for test cases.  If a directory `<name>` has no subdirectories then it is expected to contain a file called `<name>.uplc` and no other files with the `.uplc` extension. The file `<name>.uplc` should contain textual source code for a  UPLC program, and the directory should also contain a file called `<name>.uplc.expected` containing the expected output of the program and a file called `<name>.uplc.budget.expected`containing the expected CPU and memory budgets.  Any other files (for example `README` files) in the directory are ignored.  See the [addInteger-01](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-01) for an example of the expected format.  To avoid difficulties with case-insensitive filesystems no two subdirectories of a test directory should have names which differ only by case (eg `True` and `true`).
+The tests mostly take the form of golden tests of fairly simple UPLC programs.  The input files for the tests are organised in a tree of directories under the [test-cases](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases) directory.  If a directory in this tree contains one or more subdirectories then any other files in the directory are ignored and the subdirectories are recursively searched for test cases.  If a directory `<name>` has no subdirectories then it is expected to contain a file called `<name>.uplc` and no other files with the `.uplc` extension. The file `<name>.uplc` should contain textual source code for a  UPLC program, and the directory should also contain a file called `<name>.uplc.expected` containing the expected output of the program and a file called `<name>.budget.expected`containing the expected CPU and memory budgets.  Any other files (for example `README` files) in the directory are ignored.  See the [addInteger-01](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-01) for an example of the expected format.  To avoid difficulties with case-insensitive filesystems no two subdirectories of a test directory should have names which differ only by case (eg `True` and `true`).
 
 ### Flat encoding
 
@@ -29,10 +29,15 @@ Some test-case directories also contain a `<name>.flat` file (and a
 produces the same AST as parsing the corresponding `.uplc` file, and
 likewise for the `.flat.expected`/`.uplc.expected` pair.  A `.flat.expected`
 file is empty if the corresponding `.uplc.expected` file records a parse or
-evaluation failure rather than a program.  Test-case directories which don't
-yet have a `.flat` file are skipped, as are any directories listed in the
-`skippedFlatDecodingTests` list in
-[consistency/Spec.hs](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/consistency/Spec.hs).
+evaluation failure rather than a program.  Every `.uplc` file is expected to
+have a corresponding `.flat` file (and vice versa): the consistency suite
+fails a test-case directory that has one but not the other, as a reminder to
+add both when a new test is added.  The exception is directories listed in
+the `skippedConsistencyTests` list in
+[consistency/Spec.hs](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/consistency/Spec.hs),
+which are skipped entirely because `.flat` files don't make sense for them
+(for example the parser tests, which test the textual parser's handling of
+constants and so have no `flat`-encoded equivalent).
 
 By default, the UPLC evaluation test suites (`haskell-conformance`,
 `haskell-steppable-conformance`, and `agda-conformance`) run their tests
@@ -51,6 +56,10 @@ skipped when `--format=flat` is used.
 To update or add test outputs, use the accept test option of the tests. E.g., to have the test results overwrite the `.expected` files in the Haskell implementation test suite (`haskell-conformance`) , run:
 
 `cabal test haskell-conformance --test-options=--accept`
+
+By default this overwrites the `.uplc.expected` (and `.budget.expected`) files, since the tests run against the textual `.uplc` format unless told otherwise; `.flat.expected` files are left untouched. Passing `--format=flat` alongside `--accept` overwrites `.flat.expected` instead: it's set to the `flat`-encoding of the output program on a successful evaluation, or to an empty file if the evaluation fails.
+
+`cabal test haskell-conformance --test-options="--format=flat --accept"`
 
 ## The Plutus Conformance Test Suite Library
 
@@ -101,7 +110,9 @@ import UntypedPlutusCore.Core.Type qualified as UPLC
 
 type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
-type UplcEvaluatorFun res = UplcProg -> Maybe res
+data EvaluationResult res = BadMachineParameters | DecodeError | EvalFailure | EvalSuccess res
+
+type UplcEvaluatorFun res = UplcProg -> EvaluationResult res
 
 data UplcEvaluator =
   UplcEvaluatorWithoutCosting (UplcEvaluatorFun UplcProg)
@@ -110,7 +121,7 @@ data UplcEvaluator =
 runUplcEvalTests :: UplcEvaluator -> (FilePath -> Bool) -> (FilePath -> Bool) -> IO ()
 ```
 
-Users can call this function with their own `UplcEvaluatorFun`, which should evaluate a UPLC program and return a `Maybe UplcProg`, or a `Maybe (UplcProg, ExBudget)` if the budget tests are to be performed as well. Given a UPLC program, the runner should return the evaluated program. In case of evaluation failure, the runner should return `Nothing`.  The two arguments of type `FilePath -> Bool` allow selected evaluation and budget tests (the ones for which the function returns `True`) to be ignored if desired.  Note that [Name](https://github.com/IntersectMBO/plutus/blob/f02a8d77cb4f1167dff7f86279f641127873cc0a/plutus-core/plutus-core/src/PlutusCore/Name/Unique.hs#L56) objects contain `Unique` values which wrap an `Int`: these are used to disambiguate duplicated names, and in the conformance tests equality of `Unique` IDs is used to check that programs are identical up to α-equivalence.  `Unique` IDs are generated automatically when a textual program is loaded and are included in the names of variables (eg, `x-182`) in the expected results of the tests.
+Users can call this function with their own `UplcEvaluatorFun`, which should evaluate a UPLC program and return an `EvaluationResult UplcProg`, or an `EvaluationResult (UplcProg, ExBudget)` if the budget tests are to be performed as well. Given a UPLC program, the runner should return `EvalSuccess` with the evaluated program. In case of evaluation failure it should return `EvalFailure`, and `DecodeError` or `BadMachineParameters` for the other respective failure modes.  The two arguments of type `FilePath -> Bool` allow selected evaluation and budget tests (the ones for which the function returns `True`) to be ignored if desired.  Note that [Name](https://github.com/IntersectMBO/plutus/blob/f02a8d77cb4f1167dff7f86279f641127873cc0a/plutus-core/plutus-core/src/PlutusCore/Name/Unique.hs#L56) objects contain `Unique` values which wrap an `Int`: these are used to disambiguate duplicated names, and in the conformance tests equality of `Unique` IDs is used to check that programs are identical up to α-equivalence.  `Unique` IDs are generated automatically when a textual program is loaded and are included in the names of variables (eg, `x-182`) in the expected results of the tests.
 
 <!--
 ### Type checker
