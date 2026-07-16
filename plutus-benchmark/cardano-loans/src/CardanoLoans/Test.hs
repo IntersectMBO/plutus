@@ -13,7 +13,6 @@ import PlutusTx.Prelude
 
 import CardanoLoans.Validator (LoanDatum (..), LoanRedeemer (..), loanValidatorCode)
 import PlutusLedgerApi.V1.Address (pubKeyHashAddress)
-import PlutusLedgerApi.V1.Value qualified as Value
 import PlutusLedgerApi.V2.Tx qualified as Tx
 import PlutusLedgerApi.V3
 import PlutusTx.AssocMap qualified as Map
@@ -35,14 +34,14 @@ testScriptContext =
         { txInfoInputs =
             [ TxInInfo
                 { txInInfoOutRef = txOutRef
-                , txInInfoResolved = Tx.pubKeyHashTxOut (Value.lovelaceValue 1000) testBeneficiaryPKH
+                , txInInfoResolved = Tx.pubKeyHashTxOut (lovelaceValue 1000) testBeneficiaryPKH
                 }
             ]
         , txInfoReferenceInputs = mempty
         , txInfoOutputs =
             [ TxOut
                 { txOutAddress = pubKeyHashAddress testBeneficiaryPKH
-                , txOutValue = Value.lovelaceValue 1000
+                , txOutValue = lovelaceValue 1000
                 , txOutDatum = NoOutputDatum
                 , txOutReferenceScript = Nothing
                 }

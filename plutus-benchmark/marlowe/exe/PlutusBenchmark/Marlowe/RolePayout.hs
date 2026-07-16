@@ -35,13 +35,13 @@ import PlutusLedgerApi.V2
   , ScriptHash
   , ScriptPurpose (Spending)
   , SerialisedScript
+  , TokenName (TokenName)
   , TxInfo (..)
   , TxOutRef (TxOutRef)
   , UpperBound (UpperBound)
   , singleton
   )
 
-import PlutusLedgerApi.V1.Value (TokenName (TokenName))
 import PlutusTx.AssocMap qualified as AM (empty)
 
 -- | Write a flat UPLC file for a benchmark.

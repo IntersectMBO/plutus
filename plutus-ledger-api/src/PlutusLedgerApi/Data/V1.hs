@@ -87,6 +87,27 @@ module PlutusLedgerApi.Data.V1
   , adaSymbol
   , adaToken
   , Lovelace (..)
+  , AssetClass (..)
+  , assetClass
+  , assetClassValue
+  , assetClassValueOf
+  , currencySymbol
+  , currencySymbolValueOf
+  , flattenValue
+  , geq
+  , gt
+  , isZero
+  , leq
+  , lovelaceValue
+  , lovelaceValueOf
+  , lt
+  , scale
+  , split
+  , symbols
+  , tokenName
+  , unsafeLovelaceValueOf
+  , valueOf
+  , withCurrencySymbol
 
     -- *** Time
   , POSIXTime (..)

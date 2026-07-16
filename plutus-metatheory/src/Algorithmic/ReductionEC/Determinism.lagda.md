@@ -21,7 +21,7 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.HeterogeneousEquality
         using (_≅_;refl;≅-to-≡)
 
-open import Utils hiding (_×_;List)
+open import Utils hiding (_×_;List;Value)
 open import Utils.List
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_

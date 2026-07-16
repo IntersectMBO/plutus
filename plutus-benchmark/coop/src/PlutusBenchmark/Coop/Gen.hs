@@ -34,7 +34,6 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Traversable (for)
 import PlutusLedgerApi.V1.Address (pubKeyHashAddress, scriptHashAddress)
-import PlutusLedgerApi.V1.Value
 import PlutusLedgerApi.V2 hiding (Map)
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)

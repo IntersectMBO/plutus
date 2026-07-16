@@ -8,8 +8,8 @@ module PlutusLedgerApi.Test.V3.Data.MintValue where
 
 import Data.Coerce (coerce)
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0)
+import PlutusLedgerApi.Data.V3 (CurrencySymbol (..), TokenName (..))
 import PlutusLedgerApi.Test.V1.Data.Value (NoArbitrary (..), uniqueNames)
-import PlutusLedgerApi.V1.Data.Value (CurrencySymbol (..), TokenName (..))
 import PlutusLedgerApi.V3.Data.MintValue (MintValue (..))
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.List qualified as List

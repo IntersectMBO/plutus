@@ -40,6 +40,7 @@ import PlutusCore.Data as D
 import qualified PlutusCore.Crypto.BLS12_381.G1 as G1
 import qualified PlutusCore.Crypto.BLS12_381.G2 as G2
 import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing
+import qualified PlutusCore.Value as V
 type Pair a b = (a , b)
 -- Utils.Either
 d_Either_6 a0 a1 = ()
@@ -734,20 +735,31 @@ d_eqBls12'45'381'45'MlResult_774 ::
   T_Bls12'45'381'45'MlResult_772 ->
   T_Bls12'45'381'45'MlResult_772 -> Bool
 d_eqBls12'45'381'45'MlResult_774 = (==)
+-- Utils.Value
+type T_Value_776 = V.Value
+d_Value_776
+  = error "MAlonzo Runtime Error: postulate evaluated: Utils.Value"
+-- Utils.eqValue
+d_eqValue_778 :: T_Value_776 -> T_Value_776 -> Bool
+d_eqValue_778 = (==)
+-- Utils.valueFromList
+d_valueFromList_780
+  = error
+      "MAlonzo Runtime Error: postulate evaluated: Utils.valueFromList"
 -- Utils.Kind
-d_Kind_776 = ()
-type T_Kind_776 = KIND
-pattern C_'42'_778 = Star
-pattern C_'9839'_780 = Sharp
-pattern C__'8658'__782 a0 a1 = Arrow a0 a1
-check_'42'_778 :: T_Kind_776
-check_'42'_778 = Star
-check_'9839'_780 :: T_Kind_776
-check_'9839'_780 = Sharp
-check__'8658'__782 :: T_Kind_776 -> T_Kind_776 -> T_Kind_776
-check__'8658'__782 = Arrow
-cover_Kind_776 :: KIND -> ()
-cover_Kind_776 x
+d_Kind_782 = ()
+type T_Kind_782 = KIND
+pattern C_'42'_784 = Star
+pattern C_'9839'_786 = Sharp
+pattern C__'8658'__788 a0 a1 = Arrow a0 a1
+check_'42'_784 :: T_Kind_782
+check_'42'_784 = Star
+check_'9839'_786 :: T_Kind_782
+check_'9839'_786 = Sharp
+check__'8658'__788 :: T_Kind_782 -> T_Kind_782 -> T_Kind_782
+check__'8658'__788 = Arrow
+cover_Kind_782 :: KIND -> ()
+cover_Kind_782 x
   = case x of
       Star -> ()
       Sharp -> ()

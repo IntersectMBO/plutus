@@ -6,6 +6,7 @@ module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
 import Data.List.NonEmptySep
+import Data.Map.Strict qualified as Map (Map, toList)
 import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -17,7 +18,8 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Data qualified as Data
-import PlutusCore.Value (Value)
+import PlutusCore.Value (Value, unK, unQuantity)
+import PlutusCore.Value qualified as Value
 import PlutusPrelude
 import Prettyprinter
 import Prettyprinter.Render.String (renderString)
@@ -148,9 +150,15 @@ instance AgdaUnparse Data where
   agdaUnparse (Data.B b) =
     parens ("bDATA" <+> agdaUnparse b)
 
--- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1796)
+instance (AgdaUnparse k, AgdaUnparse v) => AgdaUnparse (Map.Map k v) where
+  agdaUnparse = agdaUnparse . Map.toList
+
 instance AgdaUnparse Value where
-  agdaUnparse _ = "Not Implemented: AgdaUnprase Value"
+  agdaUnparse v = "valueFromList ( " <> agdaUnparse v' <> ")"
+    where
+      -- Value converted to nested assocation lists
+      v' :: [(ByteString, [(ByteString, Integer)])]
+      v' = map (\(k, ys) -> (unK k, map (\(k', q) -> (unK k', unQuantity q)) ys)) (Value.toList v)
 
 instance AgdaUnparse BLS12_381.G1.Element where
   agdaUnparse = viaShow

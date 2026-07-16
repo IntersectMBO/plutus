@@ -242,6 +242,8 @@ instance
   HsEqBlsMlResult = record { hsEq = U.eqBls12-381-MlResult }
   HsEqDATA : HsEq U.DATA
   HsEqDATA = record { hsEq = U.eqDATA }
+  HsEqValue : HsEq U.Value
+  HsEqValue = record { hsEq = U.eqValue }
 
 HsEq-⟦_⟧tag : (t : TyTag) → HsEq ⟦ t ⟧tag
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = fromDec
@@ -250,6 +252,7 @@ HsEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = fromDec
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = fromDec
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = fromDec
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = HsEqDATA
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = HsEqValue
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = HsEqBlsG1
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = HsEqBlsG2
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = HsEqBlsMlResult
@@ -260,22 +263,8 @@ HsEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag = HsEqPair {A = ⟦ t₁ ⟧tag} {B = ⟦
 
 ## An example
 
-Let's look at the behavior of `builtinEq (mkByteString "foo") (mkByteString "foo")` vs
-`builtinEq (mkByteString "foo") (mkByteString "bar")`.
-
-At type-checking time, if the two bytestrings are definitionally equal unification will succeed,
-and the function will return `yes refl`. There is no way to return `no` because there is
-no way to prove that the two terms are not equal without extra information about the
-`ByteString` type. But this is enough to make Agda not succesfully type-check the program,
-since it gets stuck while trying to normalize `primTrustMe`.
-
-At runtime, `hsEq` will defer to the Haskell implementation of bytestring equality, and return
-the correct result based on that. In the `yes` case, matching on `refl` will be a no-op,
-while in the `no` case, we return a phony negative proof. This is safe to do because we're
-at runtime and the proof gets erased anyway.
-
 ```
-postulate
+private postulate
   magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
 
 builtinEq : {A : Set} {{HS : HsEq A}} → Binary.Decidable {A = A} _≡_
@@ -283,7 +272,37 @@ builtinEq {A} x y with hsEq x y
 ... | false = no magicNeg
 ... | true with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
 ...             | refl = yes refl
+```
 
+Let's look at the behavior of `builtinEq (mkByteString "foo") (mkByteString "foo")` vs
+`builtinEq (mkByteString "foo") (mkByteString "bar")`.
+
+
+At type-checking time, if the two bytestrings are definitionally equal unification will succeed,
+and the function will return `yes refl`.
+
+```
+_ : isYes (builtinEq (U.mkByteString "") (U.mkByteString "")) ≡ true
+_ = refl
+```
+
+There is no way to return `no` because there is no way to prove that the two
+terms are not equal without extra information about the `ByteString` type. But
+this is enough to make Agda not succesfully type-check the program, since it
+gets stuck while trying to normalize `primTrustMe`:
+
+```
+-- The following does not type check because reduction gets stuck
+-- _ : isNo (builtinEq (U.mkByteString "foo") (U.mkByteString "bar")) ≡ false
+-- _ = refl
+```
+
+At runtime, `hsEq` will defer to the Haskell implementation of bytestring equality, and return
+the correct result based on that. In the `yes` case, matching on `refl` will be a no-op,
+while in the `no` case, we return a phony negative proof. This is safe to do because we're
+at runtime and the proof gets erased anyway.
+
+```
 -- This is split out because the HTML generator can't handle double nested instance arguments!
 hsEqArrayHelper : (t : TyTag) → HsEq (U.Array ⟦ t ⟧tag)
 hsEqArrayHelper t = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}} {{HS = HsEq-⟦ t ⟧tag}}
@@ -306,6 +325,7 @@ decEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = Data.String.Properties._�
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = Data.Unit.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = Data.Bool.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = builtinEq

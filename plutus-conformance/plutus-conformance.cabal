@@ -58,7 +58,7 @@ library
     , directory
     , filepath
     , mtl
-    , plutus-core                      ^>=1.65
+    , plutus-core                      ^>=1.66
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
     , tagged
@@ -84,7 +84,7 @@ test-suite haskell-conformance
   build-depends:
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.65
+    , plutus-core         ^>=1.66
 
 test-suite haskell-steppable-conformance
   import:         lang, os-support
@@ -96,7 +96,7 @@ test-suite haskell-steppable-conformance
   build-depends:
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.65
+    , plutus-core         ^>=1.66
 
 test-suite agda-conformance
   import:         lang, os-support, ghc-version-support
@@ -109,8 +109,8 @@ test-suite agda-conformance
     , aeson               >=2.3
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.65
-    , plutus-metatheory   ^>=1.65
+    , plutus-core         ^>=1.66
+    , plutus-metatheory   ^>=1.66
     , transformers
 
 test-suite conformance-consistency
@@ -126,7 +126,7 @@ test-suite conformance-consistency
     , directory
     , filepath
     , plutus-conformance
-    , plutus-core         ^>=1.65
+    , plutus-core         ^>=1.66
     , tasty
     , tasty-golden
     , tasty-hunit

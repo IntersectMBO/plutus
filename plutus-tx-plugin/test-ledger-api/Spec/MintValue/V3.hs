@@ -20,7 +20,7 @@ import PlutusTx.Prelude
 import Data.Coerce (coerce)
 import PlutusLedgerApi.Test.V1.Value ()
 import PlutusLedgerApi.Test.V3.MintValue ()
-import PlutusLedgerApi.V1.Value (AssetClass (..), Value (..), flattenValue)
+import PlutusLedgerApi.V3 (AssetClass (..), Value (..), flattenValue)
 import PlutusLedgerApi.V3.MintValue (MintValue (..), mintValueBurned, mintValueMinted)
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)

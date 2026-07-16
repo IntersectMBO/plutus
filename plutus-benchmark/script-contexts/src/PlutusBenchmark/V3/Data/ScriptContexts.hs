@@ -12,13 +12,20 @@ module PlutusBenchmark.V3.Data.ScriptContexts where
 import Plinth.Plugin ()
 import PlutusLedgerApi.Data.V1 qualified as PlutusTx
 import PlutusLedgerApi.Data.V3
-  ( PubKeyHash (..)
+  ( CurrencySymbol (..)
+  , PubKeyHash (..)
   , Redeemer (..)
   , ScriptContext
+  , TokenName (..)
   , TxId (..)
   , TxInfo
   , TxOut
+  , Value (..)
+  , adaSymbol
+  , adaToken
   , always
+  , assetClass
+  , assetClassValue
   , emptyMintValue
   , mintValueMinted
   , txInInfoOutRef
@@ -55,7 +62,6 @@ import PlutusLedgerApi.Data.V3
   , pattern VotingScript
   )
 import PlutusLedgerApi.V1.Data.Address
-import PlutusLedgerApi.V1.Data.Value
 import PlutusLedgerApi.V3.Data.MintValue (MintValue (..))
 import PlutusTx qualified
 import PlutusTx.Builtins qualified as PlutusTx

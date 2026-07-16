@@ -8,7 +8,6 @@ module PlutusBenchmark.V3.ScriptContexts where
 
 import Plinth.Plugin ()
 import PlutusLedgerApi.V1.Address
-import PlutusLedgerApi.V1.Value
 import PlutusLedgerApi.V3
   ( OutputDatum (NoOutputDatum)
   , PubKeyHash (..)
@@ -19,7 +18,12 @@ import PlutusLedgerApi.V3
   , TxInfo (..)
   , TxOut (..)
   , TxOutRef (..)
+  , Value
+  , adaSymbol
+  , adaToken
   , always
+  , assetClass
+  , assetClassValue
   , emptyMintValue
   )
 import PlutusTx qualified
