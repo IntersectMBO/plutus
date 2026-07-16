@@ -2843,20 +2843,19 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                                  (coe
                                                                                                     MAlonzo.Code.Builtin.C_addInteger_4)))
                                                                                            (coe
-                                                                                              MAlonzo.Code.Untyped.Equality.d__'8799'__12
-                                                                                              (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
-                                                                                                 (coe
-                                                                                                    v0))
-                                                                                              v6)
+                                                                                              MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                                              (coe
+                                                                                                 v0)
+                                                                                              (coe
+                                                                                                 v6))
                                                                                            (coe
                                                                                               v19))
                                                                                         (coe
-                                                                                           MAlonzo.Code.Untyped.Equality.d__'8799'__12
-                                                                                           (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
-                                                                                              (coe
-                                                                                                 v0))
-                                                                                           v18
-                                                                                           v20) in
+                                                                                           MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                                           (coe v0)
+                                                                                           (coe v18)
+                                                                                           (coe
+                                                                                              v20)) in
                                                                               coe
                                                                                 (case coe v21 of
                                                                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v22 v23
@@ -3068,20 +3067,21 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                                                    (coe
                                                                                                                       MAlonzo.Code.Builtin.C_addInteger_4)))
                                                                                                              (coe
-                                                                                                                MAlonzo.Code.Untyped.Equality.d__'8799'__12
-                                                                                                                (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
-                                                                                                                   (coe
-                                                                                                                      v0))
-                                                                                                                v6)
+                                                                                                                MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                                                                (coe
+                                                                                                                   v0)
+                                                                                                                (coe
+                                                                                                                   v6))
                                                                                                              (coe
                                                                                                                 v24))
                                                                                                           (coe
-                                                                                                             MAlonzo.Code.Untyped.Equality.d__'8799'__12
-                                                                                                             (MAlonzo.Code.Untyped.Equality.d_DecEq'45''8866'_150
-                                                                                                                (coe
-                                                                                                                   v0))
-                                                                                                             v23
-                                                                                                             v25) in
+                                                                                                             MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                                                             (coe
+                                                                                                                v0)
+                                                                                                             (coe
+                                                                                                                v23)
+                                                                                                             (coe
+                                                                                                                v25)) in
                                                                                                 coe
                                                                                                   (case coe
                                                                                                           v26 of
