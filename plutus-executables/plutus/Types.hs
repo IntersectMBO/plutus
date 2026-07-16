@@ -143,7 +143,8 @@ mkSomeFile ft fn =
 type family FromLang (lang :: Lang) = result | result -> lang where
   FromLang ('Pir n a) = PIR.Program (FromNameTy n) (FromName n) DefaultUni DefaultFun (FromAnn a)
   FromLang ('Plc n a) = PLC.Program (FromNameTy n) (FromName n) DefaultUni DefaultFun (FromAnn a)
-  FromLang ('Uplc n a) = UPLC.UnrestrictedProgram (FromName n) DefaultUni DefaultFun (FromAnn a)
+  FromLang ('Uplc n a) =
+    UPLC.UnrestrictedProgram (FromName n) DefaultUni DefaultFun DefaultBuiltinPattern (FromAnn a)
   FromLang 'Data = PLC.Data
 
 type family FromName (naming :: Naming) = result | result -> naming where

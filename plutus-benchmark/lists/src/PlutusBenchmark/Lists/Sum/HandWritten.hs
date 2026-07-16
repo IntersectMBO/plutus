@@ -39,7 +39,7 @@ mkSumRightScottTerm l =
   UPLC.Apply () (debruijnTermUnsafe $ eraseTerm ScottList.sumr) (mkScottList l)
 
 debruijnTermUnsafe
-  :: UPLC.Term UPLC.Name uni fun ann
-  -> UPLC.Term UPLC.NamedDeBruijn uni fun ann
+  :: UPLC.Term UPLC.Name uni fun pat ann
+  -> UPLC.Term UPLC.NamedDeBruijn uni fun pat ann
 debruijnTermUnsafe =
   fromRight (error "debruijnTermUnsafe") . runExcept @UPLC.FreeVariableError . UPLC.deBruijnTerm

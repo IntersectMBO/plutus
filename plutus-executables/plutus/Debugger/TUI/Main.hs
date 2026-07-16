@@ -79,7 +79,10 @@ debuggerAttrMap =
 
 main
   :: (?opts :: Opts)
-  => SNaming n -> SAnn a -> UPLC.Program (FromName n) DefaultUni DefaultFun (FromAnn a) -> IO ()
+  => SNaming n
+  -> SAnn a
+  -> UPLC.Program (FromName n) DefaultUni DefaultFun DefaultBuiltinPattern (FromAnn a)
+  -> IO ()
 main sn sa prog = do
   -- turn it to ast with names
   progN <- either (fail . show @FreeVariableError) pure $ uplcToOutName' sn SName prog
@@ -168,7 +171,7 @@ driverThread
    . (uni ~ DefaultUni, fun ~ DefaultFun, ann ~ DAnn)
   => MVar (D.Cmd Breakpoints)
   -> B.BChan CustomBrickEvent
-  -> Program Name uni fun ann
+  -> Program Name uni fun DefaultBuiltinPattern ann
   -> Maybe ExBudget
   -> IO ()
 driverThread driverMailbox brickMailbox prog mbudget = do
@@ -195,8 +198,8 @@ driverThread driverMailbox brickMailbox prog mbudget = do
     -- See Note [Budgeting implementation for the debugger]
     coerceMode
       :: Coercible cost ExBudget
-      => ExBudgetMode cost uni fun
-      -> ExBudgetMode ExBudget uni fun
+      => ExBudgetMode cost uni fun DefaultBuiltinPattern
+      -> ExBudgetMode ExBudget uni fun DefaultBuiltinPattern
     coerceMode = coerce
 
     -- Peels off one Free monad layer
@@ -204,8 +207,10 @@ driverThread driverMailbox brickMailbox prog mbudget = do
     -- into a let block and avoid passing exbudgetinfo as parameter
     handle
       :: s ~ RealWorld
-      => (D.CekTrans uni fun ann s, ExBudgetInfo ExBudget uni fun s)
-      -> D.DebugF uni fun ann Breakpoints (IO ())
+      => ( D.CekTrans uni fun DefaultBuiltinPattern ann s
+         , ExBudgetInfo ExBudget uni fun DefaultBuiltinPattern s
+         )
+      -> D.DebugF uni fun DefaultBuiltinPattern ann Breakpoints (IO ())
       -> IO ()
     handle (cekTrans, exBudgetInfo) = \case
       D.StepF prevState k -> do
@@ -233,11 +238,12 @@ driverThread driverMailbox brickMailbox prog mbudget = do
 
     handleLog = B.writeBChan brickMailbox . DriverLogEvent
 
-    readBudgetData :: ExBudgetInfo ExBudget uni fun RealWorld -> IO BudgetData
+    readBudgetData
+      :: ExBudgetInfo ExBudget uni fun DefaultBuiltinPattern RealWorld -> IO BudgetData
     readBudgetData (ExBudgetInfo _ final cumulative) =
       stToIO (BudgetData <$> cumulative <*> (for mbudget $ const final))
 
-    brickEmitter :: EmitterMode uni fun
+    brickEmitter :: EmitterMode uni fun DefaultBuiltinPattern
     brickEmitter = EmitterMode $ \_ -> do
       -- the simplest solution relies on unsafeIOToPrim (here, unsafeIOToST)
       let emitter logs = for_ logs (unsafeIOToPrim . B.writeBChan brickMailbox . CekEmitEvent)

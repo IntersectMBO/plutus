@@ -15,15 +15,15 @@ import Data.Foldable qualified as F
 import Data.Text qualified as T
 
 nameToDebruijn
-  :: Program Name DefaultUni DefaultFun ()
-  -> Program DeBruijn DefaultUni DefaultFun ()
+  :: Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 nameToDebruijn (Program ann ver term) =
   Program ann ver
     . termMapNames unNameDeBruijn
     . unsafeFromRight @PLC.FreeVariableError
     $ deBruijnTerm term
 
-nested0 :: Int -> Program DeBruijn DefaultUni DefaultFun ()
+nested0 :: Int -> Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 nested0 n
   | n <= 0 = error "nested0: n must be positive"
   | otherwise = nameToDebruijn . Program () plcVersion100 . runQuote $ do
@@ -33,7 +33,7 @@ nested0 n
           result = F.foldl' (\acc _ -> Force () acc) inner (replicate n ())
       pure result
 
-nested1 :: Int -> Program DeBruijn DefaultUni DefaultFun ()
+nested1 :: Int -> Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 nested1 n
   | n <= 0 = error "nested1: n must be positive"
   | otherwise = nameToDebruijn . Program () plcVersion100 . runQuote $ do
@@ -43,7 +43,7 @@ nested1 n
           args = [mkConstant @Integer () (toInteger i) | i <- [1 .. n]]
       pure $ F.foldl' (\acc arg -> Apply () (Force () acc) arg) delayed args
 
-nested2 :: Int -> Program DeBruijn DefaultUni DefaultFun ()
+nested2 :: Int -> Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 nested2 n
   | n <= 0 = error "nested2: n must be positive"
   | otherwise = nameToDebruijn . Program () plcVersion100 . runQuote $ do

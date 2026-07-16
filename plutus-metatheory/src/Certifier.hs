@@ -86,13 +86,13 @@ runCertifier = runExceptT
 
 -- | Run the Agda certifier on the simplification trace, if requested
 mkCertifier
-  :: OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  :: OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
   -- ^ The trace produced by the simplification process
   -> CertName
   -- ^ The name of the certificate to be produced
   -> CertifierOutput
   -> [ ( Maybe
-           (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+           (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern)
        , ExBudget
        )
      ]

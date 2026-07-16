@@ -64,6 +64,10 @@ randomCekCosts =
     , cekBuiltinCost = pure $ ExBudget 4 4
     , cekConstrCost = pure $ ExBudget 8 100000
     , cekCaseCost = pure $ ExBudget 3324234 555
+    , cekMatchCost = pure $ ExBudget 456789 777
+    , cekPatternCost = pure $ ExBudget 7654321 666
+    , cekPatternStructuralCost = pure $ ExBudget 8765432 555
+    , cekPatternFailureCost = pure $ ExBudget 9876543 444
     }
 
 cekVarCostCpuKey :: Text.Text

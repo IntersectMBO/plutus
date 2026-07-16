@@ -20,12 +20,12 @@ import Test.Tasty.HUnit
     unoptimised UPLC is fed to the optimiser with the certifier turned
     on, which will then call the Agda decision procedures for each of
     the phases. -}
-loadUplc :: FilePath -> IO (Term Name DefaultUni DefaultFun ())
+loadUplc :: FilePath -> IO (Term Name DefaultUni DefaultFun DefaultBuiltinPattern ())
 loadUplc path = UPLC._progTerm . void . snd <$> parseInput (FileInput path)
 
 simplify
-  :: Term Name DefaultUni DefaultFun ()
-  -> OptimizerTrace Name DefaultUni DefaultFun ()
+  :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> OptimizerTrace Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 simplify =
   runQuote
     . fmap snd
@@ -38,7 +38,7 @@ loadAndMakeCert :: String -> IO FilePath
 loadAndMakeCert name =
   makeCert name =<< loadUplc (fixedPath </> "UPLC" </> name ++ ".uplc")
 
-makeCert :: String -> Term Name DefaultUni DefaultFun () -> IO FilePath
+makeCert :: String -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern () -> IO FilePath
 makeCert name term = do
   time <- systemNanoseconds <$> getSystemTime
   let certDir = name <> "-" <> show time
@@ -90,7 +90,8 @@ srcTests =
   , "builtinUnparse"
   ]
 
-makeExampleTests :: [(String, Term Name DefaultUni DefaultFun ())] -> [TestTree]
+makeExampleTests
+  :: [(String, Term Name DefaultUni DefaultFun DefaultBuiltinPattern ())] -> [TestTree]
 makeExampleTests = map (\(name, term) -> testCase name (makeCertAndCleanup name term))
   where
     makeCertAndCleanup name term = makeCert name term >>= removeDirectoryRecursive
@@ -103,7 +104,7 @@ makeSerialisationExampleTests :: [ String ] -> [ TestTree]
 makeSerialisationExampleTests = map (\testname -> testCase testname (agdaExampleCert testname))
 -}
 
-executableTests :: [(String, Term Name DefaultUni DefaultFun ())] -> TestTree
+executableTests :: [(String, Term Name DefaultUni DefaultFun DefaultBuiltinPattern ())] -> TestTree
 executableTests examples =
   testGroup
     "certifier executable tests"

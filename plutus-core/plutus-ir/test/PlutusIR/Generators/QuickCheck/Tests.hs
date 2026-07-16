@@ -215,7 +215,7 @@ prop_noTermShrinkLoops = BaseQC.withNumTests 0
     tm `notElem` map snd (shrinkClosedTypedTerm (ty, tm))
 
 -- | Check that evaluation of the given term doesn't fail with a structural error.
-noStructuralErrors :: UPLC.Term Name DefaultUni DefaultFun () -> IO ()
+noStructuralErrors :: UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern () -> IO ()
 noStructuralErrors term =
   -- Throw on a structural evaluation error and succeed on both an operational evaluation error and
   -- evaluation success.

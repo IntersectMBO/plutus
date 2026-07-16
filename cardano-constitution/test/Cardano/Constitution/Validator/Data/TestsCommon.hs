@@ -60,13 +60,16 @@ Doing (ioProperty . isRight . tryApplyEval) is probably redundant here, since QC
 allVldtrsPassed vs ctx = conjoin $ fmap (B.fromOpaque . (`applyOnData` ctx)) vs
 
 unsafeRunCekRes
-  :: t ~ Term NamedDeBruijn DefaultUni DefaultFun ()
+  :: t ~ Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
   => t -> t
 unsafeRunCekRes = unsafeFromRight . runCekRes
 
 runCekRes
-  :: t ~ Term NamedDeBruijn DefaultUni DefaultFun ()
-  => t -> Either (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) t
+  :: t ~ Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+  => t
+  -> Either
+       (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern)
+       t
 runCekRes t =
   UPLC.cekResultToEither . UPLC._cekReportResult $
     UPLC.runCekDeBruijn defaultCekParametersForTesting restrictingEnormous noEmitter t
@@ -74,5 +77,8 @@ runCekRes t =
 liftCode110 :: Lift DefaultUni a => a -> CompiledCode a
 liftCode110 = liftCode plcVersion110
 
-liftCode110Norm :: Lift DefaultUni a => a -> Term NamedDeBruijn DefaultUni DefaultFun ()
+liftCode110Norm
+  :: Lift DefaultUni a
+  => a
+  -> Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 liftCode110Norm = unsafeRunCekRes . _progTerm . getPlcNoAnn . liftCode110

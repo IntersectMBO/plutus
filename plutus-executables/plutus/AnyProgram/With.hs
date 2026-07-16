@@ -92,7 +92,14 @@ withLangGeneral
        )
      , ( forall name ann
           . (constrBinder (UPLC.Binder name), constrName name, constrAnn ann)
-         => constr (UPLC.UnrestrictedProgram name UPLC.DefaultUni UPLC.DefaultFun ann)
+         => constr
+              ( UPLC.UnrestrictedProgram
+                  name
+                  UPLC.DefaultUni
+                  UPLC.DefaultFun
+                  UPLC.DefaultBuiltinPattern
+                  ann
+              )
        )
      )
   => SLang s -> (constr (FromLang s) => r) -> r
@@ -134,7 +141,14 @@ withLang
        )
      , ( forall name ann
           . (constr (UPLC.Binder name), constr name, constr ann)
-         => constr (UPLC.UnrestrictedProgram name UPLC.DefaultUni UPLC.DefaultFun ann)
+         => constr
+              ( UPLC.UnrestrictedProgram
+                  name
+                  UPLC.DefaultUni
+                  UPLC.DefaultFun
+                  UPLC.DefaultBuiltinPattern
+                  ann
+              )
        )
      )
   => SLang s -> (constr (FromLang s) => r) -> r

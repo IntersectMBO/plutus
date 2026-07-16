@@ -30,11 +30,11 @@ type PlcTerm =
 
 -- | UPLC program type.
 type UplcProg =
-  UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun
+  UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
 
 -- | UPLC term type.
 type UplcTerm =
-  UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun
+  UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
 
 ---------------- Types for commands and arguments ----------------
 

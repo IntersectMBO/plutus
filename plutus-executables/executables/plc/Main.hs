@@ -263,7 +263,8 @@ runPlcPrintExample = runPrintExample getPlcExamples
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
   typedProg <- (readProgram ifmt inp :: IO (PlcProg PLC.SrcSpan))
-  let untypedProg = void $ PLC.eraseProgram typedProg
+  let untypedProg :: UplcProg ()
+      untypedProg = void $ PLC.eraseProgram typedProg
   case ofmt of
     Textual -> writePrettyToOutput outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg

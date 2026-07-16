@@ -84,8 +84,8 @@ postulate
 {-# COMPILE GHC Type = type PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
 {-# COMPILE GHC TermN = type PlutusCore.Term TyName Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
 {-# COMPILE GHC TypeN = type PlutusCore.Type TyName DefaultUni PlutusCore.SrcSpan #-}
-{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
-{-# COMPILE GHC TermU = type U.Term NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun DefaultBuiltinPattern PlutusCore.SrcSpan #-}
+{-# COMPILE GHC TermU = type U.Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern () #-}
 
 postulate
   parseTm : String → Either ParseError TermN

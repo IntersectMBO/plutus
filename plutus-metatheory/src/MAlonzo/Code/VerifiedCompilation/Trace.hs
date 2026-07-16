@@ -164,6 +164,7 @@ pattern C_builtin_72 = Hints.InlBuiltin
 pattern C_error_74 = Hints.InlError
 pattern C_constr_76 a0 = Hints.InlConstr a0
 pattern C_case_78 a0 a1 = Hints.InlCase a0 a1
+pattern C_matchHint_80 a0 a1 = Hints.InlMatch a0 a1
 check_var_56 :: T_InlineHints_54
 check_var_56 = Hints.InlVar
 check_expand_58 :: T_InlineHints_54 -> T_InlineHints_54
@@ -194,6 +195,11 @@ check_case_78 ::
   MAlonzo.Code.Agda.Builtin.List.T_List_10 () T_InlineHints_54 ->
   T_InlineHints_54
 check_case_78 = Hints.InlCase
+check_matchHint_80 ::
+  T_InlineHints_54 ->
+  MAlonzo.Code.Agda.Builtin.List.T_List_10 () T_InlineHints_54 ->
+  T_InlineHints_54
+check_matchHint_80 = Hints.InlMatch
 cover_InlineHints_54 :: Hints.Inline -> ()
 cover_InlineHints_54 x
   = case x of
@@ -209,61 +215,62 @@ cover_InlineHints_54 x
       Hints.InlError -> ()
       Hints.InlConstr _ -> ()
       Hints.InlCase _ _ -> ()
+      Hints.InlMatch _ _ -> ()
 -- VerifiedCompilation.Trace.Hints
-d_Hints_80 = ()
-type T_Hints_80 = Hints.Hints
-pattern C_inline_82 a0 = Hints.Inline a0
-pattern C_none_84 = Hints.NoHints
-check_inline_82 :: T_InlineHints_54 -> T_Hints_80
-check_inline_82 = Hints.Inline
-check_none_84 :: T_Hints_80
-check_none_84 = Hints.NoHints
-cover_Hints_80 :: Hints.Hints -> ()
-cover_Hints_80 x
+d_Hints_82 = ()
+type T_Hints_82 = Hints.Hints
+pattern C_inline_84 a0 = Hints.Inline a0
+pattern C_none_86 = Hints.NoHints
+check_inline_84 :: T_InlineHints_54 -> T_Hints_82
+check_inline_84 = Hints.Inline
+check_none_86 :: T_Hints_82
+check_none_86 = Hints.NoHints
+cover_Hints_82 :: Hints.Hints -> ()
+cover_Hints_82 x
   = case x of
       Hints.Inline _ -> ()
       Hints.NoHints -> ()
 -- VerifiedCompilation.Trace.NonEmptySep
-d_NonEmptySep_90 a0 a1 = ()
-type T_NonEmptySep_90 a0 a1 = NES.NonEmptySep a0 a1
-pattern C_cons_96 a0 a1 a2 = NES.Cons a0 a1 a2
-pattern C_singleton_98 a0 = NES.Singleton a0
-check_cons_96 ::
+d_NonEmptySep_92 a0 a1 = ()
+type T_NonEmptySep_92 a0 a1 = NES.NonEmptySep a0 a1
+pattern C_cons_98 a0 a1 a2 = NES.Cons a0 a1 a2
+pattern C_singleton_100 a0 = NES.Singleton a0
+check_cons_98 ::
   forall xS.
     forall xA.
-      xA -> xS -> T_NonEmptySep_90 xS xA -> T_NonEmptySep_90 xS xA
-check_cons_96 = NES.Cons
-check_singleton_98 ::
-  forall xS. forall xA. xA -> T_NonEmptySep_90 xS xA
-check_singleton_98 = NES.Singleton
-cover_NonEmptySep_90 :: NES.NonEmptySep a1 a2 -> ()
-cover_NonEmptySep_90 x
+      xA -> xS -> T_NonEmptySep_92 xS xA -> T_NonEmptySep_92 xS xA
+check_cons_98 = NES.Cons
+check_singleton_100 ::
+  forall xS. forall xA. xA -> T_NonEmptySep_92 xS xA
+check_singleton_100 = NES.Singleton
+cover_NonEmptySep_92 :: NES.NonEmptySep a1 a2 -> ()
+cover_NonEmptySep_92 x
   = case x of
       NES.Cons _ _ _ -> ()
       NES.Singleton _ -> ()
 -- VerifiedCompilation.Trace.head
-d_head_112 :: T_NonEmptySep_90 AgdaAny AgdaAny -> AgdaAny
-d_head_112 v0
+d_head_114 :: T_NonEmptySep_92 AgdaAny AgdaAny -> AgdaAny
+d_head_114 v0
   = case coe v0 of
-      C_cons_96 v1 v2 v3 -> coe v1
-      C_singleton_98 v1 -> coe v1
+      C_cons_98 v1 v2 v3 -> coe v1
+      C_singleton_100 v1 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Trace.Trace
-d_Trace_118 :: () -> ()
-d_Trace_118 = erased
+d_Trace_120 :: () -> ()
+d_Trace_120 = erased
 -- VerifiedCompilation.Trace.EvalResult
-d_EvalResult_122 = ()
-type T_EvalResult_122 = EvalResult
-pattern C_success_124 a0 a1 = EvalSuccess a0 a1
-pattern C_failure_126 a0 a1 a2 = EvalFailure a0 a1 a2
-check_success_124 :: Integer -> Integer -> T_EvalResult_122
-check_success_124 = EvalSuccess
-check_failure_126 ::
+d_EvalResult_124 = ()
+type T_EvalResult_124 = EvalResult
+pattern C_success_126 a0 a1 = EvalSuccess a0 a1
+pattern C_failure_128 a0 a1 a2 = EvalFailure a0 a1 a2
+check_success_126 :: Integer -> Integer -> T_EvalResult_124
+check_success_126 = EvalSuccess
+check_failure_128 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
-  Integer -> Integer -> T_EvalResult_122
-check_failure_126 = EvalFailure
-cover_EvalResult_122 :: EvalResult -> ()
-cover_EvalResult_122 x
+  Integer -> Integer -> T_EvalResult_124
+check_failure_128 = EvalFailure
+cover_EvalResult_124 :: EvalResult -> ()
+cover_EvalResult_124 x
   = case x of
       EvalSuccess _ _ -> ()
       EvalFailure _ _ _ -> ()

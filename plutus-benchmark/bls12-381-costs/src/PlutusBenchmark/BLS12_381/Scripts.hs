@@ -43,7 +43,7 @@ module PlutusBenchmark.BLS12_381.Scripts
 where
 
 import Plinth.Plugin ()
-import PlutusCore (DefaultFun, DefaultUni)
+import PlutusCore (DefaultBuiltinPattern, DefaultFun, DefaultUni)
 import PlutusLedgerApi.V1.Bytes qualified as P (bytes, fromHex)
 import PlutusTx qualified as Tx
 import PlutusTx.List qualified as List
@@ -102,7 +102,9 @@ hashAndAddG1 l =
     go (q : qs) !acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q emptyByteString) acc
 {-# INLINEABLE hashAndAddG1 #-}
 
-mkHashAndAddG1Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkHashAndAddG1Script
+  :: [ByteString]
+  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkHashAndAddG1Script l =
   let points = List.map toBuiltin l
    in Tx.getPlcNoAnn $ $$(Tx.compile [||hashAndAddG1||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
@@ -116,7 +118,9 @@ hashAndAddG2 l =
     go (q : qs) !acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q emptyByteString) acc
 {-# INLINEABLE hashAndAddG2 #-}
 
-mkHashAndAddG2Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkHashAndAddG2Script
+  :: [ByteString]
+  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkHashAndAddG2Script l =
   let points = List.map toBuiltin l
    in Tx.getPlcNoAnn $ $$(Tx.compile [||hashAndAddG2||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
@@ -131,7 +135,8 @@ uncompressAndAddG1 l =
 {-# INLINEABLE uncompressAndAddG1 #-}
 
 mkUncompressAndAddG1Script
-  :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+  :: [ByteString]
+  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkUncompressAndAddG1Script l =
   let ramdomPoint bs = Tx.bls12_381_G1_hashToGroup bs emptyByteString
       points = List.map (Tx.bls12_381_G1_compress . ramdomPoint . toBuiltin) l
@@ -147,7 +152,8 @@ uncompressAndAddG2 l =
 {-# INLINEABLE uncompressAndAddG2 #-}
 
 mkUncompressAndAddG2Script
-  :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+  :: [ByteString]
+  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkUncompressAndAddG2Script l =
   let ramdomPoint bs = Tx.bls12_381_G2_hashToGroup bs emptyByteString
       points = List.map (Tx.bls12_381_G2_compress . ramdomPoint . toBuiltin) l
@@ -174,7 +180,7 @@ mkPairingScript
   -> BuiltinBLS12_381_G2_Element
   -> BuiltinBLS12_381_G1_Element
   -> BuiltinBLS12_381_G2_Element
-  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkPairingScript p1 q1 p2 q2 =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||runPairingFunctions||])
@@ -313,7 +319,8 @@ groth16Verify
 {-| Make a UPLC script applying groth16Verify to the inputs.  Passing the
  newtype inputs increases the size and CPU cost slightly, so we unwrap them
  first.  This should return `True`. -}
-mkGroth16VerifyScript :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkGroth16VerifyScript
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkGroth16VerifyScript =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||groth16Verify||])
@@ -374,7 +381,8 @@ verifyBlsSimpleScript privKey message =
 checkVerifyBlsSimpleScript :: Bool
 checkVerifyBlsSimpleScript = verifyBlsSimpleScript simpleVerifyPrivKey simpleVerifyMessage
 
-mkVerifyBlsSimplePolicy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkVerifyBlsSimplePolicy
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkVerifyBlsSimplePolicy =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||verifyBlsSimpleScript||])
@@ -498,7 +506,8 @@ checkVrfBlsScript =
       pk = Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul vrfPrivKey g2generator
    in vrfBlsScript vrfMessage pk (generateVrfProof vrfPrivKey vrfMessage)
 
-mkVrfBlsPolicy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkVrfBlsPolicy
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkVrfBlsPolicy =
   let g2generator = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
    in Tx.getPlcNoAnn
@@ -557,7 +566,8 @@ checkG1VerifyScript :: Bool
 checkG1VerifyScript =
   g1VerifyScript g1VerifyMessage g1VerifyPubKey g1VerifySignature blsSigBls12381G2XmdSha256SswuRoNul
 
-mkG1VerifyPolicy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkG1VerifyPolicy
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkG1VerifyPolicy =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||g1VerifyScript||])
@@ -616,7 +626,8 @@ checkG2VerifyScript :: Bool
 checkG2VerifyScript =
   g2VerifyScript g2VerifyMessage g2VerifyPubKey g2VerifySignature blsSigBls12381G2XmdSha256SswuRoNul
 
-mkG2VerifyPolicy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkG2VerifyPolicy
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkG2VerifyPolicy =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||g2VerifyScript||])
@@ -702,7 +713,8 @@ checkAggregateSingleKeyG1Script =
     aggregateSingleKeyG1Signature
     blsSigBls12381G2XmdSha256SswuRoNul
 
-mkAggregateSingleKeyG1Policy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkAggregateSingleKeyG1Policy
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkAggregateSingleKeyG1Policy =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||aggregateSingleKeyG1Script||])
@@ -872,7 +884,8 @@ checkAggregateMultiKeyG2Script =
     byteString16Null
     blsSigBls12381G2XmdSha256SswuRoNul
 
-mkAggregateMultiKeyG2Policy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkAggregateMultiKeyG2Policy
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkAggregateMultiKeyG2Policy =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||aggregateMultiKeyG2Script||])
@@ -952,7 +965,8 @@ checkSchnorrG1VerifyScript =
     schnorrG1VerifySignature
     byteString16Null
 
-mkSchnorrG1VerifyPolicy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkSchnorrG1VerifyPolicy
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkSchnorrG1VerifyPolicy =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||schnorrG1VerifyScript||])
@@ -1034,7 +1048,8 @@ checkSchnorrG2VerifyScript =
     schnorrG2VerifySignature
     byteString16Null
 
-mkSchnorrG2VerifyPolicy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+mkSchnorrG2VerifyPolicy
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkSchnorrG2VerifyPolicy =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||schnorrG2VerifyScript||])

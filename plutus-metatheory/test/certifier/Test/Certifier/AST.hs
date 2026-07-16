@@ -14,9 +14,9 @@ import Test.Tasty.HUnit
 
 mkMockTracePair
   :: OptStage
-  -> Term Name DefaultUni DefaultFun ()
-  -> Term Name DefaultUni DefaultFun ()
-  -> OptimizerTrace Name DefaultUni DefaultFun ()
+  -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> OptimizerTrace Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 mkMockTracePair stage before' after' =
   OptimizerTrace
     { optimizerTrace =
@@ -30,7 +30,7 @@ mkMockTracePair stage before' after' =
     }
 
 runCertifierWithMockTrace
-  :: OptimizerTrace Name DefaultUni DefaultFun ()
+  :: OptimizerTrace Name DefaultUni DefaultFun DefaultBuiltinPattern ()
   -> IO Bool
 runCertifierWithMockTrace trace = do
   let rawAgdaTrace = mkFfiOptimizerTrace trace
@@ -42,8 +42,8 @@ runCertifierWithMockTrace trace = do
 testSuccess
   :: String
   -> OptStage
-  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
-  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
+  -> Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+  -> Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
   -> TestTree
 testSuccess testName st bf af =
   testCase testName $ do
@@ -56,8 +56,8 @@ testSuccess testName st bf af =
 testFailure
   :: String
   -> OptStage
-  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
-  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
+  -> Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+  -> Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
   -> TestTree
 testFailure testName st bf af =
   testCase testName $ do
@@ -71,8 +71,8 @@ testFailure testName st bf af =
 testSuccessItem
   :: ( String
      , OptStage
-     , Term Name PLC.DefaultUni PLC.DefaultFun ()
-     , Term Name PLC.DefaultUni PLC.DefaultFun ()
+     , Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+     , Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
      )
   -> TestTree
 testSuccessItem (name, stage, before, after) = testSuccess name stage before after
@@ -80,8 +80,8 @@ testSuccessItem (name, stage, before, after) = testSuccess name stage before aft
 testFailureItem
   :: ( String
      , OptStage
-     , Term Name PLC.DefaultUni PLC.DefaultFun ()
-     , Term Name PLC.DefaultUni PLC.DefaultFun ()
+     , Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+     , Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
      )
   -> TestTree
 testFailureItem (name, stage, before, after) = testFailure name stage before after

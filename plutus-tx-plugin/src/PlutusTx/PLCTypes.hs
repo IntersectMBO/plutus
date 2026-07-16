@@ -13,5 +13,7 @@ type PLCProgram uni fun = PLC.Program PLC.TyName PLC.Name uni fun ()
 type PLCVar uni = PLC.VarDecl PLC.TyName PLC.Name uni Ann
 type PLCTyVar = PLC.TyVarDecl PLC.TyName Ann
 
-type UPLCProgram uni fun = UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans
-type UPLCTerm uni fun = UPLC.Term UPLC.NamedDeBruijn uni fun SrcSpans
+type UPLCProgram uni fun =
+  UPLC.Program UPLC.NamedDeBruijn uni fun UPLC.DefaultBuiltinPattern SrcSpans
+type UPLCTerm uni fun =
+  UPLC.Term UPLC.NamedDeBruijn uni fun UPLC.DefaultBuiltinPattern SrcSpans

@@ -81,12 +81,13 @@ d_TypeN_20
       "MAlonzo Runtime Error: postulate evaluated: Evaluator.Term.TypeN"
 -- Evaluator.Term.TermNU
 type T_TermNU_22 =
-  U.Term Name DefaultUni DefaultFun PlutusCore.SrcSpan
+  U.Term Name DefaultUni DefaultFun DefaultBuiltinPattern PlutusCore.SrcSpan
 d_TermNU_22
   = error
       "MAlonzo Runtime Error: postulate evaluated: Evaluator.Term.TermNU"
 -- Evaluator.Term.TermU
-type T_TermU_24 = U.Term NamedDeBruijn DefaultUni DefaultFun ()
+type T_TermU_24 =
+  U.Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 d_TermU_24
   = error
       "MAlonzo Runtime Error: postulate evaluated: Evaluator.Term.TermU"

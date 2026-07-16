@@ -32,10 +32,10 @@ data UTerm
 unIndex :: Index -> Integer
 unIndex (Index n) = toInteger n
 
-convP :: Program NamedDeBruijn DefaultUni DefaultFun a -> UTerm
+convP :: Program NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern a -> UTerm
 convP (Program _ _ t) = conv t
 
-conv :: Term NamedDeBruijn DefaultUni DefaultFun a -> UTerm
+conv :: Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern a -> UTerm
 conv (Var _ x) = UVar (unIndex (ndbnIndex x) - 1)
 conv (LamAbs _ _ t) = ULambda (conv t)
 conv (Apply _ t u) = UApp (conv t) (conv u)
@@ -46,11 +46,12 @@ conv (Delay _ t) = UDelay (conv t)
 conv (Force _ t) = UForce (conv t)
 conv (Constr _ i es) = UConstr (toInteger i) (toList (fmap conv es))
 conv (Case _ arg cs) = UCase (conv arg) (toList (fmap conv cs))
+conv Match {} = error "UPLC 1.2 'match' is not yet supported by the Agda metatheory"
 
 tmname :: Int -> String
 tmname i = 'x' : show i
 
-uconv :: Int -> UTerm -> Term NamedDeBruijn DefaultUni DefaultFun ()
+uconv :: Int -> UTerm -> Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
 uconv i (UVar x) =
   Var
     ()

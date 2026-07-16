@@ -95,6 +95,7 @@ instance AgdaUnparse Hints.Inline where
     Hints.InlError -> "error"
     Hints.InlConstr ts -> parens ("constr" <+> agdaUnparse ts)
     Hints.InlCase t ts -> parens ("case" <+> agdaUnparse t <+> agdaUnparse ts)
+    Hints.InlMatch _ _ -> error "UPLC 1.2 'match' hints are not yet supported by the Agda certifier"
     Hints.InlExpand t -> parens ("expand" <+> agdaUnparse t)
     Hints.InlDrop t -> parens (agdaUnparse t <+> "·↓")
 

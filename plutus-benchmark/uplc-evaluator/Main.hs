@@ -155,7 +155,11 @@ isUplcFile path =
 
 {-| Parse a UPLC program from textual syntax.
 Returns either a descriptive error message or the parsed program with unit annotations. -}
-parseUplcProgram :: Text -> Either Text (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+parseUplcProgram
+  :: Text
+  -> Either
+       Text
+       (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ())
 parseUplcProgram input =
   case runQuoteT (UPLC.Parser.parseProgram input) of
     Left err -> Left $ T.pack $ show err
@@ -194,8 +198,16 @@ instance NFData EvalFailure
 {-| Convert a parsed UPLC program (with Name) to a term with NamedDeBruijn indices.
 This is required for CEK machine evaluation. -}
 toNamedDeBruijnTerm
-  :: UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-  -> Either EvalFailure (UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
+  :: UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+  -> Either
+       EvalFailure
+       ( UPLC.Term
+           UPLC.NamedDeBruijn
+           PLC.DefaultUni
+           PLC.DefaultFun
+           PLC.DefaultBuiltinPattern
+           ()
+       )
 toNamedDeBruijnTerm (UPLC.Program _ _ term) =
   case UPLC.deBruijnTerm term of
     Left err -> Left $ ConversionError $ T.pack $ show err
@@ -205,7 +217,12 @@ toNamedDeBruijnTerm (UPLC.Program _ _ term) =
 Returns the CPU and memory budget consumed, or an error if evaluation fails. -}
 {-# NOINLINE evaluateWithBudget #-}
 evaluateWithBudget
-  :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  :: UPLC.Term
+       UPLC.NamedDeBruijn
+       PLC.DefaultUni
+       PLC.DefaultFun
+       PLC.DefaultBuiltinPattern
+       ()
   -> Either EvalFailure EvalBudget
 evaluateWithBudget term =
   case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter term of
@@ -258,7 +275,12 @@ Performs warm-up iterations first, then collects timing samples.
 Budget values are deterministic and returned separately from variable timing data.
 Returns early with error if initial validation fails. -}
 collectMeasurements
-  :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  :: UPLC.Term
+       UPLC.NamedDeBruijn
+       PLC.DefaultUni
+       PLC.DefaultFun
+       PLC.DefaultBuiltinPattern
+       ()
   -> Int
   -- ^ Number of samples to collect
   -> IO (Either EvalFailure (EvalBudget, [TimingSample]))
@@ -286,7 +308,12 @@ collectMeasurements term sampleCount = do
     -- depends on the lambda-bound 't', so full laziness cannot float it out.
     {-# NOINLINE measureSingleExecution #-}
     measureSingleExecution
-      :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+      :: UPLC.Term
+           UPLC.NamedDeBruijn
+           PLC.DefaultUni
+           PLC.DefaultFun
+           PLC.DefaultBuiltinPattern
+           ()
       -> IO Word64
     measureSingleExecution t = do
       (_, timeNs) <- measureExecution $ evaluate (evaluateWithBudget t)

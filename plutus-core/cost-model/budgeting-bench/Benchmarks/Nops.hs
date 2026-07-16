@@ -129,9 +129,14 @@ nopCostModel =
           (ModelSixArgumentsConstantCost 600)
     }
 
-nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultUni NopFun ())
+nopCostParameters
+  :: MachineParameters
+       CekMachineCosts
+       NopFun
+       (CekValue DefaultUni NopFun DefaultBuiltinPattern ())
+       DefaultBuiltinPattern
 nopCostParameters =
-  MachineParameters def . mkMachineVariantParameters def $
+  MachineParameters def def . mkMachineVariantParameters def $
     CostModel defaultCekMachineCostsForTesting nopCostModel
 
 -- Benchmark a function in `NopFun` with the nopCostParameters using `whnf`.

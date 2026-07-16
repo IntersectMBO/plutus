@@ -182,6 +182,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
   putStrLn ""
   putStrLn $ "startup    " ++ (budgetToString $ getSpent Cek.BStartup)
   putStrLn $ "compute    " ++ budgetToString totalComputeCost
+  putStrLn $ "patterns   " ++ budgetToString totalPatternCost
   putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.unAstSize $ UPLC.termAstSize term)
   putStrLn ""
   case model of
@@ -212,13 +213,16 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
         builtinsAndCosts
   where
     allStepKinds = [minBound .. maxBound] :: [Cek.StepKind]
+    computeStepKinds = takeWhile (/= Cek.BMatch) allStepKinds
+    patternStepKinds = dropWhile (/= Cek.BMatch) allStepKinds
     getSpent k =
       case H.lookup k costs of
         Just v -> v
         Nothing -> ExBudget 0 0
     totalComputeCost =
       -- For unitCekCosts this will be the total number of compute steps
-      foldMap (getSpent . Cek.BStep) allStepKinds
+      foldMap (getSpent . Cek.BStep) computeStepKinds
+    totalPatternCost = foldMap (getSpent . Cek.BStep) patternStepKinds
     budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) =
       case model of
         -- Not %d: doesn't work when CostingInteger is SatInt.
@@ -231,11 +235,12 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
     builtinsAndCosts = List.foldl getBuiltinCost [] (H.toList costs)
     totalBuiltinCosts = mconcat (map snd builtinsAndCosts)
     getCPU b = let ExCPU b' = exBudgetCPU b in fromSatInt b' :: Double
-    totalCost = getSpent Cek.BStartup <> totalComputeCost <> totalBuiltinCosts :: ExBudget
+    totalCost =
+      getSpent Cek.BStartup <> totalComputeCost <> totalPatternCost <> totalBuiltinCosts
 
 class PrintBudgetState cost where
   printBudgetState
-    :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
+    :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
     -> CekModel
     -> cost
     -> IO ()
@@ -419,7 +424,7 @@ data SomeTypedExample = SomeTypeExample TypeExample | SomeTypedTermExample Typed
 
 newtype UntypedTermExample
   = UntypedTermExample
-      (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+      (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ())
 newtype SomeUntypedExample = SomeUntypedTermExample UntypedTermExample
 
 data SomeExample = SomeTypedExample SomeTypedExample | SomeUntypedExample SomeUntypedExample
