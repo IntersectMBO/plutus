@@ -97,26 +97,26 @@ pattern PolyBuiltinStage = Left PolyBuiltin
   , PolyBuiltinStage
   #-}
 
-data Optimization name uni fun a
+data Optimization name uni fun pat a
   = Optimization
-  { beforeAST :: Term name uni fun a
+  { beforeAST :: Term name uni fun pat a
   , stage :: OptStage
   , hints :: Certify.Hints
-  , afterAST :: Term name uni fun a
+  , afterAST :: Term name uni fun pat a
   }
 
 -- TODO2: we probably don't want this in memory so after MVP
 -- we should consider serializing this to disk
-newtype OptimizerTrace name uni fun a
+newtype OptimizerTrace name uni fun pat a
   = OptimizerTrace
   { optimizerTrace
-      :: [Optimization name uni fun a]
+      :: [Optimization name uni fun pat a]
   }
 
-initOptimizerTrace :: OptimizerTrace name uni fun a
+initOptimizerTrace :: OptimizerTrace name uni fun pat a
 initOptimizerTrace = OptimizerTrace []
 
-allASTs :: OptimizerTrace name uni fun a -> [Term name uni fun a]
+allASTs :: OptimizerTrace name uni fun pat a -> [Term name uni fun pat a]
 allASTs = \case
   OptimizerTrace [] -> []
   OptimizerTrace xs@(x : _) ->

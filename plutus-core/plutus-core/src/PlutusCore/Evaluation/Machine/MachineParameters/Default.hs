@@ -18,13 +18,20 @@ import GHC.Exts (inline)
 
 -- | The semantics-variant-dependent part of 'MachineParameters'.
 type DefaultMachineVariantParameters =
-  MachineVariantParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+  MachineVariantParameters
+    CekMachineCosts
+    DefaultFun
+    (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ())
 
 {-| 'MachineParameters' instantiated at CEK-machine-specific types and default builtins.
 Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK
 machine. -}
 type DefaultMachineParameters =
-  MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+  MachineParameters
+    CekMachineCosts
+    DefaultFun
+    (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ())
+    DefaultBuiltinPattern
 
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as

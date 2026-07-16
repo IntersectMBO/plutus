@@ -9,6 +9,7 @@ module PlutusCore.Version
   , versionPatch
   , plcVersion100
   , plcVersion110
+  , plcVersion120
   , firstVersion
   , latestVersion
   , knownVersions
@@ -66,7 +67,14 @@ plcVersion100 = Version 1 0 0
 plcVersion110 :: Version
 plcVersion110 = Version 1 1 0
 
--- | The latest version of Plutus Core supported by this library.
+-- | Plutus Core version 1.2.0
+plcVersion120 :: Version
+plcVersion120 = Version 1 2 0
+
+{-| The latest released version of Plutus Core used by default.
+
+Version 1.2 is intentionally not the default while patterns are a core-machine experiment and
+have no ledger protocol activation.  Programs can still opt into it explicitly. -}
 latestVersion :: Version
 latestVersion = plcVersion110
 

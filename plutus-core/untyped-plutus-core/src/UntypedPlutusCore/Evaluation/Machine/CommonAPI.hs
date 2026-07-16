@@ -73,12 +73,12 @@ import Control.Monad.State
 import Data.Text (Text)
 
 -- The type of the machine (runner function).
-type MachineRunner cost uni fun ann =
-  MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> ExBudgetMode cost uni fun
-  -> EmitterMode uni fun
-  -> NTerm uni fun ann
-  -> CekReport cost NamedDeBruijn uni fun
+type MachineRunner cost uni fun pat ann =
+  MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> ExBudgetMode cost uni fun pat
+  -> EmitterMode uni fun pat
+  -> NTerm uni fun pat ann
+  -> CekReport cost NamedDeBruijn uni fun pat
 
 {- Note [CEK runners naming convention]
 A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.
@@ -95,12 +95,12 @@ allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully e
 A wrapper around the internal runCek to debruijn input and undebruijn output.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCek
-  :: MachineRunner cost uni fun ann
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> ExBudgetMode cost uni fun
-  -> EmitterMode uni fun
-  -> Term Name uni fun ann
-  -> CekReport cost Name uni fun
+  :: MachineRunner cost uni fun pat ann
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> ExBudgetMode cost uni fun pat
+  -> EmitterMode uni fun pat
+  -> Term Name uni fun pat ann
+  -> CekReport cost Name uni fun pat
 runCek runner params mode emitMode term =
   -- translating input
   case runExcept @FreeVariableError $ deBruijnTerm term of
@@ -116,7 +116,7 @@ runCek runner params mode emitMode term =
     -- \*value-term.
     -- 'Graceful' means that the (a) && (b) undebruijnifications do not throw an error upon a free
     -- variable encounter: free debruijn indices will be turned to free, consistent uniques
-    gracefulUnDeBruijn :: Term NamedDeBruijn uni fun () -> Term Name uni fun ()
+    gracefulUnDeBruijn :: Term NamedDeBruijn uni fun pat () -> Term Name uni fun pat ()
     gracefulUnDeBruijn t =
       runQuote
         . flip evalStateT mempty
@@ -125,11 +125,11 @@ runCek runner params mode emitMode term =
 {-| Evaluate a term using a machine with logging disabled and keep track of costing.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 runCekNoEmit
-  :: MachineRunner cost uni fun ann
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> ExBudgetMode cost uni fun
-  -> Term Name uni fun ann
-  -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
+  :: MachineRunner cost uni fun pat ann
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> ExBudgetMode cost uni fun pat
+  -> Term Name uni fun pat ann
+  -> (Either (CekEvaluationException Name uni fun pat) (Term Name uni fun pat ()), cost)
 runCekNoEmit runner params mode =
   -- throw away the logs
   (\(CekReport res cost _logs) -> (cekResultToEither res, cost))
@@ -138,12 +138,12 @@ runCekNoEmit runner params mode =
 {-| Evaluate a term using a machine with logging enabled.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCek
-  :: ThrowableBuiltins uni fun
-  => MachineRunner RestrictingSt uni fun ann
-  -> EmitterMode uni fun
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> Term Name uni fun ann
-  -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => MachineRunner RestrictingSt uni fun pat ann
+  -> EmitterMode uni fun pat
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> Term Name uni fun pat ann
+  -> (Either (CekEvaluationException Name uni fun pat) (Term Name uni fun pat ()), [Text])
 evaluateCek runner emitMode params =
   -- throw away the cost
   (\(CekReport res _cost logs) -> (cekResultToEither res, logs))
@@ -152,19 +152,23 @@ evaluateCek runner emitMode params =
 {-| Evaluate a term using a machine with logging disabled.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 evaluateCekNoEmit
-  :: ThrowableBuiltins uni fun
-  => MachineRunner RestrictingSt uni fun ann
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> Term Name uni fun ann
-  -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
+  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
+  => MachineRunner RestrictingSt uni fun pat ann
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> Term Name uni fun pat ann
+  -> Either (CekEvaluationException Name uni fun pat) (Term Name uni fun pat ())
 evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEnormous
 
 {-| Unlift a value using a machine.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 readKnownCek
-  :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
-  => MachineRunner RestrictingSt uni fun ann
-  -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-  -> Term Name uni fun ann
-  -> Either (CekEvaluationException Name uni fun) a
+  :: ( ThrowableBuiltins uni fun
+     , Pretty pat
+     , Typeable pat
+     , ReadKnown (Term Name uni fun pat ()) a
+     )
+  => MachineRunner RestrictingSt uni fun pat ann
+  -> MachineParameters CekMachineCosts fun (CekValue uni fun pat ann) pat
+  -> Term Name uni fun pat ann
+  -> Either (CekEvaluationException Name uni fun pat) a
 readKnownCek runner params = evaluateCekNoEmit runner params >=> readKnownSelf

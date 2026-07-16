@@ -46,14 +46,14 @@ import Control.Lens
 
 forceCaseDelay
   :: Monad m
-  => Term name uni fun a
-  -> OptimizerT name uni fun a m (Term name uni fun a)
+  => Term name uni fun pat a
+  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
 forceCaseDelay term = do
   let result = transformOf termSubterms processTerm term
   recordOptimization term ForceCaseDelayStage result
   return result
 
-processTerm :: Term name uni fun a -> Term name uni fun a
+processTerm :: Term name uni fun pat a -> Term name uni fun pat a
 processTerm = \case
   original@(Force _ (Case cAnn scrut branches)) ->
     let mNewBranches = traverse findDelayUnderLambdas branches
@@ -63,7 +63,7 @@ processTerm = \case
           Nothing -> original
   other -> other
   where
-    findDelayUnderLambdas :: Term name uni fun a -> Maybe (Term name uni fun a)
+    findDelayUnderLambdas :: Term name uni fun pat a -> Maybe (Term name uni fun pat a)
     findDelayUnderLambdas = \case
       LamAbs ann var body -> LamAbs ann var <$> findDelayUnderLambdas body
       Delay _ term -> Just term

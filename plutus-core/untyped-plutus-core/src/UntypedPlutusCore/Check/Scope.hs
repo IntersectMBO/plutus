@@ -11,6 +11,7 @@ import UntypedPlutusCore.DeBruijn as UPLC
 
 import Control.Monad (unless)
 import Control.Monad.Except (MonadError, throwError)
+import Data.Foldable (traverse_)
 
 {-| A pass to check that the input term:
 1) does not contain free variables and
@@ -26,14 +27,14 @@ Inlining this function makes a big difference,
 since it will usually be called in a context where all the type variables are known.
 That then means that GHC can optimize go locally in a completely monomorphic setting, which helps a lot. -}
 checkScope
-  :: forall m name uni fun a
+  :: forall m name uni fun pat a
    . (HasIndex name, MonadError FreeVariableError m)
-  => UPLC.Term name uni fun a
+  => UPLC.Term name uni fun pat a
   -> m ()
 checkScope = go 0
   where
     -- the current level as a reader value
-    go :: Word -> UPLC.Term name uni fun a -> m ()
+    go :: Word -> UPLC.Term name uni fun pat a -> m ()
     go !lvl = \case
       Var _ n -> do
         let i = n ^. index
@@ -52,5 +53,8 @@ checkScope = go 0
       Apply _ t1 t2 -> go lvl t1 >> go lvl t2
       Force _ t -> go lvl t
       Delay _ t -> go lvl t
+      Constr _ _ fields -> traverse_ (go lvl) fields
+      Case _ scrut branches -> go lvl scrut >> traverse_ (go lvl) branches
+      Match _ scrut alternatives -> go lvl scrut >> traverse_ (go lvl . snd) alternatives
       _ -> pure ()
 {-# INLINE checkScope #-}

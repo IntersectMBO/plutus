@@ -13,7 +13,7 @@ mess up its debruijn indexing and thus break scope-checking.
 eraseTerm
   :: HasUnique name TermUnique
   => Term tyname name uni fun ann
-  -> UPLC.Term name uni fun ann
+  -> UPLC.Term name uni fun pat ann
 eraseTerm (Var ann name) = UPLC.Var ann name
 eraseTerm (TyAbs ann _ _ body) = UPLC.Delay ann (eraseTerm body)
 eraseTerm (LamAbs ann name _ body) = UPLC.LamAbs ann name (eraseTerm body)
@@ -30,5 +30,5 @@ eraseTerm (Case ann _ arg cs) = UPLC.Case ann (eraseTerm arg) (fromList $ fmap e
 eraseProgram
   :: HasUnique name TermUnique
   => Program tyname name uni fun ann
-  -> UPLC.Program name uni fun ann
+  -> UPLC.Program name uni fun pat ann
 eraseProgram (Program a v t) = UPLC.Program a v $ eraseTerm t

@@ -72,7 +72,7 @@ data Cmd bps
   deriving stock (Show, Read)
 
 -- | The drivers's suspension functor
-data DebugF uni fun ann bps a
+data DebugF uni fun pat ann bps a
   = -- | Await for the client (e.g. TUI) to tell what to do next (Cmd).
     InputF (Cmd bps -> a)
   | -- | The debug driver wants to log something
@@ -81,29 +81,29 @@ data DebugF uni fun ann bps a
     Yield a state before doing a step, then await for a state to resume after the step.
     See Note [Stepping the driver]. -}
     StepF
-      (CekState uni fun ann)
+      (CekState uni fun pat ann)
       -- ^ yield with the current driver's state before running a step
-      (CekState uni fun ann -> a)
+      (CekState uni fun pat ann -> a)
       {-^ resume back with a state after the step interpretation
       | A generator of CekState to yield to client (e.g. TUI) -}
-  | UpdateClientF (CekState uni fun ann) a
+  | UpdateClientF (CekState uni fun pat ann) a
   deriving stock (Functor)
 
 -- | The monad that the driver operates in
-type Driving m uni fun ann bps =
-  ( MonadReader (CekState uni fun ann) m -- the state of the debugger
-  , MonadFree (DebugF uni fun ann bps) m -- the effects of the driver
+type Driving m uni fun pat ann bps =
+  ( MonadReader (CekState uni fun pat ann) m -- the state of the debugger
+  , MonadFree (DebugF uni fun pat ann bps) m -- the effects of the driver
   , Breakpointable ann bps
   )
 
 -- | Entrypoint of the driver
 runDriverT
-  :: forall uni fun ann bps m
-   . (Breakpointable ann bps, MonadFree (DebugF uni fun ann bps) m)
-  => NTerm uni fun ann -> m ()
+  :: forall uni fun pat ann bps m
+   . (Breakpointable ann bps, MonadFree (DebugF uni fun pat ann bps) m)
+  => NTerm uni fun pat ann -> m ()
 runDriverT = void . runReaderT driver . initState
   where
-    initState :: NTerm uni fun ann -> CekState uni fun ann
+    initState :: NTerm uni fun pat ann -> CekState uni fun pat ann
     initState = Starting
 
 -- | The driver action. The driver repeatedly:
@@ -114,7 +114,7 @@ runDriverT = void . runReaderT driver . initState
 -- 3) informs the client for CEK updates&logs
 ---
 -- The driver computation exits when it reaches a CEK `Terminating` state.
-driver :: Driving m uni fun ann bps => m ()
+driver :: Driving m uni fun pat ann bps => m ()
 driver =
   inputF >>= \case
     -- Condition immediately satisfied
@@ -139,7 +139,7 @@ driver =
   where
     -- \| Comparison on states' contexts
     onCtxLen
-      :: ( state ~ CekState uni fun ann
+      :: ( state ~ CekState uni fun pat ann
          , ctxLen ~ Maybe Word -- `Maybe` because ctx can be missing if terminating
          )
       => (ctxLen -> ctxLen -> a)
@@ -150,8 +150,8 @@ driver =
 
 -- | Do one or more cek steps until Terminating state is reached or condition on 'CekState' is met.
 multiStepUntil
-  :: Driving m uni fun ann bp
-  => (CekState uni fun ann -> Bool) -> m ()
+  :: Driving m uni fun pat ann bp
+  => (CekState uni fun pat ann -> Bool) -> m ()
 multiStepUntil cond = do
   driverLogF "Driver is going to do a single step"
   newState <- stepF =<< ask
@@ -172,11 +172,14 @@ multiStepUntil cond = do
 -- * boilerplate "suspension actions"
 
 -- Being in 'Driving' monad here is too constraining, but it does not matter.
-inputF :: Driving m uni fun ann bps => m (Cmd bps)
+inputF :: Driving m uni fun pat ann bps => m (Cmd bps)
 inputF = liftF $ InputF id
-driverLogF :: Driving m uni fun ann bps => Text -> m ()
+driverLogF :: Driving m uni fun pat ann bps => Text -> m ()
 driverLogF text = liftF $ DriverLogF text ()
-updateClientF :: Driving m uni fun ann bps => CekState uni fun ann -> m ()
+updateClientF :: Driving m uni fun pat ann bps => CekState uni fun pat ann -> m ()
 updateClientF dState = liftF $ UpdateClientF dState ()
-stepF :: Driving m uni fun ann bps => CekState uni fun ann -> m (CekState uni fun ann)
+stepF
+  :: Driving m uni fun pat ann bps
+  => CekState uni fun pat ann
+  -> m (CekState uni fun pat ann)
 stepF yieldState = liftF $ StepF yieldState id

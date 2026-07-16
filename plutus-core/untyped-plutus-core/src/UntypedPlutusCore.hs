@@ -7,6 +7,7 @@ module UntypedPlutusCore
   , parseScoped
   , PLC.DefaultUni
   , PLC.DefaultFun
+  , PLC.DefaultBuiltinPattern
   ) where
 
 import UntypedPlutusCore.AstSize as Export
@@ -19,8 +20,8 @@ import UntypedPlutusCore.Subst as Export
 
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
-import PlutusPrelude (getAnn)
 import PlutusCore.Name.Unique as Export
+import PlutusPrelude (getAnn)
 
 import Control.Monad.Except
 
@@ -28,9 +29,9 @@ import Control.Monad.Except
 and tries to merge annotations. -}
 applyProgram
   :: (MonadError ApplyProgramError m, Semigroup a)
-  => Program name uni fun a
-  -> Program name uni fun a
-  -> m (Program name uni fun a)
+  => Program name uni fun pat a
+  -> Program name uni fun pat a
+  -> m (Program name uni fun pat a)
 applyProgram (Program a1 v1 t1) (Program a2 v2 t2)
   | v1 == v2 =
       pure $ Program (a1 <> a2) v1 (applyTerm t1 t2)
@@ -39,7 +40,7 @@ applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
 
 applyTerm
   :: Semigroup a
-  => Term name uni fun a
-  -> Term name uni fun a
-  -> Term name uni fun a
+  => Term name uni fun pat a
+  -> Term name uni fun pat a
+  -> Term name uni fun pat a
 applyTerm t1 t2 = Apply (getAnn t1 <> getAnn t2) t1 t2

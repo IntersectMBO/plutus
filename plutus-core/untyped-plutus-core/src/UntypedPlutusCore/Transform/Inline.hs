@@ -90,29 +90,29 @@ the PIR inliner.
 -}
 
 -- | Substitution range, 'SubstRng' in the paper.
-newtype InlineTerm name uni fun a = Done (Dupable (Term name uni fun a))
+newtype InlineTerm name uni fun pat a = Done (Dupable (Term name uni fun pat a))
 
 {-| Term substitution, 'Subst' in the paper.
 A map of unprocessed variable and its substitution range. -}
-newtype TermEnv name uni fun a = TermEnv
-  {_unTermEnv :: PLC.UniqueMap TermUnique (InlineTerm name uni fun a)}
+newtype TermEnv name uni fun pat a = TermEnv
+  {_unTermEnv :: PLC.UniqueMap TermUnique (InlineTerm name uni fun pat a)}
   deriving newtype (Semigroup, Monoid)
 
 {-| Wrapper of term substitution so that it's similar to the PIR inliner.
 See Note [Differences from PIR inliner] 1 -}
-newtype Subst name uni fun a = Subst {_termEnv :: TermEnv name uni fun a}
+newtype Subst name uni fun pat a = Subst {_termEnv :: TermEnv name uni fun pat a}
   deriving stock (Generic)
   deriving newtype (Semigroup, Monoid)
 
 makeLenses ''TermEnv
 makeLenses ''Subst
 
-data VarInfo name uni fun ann = VarInfo
+data VarInfo name uni fun pat ann = VarInfo
   { _varBinders :: [(name, ann)]
   -- ^ Lambda binders in the RHS (definition) of the variable.
-  , _varRhs :: Term name uni fun ann
+  , _varRhs :: Term name uni fun pat ann
   -- ^ The RHS (definition) of the variable.
-  , _varRhsBody :: InlineTerm name uni fun ann
+  , _varRhsBody :: InlineTerm name uni fun pat ann
   {-^ The body of the RHS of the variable (i.e., RHS minus the binders).
   Using 'InlineTerm' here to ensure the body is renamed when inlined. -}
   }
@@ -120,17 +120,17 @@ data VarInfo name uni fun ann = VarInfo
 makeLenses ''VarInfo
 
 -- | UPLC inliner state
-data S name uni fun a = S
-  { _subst :: Subst name uni fun a
-  , _vars :: PLC.UniqueMap TermUnique (VarInfo name uni fun a)
+data S name uni fun pat a = S
+  { _subst :: Subst name uni fun pat a
+  , _vars :: PLC.UniqueMap TermUnique (VarInfo name uni fun pat a)
   }
 
 makeLenses ''S
 
-instance Semigroup (S name uni fun a) where
+instance Semigroup (S name uni fun pat a) where
   S a1 b1 <> S a2 b2 = S (a1 <> a2) (b1 <> b2)
 
-instance Monoid (S name uni fun a) where
+instance Monoid (S name uni fun pat a) where
   mempty = S mempty mempty
 
 type ExternalConstraints name uni fun m =
@@ -163,15 +163,15 @@ makeLenses ''InlineInfo
 -- of this module (determined from profiling)
 
 -- | The monad the inliner runs in.
-type InlineM name uni fun a =
-  ReaderT (InlineInfo name fun a) (StateT (S name uni fun (Ann a)) Quote)
+type InlineM name uni fun pat a =
+  ReaderT (InlineInfo name fun a) (StateT (S name uni fun pat (Ann a)) Quote)
 
 -- | Look up the unprocessed variable in the substitution.
 lookupTerm
   :: HasUnique name TermUnique
   => name
-  -> S name uni fun a
-  -> Maybe (InlineTerm name uni fun a)
+  -> S name uni fun pat a
+  -> Maybe (InlineTerm name uni fun pat a)
 lookupTerm n s = UMap.lookupName n $ s ^. subst . termEnv . unTermEnv
 
 -- | Insert the unprocessed variable into the substitution.
@@ -179,33 +179,33 @@ extendTerm
   :: HasUnique name TermUnique
   => name
   -- ^ The name of the variable.
-  -> InlineTerm name uni fun a
+  -> InlineTerm name uni fun pat a
   -- ^ The substitution range.
-  -> S name uni fun a
+  -> S name uni fun pat a
   -- ^ The substitution.
-  -> S name uni fun a
+  -> S name uni fun pat a
 extendTerm n clos s =
   s & subst . termEnv . unTermEnv %~ UMap.insertByName n clos
 
 lookupVarInfo
   :: HasUnique name TermUnique
   => name
-  -> S name uni fun a
-  -> Maybe (VarInfo name uni fun a)
+  -> S name uni fun pat a
+  -> Maybe (VarInfo name uni fun pat a)
 lookupVarInfo n s = UMap.lookupName n $ s ^. vars
 
 extendVarInfo
   :: HasUnique name TermUnique
   => name
-  -> VarInfo name uni fun a
-  -> S name uni fun a
-  -> S name uni fun a
+  -> VarInfo name uni fun pat a
+  -> S name uni fun pat a
+  -> S name uni fun pat a
 extendVarInfo n info s = s & vars %~ UMap.insertByName n info
 
 {-| Inline simple bindings. Relies on global uniqueness, and preserves it.
 See Note [Inlining and global uniqueness] -}
 inline
-  :: forall name uni fun m a
+  :: forall name uni fun pat m a
    . ExternalConstraints name uni fun m
   => AstSize
   -- ^ unconditional threshold
@@ -217,8 +217,8 @@ inline
   -- ^ preserve logging
   -> InlineHints name a
   -> PLC.BuiltinSemanticsVariant fun
-  -> Term name uni fun a
-  -> OptimizerT name uni fun a m (Term name uni fun a)
+  -> Term name uni fun pat a
+  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
 inline
   unconditionalGrowth
   callsiteGrowth
@@ -261,8 +261,8 @@ Some examples will help (annotations are omitted):
 
 [[(\x . t) a] b] -> Nothing -}
 extractApps
-  :: Term name uni fun a
-  -> Maybe ([(UTermDef name uni fun a, a)], Term name uni fun a)
+  :: Term name uni fun pat a
+  -> Maybe ([(UTermDef name uni fun pat a, a)], Term name uni fun pat a)
 extractApps = go []
   where
     go argStack (Apply aa f arg) = go ((arg, aa) : argStack) f
@@ -275,9 +275,9 @@ extractApps = go []
 
 -- | The inverse of 'extractApps'.
 restoreApps
-  :: [(Either (Ann a) (UTermDef name uni fun (Ann a)), Ann a)]
-  -> Term name uni fun (Ann a)
-  -> Term name uni fun (Ann a)
+  :: [(Either (Ann a) (UTermDef name uni fun pat (Ann a)), Ann a)]
+  -> Term name uni fun pat (Ann a)
+  -> Term name uni fun pat (Ann a)
 restoreApps defs t = makeLams [] t (reverse defs)
   where
     -- `aa` is the annotation on the Apply node, and `al` is the annotation
@@ -301,15 +301,15 @@ restoreApps defs t = makeLams [] t (reverse defs)
 
 -- | Run the inliner on a `UntypedPlutusCore.Core.Type.Term`.
 processTerm
-  :: forall name uni fun a
+  :: forall name uni fun pat a
    . InliningConstraints name uni fun
-  => Term name uni fun (Ann a)
-  -> InlineM name uni fun a (Term name uni fun (Ann a))
+  => Term name uni fun pat (Ann a)
+  -> InlineM name uni fun pat a (Term name uni fun pat (Ann a))
 processTerm = handleTerm
   where
     handleTerm
-      :: Term name uni fun (Ann a)
-      -> InlineM name uni fun a (Term name uni fun (Ann a))
+      :: Term name uni fun pat (Ann a)
+      -> InlineM name uni fun pat a (Term name uni fun pat (Ann a))
     handleTerm = \case
       v@(Var a n) ->
         maybe
@@ -325,13 +325,13 @@ processTerm = handleTerm
       t -> inlineSaturatedApp =<< forMOf termSubterms t processTerm
 
     -- See Note [Renaming strategy]
-    substName :: name -> InlineM name uni fun a (Maybe (Term name uni fun (Ann a)))
+    substName :: name -> InlineM name uni fun pat a (Maybe (Term name uni fun pat (Ann a)))
     substName name = gets (lookupTerm name) >>= traverse renameTerm
 
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
     renameTerm
-      :: InlineTerm name uni fun (Ann a)
-      -> InlineM name uni fun a (Term name uni fun (Ann a))
+      :: InlineTerm name uni fun pat (Ann a)
+      -> InlineM name uni fun pat a (Term name uni fun pat (Ann a))
     renameTerm = \case
       -- Already processed term, just rename and put it in, don't do any
       -- further optimization here.
@@ -339,9 +339,9 @@ processTerm = handleTerm
 
 processSingleBinding
   :: InliningConstraints name uni fun
-  => Term name uni fun (Ann a)
-  -> (UTermDef name uni fun (Ann a), Ann a)
-  -> InlineM name uni fun a (Either (Ann a) (UTermDef name uni fun (Ann a)), Ann a)
+  => Term name uni fun pat (Ann a)
+  -> (UTermDef name uni fun pat (Ann a), Ann a)
+  -> InlineM name uni fun pat a (Either (Ann a) (UTermDef name uni fun pat (Ann a)), Ann a)
 processSingleBinding body (Def vd@(UVarDecl a n) rhs0, aa) =
   (,aa) <$> do
     maybeAddSubst body (snd a) n rhs0 >>= \case
@@ -363,13 +363,13 @@ Nothing means that we are inlining the term:
   * we have extended the substitution, and
   * we are removing the binding (hence we return Nothing). -}
 maybeAddSubst
-  :: forall name uni fun a
+  :: forall name uni fun pat a
    . InliningConstraints name uni fun
-  => Term name uni fun (Ann a)
+  => Term name uni fun pat (Ann a)
   -> a
   -> name
-  -> Term name uni fun (Ann a)
-  -> InlineM name uni fun a (Maybe (Term name uni fun (Ann a)))
+  -> Term name uni fun pat (Ann a)
+  -> InlineM name uni fun pat a (Maybe (Term name uni fun pat (Ann a)))
 maybeAddSubst body a n rhs0 = do
   rhs <- processTerm rhs0
 
@@ -388,8 +388,8 @@ maybeAddSubst body a n rhs0 = do
   where
     extendAndDrop
       :: forall b
-       . InlineTerm name uni fun (Ann a)
-      -> InlineM name uni fun a (Maybe b)
+       . InlineTerm name uni fun pat (Ann a)
+      -> InlineM name uni fun pat a (Maybe b)
     extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
 
 shouldUnconditionallyInline
@@ -398,9 +398,9 @@ shouldUnconditionallyInline
   {-^ Whether we know that the binding is safe to inline.
   If so, bypass the purity check. -}
   -> name
-  -> Term name uni fun a
-  -> Term name uni fun b
-  -> InlineM name uni fun c Bool
+  -> Term name uni fun pat a
+  -> Term name uni fun pat b
+  -> InlineM name uni fun pat c Bool
 shouldUnconditionallyInline safe n rhs body = do
   isTermPure <- checkPurity rhs
   inlineConstants <- view iiInlineConstants
@@ -423,17 +423,17 @@ shouldUnconditionallyInline safe n rhs body = do
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity
   :: PLC.ToBuiltinMeaning uni fun
-  => Term name uni fun a
-  -> InlineM name uni fun b Bool
+  => Term name uni fun pat a
+  -> InlineM name uni fun pat b Bool
 checkPurity t = do
   builtinSemanticsVariant <- view iiBuiltinSemanticsVariant
   pure $ isPure builtinSemanticsVariant t
 
 nameUsedAtMostOnce
-  :: forall name uni fun a
+  :: forall name uni fun pat a
    . InliningConstraints name uni fun
   => name
-  -> InlineM name uni fun a Bool
+  -> InlineM name uni fun pat a Bool
 nameUsedAtMostOnce n = do
   usgs <- view iiUsages
   -- 'inlining' terms used 0 times is a cheap way to remove dead code
@@ -441,11 +441,11 @@ nameUsedAtMostOnce n = do
   pure $ Usages.getUsageCount n usgs <= 1
 
 isFirstVarBeforeEffects
-  :: forall name uni fun ann
+  :: forall name uni fun pat ann
    . InliningConstraints name uni fun
   => BuiltinSemanticsVariant fun
   -> name
-  -> Term name uni fun ann
+  -> Term name uni fun pat ann
   -> Bool
 isFirstVarBeforeEffects builtinSemanticsVariant n t =
   -- This can in the worst case traverse a lot of the term, which could lead to
@@ -470,14 +470,14 @@ isFirstVarBeforeEffects builtinSemanticsVariant n t =
   * lambda body
   * case branch -}
 isStrictIn
-  :: forall name uni fun a
+  :: forall name uni fun pat a
    . Eq name
   => name
-  -> Term name uni fun a
+  -> Term name uni fun pat a
   -> Bool
 isStrictIn name = go
   where
-    go :: Term name uni fun a -> Bool
+    go :: Term name uni fun pat a -> Bool
     go = \case
       Var _ann name' -> name == name'
       LamAbs _ann _paramName _body -> False
@@ -489,15 +489,16 @@ isStrictIn name = go
       Error {} -> False
       Constr _ann _idx terms -> any go terms
       Case _ann scrut _branches -> go scrut
+      Match _ann scrut _alternatives -> go scrut
 
 effectSafe
-  :: forall name uni fun a b
+  :: forall name uni fun pat a b
    . InliningConstraints name uni fun
-  => Term name uni fun a
+  => Term name uni fun pat a
   -> name
   -> Bool
   -- ^ is it pure? See Note [Inlining and purity]
-  -> InlineM name uni fun b Bool
+  -> InlineM name uni fun pat b Bool
 effectSafe body n termIsPure = do
   preserveLogging <- view iiPreserveLogging
   builtinSemantics <- view iiBuiltinSemanticsVariant
@@ -511,8 +512,8 @@ or code.  See Note [Inlining approach and 'Secrets of the GHC Inliner'] -}
 acceptable
   :: Bool
   -- ^ inline constants
-  -> Term name uni fun a
-  -> InlineM name uni fun b Bool
+  -> Term name uni fun pat a
+  -> InlineM name uni fun pat b Bool
 acceptable inlineConstants t = do
   unconditionalGrowth <- view iiInlineUnconditionalGrowth
   -- See Note [Inlining criteria]
@@ -525,7 +526,7 @@ acceptable inlineConstants t = do
 
 {-| Is the cost increase (in terms of evaluation work) of inlining a variable
 whose RHS is the given term acceptable? -}
-costIsAcceptable :: Term name uni fun a -> Bool
+costIsAcceptable :: Term name uni fun pat a -> Bool
 costIsAcceptable = \case
   Builtin {} -> True
   Var {} -> True
@@ -544,18 +545,19 @@ costIsAcceptable = \case
       _ -> False
   -- Inlining a case means redoing the match at each use site
   Case {} -> False
+  Match {} -> False
   Force {} -> False
   Delay {} -> True
 
 -- | Fully apply and beta reduce.
 fullyApplyAndBetaReduce
-  :: forall name uni fun a
+  :: forall name uni fun pat a
    . InliningConstraints name uni fun
   => Ann a
   -- ^ Annotation on the variable to be replaced
-  -> VarInfo name uni fun (Ann a)
-  -> [(Ann a, Term name uni fun (Ann a))]
-  -> InlineM name uni fun a (Maybe (Term name uni fun (Ann a)))
+  -> VarInfo name uni fun pat (Ann a)
+  -> [(Ann a, Term name uni fun pat (Ann a))]
+  -> InlineM name uni fun pat a (Maybe (Term name uni fun pat (Ann a)))
 fullyApplyAndBetaReduce av info args0 = do
   rhsBody <-
     -- Since we would like to fully apply here, we add decorations to
@@ -580,10 +582,10 @@ fullyApplyAndBetaReduce av info args0 = do
       )
       <$> liftDupable (let Done rhsBody = info ^. varRhsBody in rhsBody)
   let go
-        :: Term name uni fun (Ann a)
+        :: Term name uni fun pat (Ann a)
         -> [(name, Ann a)]
-        -> [(Ann a, Term name uni fun (Ann a))]
-        -> InlineM name uni fun a (Maybe (Term name uni fun (Ann a)))
+        -> [(Ann a, Term name uni fun pat (Ann a))]
+        -> InlineM name uni fun pat a (Maybe (Term name uni fun pat (Ann a)))
       go acc bs args = case (bs, args) of
         ([], _) -> pure . Just $ mkIterApp acc args
         ((param, _annLam) : params, (_annArg, arg) : args') -> do
@@ -612,8 +614,8 @@ fullyApplyAndBetaReduce av info args0 = do
       -- inlining `a`, since inlining is the same as beta reduction.
       safeToBetaReduce
         :: name
-        -> Term name uni fun (Ann a)
-        -> InlineM name uni fun a Bool
+        -> Term name uni fun pat (Ann a)
+        -> InlineM name uni fun pat a Bool
       safeToBetaReduce a arg = shouldUnconditionallyInline False a arg rhsBody
   go rhsBody (info ^. varBinders) args0
 
@@ -621,10 +623,10 @@ fullyApplyAndBetaReduce av info args0 = do
 'PlutusIR.Transform.Inline.CallSiteInline.inlineSaturatedApp'.
 See Note [Inlining and beta reduction of functions]. -}
 inlineSaturatedApp
-  :: forall name uni fun a
+  :: forall name uni fun pat a
    . InliningConstraints name uni fun
-  => Term name uni fun (Ann a)
-  -> InlineM name uni fun a (Term name uni fun (Ann a))
+  => Term name uni fun pat (Ann a)
+  -> InlineM name uni fun pat a (Term name uni fun pat (Ann a))
 inlineSaturatedApp t
   | (Var av name, args) <- UPLC.splitApplication t =
       gets (lookupVarInfo name) >>= \case
@@ -671,12 +673,12 @@ decorations = _1
 {-# INLINE decorations #-}
 
 -- | Prepend the given decorations
-decorateWith :: [Decoration] -> Term name uni fun (Ann a) -> Term name uni fun (Ann a)
+decorateWith :: [Decoration] -> Term name uni fun pat (Ann a) -> Term name uni fun pat (Ann a)
 decorateWith ds = modifyAnn (first (ds ++))
 {-# INLINE decorateWith #-}
 
 -- | Fold a decorated term into certifier hints.
-mkHints :: Term name uni fun (Ann a) -> CertifierHints.Inline
+mkHints :: Term name uni fun pat (Ann a) -> CertifierHints.Inline
 mkHints = go
   where
     go t = decorate hints ds
@@ -699,6 +701,8 @@ mkHints = go
           Error {} -> CertifierHints.InlError
           Constr _ _ args -> CertifierHints.InlConstr (go <$> args)
           Case _ scrut alts -> CertifierHints.InlCase (go scrut) (go <$> V.toList alts)
+          Match _ scrut alternatives ->
+            CertifierHints.InlMatch (go scrut) (go . snd <$> V.toList alternatives)
 
 {- Note [Inliner's Certifier Hints]
 

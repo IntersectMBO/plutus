@@ -26,7 +26,7 @@ termDefs
      , MonadState (UniqueInfos ann) m
      , MonadWriter [UniqueError ann] m
      )
-  => Term name uni fun ann
+  => Term name uni fun pat ann
   -> m ()
 termDefs tm = do
   forMOf_ termSubtermsDeep tm handleTerm
@@ -37,7 +37,7 @@ handleTerm
      , MonadState (UniqueInfos ann) m
      , MonadWriter [UniqueError ann] m
      )
-  => Term name uni fun ann
+  => Term name uni fun pat ann
   -> m ()
 handleTerm = \case
   Var ann n ->
@@ -51,6 +51,6 @@ runTermDefs
      , HasUnique name TermUnique
      , Monad m
      )
-  => Term name uni fun ann
+  => Term name uni fun pat ann
   -> m (UniqueInfos ann, [UniqueError ann])
 runTermDefs = runWriterT . flip execStateT mempty . termDefs

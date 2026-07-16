@@ -17,6 +17,7 @@ data Inline
   | InlError
   | InlConstr [Inline]
   | InlCase Inline [Inline]
+  | InlMatch Inline [Inline]
   | InlExpand Inline
   | InlDrop Inline
   deriving stock (Generic)

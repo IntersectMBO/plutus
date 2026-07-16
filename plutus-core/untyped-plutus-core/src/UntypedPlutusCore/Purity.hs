@@ -49,19 +49,20 @@ instance Pretty WorkFreedom where
 
 {-| Either the "next" term to be evaluated, along with its 'Purity' and 'WorkFreedom',
 or we don't know what comes next. -}
-data EvalTerm name uni fun a
+data EvalTerm name uni fun pat a
   = Unknown
-  | EvalTerm Purity WorkFreedom (Term name uni fun a)
+  | EvalTerm Purity WorkFreedom (Term name uni fun pat a)
 
 instance
   ( Show name
   , Everywhere uni Show
   , Show fun
+  , Show pat
   , Show a
   , GShow uni
   , Closed uni
   )
-  => Show (EvalTerm name uni fun a)
+  => Show (EvalTerm name uni fun pat a)
   where
   show = \case
     Unknown -> "<unknown>"
@@ -69,14 +70,14 @@ instance
       "EvalTerm " <> show purity <> " " <> show work <> " " <> show t
 
 instance
-  PrettyBy config (Term name uni fun a)
-  => PrettyBy config (EvalTerm name uni fun a)
+  PrettyBy config (Term name uni fun pat a)
+  => PrettyBy config (EvalTerm name uni fun pat a)
   where
   prettyBy _ Unknown = "<unknown>"
   prettyBy config (EvalTerm eff work t) =
     pretty eff <+> pretty work <> ":" <+> prettyBy config t
 
-instance Eq (Term name uni fun a) => Eq (EvalTerm name uni fun a) where
+instance Eq (Term name uni fun pat a) => Eq (EvalTerm name uni fun pat a) where
   Unknown == Unknown = True
   (EvalTerm p1 w1 t1) == (EvalTerm p2 w2 t2) = p1 == p2 && w1 == w2 && t1 == t2
   _ == _ = False
@@ -84,14 +85,14 @@ instance Eq (Term name uni fun a) => Eq (EvalTerm name uni fun a) where
 -- We use a DList here for efficient and lazy concatenation
 
 -- | The order in which terms get evaluated, along with their purities.
-newtype EvalOrder name uni fun a = EvalOrder (DList.DList (EvalTerm name uni fun a))
+newtype EvalOrder name uni fun pat a = EvalOrder (DList.DList (EvalTerm name uni fun pat a))
   deriving newtype (Semigroup, Monoid)
 
 {-| Get the evaluation order as a list of 'EvalTerm's. Either terminates in a single
 'Unknown', which means that we got to a point where evaluation continues but we don't
 know where; or terminates normally, in which case we actually got to the end of the
 evaluation order for the term. -}
-unEvalOrder :: EvalOrder name uni fun a -> [EvalTerm name uni fun a]
+unEvalOrder :: EvalOrder name uni fun pat a -> [EvalTerm name uni fun pat a]
 unEvalOrder (EvalOrder ts) =
   -- This is where we avoid traversing the whole program beyond the first Unknown,
   -- since DList is lazy and we convert to a lazy list and then filter it.
@@ -100,12 +101,12 @@ unEvalOrder (EvalOrder ts) =
     takeWhileInclusive :: (a -> Bool) -> [a] -> [a]
     takeWhileInclusive p = foldr (\x ys -> if p x then x : ys else [x]) []
 
-evalThis :: EvalTerm name uni fun a -> EvalOrder name uni fun a
+evalThis :: EvalTerm name uni fun pat a -> EvalOrder name uni fun pat a
 evalThis = EvalOrder . DList.singleton
 
 instance
-  PrettyBy config (Term name uni fun a)
-  => PrettyBy config (EvalOrder name uni fun a)
+  PrettyBy config (Term name uni fun pat a)
+  => PrettyBy config (EvalOrder name uni fun pat a)
   where
   prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
 
@@ -119,27 +120,27 @@ This makes some assumptions about the evaluator, in particular about the order i
 which we evaluate sub-terms, but these match the current evaluator and we are not
 planning on changing it. -}
 termEvaluationOrder
-  :: forall name uni fun a
+  :: forall name uni fun pat a
    . ToBuiltinMeaning uni fun
   => BuiltinSemanticsVariant fun
-  -> Term name uni fun a
-  -> EvalOrder name uni fun a
+  -> Term name uni fun pat a
+  -> EvalOrder name uni fun pat a
 termEvaluationOrder builtinSemanticsVariant = goTerm
   where
-    goTerm :: Term name uni fun a -> EvalOrder name uni fun a
+    goTerm :: Term name uni fun pat a -> EvalOrder name uni fun pat a
     goTerm = \case
       (splitAppCtx -> (builtin@(Builtin _ann fun), appCtx)) ->
         appCtxEvalOrder appCtx <> go arity appCtx
         where
           arity = builtinArity @uni @fun (Proxy @uni) builtinSemanticsVariant fun
 
-          appCtxEvalOrder :: AppCtx name uni fun a -> EvalOrder name uni fun a
+          appCtxEvalOrder :: AppCtx name uni fun pat a -> EvalOrder name uni fun pat a
           appCtxEvalOrder = \case
             AppCtxEnd -> mempty
             AppCtxTerm _ t rest -> goTerm t <> appCtxEvalOrder rest
             AppCtxType _ rest -> appCtxEvalOrder rest
 
-          go :: [Param] -> AppCtx name uni fun a -> EvalOrder name uni fun a
+          go :: [Param] -> AppCtx name uni fun pat a -> EvalOrder name uni fun pat a
           go parameters appContext =
             case parameters of
               -- All builtin parameters have been applied,
@@ -170,13 +171,13 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
                   AppCtxType _ann remainingAppCtx ->
                     go otherParams remainingAppCtx
             where
-              maybeImpureWork :: EvalOrder name uni fun a
+              maybeImpureWork :: EvalOrder name uni fun pat a
               maybeImpureWork = evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
 
-              pureWorkFree :: EvalOrder name uni fun a
+              pureWorkFree :: EvalOrder name uni fun pat a
               pureWorkFree = evalThis (EvalTerm Pure WorkFree reconstructed)
 
-              reconstructed :: Term name uni fun a
+              reconstructed :: Term name uni fun pat a
               reconstructed = fillAppCtx builtin appCtx
       t@(Apply _ fun arg) ->
         -- first the function
@@ -213,6 +214,10 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
           <> evalThis (EvalTerm Pure MaybeWork t)
           -- then we go to an unknown scrutinee
           <> evalThis Unknown
+      t@(Match _ scrut _) ->
+        goTerm scrut
+          <> evalThis (EvalTerm Pure MaybeWork t)
+          <> evalThis Unknown
       -- Leaf terms
       t@Var {} ->
         evalThis (EvalTerm Pure WorkFree t)
@@ -237,7 +242,7 @@ things that can't be returned from the machine (as they'd be ill-scoped). -}
 isPure
   :: ToBuiltinMeaning uni fun
   => BuiltinSemanticsVariant fun
-  -> Term name uni fun a
+  -> Term name uni fun pat a
   -> Bool
 isPure builtinSemanticsVariant term =
   -- to work out if the term is pure, we see if we can look through
@@ -245,7 +250,7 @@ isPure builtinSemanticsVariant term =
   -- effectful
   go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant term))
   where
-    go :: [EvalTerm name uni fun a] -> Bool
+    go :: [EvalTerm name uni fun pat a] -> Bool
     go [] = True
     go (et : rest) = case et of
       -- Might be an effect here!
@@ -262,7 +267,7 @@ evaluating this term should do very a trivial amount of work. -}
 isWorkFree
   :: ToBuiltinMeaning uni fun
   => BuiltinSemanticsVariant fun
-  -> Term name uni fun a
+  -> Term name uni fun pat a
   -> Bool
 isWorkFree builtinSemanticsVariant term =
   -- to work out if the term is pure, we see if we can look through
@@ -270,7 +275,7 @@ isWorkFree builtinSemanticsVariant term =
   -- effectful
   go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant term))
   where
-    go :: [EvalTerm name uni fun a] -> Bool
+    go :: [EvalTerm name uni fun pat a] -> Bool
     go [] = True
     go (et : rest) = case et of
       -- Might be an effect here!

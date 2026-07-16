@@ -17,7 +17,7 @@ import UntypedPlutusCore.Core.Type
 import Prettyprinter
 
 -- | Split an iterated 'LamAbs' (if any) into a list of variables that it binds and its body.
-viewLamAbs :: Term name uni fun ann -> Maybe ([name], Term name uni fun ann)
+viewLamAbs :: Term name uni fun pat ann -> Maybe ([name], Term name uni fun pat ann)
 viewLamAbs term0@LamAbs {} = Just $ go term0
   where
     go (LamAbs _ name body) = first (name :) $ go body
@@ -26,8 +26,8 @@ viewLamAbs _ = Nothing
 
 -- | Split an iterated 'Apply' (if any) into the head of the application and the spine.
 viewApp
-  :: Term name uni fun ann
-  -> Maybe (Term name uni fun ann, [Term name uni fun ann])
+  :: Term name uni fun pat ann
+  -> Maybe (Term name uni fun pat ann, [Term name uni fun pat ann])
 viewApp term0 = go term0 []
   where
     go (Apply _ fun arg) args = go fun $ arg : args
@@ -35,8 +35,13 @@ viewApp term0 = go term0 []
     go fun args = Just (fun, args)
 
 instance
-  (PrettyReadableBy configName name, PrettyUni uni, Pretty fun, Show configName)
-  => PrettyBy (PrettyConfigReadable configName) (Term name uni fun a)
+  ( PrettyReadableBy configName name
+  , PrettyUni uni
+  , Pretty fun
+  , Pretty pat
+  , Show configName
+  )
+  => PrettyBy (PrettyConfigReadable configName) (Term name uni fun pat a)
   where
   prettyBy = inContextM $ \case
     Constant _ val -> lmap (ConstConfig . _pcrRenderContext) $ prettyM val
@@ -54,10 +59,15 @@ instance
     Constr _ i es -> iterAppDocM $ \_ prettyArg ->
       ("constr" <+> prettyArg i) :| [prettyArg es]
     Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg (toList cs)]
+    Match _ arg alternatives -> iterAppDocM $ \_ prettyArg ->
+      "match" :| (prettyArg arg : fmap (prettyAlternative prettyArg) (toList alternatives))
+      where
+        prettyAlternative prettyArg (pat, handler) =
+          parens $ "pattern" <+> pretty pat <+> prettyArg handler
 
 instance
-  PrettyReadableBy configName (Term name uni fun a)
-  => PrettyBy (PrettyConfigReadable configName) (Program name uni fun a)
+  PrettyReadableBy configName (Term name uni fun pat a)
+  => PrettyBy (PrettyConfigReadable configName) (Program name uni fun pat a)
   where
   prettyBy = inContextM $ \(Program _ version term) ->
     iterAppDocM $ \_ prettyArg -> "program" :| [pretty version, prettyArg term]

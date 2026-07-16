@@ -8,9 +8,9 @@ import UntypedPlutusCore.Core (Term (..))
 import UntypedPlutusCore.Core.Instance.Eq ()
 
 -- | A context for an iterated term/type application.
-data AppCtx name uni fun a
-  = AppCtxTerm a (Term name uni fun a) (AppCtx name uni fun a)
-  | AppCtxType a (AppCtx name uni fun a)
+data AppCtx name uni fun pat a
+  = AppCtxTerm a (Term name uni fun pat a) (AppCtx name uni fun pat a)
+  | AppCtxType a (AppCtx name uni fun pat a)
   | AppCtxEnd
 
 {-| Takes a term and views it as a head plus an 'AppCtx', e.g.
@@ -21,7 +21,7 @@ data AppCtx name uni fun a
   ==
   f (AppCtxType t (AppCtxTerm u (AppCtxTerm v AppCtxEnd)))
 @ -}
-splitAppCtx :: Term nam uni fun a -> (Term nam uni fun a, AppCtx nam uni fun a)
+splitAppCtx :: Term nam uni fun pat a -> (Term nam uni fun pat a, AppCtx nam uni fun pat a)
 splitAppCtx = go AppCtxEnd
   where
     go appCtx = \case
@@ -31,9 +31,9 @@ splitAppCtx = go AppCtxEnd
 
 -- | Fills in the hole in an 'AppCtx', the inverse of 'splitAppCtx'.
 fillAppCtx
-  :: Term name uni fun ann
-  -> AppCtx name uni fun ann
-  -> Term name uni fun ann
+  :: Term name uni fun pat ann
+  -> AppCtx name uni fun pat ann
+  -> Term name uni fun pat ann
 fillAppCtx term = \case
   AppCtxEnd -> term
   AppCtxTerm ann arg ctx -> fillAppCtx (Apply ann term arg) ctx
@@ -42,7 +42,7 @@ fillAppCtx term = \case
 data Saturation = Oversaturated | Undersaturated | Saturated
 
 -- | Do the given arguments saturate the given arity?
-saturates :: AppCtx name uni fun a -> Arity -> Maybe Saturation
+saturates :: AppCtx name uni fun pat a -> Arity -> Maybe Saturation
 -- Exactly right
 saturates AppCtxEnd [] = Just Saturated
 -- Parameters left - undersaturated

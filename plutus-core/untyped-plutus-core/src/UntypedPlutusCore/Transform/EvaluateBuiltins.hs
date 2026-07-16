@@ -18,37 +18,38 @@ import Control.Lens (transformOf, (^.))
 import Data.Functor (void)
 
 evaluateBuiltinsPass
-  :: (Monad m, ToBuiltinMeaning uni fun, Typeable name)
+  :: (Monad m, ToBuiltinMeaning uni fun, Typeable name, Typeable pat)
   => Bool
   -- ^ Whether to be conservative and try to retain logging behaviour.
   -> BuiltinsInfo uni fun
   -> CostingPart uni fun
-  -> Term name uni fun a
-  -> OptimizerT name uni fun a m (Term name uni fun a)
+  -> Term name uni fun pat a
+  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
 evaluateBuiltinsPass preserveLogging binfo costModel term = do
   result <- evaluateBuiltins preserveLogging binfo costModel term
   recordOptimization term ConstantFoldingStage result
   return result
 
 evaluateBuiltins
-  :: forall m name uni fun a
+  :: forall m name uni fun pat a
    . ( Monad m
      , ToBuiltinMeaning uni fun
      , Typeable name
+     , Typeable pat
      )
   => Bool
   -- ^ Whether to be conservative and try to retain logging behaviour.
   -> BuiltinsInfo uni fun
   -> CostingPart uni fun
-  -> Term name uni fun a
-  -> OptimizerT name uni fun a m (Term name uni fun a)
+  -> Term name uni fun pat a
+  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
 evaluateBuiltins preserveLogging binfo costModel =
   pure . transformOf termSubterms processTerm
   where
     eval
-      :: BuiltinRuntime (Term name uni fun ())
-      -> AppCtx name uni fun a
-      -> Maybe (Term name uni fun ())
+      :: BuiltinRuntime (Term name uni fun pat ())
+      -> AppCtx name uni fun pat a
+      -> Maybe (Term name uni fun pat ())
     eval (BuiltinCostedResult _ getFXs) AppCtxEnd =
       case getFXs of
         BuiltinSuccess y -> Just y
@@ -60,7 +61,7 @@ evaluateBuiltins preserveLogging binfo costModel =
       eval runtime ctx
     eval _ _ = Nothing
 
-    processTerm :: Term name uni fun a -> Term name uni fun a
+    processTerm :: Term name uni fun pat a -> Term name uni fun pat a
     -- See Note [Context splitting in a recursive pass]
     processTerm t@(splitAppCtx -> (Builtin x bn, argCtx)) =
       let runtime = toBuiltinRuntime costModel (toBuiltinMeaning (binfo ^. biSemanticsVariant) bn)

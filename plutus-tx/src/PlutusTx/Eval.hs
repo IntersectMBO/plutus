@@ -21,7 +21,7 @@ import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachinePa
 import PlutusCore.Pretty
 import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import Prettyprinter (dot, indent, plural, vsep, (<+>))
-import UntypedPlutusCore (DefaultFun, DefaultUni, Program (..))
+import UntypedPlutusCore (DefaultBuiltinPattern, DefaultFun, DefaultUni, Program (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek
   ( CekEvaluationException
   , CekReport (..)
@@ -35,8 +35,8 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 data EvalResult = EvalResult
   { evalResult
       :: Either
-           (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
-           (NTerm DefaultUni DefaultFun ())
+           (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern)
+           (NTerm DefaultUni DefaultFun DefaultBuiltinPattern ())
   , evalResultBudget :: ExBudget
   , evalResultTraces :: [Text]
   }

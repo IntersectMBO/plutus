@@ -14,7 +14,11 @@ module PlutusLedgerApi.V2.EvaluationContext
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V2.ParamName as V2
 
-import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
+import PlutusCore.Builtin
+  ( availableCaserBuiltin
+  , unavailableCaserBuiltin
+  , unavailableMatcherBuiltin
+  )
 import PlutusCore.Default
   ( BuiltinSemanticsVariant
       ( DefaultFunSemanticsVariantA
@@ -51,8 +55,9 @@ mkEvaluationContext =
       ( \pv ->
           if pv < vanRossemPV
             then unavailableCaserBuiltin $ getMajorProtocolVersion pv
-            else CaserBuiltin caseBuiltin
+            else availableCaserBuiltin
       )
+      (unavailableMatcherBuiltin . getMajorProtocolVersion)
       [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB, DefaultFunSemanticsVariantD]
       -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
       ( \pv ->

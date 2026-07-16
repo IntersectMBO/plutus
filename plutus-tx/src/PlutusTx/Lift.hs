@@ -62,6 +62,7 @@ import Control.Monad.Reader (runReaderT)
 import Data.Default.Class
 import Data.Hashable
 import Data.Proxy
+import Data.Typeable (Typeable)
 
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
@@ -69,10 +70,11 @@ import Prelude as Haskell
 {-| Get a Plutus Core term corresponding to the given value. Allows configuring
 PIR and UPLC optimization options. -}
 safeLiftWith
-  :: forall a uni fun m
+  :: forall a uni fun pat m
    . ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -83,6 +85,8 @@ safeLiftWith
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => (PIR.CompilationOpts () -> PIR.CompilationOpts ())
   -- ^ Modifier of PIR compilation options
@@ -90,7 +94,7 @@ safeLiftWith
   -- ^ Modifier of UPLC compilation options
   -> PLC.Version
   -> a
-  -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
+  -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun pat ())
 safeLiftWith f g v x = do
   pir <- liftQuote $ runDefT () $ Lift.lift x
   tcConfig <- modifyError (PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig $ Original ()
@@ -120,10 +124,11 @@ safeLiftWith f g v x = do
 {-| Get a Plutus Core term corresponding to the given value, applying default PIR/UPLC
 optimizations. -}
 safeLift
-  :: forall a uni fun m
+  :: forall a uni fun pat m
    . ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -134,19 +139,22 @@ safeLift
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => PLC.Version
   -> a
-  -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
+  -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun pat ())
 safeLift = safeLiftWith id id
 
 {-| Like `safeLift` but does not apply PIR/UPLC optimizations. Use this option
 where lifting speed is more important than optimal code. -}
 safeLiftUnopt
-  :: forall a uni fun m
+  :: forall a uni fun pat m
    . ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -157,10 +165,12 @@ safeLiftUnopt
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => PLC.Version
   -> a
-  -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
+  -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun pat ())
 safeLiftUnopt =
   safeLiftWith
     (set coMaxSimplifierIterations 0)
@@ -175,6 +185,7 @@ safeLiftProgram
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -185,10 +196,12 @@ safeLiftProgram
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => PLC.Version
   -> a
-  -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
+  -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun pat ())
 safeLiftProgram v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLift v x
 
 {-| Like `safeLiftProgram` but does not apply PIR/UPLC optimizations. Use this option
@@ -197,6 +210,7 @@ safeLiftProgramUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -207,16 +221,19 @@ safeLiftProgramUnopt
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => PLC.Version
   -> a
-  -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
+  -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun pat ())
 safeLiftProgramUnopt v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLiftUnopt v x
 
 safeLiftCode
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -227,8 +244,10 @@ safeLiftCode
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
-  => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
+  => PLC.Version -> a -> m (CompiledCodeIn uni fun pat a)
 safeLiftCode v =
   fmap
     ( \(pir, uplc) ->
@@ -242,6 +261,7 @@ safeLiftCodeUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -252,8 +272,10 @@ safeLiftCodeUnopt
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
-  => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
+  => PLC.Version -> a -> m (CompiledCodeIn uni fun pat a)
 safeLiftCodeUnopt v =
   fmap
     ( \(pir, uplc) ->
@@ -279,15 +301,18 @@ lift
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => PLC.Version
   -> a
-  -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
+  -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun pat ())
 lift v a = unsafely $ safeLift v a
 
 {-| Like `lift` but does not apply PIR/UPLC optimizations. Use this option
@@ -298,15 +323,18 @@ liftUnopt
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => PLC.Version
   -> a
-  -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
+  -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun pat ())
 liftUnopt v a = unsafely $ safeLiftUnopt v a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
@@ -316,15 +344,18 @@ liftProgram
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => PLC.Version
   -> a
-  -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
+  -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun pat ())
 liftProgram v x = unsafely $ safeLiftProgram v x
 
 {-| Like `liftProgram` but does not apply PIR/UPLC optimizations. Use this option
@@ -335,15 +366,18 @@ liftProgramUnopt
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => PLC.Version
   -> a
-  -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
+  -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun pat ())
 liftProgramUnopt v x = unsafely $ safeLiftProgram v x
 
 -- | Get a Plutus Core program in the default universe with the default version, corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
@@ -351,7 +385,12 @@ liftProgramDef
   :: Lift.Lift PLC.DefaultUni a
   => a
   -> ( PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-     , UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+     , UPLC.Program
+         UPLC.NamedDeBruijn
+         PLC.DefaultUni
+         PLC.DefaultFun
+         PLC.DefaultBuiltinPattern
+         ()
      )
 liftProgramDef = liftProgram PLC.latestVersion
 
@@ -361,7 +400,12 @@ liftProgramDefUnopt
   :: Lift.Lift PLC.DefaultUni a
   => a
   -> ( PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-     , UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+     , UPLC.Program
+         UPLC.NamedDeBruijn
+         PLC.DefaultUni
+         PLC.DefaultFun
+         PLC.DefaultBuiltinPattern
+         ()
      )
 liftProgramDefUnopt = liftProgramUnopt PLC.latestVersion
 
@@ -370,6 +414,7 @@ liftCode
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
@@ -377,8 +422,10 @@ liftCode
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
-  => PLC.Version -> a -> CompiledCodeIn uni fun a
+  => PLC.Version -> a -> CompiledCodeIn uni fun pat a
 liftCode v x = unsafely $ safeLiftCode v x
 
 {-| Like `liftCode` but does not apply PIR/UPLC optimizations. Use this option
@@ -387,6 +434,7 @@ liftCodeUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
@@ -394,8 +442,10 @@ liftCodeUnopt
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
-  => PLC.Version -> a -> CompiledCodeIn uni fun a
+  => PLC.Version -> a -> CompiledCodeIn uni fun pat a
 liftCodeUnopt v x = unsafely $ safeLiftCodeUnopt v x
 
 -- | Get a Plutus Core program with the default version, corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
@@ -403,6 +453,7 @@ liftCodeDef
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
@@ -410,8 +461,10 @@ liftCodeDef
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
-  => a -> CompiledCodeIn uni fun a
+  => a -> CompiledCodeIn uni fun pat a
 liftCodeDef = liftCode PLC.latestVersion
 
 {-| Like `liftCodeDef` but does not apply PIR/UPLC optimizations. Use this option
@@ -420,6 +473,7 @@ liftCodeDefUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
@@ -427,8 +481,10 @@ liftCodeDefUnopt
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
-  => a -> CompiledCodeIn uni fun a
+  => a -> CompiledCodeIn uni fun pat a
 liftCodeDefUnopt = liftCodeUnopt PLC.latestVersion
 
 {- Note [Checking the type of a term with Typeable]
@@ -485,12 +541,13 @@ typeCheckAgainst p (PLC.Program _ v plcTerm) = do
 
 -- | Try to interpret a PLC program as a 'CompiledCodeIn' of the given type. Returns successfully iff the program has the right type.
 typeCode
-  :: forall a uni fun m
+  :: forall a uni fun pat m
    . ( Lift.Typeable uni a
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , Eq pat
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
      , PrettyUni uni
@@ -499,10 +556,12 @@ typeCode
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
      , Hashable fun
+     , Hashable pat
+     , Typeable pat
      )
   => Proxy a
   -> PLC.Program PLC.TyName PLC.Name uni fun ()
-  -> m (CompiledCodeIn uni fun a)
+  -> m (CompiledCodeIn uni fun pat a)
 typeCode p prog = do
   _ <- typeCheckAgainst p prog
   compiled <-

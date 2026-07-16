@@ -50,11 +50,13 @@ data MachineVariantParameters machineCosts fun val
 
 {-| At execution time we need a 'BuiltinsRuntime' object which includes both the cost model for
 builtins and their denotations. This bundles one of those together with the cost model for evaluator
-steps and a 'CaserBuiltin' specifying how casing on values of built-in types works.
+steps, a 'CaserBuiltin' specifying how casing on values of built-in types works, and a
+'MatcherBuiltin' specifying how universe-specific patterns inspect built-in values.
 The @val@ type will be 'CekValue' when we're using this with the CEK machine. -}
-data MachineParameters machineCosts fun val
+data MachineParameters machineCosts fun val pat
   = MachineParameters
   { machineCaserBuiltin :: CaserBuiltin (UniOf val)
+  , machineMatcherBuiltin :: MatcherBuiltin (UniOf val) pat
   , machineVariantParameters :: MachineVariantParameters machineCosts fun val
   }
   deriving stock (Generic)
@@ -69,9 +71,12 @@ instance
   wNoThunks ctx (MachineVariantParameters costs runtime) =
     allNoThunks [noThunks ctx costs, noThunks ctx runtime]
 
-instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
-  wNoThunks ctx (MachineParameters caser varPars) =
-    allNoThunks [noThunks ctx caser, noThunks ctx varPars]
+instance
+  (NoThunks machinecosts, Bounded fun, Enum fun)
+  => NoThunks (MachineParameters machinecosts fun val pat)
+  where
+  wNoThunks ctx (MachineParameters caser matcher varPars) =
+    allNoThunks [noThunks ctx caser, noThunks ctx matcher, noThunks ctx varPars]
 
 {- Note [The CostingPart constraint in mkMachineVariantParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in

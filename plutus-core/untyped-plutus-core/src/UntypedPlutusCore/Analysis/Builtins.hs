@@ -60,7 +60,7 @@ constantIsSerializable
   -> Bool
 constantIsSerializable bi v = not $ _biUnserializableConstants bi v
 
-termIsSerializable :: BuiltinsInfo uni fun -> Term name uni fun a -> Bool
+termIsSerializable :: BuiltinsInfo uni fun -> Term name uni fun pat a -> Bool
 termIsSerializable binfo =
   allOf
     (termSubtermsDeep . _Constant)

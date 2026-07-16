@@ -60,12 +60,37 @@ caseOfCase
      , PLC.Closed uni
      , uni `PLC.Everywhere` Eq
      )
-  => Term name uni fun a
-  -> OptimizerT name uni fun a m (Term name uni fun a)
+  => Term name uni fun pat a
+  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
 caseOfCase term = do
-  let result = transformOf termSubterms processTerm term
+  let result = snd $ processTermWithMatch term
   recordOptimization term CaseOfCaseStage result
   return result
+
+-- The rewrites below can change when constructor fields and branches are evaluated. A match in
+-- one of them can therefore expose a different failure order. Skip only the enclosing rewrite and
+-- let the recursive pass continue optimizing independent subterms. Propagating the flag bottom-up
+-- avoids a quadratic repeated scan of ordinary Match-free programs.
+processTermWithMatch
+  :: ( fun ~ PLC.DefaultFun
+     , CaseBuiltin uni
+     , PLC.GEq uni
+     , PLC.Closed uni
+     , uni `PLC.Everywhere` Eq
+     )
+  => Term name uni fun pat a
+  -> (Bool, Term name uni fun pat a)
+processTermWithMatch term =
+  let (childHasMatch, term') = mapAccumLOf termSubterms processChild False term
+      hasMatch = isMatch term || childHasMatch
+   in (hasMatch, if hasMatch then term' else processTerm term')
+  where
+    processChild found child =
+      let (childHasMatch, child') = processTermWithMatch child
+       in (found || childHasMatch, child')
+
+    isMatch Match {} = True
+    isMatch _ = False
 
 processTerm
   :: ( fun ~ PLC.DefaultFun
@@ -74,8 +99,8 @@ processTerm
      , PLC.Closed uni
      , uni `PLC.Everywhere` Eq
      )
-  => Term name uni fun a -> Term name uni fun a
-processTerm = \case
+  => Term name uni fun pat a -> Term name uni fun pat a
+processTerm term = case term of
   Case ann scrut alts
     | ( ite@(Force a (Builtin _ PLC.IfThenElse))
         , [cond, (trueAnn, true@Constr {}), (falseAnn, false@Constr {})]

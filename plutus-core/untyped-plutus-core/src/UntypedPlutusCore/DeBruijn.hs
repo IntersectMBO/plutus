@@ -45,37 +45,37 @@ This module is just a boring port of the typed version.
 Will throw an error if a free variable is encountered. -}
 deBruijnTerm
   :: MonadError FreeVariableError m
-  => Term Name uni fun ann -> m (Term NamedDeBruijn uni fun ann)
+  => Term Name uni fun pat ann -> m (Term NamedDeBruijn uni fun pat ann)
 deBruijnTerm = deBruijnTermWith freeUniqueThrow
 
 {-| Convert a 'Term' with 'DeBruijn's into a 'Term' with 'Name's.
 Will throw an error if a free variable is encountered. -}
 unDeBruijnTerm
   :: (MonadQuote m, MonadError FreeVariableError m)
-  => Term NamedDeBruijn uni fun ann -> m (Term Name uni fun ann)
+  => Term NamedDeBruijn uni fun pat ann -> m (Term Name uni fun pat ann)
 unDeBruijnTerm = unDeBruijnTermWith freeIndexThrow
 
 -- | Takes a "handler" function to execute when encountering free variables.
 deBruijnTermWith
   :: Monad m
   => (Unique -> ReaderT LevelInfo m Index)
-  -> Term Name uni fun ann
-  -> m (Term NamedDeBruijn uni fun ann)
+  -> Term Name uni fun pat ann
+  -> m (Term NamedDeBruijn uni fun pat ann)
 deBruijnTermWith = (runDeBruijnT .) . deBruijnTermWithM
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWith
   :: MonadQuote m
   => (Index -> ReaderT LevelInfo m Unique)
-  -> Term NamedDeBruijn uni fun ann
-  -> m (Term Name uni fun ann)
+  -> Term NamedDeBruijn uni fun pat ann
+  -> m (Term Name uni fun pat ann)
 unDeBruijnTermWith = (runDeBruijnT .) . unDeBruijnTermWithM
 
 deBruijnTermWithM
   :: MonadReader LevelInfo m
   => (Unique -> m Index)
-  -> Term Name uni fun ann
-  -> m (Term NamedDeBruijn uni fun ann)
+  -> Term Name uni fun pat ann
+  -> m (Term NamedDeBruijn uni fun pat ann)
 deBruijnTermWithM h = go
   where
     go = \case
@@ -91,6 +91,7 @@ deBruijnTermWithM h = go
       Force ann t -> Force ann <$> go t
       Constr ann i es -> Constr ann i <$> traverse go es
       Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
+      Match ann arg alternatives -> Match ann <$> go arg <*> traverse (traverse go) alternatives
       -- boring non-recursive cases
       Constant ann con -> pure $ Constant ann con
       Builtin ann bn -> pure $ Builtin ann bn
@@ -100,8 +101,8 @@ deBruijnTermWithM h = go
 unDeBruijnTermWithM
   :: (MonadReader LevelInfo m, MonadQuote m)
   => (Index -> m Unique)
-  -> Term NamedDeBruijn uni fun ann
-  -> m (Term Name uni fun ann)
+  -> Term NamedDeBruijn uni fun pat ann
+  -> m (Term Name uni fun pat ann)
 unDeBruijnTermWithM h = go
   where
     go = \case
@@ -119,6 +120,7 @@ unDeBruijnTermWithM h = go
       Force ann t -> Force ann <$> go t
       Constr ann i es -> Constr ann i <$> traverse go es
       Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
+      Match ann arg alternatives -> Match ann <$> go arg <*> traverse (traverse go) alternatives
       -- boring non-recursive cases
       Constant ann con -> pure $ Constant ann con
       Builtin ann bn -> pure $ Builtin ann bn
