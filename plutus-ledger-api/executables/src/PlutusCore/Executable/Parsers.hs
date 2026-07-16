@@ -93,7 +93,6 @@ formatReader =
     "blueprint" -> Just Blueprint
     _ -> Nothing
 
--- | The format names accepted by 'formatReader', used for shell completion.
 formatNames :: [String]
 formatNames =
   [ "textual"
@@ -474,7 +473,6 @@ pirFormatReader =
     "flat-named" -> Just FlatNamed
     _ -> Nothing
 
--- | The format names accepted by 'pirFormatReader', used for shell completion.
 pirFormatNames :: [String]
 pirFormatNames = ["textual", "flat-named"]
 

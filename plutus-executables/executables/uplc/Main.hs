@@ -100,7 +100,6 @@ uplcHelpText = helpText "Untyped Plutus Core"
 uplcInfoCommand :: ParserInfo Command
 uplcInfoCommand = plutus uplcHelpText
 
--- | Examples shown in the footer of the top-level @uplc --help@.
 topLevelExamples :: [Help.Example]
 topLevelExamples =
   [ Help.eg
