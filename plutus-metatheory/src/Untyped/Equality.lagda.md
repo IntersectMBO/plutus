@@ -93,7 +93,7 @@ decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
 
 decEq-⊢ : {n : ℕ} → DecidableEquality (n ⊢)
 
-decEq-⊢⋆ : {n : ℕ} → DecidableEquality (List (n ⊢)) -- {n : ℕ} → (Ms : List (n ⊢)) → (Ns : List (n ⊢)) → Dec (Ms ≡ Ns)
+decEqList-⊢ : {n : ℕ} → DecidableEquality (List (n ⊢))
 
 ```
 # Pointwise Decisions
@@ -175,10 +175,10 @@ pairDec eqA eqB (a₁ , b₁) (a₂ , b₂) with (eqA a₁ a₂) | (eqB b₁ b�
 ... | no a₁≠a₂ | _ = no λ { refl → a₁≠a₂ refl }
 ... | _             | no b₁≠b₂ = no λ { refl → b₁≠b₂ refl }
 
-decEq-⊢⋆ [] [] = yes refl
-decEq-⊢⋆ [] (x ∷ ls₂) = no (λ ())
-decEq-⊢⋆ (x₁ ∷ ls₁) [] = no (λ ())
-decEq-⊢⋆ (x₁ ∷ ls₁) (x₂ ∷ ls₂) with decEq-⊢ x₁ x₂ | decEq-⊢⋆ ls₁ ls₂
+decEqList-⊢ [] [] = yes refl
+decEqList-⊢ [] (x ∷ ls₂) = no (λ ())
+decEqList-⊢ (x₁ ∷ ls₁) [] = no (λ ())
+decEqList-⊢ (x₁ ∷ ls₁) (x₂ ∷ ls₂) with decEq-⊢ x₁ x₂ | decEqList-⊢ ls₁ ls₂
 ... | yes p | yes q = yes (cong₂ _∷_ p q)
 ... | yes _ | no ¬q = no λ { refl → ¬q refl }
 ... | no ¬p | _     = no λ { refl → ¬p refl }
@@ -441,7 +441,7 @@ decEq-⊢ (constr i xs) (t₁ · t₂) = no (λ ())
 decEq-⊢ (constr i xs) (force t₁) = no (λ ())
 decEq-⊢ (constr i xs) (delay t₁) = no (λ ())
 decEq-⊢ (constr i xs) (con x) = no (λ ())
-decEq-⊢ (constr i xs) (constr i₁ xs₁) with i ≟ i₁ | decEq-⊢⋆ xs xs₁
+decEq-⊢ (constr i xs) (constr i₁ xs₁) with i ≟ i₁ | decEqList-⊢ xs xs₁
 ... | yes p | yes q = yes (cong₂ constr p q)
 ... | yes _ | no ¬q = no λ { refl → ¬q refl }
 ... | no ¬p | _     = no λ { refl → ¬p refl }
@@ -455,7 +455,7 @@ decEq-⊢ (case t ts) (force t₁) = no (λ ())
 decEq-⊢ (case t ts) (delay t₁) = no (λ ())
 decEq-⊢ (case t ts) (con x) = no (λ ())
 decEq-⊢ (case t ts) (constr i xs) = no (λ ())
-decEq-⊢ (case t ts) (case t₁ ts₁) with decEq-⊢ t t₁ | decEq-⊢⋆ ts ts₁
+decEq-⊢ (case t ts) (case t₁ ts₁) with decEq-⊢ t t₁ | decEqList-⊢ ts ts₁
 ... | yes p | yes q = yes (cong₂ case p q)
 ... | yes _ | no ¬q = no λ { refl → ¬q refl }
 ... | no ¬p | _     = no λ { refl → ¬p refl }
