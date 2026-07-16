@@ -30,8 +30,8 @@ uplc --help                 # top-level overview + examples
 uplc evaluate --help        # options and examples for one subcommand
 ```
 
-Both the top-level help and each subcommand's help end with a worked
-**Examples** section.
+The top-level help and the help of the most commonly used subcommands end with
+a worked **Examples** section.
 
 ## Shell completion
 
@@ -41,10 +41,18 @@ current shell:
 ```bash
 # bash
 source <(uplc --bash-completion-script "$(command -v uplc)")
-# zsh
-source <(uplc --zsh-completion-script "$(command -v uplc)")
 # fish
 uplc --fish-completion-script (command -v uplc) | source
+```
+
+For zsh the generated script is a completion function body, so it cannot be
+sourced directly; install it as `_uplc` on your `$fpath` instead:
+
+```bash
+mkdir -p ~/.zsh/completions
+uplc --zsh-completion-script "$(command -v uplc)" > ~/.zsh/completions/_uplc
+fpath+=(~/.zsh/completions)
+autoload -U compinit && compinit
 ```
 
 Completion covers subcommand names, flags, file paths, and the allowed values of

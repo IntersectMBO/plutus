@@ -14,8 +14,11 @@ import Test.Tasty
 import Test.Tasty.HUnit
 
 runOk :: String -> [String] -> IO String
-runOk prog args = do
-  (code, out, err) <- readProcessWithExitCode prog args ""
+runOk prog args = runOkIn prog args ""
+
+runOkIn :: String -> [String] -> String -> IO String
+runOkIn prog args stdin' = do
+  (code, out, err) <- readProcessWithExitCode prog args stdin'
   case code of
     ExitSuccess -> pure out
     ExitFailure n ->
@@ -104,6 +107,18 @@ completionQueryTests =
     assertElem x xs =
       assertBool ("expected " <> show x <> " among completions " <> show xs) (x `elem` xs)
 
+runnableExampleTests :: TestTree
+runnableExampleTests =
+  testGroup
+    "help examples actually run"
+    [ testCase "stdin evaluate example" $ do
+        out <- runOkIn "uplc" ["evaluate"] "(program 1.1.0 (con integer 42))"
+        assertInfix "42" out
+    , testCase "example -a lists examples" $ do
+        out <- runOk "uplc" ["example", "-a"]
+        assertInfix "succInteger" out
+    ]
+
 render :: [Example] -> Maybe String
 render = fmap (renderString . layoutPretty defaultLayoutOptions) . examplesDoc
 
@@ -137,4 +152,5 @@ main =
       , helpTests
       , completionScriptTests
       , completionQueryTests
+      , runnableExampleTests
       ]

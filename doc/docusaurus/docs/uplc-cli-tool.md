@@ -11,13 +11,14 @@ You can also build `uplc` from source by cloning the Plutus repository, running 
 
 `uplc` supports a variety of subcommands.
 Run `uplc --help` to see the available subcommands, and `uplc <subcommand> --help` to see the options of a particular subcommand.
-Both `uplc --help` and every `uplc <subcommand> --help` end with a short, worked **Examples** section, so the fastest way to remember how a command is invoked is usually to ask it.
+Both `uplc --help` and the `--help` of the most commonly used subcommands end with a short, worked **Examples** section, so the fastest way to remember how a command is invoked is usually to ask it.
 
 ## Subcommands at a glance
 
 | Subcommand | What it does |
 | --- | --- |
 | `evaluate` | Run a UPLC program on the CEK machine and print the result. |
+| `time` | Time the evaluation of a UPLC program on the CEK machine. |
 | `debug` | Step through a UPLC program interactively on the CEK machine. |
 | `apply` | Apply one script to others, producing `(... ((f g1) g2) ... gn)`. |
 | `apply-to-flat-data` / `apply-to-cbor-data` | Apply a script to flat- or CBOR-encoded `Data` arguments. |
@@ -42,8 +43,12 @@ source <(uplc --bash-completion-script "$(command -v uplc)")
 ```
 
 ```bash
-# zsh
-source <(uplc --zsh-completion-script "$(command -v uplc)")
+# zsh — the generated script is a completion function body, so it cannot be
+# sourced directly; install it as `_uplc` on your $fpath instead:
+mkdir -p ~/.zsh/completions
+uplc --zsh-completion-script "$(command -v uplc)" > ~/.zsh/completions/_uplc
+fpath+=(~/.zsh/completions)
+autoload -U compinit && compinit
 ```
 
 ```bash
@@ -57,7 +62,7 @@ To install completion **permanently**, write the generated script to the locatio
 # bash (system-wide; use a user directory if you prefer)
 uplc --bash-completion-script "$(command -v uplc)" | sudo tee /etc/bash_completion.d/uplc > /dev/null
 
-# zsh (a directory on your $fpath)
+# zsh (a directory on your $fpath; add the fpath+= and compinit lines above to your .zshrc)
 uplc --zsh-completion-script "$(command -v uplc)" > ~/.zsh/completions/_uplc
 
 # fish
@@ -87,7 +92,7 @@ By default evaluation is silent about resource usage. To see how much CPU and me
 - `--counting` (`-c`) — run to completion and report the total budget spent.
 - `--tallying` (`-t`) — like `--counting`, but also break the cost down per builtin and per AST-node type.
 - `--restricting ExCPU:ExMemory` (`-R`) — run within the given budget and fail if it is exceeded, e.g. `--restricting 1000000:5000`.
-- `--restricting-enormous` (`-r`) — run within a very large (effectively unlimited) budget and report the total used. Evaluation already uses this enormous budget by default; `-r` additionally prints it.
+- `--restricting-enormous` (`-r`) — run within a very large (effectively unlimited) budget and print the budget **remaining** afterwards. Evaluation already uses this enormous budget by default; `-r` only adds the report. To see what a run *consumed*, use `--counting` or `--tallying`.
 
 ```bash
 uplc evaluate -i program.uplc --tallying
@@ -125,14 +130,14 @@ uplc optimize -i MyValidator.uplc -o MyValidator-opt.uplc
 By default, both input and output files use the textual format.
 If `-i` or `-o` is omitted, `uplc` reads from stdin and writes to stdout, so it fits naturally into shell pipelines.
 
-## The optimization report
+### The optimization report
 
 Running `uplc optimize` prints an _optimization report_ to stderr.
 The report lists each pass that ran, in order, and shows the AST size before and after every pass, along with the size delta.
 When evaluation is enabled (see below), each row additionally shows the CPU and memory cost at that stage and the deltas against the previous stage.
 When `--certify --certifier-report` is used, the same per-pass numbers are also included in the certifier report file.
 
-## Input and output formats
+### Input and output formats
 
 `uplc` has always supported textual and flat-encoded scripts, but two recent additions make it much easier to plug into existing toolchains:
 
@@ -162,7 +167,7 @@ The full list of supported formats is:
 - `hex` — `serialised` plus hex encoding (what blueprints and most tools use)
 - `blueprint` — blueprint JSON
 
-## Configuring the optimization pipeline
+### Configuring the optimization pipeline
 
 The `opt-*` flags let you configure the optimization pipeline.
 Run `uplc optimize --help` to see the full list.
@@ -176,7 +181,7 @@ Higher values mean more aggressive inlining, and more inlining usually reduces c
 `--opt-cse-which-subterms` controls how aggressive common subexpression elimination is: `all` is more aggressive than the default `exclude-work-free`.
 Aggressive CSE typically reduces size (more duplicates get factored out) but can raise cost (each factored subterm adds a small evaluation overhead).
 
-## Certifying optimizations
+### Certifying optimizations
 
 `uplc` includes certifiers for optimization passes.
 Each pass is formalized in Agda as a translation relation between pre- and post-terms together with a procedure that decides whether the relation holds.
@@ -209,7 +214,7 @@ The certifier has three output modes:
 For blueprints, the certifier runs once per validator.
 Report filenames and project directories have the validator's title appended automatically.
 
-## Evaluating before and after each optimization
+### Evaluating before and after each optimization
 
 The `--eval*` flags supply arguments to the script and run it on the CEK machine at every stage of the optimization pipeline, recording the execution cost at each step.
 The CPU and memory cost at every stage are then shown alongside AST sizes in the optimization report.
