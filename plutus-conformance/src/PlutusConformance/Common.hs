@@ -44,7 +44,9 @@ import System.FilePath
   , (</>)
   )
 import Test.Tasty
-  ( defaultIngredients
+  ( askOption
+  , defaultIngredients
+  , defaultMainWithIngredients
   , includingOptions
   , testGroup
   )
@@ -55,13 +57,8 @@ import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Options
   ( IsOption (..)
   , OptionDescription (Option)
-  , lookupOption
   )
 import Test.Tasty.Providers (TestTree)
-import Test.Tasty.Runners
-  ( defaultMainWithIngredients
-  , parseOptions
-  )
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable (Witherable (wither))
@@ -465,20 +462,22 @@ runUplcEvalTests
 runUplcEvalTests eval expectedFailTests expectedBudgetFailTests = do
   let params = fromJust defaultCostModelParamsForTesting
       ingredients = includingOptions [Option (Proxy :: Proxy Format)] : defaultIngredients
-  -- Parse the command-line options (in particular `--format`) up front, since
-  -- the choice of format determines which input files `discoverTests` looks
-  -- for when it builds the test tree.
-  opts <- parseOptions ingredients (testGroup "" [])
-  let fmt = lookupOption opts :: Format
-  tests <-
-    discoverTests
-      fmt
-      eval
-      params
-      expectedFailTests
-      expectedBudgetFailTests
-      "test-cases/uplc/evaluation"
-  defaultMainWithIngredients ingredients $ testGroup "UPLC evaluation tests" [tests]
+      discover fmt =
+        discoverTests
+          fmt
+          eval
+          params
+          expectedFailTests
+          expectedBudgetFailTests
+          "test-cases/uplc/evaluation"
+  textualTests <- discover Textual
+  flatTests <- discover Flat
+  defaultMainWithIngredients ingredients $
+    askOption $ \fmt ->
+      testGroup "UPLC evaluation tests" $
+        case fmt of
+          Textual -> [textualTests]
+          Flat -> [flatTests]
 
 -- Flat/UPLC decoding conformance tests
 
