@@ -19,6 +19,7 @@ import PlutusCore.Annotation (SrcSpan (..))
 import PlutusCore.Default
   ( DefaultBuiltinPattern (..)
   , DefaultFun
+  , DefaultPatternFieldEnd (..)
   , DefaultUni
   )
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
@@ -108,6 +109,22 @@ propMatchParser =
         case runQuoteT . parseProgram $ displayPlc original of
           Left err -> assertFailure $ display err
           Right parsed -> void parsed @?= original
+    , testCase "structural prefix rest modes roundtrip" $ do
+        let original = structuralPrefixMatchParserProgram
+            source = displayPlc original
+        assertBool ("expected wildcard-rest prefix syntax in: " <> T.unpack source) $
+          "(prefix (list) (wildcard))" `T.isInfixOf` source
+        assertBool ("expected capture-rest prefix syntax in: " <> T.unpack source) $
+          "(prefix (list (integer 1) (bind)) (bind))" `T.isInfixOf` source
+        assertBool ("expected data-constr prefix syntax in: " <> T.unpack source) $
+          "(prefix (data-constr 0) (wildcard))" `T.isInfixOf` source
+        assertBool ("expected data-map prefix syntax in: " <> T.unpack source) $
+          "(prefix (data-map) (bind))" `T.isInfixOf` source
+        assertBool ("expected data-list prefix syntax in: " <> T.unpack source) $
+          "(prefix (data-list) (wildcard))" `T.isInfixOf` source
+        case runQuoteT $ parseProgram source of
+          Left err -> assertFailure $ display err
+          Right parsed -> void parsed @?= original
     , testCase "rejects Match before version 1.2" $ do
         let source = displayPlc . matchParserProgram $ UPLC.Version 1 1 0
         case runQuoteT $ parseProgram source of
@@ -127,12 +144,24 @@ propMatchParser =
         assertMatchParseRejects $
           "(program 1.2.0 (match (con integer 0) "
             <> "(pattern (data-constr 18446744073709551616) (con integer 0))))"
+    , testCase "rejects prefix without a final rest pattern" $
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con (list integer) []) "
+            <> "(pattern (prefix (list)) (con integer 0))))"
+    , testCase "rejects prefix whose rest is not wildcard or bind" $
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con (list integer) [1]) "
+            <> "(pattern (prefix (list (wildcard)) (integer 0)) (con integer 0))))"
+    , testCase "rejects prefix on a non-field pattern" $
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con integer 1) "
+            <> "(pattern (prefix (integer 1) (wildcard)) (con integer 0))))"
     ]
   where
     assertMatchParseRejects source =
       case runQuoteT $ parseProgram source of
         Left _ -> pure ()
-        Right parsed -> assertFailure $ "parsed out-of-range Match pattern: " <> show parsed
+        Right parsed -> assertFailure $ "parsed invalid Match pattern: " <> show parsed
 
 matchParserProgram
   :: UPLC.Version
@@ -146,7 +175,8 @@ matchParserProgram version =
         (mkConstant @[Integer] () [1])
         ( Vector.fromList
             [
-              ( DefaultPatternList $ Vector.singleton (DefaultPatternInteger 1)
+              ( DefaultPatternList DefaultPatternFieldsExact $
+                  Vector.singleton (DefaultPatternInteger 1)
               , mkConstant @Integer () 42
               )
             , (DefaultPatternWildcard, mkConstant @Integer () 0)
@@ -167,8 +197,50 @@ boundaryMatchParserProgram =
             [ (DefaultPatternInteger minBound, mkConstant @Integer () 0)
             , (DefaultPatternInteger maxBound, mkConstant @Integer () 1)
             ,
-              ( DefaultPatternDataConstr maxBound Vector.empty
+              ( DefaultPatternDataConstr maxBound DefaultPatternFieldsExact Vector.empty
               , mkConstant @Integer () 2
+              )
+            ]
+        )
+    )
+
+structuralPrefixMatchParserProgram
+  :: Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+structuralPrefixMatchParserProgram =
+  UPLC.Program
+    ()
+    (UPLC.Version 1 2 0)
+    ( UPLC.Match
+        ()
+        (mkConstant @[Integer] () [1, 2, 3])
+        ( Vector.fromList
+            [
+              ( DefaultPatternList
+                  DefaultPatternFieldsPrefixWildcard
+                  Vector.empty
+              , mkConstant @Integer () 0
+              )
+            ,
+              ( DefaultPatternList
+                  DefaultPatternFieldsPrefixCapture
+                  ( Vector.fromList
+                      [ DefaultPatternInteger 1
+                      , DefaultPatternCapture
+                      ]
+                  )
+              , mkConstant @Integer () 1
+              )
+            ,
+              ( DefaultPatternDataConstr 0 DefaultPatternFieldsPrefixWildcard Vector.empty
+              , mkConstant @Integer () 2
+              )
+            ,
+              ( DefaultPatternDataMap DefaultPatternFieldsPrefixCapture Vector.empty
+              , mkConstant @Integer () 3
+              )
+            ,
+              ( DefaultPatternDataList DefaultPatternFieldsPrefixWildcard Vector.empty
+              , mkConstant @Integer () 4
               )
             ]
         )

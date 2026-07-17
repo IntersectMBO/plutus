@@ -19,6 +19,7 @@ import PlutusCore.DeBruijn
 import PlutusCore.Default
   ( DefaultBuiltinPattern (..)
   , DefaultFun (..)
+  , DefaultPatternFieldEnd (..)
   , DefaultUni (..)
   )
 import PlutusCore.Flat
@@ -48,6 +49,15 @@ instance Flat RawTag where
   encode (RawTag width tag) = safeEncodeBits width tag
   decode = fail "RawTag is encode-only"
   size (RawTag width _) n = width + n
+
+-- | Encode adjacent tags without asking 'safeEncodeBits' to encode a full byte. Its overflow
+-- guard computes the bound at the input's 'Word8' type, so an eight-bit bound wraps around.
+newtype RawTags = RawTags [(Int, Word8)]
+
+instance Flat RawTags where
+  encode (RawTags tags) = foldMap (uncurry safeEncodeBits) tags
+  decode = fail "RawTags is encode-only"
+  size (RawTags tags) n = foldr ((+) . fst) n tags
 
 test_deBruijnIso :: TestTree
 test_deBruijnIso = testProperty "deBruijnIso" $ \d ->
@@ -458,13 +468,26 @@ test_patternProgramFlat =
           , DefaultPatternByteString "pattern-bytes"
           , DefaultPatternBool True
           , DefaultPatternUnit
-          , DefaultPatternList emptyChildren
+          , DefaultPatternList DefaultPatternFieldsExact emptyChildren
+          , DefaultPatternList
+              DefaultPatternFieldsPrefixWildcard
+              emptyChildren
+          , DefaultPatternList
+              DefaultPatternFieldsPrefixCapture
+              ( Vector.fromList
+                  [ DefaultPatternInteger 1
+                  , DefaultPatternCapture
+                  ]
+              )
           , DefaultPatternPair
               DefaultPatternWildcard
               DefaultPatternCapture
-          , DefaultPatternDataConstr maxBound emptyChildren
-          , DefaultPatternDataMap emptyChildren
-          , DefaultPatternDataList emptyChildren
+          , DefaultPatternDataConstr maxBound DefaultPatternFieldsExact emptyChildren
+          , DefaultPatternDataConstr maxBound DefaultPatternFieldsPrefixCapture emptyChildren
+          , DefaultPatternDataMap DefaultPatternFieldsExact emptyChildren
+          , DefaultPatternDataMap DefaultPatternFieldsPrefixWildcard emptyChildren
+          , DefaultPatternDataList DefaultPatternFieldsExact emptyChildren
+          , DefaultPatternDataList DefaultPatternFieldsPrefixCapture emptyChildren
           , DefaultPatternDataI Nothing
           , DefaultPatternDataB Nothing
           ]
@@ -480,17 +503,52 @@ test_patternProgramFlat =
           , (DefaultPatternByteString mempty, [49, 0])
           , (DefaultPatternBool False, [64])
           , (DefaultPatternUnit, [80])
-          , (DefaultPatternList emptyChildren, [96])
+          , (DefaultPatternList DefaultPatternFieldsExact emptyChildren, [96])
+          ,
+            ( DefaultPatternList DefaultPatternFieldsPrefixWildcard emptyChildren
+            , [214, 0]
+            )
+          ,
+            ( DefaultPatternList DefaultPatternFieldsPrefixCapture emptyChildren
+            , [214, 64]
+            )
+          ,
+            ( DefaultPatternList
+                DefaultPatternFieldsPrefixWildcard
+                (Vector.fromList [DefaultPatternWildcard, DefaultPatternCapture])
+            , [214, 132, 64]
+            )
           ,
             ( DefaultPatternPair
                 DefaultPatternWildcard
                 DefaultPatternCapture
             , [112, 16]
             )
-          , (DefaultPatternDataConstr 0 emptyChildren, [128, 0])
-          , (DefaultPatternDataConstr 1 emptyChildren, [128, 16])
-          , (DefaultPatternDataMap emptyChildren, [144])
-          , (DefaultPatternDataList emptyChildren, [160])
+          ,
+            ( DefaultPatternDataConstr 0 DefaultPatternFieldsExact emptyChildren
+            , [128, 0]
+            )
+          ,
+            ( DefaultPatternDataConstr 1 DefaultPatternFieldsExact emptyChildren
+            , [128, 16]
+            )
+          ,
+            ( DefaultPatternDataConstr
+                0
+                DefaultPatternFieldsPrefixWildcard
+                emptyChildren
+            , [216, 0, 0]
+            )
+          , (DefaultPatternDataMap DefaultPatternFieldsExact emptyChildren, [144])
+          ,
+            ( DefaultPatternDataMap DefaultPatternFieldsPrefixCapture emptyChildren
+            , [217, 64]
+            )
+          , (DefaultPatternDataList DefaultPatternFieldsExact emptyChildren, [160])
+          ,
+            ( DefaultPatternDataList DefaultPatternFieldsPrefixWildcard emptyChildren
+            , [218, 0]
+            )
           , (DefaultPatternDataI Nothing, [176])
           , (DefaultPatternDataB Nothing, [192])
           ]
@@ -508,13 +566,23 @@ test_patternProgramFlat =
     , testCase "reserved term tags are rejected" $
         mapM_ assertReservedTermTag [11 .. 15]
     , testCase "reserved default built-in pattern tags are rejected" $
-        mapM_ assertReservedDefaultPatternTag [13 .. 15]
+        mapM_ assertReservedDefaultPatternTag [14 .. 15]
+    , testCase "generic prefix tag rejects non-structural descriptors" $
+        assertDecodeRejects
+          "non-structural descriptor behind the generic prefix tag"
+          ( unflat (flat $ RawTags [(4, 13), (4, 0)])
+              :: Either DecodeException DefaultBuiltinPattern
+          )
     , testCase "truncated built-in pattern descriptor payloads are rejected" $
         mapM_
           assertTruncatedDefaultPattern
           [ DefaultPatternInteger maxBound
           , DefaultPatternByteString $ BS.pack [1 .. 8]
-          , DefaultPatternDataConstr maxBound emptyChildren
+          , DefaultPatternDataConstr maxBound DefaultPatternFieldsExact emptyChildren
+          , DefaultPatternDataConstr
+              maxBound
+              DefaultPatternFieldsPrefixCapture
+              (Vector.singleton $ DefaultPatternInteger maxBound)
           ]
     ]
   where
@@ -527,10 +595,11 @@ test_patternProgramFlat =
 
     nestedPattern :: DefaultBuiltinPattern
     nestedPattern =
-      DefaultPatternDataList $
+      DefaultPatternDataList DefaultPatternFieldsExact $
         Vector.singleton
           ( DefaultPatternDataConstr
               0
+              DefaultPatternFieldsExact
               (Vector.singleton DefaultPatternCapture)
           )
 
@@ -556,7 +625,8 @@ test_patternProgramFlat =
             ()
             (Constant () $ Some (ValueOf DefaultUniInteger (0 :: Integer)))
             ( Vector.singleton
-                ( DefaultPatternList $ Vector.replicate childCount DefaultPatternWildcard
+                ( DefaultPatternList DefaultPatternFieldsExact $
+                    Vector.replicate childCount DefaultPatternWildcard
                 , Constant () $ Some (ValueOf DefaultUniInteger (0 :: Integer))
                 )
             )
@@ -595,12 +665,12 @@ test_patternProgramFlat =
           (const Nothing)
           (const checkPatternDescriptor)
 
-    checkPatternArity (DefaultPatternList children)
+    checkPatternArity (DefaultPatternList _ children)
       | Vector.length children > 3 =
           Just "pattern has too many children"
     checkPatternArity _ = Nothing
 
-    checkPatternDescriptor (DefaultPatternDataList _) = Just "data-list patterns are unavailable"
+    checkPatternDescriptor (DefaultPatternDataList _ _) = Just "data-list patterns are unavailable"
     checkPatternDescriptor _ = Nothing
 
     assertUnrestrictedRejects description program =

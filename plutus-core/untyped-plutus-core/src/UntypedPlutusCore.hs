@@ -8,6 +8,7 @@ module UntypedPlutusCore
   , PLC.DefaultUni
   , PLC.DefaultFun
   , PLC.DefaultBuiltinPattern
+  , PLC.DefaultPatternFieldEnd
   ) where
 
 import UntypedPlutusCore.AstSize as Export

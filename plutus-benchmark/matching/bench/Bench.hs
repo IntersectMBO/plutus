@@ -27,6 +27,26 @@ benchmarks ctx =
       , mkMatchBMs "integer" Matching.matchingInteger
       , mkMatchBMs "exact list" Matching.matchingExactList
       , mkMatchBMs "capture list" Matching.matchingCaptureList
+      , bgroup
+          "list prefix"
+          [ bgroup ("prefix " <> show prefixWidth) $
+              [ bgroup
+                  "wildcard rest"
+                  [ bench ("suffix " <> show suffixWidth) $
+                      benchTermCekWithMatch ctx $
+                        Matching.matchingListPrefixWildcard prefixWidth suffixWidth
+                  | suffixWidth <- [0, 1, 16, 128, 1200]
+                  ]
+              , bgroup
+                  "capture rest"
+                  [ bench ("suffix " <> show suffixWidth) $
+                      benchTermCekWithMatch ctx $
+                        Matching.matchingListPrefixCaptureRest prefixWidth suffixWidth
+                  | suffixWidth <- [0, 1, 16, 128, 1200]
+                  ]
+              ]
+          | prefixWidth <- [0, 1, 3, 16, 128]
+          ]
       , mkMatchBMs "alternatives" Matching.matchingAlternatives
       , bgroup
           "Data.Constr comparison"

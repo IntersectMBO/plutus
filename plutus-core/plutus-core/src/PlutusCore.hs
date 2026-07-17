@@ -37,6 +37,7 @@ module PlutusCore
   , HasTypeAndTermLevel
   , DefaultUni (..)
   , DefaultBuiltinPattern (..)
+  , DefaultPatternFieldEnd (..)
   , pattern DefaultUniList
   , pattern DefaultUniPair
   , pattern DefaultUniArray

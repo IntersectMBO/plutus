@@ -18,6 +18,7 @@ import PlutusCore.Data qualified as PLCData
 import PlutusCore.Default
   ( DefaultBuiltinPattern (..)
   , DefaultFun
+  , DefaultListPrefixRest (..)
   )
 import PlutusCore.MkPlc
 import PlutusCore.Name.Unique (Name (..), Unique (..))
@@ -83,6 +84,36 @@ matchingCaptureList i =
             , handler
             )
         )
+
+-- | Match a fixed number of leading list elements and ignore the complete remaining suffix.
+matchingListPrefixWildcard :: Integer -> Integer -> Term
+matchingListPrefixWildcard requestedPrefixWidth requestedSuffixWidth =
+  let prefixWidth = max 0 $ fromIntegral requestedPrefixWidth
+      suffixWidth = max 0 $ fromIntegral requestedSuffixWidth
+      pat =
+        DefaultPatternListPrefix
+          (V.replicate prefixWidth DefaultPatternWildcard)
+          DefaultListPrefixRestWildcard
+   in UPLC.Match
+        ()
+        (mkConstant @[Integer] () $ replicate (prefixWidth + suffixWidth) 0)
+        (V.singleton (pat, mkConstant @Integer () 0))
+
+-- | Match a fixed prefix and capture the complete remaining suffix as one builtin list value.
+matchingListPrefixCaptureRest :: Integer -> Integer -> Term
+matchingListPrefixCaptureRest requestedPrefixWidth requestedSuffixWidth =
+  let prefixWidth = max 0 $ fromIntegral requestedPrefixWidth
+      suffixWidth = max 0 $ fromIntegral requestedSuffixWidth
+      pat =
+        DefaultPatternListPrefix
+          (V.replicate prefixWidth DefaultPatternWildcard)
+          DefaultListPrefixRestCapture
+      binder = UPLC.NamedDeBruijn "rest" (UPLC.Index 0)
+      handler = UPLC.LamAbs () binder $ mkConstant @Integer () 0
+   in UPLC.Match
+        ()
+        (mkConstant @[Integer] () $ replicate (prefixWidth + suffixWidth) 0)
+        (V.singleton (pat, handler))
 
 -- | A long ordered chain of late-mismatching scalar alternatives followed by a wildcard.
 matchingAlternatives :: Integer -> Term

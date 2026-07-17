@@ -14,6 +14,7 @@ import PlutusCore.Data qualified as PLC
 import PlutusCore.Default
   ( DefaultBuiltinPattern (..)
   , DefaultFun (..)
+  , DefaultPatternFieldEnd (..)
   , DefaultUni
   )
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
@@ -43,10 +44,42 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek qualified as SteppableC
 type UTerm = UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
 
 patternChildren
-  :: (Vector.Vector DefaultBuiltinPattern -> DefaultBuiltinPattern)
+  :: (DefaultPatternFieldEnd -> Vector.Vector DefaultBuiltinPattern -> DefaultBuiltinPattern)
   -> [DefaultBuiltinPattern]
   -> DefaultBuiltinPattern
-patternChildren constructor = constructor . Vector.fromList
+patternChildren constructor = constructor DefaultPatternFieldsExact . Vector.fromList
+
+patternPrefix
+  :: (DefaultPatternFieldEnd -> Vector.Vector DefaultBuiltinPattern -> DefaultBuiltinPattern)
+  -> [DefaultBuiltinPattern]
+  -> DefaultPatternFieldEnd
+  -> DefaultBuiltinPattern
+patternPrefix constructor children fieldEnd = constructor fieldEnd $ Vector.fromList children
+
+listPrefixPattern
+  :: [DefaultBuiltinPattern]
+  -> DefaultPatternFieldEnd
+  -> DefaultBuiltinPattern
+listPrefixPattern = patternPrefix DefaultPatternList
+
+dataListPrefixPattern
+  :: [DefaultBuiltinPattern]
+  -> DefaultPatternFieldEnd
+  -> DefaultBuiltinPattern
+dataListPrefixPattern = patternPrefix DefaultPatternDataList
+
+dataMapPrefixPattern
+  :: [DefaultBuiltinPattern]
+  -> DefaultPatternFieldEnd
+  -> DefaultBuiltinPattern
+dataMapPrefixPattern = patternPrefix DefaultPatternDataMap
+
+dataConstrPrefixPattern
+  :: Word64
+  -> [DefaultBuiltinPattern]
+  -> DefaultPatternFieldEnd
+  -> DefaultBuiltinPattern
+dataConstrPrefixPattern tag = patternPrefix (DefaultPatternDataConstr tag)
 
 dataConstrPattern
   :: Word64
@@ -203,6 +236,11 @@ patternBudget term = snd $ Cek.runCekNoEmit unitParameters selectedPatternOnly t
 
 steppablePatternBudget :: UTerm -> ExBudget
 steppablePatternBudget term = snd $ SteppableCek.runCekNoEmit unitParameters selectedPatternOnly term
+
+assertBothPatternBudget :: ExBudget -> UTerm -> IO ()
+assertBothPatternBudget expected term = do
+  patternBudget term @?= expected
+  steppablePatternBudget term @?= expected
 
 captureHandler :: UTerm
 captureHandler =
@@ -370,6 +408,15 @@ selectCaptureHandler selected =
     second = Name "second" (Unique 11)
     third = Name "third" (Unique 12)
 
+selectTwoCaptureHandler :: Int -> UTerm
+selectTwoCaptureHandler selected =
+  UPLC.LamAbs () first $
+    UPLC.LamAbs () second $
+      UPLC.Var () $ [first, second] !! selected
+  where
+    first = Name "first" (Unique 13)
+    second = Name "second" (Unique 14)
+
 test_patterns :: TestTree
 test_patterns =
   testGroup
@@ -449,6 +496,284 @@ test_patterns =
                     ]
                 )
         assertBothEvaluateTo (constantInteger 2) term
+    , testGroup
+        "built-in list-prefix patterns"
+        [ testCase "wildcard rest accepts empty and longer suffixes" $ do
+            let captured = Name "captured" (Unique 6000)
+                handler = UPLC.LamAbs () captured $ UPLC.Var () captured
+                pat =
+                  listPrefixPattern
+                    [DefaultPatternWildcard, DefaultPatternWildcard, DefaultPatternCapture]
+                    DefaultPatternFieldsPrefixWildcard
+                term values = matchSingle pat handler $ mkConstant @[Integer] () values
+                exact = term [1, 2, 3]
+                longer = term [1, 2, 3, 4, 5, 6]
+            assertBothEvaluateTo (constantInteger 3) exact
+            assertBothEvaluateTo (constantInteger 3) longer
+            assertBothPatternBudget (ExBudget 8 0) exact
+            assertBothPatternBudget (ExBudget 8 0) longer
+        , testCase "capture rest returns the whole empty or non-empty suffix" $ do
+            let rest = Name "rest" (Unique 6001)
+                handler = UPLC.LamAbs () rest $ UPLC.Var () rest
+                pat =
+                  listPrefixPattern
+                    [DefaultPatternInteger 1, DefaultPatternWildcard]
+                    DefaultPatternFieldsPrefixCapture
+                term values = matchSingle pat handler $ mkConstant @[Integer] () values
+                emptySuffix = term [1, 2]
+                longerSuffix = term [1, 2, 3, 4]
+            assertBothEvaluateTo (mkConstant @[Integer] () []) emptySuffix
+            assertBothEvaluateTo (mkConstant @[Integer] () [3, 4]) longerSuffix
+            assertBothPatternBudget (ExBudget 7 0) emptySuffix
+            assertBothPatternBudget (ExBudget 7 0) longerSuffix
+        , testCase "zero fixed heads type-check or capture the entire list" $ do
+            let rest = Name "rest" (Unique 6002)
+                captureWholeHandler = UPLC.LamAbs () rest $ UPLC.Var () rest
+                wildcardPattern =
+                  listPrefixPattern [] DefaultPatternFieldsPrefixWildcard
+                capturePattern' =
+                  listPrefixPattern [] DefaultPatternFieldsPrefixCapture
+                wildcardTerm values =
+                  matchSingle wildcardPattern (constantInteger 42) $ mkConstant @[Integer] () values
+                captureTerm' values =
+                  matchSingle capturePattern' captureWholeHandler $ mkConstant @[Integer] () values
+                emptyWildcard = wildcardTerm []
+                longerWildcard = wildcardTerm [1, 2]
+                wholeList = captureTerm' [1, 2]
+            assertBothEvaluateTo (constantInteger 42) emptyWildcard
+            assertBothEvaluateTo (constantInteger 42) longerWildcard
+            assertBothEvaluateTo (mkConstant @[Integer] () [1, 2]) wholeList
+            assertBothPatternBudget (ExBudget 3 0) emptyWildcard
+            assertBothPatternBudget (ExBudget 3 0) longerWildcard
+            assertBothPatternBudget (ExBudget 5 0) wholeList
+        , testCase "too-short and non-list scrutinees fall through" $ do
+            let pat =
+                  listPrefixPattern
+                    (replicate 3 DefaultPatternWildcard)
+                    DefaultPatternFieldsPrefixWildcard
+                withFallback scrutinee =
+                  UPLC.Match
+                    ()
+                    scrutinee
+                    ( Vector.fromList
+                        [ (pat, constantInteger 42)
+                        , (DefaultPatternWildcard, constantInteger 99)
+                        ]
+                    )
+                tooShort = withFallback $ mkConstant @[Integer] () [1, 2]
+                nonList = withFallback $ constantInteger 1
+            assertBothEvaluateTo (constantInteger 99) tooShort
+            assertBothEvaluateTo (constantInteger 99) nonList
+            assertBothPatternBudget (ExBudget 6 0) tooShort
+            assertBothPatternBudget (ExBudget 3 0) nonList
+        , testCase "captures before a nested mismatch are discarded on fallback" $ do
+            let whole = Name "whole" (Unique 6004)
+                scrutinee = mkConstant @[(Integer, Integer)] () [(1, 2), (3, 4), (5, 6)]
+                failingPattern =
+                  listPrefixPattern
+                    [ DefaultPatternCapture
+                    , DefaultPatternPair
+                        (DefaultPatternInteger 99)
+                        DefaultPatternWildcard
+                    ]
+                    DefaultPatternFieldsPrefixCapture
+                term =
+                  UPLC.Match
+                    ()
+                    scrutinee
+                    ( Vector.fromList
+                        [ (failingPattern, UPLC.Error ())
+                        , (DefaultPatternCapture, UPLC.LamAbs () whole $ UPLC.Var () whole)
+                        ]
+                    )
+            assertBothEvaluateTo scrutinee term
+            patternBudget term @?= steppablePatternBudget term
+        , testCase "nested fixed heads resume at the rest marker" $ do
+            let captured = Name "captured" (Unique 6003)
+                handler = UPLC.LamAbs () captured $ UPLC.Var () captured
+                pat =
+                  listPrefixPattern
+                    [ DefaultPatternPair
+                        (DefaultPatternInteger 1)
+                        DefaultPatternCapture
+                    ]
+                    DefaultPatternFieldsPrefixWildcard
+                term =
+                  matchSingle pat handler $
+                    mkConstant @[(Integer, Integer)] () [(1, 2), (3, 4)]
+            assertBothEvaluateTo (constantInteger 2) term
+            assertBothPatternBudget (ExBudget 8 0) term
+        , testCase "fixed-head captures precede the captured rest" $ do
+            let pat =
+                  listPrefixPattern
+                    [DefaultPatternCapture, DefaultPatternCapture]
+                    DefaultPatternFieldsPrefixCapture
+                term selected =
+                  matchSingle pat (selectCaptureHandler selected) $
+                    mkConstant @[Integer] () [10, 20, 30, 40]
+            assertBothEvaluateTo (constantInteger 10) $ term 0
+            assertBothEvaluateTo (constantInteger 20) $ term 1
+            assertBothEvaluateTo (mkConstant @[Integer] () [30, 40]) $ term 2
+            mapM_ (assertBothPatternBudget $ ExBudget 11 0) $ fmap term [0 .. 2]
+        ]
+    , testGroup
+        "Data field-prefix patterns"
+        [ testGroup
+            "Data.List"
+            [ testCase "nested fixed heads resume at a wildcard rest" $ do
+                let captured = Name "captured" (Unique 6100)
+                    handler = UPLC.LamAbs () captured $ UPLC.Var () captured
+                    pat =
+                      dataListPrefixPattern
+                        [dataConstrPattern 7 [dataIPattern DefaultPatternCapture]]
+                        DefaultPatternFieldsPrefixWildcard
+                    term =
+                      matchSingle pat handler $
+                        constantData $ PLC.List [PLC.Constr 7 [PLC.I 42], PLC.B "tail"]
+                assertBothEvaluateTo (constantInteger 42) term
+                assertBothPatternBudget (ExBudget 8 0) term
+            , testCase "fixed captures precede a captured list Data suffix" $ do
+                let pat =
+                      dataListPrefixPattern
+                        [DefaultPatternCapture]
+                        DefaultPatternFieldsPrefixCapture
+                    scrutinee =
+                      constantData $
+                        PLC.List [PLC.I 10, PLC.B "tail", PLC.Constr 0 []]
+                    term selected = matchSingle pat (selectTwoCaptureHandler selected) scrutinee
+                assertBothEvaluateTo (constantData $ PLC.I 10) $ term 0
+                assertBothEvaluateTo
+                  (mkConstant @[PLC.Data] () [PLC.B "tail", PLC.Constr 0 []])
+                  (term 1)
+                mapM_ (assertBothPatternBudget $ ExBudget 8 0) $ fmap term [0, 1]
+            , testCase "too-short fields fall through before the rest operation" $ do
+                let pat =
+                      dataListPrefixPattern
+                        [DefaultPatternWildcard, DefaultPatternWildcard]
+                        DefaultPatternFieldsPrefixWildcard
+                    term =
+                      UPLC.Match
+                        ()
+                        (constantData $ PLC.List [PLC.I 1])
+                        ( Vector.fromList
+                            [ (pat, constantInteger 0)
+                            , (DefaultPatternWildcard, constantInteger 1)
+                            ]
+                        )
+                assertBothEvaluateTo (constantInteger 1) term
+                assertBothPatternBudget (ExBudget 5 0) term
+            ]
+        , testGroup
+            "Data.Constr"
+            [ testCase "tag and nested head match before ignoring a longer suffix" $ do
+                let pat =
+                      dataConstrPrefixPattern
+                        7
+                        [dataIPattern $ DefaultPatternInteger 1]
+                        DefaultPatternFieldsPrefixWildcard
+                    term value =
+                      UPLC.Match
+                        ()
+                        (constantData value)
+                        ( Vector.fromList
+                            [ (pat, constantInteger 7)
+                            , (DefaultPatternWildcard, constantInteger 0)
+                            ]
+                        )
+                    matching = term $ PLC.Constr 7 [PLC.I 1, PLC.B "tail"]
+                    wrongTag = term $ PLC.Constr 8 [PLC.I 1, PLC.B "tail"]
+                assertBothEvaluateTo (constantInteger 7) matching
+                assertBothEvaluateTo (constantInteger 0) wrongTag
+                assertBothPatternBudget (ExBudget 5 0) matching
+                assertBothPatternBudget (ExBudget 3 0) wrongTag
+            , testCase "capture rest exposes the remaining constructor fields as list Data" $ do
+                let pat =
+                      dataConstrPrefixPattern
+                        7
+                        [DefaultPatternCapture]
+                        DefaultPatternFieldsPrefixCapture
+                    scrutinee =
+                      constantData $
+                        PLC.Constr 7 [PLC.I 10, PLC.B "tail", PLC.List []]
+                    term selected = matchSingle pat (selectTwoCaptureHandler selected) scrutinee
+                assertBothEvaluateTo (constantData $ PLC.I 10) $ term 0
+                assertBothEvaluateTo
+                  (mkConstant @[PLC.Data] () [PLC.B "tail", PLC.List []])
+                  (term 1)
+                mapM_ (assertBothPatternBudget $ ExBudget 8 0) $ fmap term [0, 1]
+            , testCase "too-short constructor fields fall through" $ do
+                let pat =
+                      dataConstrPrefixPattern
+                        7
+                        [DefaultPatternWildcard, DefaultPatternWildcard]
+                        DefaultPatternFieldsPrefixCapture
+                    term =
+                      UPLC.Match
+                        ()
+                        (constantData $ PLC.Constr 7 [PLC.I 1])
+                        ( Vector.fromList
+                            [ (pat, constantInteger 0)
+                            , (DefaultPatternWildcard, constantInteger 1)
+                            ]
+                        )
+                assertBothEvaluateTo (constantInteger 1) term
+                assertBothPatternBudget (ExBudget 5 0) term
+            ]
+        , testGroup
+            "Data.Map"
+            [ testCase "nested pair heads resume at a wildcard rest" $ do
+                let entryPattern =
+                      pairPattern
+                        (dataIPattern $ DefaultPatternInteger 1)
+                        (dataBPattern $ DefaultPatternByteString "one")
+                    pat =
+                      dataMapPrefixPattern
+                        [entryPattern]
+                        DefaultPatternFieldsPrefixWildcard
+                    term =
+                      matchSingle pat (constantInteger 1) $
+                        constantData $
+                          PLC.Map
+                            [ (PLC.I 1, PLC.B "one")
+                            , (PLC.I 2, PLC.B "two")
+                            ]
+                assertBothEvaluateTo (constantInteger 1) term
+                assertBothPatternBudget (ExBudget 9 0) term
+            , testCase "fixed captures precede a captured list-of-pairs suffix" $ do
+                let firstEntry = (PLC.I 1, PLC.B "one")
+                    remainingEntries =
+                      [ (PLC.I 2, PLC.B "two")
+                      , (PLC.I 3, PLC.B "three")
+                      ]
+                    pat =
+                      dataMapPrefixPattern
+                        [DefaultPatternCapture]
+                        DefaultPatternFieldsPrefixCapture
+                    scrutinee = constantData $ PLC.Map $ firstEntry : remainingEntries
+                    term selected = matchSingle pat (selectTwoCaptureHandler selected) scrutinee
+                assertBothEvaluateTo (mkConstant @(PLC.Data, PLC.Data) () firstEntry) $ term 0
+                assertBothEvaluateTo
+                  (mkConstant @[(PLC.Data, PLC.Data)] () remainingEntries)
+                  (term 1)
+                mapM_ (assertBothPatternBudget $ ExBudget 8 0) $ fmap term [0, 1]
+            , testCase "too-short map entries fall through" $ do
+                let pat =
+                      dataMapPrefixPattern
+                        [DefaultPatternWildcard, DefaultPatternWildcard]
+                        DefaultPatternFieldsPrefixWildcard
+                    term =
+                      UPLC.Match
+                        ()
+                        (constantData $ PLC.Map [(PLC.I 1, PLC.B "one")])
+                        ( Vector.fromList
+                            [ (pat, constantInteger 0)
+                            , (DefaultPatternWildcard, constantInteger 1)
+                            ]
+                        )
+                assertBothEvaluateTo (constantInteger 1) term
+                assertBothPatternBudget (ExBudget 5 0) term
+            ]
+        ]
     , testCase "nested captures are supplied depth-first and left-to-right" $ do
         let term selected =
               matchSingle nestedCapturePattern (selectCaptureHandler selected) nestedCaptureScrutinee

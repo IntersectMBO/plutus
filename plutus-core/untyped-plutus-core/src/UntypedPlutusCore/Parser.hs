@@ -99,15 +99,33 @@ matchPattern =
     , PLC.DefaultPatternByteString <$> (symbol "bytestring" *> conBS)
     , PLC.DefaultPatternBool <$> (symbol "bool" *> conBool)
     , PLC.DefaultPatternUnit <$ symbol "unit"
-    , withChildren PLC.DefaultPatternList "list"
+    , do
+        structural <- symbol "prefix" *> matchPattern
+        rest <- matchPattern
+        fieldEnd <- case rest of
+          PLC.DefaultPatternWildcard -> pure PLC.DefaultPatternFieldsPrefixWildcard
+          PLC.DefaultPatternCapture -> pure PLC.DefaultPatternFieldsPrefixCapture
+          _ -> fail "prefix rest must be (wildcard) or (bind)"
+        case structural of
+          PLC.DefaultPatternList PLC.DefaultPatternFieldsExact children ->
+            pure $ PLC.DefaultPatternList fieldEnd children
+          PLC.DefaultPatternDataConstr tag PLC.DefaultPatternFieldsExact children ->
+            pure $ PLC.DefaultPatternDataConstr tag fieldEnd children
+          PLC.DefaultPatternDataMap PLC.DefaultPatternFieldsExact children ->
+            pure $ PLC.DefaultPatternDataMap fieldEnd children
+          PLC.DefaultPatternDataList PLC.DefaultPatternFieldsExact children ->
+            pure $ PLC.DefaultPatternDataList fieldEnd children
+          _ -> fail "prefix requires an exact list, data-constr, data-map, or data-list pattern"
+    , withChildren (PLC.DefaultPatternList PLC.DefaultPatternFieldsExact) "list"
     , PLC.DefaultPatternPair
         <$> (symbol "pair" *> matchPattern)
         <*> matchPattern
     , do
         tag <- symbol "data-constr" *> patternWord64
-        PLC.DefaultPatternDataConstr tag . V.fromList <$> many matchPattern
-    , withChildren PLC.DefaultPatternDataMap "data-map"
-    , withChildren PLC.DefaultPatternDataList "data-list"
+        PLC.DefaultPatternDataConstr tag PLC.DefaultPatternFieldsExact . V.fromList
+          <$> many matchPattern
+    , withChildren (PLC.DefaultPatternDataMap PLC.DefaultPatternFieldsExact) "data-map"
+    , withChildren (PLC.DefaultPatternDataList PLC.DefaultPatternFieldsExact) "data-list"
     , PLC.DefaultPatternDataI <$> (symbol "data-i" *> optional matchPattern)
     , PLC.DefaultPatternDataB <$> (symbol "data-b" *> optional matchPattern)
     ]

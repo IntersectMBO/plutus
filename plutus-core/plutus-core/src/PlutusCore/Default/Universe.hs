@@ -38,6 +38,7 @@
 module PlutusCore.Default.Universe
   ( DefaultUni (..)
   , DefaultBuiltinPattern (..)
+  , DefaultPatternFieldEnd (..)
   , pattern DefaultUniList
   , pattern DefaultUniArray
   , pattern DefaultUniPair
@@ -161,11 +162,24 @@ pattern DefaultUniArray uniA =
 pattern DefaultUniPair uniA uniB =
   DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
 
+{-| How a structural field pattern terminates. Exact patterns require that all fields have been
+consumed. Prefix patterns either ignore or capture the unconsumed fields as a built-in list.
+
+Keeping this as a real ADT makes malformed prefix endings unrepresentable after parsing or Flat
+decoding, while allowing every homogeneous field-bearing descriptor to share one matcher. -}
+data DefaultPatternFieldEnd
+  = DefaultPatternFieldsExact
+  | DefaultPatternFieldsPrefixWildcard
+  | DefaultPatternFieldsPrefixCapture
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass (Hashable, NFData)
+
 {-| A complete, recursive pattern language for values in 'DefaultUni'. 'Match' is deliberately
-built-in-only: UPLC constructors continue to use 'Case'. List-like patterns are exact, pair arity is
-represented directly, and the optional payload patterns for @Data.I@ and @Data.B@ make malformed
-arities unrepresentable. Pattern matching is incrementally metered as it traverses this raw syntax,
-so the AST carries no cached or caller-supplied costing metadata. -}
+built-in-only: UPLC constructors continue to use 'Case'. Homogeneous structural fields can be
+matched exactly or as a fixed prefix, with the unconsumed fields ignored or captured as a built-in
+list. Pair arity is represented directly, and the optional payload patterns for @Data.I@ and
+@Data.B@ make malformed arities unrepresentable. Pattern matching is incrementally metered as it
+traverses this raw syntax, so the AST carries no cached or caller-supplied costing metadata. -}
 data DefaultBuiltinPattern
   = DefaultPatternWildcard
   | DefaultPatternCapture
@@ -173,11 +187,20 @@ data DefaultBuiltinPattern
   | DefaultPatternByteString !ByteString
   | DefaultPatternBool !Bool
   | DefaultPatternUnit
-  | DefaultPatternList !(Vector.Vector DefaultBuiltinPattern)
+  | DefaultPatternList
+      !DefaultPatternFieldEnd
+      !(Vector.Vector DefaultBuiltinPattern)
   | DefaultPatternPair !DefaultBuiltinPattern !DefaultBuiltinPattern
-  | DefaultPatternDataConstr !Word64 !(Vector.Vector DefaultBuiltinPattern)
-  | DefaultPatternDataMap !(Vector.Vector DefaultBuiltinPattern)
-  | DefaultPatternDataList !(Vector.Vector DefaultBuiltinPattern)
+  | DefaultPatternDataConstr
+      !Word64
+      !DefaultPatternFieldEnd
+      !(Vector.Vector DefaultBuiltinPattern)
+  | DefaultPatternDataMap
+      !DefaultPatternFieldEnd
+      !(Vector.Vector DefaultBuiltinPattern)
+  | DefaultPatternDataList
+      !DefaultPatternFieldEnd
+      !(Vector.Vector DefaultBuiltinPattern)
   | DefaultPatternDataI !(Maybe DefaultBuiltinPattern)
   | DefaultPatternDataB !(Maybe DefaultBuiltinPattern)
   deriving stock (Eq, Show, Generic)
@@ -193,21 +216,26 @@ instance Hashable DefaultBuiltinPattern where
     DefaultPatternByteString value -> salt `hashWithSalt` (3 :: Int) `hashWithSalt` value
     DefaultPatternBool value -> salt `hashWithSalt` (4 :: Int) `hashWithSalt` value
     DefaultPatternUnit -> hashWithSalt salt (5 :: Int)
-    DefaultPatternList children ->
-      hashChildren (hashWithSalt salt (6 :: Int)) children
+    DefaultPatternList fieldEnd children ->
+      hashFields (hashWithSalt salt (6 :: Int)) fieldEnd children
     DefaultPatternPair left right ->
       salt `hashWithSalt` (7 :: Int) `hashWithSalt` left `hashWithSalt` right
-    DefaultPatternDataConstr tag children ->
-      hashChildren (salt `hashWithSalt` (8 :: Int) `hashWithSalt` tag) children
-    DefaultPatternDataMap children ->
-      hashChildren (hashWithSalt salt (9 :: Int)) children
-    DefaultPatternDataList children ->
-      hashChildren (hashWithSalt salt (10 :: Int)) children
+    DefaultPatternDataConstr tag fieldEnd children ->
+      hashFields
+        (salt `hashWithSalt` (8 :: Int) `hashWithSalt` tag)
+        fieldEnd
+        children
+    DefaultPatternDataMap fieldEnd children ->
+      hashFields (hashWithSalt salt (9 :: Int)) fieldEnd children
+    DefaultPatternDataList fieldEnd children ->
+      hashFields (hashWithSalt salt (10 :: Int)) fieldEnd children
     DefaultPatternDataI child -> salt `hashWithSalt` (11 :: Int) `hashWithSalt` child
     DefaultPatternDataB child -> salt `hashWithSalt` (12 :: Int) `hashWithSalt` child
     where
       hashChildren childSalt children =
         Vector.foldl' hashWithSalt (hashWithSalt childSalt $ Vector.length children) children
+      hashFields fieldSalt fieldEnd =
+        hashChildren (hashWithSalt fieldSalt fieldEnd)
 
 instance Pretty DefaultBuiltinPattern where
   pretty = \case
@@ -217,22 +245,34 @@ instance Pretty DefaultBuiltinPattern where
     DefaultPatternByteString b -> parens $ "bytestring" <+> prettyBytes b
     DefaultPatternBool b -> parens $ "bool" <+> pretty b
     DefaultPatternUnit -> parens "unit"
-    DefaultPatternList children -> prettyChildren "list" children
+    DefaultPatternList fieldEnd children ->
+      prettyFields "list" [] fieldEnd children
     DefaultPatternPair left right ->
       parens . sep $ ["pair", pretty left, pretty right]
-    DefaultPatternDataConstr i children ->
-      parens . sep $ "data-constr" : pretty i : prettyPatternChildren children
-    DefaultPatternDataMap children -> prettyChildren "data-map" children
-    DefaultPatternDataList children -> prettyChildren "data-list" children
+    DefaultPatternDataConstr i fieldEnd children ->
+      prettyFields "data-constr" [pretty i] fieldEnd children
+    DefaultPatternDataMap fieldEnd children ->
+      prettyFields "data-map" [] fieldEnd children
+    DefaultPatternDataList fieldEnd children ->
+      prettyFields "data-list" [] fieldEnd children
     DefaultPatternDataI child -> prettyOptionalChild "data-i" child
     DefaultPatternDataB child -> prettyOptionalChild "data-b" child
     where
       prettyPatternChildren = fmap pretty . Vector.toList
-      prettyChildren name children = parens . sep $ name : prettyPatternChildren children
       prettyOptionalChild name = parens . sep . (name :) . maybe [] (pure . pretty)
+      prettyFields name leading fieldEnd children =
+        let exact = parens . sep $ name : leading <> prettyPatternChildren children
+            prefix rest = parens . sep $ ["prefix", exact, parens rest]
+         in case fieldEnd of
+              DefaultPatternFieldsExact -> exact
+              DefaultPatternFieldsPrefixWildcard -> prefix "wildcard"
+              DefaultPatternFieldsPrefixCapture -> prefix "bind"
 
 defaultBuiltinPatternTagWidth :: NumBits
 defaultBuiltinPatternTagWidth = 4
+
+defaultPatternFieldRestTagWidth :: NumBits
+defaultPatternFieldRestTagWidth = 1
 
 instance Flat DefaultBuiltinPattern where
   encode = \case
@@ -242,17 +282,27 @@ instance Flat DefaultBuiltinPattern where
     DefaultPatternByteString b -> tag 3 <> encode b
     DefaultPatternBool b -> tag 4 <> encode b
     DefaultPatternUnit -> tag 5
-    DefaultPatternList children -> tag 6 <> encodeChildren children
+    DefaultPatternList fieldEnd children ->
+      encodeFields fieldEnd $ tag 6 <> encodeChildren children
     DefaultPatternPair left right -> tag 7 <> encode left <> encode right
-    DefaultPatternDataConstr i children -> tag 8 <> encode i <> encodeChildren children
-    DefaultPatternDataMap children -> tag 9 <> encodeChildren children
-    DefaultPatternDataList children -> tag 10 <> encodeChildren children
+    DefaultPatternDataConstr i fieldEnd children ->
+      encodeFields fieldEnd $ tag 8 <> encode i <> encodeChildren children
+    DefaultPatternDataMap fieldEnd children ->
+      encodeFields fieldEnd $ tag 9 <> encodeChildren children
+    DefaultPatternDataList fieldEnd children ->
+      encodeFields fieldEnd $ tag 10 <> encodeChildren children
     DefaultPatternDataI child -> tag 11 <> encodeOptionalChild child
     DefaultPatternDataB child -> tag 12 <> encodeOptionalChild child
     where
       tag = safeEncodeBits defaultBuiltinPatternTagWidth
       encodeChildren = encodeListWith encode . Vector.toList
       encodeOptionalChild = encodeListWith encode . maybe [] pure
+      encodeFields fieldEnd exactDescriptor = case fieldEnd of
+        DefaultPatternFieldsExact -> exactDescriptor
+        DefaultPatternFieldsPrefixWildcard ->
+          tag 13 <> exactDescriptor <> safeEncodeBits defaultPatternFieldRestTagWidth 0
+        DefaultPatternFieldsPrefixCapture ->
+          tag 13 <> exactDescriptor <> safeEncodeBits defaultPatternFieldRestTagWidth 1
 
   decode =
     dBEBits8 defaultBuiltinPatternTagWidth >>= \case
@@ -262,13 +312,14 @@ instance Flat DefaultBuiltinPattern where
       3 -> DefaultPatternByteString <$> decode
       4 -> DefaultPatternBool <$> decode
       5 -> pure DefaultPatternUnit
-      6 -> DefaultPatternList <$> decodeChildren
+      6 -> decodeFieldsDescriptor (pure DefaultPatternFieldsExact) 6
       7 -> DefaultPatternPair <$> decode <*> decode
-      8 -> DefaultPatternDataConstr <$> decode <*> decodeChildren
-      9 -> DefaultPatternDataMap <$> decodeChildren
-      10 -> DefaultPatternDataList <$> decodeChildren
+      8 -> decodeFieldsDescriptor (pure DefaultPatternFieldsExact) 8
+      9 -> decodeFieldsDescriptor (pure DefaultPatternFieldsExact) 9
+      10 -> decodeFieldsDescriptor (pure DefaultPatternFieldsExact) 10
       11 -> DefaultPatternDataI <$> decodeOptionalChild
       12 -> DefaultPatternDataB <$> decodeOptionalChild
+      13 -> dBEBits8 defaultBuiltinPatternTagWidth >>= decodeFieldsDescriptor decodePrefixEnd
       tag -> fail $ "Unknown default built-in pattern tag: " ++ show tag
     where
       decodeChildren = Vector.fromList <$> decodeListWith decode
@@ -277,6 +328,30 @@ instance Flat DefaultBuiltinPattern where
           [] -> pure Nothing
           [child] -> pure $ Just child
           _ -> fail "Default Data.I/Data.B pattern takes at most one child"
+      decodeFieldsDescriptor decodeFieldEnd = \case
+        6 -> do
+          children <- decodeChildren
+          fieldEnd <- decodeFieldEnd
+          pure $ DefaultPatternList fieldEnd children
+        8 -> do
+          constrTag <- decode
+          children <- decodeChildren
+          fieldEnd <- decodeFieldEnd
+          pure $ DefaultPatternDataConstr constrTag fieldEnd children
+        9 -> do
+          children <- decodeChildren
+          fieldEnd <- decodeFieldEnd
+          pure $ DefaultPatternDataMap fieldEnd children
+        10 -> do
+          children <- decodeChildren
+          fieldEnd <- decodeFieldEnd
+          pure $ DefaultPatternDataList fieldEnd children
+        tag -> fail $ "Invalid structural descriptor in default prefix pattern: " ++ show tag
+      decodePrefixEnd =
+        dBEBits8 defaultPatternFieldRestTagWidth >>= \case
+          0 -> pure DefaultPatternFieldsPrefixWildcard
+          1 -> pure DefaultPatternFieldsPrefixCapture
+          tag -> fail $ "Unknown default prefix-pattern rest tag: " ++ show tag
 
   size pat sz =
     let sz' = defaultBuiltinPatternTagWidth + sz
@@ -287,16 +362,26 @@ instance Flat DefaultBuiltinPattern where
           DefaultPatternByteString b -> size b sz'
           DefaultPatternBool b -> size b sz'
           DefaultPatternUnit -> sz'
-          DefaultPatternList children -> sizeChildren children sz'
+          DefaultPatternList fieldEnd children ->
+            sizeFields fieldEnd $ sizeChildren children sz'
           DefaultPatternPair left right -> size left $ size right sz'
-          DefaultPatternDataConstr i children -> size i $ sizeChildren children sz'
-          DefaultPatternDataMap children -> sizeChildren children sz'
-          DefaultPatternDataList children -> sizeChildren children sz'
+          DefaultPatternDataConstr i fieldEnd children ->
+            sizeFields fieldEnd $ size i $ sizeChildren children sz'
+          DefaultPatternDataMap fieldEnd children ->
+            sizeFields fieldEnd $ sizeChildren children sz'
+          DefaultPatternDataList fieldEnd children ->
+            sizeFields fieldEnd $ sizeChildren children sz'
           DefaultPatternDataI child -> sizeOptionalChild child sz'
           DefaultPatternDataB child -> sizeOptionalChild child sz'
     where
       sizeChildren = sizeListWith size . Vector.toList
       sizeOptionalChild = sizeListWith size . maybe [] pure
+      sizeFields fieldEnd exactSize = case fieldEnd of
+        DefaultPatternFieldsExact -> exactSize
+        DefaultPatternFieldsPrefixWildcard -> prefixSize exactSize
+        DefaultPatternFieldsPrefixCapture -> prefixSize exactSize
+      prefixSize =
+        (+ (defaultBuiltinPatternTagWidth + defaultPatternFieldRestTagWidth))
 
 defaultUniSize :: forall k (a :: k). DefaultUni (Esc a) -> Int
 defaultUniSize = \case
@@ -1107,7 +1192,7 @@ fallback cursor, and the terminal constructor additionally stores the successful
 an explicit work stack, not a chain of functional continuations: a mismatch abandons it in constant
 time, while success resumes one frame at a time. Deferred field contents and traversal beyond the
 accounted exact-arity probe stay lazy until the next structural step. The cursor is deliberately the
-first field of both pending-work constructors, keeping its hot projection at a uniform payload
+first field of every pending-work constructor, keeping its hot projection at a uniform payload
 position. -}
 data DefaultPatternWorkStack term where
   DefaultPatternWorkDone
@@ -1122,6 +1207,7 @@ data DefaultPatternWorkStack term where
     -> DefaultPatternWorkStack term
   DefaultPatternFieldsWork
     :: !(Vector.Vector (DefaultBuiltinPattern, term))
+    -> !DefaultPatternFieldEnd
     -> !(Vector.Vector DefaultBuiltinPattern)
     -> !(DefaultUni (Esc a))
     -> [a]
@@ -1135,7 +1221,7 @@ defaultPatternWorkAlternatives
   -> Vector.Vector (DefaultBuiltinPattern, term)
 defaultPatternWorkAlternatives (DefaultPatternWorkDone _ alternatives) = alternatives
 defaultPatternWorkAlternatives (DefaultPatternValueWork alternatives _ _ _) = alternatives
-defaultPatternWorkAlternatives (DefaultPatternFieldsWork alternatives _ _ _ _) = alternatives
+defaultPatternWorkAlternatives (DefaultPatternFieldsWork alternatives _ _ _ _ _) = alternatives
 {-# INLINE defaultPatternWorkAlternatives #-}
 
 {-| Reached captures in reverse encounter order. Each strict cons is accounted before construction.
@@ -1234,8 +1320,9 @@ matchDefaultAlternatives rootValue alternatives =
           nextValue
           rest
           captures
-      DefaultPatternFieldsWork _ patterns elemUni fields rest ->
+      DefaultPatternFieldsWork _ fieldEnd patterns elemUni fields rest ->
         matchFields
+          fieldEnd
           patterns
           elemUni
           fields
@@ -1307,9 +1394,10 @@ matchDefaultAlternatives rootValue alternatives =
           DefaultPatternUnit -> case currentUni of
             DefaultUniUnit -> resumeWork rest captures
             _ -> nextAlternative rest
-          DefaultPatternList children -> case currentUni of
+          DefaultPatternList fieldEnd children -> case currentUni of
             DefaultUniList elemUni ->
               matchFields
+                fieldEnd
                 children
                 elemUni
                 currentValue
@@ -1330,11 +1418,12 @@ matchDefaultAlternatives rootValue alternatives =
                   )
                   captures
             _ -> nextAlternative rest
-          DefaultPatternDataConstr expectedTag children -> case currentUni of
+          DefaultPatternDataConstr expectedTag fieldEnd children -> case currentUni of
             DefaultUniData -> case currentValue of
               PLC.Constr actualTag fields
                 | actualTag == toInteger expectedTag ->
                     matchFields
+                      fieldEnd
                       children
                       DefaultUniData
                       fields
@@ -1342,10 +1431,11 @@ matchDefaultAlternatives rootValue alternatives =
                       captures
               _ -> nextAlternative rest
             _ -> nextAlternative rest
-          DefaultPatternDataMap children -> case currentUni of
+          DefaultPatternDataMap fieldEnd children -> case currentUni of
             DefaultUniData -> case currentValue of
               PLC.Map fields ->
                 matchFields
+                  fieldEnd
                   children
                   (DefaultUniPair DefaultUniData DefaultUniData)
                   fields
@@ -1353,10 +1443,11 @@ matchDefaultAlternatives rootValue alternatives =
                   captures
               _ -> nextAlternative rest
             _ -> nextAlternative rest
-          DefaultPatternDataList children -> case currentUni of
+          DefaultPatternDataList fieldEnd children -> case currentUni of
             DefaultUniData -> case currentValue of
               PLC.List fields ->
                 matchFields
+                  fieldEnd
                   children
                   DefaultUniData
                   fields
@@ -1389,46 +1480,48 @@ matchDefaultAlternatives rootValue alternatives =
 
     matchFields
       :: forall a
-       . Vector.Vector DefaultBuiltinPattern
+       . DefaultPatternFieldEnd
+      -> Vector.Vector DefaultBuiltinPattern
       -> DefaultUni (Esc a)
       -> [a]
       -> DefaultPatternWorkStack term
       -> DefaultReverseCaptures
       -> PatternMatchM s (HeadSpine Text term (Some (ValueOf DefaultUni)))
-    -- This is the general field loop for every container shape. For non-empty patterns, the
-    -- field list remains lazy until the structural spend succeeds. The empty-pattern arity
-    -- probe is covered by the already-paid parent dispatch.
+    -- This is the general field loop for every homogeneous container shape and both termination
+    -- modes. For non-empty patterns, the field list remains lazy until the structural spend
+    -- succeeds. An exact empty-pattern arity probe is covered by the already-paid parent dispatch.
+    -- A prefix endpoint is a real pattern node and therefore pays ordinary pattern work before it
+    -- ignores or captures the suffix, without traversing that suffix.
     matchFields
+      fieldEnd
       patterns
       elemUni
       currentFields
       rest
       currentCaptures =
-        if Vector.null patterns
-          then case currentFields of
-            [] -> resumeWork rest currentCaptures
-            _ -> nextAlternative rest
-          else do
+        case Vector.uncons patterns of
+          Nothing -> case fieldEnd of
+            DefaultPatternFieldsExact -> case currentFields of
+              [] -> resumeWork rest currentCaptures
+              _ -> nextAlternative rest
+            DefaultPatternFieldsPrefixWildcard -> do
+              spendDefaultPatternWork 1
+              resumeWork rest currentCaptures
+            DefaultPatternFieldsPrefixCapture -> do
+              spendDefaultPatternWork 1
+              spendDefaultPatternWork 2
+              let !capture = someValueOf (DefaultUniList elemUni) currentFields
+                  !captures' = capture : currentCaptures
+              resumeWork rest captures'
+          Just (currentPattern, remainingPatterns) -> do
             structuralSpend
-            case (Vector.uncons patterns, currentFields) of
-              (Nothing, _) -> nextAlternative rest
-              (_, []) -> nextAlternative rest
-              (Just (currentPattern, remainingPatterns), field : remainingFields)
-                | Vector.null remainingPatterns -> case remainingFields of
-                    [] ->
-                      -- The field-edge spend covers this final child dispatch. Entering the paid
-                      -- matcher directly avoids dispatching nested final children twice.
-                      matchPaidValue
-                        currentPattern
-                        (someValueOf elemUni field)
-                        rest
-                        currentCaptures
-                    _ -> nextAlternative rest
-                | otherwise -> case remainingFields of
-                    [] -> nextAlternative rest
-                    _ -> case currentPattern of
+            case currentFields of
+              [] -> nextAlternative rest
+              field : remainingFields ->
+                let continueFields = case currentPattern of
                       DefaultPatternWildcard ->
                         matchFields
+                          fieldEnd
                           remainingPatterns
                           elemUni
                           remainingFields
@@ -1439,6 +1532,7 @@ matchDefaultAlternatives rootValue alternatives =
                         let !capture = someValueOf elemUni field
                             !captures' = capture : currentCaptures
                         matchFields
+                          fieldEnd
                           remainingPatterns
                           elemUni
                           remainingFields
@@ -1453,12 +1547,33 @@ matchDefaultAlternatives rootValue alternatives =
                           (someValueOf elemUni field)
                           ( DefaultPatternFieldsWork
                               (defaultPatternWorkAlternatives rest)
+                              fieldEnd
                               remainingPatterns
                               elemUni
                               remainingFields
                               rest
                           )
                           currentCaptures
+                 in if Vector.null remainingPatterns
+                      then case fieldEnd of
+                        DefaultPatternFieldsExact -> case remainingFields of
+                            [] ->
+                              -- The field-edge spend covers this final child dispatch. Entering
+                              -- the paid matcher directly retains the exact-pattern fast path.
+                              matchPaidValue
+                                currentPattern
+                                (someValueOf elemUni field)
+                                rest
+                                currentCaptures
+                            _ -> nextAlternative rest
+                        DefaultPatternFieldsPrefixWildcard -> continueFields
+                        DefaultPatternFieldsPrefixCapture -> continueFields
+                      else case remainingFields of
+                        [] -> case fieldEnd of
+                          DefaultPatternFieldsExact -> nextAlternative rest
+                          DefaultPatternFieldsPrefixWildcard -> continueFields
+                          DefaultPatternFieldsPrefixCapture -> continueFields
+                        _ -> continueFields
 {-# OPAQUE matchDefaultAlternatives #-}
 
 instance MatchBuiltin DefaultUni DefaultBuiltinPattern where
