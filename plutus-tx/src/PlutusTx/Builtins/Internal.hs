@@ -933,23 +933,29 @@ BITWISE
 
 {-| Shifts the bytestring to the left if the second argument is positive, and to the right otherwise.
 Right-shifts fill with 0s from the left (logical shift); left-shifts fill with 0s from the right.
-Never fails. -}
+Fails only if the shift amount does not fit in a machine 'Int', matching builtin semantics
+variants D and E; earlier variants accept any amount. -}
 shiftByteString
   :: BuiltinByteString
   -> BuiltinInteger
   -> BuiltinByteString
-shiftByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.shiftByteString bs
+shiftByteString (BuiltinByteString bs) i
+  | toInteger (minBound :: Int) <= i && i <= toInteger (maxBound :: Int) =
+      BuiltinByteString (Bitwise.shiftByteString bs i)
+  | otherwise = Haskell.error "shift amount out of Int range"
 {-# OPAQUE shiftByteString #-}
 
 {-| Rotates the bytestring to the left if the second argument is positive, and to the right otherwise.
-Never fails. -}
+Fails only if the rotation amount does not fit in a machine 'Int', matching builtin semantics
+variants D and E; earlier variants accept any amount. -}
 rotateByteString
   :: BuiltinByteString
   -> BuiltinInteger
   -> BuiltinByteString
-rotateByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.rotateByteString bs
+rotateByteString (BuiltinByteString bs) i
+  | toInteger (minBound :: Int) <= i && i <= toInteger (maxBound :: Int) =
+      BuiltinByteString (Bitwise.rotateByteString bs i)
+  | otherwise = Haskell.error "rotation amount out of Int range"
 {-# OPAQUE rotateByteString #-}
 
 -- | Counts the number of bits set to 1 in the bytestring and never fails.
