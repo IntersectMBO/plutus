@@ -242,16 +242,25 @@ appendByteString (BuiltinByteString b1) (BuiltinByteString b2) = BuiltinByteStri
   - For builtin semantics variant A and B, that is for PlutusV1 and PlutusV2, this reduces the first argument
     modulo 256 and will never fail.
   - For builtin semantics variant C, that is for PlutusV3, this will expect first argument to be in range
-    @[0..255]@ and fail otherwise. -}
+    @[0..255]@ and fail otherwise.
+  This definition follows the PlutusV3 semantics. -}
 consByteString :: BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-consByteString n (BuiltinByteString b) = BuiltinByteString $ BS.cons (fromIntegral n) b
+consByteString n (BuiltinByteString b)
+  | 0 <= n && n <= 255 = BuiltinByteString (BS.cons (fromInteger n) b)
+  | otherwise = Haskell.error "byte out of range"
 {-# OPAQUE consByteString #-}
 
-{-| Slices the given bytestring and never fails. The first integer marks the beginning index and the
+{-| Slices the given bytestring. The first integer marks the beginning index and the
   second marks the end. Indices are expected to be 0-indexed, and when the first integer is greater
-  than the second, it returns an empty bytestring. -}
+  than the second, it returns an empty bytestring. Fails only if either integer does not fit in a
+  machine 'Int', matching the builtin. -}
 sliceByteString :: BuiltinInteger -> BuiltinInteger -> BuiltinByteString -> BuiltinByteString
-sliceByteString start n (BuiltinByteString b) = BuiltinByteString $ BS.take (fromIntegral n) (BS.drop (fromIntegral start) b)
+sliceByteString start n (BuiltinByteString b)
+  | fitsInt start && fitsInt n =
+      BuiltinByteString (BS.take (fromInteger n) (BS.drop (fromInteger start) b))
+  | otherwise = Haskell.error "slice argument out of Int range"
+  where
+    fitsInt x = toInteger (minBound :: Int) <= x && x <= toInteger (maxBound :: Int)
 {-# OPAQUE sliceByteString #-}
 
 -- | Returns the length of the provided bytestring.
@@ -262,7 +271,9 @@ lengthOfByteString (BuiltinByteString b) = toInteger $ BS.length b
 {-| Returns the n-th byte from the bytestring. Fails if the given index is not in the range @[0..j)@,
   where @j@ is the length of the bytestring. -}
 indexByteString :: BuiltinByteString -> BuiltinInteger -> BuiltinInteger
-indexByteString (BuiltinByteString b) i = toInteger $ BS.index b (fromInteger i)
+indexByteString (BuiltinByteString b) i
+  | 0 <= i && i < toInteger (BS.length b) = toInteger (BS.index b (fromInteger i))
+  | otherwise = Haskell.error "bytestring index out of bounds"
 {-# OPAQUE indexByteString #-}
 
 -- | An empty bytestring.
@@ -672,7 +683,9 @@ listToArray (BuiltinList l) = BuiltinArray (Vector.fromList l)
 {-| Returns the n-th element from the array. Fails if the given index is not in the range @[0..j)@,
   where @j@ is the length of the array. -}
 indexArray :: BuiltinArray a -> BuiltinInteger -> a
-indexArray (BuiltinArray v) i = v Vector.! fromInteger i
+indexArray (BuiltinArray v) i
+  | 0 <= i && i < toInteger (Vector.length v) = Vector.unsafeIndex v (fromInteger i)
+  | otherwise = Haskell.error "array index out of bounds"
 {-# OPAQUE indexArray #-}
 
 {-
@@ -1005,13 +1018,15 @@ readBit
   :: BuiltinByteString
   -> BuiltinInteger
   -> Bool
-readBit (BuiltinByteString bs) i =
-  case Bitwise.readBit bs (fromIntegral i) of
-    BuiltinFailure logs err ->
-      traceAll (logs <> pure (display err)) $
-        Haskell.error "readBit errored."
-    BuiltinSuccess b -> b
-    BuiltinSuccessWithLogs logs b -> traceAll logs b
+readBit (BuiltinByteString bs) i
+  | 0 <= i && i < 8 * toInteger (BS.length bs) =
+      case Bitwise.readBit bs (fromInteger i) of
+        BuiltinFailure logs err ->
+          traceAll (logs <> pure (display err)) $
+            Haskell.error "readBit errored."
+        BuiltinSuccess b -> b
+        BuiltinSuccessWithLogs logs b -> traceAll logs b
+  | otherwise = Haskell.error "bit index out of bounds"
 {-# OPAQUE readBit #-}
 
 {-| Writes the given bit (third argument, True for 1, False for 0) at the specified indices (second argument) in the bytestring.
@@ -1037,13 +1052,15 @@ replicateByte
   :: BuiltinInteger
   -> BuiltinInteger
   -> BuiltinByteString
-replicateByte n w8 =
-  case Bitwise.replicateByte n (fromIntegral w8) of
-    BuiltinFailure logs err ->
-      traceAll (logs <> pure (display err)) $
-        Haskell.error "byteStringReplicate errored."
-    BuiltinSuccess bs -> BuiltinByteString bs
-    BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
+replicateByte n w8
+  | 0 <= w8 && w8 <= 255 =
+      case Bitwise.replicateByte n (fromInteger w8) of
+        BuiltinFailure logs err ->
+          traceAll (logs <> pure (display err)) $
+            Haskell.error "byteStringReplicate errored."
+        BuiltinSuccess bs -> BuiltinByteString bs
+        BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
+  | otherwise = Haskell.error "byte out of range"
 {-# OPAQUE replicateByte #-}
 
 {-| Computes modular exponentiation (base^exponent mod modulus). Fails if the modulus is zero or negative,
@@ -1136,7 +1153,9 @@ scaleValue c (BuiltinValue val) =
 {-# OPAQUE scaleValue #-}
 
 caseInteger :: Integer -> [a] -> a
-caseInteger i b = b !! fromIntegral i
+caseInteger i b
+  | 0 <= i && i < toInteger (Haskell.length b) = b !! fromInteger i
+  | otherwise = Haskell.error "case index out of bounds"
 {-# OPAQUE caseInteger #-}
 
 {-| Case matching on a builtin pair. Continuation is needed here to make

@@ -220,6 +220,7 @@ test-suite plutus-tx-test
     Blueprint.Definition.Spec
     Blueprint.Spec
     Bool.Spec
+    Builtins.Spec
     Enum.Spec
     Eq.Spec
     List.Spec
