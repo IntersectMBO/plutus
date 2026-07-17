@@ -72,6 +72,13 @@ noOutput =
         <> help "Don't output the evaluation result"
     )
 
+-- Reverse lookup in a name/value option table for 'showDefaultWith', so the
+-- displayed default is exactly a string the option's reader accepts. Keyed on
+-- 'show' rather than value equality because not every option value type has
+-- an 'Eq' instance.
+showByTable :: Show a => [(String, a)] -> a -> String
+showByTable table v = fromMaybe "" $ lookup (show v) [(show v', name) | (name, v') <- table]
+
 -- The single source of truth for each format's name, description (shown in
 -- --help), and value; the reader and shell completion are derived from it.
 formatTable :: [(String, Maybe String, Format)]
@@ -239,7 +246,7 @@ optimizeOpts = do
       ( long "opt-cse-which-subterms"
           <> metavar "MODE"
           <> value UPLC.ExcludeWorkFree
-          <> showDefaultWith (\case UPLC.AllSubterms -> "all"; UPLC.ExcludeWorkFree -> "exclude-work-free")
+          <> showDefaultWith (showByTable cseWhichSubtermsTable)
           <> completeWith (map fst cseWhichSubtermsTable)
           <> help ("CSE subterm selection: " <> intercalate " | " (map fst cseWhichSubtermsTable))
       )
@@ -340,7 +347,7 @@ optimiseEvalOpts =
       ( long "eval-arg-kind"
           <> metavar (intercalate "|" (map fst evalArgKindTable))
           <> value ArgData
-          <> showDefaultWith (\case ArgProg -> "prog"; ArgData -> "data")
+          <> showDefaultWith (showByTable evalArgKindTable)
           <> completeWith (map fst evalArgKindTable)
           <> help
             "Whether --eval-apply arguments are UPLC programs or Data objects"
@@ -425,8 +432,7 @@ builtinSemanticsVariantReader = (`lookup` builtinSemanticsVariantTable)
 
 -- This is used to make the help message show you what you actually need to type.
 showBuiltinSemanticsVariant :: BuiltinSemanticsVariant DefaultFun -> String
-showBuiltinSemanticsVariant v =
-  fromMaybe (show v) $ lookup v [(v', name) | (name, v') <- builtinSemanticsVariantTable]
+showBuiltinSemanticsVariant = showByTable builtinSemanticsVariantTable
 
 builtinSemanticsVariant :: Parser (BuiltinSemanticsVariant DefaultFun)
 builtinSemanticsVariant =
@@ -508,7 +514,7 @@ pLanguage =
         <> short 'l'
         <> metavar "LANGUAGE"
         <> value UPLC
-        <> showDefaultWith (\case PLC -> "plc"; UPLC -> "uplc")
+        <> showDefaultWith (showByTable languageTable)
         <> completeWith (map fst languageTable)
         <> help ("Target language: " <> intercalate " or " (map fst languageTable))
     )

@@ -4,7 +4,7 @@ module Main (main) where
 
 import PlutusCore.Executable.Help (Example, eg, examplesDoc)
 
-import Data.List (isInfixOf)
+import Data.List (isInfixOf, isPrefixOf)
 import Data.Maybe (isNothing)
 import Prettyprinter (defaultLayoutOptions, layoutPretty)
 import Prettyprinter.Render.String (renderString)
@@ -49,6 +49,14 @@ helpHasExample prog args exampleCmd =
     out <- runOk prog (args <> ["--help"])
     assertInfix "Examples:" out
     assertInfix exampleCmd out
+    -- Catch dead examples: every long flag an example mentions must still be a
+    -- real flag of the subcommand. (Top-level help doesn't list subcommand
+    -- flags, so only subcommand helps are checked.)
+    mapM_ (`assertInfix` out) longFlags
+  where
+    longFlags
+      | null args = []
+      | otherwise = [w | w <- words exampleCmd, "--" `isPrefixOf` w]
 
 helpTests :: TestTree
 helpTests =

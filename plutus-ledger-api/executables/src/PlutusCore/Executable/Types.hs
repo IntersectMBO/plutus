@@ -113,6 +113,7 @@ data EvalArgKind
     ArgProg
   | -- | Each argment is a Data object
     ArgData
+  deriving stock (Show)
 
 data OptimiseEvalOpts = OptimiseEvalOpts
   { oeEval :: Bool
@@ -138,3 +139,4 @@ pirFormatToFormat FlatNamed = Flat Named
 
 -- | Output types for some pir commands
 data Language = PLC | UPLC
+  deriving stock (Show)
