@@ -83,6 +83,7 @@ TARGET_RE='scavenge_stack: weird activation record found on stack'
 ISERV_RE='ghc-iserv terminated|iserv-proxy[^[:space:]]*: internal error|iserv-proxy.*end of file|GHCi\.Message\.remoteCall: end of file|remote-iserv|wine.*Unhandled exception'
 NONDET_RE='may not be deterministic|is not deterministic|not deterministic!'
 CHECKIMPOSSIBLE_RE='are not valid, so checking is not possible'
+EVALFAIL_RE='error: .*attribute .* (missing|not found)|Did you mean|does not provide attribute|cannot find flake'
 
 mkdir -p "$RESULTS_DIR/logs"
 CSV="$RESULTS_DIR/results.csv"
@@ -174,6 +175,14 @@ while true; do
     dur=$(( $(date +%s) - t0 ))
     ATTEMPTS[$g]=$n
 
+    if [ "$rc" -ne 0 ] && grep -qE "$EVALFAIL_RE" "$log"; then
+      echo "  -> EVAL_FAIL: flake attribute for arm '$g' did not evaluate; this is" >&2
+      echo "     deterministic (wrong checkout or missing haskell-nix override), aborting." >&2
+      echo "     See $log" >&2
+      echo "${ts},${g},${n},EVAL_FAIL,${rc},${dur},${log}" >> "$CSV"
+      print_summary
+      exit 1
+    fi
     if grep -qE "$TARGET_RE" "$log"; then
       class=TARGET_CRASH;      TARGET[$g]=$(( TARGET[$g] + 1 ))
     elif grep -qE "$ISERV_RE" "$log"; then
