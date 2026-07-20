@@ -2474,6 +2474,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           scaleValueDenotation
           (runCostingFunTwoArguments . paramScaleValue)
   toBuiltinMeaning _semvar MultiIndexArray =
+    -- Indices are 'Integer', not 'Int' (unlike 'indexArray'), because '[Int]' has no
+    -- unlifting: only 'DefaultUni' element types unlift, and 'Int' is not one. The bounds
+    -- check is therefore done in the 'Integer' domain.
     let multiIndexArrayDenotation
           :: [Integer] -> SomeConstant uni (Vector a) -> BuiltinResult (Opaque val [a])
         multiIndexArrayDenotation indices (SomeConstant (Some (ValueOf uni vec))) =
