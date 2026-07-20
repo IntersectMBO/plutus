@@ -1138,6 +1138,7 @@ test-suite flat-test
     Test.E
     Test.E.Arbitrary
     Test.E.Flat
+    Test.LargeInteger
 
   build-depends:
     , base

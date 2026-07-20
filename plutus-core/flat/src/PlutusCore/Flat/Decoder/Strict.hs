@@ -1,3 +1,4 @@
+{- FOURMOLU_DISABLE -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP          #-}
 
@@ -9,7 +10,7 @@ module PlutusCore.Flat.Decoder.Strict
   , dLazyByteString
   , dShortByteString
   , dShortByteString_
-#if! defined (ETA_VERSION)
+#if ! defined (ETA_VERSION)
   , dUTF16
 #endif
   , dUTF8
@@ -44,13 +45,14 @@ import Data.Text.Encoding qualified as T
 import PlutusCore.Flat.Decoder.Prim
 import PlutusCore.Flat.Decoder.Types
 
-#if! defined (ETA_VERSION) && ! MIN_VERSION_text(2,0,0)
+#if ! defined (ETA_VERSION) && ! MIN_VERSION_text(2,0,0)
 import Data.Text.Array qualified as TA
 import Data.Text.Internal qualified as T
 #endif
 
 import Data.Word
 import GHC.Base (unsafeChr)
+import GHC.Num.Natural qualified as Natural
 import Numeric.Natural (Natural)
 import PlutusCore.Flat.Data.ZigZag
 #include "MachDeps.h"
@@ -109,7 +111,7 @@ dNatural = dUnsigned
 
 {-# INLINE dInteger #-}
 dInteger :: Get Integer
-dInteger = zagZig <$> dUnsigned
+dInteger = zagZig <$> dNatural
 
 {-# INLINE dWord #-}
 {-# INLINE dInt #-}
@@ -237,26 +239,38 @@ lastStep shl n = do
    wordErr v = fail $ "Unexpected extra byte in unsigned integer" ++ show v
 
 -- {-# INLINE dUnsigned #-}
-dUnsigned :: (Num b, Bits b) => Get b
-dUnsigned = do
-  (v, shl) <- dUnsigned_ 0 0
-  maybe
-    (return v)
-    (\s ->
-       if shl >= s
-         then fail "Unexpected extra data in unsigned integer"
-         else return v) $
-    bitSizeMaybe v
+dUnsigned :: Get Natural
+dUnsigned = dUnsigned_ 0 0 []
 
 -- {-# INLINE dUnsigned_ #-}
-dUnsigned_ :: (Bits t, Num t) => Int -> t -> Get (t, Int)
-dUnsigned_ shl n = do
-  tw <- dWord8
-  let w = tw .&. 127
-  let v = n .|. fromIntegral w `shift` shl
-  if tw == w
-    then return (v, shl)
-    else dUnsigned_ (shl + 7) v
+dUnsigned_ :: Word -> Int -> [Word] -> Get Natural
+dUnsigned_ = go
+  where
+    wordBits = finiteBitSize (0 :: Word)
+
+    go !limb !used !limbs = do
+      taggedPayload <- dWord8
+      let !payload = fromIntegral (taggedPayload .&. 127)
+          (!limb', !used', !limbs') = pushPayload payload limb used limbs
+      if taggedPayload < 128
+        then return $ finishNatural (limb' : limbs')
+        else go limb' used' limbs'
+
+    pushPayload !payload !limb !used !limbs
+      | used <= wordBits - 7 =
+          let !limb' = limb .|. payload `shiftL` used
+              !used' = used + 7
+           in (limb', used', limbs)
+      | otherwise =
+          let !bitsAvailable = wordBits - used
+              !completedLimb = limb .|. payload `shiftL` used
+              !nextLimb = payload `shiftR` bitsAvailable
+              !nextUsed = 7 - bitsAvailable
+           in (nextLimb, nextUsed, completedLimb : limbs)
+
+    finishNatural [] = 0
+    finishNatural [word] = fromIntegral word
+    finishNatural words = Natural.naturalFromWordList words
 
 --encode = encode . blob UTF8Encoding . L.fromStrict . T.encodeUtf8
 --decode = T.decodeUtf8 . L.toStrict . (unblob :: BLOB UTF8Encoding -> L.ByteString) <$> decode
@@ -302,7 +316,3 @@ dShortByteString_ = do
 
 dByteString :: Get B.ByteString
 dByteString = dFiller >> dByteString_
-
-
-
-
