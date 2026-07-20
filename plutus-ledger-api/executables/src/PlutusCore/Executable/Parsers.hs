@@ -11,6 +11,7 @@ import PlutusCore.Executable.Types
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Lens ((^.))
+import Data.List (intercalate)
 import Data.Maybe
 import Options.Applicative
 
@@ -26,6 +27,7 @@ fileInput =
       ( long "input"
           <> short 'i'
           <> metavar "FILENAME"
+          <> action "file"
           <> help "Input file"
       )
 
@@ -49,6 +51,7 @@ fileOutput =
       ( long "output"
           <> short 'o'
           <> metavar "FILENAME"
+          <> action "file"
           <> help "Output file"
       )
 
@@ -69,27 +72,36 @@ noOutput =
         <> help "Don't output the evaluation result"
     )
 
+-- Reverse lookup in a name/value option table for 'showDefaultWith', so the
+-- displayed default is exactly a string the option's reader accepts. Keyed on
+-- 'show' rather than value equality because not every option value type has
+-- an 'Eq' instance.
+showByTable :: Show a => [(String, a)] -> a -> String
+showByTable table v = fromMaybe "" $ lookup (show v) [(show v', name) | (name, v') <- table]
+
+-- The single source of truth for each format's name, description (shown in
+-- --help), and value; the reader and shell completion are derived from it.
+formatTable :: [(String, Maybe String, Format)]
+formatTable =
+  [ ("textual", Nothing, Textual)
+  , ("serialised", Just "cbor + flat, with de Bruijn indices", Serialised)
+  , ("hex", Just "hex + cbor + flat", Hex)
+  , ("flat-named", Just "names", Flat Named)
+  , ("flat", Just "de Bruijn indices", Flat DeBruijn)
+  , ("flat-deBruijn", Just "alias for flat", Flat DeBruijn)
+  , ("flat-namedDeBruijn", Just "names and de Bruijn indices", Flat NamedDeBruijn)
+  , ("blueprint", Nothing, Blueprint)
+  ]
+
 formatHelp :: String
 formatHelp =
-  "textual, "
-    <> "serialised (cbor + flat, with de Bruijn indices), "
-    <> "hex (hex + cbor + flat), "
-    <> "flat-named (names), flat (de Bruijn indices), "
-    <> "flat-namedDeBruijn (names and de Bruijn indices), "
-    <> "or blueprint."
+  intercalate ", " [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- formatTable]
 
 formatReader :: String -> Maybe Format
-formatReader =
-  \case
-    "textual" -> Just Textual
-    "serialised" -> Just Serialised
-    "hex" -> Just Hex
-    "flat-named" -> Just (Flat Named)
-    "flat" -> Just (Flat DeBruijn)
-    "flat-deBruijn" -> Just (Flat DeBruijn)
-    "flat-namedDeBruijn" -> Just (Flat NamedDeBruijn)
-    "blueprint" -> Just Blueprint
-    _ -> Nothing
+formatReader s = listToMaybe [v | (name, _, v) <- formatTable, name == s]
+
+formatNames :: [String]
+formatNames = [name | (name, _, _) <- formatTable]
 
 inputformat :: Parser Format
 inputformat =
@@ -100,6 +112,7 @@ inputformat =
         <> metavar "FORMAT"
         <> value Textual
         <> showDefault
+        <> completeWith formatNames
         <> help ("Input format: " ++ formatHelp)
     )
 
@@ -112,6 +125,7 @@ outputformat =
         <> metavar "FORMAT"
         <> value Textual
         <> showDefault
+        <> completeWith formatNames
         <> help ("Output format: " ++ formatHelp)
     )
 
@@ -123,11 +137,12 @@ tracemode =
         <> metavar "MODE"
         <> value None
         <> showDefault
+        <> completeWith (map show [(minBound :: TraceMode) .. maxBound])
         <> help "Mode for trace output."
     )
 
 files :: Parser Files
-files = some (argument str (metavar "[FILES...]"))
+files = some (argument str (metavar "[FILES...]" <> action "file"))
 
 applyOpts :: Parser ApplyOptions
 applyOpts = ApplyOptions <$> files <*> inputformat <*> output <*> outputformat <*> printmode
@@ -140,6 +155,7 @@ printmode =
         <> metavar "MODE"
         <> value Classic
         <> showDefault
+        <> completeWith (map show [(minBound :: PrintMode) .. maxBound])
         <> help
           ( "Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassic, "
               <> "Simple -> plcPrettyClassicSimple, "
@@ -187,6 +203,7 @@ certifierOutputMode =
         <$> strOption
           ( long "certifier-report"
               <> metavar "REPORT_FILE"
+              <> action "file"
               <> help "Certifier writes a report to the given file"
           )
     , flag
@@ -196,6 +213,12 @@ certifierOutputMode =
             <> help "Certifier produces an Agda project that can be type checked (default)"
         )
     ]
+
+cseWhichSubtermsTable :: [(String, UPLC.CseWhichSubterms)]
+cseWhichSubtermsTable =
+  [ ("all", UPLC.AllSubterms)
+  , ("exclude-work-free", UPLC.ExcludeWorkFree)
+  ]
 
 optimizeOpts :: Parser (UPLC.OptimizeOpts name a)
 optimizeOpts = do
@@ -219,18 +242,13 @@ optimizeOpts = do
       )
   _ooCseWhichSubterms <-
     option
-      ( maybeReader
-          ( \case
-              "all" -> Just UPLC.AllSubterms
-              "exclude-work-free" -> Just UPLC.ExcludeWorkFree
-              _ -> Nothing
-          )
-      )
+      (maybeReader (`lookup` cseWhichSubtermsTable))
       ( long "opt-cse-which-subterms"
           <> metavar "MODE"
           <> value UPLC.ExcludeWorkFree
-          <> showDefaultWith (\case UPLC.AllSubterms -> "all"; UPLC.ExcludeWorkFree -> "exclude-work-free")
-          <> help "CSE subterm selection: all | exclude-work-free"
+          <> showDefaultWith (showByTable cseWhichSubtermsTable)
+          <> completeWith (map fst cseWhichSubtermsTable)
+          <> help ("CSE subterm selection: " <> intercalate " | " (map fst cseWhichSubtermsTable))
       )
   _ooConservativeOpts <-
     switch
@@ -295,6 +313,12 @@ optimizeOpts = do
       )
   pure UPLC.OptimizeOpts {..}
 
+evalArgKindTable :: [(String, EvalArgKind)]
+evalArgKindTable =
+  [ ("prog", ArgProg)
+  , ("data", ArgData)
+  ]
+
 optimiseEvalOpts :: Parser OptimiseEvalOpts
 optimiseEvalOpts =
   mkOpts
@@ -312,23 +336,19 @@ optimiseEvalOpts =
       ( strOption
           ( long "eval-apply"
               <> metavar "FILE"
+              <> action "file"
               <> help
                 "Apply program to this argument file before evaluating \
                 \(repeatable).  Implies --eval."
           )
       )
     <*> option
-      ( maybeReader
-          ( \case
-              "prog" -> Just ArgProg
-              "data" -> Just ArgData
-              _ -> Nothing
-          )
-      )
+      (maybeReader (`lookup` evalArgKindTable))
       ( long "eval-arg-kind"
-          <> metavar "prog|data"
+          <> metavar (intercalate "|" (map fst evalArgKindTable))
           <> value ArgData
-          <> showDefaultWith (\case ArgProg -> "prog"; ArgData -> "data")
+          <> showDefaultWith (showByTable evalArgKindTable)
+          <> completeWith (map fst evalArgKindTable)
           <> help
             "Whether --eval-apply arguments are UPLC programs or Data objects"
       )
@@ -336,10 +356,11 @@ optimiseEvalOpts =
       ( strOption
           ( long "eval-args-dir"
               <> metavar "DIR"
+              <> action "directory"
               <> help
                 "Directory with per-validator argument files for blueprint \
                 \optimisation.  For each validator titled T, it looks for \
-                \files DIR/T/1, DIR/T/2, ... containing arguments to apply. \
+                \files DIR/T/0, DIR/T/1, ... containing arguments to apply. \
                 \Implies --eval."
           )
       )
@@ -397,25 +418,21 @@ exampleSingle = ExampleSingle <$> exampleName
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
 
+builtinSemanticsVariantTable :: [(String, BuiltinSemanticsVariant DefaultFun)]
+builtinSemanticsVariantTable =
+  [ ("A", DefaultFunSemanticsVariantA)
+  , ("B", DefaultFunSemanticsVariantB)
+  , ("C", DefaultFunSemanticsVariantC)
+  , ("D", DefaultFunSemanticsVariantD)
+  , ("E", DefaultFunSemanticsVariantE)
+  ]
+
 builtinSemanticsVariantReader :: String -> Maybe (BuiltinSemanticsVariant DefaultFun)
-builtinSemanticsVariantReader =
-  \case
-    "A" -> Just DefaultFunSemanticsVariantA
-    "B" -> Just DefaultFunSemanticsVariantB
-    "C" -> Just DefaultFunSemanticsVariantC
-    "D" -> Just DefaultFunSemanticsVariantD
-    "E" -> Just DefaultFunSemanticsVariantE
-    _ -> Nothing
+builtinSemanticsVariantReader = (`lookup` builtinSemanticsVariantTable)
 
 -- This is used to make the help message show you what you actually need to type.
 showBuiltinSemanticsVariant :: BuiltinSemanticsVariant DefaultFun -> String
-showBuiltinSemanticsVariant =
-  \case
-    DefaultFunSemanticsVariantA -> "A"
-    DefaultFunSemanticsVariantB -> "B"
-    DefaultFunSemanticsVariantC -> "C"
-    DefaultFunSemanticsVariantD -> "D"
-    DefaultFunSemanticsVariantE -> "E"
+showBuiltinSemanticsVariant = showByTable builtinSemanticsVariantTable
 
 builtinSemanticsVariant :: Parser (BuiltinSemanticsVariant DefaultFun)
 builtinSemanticsVariant =
@@ -426,28 +443,31 @@ builtinSemanticsVariant =
         <> metavar "VARIANT"
         <> value DefaultFunSemanticsVariantE
         <> showDefaultWith showBuiltinSemanticsVariant
+        <> completeWith (map fst builtinSemanticsVariantTable)
         <> help
-          ( "Builtin semantics variant: A -> DefaultFunSemanticsVariantA, "
-              <> "B -> DefaultFunSemanticsVariantB, "
-              <> "C -> DefaultFunSemanticsVariantC, "
-              <> "D -> DefaultFunSemanticsVariantD, "
-              <> "E -> DefaultFunSemanticsVariantE"
+          ( "Builtin semantics variant: "
+              <> intercalate ", " [name <> " -> " <> show v | (name, v) <- builtinSemanticsVariantTable]
           )
     )
 
 -- Specialised parsers for PIR, which only supports ASTs over the Textual and
 -- Named types.
 
+pirFormatTable :: [(String, Maybe String, PirFormat)]
+pirFormatTable =
+  [ ("textual", Nothing, TextualPir)
+  , ("flat-named", Just "names", FlatNamed)
+  ]
+
 pirFormatHelp :: String
 pirFormatHelp =
-  "textual or flat-named (names)"
+  intercalate " or " [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- pirFormatTable]
 
 pirFormatReader :: String -> Maybe PirFormat
-pirFormatReader =
-  \case
-    "textual" -> Just TextualPir
-    "flat-named" -> Just FlatNamed
-    _ -> Nothing
+pirFormatReader s = listToMaybe [v | (name, _, v) <- pirFormatTable, name == s]
+
+pirFormatNames :: [String]
+pirFormatNames = [name | (name, _, _) <- pirFormatTable]
 
 pPirInputFormat :: Parser PirFormat
 pPirInputFormat =
@@ -458,6 +478,7 @@ pPirInputFormat =
         <> metavar "PIR-FORMAT"
         <> value TextualPir
         <> showDefault
+        <> completeWith pirFormatNames
         <> help ("Input format: " ++ pirFormatHelp)
     )
 
@@ -470,17 +491,20 @@ pPirOutputFormat =
         <> metavar "PIR-FORMAT"
         <> value TextualPir
         <> showDefault
+        <> completeWith pirFormatNames
         <> help ("Output format: " ++ pirFormatHelp)
     )
 
 -- Which language: PLC or UPLC?
 
+languageTable :: [(String, Language)]
+languageTable =
+  [ ("plc", PLC)
+  , ("uplc", UPLC)
+  ]
+
 languageReader :: String -> Maybe Language
-languageReader =
-  \case
-    "plc" -> Just PLC
-    "uplc" -> Just UPLC
-    _ -> Nothing
+languageReader = (`lookup` languageTable)
 
 pLanguage :: Parser Language
 pLanguage =
@@ -490,6 +514,7 @@ pLanguage =
         <> short 'l'
         <> metavar "LANGUAGE"
         <> value UPLC
-        <> showDefaultWith (\case PLC -> "plc"; UPLC -> "uplc")
-        <> help ("Target language: plc or uplc")
+        <> showDefaultWith (showByTable languageTable)
+        <> completeWith (map fst languageTable)
+        <> help ("Target language: " <> intercalate " or " (map fst languageTable))
     )

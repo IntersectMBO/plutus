@@ -245,3 +245,21 @@ test-suite test-certifier
     , time
 
   build-tool-depends: plutus-executables:uplc
+
+test-suite test-cli
+  import:         lang, os-support, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/cli
+  build-depends:
+    , base
+    , plutus-ledger-api:plutus-execlib
+    , prettyprinter
+    , process
+    , tasty
+    , tasty-hunit
+
+  build-tool-depends:
+    , plutus-executables:pir
+    , plutus-executables:plc
+    , plutus-executables:uplc
