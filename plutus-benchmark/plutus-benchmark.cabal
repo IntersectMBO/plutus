@@ -914,6 +914,7 @@ benchmark flat-decode
     , deepseq
     , flat
     , plutus-core
+    , plutus-core:flat
     , plutus-ledger-api
     , vector
 
