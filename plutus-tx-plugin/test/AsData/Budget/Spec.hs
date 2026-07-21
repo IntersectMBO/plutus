@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module AsData.Budget.Spec where
 

@@ -6,7 +6,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 {-| Check how many Ed25519 signature verifications we can perform within the
    limits specified in the protocol parameters. -}

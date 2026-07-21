@@ -334,17 +334,16 @@ defineBoolType = do
     caseMatcher :: PIR.ManualMatcher uni fun Ann
     caseMatcher _tyArgs scrut resTy branches =
       case datatypeStyle of
-        style
-          | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
-              -- For IfThenElse, true branch comes first hence we reverse brenches
-              PIR.mkIterApp
-                ( PIR.tyInst
-                    annMayInline
-                    (PIR.builtin annMayInline PLC.IfThenElse)
-                    resTy
-                )
-                ((annMayInline,) <$> (scrut : reverse branches))
-        _BuiltinCasing ->
+        PIR.ScottEncoding ->
+          -- For IfThenElse, true branch comes first hence we reverse brenches
+          PIR.mkIterApp
+            ( PIR.tyInst
+                annMayInline
+                (PIR.builtin annMayInline PLC.IfThenElse)
+                resTy
+            )
+            ((annMayInline,) <$> (scrut : reverse branches))
+        PIR.SumsOfProducts ->
           PIR.kase annMayInline resTy scrut branches
 
   PIR.defineManualDatatype
@@ -388,7 +387,7 @@ defineBuiltinTerms = do
     PIR.mkConstant annMayInline BLS12_381.G2.compressed_zero
 
   defineBuiltinTerm annMayInline 'Builtins.casePair $ case datatypeStyle of
-    style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+    PIR.ScottEncoding ->
       -- > /\a b r ->
       -- >   \(p : pair a b) (f : a -> b -> r) ->
       -- >     f (fstPair {a} {b} p) (sndPair {a} {b} p)
@@ -429,7 +428,7 @@ defineBuiltinTerms = do
                           (PIR.apply () (instFstOrSnd PLC.FstPair) (PIR.var () p))
                       )
                       (PIR.apply () (instFstOrSnd PLC.SndPair) (PIR.var () p))
-    _BuiltinCasing ->
+    PIR.SumsOfProducts ->
       -- > /\a b r ->
       -- >   \(p : pair a b) (f : a -> b -> r) ->
       -- >     (case r p f)
@@ -509,22 +508,20 @@ defineBuiltinTerms = do
                     [PIR.var a f]
 
   defineBuiltinTerm annMayInline 'Builtins.unsafeCaseList $ case datatypeStyle of
-    style
-      | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
-          unsafeCaseListNoCasing
-    _BuiltinCasing ->
+    PIR.ScottEncoding ->
+      unsafeCaseListNoCasing
+    PIR.SumsOfProducts ->
       unsafeCaseListCasing annMayInline annMayInline
 
   -- See Note [Dropping redundant unsafeCaseList calls produced by AsData].
   defineBuiltinTerm annMayInline 'AI.droppableUnsafeCaseList $ case datatypeStyle of
-    style
-      | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
-          unsafeCaseListNoCasing
-    _BuiltinCasing ->
+    PIR.ScottEncoding ->
+      unsafeCaseListNoCasing
+    PIR.SumsOfProducts ->
       unsafeCaseListCasing annMayInline annSafeToDrop
 
   defineBuiltinTerm annMayInline 'Builtins.caseList' $ case datatypeStyle of
-    style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+    PIR.ScottEncoding ->
       -- > /\a r ->
       -- >   \(z : r) (f : a -> list a -> r) (xs : list a) ->
       -- >     chooseList
@@ -574,7 +571,7 @@ defineBuiltinTerms = do
                 ]
             )
           $ PLC.TyVar () r
-    _BuiltinCasing ->
+    PIR.SumsOfProducts ->
       -- > /\a r ->
       -- >   \(z : r) (f : a -> list a -> r) (xs : list a) ->
       -- >     (case r xs f z)
@@ -603,8 +600,7 @@ defineBuiltinTerms = do
      in case fun of
           PLC.IfThenElse -> case datatypeStyle of
             PIR.ScottEncoding -> defineBuiltinInl 'Builtins.ifThenElse
-            PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.ifThenElse
-            PIR.BuiltinCasing -> defineBuiltinTerm annMayInline 'Builtins.ifThenElse $
+            PIR.SumsOfProducts -> defineBuiltinTerm annMayInline 'Builtins.ifThenElse $
               fmap (const annMayInline) . runQuote $ do
                 a <- freshTyName "a"
                 b <- freshName "b"
@@ -622,8 +618,7 @@ defineBuiltinTerms = do
                     [PIR.Var () y, PIR.Var () x]
           PLC.ChooseUnit -> case datatypeStyle of
             PIR.ScottEncoding -> defineBuiltinInl 'Builtins.chooseUnit
-            PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.chooseUnit
-            PIR.BuiltinCasing -> defineBuiltinTerm annMayInline 'Builtins.chooseUnit $
+            PIR.SumsOfProducts -> defineBuiltinTerm annMayInline 'Builtins.chooseUnit $
               fmap (const annMayInline) . runQuote $ do
                 r <- freshTyName "r"
                 unit <- freshName "unit"
@@ -677,8 +672,7 @@ defineBuiltinTerms = do
           -- Pairs
           PLC.FstPair -> case datatypeStyle of
             PIR.ScottEncoding -> defineBuiltinInl 'Builtins.fst
-            PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.fst
-            PIR.BuiltinCasing -> defineBuiltinTerm annMayInline 'Builtins.fst $
+            PIR.SumsOfProducts -> defineBuiltinTerm annMayInline 'Builtins.fst $
               fmap (const annMayInline) . runQuote $ do
                 a <- freshTyName "a"
                 b <- freshTyName "b"
@@ -709,8 +703,7 @@ defineBuiltinTerms = do
                           ]
           PLC.SndPair -> case datatypeStyle of
             PIR.ScottEncoding -> defineBuiltinInl 'Builtins.snd
-            PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.snd
-            PIR.BuiltinCasing -> defineBuiltinTerm annMayInline 'Builtins.snd $
+            PIR.SumsOfProducts -> defineBuiltinTerm annMayInline 'Builtins.snd $
               fmap (const annMayInline) . runQuote $ do
                 a <- freshTyName "a"
                 b <- freshTyName "b"

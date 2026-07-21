@@ -242,107 +242,107 @@
           n
           (con { no-src-span } integer)
           (let
-            { test/Plugin/Debug/Spec.hs:44:11-53:58 }
+            { test/Plugin/Debug/Spec.hs:43:11-52:58 }
             (nonrec)
             (termbind
-              { test/Plugin/Debug/Spec.hs:44:11-53:58 }
+              { test/Plugin/Debug/Spec.hs:43:11-52:58 }
               (strict)
               (vardecl
-                { test/Plugin/Debug/Spec.hs:44:11-53:58 }
+                { test/Plugin/Debug/Spec.hs:43:11-52:58 }
                 n
-                (con { test/Plugin/Debug/Spec.hs:44:11-53:58 } integer)
+                (con { test/Plugin/Debug/Spec.hs:43:11-52:58 } integer)
               )
-              { test/Plugin/Debug/Spec.hs:44:11-53:58 } n
+              { test/Plugin/Debug/Spec.hs:43:11-52:58 } n
             )
             {
-              { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+              { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
               (case
-                { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                 (all
-                  { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                  { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                   dead
-                  ({ test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                  ({ test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                   type)
                   (con
-                    { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                    { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                     integer
                   )
                 )
                 [
-                  { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                  { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                   [
-                    { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
-                    { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                    { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
+                    { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                     equalsInteger
-                    { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:45:39-45:39 }
+                    { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:44:39-44:39 }
                     n
                   ]
                   (con
-                    { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:45:41-45:41 }
+                    { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:44:41-44:41 }
                     integer
                     0
                   )
                 ]
                 (abs
-                  { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                  { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                   dead
-                  ({ test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                  ({ test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                   type)
                   {
-                    { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                    { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                     (case
-                      { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                      { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                       (all
-                        { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                        { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                         dead
-                        ({ test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                        ({ test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                         type)
                         (con
-                          { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                          { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                           integer
                         )
                       )
                       [
-                        { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                        { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                         [
-                          { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
-                          { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                          { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
+                          { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                           equalsInteger
-                          { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:48:43-48:43 }
+                          { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:47:43-47:43 }
                           n
                         ]
                         (con
-                          { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:48:45-48:45 }
+                          { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:47:45-47:45 }
                           integer
                           1
                         )
                       ]
                       (abs
-                        { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                        { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                         dead
-                        ({ test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                        ({ test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                         type)
                         [
-                          { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58 }
+                          { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58 }
                           [
-                            { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58 }
-                            { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58 }
+                            { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58 }
+                            { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58 }
                             addInteger
                             [
-                              { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:52:23-52:58 }
-                              { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:52:23-52:58 }
+                              { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:51:23-51:58 }
+                              { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:51:23-51:58 }
                               fib
                               [
-                                { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57 }
+                                { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:51:23-51:58, test/Plugin/Debug/Spec.hs:51:28-51:57 }
                                 [
-                                  { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57 }
-                                  { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57 }
+                                  { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:51:23-51:58, test/Plugin/Debug/Spec.hs:51:28-51:57 }
+                                  { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:51:23-51:58, test/Plugin/Debug/Spec.hs:51:28-51:57 }
                                   subtractInteger
-                                  { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57, test/Plugin/Debug/Spec.hs:52:54-52:54 }
+                                  { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:51:23-51:58, test/Plugin/Debug/Spec.hs:51:28-51:57, test/Plugin/Debug/Spec.hs:51:54-51:54 }
                                   n
                                 ]
                                 (con
-                                  { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57, test/Plugin/Debug/Spec.hs:52:56-52:56 }
+                                  { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:51:23-51:58, test/Plugin/Debug/Spec.hs:51:28-51:57, test/Plugin/Debug/Spec.hs:51:56-51:56 }
                                   integer
                                   1
                                 )
@@ -350,20 +350,20 @@
                             ]
                           ]
                           [
-                            { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:53:23-53:58 }
-                            { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:53:23-53:58 }
+                            { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:52:23-52:58 }
+                            { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:52:23-52:58 }
                             fib
                             [
-                              { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:53:23-53:58, test/Plugin/Debug/Spec.hs:53:28-53:57 }
+                              { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57 }
                               [
-                                { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:53:23-53:58, test/Plugin/Debug/Spec.hs:53:28-53:57 }
-                                { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:53:23-53:58, test/Plugin/Debug/Spec.hs:53:28-53:57 }
+                                { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57 }
+                                { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57 }
                                 subtractInteger
-                                { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:53:23-53:58, test/Plugin/Debug/Spec.hs:53:28-53:57, test/Plugin/Debug/Spec.hs:53:54-53:54 }
+                                { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57, test/Plugin/Debug/Spec.hs:52:54-52:54 }
                                 n
                               ]
                               (con
-                                { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:51:21-53:58, test/Plugin/Debug/Spec.hs:53:23-53:58, test/Plugin/Debug/Spec.hs:53:28-53:57, test/Plugin/Debug/Spec.hs:53:56-53:56 }
+                                { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:50:21-52:58, test/Plugin/Debug/Spec.hs:52:23-52:58, test/Plugin/Debug/Spec.hs:52:28-52:57, test/Plugin/Debug/Spec.hs:52:56-52:56 }
                                 integer
                                 2
                               )
@@ -372,52 +372,52 @@
                         ]
                       )
                       (abs
-                        { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                        { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                         dead
-                        ({ test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                        ({ test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                         type)
                         (con
-                          { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58, test/Plugin/Debug/Spec.hs:49:24-49:24 }
+                          { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58, test/Plugin/Debug/Spec.hs:48:24-48:24 }
                           integer
                           1
                         )
                       )
                     )
                     (all
-                      { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                      { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                       dead
-                      ({ test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                      ({ test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                       type)
-                      { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:48:17-53:58 }
+                      { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:47:17-52:58 }
                       dead
                     )
                   }
                 )
                 (abs
-                  { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                  { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                   dead
-                  ({ test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                  ({ test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                   type)
                   (con
-                    { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58, test/Plugin/Debug/Spec.hs:46:20-46:20 }
+                    { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58, test/Plugin/Debug/Spec.hs:45:20-45:20 }
                     integer
                     0
                   )
                 )
               )
               (all
-                { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                 dead
-                ({ test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                ({ test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                 type)
-                { test/Plugin/Debug/Spec.hs:44:11-53:58, test/Plugin/Debug/Spec.hs:45:13-53:58 }
+                { test/Plugin/Debug/Spec.hs:43:11-52:58, test/Plugin/Debug/Spec.hs:44:13-52:58 }
                 dead
               )
             }
           )
         )
       )
-      { test/Plugin/Debug/Spec.hs:43:5-55:5 } fib
+      { test/Plugin/Debug/Spec.hs:42:5-54:5 } fib
     )
   )
 )
