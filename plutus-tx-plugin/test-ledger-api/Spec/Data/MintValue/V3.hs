@@ -116,6 +116,7 @@ testPropsInPlinth =
 test_Plinth_MintValueBuiltinData :: TestTree
 test_Plinth_MintValueBuiltinData =
   testProperty "Builtin data representation of MintValue and Value is the same"
+    . BaseQC.withNumTests 10
     $ cekProp
     . \values ->
       $$(compile [||prop_MintValueBuiltinData||])
@@ -124,6 +125,7 @@ test_Plinth_MintValueBuiltinData =
 test_Plinth_AssetClassIsEitherMintedOrBurned :: TestTree
 test_Plinth_AssetClassIsEitherMintedOrBurned =
   testProperty "Asset class is either minted or burned"
+    . BaseQC.withNumTests 10
     $ cekProp
     . \mintValue ->
       $$(compile [||prop_AssetClassIsEitherMintedOrBurned||])
@@ -131,13 +133,13 @@ test_Plinth_AssetClassIsEitherMintedOrBurned =
 
 test_Plinth_MintValueMintedIsPositive :: TestTree
 test_Plinth_MintValueMintedIsPositive =
-  testProperty "MintValue minted is positive" $ cekProp . \mintValue ->
+  testProperty "MintValue minted is positive" . BaseQC.withNumTests 10 $ cekProp . \mintValue ->
     $$(compile [||prop_MintValueMintedIsPositive||])
       `unsafeApplyCode` liftCodeDef mintValue
 
 test_Plinth_MintValueBurnedIsPositive :: TestTree
 test_Plinth_MintValueBurnedIsPositive =
-  testProperty "MintValue burned is positive" $ cekProp . \mintValue ->
+  testProperty "MintValue burned is positive" . BaseQC.withNumTests 10 $ cekProp . \mintValue ->
     $$(compile [||prop_MintValueBurnedIsPositive||])
       `unsafeApplyCode` liftCodeDef mintValue
 

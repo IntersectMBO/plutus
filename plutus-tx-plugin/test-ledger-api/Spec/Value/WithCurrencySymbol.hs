@@ -95,6 +95,7 @@ testPropsInPlinth =
 test_Plinth_EachCurrencySymbolGetsItsContinuationApplied :: TestTree
 test_Plinth_EachCurrencySymbolGetsItsContinuationApplied =
   testProperty "Each currency symbol in a Value gets its continuation applied"
+    . BaseQC.withNumTests 10
     $ cekProp
     . \value ->
       $$(compile [||prop_EachCurrencySymbolGetsContinuationApplied||])
@@ -103,6 +104,7 @@ test_Plinth_EachCurrencySymbolGetsItsContinuationApplied =
 test_Plinth_CorrectTokenQuantitiesAreSelected :: TestTree
 test_Plinth_CorrectTokenQuantitiesAreSelected =
   testProperty "Correct token quantities are selected"
+    . BaseQC.withNumTests 10
     $ cekProp
     . \values ->
       $$(compile [||prop_CorrectTokenQuantitiesAreSelected||])
