@@ -116,7 +116,7 @@ agdaEvalUplcProg WithCosting =
                 runExceptT $
                   withExceptT FreeVariableErrorE $
                     unDeBruijnTerm tmEvaluated of
-                Left _ -> DecodeError
+                Left _ -> EvalFailure -- Shouldn't happen unless there's something wrong with the Agda code.
                 Right namedTerm ->
                   let cost =
                         ExBudget

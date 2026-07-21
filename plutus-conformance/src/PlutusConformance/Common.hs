@@ -11,6 +11,7 @@ import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (Proxy))
 import Data.Tagged (Tagged (Tagged))
 import Data.Text qualified as T
+import Data.Text.Encoding qualified as TE
 import Data.Text.IO qualified as T
 import PlutusCore.Annotation
 import PlutusCore.DeBruijn (fakeNameDeBruijn)
@@ -44,8 +45,7 @@ import System.FilePath
   , (</>)
   )
 import Test.Tasty
-  ( askOption
-  , defaultIngredients
+  ( defaultIngredients
   , defaultMainWithIngredients
   , includingOptions
   , testGroup
@@ -57,8 +57,10 @@ import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Options
   ( IsOption (..)
   , OptionDescription (Option)
+  , lookupOption
   )
 import Test.Tasty.Providers (TestTree)
+import Test.Tasty.Runners (parseOptions)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable (Witherable (wither))
@@ -103,7 +105,7 @@ formatExtension Flat = "flat"
 
 {-| This instance allows `Format` to be used as a `tasty` command-line option
 (`--format=uplc` or `--format=flat`), so that users of the test suites can
-choose which input format the tests are run against.  The default is `Uplc`. -}
+choose which input format the tests are run against.  The default is `uplc`. -}
 instance IsOption Format where
   defaultValue = Textual
   parseValue s = case s of
@@ -114,7 +116,7 @@ instance IsOption Format where
   optionHelp =
     Tagged
       "The format of the test-case input files to run the tests against: \
-      \'textual' (textual UPLC source) or 'flat' (flat-encoded UPLC). \
+      \'uplc' (textual UPLC source) or 'flat' (flat-encoded UPLC). \
       \Default: uplc."
 
 -- UPLC evaluation test functions
@@ -140,6 +142,21 @@ data UplcEvaluator
     UplcEvaluatorWithCosting
       (CostModelParams -> UplcEvaluatorFun (UplcProg, ExBudget))
 
+{-| Directories (given as paths relative to the root of plutus-conformance,
+matching the convention used when calling `discoverTests`) under which a
+missing `.flat` input file is expected and not an error: these test the
+textual parser's handling of constants, which doesn't have a `flat`-encoded
+equivalent. This applies to the directory itself and everything below it.
+Kept in sync with the `skippedFlatDecodingTests` list in
+`consistency/Spec.hs`, which skips the same directories for a related
+reason (there's no `.flat` file there to compare against the `.uplc` file
+at all). -}
+flatOptionalDirs :: [FilePath]
+flatOptionalDirs =
+  [ "test-cases/uplc/evaluation/builtin/parser"
+  , "test-cases/uplc/evaluation/term/parser"
+  ]
+
 {-| Walk a file tree, making test groups for directories with subdirectories,
    and test cases for directories without.  We expect every test directory to
    contain a single input file, in the given `Format`, whose name matches that
@@ -155,11 +172,13 @@ data UplcEvaluator
    files will be created by the testing machinery if they aren't already
    present.
 
-   Not every test-case directory necessarily has an input file for every
-   `Format` yet (for example `.flat` files don't make sense for the tests
-   under `test-cases/uplc/evaluation/builtin/parser`, which test the
-   handling of constants by the textual parser): such directories are
-   skipped rather than treated as an error. -}
+   Every test-case directory is expected to have an input file for the
+   requested `Format`; a missing input file is treated as an error, except
+   under the directories listed in `flatOptionalDirs`, where (in `Flat` mode
+   only) a missing `.flat` file is expected and the directory is skipped
+   instead (for example `.flat` files don't make sense for the tests under
+   `test-cases/uplc/evaluation/builtin/parser`, which test the handling of
+   constants by the textual parser). -}
 discoverTests
   :: Format
   -- ^ The format of the test-case input files to run the tests against (.uplc or .flat).
@@ -177,11 +196,12 @@ discoverTests
   -- ^ The directory to search for tests.
   -> IO TestTree
 discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpected =
-  go
+  go False
   where
     ext = formatExtension fmt
-    go dir = do
+    go flatOptional dir = do
       let name = takeBaseName dir
+          flatOptional' = flatOptional || dir `elem` flatOptionalDirs
       children <- listDirectory dir
       subdirs <- flip wither children $ \child -> do
         let fullPath = dir </> child
@@ -198,8 +218,10 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
           let expectedInputFile = takeFileName dir <.> ext
           case inputFiles of
             [] ->
-              -- No input file in this format for this test case: skip it.
-              pure $ testGroup name []
+              if fmt == Flat && flatOptional'
+                then -- No `.flat` file for this test case, but that's expected here: skip it.
+                  pure $ testGroup name []
+                else error $ "Input file " ++ expectedInputFile ++ " missing in " ++ dir
             _ : _ : _ -> error $ "More than one ." <> ext <> " file in " <> dir
             [inputFilePath] ->
               if takeFileName inputFilePath /= expectedInputFile
@@ -221,7 +243,7 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
                       ]
                   UplcEvaluatorWithoutCosting f -> testForEval dir inputFilePath f
         -- has children, so it's a grouping directory
-        else testGroup name <$> traverse go subdirs
+        else testGroup name <$> traverse (go flatOptional') subdirs
     -- The base path (without extension) used for the budget golden files,
     -- which are always named using the `.uplc` extension regardless of the
     -- input format: there's no per-format budget golden file convention,
@@ -237,7 +259,7 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
               (getExpectedProg fmt goldenFilePath)
               -- get the tested value
               (getTestedValue fmt e inputFilePath)
-              (\x y -> pure $ compareAlphaEq fmt x y) -- comparison function
+              (\x y -> pure $ compareAlphaEq x y) -- comparison function
               (updateGoldenFile fmt goldenFilePath) -- update the golden file
        in possiblyFailingTest (evaluationFailureExpected dir) test
     testForBudget :: FilePath -> FilePath -> UplcEvaluatorFun ExBudget -> TestTree
@@ -264,7 +286,10 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
 
 {-| Check whether some text looks like it's meant to be a UPLC program, ie,
 whether it begins with `(program` once whitespace and comments (which may
-appear before the `(` and/or between the `(` and `program`) are ignored. -}
+appear before the `(` and/or between the `(` and `program`, as `--` line
+comments or `{\- -\}` block comments -- possibly nested, matching the real
+lexer's `whitespace` parser in "PlutusCore.Parser.ParserCommon" -- are
+ignored). -}
 looksLikeUplcProgram :: T.Text -> Bool
 looksLikeUplcProgram t =
   case T.uncons (dropLeadingCommentsAndSpace t) of
@@ -276,7 +301,21 @@ looksLikeUplcProgram t =
       let s' = T.stripStart s
        in if "--" `T.isPrefixOf` s'
             then dropLeadingCommentsAndSpace (T.dropWhile (/= '\n') s')
-            else s'
+            else case T.stripPrefix "{-" s' of
+              Just rest -> dropLeadingCommentsAndSpace (dropBlockComment 1 rest)
+              Nothing -> s'
+    -- Skip past the remainder of a block comment which is already open to
+    -- the given nesting `depth`, ie, past the point where we've just
+    -- consumed the opening `{-`. Mirrors `Lex.skipBlockCommentNested "{-"
+    -- "-}"`. If the comment is unterminated, we just give up and return the
+    -- empty text rather than looping forever.
+    dropBlockComment :: Int -> T.Text -> T.Text
+    dropBlockComment 0 s = s
+    dropBlockComment depth s
+      | Just rest <- T.stripPrefix "{-" s = dropBlockComment (depth + 1) rest
+      | Just rest <- T.stripPrefix "-}" s = dropBlockComment (depth - 1) rest
+      | Just (_, rest) <- T.uncons s = dropBlockComment depth rest
+      | otherwise = s
 
 {-| Turn the expected file content in text to a `UplcProg` unless the expected
 result is a parse or evaluation error.  We use the same shape-based check as
@@ -293,23 +332,41 @@ expectedToProg txt
         Left _ -> Left txt
         Right p -> Right $ void p
 
+{-| Decode the content of a `.flat.expected` golden file.  A `.flat.expected`
+file records either a successful evaluation result (as `flat`-encoded
+bytes) or a failure (as the UTF8-encoded text of `shownParseError` or
+`shownEvaluationFailure`) -- exactly mirroring the `.uplc.expected`
+convention (see `expectedToProg`), rather than the old convention of an
+empty file standing in for "some failure, reason unspecified". We check for
+the text markers first (a valid flat encoding could coincidentally also be
+valid UTF8, but it will essentially never happen to be the exact text of
+one of the two markers).
+
+If the content is neither a recognised failure marker nor a valid flat
+encoding (for example because the golden file is empty, using the old
+convention, or has been corrupted), we don't fail outright: instead we
+return `Left` with the flat decoder's error text as the "expected" reason.
+This will essentially never match a real tested value (which is always
+either a real program or exactly `shownParseError`/`shownEvaluationFailure`),
+so it surfaces as an ordinary golden-mismatch test failure -- visible on a
+normal run, and fixable with `--accept` like any other outdated golden file
+(which is how the old empty-file goldens get migrated to the new
+convention), rather than a special-cased crash. -}
+decodeFlatExpected :: BS.ByteString -> Either T.Text UplcProg
+decodeFlatExpected input =
+  case TE.decodeUtf8' input of
+    Right txt
+      | txt == shownParseError || txt == shownEvaluationFailure -> Left txt
+    _ -> case decodeFlatProg input of
+      Right p -> Right p
+      Left err -> Left $ T.pack err
+
 {-| Obtain the expected `UplcProg` from a golden `.expected` file in the given
-`Format`: parsed as text for `Textual` (via `expectedToProg`), or
-`flat`-decoded for `Flat`.  An empty `.flat.expected` file means the test is
-expected to fail, without recording whether that's a parse/decode error or
-an evaluation failure -- the `.flat.expected` convention can't distinguish
-the two (see the comment on `getInputProg`'s `Flat` case). `compareAlphaEq`
-knows not to require the failure reason to match in that case. -}
+`Format`: parsed as text for `Textual` (via `expectedToProg`), or decoded
+via `decodeFlatExpected` for `Flat`. -}
 getExpectedProg :: Format -> FilePath -> IO (Either T.Text UplcProg)
 getExpectedProg Textual file = expectedToProg <$> T.readFile file
-getExpectedProg Flat file = do
-  input <- BS.readFile file
-  pure $
-    if BS.null input
-      then Left T.empty
-      else case decodeFlatProg input of
-        Left _ -> Left T.empty
-        Right p -> Right p
+getExpectedProg Flat file = decodeFlatExpected <$> BS.readFile file
 
 {-| Obtain the input `UplcProg` from a test-case input file in the given
 `Format`, either by parsing it (for `textual`) or by `flat`-decoding it (for
@@ -368,31 +425,25 @@ getTestedValue fmt eval file = do
         EvalSuccess prog -> Right prog
 
 {-| The comparison function used for the golden test.
-This function checks alpha-equivalence of programs when the output is a program. -}
+This function checks alpha-equivalence of programs when the output is a program.
+Both `Textual` and `Flat` golden values now record the failure reason precisely
+(see `decodeFlatExpected`), so in both cases we require it to match. -}
 compareAlphaEq
-  :: Format
-  {-^ The format the golden value was read from.  A `Left` golden value
-  read from a `.flat.expected` file only records "some failure was
-  expected", not which specific reason (a `.flat.expected` file is simply
-  empty for both a parse/decode error and an evaluation failure), so in
-  that case we don't require the failure reason to match; for `Textual`
-  golden values (`.uplc.expected`) the reason is recorded precisely, so we
-  do require it to match. -}
-  -> Either T.Text UplcProg
+  :: Either T.Text UplcProg
   -- ^ golden value
   -> Either T.Text UplcProg
   -- ^ tested value
   -> Maybe String
   {-^ If two values are the same, it returns `Nothing`.
   If they are different, it returns an error that will be printed to the user. -}
-compareAlphaEq fmt (Left expectedTxt) (Left actualTxt) =
-  if fmt == Flat || actualTxt == expectedTxt
+compareAlphaEq (Left expectedTxt) (Left actualTxt) =
+  if actualTxt == expectedTxt
     then Nothing
     else
       Just $
         "Test failed, the output failed to parse or evaluate: \n"
           <> T.unpack actualTxt
-compareAlphaEq _ (Right expected) (Right actual) =
+compareAlphaEq (Right expected) (Right actual) =
   if actual == expected
     then Nothing
     else
@@ -408,13 +459,13 @@ compareAlphaEq _ (Right expected) (Right actual) =
           -- but they can't see the unique names
           <> "\n But the expected result, with the unique names shown is: \n"
           <> show expected
-compareAlphaEq _ (Right expected) (Left actualTxt) =
+compareAlphaEq (Right expected) (Left actualTxt) =
   pure $
     "Test failed, the output failed to parse or evaluate: \n"
       <> T.unpack actualTxt
       <> "\n But the expected result, with the unique names shown is: \n"
       <> show expected
-compareAlphaEq _ (Left txt) (Right actual) =
+compareAlphaEq (Left txt) (Right actual) =
   {- this is to catch the case when the expected program failed to parse because
   our parser doesn't support `data` atm. In this case, if the textual program is
   the same as the actual, the test succeeds. -}
@@ -430,9 +481,9 @@ compareAlphaEq _ (Left txt) (Right actual) =
           <> T.unpack txt
 
 {-| Update the golden file with the tested value, in the given `Format`: as
-text for `Textual` (unchanged from before), or as `flat`-encoded bytes for
-`Flat` (an empty file for a failure, matching the established
-`.flat.expected` convention).
+text for `Textual` (unchanged from before), or, for `Flat`, as `flat`-encoded
+bytes on success or the UTF8-encoded failure-reason text on failure (see
+`decodeFlatExpected`).
 TODO abstract out for other tests. -}
 updateGoldenFile
   :: Format
@@ -442,8 +493,22 @@ updateGoldenFile
   -> IO ()
 updateGoldenFile Textual goldenPath (Left txt) = T.writeFile goldenPath txt
 updateGoldenFile Textual goldenPath (Right p) = T.writeFile goldenPath (display p)
-updateGoldenFile Flat goldenPath (Left _) = BS.writeFile goldenPath BS.empty
+updateGoldenFile Flat goldenPath (Left txt) = BS.writeFile goldenPath (TE.encodeUtf8 txt)
 updateGoldenFile Flat goldenPath (Right p) = BS.writeFile goldenPath (encodeFlatProg p)
+
+{-| A golden test that is never actually run: it exists only so that it can be
+passed to `parseOptions` to make tasty register the `Golden` test provider's
+own options (`--accept`, `--no-create`, `--size-cutoff`, `--delete-output`)
+before the real test tree (which needs the parsed `--format` option to be
+built in the first place) exists. See the comment in `runUplcEvalTests`. -}
+representativeGoldenTest :: TestTree
+representativeGoldenTest =
+  goldenTest
+    "representative golden test (for option discovery only)"
+    (pure ())
+    (pure ())
+    (\_ _ -> pure Nothing)
+    (\_ -> pure ())
 
 {-| Run the UPLC evaluation tests given an `evaluator` that evaluates UPLC
 programs.  By default the tests are run against the textual `.uplc` test-case
@@ -462,22 +527,27 @@ runUplcEvalTests
 runUplcEvalTests eval expectedFailTests expectedBudgetFailTests = do
   let params = fromJust defaultCostModelParamsForTesting
       ingredients = includingOptions [Option (Proxy :: Proxy Format)] : defaultIngredients
-      discover fmt =
-        discoverTests
-          fmt
-          eval
-          params
-          expectedFailTests
-          expectedBudgetFailTests
-          "test-cases/uplc/evaluation"
-  textualTests <- discover Textual
-  flatTests <- discover Flat
-  defaultMainWithIngredients ingredients $
-    askOption $ \fmt ->
-      testGroup "UPLC evaluation tests" $
-        case fmt of
-          Textual -> [textualTests]
-          Flat -> [flatTests]
+  {- Parse the command-line options (in particular `--format`) up front, since the
+  choice of format determines which input files `discoverTests` looks for when
+  it builds the test tree. We can't parse against the real test tree (building
+  it requires knowing the format first), but we can't parse against an empty
+  tree either: tasty only recognises a golden test's own options (`--accept`,
+  `--no-create`, etc, contributed by the `Golden` provider's `testOptions`) if a
+  test using that provider appears somewhere in the tree being parsed (see
+  `treeOptions`). So we parse against a tree containing one representative
+  golden test purely so that those options are registered; it's never actually
+  run. -}
+  opts <- parseOptions ingredients (testGroup "" [representativeGoldenTest])
+  let fmt = lookupOption opts :: Format
+  tests <-
+    discoverTests
+      fmt
+      eval
+      params
+      expectedFailTests
+      expectedBudgetFailTests
+      "test-cases/uplc/evaluation"
+  defaultMainWithIngredients ingredients $ testGroup "UPLC evaluation tests" [tests]
 
 -- Flat/UPLC decoding conformance tests
 

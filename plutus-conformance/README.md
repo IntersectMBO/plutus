@@ -54,7 +54,7 @@ which are skipped entirely because `.flat` files don't make sense for them
 (see above).  If a directory contains both a `.uplc`
 file and a `.flat` file then the test also checks that the abstract syntax tree
 obtained by parsing the `.uplc` file is identical to that obtained by decoding the `.flat` file,
-and similarly for the `.uplc.expected` and `.flat.expected` files (or that both files indicate failure).
+and similarly for the `.uplc.expected` and `.flat.expected` files (or that both files record exactly the same failure reason).
 
 ### Haskell test suites
 By default, the UPLC evaluation test suites (`haskell-conformance`,
@@ -75,7 +75,7 @@ To update or add test outputs, use the accept test option of the tests. E.g., to
 
 `cabal test haskell-conformance --test-options=--accept`
 
-By default this overwrites the `.uplc.expected` (and `.budget.expected`) files, since the tests run against the textual `.uplc` format unless told otherwise; `.flat.expected` files are left untouched. Passing `--format=flat` alongside `--accept` overwrites `.flat.expected` instead: it's set to the `flat`-encoding of the output program on a successful evaluation, or to an empty file if the evaluation fails.
+By default this overwrites the `.uplc.expected` (and `.budget.expected`) files, since the tests run against the textual `.uplc` format unless told otherwise; `.flat.expected` files are left untouched. Passing `--format=flat` alongside `--accept` overwrites `.flat.expected` instead: it's set to the `flat`-encoding of the output program on a successful evaluation, or to the same failure-reason text that would appear in a `.uplc.expected` file (eg "evaluation failure") if the evaluation fails.
 
 `cabal test haskell-conformance --test-options="--format=flat --accept"`
 
@@ -87,7 +87,7 @@ The library provides functions that users can import and run conformance tests w
 
 If a textual `.uplc` file is expected to fail to parse correctly then the `.uplc.expected` file will contain the string  "parse/decode error"
 
-If the file is expected to parse correctly but an error is expected to occur during evaluation then the `.uplc.expected` file will contain the string "parse/decode error".
+If the file is expected to parse correctly but an error is expected to occur during evaluation then the `.uplc.expected` file will contain the string "evaluation failure".
 
 
 If the program is expected to parse and execute without error then the
@@ -109,11 +109,11 @@ are considered to be equal.
 
 ### Expected outputs for `.flat` files
 
-If evaluation of a `.flat` file is expected to fail (either because it fails to
-decode correctly or because of an error during evaluation) then the
-`.flat.expected` file will be empty. If the `.flat` file decodes and executes
-correctly, then the `.flat.expected` file will contain the flat-encoded
-form of the program result.
+If evaluation of a `.flat` file is expected to fail then the `.flat.expected`
+file will contain the string "parse/decode error" or "evaluation failure",
+exactly as for `.uplc.expected` files (see above). If the `.flat` file decodes
+and executes correctly, then the `.flat.expected` file will contain the
+flat-encoded form of the program result.
 
 ## Expected budgets
 The test directories also contain `.budget.expected` files.  These indicate the minimum CPU and memory budgets required
