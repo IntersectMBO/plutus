@@ -7,19 +7,14 @@ in
     ((let
          b = list data
        in
-       /\r ->
-         \(p : pair integer b) (f : integer -> b -> r) ->
-           f (fstPair {integer} {b} p) (sndPair {integer} {b} p))
+       /\r -> \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
        {Single}
        (unConstrData d)
        (\(index : integer) (args : list data) ->
-          ifThenElse
-            {all dead. list data -> Single}
-            (equalsInteger 0 index)
-            (/\dead ->
-               \(ds : list data) -> Single (unIData (headList {data} ds)))
-            (/\dead -> error {list data -> Single})
-            {list data -> Single}
+          case
+            (list data -> Single)
+            index
+            [(\(ds : list data) -> Single (unIData (headList {data} ds)))]
             args))
     {integer}
     (\(x : integer) -> x)
