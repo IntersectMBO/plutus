@@ -142,17 +142,12 @@ data UplcEvaluator
     UplcEvaluatorWithCosting
       (CostModelParams -> UplcEvaluatorFun (UplcProg, ExBudget))
 
-{-| Directories (given as paths relative to the root of plutus-conformance,
-matching the convention used when calling `discoverTests`) under which a
-missing `.flat` input file is expected and not an error: these test the
-textual parser's handling of constants, which doesn't have a `flat`-encoded
-equivalent. This applies to the directory itself and everything below it.
-Kept in sync with the `skippedFlatDecodingTests` list in
-`consistency/Spec.hs`, which skips the same directories for a related
-reason (there's no `.flat` file there to compare against the `.uplc` file
-at all). -}
-flatOptionalDirs :: [FilePath]
-flatOptionalDirs =
+{-| Directories under which no `.flat` input files are expected and hence
+shouldn't lead to errors.  These test the textual parser's handling of
+constants, and there are generally no `flat` equivalents for these tests. This
+applies to the directory itself and everything below it. -}
+dirsWithNoFlatFiles :: [FilePath]
+dirsWithNoFlatFiles =
   [ "test-cases/uplc/evaluation/builtin/parser"
   , "test-cases/uplc/evaluation/term/parser"
   ]
@@ -172,11 +167,11 @@ flatOptionalDirs =
    files will be created by the testing machinery if they aren't already
    present.
 
-   Every test-case directory is expected to have an input file for the
-   requested `Format`; a missing input file is treated as an error, except
-   under the directories listed in `flatOptionalDirs`, where (in `Flat` mode
-   only) a missing `.flat` file is expected and the directory is skipped
-   instead (for example `.flat` files don't make sense for the tests under
+   Every test-case directory is expected to have an input file for the requested
+   `Format`; a missing input file is treated as an error, except under the
+   directories listed in `dirsWithNoFlatFiles`, where (in `Flat` mode only) no
+   `.flat` files is expected and the directory is skipped instead (for example
+   `.flat` files don't make sense for the tests under
    `test-cases/uplc/evaluation/builtin/parser`, which test the handling of
    constants by the textual parser). -}
 discoverTests
@@ -199,9 +194,9 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
   go False
   where
     ext = formatExtension fmt
-    go flatOptional dir = do
+    go flatNotExpected dir = do
       let name = takeBaseName dir
-          flatOptional' = flatOptional || dir `elem` flatOptionalDirs
+          flatNotExpected' = flatNotExpected || dir `elem` dirsWithNoFlatFiles
       children <- listDirectory dir
       subdirs <- flip wither children $ \child -> do
         let fullPath = dir </> child
@@ -218,7 +213,7 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
           let expectedInputFile = takeFileName dir <.> ext
           case inputFiles of
             [] ->
-              if fmt == Flat && flatOptional'
+              if fmt == Flat && flatNotExpected'
                 then -- No `.flat` file for this test case, but that's expected here: skip it.
                   pure $ testGroup name []
                 else error $ "Input file " ++ expectedInputFile ++ " missing in " ++ dir
@@ -243,7 +238,7 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
                       ]
                   UplcEvaluatorWithoutCosting f -> testForEval dir inputFilePath f
         -- has children, so it's a grouping directory
-        else testGroup name <$> traverse (go flatOptional') subdirs
+        else testGroup name <$> traverse (go flatNotExpected') subdirs
     -- The base path (without extension) used for the budget golden files,
     -- which are always named using the `.uplc` extension regardless of the
     -- input format: there's no per-format budget golden file convention,

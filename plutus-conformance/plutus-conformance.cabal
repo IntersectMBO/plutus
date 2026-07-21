@@ -51,7 +51,10 @@ common ghc-version-support
 library
   import:          lang, os-support
   hs-source-dirs:  src
-  exposed-modules: PlutusConformance.Common
+  exposed-modules:
+    PlutusConformance.CekEvaluator
+    PlutusConformance.Common
+
   build-depends:
     , base
     , bytestring

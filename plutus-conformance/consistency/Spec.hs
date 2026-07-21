@@ -8,6 +8,11 @@ import Data.ByteString qualified as BS
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import PlutusConformance.Common
+  ( decodeFlatExpected
+  , decodeFlatProg
+  , dirsWithNoFlatFiles
+  , expectedToProg
+  )
 import PlutusPrelude (display)
 import System.Directory
 import System.FilePath
@@ -26,24 +31,20 @@ import Witherable (Witherable (wither))
     we don't have flat files or don't currently expect the test to pass. -}
 skippedConsistencyTests :: [FilePath]
 skippedConsistencyTests =
-  [ -- The tests in `constant` are supposed to test that the textual parser
-    -- parses constants correctly. This doesn't really make sense for `flat`
-    -- files, so we skip them.
-    "test-cases/uplc/evaluation/builtin/parser"
-  , "test-cases/uplc/evaluation/term/parser"
-  , -- We skip this test for the time being.  It involves a program with a free
-    -- variable, and this will not be detected by the parser but will be detected
-    -- by the flat decoder.  It's OK in the main conformance tests because free
-    -- variables are detected by deBruijnTerm, which we call before executing the
-    -- textual test cases.
-    "test-cases/uplc/evaluation/term/var"
-  ]
+  dirsWithNoFlatFiles -- We always want to skip these.
+    ++ [ -- We skip this test for the time being.  It involves a program with a free
+         -- variable, and this will not be detected by the parser but will be
+         -- detected by the flat decoder.  It's OK in the main conformance tests
+         -- because free variables are detected by deBruijnTerm, which we call
+         -- before executing the textual test cases.
+         "test-cases/uplc/evaluation/term/var"
+       ]
 
 {-| Check that a `.flat` file decodes to the same AST as the textual UPLC
 program in the corresponding `.uplc` file. Used for the raw test-case input
 files, which are always expected to actually represent a program (any
 directory where that's deliberately not the case, eg parser tests, is
-skipped entirely -- see `skippedConsistencyTests`). -}
+skipped entirely: see `skippedConsistencyTests`). -}
 assertFlatMatchesUplc
   :: FilePath
   -- ^ path to the `.uplc` file
