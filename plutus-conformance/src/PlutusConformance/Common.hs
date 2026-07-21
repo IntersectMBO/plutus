@@ -239,10 +239,7 @@ discoverTests fmt eval modelParams evaluationFailureExpected budgetFailureExpect
                   UplcEvaluatorWithoutCosting f -> testForEval dir inputFilePath f
         -- has children, so it's a grouping directory
         else testGroup name <$> traverse (go flatNotExpected') subdirs
-    -- The base path (without extension) used for the budget golden files,
-    -- which are always named using the `.uplc` extension regardless of the
-    -- input format: there's no per-format budget golden file convention,
-    -- since the budget only depends on the AST, not on how it was obtained.
+    -- The names of all of the golden files begin with the name of the directory.
     goldenBasePath dir = dir </> takeBaseName dir
     testForEval :: FilePath -> FilePath -> UplcEvaluatorFun UplcProg -> TestTree
     testForEval dir inputFilePath e =
@@ -430,7 +427,7 @@ compareAlphaEq
   -- ^ tested value
   -> Maybe String
   {-^ If two values are the same, it returns `Nothing`.
-  If they are different, it returns an error that will be printed to the user. -}
+   If they are different, it returns an error that will be printed to the user. -}
 compareAlphaEq (Left expectedTxt) (Left actualTxt) =
   if actualTxt == expectedTxt
     then Nothing
