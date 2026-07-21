@@ -220,6 +220,7 @@ data DefaultFun
   | ScaleValue
   | -- Batch 7
     MultiIndexArray
+  | Policies
   deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
   deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2494,6 +2495,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           multiIndexArrayDenotation
           (runCostingFunTwoArguments . unimplementedCostingFun)
+  toBuiltinMeaning _semvar Policies =
+    let policiesDenotation :: Value -> [ByteString]
+        policiesDenotation = Value.policies
+        {-# INLINE policiesDenotation #-}
+     in makeBuiltinMeaning
+          policiesDenotation
+          (runCostingFunOneArgument . unimplementedCostingFun)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 
@@ -2638,6 +2646,7 @@ instance Flat DefaultFun where
       UnValueData -> 99
       ScaleValue -> 100
       MultiIndexArray -> 101
+      Policies -> 102
 
   decode = go =<< decodeBuiltin
     where
@@ -2743,6 +2752,7 @@ instance Flat DefaultFun where
       go 99 = pure UnValueData
       go 100 = pure ScaleValue
       go 101 = pure MultiIndexArray
+      go 102 = pure Policies
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth

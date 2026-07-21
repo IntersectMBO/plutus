@@ -62,6 +62,8 @@ import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.Test
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Exception (evaluate, try)
@@ -2186,6 +2188,47 @@ test_Case =
             isLeft $ typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
     ]
 
+-- | Tests for the `policies` builtin (CIP-0168).
+test_Policies :: TestTree
+test_Policies =
+  testGroup
+    "Policies"
+    [ testCase "empty Value" do
+        evalPolicies Value.empty @?= expectedPolicies []
+    , testCase "single asset" do
+        evalPolicies (unsafeMkValue [("currency", "token", 42)])
+          @?= expectedPolicies ["currency"]
+    , testCase "multiple policies incl. lovelace, ascending order" do
+        let v =
+              unsafeMkValue
+                [ ("bbb", "t1", 1)
+                , ("", "", 2000000)
+                , ("aaa", "t1", 2)
+                , ("bbb", "t2", 3)
+                ]
+        evalPolicies v @?= expectedPolicies ["", "aaa", "bbb"]
+    , testCase "many small-quantity single-token policies" do
+        let currencies =
+              [ pack [fromIntegral (i `div` 256), fromIntegral (i `mod` 256)]
+              | i <- [0 .. 999 :: Int]
+              ]
+        evalPolicies (unsafeMkValue [(c, "t", 1) | c <- currencies])
+          @?= expectedPolicies currencies
+    ]
+  where
+    evalPolicies v =
+      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting $
+        apply () (builtin () Policies) (mkConstant @Value () v)
+    expectedPolicies = Right . EvaluationSuccess . mkConstant @[ByteString] ()
+    unsafeMkValue :: [(ByteString, ByteString, Integer)] -> Value
+    unsafeMkValue = go Value.empty
+      where
+        go acc [] = acc
+        go acc ((c, t, q) : rest) =
+          case Value.insertCoin c t q acc of
+            BuiltinSuccess v -> go v rest
+            _ -> error "unsafeMkValue: insertCoin failed"
+
 test_definition :: TestTree
 test_definition =
   testGroup
@@ -2231,4 +2274,5 @@ test_definition =
     , test_Bitwise_CIP0122
     , test_Bitwise_CIP0123
     , test_Case
+    , test_Policies
     ]

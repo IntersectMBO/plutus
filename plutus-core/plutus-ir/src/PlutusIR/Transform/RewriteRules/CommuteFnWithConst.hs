@@ -156,3 +156,4 @@ isCommutative = \case
   UnValueData -> False
   ScaleValue -> False
   MultiIndexArray -> False
+  Policies -> False

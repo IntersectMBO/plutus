@@ -75,6 +75,7 @@ Parsable functions are  [ addInteger
                         , multiplyInteger
                         , nullList
                         , orByteString
+                        , policies
                         , quotientInteger
                         , readBit
                         , remainderInteger

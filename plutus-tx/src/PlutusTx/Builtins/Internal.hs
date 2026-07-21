@@ -1158,6 +1158,10 @@ scaleValue c (BuiltinValue val) =
         Haskell.error "scaleValue errored."
 {-# OPAQUE scaleValue #-}
 
+policies :: BuiltinValue -> BuiltinList BuiltinByteString
+policies (BuiltinValue v) = BuiltinList (BuiltinByteString <$> Value.policies v)
+{-# OPAQUE policies #-}
+
 caseInteger :: Integer -> [a] -> a
 caseInteger i b
   | 0 <= i && i < toInteger (Haskell.length b) = b !! fromInteger i

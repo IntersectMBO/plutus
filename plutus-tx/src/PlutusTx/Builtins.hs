@@ -166,6 +166,7 @@ module PlutusTx.Builtins
   , BI.mkValue
   , BI.unsafeDataAsValue
   , BI.scaleValue
+  , BI.policies
   ) where
 
 import Data.Maybe
