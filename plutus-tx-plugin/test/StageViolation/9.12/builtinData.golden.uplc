@@ -1,2 +1,15 @@
-Error: Reference to a name which is not a local, a builtin, or an external INLINABLE function: Variable ipv
+Error: Unsupported feature: Variable ipv
        No unfolding
+       Type: PlutusCore.Data.Data
+       If you don't recognize the variable, GHC generated it from a nearby binding.
+
+       This error often indicates a stage violation in Plinth compilation.
+       Variables inside compile quotations must be either:
+         • Top-level variables, or
+         • Bound inside the quotation itself
+
+       Common causes:
+         • Using a function defined in a 'where' clause: move it to the top level
+         • Referencing local variables from outside the quotation
+
+       Note: GHC can generate these unexpectedly, you may need '-fno-strictness', '-fno-specialise', '-fno-spec-constr', '-fno-unbox-strict-fields', or '-fno-unbox-small-strict-fields'.
