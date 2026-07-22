@@ -290,6 +290,25 @@ strip = \case
   GHC.Tick _ expr -> strip expr
   expr -> expr
 
+{- Note [Transparent BuiltinData]
+'BuiltinData' is a wrapper around 'PLC.Data' whose on-chain representation is
+exactly the builtin `data` type, i.e. the wrapper is representationally the
+identity. GHC's optimizer may therefore unwrap it: worker/wrapper unboxing of
+the single-constructor product can expose the wrapped 'PLC.Data' in join point
+type signatures (#7716). Instead of hiding the wrapper from GHC, the plugin
+compiles it transparently:
+
+  - the 'PLC.Data' type compiles to the builtin `data` type, same as
+    'BuiltinData' (see 'defineBuiltinTypes' in PlutusTx.Compiler.Builtins);
+  - an application of the 'BuiltinData' constructor compiles to its argument;
+  - a bare reference to the constructor compiles to an identity function;
+  - @case scrut of BuiltinData d -> body@ binds both the case binder and @d@
+    to the compiled scrutinee.
+
+This makes any GHC transform that exposes 'PLC.Data' harmless: both sides of
+the wrapper compile to the same PLC type.
+-}
+
 -- | Convert a reference to a data constructor, i.e. a call to it.
 compileDataConRef :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRTerm uni fun)
 compileDataConRef dc = do
@@ -1155,6 +1174,9 @@ compileExpr mloc e = do
               compileExpr Nothing expr
         -- C# is just a wrapper around a literal
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr Nothing arg
+        -- See Note [Transparent BuiltinData]
+        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg
+          | GHC.dataConTyCon dc == builtinDataTyCon -> compileExpr Nothing arg
         -- Handle constructors of 'Integer'
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon -> do
           i <- compileExpr Nothing arg
@@ -1226,6 +1248,12 @@ compileExpr mloc e = do
         -- locally bound vars
         GHC.Var (lookupName scope . GHC.getName -> Just (var, _def)) -> pure $ PIR.mkVar var
         -- Special kinds of id
+        -- See Note [Transparent BuiltinData]
+        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc)
+          | GHC.dataConTyCon dc == builtinDataTyCon -> do
+              n <- safeFreshName "d"
+              let dataTy = PLC.TyBuiltin annMayInline (PLC.SomeTypeIn PLC.DefaultUniData)
+              pure $ PIR.LamAbs annMayInline n dataTy (PIR.Var annMayInline n)
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
         -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
         -- want to check the unfoldings case first), see GHC:Note [ClassOp/DFun selection] for why. That
@@ -1365,6 +1393,7 @@ compileCase
   -> m (PIRTerm uni fun)
 compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
   directUnsafeCaseListName <- lookupGhcName 'PlutusTx.AsData.Internal.directUnsafeCaseList
+  builtinDataTyCon <- lookupGhcTyCon ''BI.BuiltinData
   let
     -- If the scrutinee is `directUnsafeCaseList xs`, return `xs`.
     -- See Note [Use list casing in AsData pattern synonyms].
@@ -1400,6 +1429,25 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
             -- See Note [At patterns]
             let binds = [PIR.TermBind annMayInline PIR.Strict v scrutinee']
             pure $ PIR.mkLet annMayInline PIR.NonRec binds body'
+      -- See Note [Transparent BuiltinData]
+      | GHC.DataAlt dc <- con
+      , GHC.dataConTyCon dc == builtinDataTyCon
+      , [fieldVar] <- bs -> do
+          scrutinee' <- compileExpr Nothing scrutinee
+          withVarScoped binder binderAnn (Just scrutinee') $ \v -> do
+            let vTerm = PIR.mkVar v
+            withVarScoped fieldVar annMayInline (Just vTerm) $ \fv -> do
+              body' <- compileExpr Nothing body
+              pure
+                $ PIR.mkLet
+                  annMayInline
+                  PIR.NonRec
+                  [PIR.TermBind annMayInline PIR.Strict v scrutinee']
+                $ PIR.mkLet
+                  annMayInline
+                  PIR.NonRec
+                  [PIR.TermBind annMayInline PIR.Strict fv vTerm]
+                  body'
       | rewriteConApps
       , GHC.DataAlt dataCon <- con -> do
           -- Attempt to rewrite constructor applications, since sometimes they cannot be
