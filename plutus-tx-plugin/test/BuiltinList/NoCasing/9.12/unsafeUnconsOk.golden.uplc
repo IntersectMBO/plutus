@@ -1,1 +1,7 @@
-(program 1.1.0 (\xs -> case xs [(\ds ds -> constr 0 [ds, ds])]))
+(program
+   1.1.0
+   ((\forced forced xs ->
+       (\ds -> (\ds -> delay (\case_Tuple2 -> case_Tuple2 ds ds)) (forced xs))
+         (forced xs))
+      (force tailList)
+      (force headList)))
