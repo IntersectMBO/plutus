@@ -104,20 +104,20 @@ formatExtension Textual = "uplc"
 formatExtension Flat = "flat"
 
 {-| This instance allows `Format` to be used as a `tasty` command-line option
-(`--format=uplc` or `--format=flat`), so that users of the test suites can
+(`--format=textual` or `--format=flat`), so that users of the test suites can
 choose which input format the tests are run against.  The default is `uplc`. -}
 instance IsOption Format where
   defaultValue = Textual
   parseValue s = case s of
-    "uplc" -> Just Textual
+    "textual" -> Just Textual
     "flat" -> Just Flat
     _ -> Nothing
   optionName = Tagged "format"
   optionHelp =
     Tagged
       "The format of the test-case input files to run the tests against: \
-      \'uplc' (textual UPLC source) or 'flat' (flat-encoded UPLC). \
-      \Default: uplc."
+      \'textual' (textual UPLC source) or 'flat' (flat-encoded UPLC). \
+      \Default: textual."
 
 -- UPLC evaluation test functions
 
@@ -580,13 +580,13 @@ representation `flat` actually encodes), then encodes it via the same
 `UnrestrictedProgram` wrapper `decodeFlatProg` uses, for the same reason
 (avoiding rejecting programs on the grounds of builtins/term constructs
 unavailable in the declared version). Used to write `.flat.expected` golden
-files when accepting a `Flat`-format test result.  Programs written to a
-golden file are always closed (they come from a successful evaluation), so
-the free-variable case should never actually arise. -}
+files when accepting a `Flat`-format test result. -}
 encodeFlatProg :: UplcProg -> BS.ByteString
 encodeFlatProg (UPLC.Program ann ver t) =
   case runExcept (UPLC.deBruijnTerm t) of
-    Left err -> error $ "encodeFlatProg: " <> show err
+    -- Programs written to a golden file are always closed (they come from a
+    -- successful evaluation), so this should never actually happen.
+    Left (err :: UPLC.FreeVariableError) -> error $ "encodeFlatProg (deBruijnTerm): " <> show err
     Right namedDbTerm ->
       flat $
         UPLC.UnrestrictedProgram $

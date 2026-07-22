@@ -5,7 +5,7 @@
 module Main (main) where
 
 import Control.Monad.Trans.Except
-  ( ExceptT
+  ( runExcept
   , runExceptT
   , withExceptT
   )
@@ -47,6 +47,11 @@ import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
 import PlutusCore.Quote
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
+  ( FreeVariableError
+  , NamedDeBruijn
+  , deBruijnTerm
+  , unDeBruijnTerm
+  )
 
 import Data.Aeson
   ( Result (Error, Success)
@@ -102,15 +107,14 @@ agdaEvalUplcProg :: CostOrNot -> UplcEvaluator
 agdaEvalUplcProg WithCosting =
   UplcEvaluatorWithCosting $ \modelParams (UPLC.Program () version tmU) ->
     let
-      -- turn the body of the program into an untyped de Bruijn term
-      tmUDB
-        :: ExceptT
-             FreeVariableError
-             Quote
-             (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-      tmUDB = deBruijnTerm tmU
+      -- turn the body of the program into an untyped de Bruijn term.  No
+      -- `Quote` is needed here (unlike the `unDeBruijnTerm` conversion
+      -- below): `deBruijnTerm` never invents fresh names, only `Either`'s
+      -- `MonadError` instance is required.
+      tmUDB :: Either FreeVariableError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+      tmUDB = runExcept (deBruijnTerm tmU)
      in
-      case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
+      case tmUDB of
         Left _ -> DecodeError
         -- evaluate the untyped term with the CEK evaluator
         Right tmUDBSuccess ->
@@ -122,7 +126,9 @@ agdaEvalUplcProg WithCosting =
                 runExceptT $
                   withExceptT FreeVariableErrorE $
                     unDeBruijnTerm tmEvaluated of
-                Left _ -> EvalFailure -- Shouldn't happen unless there's something wrong with the Agda code.
+                -- Shouldn't happen unless there's something wrong with the Agda code.
+                Left (err :: Error DefaultUni DefaultFun ()) ->
+                  error $ "deBruijnTerm (agdaEvalUplcProg WithCosting): " <> show err
                 Right namedTerm ->
                   let cost =
                         ExBudget
@@ -131,24 +137,26 @@ agdaEvalUplcProg WithCosting =
                    in EvalSuccess (UPLC.Program () version namedTerm, cost)
 agdaEvalUplcProg WithoutCosting =
   UplcEvaluatorWithoutCosting $ \(UPLC.Program () version tmU) ->
-    let tmUDB
-          :: ExceptT
-               FreeVariableError
-               Quote
-               (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-        tmUDB = deBruijnTerm tmU
-     in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
-          Left _ -> DecodeError
-          Right tmUDBSuccess ->
-            case runUAgda tmUDBSuccess of
-              Left _ -> EvalFailure
-              Right tmEvaluated ->
-                case runQuote $
-                  runExceptT $
-                    withExceptT FreeVariableErrorE $
-                      unDeBruijnTerm tmEvaluated of
-                  Left _ -> EvalFailure -- Shouldn't happen unless there's something wrong with the Agda code.
-                  Right namedTerm -> EvalSuccess $ UPLC.Program () version namedTerm
+    let
+      -- See the comment on the analogous binding in the `WithCosting` case
+      -- above for why no `Quote` is needed here.
+      tmUDB :: Either FreeVariableError (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+      tmUDB = runExcept (deBruijnTerm tmU)
+     in
+      case tmUDB of
+        Left _ -> DecodeError
+        Right tmUDBSuccess ->
+          case runUAgda tmUDBSuccess of
+            Left _ -> EvalFailure
+            Right tmEvaluated ->
+              case runQuote $
+                runExceptT $
+                  withExceptT FreeVariableErrorE $
+                    unDeBruijnTerm tmEvaluated of
+                -- Shouldn't happen unless there's something wrong with the Agda code.
+                Left (err :: Error DefaultUni DefaultFun ()) ->
+                  error $ "deBruijnTerm (agdaEvalUplcProg WithoutCosting): " <> show err
+                Right namedTerm -> EvalSuccess $ UPLC.Program () version namedTerm
 
 {-| A list of evaluation tests which are currently expected to fail.  Once a fix
  for a test is pushed, the test will succeed and should be removed from the

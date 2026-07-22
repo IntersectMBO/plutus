@@ -7,9 +7,14 @@ import PlutusConformance.Common
   ( EvaluationResult (..)
   , UplcEvaluator (..)
   )
-import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Default
+  ( DefaultFun
+  , DefaultUni
+  )
 import PlutusCore.Evaluation.Machine.MachineParameters qualified as UPLC
-import PlutusCore.Evaluation.Machine.MachineParameters.Default (mkMachineVariantParametersFor)
+import PlutusCore.Evaluation.Machine.MachineParameters.Default
+  ( mkMachineVariantParametersFor
+  )
 import PlutusCore.Name.Unique (Name)
 import PlutusPrelude (def)
 import UntypedPlutusCore qualified as UPLC
@@ -25,11 +30,10 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 {-| Build a `UplcEvaluator` around a CEK-machine "run" function shaped like
 `UntypedPlutusCore.Evaluation.Machine.Cek.runCekNoEmit`.  Both the regular CEK
 machine and the steppable one
-(`UntypedPlutusCore.Evaluation.Machine.SteppableCek.runCekNoEmit`) have
-exactly this type -- the latter's haddock says it "provides the same
-interface to the original CEK machine" -- so this is shared between the
-`haskell-conformance` and `haskell-steppable-conformance` test suites rather
-than being duplicated between them (as it was previously). -}
+(`UntypedPlutusCore.Evaluation.Machine.SteppableCek.runCekNoEmit`) have exactly
+this type (the latter's haddock says it "provides the same interface to the
+original CEK machine") so this is shared between the `haskell-conformance` and
+`haskell-steppable-conformance` test suites rather than being duplicated. -}
 mkCekEvaluator
   :: ( UPLC.MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
        -> ExBudgetMode CountingSt DefaultUni DefaultFun
