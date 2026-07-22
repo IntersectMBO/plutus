@@ -1,1 +1,1 @@
-all a. list integer -> array a -> list a
+all a. array a -> list integer -> list a

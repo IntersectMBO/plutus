@@ -432,7 +432,7 @@ test_BuiltinArray =
         let indices = mkConstant @[Integer] @DefaultUni () [2, 0, 0, 1]
             arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
             expected = mkConstant @[Integer] @DefaultUni () [30, 10, 10, 20]
-            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [indices, arrayOfInts]
+            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess expected)
     , testCase "multiIndexArray-bool-elements" do
@@ -440,34 +440,34 @@ test_BuiltinArray =
         let indices = mkConstant @[Integer] @DefaultUni () [1, 0]
             arrayOfBools = mkConstant @(Vector Bool) @DefaultUni () (Vector.fromList [False, True])
             expected = mkConstant @[Bool] @DefaultUni () [True, False]
-            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) bool) [indices, arrayOfBools]
+            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) bool) [arrayOfBools, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess expected)
     , testCase "multiIndexArray-empty-indices" do
         let indices = mkConstant @[Integer] @DefaultUni () []
             arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
             expected = mkConstant @[Integer] @DefaultUni () []
-            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [indices, arrayOfInts]
+            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess expected)
     , testCase "multiIndexArray-index-equals-length-fails" do
         -- An index equal to the length is out of bounds; the whole call fails.
         let indices = mkConstant @[Integer] @DefaultUni () [0, 3]
             arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
-            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [indices, arrayOfInts]
+            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
     , testCase "multiIndexArray-negative-index-fails" do
         -- Negative indices are out of bounds, not wrap-around.
         let indices = mkConstant @[Integer] @DefaultUni () [-1]
             arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
-            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [indices, arrayOfInts]
+            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
     , testCase "multiIndexArray-empty-array-fails" do
         let indices = mkConstant @[Integer] @DefaultUni () [0]
             emptyArray = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [])
-            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [indices, emptyArray]
+            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [emptyArray, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
     , testCase "multiIndexArray-huge-index-fails" do
@@ -475,7 +475,7 @@ test_BuiltinArray =
         -- 'maxBound :: Int' is out of bounds rather than wrapping on conversion.
         let indices = mkConstant @[Integer] @DefaultUni () [2 ^ (64 :: Integer)]
             arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
-            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [indices, arrayOfInts]
+            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
     ]

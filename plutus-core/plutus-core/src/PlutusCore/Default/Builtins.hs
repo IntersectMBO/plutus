@@ -2478,8 +2478,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- unlifting: only 'DefaultUni' element types unlift, and 'Int' is not one. The bounds
     -- check is therefore done in the 'Integer' domain.
     let multiIndexArrayDenotation
-          :: [Integer] -> SomeConstant uni (Vector a) -> BuiltinResult (Opaque val [a])
-        multiIndexArrayDenotation indices (SomeConstant (Some (ValueOf uni vec))) =
+          :: SomeConstant uni (Vector a) -> [Integer] -> BuiltinResult (Opaque val [a])
+        multiIndexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) indices =
           case uni of
             DefaultUniArray uniA ->
               let len = toInteger (Vector.length vec)
