@@ -335,7 +335,7 @@ defineBoolType = do
     caseMatcher _tyArgs scrut resTy branches =
       case datatypeStyle of
         PIR.ScottEncoding ->
-          -- For IfThenElse, true branch comes first hence we reverse brenches
+          -- For IfThenElse, true branch comes first hence we reverse branches
           PIR.mkIterApp
             ( PIR.tyInst
                 annMayInline
