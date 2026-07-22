@@ -10,6 +10,7 @@ module BuiltinCasing.Spec where
 
 import Test.Tasty.Extras
 
+import BuiltinCasing.Lib qualified as Lib
 import PlutusTx (compile)
 import PlutusTx.Builtins (caseInteger, caseList, casePair)
 import PlutusTx.Builtins.Internal (chooseUnit, unitval)
@@ -42,4 +43,7 @@ tests =
       , goldenUPlcReadable "addPair" $$(compile [||addPair||])
       , goldenUPlcReadable "integerABC" $$(compile [||integerABC||])
       , goldenUPlcReadable "head" $$(compile [||head||])
+      , goldenUPlcReadable "useTwiceData" $$(compile [||Lib.useTwiceData||])
+      , goldenUPlcReadable "useTwiceByteString" $$(compile [||Lib.useTwiceByteString||])
+      , goldenUPlcReadable "useTwiceString" $$(compile [||Lib.useTwiceString||])
       ]
