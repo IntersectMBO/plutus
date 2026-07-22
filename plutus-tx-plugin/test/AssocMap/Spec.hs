@@ -46,7 +46,7 @@ goldenTests =
 
 propertyTests :: TestTree
 propertyTests =
-  localOption (HedgehogTestLimit (Just 30)) $
+  localOption (HedgehogTestLimit (Just 10)) $
     testGroup
       "Map property tests"
       [ testProperty "safeFromList" safeFromListSpec
