@@ -105,16 +105,18 @@ In particular, we need to use 'data' rather than 'newtype' even for simple wrapp
 otherwise GHC gets very keen to optimize through the newtype and e.g. our users
 see 'Addr#' popping up everywhere.
 
-Additionally, single-constructor types must have a second (unreachable) constructor.
-GHC's simplifier unconditionally unwraps single-constructor types via
-case-of-known-constructor, which can expose the inner type (e.g. PLC.Data inside
-BuiltinData) in join point type signatures.  The plugin with BuiltinCasing then
-tries to compile the inner type as a regular ADT, potentially reaching unsupported
-primitives like Addr# (#7716).
+Additionally, 'BuiltinData' has a second, never-constructed constructor
+('BuiltinDataUnreachable').  GHC's unboxing machinery (worker/wrapper, CPR)
+applies only to single-constructor product types; with a single constructor it
+can expose the wrapped 'PLC.Data' in join point type signatures, and the plugin
+with BuiltinCasing then tries to compile 'PLC.Data' as a regular ADT, reaching
+unsupported primitives like Addr# (#7716).  Making the type a sum disables that
+unboxing; a COMPLETE pragma keeps matches on the real constructor exhaustive.
 
-A second constructor prevents this — GHC cannot case-simplify multi-constructor
-types.  The extra constructor is never constructed; COMPLETE pragmas tell GHC
-that matching on the real constructor alone is exhaustive.
+The other opaque wrappers don't need this: all their operations are OPAQUE, so
+GHC never sees a construction or match to unwrap, and the plugin rejects their
+inner types (e.g. 'ByteString', 'Text') with a clean "unsupported type" error
+instead of descending into their representations.
 -}
 
 error :: BuiltinUnit -> a
@@ -555,7 +557,11 @@ For off-chain usage, there are conversion functions 'builtinDataToData' and
 'dataToBuiltinData', but note that these will not work on-chain. -}
 
 -- See Note [Opaque builtin types]
-data BuiltinData = BuiltinData ~PLC.Data | BuiltinDataUnreachable
+data BuiltinData
+  = BuiltinData ~PLC.Data
+  | {-| Never use this constructor. It exists only to make 'BuiltinData'
+    a sum type, see Note [Opaque builtin types]. -}
+    BuiltinDataUnreachable
   deriving stock (Data, Generic)
 
 {-# COMPLETE BuiltinData #-}

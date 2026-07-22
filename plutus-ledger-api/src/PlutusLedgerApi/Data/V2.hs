@@ -197,7 +197,7 @@ module PlutusLedgerApi.Data.V2
 
     -- * Data
   , Common.Data (..)
-  , Common.BuiltinData (..)
+  , Common.BuiltinData (BuiltinData)
   , Common.ToData (..)
   , Common.FromData (..)
   , Common.UnsafeFromData (..)
