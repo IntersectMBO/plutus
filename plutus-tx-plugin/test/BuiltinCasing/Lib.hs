@@ -23,8 +23,8 @@ plugin with BuiltinCasing then tries to compile as a regular ADT, crashing on
 primitives like Addr#.
 
 Only useTwiceData reproduces that shape — its golden contains a join point,
-kept compilable by BuiltinData's second constructor (see
-Note [Opaque builtin types]).  useTwiceByteString and useTwiceString are
+kept compilable by the plugin's transparent handling of the wrapper (see
+Note [Transparent BuiltinData]).  useTwiceByteString and useTwiceString are
 canaries: their goldens pin that these wrappers are never unwrapped in the
 first place (all their operations are OPAQUE), so a change in that behaviour
 surfaces as a golden diff or compile error. -}
