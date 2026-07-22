@@ -71,5 +71,5 @@ compiledIndexArray =
 compiledMultiIndexArray :: CompiledCode (BuiltinList BuiltinData)
 compiledMultiIndexArray =
   $$(compile [||multiIndexArray||])
-    `unsafeApplyCode` liftCodeDef (toBuiltin ([2, 0, 0, 1] :: [Integer]))
     `unsafeApplyCode` compiledListToArray
+    `unsafeApplyCode` liftCodeDef (toBuiltin ([2, 0, 0, 1] :: [Integer]))

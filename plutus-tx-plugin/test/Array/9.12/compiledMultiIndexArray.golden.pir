@@ -1,9 +1,8 @@
 (let
-    !multiIndexArray : all a. list integer -> array a -> list a
+    !multiIndexArray : all a. array a -> list integer -> list a
       = multiIndexArray
   in
   multiIndexArray {data})
-  [2,0,0,1]
   (let
     !unitval : unit = ()
   in
@@ -25,3 +24,4 @@
        {data}
        (mkI 1)
        (mkCons {data} (mkI 2) (mkCons {data} (mkI 3) (mkNilData unitval)))))
+  [2,0,0,1]

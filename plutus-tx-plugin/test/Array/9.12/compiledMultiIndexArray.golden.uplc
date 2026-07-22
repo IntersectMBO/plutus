@@ -2,7 +2,6 @@
    1.1.0
    ((\multiIndexArray -> force multiIndexArray)
       multiIndexArray
-      [2,0,0,1]
       ((\unitval ->
           (\mkNilData ->
              (\mkI ->
@@ -18,4 +17,5 @@
                   mkCons)
                iData)
             mkNilData)
-         ())))
+         ())
+      [2,0,0,1]))

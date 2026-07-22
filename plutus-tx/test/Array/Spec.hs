@@ -21,12 +21,12 @@ arrayTests =
     [ testGroup
         "multiIndexArray"
         [ testCase "in-order with duplicates" $
-            unList (BI.multiIndexArray (BI.BuiltinList [2, 0, 0, 1]) arr) @?= [30, 10, 10, 20]
+            unList (BI.multiIndexArray arr (BI.BuiltinList [2, 0, 0, 1])) @?= [30, 10, 10, 20]
         , testCase "index exceeding maxBound::Int fails" $
-            throwsErrorCall (BI.multiIndexArray (BI.BuiltinList [2 ^ (64 :: Int) + 2]) arr)
+            throwsErrorCall (BI.multiIndexArray arr (BI.BuiltinList [2 ^ (64 :: Int) + 2]))
         , testCase "out-of-bounds index fails even if the result is not fully demanded" $
             throwsErrorCall
-              ( case unList (BI.multiIndexArray (BI.BuiltinList [0, 3]) arr) of
+              ( case unList (BI.multiIndexArray arr (BI.BuiltinList [0, 3])) of
                   x : _ -> x
                   [] -> 0
               )
