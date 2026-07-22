@@ -30,7 +30,7 @@ integerABC :: Integer -> BuiltinString
 integerABC i = caseInteger i ["a", "b", "c"]
 
 head :: BuiltinList Bool -> Bool
-head = caseList (\_ -> error ()) (\x _ -> x)
+head xs = caseList (\_ -> error ()) (\x _ -> x) xs
 
 tests :: TestNested
 tests =

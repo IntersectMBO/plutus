@@ -1,11 +1,9 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:target-version=1.1.0 #-}
 
-{-# HLINT ignore #-}
+{-# HLINT ignore "Redundant case" #-}
 
 module BuiltinCasing.Lib
   ( useTwiceData
@@ -19,16 +17,17 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Prelude
 
-{-| Regression tests for #7716.  The simplifier unwraps single-constructor
-opaque types via case-of-known-constructor, potentially exposing inner types
-(Data, ByteString, Text) in join point type signatures.  Without the second
-constructor (see Note [Opaque builtin types]), the plugin with BuiltinCasing
-would try to compile the inner type as a regular ADT and crash.
+{-| Regression tests for #7716.  GHC's unboxing of a single-constructor opaque
+wrapper can expose its inner type in join point type signatures, which the
+plugin with BuiltinCasing then tries to compile as a regular ADT, crashing on
+primitives like Addr#.
 
-Each test targets a different opaque builtin type:
-  - useTwiceData:        BuiltinData       (wraps PlutusCore.Data.Data)
-  - useTwiceByteString:  BuiltinByteString (wraps ByteString -> BS Addr#)
-  - useTwiceString:      BuiltinString     (wraps Text -> Array# Char#) -}
+Only useTwiceData reproduces that shape — its golden contains a join point,
+kept compilable by BuiltinData's second constructor (see
+Note [Opaque builtin types]).  useTwiceByteString and useTwiceString are
+canaries: their goldens pin that these wrappers are never unwrapped in the
+first place (all their operations are OPAQUE), so a change in that behaviour
+surfaces as a golden diff or compile error. -}
 useTwiceData :: BuiltinData -> BuiltinUnit
 useTwiceData bd =
   case toBuiltinData (firstOf items) of
