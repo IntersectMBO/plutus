@@ -51,13 +51,20 @@ common ghc-version-support
 library
   import:          lang, os-support
   hs-source-dirs:  src
-  exposed-modules: PlutusConformance.Common
+  exposed-modules:
+    PlutusConformance.CekEvaluator
+    PlutusConformance.Common
+
   build-depends:
     , base
+    , bytestring
     , directory
     , filepath
+    , mtl
     , plutus-core                      ^>=1.66
+    , plutus-core:flat
     , plutus-core:plutus-core-testlib
+    , tagged
     , tasty
     , tasty-expected-failure
     , tasty-golden
@@ -108,3 +115,23 @@ test-suite agda-conformance
     , plutus-core         ^>=1.66
     , plutus-metatheory   ^>=1.66
     , transformers
+
+test-suite conformance-consistency
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs: consistency test-cases
+  other-modules:
+  build-depends:
+    , base                >=4.9   && <5
+    , bytestring
+    , directory
+    , filepath
+    , plutus-conformance
+    , plutus-core         ^>=1.66
+    , tasty
+    , tasty-golden
+    , tasty-hunit
+    , text
+    , witherable
