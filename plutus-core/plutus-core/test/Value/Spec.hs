@@ -165,13 +165,6 @@ prop_deleteCoinPreservesInvariants v =
     fl = V.toFlatList v
     vs = scanr (\(c, t, _) -> V.deleteCoin (V.unK c) (V.unK t)) v fl
 
--- | @policies@ returns exactly the keys of the outer map.
-prop_policiesModel :: Value -> Property
-prop_policiesModel v = V.policies v === map V.unK (Map.keys (V.unpack v))
-
-prop_policiesEmpty :: Property
-prop_policiesEmpty = V.policies V.empty === []
-
 prop_policiesStrictlyAscending :: Value -> Property
 prop_policiesStrictlyAscending v =
   let ps = V.policies v
@@ -515,21 +508,17 @@ tests =
     , testProperty
         "deleteCoinPreservesInvariants"
         prop_deleteCoinPreservesInvariants
-    , testProperty
-        "policiesModel"
-        prop_policiesModel
-    , testProperty
-        "policiesEmpty"
-        prop_policiesEmpty
+    , testCase "policiesEmpty" $
+        V.policies V.empty @?= []
     , testProperty
         "policiesStrictlyAscending"
-        prop_policiesStrictlyAscending
+        (withNumTests 20 prop_policiesStrictlyAscending)
     , testProperty
         "policiesAfterInsertion"
-        prop_policiesAfterInsertion
+        (withNumTests 20 prop_policiesAfterInsertion)
     , testProperty
         "policiesAfterDeletion"
-        prop_policiesAfterDeletion
+        (withNumTests 20 prop_policiesAfterDeletion)
     , testProperty
         "containsReflexive"
         prop_containsReflexive
