@@ -99,7 +99,11 @@ mkUnsafeConstrMatchPattern isProduct conIx extractFieldNames =
       [p|
         ( AI.wrapUnsafeDataAsConstr ->
             ( BI.snd ->
-                $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
+                $( mkUnsafeConstrPartsMatchPattern
+                     isProduct
+                     conIx
+                     extractFieldNames
+                 )
               )
           )
         |]
@@ -107,7 +111,11 @@ mkUnsafeConstrMatchPattern isProduct conIx extractFieldNames =
       [p|
         ( AI.wrapUnsafeDataAsConstr ->
             ( Builtins.pairToPair ->
-                $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
+                $( mkUnsafeConstrPartsMatchPattern
+                     isProduct
+                     conIx
+                     extractFieldNames
+                 )
               )
           )
         |]
@@ -125,11 +133,12 @@ mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames =
     extractArgPats =
       extractFieldNames <&> \n ->
         [p|(unsafeFromBuiltinData -> $(TH.varP n))|]
+    unconsPat x xs = [p|(AI.directUnsafeCaseList -> ($x, $xs))|]
     extractArgsPat = go extractArgPats
       where
         go [] = [p|_|]
         go [x] = [p|(BI.head -> $x)|]
-        go (x : xs) = [p|(AI.wrapUnsafeUncons -> ($x, $(go xs)))|]
+        go (x : xs) = unconsPat x (go xs)
     pat =
       -- We can safely omit the index match if we know that the type is a product type
       case isProduct of

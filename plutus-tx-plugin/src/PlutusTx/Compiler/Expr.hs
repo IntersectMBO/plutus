@@ -1364,18 +1364,32 @@ compileCase
   -> [GHC.CoreAlt]
   -> m (PIRTerm uni fun)
 compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
-  wrapTailName <- lookupGhcName 'PlutusTx.AsData.Internal.wrapTail
+  directUnsafeCaseListName <- lookupGhcName 'PlutusTx.AsData.Internal.directUnsafeCaseList
   let
-    -- See Note [Compiling AsData Matchers and Their Invocations]
-    isWrapTailApp =
+    -- If the scrutinee is `directUnsafeCaseList xs`, return `xs`.
+    -- See Note [Use list casing in AsData pattern synonyms].
+    directUnsafeCaseListArg =
       case GHC.collectArgs (strip scrutinee) of
-        (strip -> GHC.Var f, _args) -> GHC.getName f == wrapTailName
-        _ -> False
+        (strip -> GHC.Var f, args)
+          | GHC.getName f == directUnsafeCaseListName
+          , [xs] <- filter (not . GHC.isTypeArg) args ->
+              Just xs
+        _ -> Nothing
     binderAnn
       | hasAlwaysInlinePragma binder = annAlwaysInline
-      | isWrapTailApp = annSafeToInline
       | otherwise = annMayInline
   case alts of
+    -- See Note [Use list casing in AsData pattern synonyms].
+    [GHC.Alt (GHC.DataAlt _) [hd, tl] body]
+      | Just xs <- directUnsafeCaseListArg
+      , binder `isDead` body -> do
+          unsafeCaseListId <- lookupGhcId 'PlutusTx.AsData.Internal.droppableUnsafeCaseList
+          let cont = GHC.mkCoreLams [hd, tl] body
+              e =
+                GHC.mkCoreApps
+                  (GHC.Var unsafeCaseListId)
+                  [GHC.Type (GHC.varType hd), GHC.Type t, cont, xs]
+          compileExpr Nothing e
     [GHC.Alt con bs body]
       -- See Note [Evaluation-only cases]
       | all (`isDead` body) bs -> do
