@@ -73,7 +73,7 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout gh-pages
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v7.0.1
         with:
           ref: gh-pages
 
@@ -92,7 +92,7 @@ jobs:
           fi  
 
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.ref || github.ref_name }}
 
