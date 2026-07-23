@@ -753,6 +753,8 @@ defineBuiltinTerms = do
           PLC.LengthOfArray -> defineBuiltinInl 'Builtins.lengthOfArray
           PLC.ListToArray -> defineBuiltinInl 'Builtins.listToArray
           PLC.IndexArray -> defineBuiltinInl 'Builtins.indexArray
+          -- Not exposed to Plinth yet: core-language only for now (CIP-0156).
+          PLC.MultiIndexArray -> pure ()
           -- Data
           PLC.ChooseData -> defineBuiltinInl 'Builtins.chooseData
           PLC.EqualsData -> defineBuiltinInl 'Builtins.equalsData

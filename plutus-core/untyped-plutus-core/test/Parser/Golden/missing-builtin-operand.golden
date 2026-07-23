@@ -71,6 +71,7 @@ Parsable functions are  [ addInteger
                         , mkNilPairData
                         , mkPairData
                         , modInteger
+                        , multiIndexArray
                         , multiplyInteger
                         , nullList
                         , orByteString
