@@ -245,7 +245,7 @@ generate-malonzo-code  # Available in Nix shell
 
 ### Important Files
 - **cabal.project** - Main project configuration
-- **CONTRIBUTING.adoc** - Detailed contribution guidelines
+- **CONTRIBUTING.md** - Detailed contribution guidelines
 - **scripts/** - Build and utility scripts
 - **.github/workflows/** - CI/CD pipeline definitions
 
