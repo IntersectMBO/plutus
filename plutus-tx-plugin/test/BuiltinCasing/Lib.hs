@@ -19,8 +19,8 @@ import PlutusTx.Prelude
 
 {-| Regression tests for #7716.  GHC's unboxing of a single-constructor opaque
 wrapper can expose its inner type in join point type signatures, which the
-plugin with BuiltinCasing then tries to compile as a regular ADT, crashing on
-primitives like Addr#.
+plugin then tries to compile as a regular ADT, crashing on primitives like
+Addr#.
 
 Only useTwiceData reproduces that shape — its golden contains a join point,
 kept compilable by the plugin's transparent handling of the wrapper (see
