@@ -109,8 +109,8 @@ Additionally, 'BuiltinData' has a second, never-constructed constructor
 ('BuiltinDataUnreachable').  GHC's unboxing machinery (worker/wrapper, CPR)
 applies only to single-constructor product types; with a single constructor it
 can expose the wrapped 'PLC.Data' in join point type signatures, and the plugin
-with BuiltinCasing then tries to compile 'PLC.Data' as a regular ADT, reaching
-unsupported primitives like Addr# (#7716).  Making the type a sum disables that
+then tries to compile 'PLC.Data' as a regular ADT, reaching unsupported
+primitives like Addr# (#7716).  Making the type a sum disables that
 unboxing; a COMPLETE pragma keeps matches on the real constructor exhaustive.
 
 The other opaque wrappers don't need this: all their operations are OPAQUE, so
