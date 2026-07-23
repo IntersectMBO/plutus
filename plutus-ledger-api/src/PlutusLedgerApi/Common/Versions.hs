@@ -307,7 +307,7 @@ batch6 =
 -- version. See Note [Adding new builtins: protocol versions].
 batch7 :: [DefaultFun]
 batch7 =
-  [MultiIndexArray]
+  [MultiIndexArray, Policies]
 
 {-| Given a ledger language, return a map indicating which builtin functions were
   introduced in which 'MajorProtocolVersion'.  This __must__ be updated when new

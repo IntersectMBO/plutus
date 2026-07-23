@@ -165,6 +165,30 @@ prop_deleteCoinPreservesInvariants v =
     fl = V.toFlatList v
     vs = scanr (\(c, t, _) -> V.deleteCoin (V.unK c) (V.unK t)) v fl
 
+prop_policiesStrictlyAscending :: Value -> Property
+prop_policiesStrictlyAscending v =
+  let ps = V.policies v
+   in property $ and (zipWith (<) ps (drop 1 ps))
+
+prop_policiesAfterInsertion :: Value -> V.Quantity -> Property
+prop_policiesAfterInsertion v quantity =
+  quantity /= V.zeroQuantity ==> forAll genCurrencyToken $ \(currency, token) ->
+    let BuiltinSuccess v' = V.insertCoin currency token (V.unQuantity quantity) v
+     in property $ currency `elem` V.policies v'
+  where
+    genCurrencyToken = do
+      let hex = V.unK <$> genShortHex (V.totalSize v)
+      (,) <$> hex <*> hex
+
+-- | Deleting every token of a policy removes it from @policies@.
+prop_policiesAfterDeletion :: Value -> Property
+prop_policiesAfterDeletion v0 =
+  forAll (elements (Map.toList (V.unpack v))) $ \(currency, inner) ->
+    let v' = F.foldl' (\acc t -> V.deleteCoin (V.unK currency) (V.unK t) acc) v (Map.keys inner)
+     in property $ V.unK currency `notElem` V.policies v'
+  where
+    BuiltinSuccess v = if V.totalSize v0 > 0 then pure v0 else V.insertCoin "c" "t" 1 v0
+
 toPositiveValue :: Value -> Value
 toPositiveValue =
   V.pack . fmap (Map.map (fromMaybe maxBound . V.quantity . abs . V.unQuantity)) . V.unpack
@@ -484,6 +508,17 @@ tests =
     , testProperty
         "deleteCoinPreservesInvariants"
         prop_deleteCoinPreservesInvariants
+    , testCase "policiesEmpty" $
+        V.policies V.empty @?= []
+    , testProperty
+        "policiesStrictlyAscending"
+        (withNumTests 20 prop_policiesStrictlyAscending)
+    , testProperty
+        "policiesAfterInsertion"
+        (withNumTests 20 prop_policiesAfterInsertion)
+    , testProperty
+        "policiesAfterDeletion"
+        (withNumTests 20 prop_policiesAfterDeletion)
     , testProperty
         "containsReflexive"
         prop_containsReflexive

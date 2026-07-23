@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
@@ -26,6 +27,7 @@ import PlutusTx.Numeric
 import PlutusTx.Prelude hiding (integerToByteString)
 import PlutusTx.Show (toDigits)
 import PlutusTx.TH (compile)
+import PlutusTx.Test (goldenUPlcReadable)
 import PlutusTx.Test.Run.Code (evalResult, evaluateCompiledCode)
 import PlutusTx.Traversable qualified as Tx
 
@@ -376,3 +378,32 @@ normaliseLists =
 
 normalise :: Value -> Value
 normalise = listsToValue . normaliseLists . valueToLists
+
+-- | Compiled builtin path: @\\bd -> policies (unsafeDataAsValue bd)@.
+compiledPolicies :: CompiledCode (BI.BuiltinData -> BI.BuiltinList BI.BuiltinByteString)
+compiledPolicies = plinthc (\bd -> B.policies (B.unsafeDataAsValue bd))
+
+-- | The builtin @policies@ must return the Value's currency symbols in ascending order.
+test_policies :: TestTree
+test_policies =
+  testProperty "builtin policies matches the Value's currency symbols on CEK" \(normalise -> val) ->
+    let expected = B.fromBuiltin . unCurrencySymbol . fst Haskell.<$> valueToLists val
+     in runPoliciesCode val === expected
+  where
+    -- \| Evaluate the compiled builtin @policies@ on CEK and decode the resulting list.
+    runPoliciesCode :: Value -> [BS.ByteString]
+    runPoliciesCode value = either Haskell.throw id $ errOrRes >>= PLC.readKnownSelf
+      where
+        prog = compiledPolicies `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+        (errOrRes, _cost) =
+          PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
+            . PLC.runQuote
+            . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
+            . PLC._progTerm
+            $ getPlc prog
+
+test_policiesUplc :: TestTree
+test_policiesUplc =
+  runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
+    . pure
+    $ testNestedGhc [goldenUPlcReadable "policies" compiledPolicies]
