@@ -11,11 +11,11 @@ letrec
         in
         trace
           {unit -> integer}
-          "-> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)"
+          "-> fib (test/Plugin/Profiling/Spec.hs:98:1-98:3)"
           (\(thunk : unit) ->
              trace
                {integer}
-               "<- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)"
+               "<- fib (test/Plugin/Profiling/Spec.hs:98:1-98:3)"
                (case
                   (all dead. integer)
                   (equalsInteger n 0)

@@ -61,12 +61,8 @@ old Plutus Core language version.
 See Note [Encoding of datatypes] -}
 data DatatypeStyle
   = ScottEncoding
-  | SumsOfProducts
-  | {-| A temporary data type style used to make a couple of V3 ledger-api-test tests pass
-    before we can support casing on values of built-in types in newer protocol versions and
-    merge this into 'SumsOfProducts' (which is what controls whether 'Case' is available or
-    not). -}
-    BuiltinCasing
+  | -- | Enables sums-of-products and builtin casing.
+    SumsOfProducts
   deriving stock (Show, Read, Eq)
 
 instance Pretty DatatypeStyle where
@@ -177,7 +173,7 @@ toDefaultCompilationCtx configPlc =
 validateOpts :: Compiling m uni fun a => PLC.Version -> m ()
 validateOpts v = do
   datatypes <- view (ccOpts . coDatatypes . dcoStyle)
-  when ((datatypes == SumsOfProducts || datatypes == BuiltinCasing) && v < PLC.plcVersion110) $
+  when (datatypes == SumsOfProducts && v < PLC.plcVersion110) $
     throwError $
       OptionsError $
         T.pack $

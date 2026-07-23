@@ -999,13 +999,13 @@ compileExpr mloc e = do
       case e of
         -- caseInteger: dispatch on an integer index to select a branch.
         GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
-          -- BuiltinCasing: compile to native UPLC case on the integer.
-          | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.BuiltinCasing -> do
+          -- default: compile to native UPLC case on the integer.
+          | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.SumsOfProducts -> do
               resTy' <- compileTypeNorm resTy
               scrut' <- compileExpr Nothing scrut
               branches <- compileHaskellList li
               pure $ PIR.kase annAlwaysInline resTy' scrut' branches
-          -- SumsOfProducts/Scott: compile to a lazy equalsInteger/ifThenElse chain.
+          -- when Scott encoding is used, compile to a lazy equalsInteger/ifThenElse chain.
           | GHC.getName var == caseIntegerName -> do
               resTy' <- compileTypeNorm resTy
               scrut' <- compileExpr Nothing scrut
