@@ -112,316 +112,743 @@ let
     Unit : Unit
 in
 \(ds : data) ->
-  let
-    !l : list data
-      = case
-          (list data)
-          (unConstrData ds)
-          [(\(l : integer) (r : list data) -> r)]
-    !scriptInfo : data = headList {data} (tailList {data} (tailList {data} l))
-    !l : list data
-      = case
-          (list data)
-          (unConstrData (headList {data} l))
-          [(\(l : integer) (r : list data) -> r)]
-    !l : list data
-      = tailList {data} (tailList {data} (tailList {data} (tailList {data} l)))
-    !l : list data = tailList {data} l
-    !l : list data = tailList {data} l
-  in
   case
-    (all dead. unit)
-    (let
-      !tup : pair integer (list data) = unConstrData scriptInfo
-    in
-    case
-      (all dead. bool)
-      (equalsInteger
-         0
-         (case integer tup [(\(l : integer) (r : list data) -> l)]))
-      [ (/\dead ->
-           let
-             !tup : pair integer (list data) = unConstrData scriptInfo
-           in
-           case
-             (all dead. bool)
-             (equalsInteger
-                1
-                (case integer tup [(\(l : integer) (r : list data) -> l)]))
-             [ (/\dead ->
-                  let
-                    !tup : pair integer (list data) = unConstrData scriptInfo
-                  in
-                  case
-                    (all dead. bool)
-                    (equalsInteger
-                       2
-                       (case
-                          integer
-                          tup
-                          [(\(l : integer) (r : list data) -> l)]))
-                    [ (/\dead ->
-                         let
-                           !tup : pair integer (list data)
-                             = unConstrData scriptInfo
-                         in
-                         case
-                           (all dead. bool)
-                           (equalsInteger
-                              3
-                              (case
-                                 integer
-                                 tup
-                                 [(\(l : integer) (r : list data) -> l)]))
-                           [ (/\dead ->
-                                let
-                                  !tup : pair integer (list data)
-                                    = unConstrData scriptInfo
-                                in
-                                case
-                                  (all dead. bool)
-                                  (equalsInteger
-                                     4
-                                     (case
-                                        integer
-                                        tup
-                                        [ (\(l : integer) (r : list data) ->
-                                             l) ]))
-                                  [ (/\dead ->
-                                       let
-                                         !tup : pair integer (list data)
-                                           = unConstrData scriptInfo
-                                       in
-                                       case
-                                         (all dead. bool)
-                                         (equalsInteger
-                                            5
-                                            (case
-                                               integer
-                                               tup
-                                               [ (\(l : integer)
-                                                   (r : list data) ->
-                                                    l) ]))
-                                         [ (/\dead ->
-                                              let
-                                                !defaultBody : bool
-                                                  = error {bool}
-                                              in
-                                              Unit_match
-                                                (error {Unit})
-                                                {bool}
-                                                defaultBody)
-                                         , (/\dead ->
-                                              let
-                                                !l : list data
-                                                  = case
-                                                      (list data)
-                                                      tup
-                                                      [ (\(l : integer)
-                                                          (r : list data) ->
-                                                           r) ]
-                                              in
-                                              True) ]
-                                         {all dead. dead})
-                                  , (/\dead ->
-                                       member
-                                         {data}
-                                         {(\k a -> list (pair data data))
-                                            data
-                                            data}
-                                         (\(x : data) -> x)
-                                         (headList
-                                            {data}
-                                            (case
-                                               (list data)
-                                               tup
-                                               [ (\(l : integer)
-                                                   (r : list data) ->
-                                                    r) ]))
-                                         (unMapData
-                                            (headList
-                                               {data}
-                                               (tailList
-                                                  {data}
-                                                  (tailList
-                                                     {data}
-                                                     (tailList
-                                                        {data}
-                                                        (tailList
-                                                           {data}
-                                                           (tailList
-                                                              {data}
-                                                              (tailList
-                                                                 {data}
-                                                                 l))))))))) ]
-                                  {all dead. dead})
-                           , (/\dead ->
-                                let
-                                  !l : list data
-                                    = case
-                                        (list data)
-                                        tup
-                                        [(\(l : integer) (r : list data) -> r)]
-                                in
-                                (let
-                                    a = (\a -> list data) data
-                                  in
-                                  /\b -> \(f : a -> b) (x : a) -> f x)
-                                  {bool}
-                                  (null {data})
-                                  (filter
-                                     {data}
-                                     `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                     (\(x : data) -> x)
-                                     (\(v : data) ->
-                                        equalsData
-                                          (headList {data} (tailList {data} l))
-                                          v)
-                                     (unListData (headList {data} l)))) ]
-                           {all dead. dead})
-                    , (/\dead ->
-                         member
-                           {data}
-                           {integer}
-                           (\(x : data) -> x)
-                           (headList
-                              {data}
-                              (case
-                                 (list data)
-                                 tup
-                                 [(\(l : integer) (r : list data) -> r)]))
-                           (unMapData (headList {data} l))) ]
-                    {all dead. dead})
-             , (/\dead ->
-                  let
-                    !l : list data
-                      = case
-                          (list data)
-                          tup
-                          [(\(l : integer) (r : list data) -> r)]
-                  in
-                  Maybe_match
-                    {data}
-                    ((let
-                         b = list data
-                       in
-                       /\r ->
-                         \(p : pair integer b) (f : integer -> b -> r) ->
-                           case r p [f])
-                       {Maybe data}
-                       (unConstrData (headList {data} (tailList {data} l)))
-                       (\(index : integer) (args : list data) ->
-                          case
-                            (list data -> Maybe data)
-                            index
-                            [ (\(ds : list data) ->
-                                 Just {data} (headList {data} ds))
-                            , (\(ds : list data) -> Nothing {data}) ]
-                            args))
-                    {all dead. bool}
-                    (\(ds : data) -> /\dead -> False)
-                    (/\dead ->
-                       (let
-                           a = (\a -> list data) data
-                         in
-                         /\b -> \(f : a -> b) (x : a) -> f x)
-                         {bool}
-                         (null {data})
-                         (filter
-                            {data}
-                            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                            (\(x : data) -> x)
-                            (\(x : data) ->
-                               equalsData
-                                 (headList {data} l)
-                                 (headList
-                                    {data}
-                                    (case
-                                       (list data)
-                                       (unConstrData x)
-                                       [ (\(l : integer) (r : list data) ->
-                                            r) ])))
-                            (unListData (headList {data} l))))
-                    {all dead. dead}) ]
-             {all dead. dead})
-      , (/\dead ->
-           (let
-               a
-                 = (\k a -> list (pair data data))
-                     bytestring
-                     ((\k a -> list (pair data data)) bytestring integer)
-             in
-             /\b -> \(f : a -> b) (x : a) -> f x)
-             {bool}
-             ((let
-                  b
-                    = (\k a -> list (pair data data))
-                        bytestring
-                        ((\k a -> list (pair data data)) bytestring integer)
+    unit
+    (case (list data) (unConstrData ds) [(\(l : integer) (r : list data) -> r)])
+    [ (\(ds : data)
+        (ds : list data) ->
+         case
+           unit
+           ds
+           [ (\(ds : data)
+               (ds : list data) ->
+                let
+                  !scriptInfo : data = headList {data} ds
                 in
-                /\c a -> \(f : b -> c) (g : a -> b) (x : a) -> f (g x))
-                {bool}
-                {(\k a -> list (pair data data))
-                   bytestring
-                   ((\k a -> list (pair data data)) bytestring integer)}
-                (member
-                   {bytestring}
-                   {(\k a -> list (pair data data)) bytestring integer}
-                   bData
-                   (unBData
-                      (headList
-                         {data}
-                         (case
-                            (list data)
-                            tup
-                            [(\(l : integer) (r : list data) -> r)]))))
-                (\(ds :
-                     (\k a -> list (pair data data))
-                       bytestring
-                       ((\k a -> list (pair data data)) bytestring integer)) ->
-                   ds))
-             (mapMaybe
-                {bytestring}
-                {(\k a -> list (pair data data)) bytestring integer}
-                {(\k a -> list (pair data data)) bytestring integer}
-                (\(eta : data) -> unMapData eta)
-                (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
-                   mapData ds)
-                (\(map : (\k a -> list (pair data data)) bytestring integer) ->
-                   let
-                     !l : list (pair data data)
-                       = mapMaybe
-                           {bytestring}
-                           {integer}
-                           {integer}
-                           unIData
-                           (\(i : integer) -> iData i)
-                           (\(x : integer) ->
+                case
+                  unit
+                  (case
+                     (list data)
+                     (unConstrData ds)
+                     [(\(l : integer) (r : list data) -> r)])
+                  [ (\(ds : data)
+                      (ds : list data) ->
+                       case
+                         unit
+                         ds
+                         [ (\(ds : data)
+                             (ds : list data) ->
                               case
-                                (all dead. Maybe integer)
-                                (lessThanInteger 0 x)
-                                [ (/\dead -> Nothing {integer})
-                                , (/\dead -> Just {integer} x) ]
-                                {all dead. dead})
-                           map
-                   in
-                   case
-                     (all dead.
-                        Maybe
-                          ((\k a -> list (pair data data)) bytestring integer))
-                     (nullList {pair data data} l)
-                     [ (/\dead ->
-                          Just
-                            {(\k a -> list (pair data data)) bytestring integer}
-                            l)
-                     , (/\dead ->
-                          Nothing
-                            {(\k a -> list (pair data data))
-                               bytestring
-                               integer}) ]
-                     {all dead. dead})
-                (unMapData (headList {data} l)))) ]
-      {all dead. dead})
-    [ (/\dead -> let !x : Unit = trace {Unit} "PT5" Unit in error {unit})
-    , (/\dead -> ()) ]
-    {all dead. dead}
+                                unit
+                                ds
+                                [ (\(ds : data)
+                                    (ds : list data) ->
+                                     case
+                                       unit
+                                       ds
+                                       [ (\(ds : data)
+                                           (ds : list data) ->
+                                            case
+                                              unit
+                                              ds
+                                              [ (\(ds : data)
+                                                  (ds : list data) ->
+                                                   case
+                                                     unit
+                                                     ds
+                                                     [ (\(ds : data)
+                                                         (ds : list data) ->
+                                                          case
+                                                            unit
+                                                            ds
+                                                            [ (\(ds : data)
+                                                                (ds :
+                                                                   list data) ->
+                                                                 case
+                                                                   unit
+                                                                   ds
+                                                                   [ (\(ds :
+                                                                          data)
+                                                                       (ds :
+                                                                          list
+                                                                            data) ->
+                                                                        case
+                                                                          unit
+                                                                          ds
+                                                                          [ (\(ds :
+                                                                                 data)
+                                                                              (ds :
+                                                                                 list
+                                                                                   data) ->
+                                                                               case
+                                                                                 unit
+                                                                                 ds
+                                                                                 [ (\(ds :
+                                                                                        data)
+                                                                                     (ds :
+                                                                                        list
+                                                                                          data) ->
+                                                                                      case
+                                                                                        unit
+                                                                                        ds
+                                                                                        [ (\(ds :
+                                                                                               data)
+                                                                                            (ds :
+                                                                                               list
+                                                                                                 data) ->
+                                                                                             case
+                                                                                               unit
+                                                                                               ds
+                                                                                               [ (\(ds :
+                                                                                                      data)
+                                                                                                   (ds :
+                                                                                                      list
+                                                                                                        data) ->
+                                                                                                    case
+                                                                                                      unit
+                                                                                                      ds
+                                                                                                      [ (\(ds :
+                                                                                                             data)
+                                                                                                          (ds :
+                                                                                                             list
+                                                                                                               data) ->
+                                                                                                           case
+                                                                                                             (all dead.
+                                                                                                                unit)
+                                                                                                             (let
+                                                                                                               !tup :
+                                                                                                                  pair
+                                                                                                                    integer
+                                                                                                                    (list
+                                                                                                                       data)
+                                                                                                                 = unConstrData
+                                                                                                                     scriptInfo
+                                                                                                             in
+                                                                                                             case
+                                                                                                               (all dead.
+                                                                                                                  bool)
+                                                                                                               (equalsInteger
+                                                                                                                  0
+                                                                                                                  (case
+                                                                                                                     integer
+                                                                                                                     tup
+                                                                                                                     [ (\(l :
+                                                                                                                            integer)
+                                                                                                                         (r :
+                                                                                                                            list
+                                                                                                                              data) ->
+                                                                                                                          l) ]))
+                                                                                                               [ (/\dead ->
+                                                                                                                    let
+                                                                                                                      !tup :
+                                                                                                                         pair
+                                                                                                                           integer
+                                                                                                                           (list
+                                                                                                                              data)
+                                                                                                                        = unConstrData
+                                                                                                                            scriptInfo
+                                                                                                                    in
+                                                                                                                    case
+                                                                                                                      (all dead.
+                                                                                                                         bool)
+                                                                                                                      (equalsInteger
+                                                                                                                         1
+                                                                                                                         (case
+                                                                                                                            integer
+                                                                                                                            tup
+                                                                                                                            [ (\(l :
+                                                                                                                                   integer)
+                                                                                                                                (r :
+                                                                                                                                   list
+                                                                                                                                     data) ->
+                                                                                                                                 l) ]))
+                                                                                                                      [ (/\dead ->
+                                                                                                                           let
+                                                                                                                             !tup :
+                                                                                                                                pair
+                                                                                                                                  integer
+                                                                                                                                  (list
+                                                                                                                                     data)
+                                                                                                                               = unConstrData
+                                                                                                                                   scriptInfo
+                                                                                                                           in
+                                                                                                                           case
+                                                                                                                             (all dead.
+                                                                                                                                bool)
+                                                                                                                             (equalsInteger
+                                                                                                                                2
+                                                                                                                                (case
+                                                                                                                                   integer
+                                                                                                                                   tup
+                                                                                                                                   [ (\(l :
+                                                                                                                                          integer)
+                                                                                                                                       (r :
+                                                                                                                                          list
+                                                                                                                                            data) ->
+                                                                                                                                        l) ]))
+                                                                                                                             [ (/\dead ->
+                                                                                                                                  let
+                                                                                                                                    !tup :
+                                                                                                                                       pair
+                                                                                                                                         integer
+                                                                                                                                         (list
+                                                                                                                                            data)
+                                                                                                                                      = unConstrData
+                                                                                                                                          scriptInfo
+                                                                                                                                  in
+                                                                                                                                  case
+                                                                                                                                    (all dead.
+                                                                                                                                       bool)
+                                                                                                                                    (equalsInteger
+                                                                                                                                       3
+                                                                                                                                       (case
+                                                                                                                                          integer
+                                                                                                                                          tup
+                                                                                                                                          [ (\(l :
+                                                                                                                                                 integer)
+                                                                                                                                              (r :
+                                                                                                                                                 list
+                                                                                                                                                   data) ->
+                                                                                                                                               l) ]))
+                                                                                                                                    [ (/\dead ->
+                                                                                                                                         let
+                                                                                                                                           !tup :
+                                                                                                                                              pair
+                                                                                                                                                integer
+                                                                                                                                                (list
+                                                                                                                                                   data)
+                                                                                                                                             = unConstrData
+                                                                                                                                                 scriptInfo
+                                                                                                                                         in
+                                                                                                                                         case
+                                                                                                                                           (all dead.
+                                                                                                                                              bool)
+                                                                                                                                           (equalsInteger
+                                                                                                                                              4
+                                                                                                                                              (case
+                                                                                                                                                 integer
+                                                                                                                                                 tup
+                                                                                                                                                 [ (\(l :
+                                                                                                                                                        integer)
+                                                                                                                                                     (r :
+                                                                                                                                                        list
+                                                                                                                                                          data) ->
+                                                                                                                                                      l) ]))
+                                                                                                                                           [ (/\dead ->
+                                                                                                                                                case
+                                                                                                                                                  (all dead.
+                                                                                                                                                     bool)
+                                                                                                                                                  (equalsInteger
+                                                                                                                                                     5
+                                                                                                                                                     (case
+                                                                                                                                                        integer
+                                                                                                                                                        (unConstrData
+                                                                                                                                                           scriptInfo)
+                                                                                                                                                        [ (\(l :
+                                                                                                                                                               integer)
+                                                                                                                                                            (r :
+                                                                                                                                                               list
+                                                                                                                                                                 data) ->
+                                                                                                                                                             l) ]))
+                                                                                                                                                  [ (/\dead ->
+                                                                                                                                                       let
+                                                                                                                                                         !defaultBody :
+                                                                                                                                                            bool
+                                                                                                                                                           = error
+                                                                                                                                                               {bool}
+                                                                                                                                                       in
+                                                                                                                                                       Unit_match
+                                                                                                                                                         (error
+                                                                                                                                                            {Unit})
+                                                                                                                                                         {bool}
+                                                                                                                                                         defaultBody)
+                                                                                                                                                  , (/\dead ->
+                                                                                                                                                       True) ]
+                                                                                                                                                  {all dead.
+                                                                                                                                                     dead})
+                                                                                                                                           , (/\dead ->
+                                                                                                                                                member
+                                                                                                                                                  {data}
+                                                                                                                                                  {(\k
+                                                                                                                                                     a ->
+                                                                                                                                                      list
+                                                                                                                                                        (pair
+                                                                                                                                                           data
+                                                                                                                                                           data))
+                                                                                                                                                     data
+                                                                                                                                                     data}
+                                                                                                                                                  (\(x :
+                                                                                                                                                       data) ->
+                                                                                                                                                     x)
+                                                                                                                                                  (headList
+                                                                                                                                                     {data}
+                                                                                                                                                     (case
+                                                                                                                                                        (list
+                                                                                                                                                           data)
+                                                                                                                                                        tup
+                                                                                                                                                        [ (\(l :
+                                                                                                                                                               integer)
+                                                                                                                                                            (r :
+                                                                                                                                                               list
+                                                                                                                                                                 data) ->
+                                                                                                                                                             r) ]))
+                                                                                                                                                  (unMapData
+                                                                                                                                                     ds)) ]
+                                                                                                                                           {all dead.
+                                                                                                                                              dead})
+                                                                                                                                    , (/\dead ->
+                                                                                                                                         case
+                                                                                                                                           bool
+                                                                                                                                           (case
+                                                                                                                                              (list
+                                                                                                                                                 data)
+                                                                                                                                              tup
+                                                                                                                                              [ (\(l :
+                                                                                                                                                     integer)
+                                                                                                                                                  (r :
+                                                                                                                                                     list
+                                                                                                                                                       data) ->
+                                                                                                                                                   r) ])
+                                                                                                                                           [ (\(ds :
+                                                                                                                                                  data)
+                                                                                                                                               (ds :
+                                                                                                                                                  list
+                                                                                                                                                    data) ->
+                                                                                                                                                (let
+                                                                                                                                                    a
+                                                                                                                                                      = (\a ->
+                                                                                                                                                           list
+                                                                                                                                                             data)
+                                                                                                                                                          data
+                                                                                                                                                  in
+                                                                                                                                                  /\b ->
+                                                                                                                                                    \(f :
+                                                                                                                                                        a ->
+                                                                                                                                                        b)
+                                                                                                                                                     (x :
+                                                                                                                                                        a) ->
+                                                                                                                                                      f
+                                                                                                                                                        x)
+                                                                                                                                                  {bool}
+                                                                                                                                                  (null
+                                                                                                                                                     {data})
+                                                                                                                                                  (filter
+                                                                                                                                                     {data}
+                                                                                                                                                     `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                                     (\(x :
+                                                                                                                                                          data) ->
+                                                                                                                                                        x)
+                                                                                                                                                     (\(v :
+                                                                                                                                                          data) ->
+                                                                                                                                                        equalsData
+                                                                                                                                                          (headList
+                                                                                                                                                             {data}
+                                                                                                                                                             ds)
+                                                                                                                                                          v)
+                                                                                                                                                     (unListData
+                                                                                                                                                        ds))) ]) ]
+                                                                                                                                    {all dead.
+                                                                                                                                       dead})
+                                                                                                                             , (/\dead ->
+                                                                                                                                  member
+                                                                                                                                    {data}
+                                                                                                                                    {integer}
+                                                                                                                                    (\(x :
+                                                                                                                                         data) ->
+                                                                                                                                       x)
+                                                                                                                                    (headList
+                                                                                                                                       {data}
+                                                                                                                                       (case
+                                                                                                                                          (list
+                                                                                                                                             data)
+                                                                                                                                          tup
+                                                                                                                                          [ (\(l :
+                                                                                                                                                 integer)
+                                                                                                                                              (r :
+                                                                                                                                                 list
+                                                                                                                                                   data) ->
+                                                                                                                                               r) ]))
+                                                                                                                                    (unMapData
+                                                                                                                                       ds)) ]
+                                                                                                                             {all dead.
+                                                                                                                                dead})
+                                                                                                                      , (/\dead ->
+                                                                                                                           case
+                                                                                                                             bool
+                                                                                                                             (case
+                                                                                                                                (list
+                                                                                                                                   data)
+                                                                                                                                tup
+                                                                                                                                [ (\(l :
+                                                                                                                                       integer)
+                                                                                                                                    (r :
+                                                                                                                                       list
+                                                                                                                                         data) ->
+                                                                                                                                     r) ])
+                                                                                                                             [ (\(ds :
+                                                                                                                                    data)
+                                                                                                                                 (ds :
+                                                                                                                                    list
+                                                                                                                                      data) ->
+                                                                                                                                  Maybe_match
+                                                                                                                                    {data}
+                                                                                                                                    ((let
+                                                                                                                                         b
+                                                                                                                                           = list
+                                                                                                                                               data
+                                                                                                                                       in
+                                                                                                                                       /\r ->
+                                                                                                                                         \(p :
+                                                                                                                                             pair
+                                                                                                                                               integer
+                                                                                                                                               b)
+                                                                                                                                          (f :
+                                                                                                                                             integer ->
+                                                                                                                                             b ->
+                                                                                                                                             r) ->
+                                                                                                                                           case
+                                                                                                                                             r
+                                                                                                                                             p
+                                                                                                                                             [ f ])
+                                                                                                                                       {Maybe
+                                                                                                                                          data}
+                                                                                                                                       (unConstrData
+                                                                                                                                          (headList
+                                                                                                                                             {data}
+                                                                                                                                             ds))
+                                                                                                                                       (\(index :
+                                                                                                                                            integer)
+                                                                                                                                         (args :
+                                                                                                                                            list
+                                                                                                                                              data) ->
+                                                                                                                                          case
+                                                                                                                                            (list
+                                                                                                                                               data ->
+                                                                                                                                             Maybe
+                                                                                                                                               data)
+                                                                                                                                            index
+                                                                                                                                            [ (\(ds :
+                                                                                                                                                   list
+                                                                                                                                                     data) ->
+                                                                                                                                                 Just
+                                                                                                                                                   {data}
+                                                                                                                                                   (headList
+                                                                                                                                                      {data}
+                                                                                                                                                      ds))
+                                                                                                                                            , (\(ds :
+                                                                                                                                                   list
+                                                                                                                                                     data) ->
+                                                                                                                                                 Nothing
+                                                                                                                                                   {data}) ]
+                                                                                                                                            args))
+                                                                                                                                    {all dead.
+                                                                                                                                       bool}
+                                                                                                                                    (\(ds :
+                                                                                                                                         data) ->
+                                                                                                                                       /\dead ->
+                                                                                                                                         False)
+                                                                                                                                    (/\dead ->
+                                                                                                                                       (let
+                                                                                                                                           a
+                                                                                                                                             = (\a ->
+                                                                                                                                                  list
+                                                                                                                                                    data)
+                                                                                                                                                 data
+                                                                                                                                         in
+                                                                                                                                         /\b ->
+                                                                                                                                           \(f :
+                                                                                                                                               a ->
+                                                                                                                                               b)
+                                                                                                                                            (x :
+                                                                                                                                               a) ->
+                                                                                                                                             f
+                                                                                                                                               x)
+                                                                                                                                         {bool}
+                                                                                                                                         (null
+                                                                                                                                            {data})
+                                                                                                                                         (filter
+                                                                                                                                            {data}
+                                                                                                                                            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                            (\(x :
+                                                                                                                                                 data) ->
+                                                                                                                                               x)
+                                                                                                                                            (\(x :
+                                                                                                                                                 data) ->
+                                                                                                                                               equalsData
+                                                                                                                                                 ds
+                                                                                                                                                 (case
+                                                                                                                                                    data
+                                                                                                                                                    (case
+                                                                                                                                                       (list
+                                                                                                                                                          data)
+                                                                                                                                                       (unConstrData
+                                                                                                                                                          x)
+                                                                                                                                                       [ (\(l :
+                                                                                                                                                              integer)
+                                                                                                                                                           (r :
+                                                                                                                                                              list
+                                                                                                                                                                data) ->
+                                                                                                                                                            r) ])
+                                                                                                                                                    [ (\(ds :
+                                                                                                                                                           data)
+                                                                                                                                                        (ds :
+                                                                                                                                                           list
+                                                                                                                                                             data) ->
+                                                                                                                                                         ds) ]))
+                                                                                                                                            (unListData
+                                                                                                                                               ds)))
+                                                                                                                                    {all dead.
+                                                                                                                                       dead}) ]) ]
+                                                                                                                      {all dead.
+                                                                                                                         dead})
+                                                                                                               , (/\dead ->
+                                                                                                                    (let
+                                                                                                                        a
+                                                                                                                          = (\k
+                                                                                                                              a ->
+                                                                                                                               list
+                                                                                                                                 (pair
+                                                                                                                                    data
+                                                                                                                                    data))
+                                                                                                                              bytestring
+                                                                                                                              ((\k
+                                                                                                                                 a ->
+                                                                                                                                  list
+                                                                                                                                    (pair
+                                                                                                                                       data
+                                                                                                                                       data))
+                                                                                                                                 bytestring
+                                                                                                                                 integer)
+                                                                                                                      in
+                                                                                                                      /\b ->
+                                                                                                                        \(f :
+                                                                                                                            a ->
+                                                                                                                            b)
+                                                                                                                         (x :
+                                                                                                                            a) ->
+                                                                                                                          f
+                                                                                                                            x)
+                                                                                                                      {bool}
+                                                                                                                      ((let
+                                                                                                                           b
+                                                                                                                             = (\k
+                                                                                                                                 a ->
+                                                                                                                                  list
+                                                                                                                                    (pair
+                                                                                                                                       data
+                                                                                                                                       data))
+                                                                                                                                 bytestring
+                                                                                                                                 ((\k
+                                                                                                                                    a ->
+                                                                                                                                     list
+                                                                                                                                       (pair
+                                                                                                                                          data
+                                                                                                                                          data))
+                                                                                                                                    bytestring
+                                                                                                                                    integer)
+                                                                                                                         in
+                                                                                                                         /\c
+                                                                                                                           a ->
+                                                                                                                           \(f :
+                                                                                                                               b ->
+                                                                                                                               c)
+                                                                                                                            (g :
+                                                                                                                               a ->
+                                                                                                                               b)
+                                                                                                                            (x :
+                                                                                                                               a) ->
+                                                                                                                             f
+                                                                                                                               (g
+                                                                                                                                  x))
+                                                                                                                         {bool}
+                                                                                                                         {(\k
+                                                                                                                            a ->
+                                                                                                                             list
+                                                                                                                               (pair
+                                                                                                                                  data
+                                                                                                                                  data))
+                                                                                                                            bytestring
+                                                                                                                            ((\k
+                                                                                                                               a ->
+                                                                                                                                list
+                                                                                                                                  (pair
+                                                                                                                                     data
+                                                                                                                                     data))
+                                                                                                                               bytestring
+                                                                                                                               integer)}
+                                                                                                                         (member
+                                                                                                                            {bytestring}
+                                                                                                                            {(\k
+                                                                                                                               a ->
+                                                                                                                                list
+                                                                                                                                  (pair
+                                                                                                                                     data
+                                                                                                                                     data))
+                                                                                                                               bytestring
+                                                                                                                               integer}
+                                                                                                                            bData
+                                                                                                                            (unBData
+                                                                                                                               (headList
+                                                                                                                                  {data}
+                                                                                                                                  (case
+                                                                                                                                     (list
+                                                                                                                                        data)
+                                                                                                                                     tup
+                                                                                                                                     [ (\(l :
+                                                                                                                                            integer)
+                                                                                                                                         (r :
+                                                                                                                                            list
+                                                                                                                                              data) ->
+                                                                                                                                          r) ]))))
+                                                                                                                         (\(ds :
+                                                                                                                              (\k
+                                                                                                                                a ->
+                                                                                                                                 list
+                                                                                                                                   (pair
+                                                                                                                                      data
+                                                                                                                                      data))
+                                                                                                                                bytestring
+                                                                                                                                ((\k
+                                                                                                                                   a ->
+                                                                                                                                    list
+                                                                                                                                      (pair
+                                                                                                                                         data
+                                                                                                                                         data))
+                                                                                                                                   bytestring
+                                                                                                                                   integer)) ->
+                                                                                                                            ds))
+                                                                                                                      (mapMaybe
+                                                                                                                         {bytestring}
+                                                                                                                         {(\k
+                                                                                                                            a ->
+                                                                                                                             list
+                                                                                                                               (pair
+                                                                                                                                  data
+                                                                                                                                  data))
+                                                                                                                            bytestring
+                                                                                                                            integer}
+                                                                                                                         {(\k
+                                                                                                                            a ->
+                                                                                                                             list
+                                                                                                                               (pair
+                                                                                                                                  data
+                                                                                                                                  data))
+                                                                                                                            bytestring
+                                                                                                                            integer}
+                                                                                                                         (\(eta :
+                                                                                                                              data) ->
+                                                                                                                            unMapData
+                                                                                                                              eta)
+                                                                                                                         (\(ds :
+                                                                                                                              (\k
+                                                                                                                                a ->
+                                                                                                                                 list
+                                                                                                                                   (pair
+                                                                                                                                      data
+                                                                                                                                      data))
+                                                                                                                                bytestring
+                                                                                                                                integer) ->
+                                                                                                                            mapData
+                                                                                                                              ds)
+                                                                                                                         (\(map :
+                                                                                                                              (\k
+                                                                                                                                a ->
+                                                                                                                                 list
+                                                                                                                                   (pair
+                                                                                                                                      data
+                                                                                                                                      data))
+                                                                                                                                bytestring
+                                                                                                                                integer) ->
+                                                                                                                            let
+                                                                                                                              !l :
+                                                                                                                                 list
+                                                                                                                                   (pair
+                                                                                                                                      data
+                                                                                                                                      data)
+                                                                                                                                = mapMaybe
+                                                                                                                                    {bytestring}
+                                                                                                                                    {integer}
+                                                                                                                                    {integer}
+                                                                                                                                    unIData
+                                                                                                                                    (\(i :
+                                                                                                                                         integer) ->
+                                                                                                                                       iData
+                                                                                                                                         i)
+                                                                                                                                    (\(x :
+                                                                                                                                         integer) ->
+                                                                                                                                       case
+                                                                                                                                         (all dead.
+                                                                                                                                            Maybe
+                                                                                                                                              integer)
+                                                                                                                                         (lessThanInteger
+                                                                                                                                            0
+                                                                                                                                            x)
+                                                                                                                                         [ (/\dead ->
+                                                                                                                                              Nothing
+                                                                                                                                                {integer})
+                                                                                                                                         , (/\dead ->
+                                                                                                                                              Just
+                                                                                                                                                {integer}
+                                                                                                                                                x) ]
+                                                                                                                                         {all dead.
+                                                                                                                                            dead})
+                                                                                                                                    map
+                                                                                                                            in
+                                                                                                                            case
+                                                                                                                              (all dead.
+                                                                                                                                 Maybe
+                                                                                                                                   ((\k
+                                                                                                                                      a ->
+                                                                                                                                       list
+                                                                                                                                         (pair
+                                                                                                                                            data
+                                                                                                                                            data))
+                                                                                                                                      bytestring
+                                                                                                                                      integer))
+                                                                                                                              (nullList
+                                                                                                                                 {pair
+                                                                                                                                    data
+                                                                                                                                    data}
+                                                                                                                                 l)
+                                                                                                                              [ (/\dead ->
+                                                                                                                                   Just
+                                                                                                                                     {(\k
+                                                                                                                                        a ->
+                                                                                                                                         list
+                                                                                                                                           (pair
+                                                                                                                                              data
+                                                                                                                                              data))
+                                                                                                                                        bytestring
+                                                                                                                                        integer}
+                                                                                                                                     l)
+                                                                                                                              , (/\dead ->
+                                                                                                                                   Nothing
+                                                                                                                                     {(\k
+                                                                                                                                        a ->
+                                                                                                                                         list
+                                                                                                                                           (pair
+                                                                                                                                              data
+                                                                                                                                              data))
+                                                                                                                                        bytestring
+                                                                                                                                        integer}) ]
+                                                                                                                              {all dead.
+                                                                                                                                 dead})
+                                                                                                                         (unMapData
+                                                                                                                            ds))) ]
+                                                                                                               {all dead.
+                                                                                                                  dead})
+                                                                                                             [ (/\dead ->
+                                                                                                                  let
+                                                                                                                    !x :
+                                                                                                                       Unit
+                                                                                                                      = trace
+                                                                                                                          {Unit}
+                                                                                                                          "PT5"
+                                                                                                                          Unit
+                                                                                                                  in
+                                                                                                                  error
+                                                                                                                    {unit})
+                                                                                                             , (/\dead ->
+                                                                                                                  ()) ]
+                                                                                                             {all dead.
+                                                                                                                dead}) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]

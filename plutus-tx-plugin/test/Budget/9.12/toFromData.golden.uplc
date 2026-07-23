@@ -1,1 +1,6 @@
-(program 1.1.0 (constr 1 [(constr 0 [(constr 0 [True, 1, False])])]))
+(program
+   1.1.0
+   (constr 1
+      [ (constr 0
+           [ (constr 0
+                [True, 1, (case 0 [(\ds -> False), (\ds -> True)] [])]) ]) ]))

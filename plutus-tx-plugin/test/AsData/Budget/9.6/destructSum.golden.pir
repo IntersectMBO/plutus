@@ -17,22 +17,28 @@ let
         \(scrut : data)
          (cont : integer -> integer -> integer -> integer -> r)
          (fail : unit -> r) ->
-          let
-            !l : list data
-              = (let
-                    b = list data
-                  in
-                  \(x : pair integer b) ->
-                    case b x [(\(l : integer) (r : b) -> r)])
-                  (unConstrData scrut)
-            !l : list data = tailList {data} l
-            !l : list data = tailList {data} l
-          in
-          cont
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} (tailList {data} l)))
+          case
+            r
+            ((let
+                 b = list data
+               in
+               \(x : pair integer b) ->
+                 case b x [(\(l : integer) (r : b) -> r)])
+               (unConstrData scrut))
+            [ (\(ds : data) (ds : list data) ->
+                 case
+                   r
+                   ds
+                   [ (\(ds : data) (ds : list data) ->
+                        case
+                          r
+                          ds
+                          [ (\(ds : data) (ds : list data) ->
+                               cont
+                                 (unIData ds)
+                                 (unIData ds)
+                                 (unIData ds)
+                                 (unIData (headList {data} ds))) ]) ]) ]
 in
 \(d : data) ->
   (let

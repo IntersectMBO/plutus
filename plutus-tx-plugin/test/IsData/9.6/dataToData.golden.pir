@@ -32,11 +32,11 @@ let
     = `$fToDataInteger_$ctoBuiltinData`
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
+  !droppableUnsafeCaseList : all a r. (a -> list a -> r) -> list a -> r
+    = /\a r -> \(f : a -> list a -> r) (xs : list a) -> case r xs [f]
   !head : all a. list a -> a = headList
   !snd : all a b. pair a b -> b
     = /\a b -> \(x : pair a b) -> case b x [(\(l : a) (r : b) -> r)]
-  !tail : all a. list a -> list a = tailList
-  ~wrapTail : all a. list a -> list a = tail
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~wrapUnsafeDataAsConstr : data -> pair integer (list data)
     = unsafeDataAsConstr
@@ -60,13 +60,14 @@ let
               !cont : a -> integer -> r = cont
             in
             \(fail : unit -> r) ->
-              let
-                !l : list data
-                  = snd {integer} {list data} (wrapUnsafeDataAsConstr nt)
-              in
-              cont
-                (`$dUnsafeFromData` (head {data} l))
-                (unsafeDataAsI (head {data} (wrapTail {data} l)))
+              droppableUnsafeCaseList
+                {data}
+                {r}
+                (\(ds : data) (ds : list data) ->
+                   cont
+                     (`$dUnsafeFromData` ds)
+                     (unsafeDataAsI (head {data} ds)))
+                (snd {integer} {list data} (wrapUnsafeDataAsConstr nt))
   ~`==` : all a. (\a -> a -> a -> bool) a -> a -> a -> bool
     = /\a -> \(v : (\a -> a -> a -> bool) a) -> v
   !addInteger : integer -> integer -> integer = addInteger

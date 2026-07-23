@@ -122,43 +122,45 @@ in
                (list data -> Tuple3 bool integer bool)
                index
                [ (\(ds : list data) ->
-                    let
-                      !l : list data = tailList {data} ds
-                    in
-                    Tuple3
-                      {bool}
-                      {integer}
-                      {bool}
-                      (let
-                        !d : data = headList {data} ds
-                      in
-                      casePair
-                        {integer}
-                        {list data}
-                        {bool}
-                        (unConstrData d)
-                        (\(index : integer) (args : list data) ->
+                    case
+                      (Tuple3 bool integer bool)
+                      ds
+                      [ (\(ds : data) (ds : list data) ->
                            case
-                             (list data -> bool)
-                             index
-                             [ (\(ds : list data) -> False)
-                             , (\(ds : list data) -> True) ]
-                             args))
-                      (unIData (headList {data} l))
-                      (let
-                        !d : data = headList {data} (tailList {data} l)
-                      in
-                      casePair
-                        {integer}
-                        {list data}
-                        {bool}
-                        (unConstrData d)
-                        (\(index : integer) (args : list data) ->
-                           case
-                             (list data -> bool)
-                             index
-                             [ (\(ds : list data) -> False)
-                             , (\(ds : list data) -> True) ]
-                             args))) ]
+                             (Tuple3 bool integer bool)
+                             ds
+                             [ (\(ds : data) (ds : list data) ->
+                                  Tuple3
+                                    {bool}
+                                    {integer}
+                                    {bool}
+                                    (casePair
+                                       {integer}
+                                       {list data}
+                                       {bool}
+                                       (unConstrData ds)
+                                       (\(index : integer) (args : list data) ->
+                                          case
+                                            (list data -> bool)
+                                            index
+                                            [ (\(ds : list data) -> False)
+                                            , (\(ds : list data) -> True) ]
+                                            args))
+                                    (unIData ds)
+                                    (let
+                                      !d : data = headList {data} ds
+                                    in
+                                    casePair
+                                      {integer}
+                                      {list data}
+                                      {bool}
+                                      (unConstrData d)
+                                      (\(index : integer) (args : list data) ->
+                                         case
+                                           (list data -> bool)
+                                           index
+                                           [ (\(ds : list data) -> False)
+                                           , (\(ds : list data) -> True) ]
+                                           args))) ]) ]) ]
                args)))
   d

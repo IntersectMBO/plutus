@@ -36,10 +36,17 @@ in
               (list data -> Tuple integer integer)
               index
               [ (\(ds : list data) ->
-                   Tuple2
-                     {integer}
-                     {integer}
-                     (unIData (headList {data} ds))
-                     (unIData (headList {data} (tailList {data} ds)))) ]
+                   (let
+                       r = Tuple integer integer
+                     in
+                     \(f : data -> list data -> r) (xs : list data) ->
+                       case r xs [f])
+                     (\(ds : data) (ds : list data) ->
+                        Tuple2
+                          {integer}
+                          {integer}
+                          (unIData ds)
+                          (unIData (headList {data} ds)))
+                     ds) ]
               args))
     ds
