@@ -502,6 +502,7 @@ library untyped-plutus-core-testlib
     , bytestring
     , cardano-base:testlib             >=0.1.5
     , cardano-crypto-class
+    , containers
     , data-default-class
     , dlist
     , extra
