@@ -30,13 +30,15 @@ plinthc _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBe
 {-# OPAQUE plinthc #-}
 
 {-| This function is used in `typeCheckResultAction` to mark the given expression
-with its source location. -}
+with its source location. The added source location information is used for generating
+improved line number reporting on error messages. -}
 anchor :: forall (loc :: Symbol) a. a -> a
 anchor a = a
 {-# OPAQUE anchor #-}
 
 {-| This function is used in `typeCheckResultAction` to mark a binding with
-its binder source location. -}
+its binder source location. The added binding information is used for generating
+function enterance and exit information when `profile-all` option is enabled. -}
 bindingAnchor :: forall (loc :: Symbol) a. a -> a
 bindingAnchor a = a
 {-# OPAQUE bindingAnchor #-}
