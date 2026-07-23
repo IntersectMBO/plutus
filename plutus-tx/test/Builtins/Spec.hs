@@ -67,6 +67,24 @@ builtinsTests =
         , testCase "negative count fails" $ throwsErrorCall (BI.replicateByte (-1) 65)
         ]
     , testGroup
+        "shiftByteString"
+        [ testCase "shift by zero is identity" $ unBS (BI.shiftByteString abc 0) @?= C8.pack "abc"
+        , testCase "overlong shift zeroes the bytestring" $
+            unBS (BI.shiftByteString abc 100) @?= C8.pack "\0\0\0"
+        , testCase "amount exceeding maxBound::Int fails" $
+            throwsErrorCall (BI.shiftByteString abc (2 ^ (64 :: Int)))
+        , testCase "amount below minBound::Int fails" $
+            throwsErrorCall (BI.shiftByteString abc (-(2 ^ (64 :: Int))))
+        ]
+    , testGroup
+        "rotateByteString"
+        [ testCase "rotation by zero is identity" $ unBS (BI.rotateByteString abc 0) @?= C8.pack "abc"
+        , testCase "rotation by the bit length is identity" $
+            unBS (BI.rotateByteString abc 24) @?= C8.pack "abc"
+        , testCase "amount exceeding maxBound::Int fails" $
+            throwsErrorCall (BI.rotateByteString abc (2 ^ (64 :: Int)))
+        ]
+    , testGroup
         "caseInteger"
         [ testCase "in-range scrutinee" $ BI.caseInteger 1 [10 :: Integer, 20, 30] @?= 20
         , testCase "scrutinee equal to branch count fails" $

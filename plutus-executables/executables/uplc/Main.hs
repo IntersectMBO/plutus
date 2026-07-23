@@ -25,6 +25,7 @@ import PlutusCore.Executable.AstIO
 import PlutusCore.Executable.Blueprint
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Eval
+import PlutusCore.Executable.Help qualified as Help
 import PlutusCore.Executable.OptimizerReport
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
@@ -98,6 +99,28 @@ uplcHelpText = helpText "Untyped Plutus Core"
 
 uplcInfoCommand :: ParserInfo Command
 uplcInfoCommand = plutus uplcHelpText
+
+topLevelExamples :: [Help.Example]
+topLevelExamples =
+  [ Help.eg
+      "Evaluate a textual UPLC program on the CEK machine"
+      "uplc evaluate -i program.uplc"
+  , Help.eg
+      "Evaluate a hex-encoded script and report the CPU/memory budget used"
+      "uplc evaluate --if hex -i script.hex --counting"
+  , Help.eg
+      "Pretty-print a hex-encoded script as readable textual UPLC"
+      "uplc convert --if hex --of textual -i script.hex"
+  , Help.eg
+      "Optimise a script"
+      "uplc optimize -i program.uplc -o program-opt.uplc"
+  , Help.eg
+      "List the built-in example programs"
+      "uplc example -a"
+  , Help.eg
+      "Enable bash completion for the current shell"
+      "source <(uplc --bash-completion-script $(command -v uplc))"
+  ]
 
 data BudgetMode
   = Silent
@@ -297,7 +320,11 @@ plutus
 plutus langHelpText =
   info
     (plutusOpts <**> versioner <**> helper)
-    (fullDesc <> header "Untyped Plutus Core Tool" <> progDesc langHelpText)
+    ( fullDesc
+        <> header "Untyped Plutus Core Tool"
+        <> progDesc langHelpText
+        <> Help.examplesFooter topLevelExamples
+    )
 
 plutusOpts :: Parser Command
 plutusOpts =
@@ -306,40 +333,50 @@ plutusOpts =
       "apply"
       ( info
           (Apply <$> applyOpts)
-          ( progDesc $
-              "Given a list of input files f g1 g2 ... gn "
-                <> "containing Untyped Plutus Core scripts, "
-                <> "output a script consisting of (... ((f g1) g2) ... gn); "
-                <> "for example, 'uplc apply --if flat Validator.flat "
-                <> "Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."
+          ( progDesc
+              ( "Given a list of input files f g1 g2 ... gn "
+                  <> "containing Untyped Plutus Core scripts, "
+                  <> "output a script consisting of (... ((f g1) g2) ... gn)."
+              )
+              <> Help.examplesFooter
+                [ Help.eg
+                    "Apply a flat-encoded validator to its arguments"
+                    "uplc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat"
+                ]
           )
       )
       <> command
         "apply-to-flat-data"
         ( info
             (ApplyToFlatData <$> applyOpts)
-            ( progDesc $
-                "Given a list f d1 d2 ... dn where f is an "
-                  <> "Untyped Plutus Core script and d1,...,dn are files "
-                  <> "containing flat-encoded data ojbects, output a script "
-                  <> "consisting of f applied to the data objects; "
-                  <> "for example, 'uplc apply-to-flat-data --if "
-                  <> "flat Validator.flat Datum.flat Redeemer.flat Context.flat "
-                  <> "--of flat -o Script.flat'."
+            ( progDesc
+                ( "Given a list f d1 d2 ... dn where f is an "
+                    <> "Untyped Plutus Core script and d1,...,dn are files "
+                    <> "containing flat-encoded data objects, output a script "
+                    <> "consisting of f applied to the data objects."
+                )
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Apply a script to flat-encoded Data arguments"
+                      "uplc apply-to-flat-data --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat"
+                  ]
             )
         )
       <> command
         "apply-to-cbor-data"
         ( info
             (ApplyToCborData <$> applyOpts)
-            ( progDesc $
-                "Given a list f d1 d2 ... dn where f is an "
-                  <> "Untyped Plutus Core script and d1,...,dn are files "
-                  <> "containing CBOR-encoded data ojbects, output a script "
-                  <> "consisting of f applied to the data objects; "
-                  <> "for example, 'uplc apply-to-cbor-data --if "
-                  <> "flat Validator.flat Datum.cbor Redeemer.cbor Context.cbor "
-                  <> "--of flat -o Script.flat'."
+            ( progDesc
+                ( "Given a list f d1 d2 ... dn where f is an "
+                    <> "Untyped Plutus Core script and d1,...,dn are files "
+                    <> "containing CBOR-encoded data objects, output a script "
+                    <> "consisting of f applied to the data objects."
+                )
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Apply a script to CBOR-encoded Data arguments"
+                      "uplc apply-to-cbor-data --if flat Validator.flat Datum.cbor Redeemer.cbor Context.cbor --of flat -o Script.flat"
+                  ]
             )
         )
       <> command
@@ -352,7 +389,16 @@ plutusOpts =
         "convert"
         ( info
             (Convert <$> convertOpts)
-            (progDesc "Convert a program between various formats.")
+            ( progDesc "Convert a program between various formats."
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Pretty-print a hex-encoded script as readable textual UPLC"
+                      "uplc convert --if hex --of textual -i script.hex"
+                  , Help.eg
+                      "Flat-encode a textual UPLC program"
+                      "uplc convert --if textual --of flat -i program.uplc -o program.flat"
+                  ]
+            )
         )
       <> command "optimise" (optimise "Run the UPLC optimisation pipeline on the input.")
       <> command "optimize" (optimise "Same as 'optimise'.")
@@ -371,13 +417,31 @@ plutusOpts =
         "benchmark"
         ( info
             (Benchmark <$> benchmarkOpts)
-            (progDesc "Benchmark an untyped Plutus Core program on the CEK machine using Criterion.")
+            ( progDesc "Benchmark an untyped Plutus Core program on the CEK machine using Criterion."
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Benchmark evaluation with a 20-second time limit"
+                      "uplc benchmark -i program.uplc --time-limit 20"
+                  ]
+            )
         )
       <> command
         "evaluate"
         ( info
             (Eval <$> evalOpts)
-            (progDesc "Evaluate an untyped Plutus Core program using the CEK machine.")
+            ( progDesc "Evaluate an untyped Plutus Core program using the CEK machine."
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Evaluate a textual UPLC program"
+                      "uplc evaluate -i program.uplc"
+                  , Help.eg
+                      "Evaluate a hex-encoded script and report the budget used"
+                      "uplc evaluate --if hex -i script.hex --counting"
+                  , Help.eg
+                      "Evaluate a program piped in on stdin"
+                      "echo '(program 1.1.0 (con integer 42))' | uplc evaluate"
+                  ]
+            )
         )
       <> command
         "time"
@@ -392,7 +456,13 @@ plutusOpts =
         "debug"
         ( info
             (Dbg <$> dbgOpts)
-            (progDesc "Debug an untyped Plutus Core program using the CEK machine.")
+            ( progDesc "Debug an untyped Plutus Core program using the CEK machine."
+                <> Help.examplesFooter
+                  [ Help.eg
+                      "Step through a program interactively"
+                      "uplc debug -i program.uplc"
+                  ]
+            )
         )
       <> command
         "dump-cost-model"
@@ -407,7 +477,17 @@ plutusOpts =
             (progDesc "Print the signatures of the built-in functions.")
         )
   where
-    optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
+    optimise desc =
+      info (Optimise <$> optimiseOpts) $
+        progDesc desc
+          <> Help.examplesFooter
+            [ Help.eg
+                "Optimise a textual UPLC script"
+                "uplc optimize -i program.uplc -o program-opt.uplc"
+            , Help.eg
+                "Optimise every validator in a CIP-57 blueprint"
+                "uplc optimize --if blueprint --of blueprint -i bp.json -o bp-opt.json"
+            ]
 
 ---------------- Optimisation ----------------
 

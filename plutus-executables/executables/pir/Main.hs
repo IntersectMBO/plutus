@@ -13,6 +13,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
 import PlutusCore.Executable.Common hiding (runPrint)
+import PlutusCore.Executable.Help qualified as Help
 import PlutusCore.Executable.Parsers
 import PlutusCore.Quote (runQuote, runQuoteT)
 import PlutusIR as PIR
@@ -346,4 +347,18 @@ main = do
               ( "This program provides a number of utilities for dealing with "
                   <> "PIR programs, including printing, analysis, optimisation, and compilation to UPLC and PLC."
               )
+            <> Help.examplesFooter
+              [ Help.eg
+                  "Compile a PIR program to UPLC"
+                  "pir compile --language uplc -i program.pir -o program.uplc"
+              , Help.eg
+                  "Pretty-print a PIR program"
+                  "pir print -i program.pir"
+              , Help.eg
+                  "Optimise a PIR program"
+                  "pir optimize -i program.pir -o program-opt.pir"
+              , Help.eg
+                  "Enable bash completion for the current shell"
+                  "source <(pir --bash-completion-script $(command -v pir))"
+              ]
         )
