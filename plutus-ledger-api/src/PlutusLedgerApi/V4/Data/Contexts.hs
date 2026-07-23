@@ -34,6 +34,7 @@ module PlutusLedgerApi.V4.Data.Contexts
   , pattern AccountBalanceLowerBound
   , pattern AccountBalanceUpperBound
   , pattern AccountBalanceBothBounds
+  , pattern AccountBalanceExact
   , AccountBalanceIntervals (..)
   , TxCert
   , matchTxCert
@@ -141,7 +142,6 @@ module PlutusLedgerApi.V4.Data.Contexts
   , ttisDirectDeposits
   , ttisValidRange
   , ttisGuards
-  , ttisRequiredTopLevelGuards
   , ttisScriptPurposes
   , ttisData
   , ttisVotes
@@ -286,6 +286,7 @@ PlutusTx.asData
       = AccountBalanceLowerBound V2.Lovelace
       | AccountBalanceUpperBound V2.Lovelace
       | AccountBalanceBothBounds V2.Lovelace V2.Lovelace
+      | AccountBalanceExact V2.Lovelace
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow AccountBalanceInterval)
@@ -357,8 +358,8 @@ PlutusTx.asData
       , txInfoFee :: V2.Lovelace
       , txInfoMint :: V3.MintValue
       , txInfoTxCerts :: List TxCert
-      , txInfoWithdrawals :: Map V2.Credential V2.Lovelace
-      , txInfoDirectDeposits :: Map V2.Credential V2.Lovelace
+      , txInfoWithdrawals :: Map AccountId V2.Lovelace
+      , txInfoDirectDeposits :: Map AccountId V2.Lovelace
       , txInfoAccountBalanceIntervals :: AccountBalanceIntervals
       , txInfoValidRange :: V2.POSIXTimeRange
       , txInfoGuards :: List V2.Credential
@@ -386,11 +387,10 @@ PlutusTx.asData
       , ttisMints :: V3.MintValue
       , ttisBurns :: V3.MintValue
       , ttisTxCerts :: List TxCert
-      , ttisWithdrawals :: Map V2.Credential V2.Lovelace
-      , ttisDirectDeposits :: Map V2.Credential V2.Lovelace
+      , ttisWithdrawals :: Map AccountId V2.Lovelace
+      , ttisDirectDeposits :: Map AccountId V2.Lovelace
       , ttisValidRange :: V2.POSIXTimeRange
-      , ttisGuards :: List V2.Credential
-      , ttisRequiredTopLevelGuards :: Map V2.Credential ()
+      , ttisGuards :: Map V2.Credential ()
       , ttisScriptPurposes :: Map ScriptPurpose ()
       , ttisData :: Map V2.DatumHash V2.Datum
       , ttisVotes :: Map Voter (Map GovernanceActionId Vote)
@@ -409,7 +409,7 @@ PlutusTx.asData
   [d|
     data TopTxInfo = TopTxInfo
       { topTxInfoSubTransactions :: List TxInfo
-      , topTxInfoDatums :: Map V3.TxId V2.Datum
+      , topTxInfoDatums :: Map Haskell.Integer V2.Datum
       , topTxInfoStartingBalanceIntervals :: AccountBalanceIntervals
       , topTxInfoSimplified :: TopTxInfoSimplified
       }
@@ -483,6 +483,10 @@ findTxInByTxOutRef outRef TxInfo {txInfoInputs} =
     txInfoInputs
 
 {-# INLINEABLE findContinuingOutputs #-}
+
+{-| Find the indices of outputs in the current sub-transaction or top-level transaction
+that pay to the same script address we are currently spending from. This does not search
+the outputs of the whole transaction. -}
 findContinuingOutputs :: ScriptContext -> List Haskell.Integer
 findContinuingOutputs ctx
   | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <- findOwnInput ctx =
@@ -494,6 +498,10 @@ findContinuingOutputs ctx
 findContinuingOutputs _ = PlutusTx.traceError "Le"
 
 {-# INLINEABLE getContinuingOutputs #-}
+
+{-| Get the outputs in the current sub-transaction or top-level transaction that pay to
+the same script address we are currently spending from. This does not search the outputs
+of the whole transaction. -}
 getContinuingOutputs :: ScriptContext -> List V2.TxOut
 getContinuingOutputs ctx
   | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <- findOwnInput ctx =

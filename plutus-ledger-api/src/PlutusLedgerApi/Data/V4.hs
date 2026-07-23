@@ -8,6 +8,7 @@ module PlutusLedgerApi.Data.V4
   , pattern Contexts.AccountBalanceLowerBound
   , pattern Contexts.AccountBalanceUpperBound
   , pattern Contexts.AccountBalanceBothBounds
+  , pattern Contexts.AccountBalanceExact
   , Contexts.AccountBalanceIntervals (..)
 
     -- * Governance
@@ -112,7 +113,6 @@ module PlutusLedgerApi.Data.V4
   , Contexts.ttisDirectDeposits
   , Contexts.ttisValidRange
   , Contexts.ttisGuards
-  , Contexts.ttisRequiredTopLevelGuards
   , Contexts.ttisScriptPurposes
   , Contexts.ttisData
   , Contexts.ttisVotes

@@ -127,6 +127,7 @@ data AccountBalanceInterval
   = AccountBalanceLowerBound V2.Lovelace
   | AccountBalanceUpperBound V2.Lovelace
   | AccountBalanceBothBounds V2.Lovelace V2.Lovelace
+  | AccountBalanceExact V2.Lovelace
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow AccountBalanceInterval)
@@ -139,6 +140,7 @@ $( makeIsDataSchemaIndexed
      [ ('AccountBalanceLowerBound, 0)
      , ('AccountBalanceUpperBound, 1)
      , ('AccountBalanceBothBounds, 2)
+     , ('AccountBalanceExact, 3)
      ]
  )
 
@@ -204,8 +206,8 @@ data TxInfo = TxInfo
   , txInfoFee :: V2.Lovelace
   , txInfoMint :: V3.MintValue
   , txInfoTxCerts :: [TxCert]
-  , txInfoWithdrawals :: Map V2.Credential V2.Lovelace
-  , txInfoDirectDeposits :: Map V2.Credential V2.Lovelace
+  , txInfoWithdrawals :: Map AccountId V2.Lovelace
+  , txInfoDirectDeposits :: Map AccountId V2.Lovelace
   , txInfoAccountBalanceIntervals :: AccountBalanceIntervals
   , txInfoValidRange :: V2.POSIXTimeRange
   , txInfoGuards :: [V2.Credential]
@@ -253,11 +255,10 @@ data TopTxInfoSimplified = TopTxInfoSimplified
   , ttisMints :: V3.MintValue
   , ttisBurns :: V3.MintValue
   , ttisTxCerts :: [TxCert]
-  , ttisWithdrawals :: Map V2.Credential V2.Lovelace
-  , ttisDirectDeposits :: Map V2.Credential V2.Lovelace
+  , ttisWithdrawals :: Map AccountId V2.Lovelace
+  , ttisDirectDeposits :: Map AccountId V2.Lovelace
   , ttisValidRange :: V2.POSIXTimeRange
-  , ttisGuards :: [V2.Credential]
-  , ttisRequiredTopLevelGuards :: Map V2.Credential ()
+  , ttisGuards :: Map V2.Credential ()
   , ttisScriptPurposes :: Map ScriptPurpose ()
   , ttisData :: Map V2.DatumHash V2.Datum
   , ttisVotes :: Map Voter (Map GovernanceActionId Vote)
@@ -271,7 +272,7 @@ data TopTxInfoSimplified = TopTxInfoSimplified
 
 data TopTxInfo = TopTxInfo
   { topTxInfoSubTransactions :: [TxInfo]
-  , topTxInfoDatums :: Map V3.TxId V2.Datum
+  , topTxInfoDatums :: Map Haskell.Integer V2.Datum
   , topTxInfoStartingBalanceIntervals :: AccountBalanceIntervals
   , topTxInfoSimplified :: TopTxInfoSimplified
   }
@@ -337,6 +338,9 @@ findTxInByTxOutRef outRef TxInfo {txInfoInputs} =
     txInfoInputs
 {-# INLINEABLE findTxInByTxOutRef #-}
 
+{-| Find the indices of outputs in the current sub-transaction or top-level transaction
+that pay to the same script address we are currently spending from. This does not search
+the outputs of the whole transaction. -}
 findContinuingOutputs :: ScriptContext -> [Haskell.Integer]
 findContinuingOutputs ctx
   | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <- findOwnInput ctx =
@@ -346,6 +350,9 @@ findContinuingOutputs ctx
 findContinuingOutputs _ = PlutusTx.traceError "Le"
 {-# INLINEABLE findContinuingOutputs #-}
 
+{-| Get the outputs in the current sub-transaction or top-level transaction that pay to
+the same script address we are currently spending from. This does not search the outputs
+of the whole transaction. -}
 getContinuingOutputs :: ScriptContext -> [V2.TxOut]
 getContinuingOutputs ctx
   | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <- findOwnInput ctx =
