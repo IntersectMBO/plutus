@@ -395,10 +395,17 @@ in
                  , (\(ds : list data) ->
                       That {integer} {integer} (unIData (headList {data} ds)))
                  , (\(ds : list data) ->
-                      These
-                        {integer}
-                        {integer}
-                        (unIData (headList {data} ds))
-                        (unIData (headList {data} (tailList {data} ds)))) ]
+                      (let
+                          r = These integer integer
+                        in
+                        \(f : data -> list data -> r) (xs : list data) ->
+                          case r xs [f])
+                        (\(ds : data) (ds : list data) ->
+                           These
+                             {integer}
+                             {integer}
+                             (unIData ds)
+                             (unIData (headList {data} ds)))
+                        ds) ]
                  args))
        nt)

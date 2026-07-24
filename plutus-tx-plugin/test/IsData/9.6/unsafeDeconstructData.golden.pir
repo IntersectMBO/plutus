@@ -3,10 +3,10 @@ let
     Tuple2 : a -> b -> Tuple2 a b
   !casePair : all a b r. pair a b -> (a -> b -> r) -> r
     = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
+  !droppableUnsafeCaseList : all a r. (a -> list a -> r) -> list a -> r
+    = /\a r -> \(f : a -> list a -> r) (xs : list a) -> case r xs [f]
   !head : all a. list a -> a = headList
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
-  !tail : all a. list a -> list a = tailList
-  ~wrapTail : all a. list a -> list a = tail
   ~`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> Tuple2 a b
     = /\a b ->
@@ -36,12 +36,16 @@ let
                         let
                           !ds : list data = ds
                         in
-                        Tuple2
-                          {a}
-                          {b}
-                          (`$dUnsafeFromData` (head {data} ds))
-                          (`$dUnsafeFromData`
-                             (head {data} (wrapTail {data} ds)))) ]
+                        droppableUnsafeCaseList
+                          {data}
+                          {Tuple2 a b}
+                          (\(ds : data) (ds : list data) ->
+                             Tuple2
+                               {a}
+                               {b}
+                               (`$dUnsafeFromData` ds)
+                               (`$dUnsafeFromData` (head {data} ds)))
+                          ds) ]
                    args)
   ~`$fUnsafeFromDataTuple2` :
      all a b.

@@ -26,12 +26,18 @@ let
                  , (\(ds : list data) ->
                       That {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
                  , (\(ds : list data) ->
-                      These
-                        {a}
-                        {b}
-                        (`$dUnsafeFromData` (headList {data} ds))
-                        (`$dUnsafeFromData`
-                           (headList {data} (tailList {data} ds)))) ]
+                      (let
+                          r = These a b
+                        in
+                        \(f : data -> list data -> r) (xs : list data) ->
+                          case r xs [f])
+                        (\(ds : data) (ds : list data) ->
+                           These
+                             {a}
+                             {b}
+                             (`$dUnsafeFromData` ds)
+                             (`$dUnsafeFromData` (headList {data} ds)))
+                        ds) ]
                  args)
 in
 letrec

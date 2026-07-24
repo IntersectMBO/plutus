@@ -19,9 +19,11 @@ in
             [ (\(ds : list data) -> MNone)
             , (\(ds : list data) -> MOne (unIData (headList {data} ds)))
             , (\(ds : list data) ->
-                 MTwo
-                   (unIData (headList {data} ds))
-                   (unIData (headList {data} (tailList {data} ds)))) ]
+                 case
+                   Mixed
+                   ds
+                   [ (\(ds : data) (ds : list data) ->
+                        MTwo (unIData ds) (unIData (headList {data} ds))) ]) ]
             args))
     {integer}
     0
