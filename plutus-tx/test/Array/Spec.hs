@@ -11,9 +11,9 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, testCase, (@?=))
 import Prelude
 
--- The wrapper must fail exactly where the on-chain builtin fails: any index outside
--- @[0..length)@, including one exceeding @maxBound :: Int@, is an error rather than
--- a wrap-around lookup.
+-- The Haskell implementation of the builtin must fail exactly where the on-chain
+-- builtin fails: any index outside @[0..length)@, including one exceeding
+-- @maxBound :: Int@, is an error rather than a wrap-around lookup.
 arrayTests :: TestTree
 arrayTests =
   testGroup
