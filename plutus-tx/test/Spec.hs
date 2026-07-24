@@ -5,6 +5,7 @@
 
 module Main (main) where
 
+import Array.Spec (arrayTests)
 import Blueprint.Definition.Spec qualified
 import Bool.Spec (boolTests)
 import Builtins.Spec (builtinsTests)
@@ -41,7 +42,8 @@ tests :: TestTree
 tests =
   testGroup
     "plutus-tx"
-    [ serdeTests
+    [ arrayTests
+    , serdeTests
     , sqrtTests
     , ratioTests
     , bytestringTests

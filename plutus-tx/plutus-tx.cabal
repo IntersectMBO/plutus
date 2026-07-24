@@ -216,6 +216,7 @@ test-suite plutus-tx-test
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
+    Array.Spec
     Blueprint.Definition.Fixture
     Blueprint.Definition.Spec
     Blueprint.Spec
