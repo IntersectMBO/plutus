@@ -1,4 +1,6 @@
-Error: Unsupported feature: Cannot construct a value of type: PlutusTx.Builtins.Internal.BuiltinData
+Error: Unsupported feature: Variable validator
+       OtherCon []
+       Type: PlutusTx.Builtins.Internal.BuiltinData
 
        This error often indicates a stage violation in Plinth compilation.
        Variables inside compile quotations must be either:

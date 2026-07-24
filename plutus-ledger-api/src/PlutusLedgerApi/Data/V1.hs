@@ -179,7 +179,7 @@ module PlutusLedgerApi.Data.V1
 
     -- * Data
   , PLC.Data (..)
-  , BuiltinData (..)
+  , BuiltinData (BuiltinData)
   , ToData (..)
   , FromData (..)
   , UnsafeFromData (..)

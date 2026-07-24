@@ -1,0 +1,1 @@
+(program 1.1.0 (\s -> (\cse -> ()) (appendString s s)))
