@@ -295,8 +295,18 @@ strip = \case
 exactly the builtin `data` type, i.e. the wrapper is representationally the
 identity. GHC's optimizer may therefore unwrap it: worker/wrapper unboxing of
 the single-constructor product can expose the wrapped 'PLC.Data' in join point
-type signatures (#7716). Instead of hiding the wrapper from GHC, the plugin
-compiles it transparently:
+type signatures (#7716). The unfolding of the useTwiceData regression test
+(test/BuiltinCasing/Lib.hs) shows the shape (condensed):
+
+  useTwiceData = \ (bd :: BuiltinData) ->
+    case bd of bd1 { BuiltinData ipv ->
+      let $j :: PlutusCore.Data.Data -> BuiltinUnit   <join 1>
+          $j = \ (ipv2 :: PlutusCore.Data.Data) -> ...
+      in ... }
+
+The source mentions only 'BuiltinData', yet the plugin receives a binder of
+type 'PLC.Data'. Instead of hiding the wrapper from GHC, the plugin compiles
+it transparently:
 
   - the 'PLC.Data' type compiles to the builtin `data` type, same as
     'BuiltinData' (see 'defineBuiltinTypes' in PlutusTx.Compiler.Builtins);
