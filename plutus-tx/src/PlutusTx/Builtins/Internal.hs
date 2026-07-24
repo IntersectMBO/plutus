@@ -114,9 +114,7 @@ primitives like Addr# (#7716).  Making the type a sum disables that
 unboxing; a COMPLETE pragma keeps matches on the real constructor exhaustive.
 
 The other opaque wrappers don't need this: all their operations are OPAQUE, so
-GHC never sees a construction or match to unwrap, and the plugin rejects their
-inner types (e.g. 'ByteString', 'Text') with a clean "unsupported type" error
-instead of descending into their representations.
+GHC never sees a construction or match to unwrap.
 -}
 
 error :: BuiltinUnit -> a

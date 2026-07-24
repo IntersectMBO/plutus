@@ -17,17 +17,10 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Prelude
 
-{-| Regression tests for #7716.  GHC's unboxing of a single-constructor opaque
-wrapper can expose its inner type in join point type signatures, which the
-plugin then tries to compile as a regular ADT, crashing on primitives like
-Addr#.
-
-Only useTwiceData reproduces that shape — its golden contains a join point,
-kept compilable by BuiltinData's second constructor (see
-Note [Opaque builtin types]).  useTwiceByteString and useTwiceString are
-canaries: their goldens pin that these wrappers are never unwrapped in the
-first place (all their operations are OPAQUE), so a change in that behaviour
-surfaces as a golden diff or compile error. -}
+{-| Regression tests for #7716; see Note [Opaque builtin types] in
+PlutusTx.Builtins.Internal.  Only useTwiceData reproduces the crash shape —
+its golden contains a join point over BuiltinData.  useTwiceByteString and
+useTwiceString are canaries pinning that those wrappers never unwrap. -}
 useTwiceData :: BuiltinData -> BuiltinUnit
 useTwiceData bd =
   case toBuiltinData (firstOf items) of
