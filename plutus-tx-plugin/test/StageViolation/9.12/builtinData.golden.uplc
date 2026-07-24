@@ -1,4 +1,7 @@
-Error: Unsupported feature: Cannot construct a value of type: PlutusTx.Builtins.Internal.BuiltinData
+Error: Unsupported feature: Variable ipv
+       No unfolding
+       Type: PlutusCore.Data.Data
+       If you don't recognize the variable, GHC generated it from a nearby binding.
 
        This error often indicates a stage violation in Plinth compilation.
        Variables inside compile quotations must be either:

@@ -235,6 +235,7 @@ builtinNames =
   , 'Builtins.listToArray
   , 'Builtins.indexArray
   , ''Builtins.BuiltinData
+  , ''PLC.Data
   , 'Builtins.chooseData
   , 'Builtins.equalsData
   , 'Builtins.serialiseData
@@ -819,6 +820,8 @@ defineBuiltinTypes = do
   defineBuiltinType ''Builtins.BuiltinUnit . ($> annMayInline) $ PLC.toTypeAst $ Proxy @()
   defineBuiltinType ''Builtins.BuiltinString . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Text
   defineBuiltinType ''Builtins.BuiltinData . ($> annMayInline) $ PLC.toTypeAst $ Proxy @PLC.Data
+  -- See Note [Transparent BuiltinData] in PlutusTx.Compiler.Expr
+  defineBuiltinType ''PLC.Data . ($> annMayInline) $ PLC.toTypeAst $ Proxy @PLC.Data
   defineBuiltinType ''Builtins.BuiltinPair . ($> annMayInline) $
     PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
   defineBuiltinType ''Builtins.BuiltinList . ($> annMayInline) $

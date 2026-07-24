@@ -104,6 +104,15 @@ we can't handle, but also so that GHC doesn't look inside and try and get clever
 In particular, we need to use 'data' rather than 'newtype' even for simple wrappers,
 otherwise GHC gets very keen to optimize through the newtype and e.g. our users
 see 'Addr#' popping up everywhere.
+
+GHC's unboxing machinery (worker/wrapper, CPR) can still unwrap a
+single-constructor wrapper, exposing e.g. the 'PLC.Data' inside 'BuiltinData'
+in join point type signatures (#7716).  For 'BuiltinData' this is harmless:
+the plugin compiles the wrapper transparently — 'PLC.Data' maps to the same
+builtin `data` type and the constructor compiles to the identity — see
+Note [Transparent BuiltinData] in PlutusTx.Compiler.Expr.  The other opaque
+wrappers are not exposed this way because all their operations are OPAQUE, so
+GHC never sees a construction or match to unwrap.
 -}
 
 error :: BuiltinUnit -> a
