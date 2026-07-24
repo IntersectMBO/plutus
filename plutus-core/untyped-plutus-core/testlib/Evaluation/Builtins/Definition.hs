@@ -1862,7 +1862,7 @@ test_SignatureVerification =
         [ testPropertyNamed
             "Ed25519 verification behaves correctly on all inputs"
             "ed25519_correct"
-            . mapTestLimitAtLeast 99 (`div` 10)
+            . mapTestLimitAtLeast 300 (`div` 10)
             $ property ed25519Prop
         ]
     , testGroup
@@ -1870,7 +1870,7 @@ test_SignatureVerification =
         [ testPropertyNamed
             "ECDSA verification behaves correctly on all inputs"
             "ecdsa_correct"
-            . mapTestLimitAtLeast 99 (`div` 10)
+            . mapTestLimitAtLeast 5000 (`div` 10)
             $ property ecdsaSecp256k1Prop
         , testPropertyNamed
             "Schnorr verification behaves correctly on all inputs"
