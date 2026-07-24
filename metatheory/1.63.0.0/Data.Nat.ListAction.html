@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Nat.ListAction</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Natural numbers: sum and product of lists</a>
+<a id="151" class="Comment">--</a>
+<a id="154" class="Comment">-- Issue #2553: this is a compatibility stub module,</a>
+<a id="207" class="Comment">-- ahead of a more thorough breaking set of changes.</a>
+<a id="260" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="334" class="Symbol">{-#</a> <a id="338" class="Keyword">OPTIONS</a> <a id="346" class="Pragma">--cubical-compatible</a> <a id="367" class="Pragma">--safe</a> <a id="374" class="Symbol">#-}</a>
+
+<a id="379" class="Keyword">module</a> <a id="386" href="Data.Nat.ListAction.html" class="Module">Data.Nat.ListAction</a> <a id="406" class="Keyword">where</a>
+
+<a id="413" class="Keyword">open</a> <a id="418" class="Keyword">import</a> <a id="425" href="Data.List.Base.html" class="Module">Data.List.Base</a> <a id="440" class="Keyword">using</a> <a id="446" class="Symbol">(</a><a id="447" href="Agda.Builtin.List.html#147" class="Datatype">List</a><a id="451" class="Symbol">;</a> <a id="453" href="Data.List.Base.html#7301" class="InductiveConstructor">[]</a><a id="455" class="Symbol">;</a> <a id="457" href="Agda.Builtin.List.html#199" class="InductiveConstructor Operator">_∷_</a><a id="460" class="Symbol">;</a> <a id="462" href="Data.List.Base.html#1712" class="Function Operator">_++_</a><a id="466" class="Symbol">;</a> <a id="468" href="Data.List.Base.html#4126" class="Function">foldr</a><a id="473" class="Symbol">)</a>
+<a id="475" class="Keyword">open</a> <a id="480" class="Keyword">import</a> <a id="487" href="Data.Nat.Base.html" class="Module">Data.Nat.Base</a> <a id="501" class="Keyword">using</a> <a id="507" class="Symbol">(</a><a id="508" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a><a id="509" class="Symbol">;</a> <a id="511" href="Agda.Builtin.Nat.html#336" class="Primitive Operator">_+_</a><a id="514" class="Symbol">;</a> <a id="516" href="Agda.Builtin.Nat.html#539" class="Primitive Operator">_*_</a><a id="519" class="Symbol">)</a>
+
+
+<a id="523" class="Comment">------------------------------------------------------------------------</a>
+<a id="596" class="Comment">-- Definitions</a>
+
+<a id="sum"></a><a id="612" href="Data.Nat.ListAction.html#612" class="Function">sum</a> <a id="616" class="Symbol">:</a> <a id="618" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="623" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a> <a id="625" class="Symbol">→</a> <a id="627" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a>
+<a id="629" href="Data.Nat.ListAction.html#612" class="Function">sum</a> <a id="633" class="Symbol">=</a> <a id="635" href="Data.List.Base.html#4126" class="Function">foldr</a> <a id="641" href="Agda.Builtin.Nat.html#336" class="Primitive Operator">_+_</a> <a id="645" class="Number">0</a>
+
+<a id="product"></a><a id="648" href="Data.Nat.ListAction.html#648" class="Function">product</a> <a id="656" class="Symbol">:</a> <a id="658" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="663" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a> <a id="665" class="Symbol">→</a> <a id="667" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a>
+<a id="669" href="Data.Nat.ListAction.html#648" class="Function">product</a> <a id="677" class="Symbol">=</a> <a id="679" href="Data.List.Base.html#4126" class="Function">foldr</a> <a id="685" href="Agda.Builtin.Nat.html#539" class="Primitive Operator">_*_</a> <a id="689" class="Number">1</a>
+</pre></body></html>

@@ -1,0 +1,98 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    3 </span>{-# LANGUAGE PolyKinds #-}
+<span class="lineno">    4 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    7 </span>{-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>module PlutusCore.Builtin.KnownKind where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import PlutusCore.Core
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import Data.Kind as GHC
+<span class="lineno">   14 </span>import Data.Proxy
+<span class="lineno">   15 </span>import GHC.Types
+<span class="lineno">   16 </span>import Universe
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>infixr 5 `SingKindArrow`
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>{-| The type of singletonized Haskell kinds representing Plutus kinds.
+<span class="lineno">   21 </span>Indexing by a Haskell kind allows us to avoid an 'error' call in the 'ToKind' instance of
+<span class="lineno">   22 </span>'DefaultUni' and not worry about proxies in the type of 'knownKind'. -}
+<span class="lineno">   23 </span>data SingKind k where
+<span class="lineno">   24 </span>  SingType :: SingKind GHC.Type
+<span class="lineno">   25 </span>  SingKindArrow :: SingKind k -&gt; SingKind l -&gt; SingKind (k -&gt; l)
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>-- | Feed the 'SingKind' version of the given 'Kind' to the given continuation.
+<span class="lineno">   28 </span>withSingKind :: Kind ann -&gt; (forall k. SingKind k -&gt; r) -&gt; r
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">withSingKind (Type _) k = k SingType</span>
+<span class="lineno">   30 </span><span class="spaces"></span><span class="istickedoff">withSingKind (KindArrow _ dom cod) k =</span>
+<span class="lineno">   31 </span><span class="spaces">  </span><span class="istickedoff">withSingKind dom $ \domS -&gt;</span>
+<span class="lineno">   32 </span><span class="spaces">    </span><span class="istickedoff">withSingKind cod $ \codS -&gt;</span>
+<span class="lineno">   33 </span><span class="spaces">      </span><span class="istickedoff">k $ SingKindArrow domS codS</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>-- | For reifying Haskell kinds representing Plutus kinds at the term level.
+<span class="lineno">   36 </span>class KnownKind k where
+<span class="lineno">   37 </span>  knownKind :: SingKind k
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>-- | Plutus only supports lifted types, hence the equality constraint.
+<span class="lineno">   40 </span>instance rep ~ LiftedRep =&gt; KnownKind (TYPE rep) where
+<span class="lineno">   41 </span>  <span class="decl"><span class="istickedoff">knownKind = SingType</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>instance (KnownKind dom, KnownKind cod) =&gt; KnownKind (dom -&gt; cod) where
+<span class="lineno">   44 </span>  <span class="decl"><span class="istickedoff">knownKind = SingKindArrow (knownKind @dom) (knownKind @cod)</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>-- | Satisfy the 'KnownKind' constraint of a continuation using the given 'SingKind'.
+<span class="lineno">   47 </span>bringKnownKind :: SingKind k -&gt; (KnownKind k =&gt; r) -&gt; r
+<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">bringKnownKind SingType r = r</span>
+<span class="lineno">   49 </span><span class="spaces"></span><span class="istickedoff">bringKnownKind (SingKindArrow dom cod) r = bringKnownKind dom $ bringKnownKind cod r</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>withKnownKind :: Kind ann -&gt; (forall k. KnownKind k =&gt; Proxy k -&gt; r) -&gt; r
+<span class="lineno">   52 </span><span class="decl"><span class="istickedoff">withKnownKind kind k =</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="istickedoff">withSingKind kind $ \(kindS :: SingKind kind) -&gt;</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">bringKnownKind kindS $ k $ <span class="nottickedoff">Proxy @kind</span></span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>-- We need this for type checking Plutus, however we get Plutus types/terms/programs by either
+<span class="lineno">   57 </span>-- producing them directly or by parsing/decoding them and in both the cases we have access to the
+<span class="lineno">   58 </span>-- @Typeable@ information for the Haskell kind of a type and so we could just keep it around
+<span class="lineno">   59 </span>-- (instead of throwing it away like we do now) and compute the Plutus kind directly from that.
+<span class="lineno">   60 </span>-- That might be less efficient and probably requires updating the Plutus Tx compiler, so we went
+<span class="lineno">   61 </span>-- with the simplest option for now and it's to have a class. Providing an instance per universe is
+<span class="lineno">   62 </span>-- no big deal.
+<span class="lineno">   63 </span>-- | For computing the Plutus kind of a built-in type. See 'kindOfBuiltinType'.
+<span class="lineno">   64 </span>class ToKind (uni :: GHC.Type -&gt; GHC.Type) where
+<span class="lineno">   65 </span>  -- | Reify the kind of a type from the universe at the term level.
+<span class="lineno">   66 </span>  toSingKind :: uni (Esc (a :: k)) -&gt; SingKind k
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>-- | Convert a reified Haskell kind to a Plutus kind.
+<span class="lineno">   69 </span>demoteKind :: SingKind k -&gt; Kind ()
+<span class="lineno">   70 </span><span class="decl"><span class="istickedoff">demoteKind SingType = Type ()</span>
+<span class="lineno">   71 </span><span class="spaces"></span><span class="istickedoff">demoteKind (SingKindArrow dom cod) = KindArrow () (demoteKind dom) (demoteKind cod)</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>-- | Compute the kind of a type from a universe.
+<span class="lineno">   74 </span>kindOfBuiltinType :: ToKind uni =&gt; uni (Esc a) -&gt; Kind ()
+<span class="lineno">   75 </span><span class="decl"><span class="istickedoff">kindOfBuiltinType = demoteKind . toSingKind</span></span>
+
+</pre>
+</body>
+</html>

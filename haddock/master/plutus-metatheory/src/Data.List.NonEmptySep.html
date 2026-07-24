@@ -1,0 +1,1605 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Data.List.NonEmptySep</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#NonEmptySep"
+	><span class="hs-identifier"
+	  >NonEmptySep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#head"
+	><span class="hs-identifier"
+	  >head</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#fromList"
+	><span class="hs-identifier"
+	  >fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#head"
+	><span class="hs-identifier"
+	  >head</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A non-empty list of `a`, separated by values of type `sep`</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="NonEmptySep"
+      ><span class="annot"
+	><a href="Data.List.NonEmptySep.html#NonEmptySep"
+	  ><span class="hs-identifier hs-var"
+	    >NonEmptySep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042268"
+      ><span class="annot"
+	><a href="#local-6989586621685042268"
+	  ><span class="hs-identifier hs-type"
+	    >sep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042267"
+      ><span class="annot"
+	><a href="#local-6989586621685042267"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Cons"
+      ><span class="annot"
+	><a href="Data.List.NonEmptySep.html#Cons"
+	  ><span class="hs-identifier hs-var"
+	    >Cons</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621685042267"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621685042268"
+	><span class="hs-identifier hs-type"
+	  >sep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#NonEmptySep"
+	><span class="hs-identifier hs-type"
+	  >NonEmptySep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621685042268"
+	><span class="hs-identifier hs-type"
+	  >sep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621685042267"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Singleton"
+      ><span class="annot"
+	><a href="Data.List.NonEmptySep.html#Singleton"
+	  ><span class="hs-identifier hs-var"
+	    >Singleton</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621685042267"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621685042312"
+      ><span id="local-6989586621685042322"
+	><span id="local-6989586621685042325"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; NonEmptySep sep a -&gt; ShowS
+[NonEmptySep sep a] -&gt; ShowS
+NonEmptySep sep a -&gt; String
+(Int -&gt; NonEmptySep sep a -&gt; ShowS)
+-&gt; (NonEmptySep sep a -&gt; String)
+-&gt; ([NonEmptySep sep a] -&gt; ShowS)
+-&gt; Show (NonEmptySep sep a)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall sep a.
+(Show sep, Show a) =&gt;
+Int -&gt; NonEmptySep sep a -&gt; ShowS
+forall sep a. (Show sep, Show a) =&gt; [NonEmptySep sep a] -&gt; ShowS
+forall sep a. (Show sep, Show a) =&gt; NonEmptySep sep a -&gt; String
+$cshowsPrec :: forall sep a.
+(Show sep, Show a) =&gt;
+Int -&gt; NonEmptySep sep a -&gt; ShowS
+showsPrec :: Int -&gt; NonEmptySep sep a -&gt; ShowS
+$cshow :: forall sep a. (Show sep, Show a) =&gt; NonEmptySep sep a -&gt; String
+show :: NonEmptySep sep a -&gt; String
+$cshowList :: forall sep a. (Show sep, Show a) =&gt; [NonEmptySep sep a] -&gt; ShowS
+showList :: [NonEmptySep sep a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621685042329"
+      ><span id="local-6989586621685042331"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. NonEmptySep sep a -&gt; Rep (NonEmptySep sep a) x)
+-&gt; (forall x. Rep (NonEmptySep sep a) x -&gt; NonEmptySep sep a)
+-&gt; Generic (NonEmptySep sep a)
+forall x. Rep (NonEmptySep sep a) x -&gt; NonEmptySep sep a
+forall x. NonEmptySep sep a -&gt; Rep (NonEmptySep sep a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall sep a x. Rep (NonEmptySep sep a) x -&gt; NonEmptySep sep a
+forall sep a x. NonEmptySep sep a -&gt; Rep (NonEmptySep sep a) x
+$cfrom :: forall sep a x. NonEmptySep sep a -&gt; Rep (NonEmptySep sep a) x
+from :: forall x. NonEmptySep sep a -&gt; Rep (NonEmptySep sep a) x
+$cto :: forall sep a x. Rep (NonEmptySep sep a) x -&gt; NonEmptySep sep a
+to :: forall x. Rep (NonEmptySep sep a) x -&gt; NonEmptySep sep a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621685042337"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmptySep sep a -&gt; ()
+(NonEmptySep sep a -&gt; ()) -&gt; NFData (NonEmptySep sep a)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall sep a. (NFData a, NFData sep) =&gt; NonEmptySep sep a -&gt; ()
+$crnf :: forall sep a. (NFData a, NFData sep) =&gt; NonEmptySep sep a -&gt; ()
+rnf :: NonEmptySep sep a -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621685042264"
+      ><span id="local-6989586621685042361"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-type"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="Data.List.NonEmptySep.html#NonEmptySep"
+	    ><span class="hs-identifier hs-type"
+	      >NonEmptySep</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621685042264"
+	    ><span class="hs-identifier hs-type"
+	      >sep</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621685042366"
+      ><span class="annot"
+	><span class="annottext"
+	  >fmap :: forall a b. (a -&gt; b) -&gt; NonEmptySep sep a -&gt; NonEmptySep sep b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >fmap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042367"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b
+</span
+	  ><a href="#local-6989586621685042367"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#Singleton"
+	><span class="hs-identifier hs-type"
+	  >Singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042368"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621685042368"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; NonEmptySep sep b
+forall sep a. a -&gt; NonEmptySep sep a
+</span
+	><a href="Data.List.NonEmptySep.html#Singleton"
+	><span class="hs-identifier hs-var"
+	  >Singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621685042367"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621685042368"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042369"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b
+</span
+	  ><a href="#local-6989586621685042369"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#Cons"
+	><span class="hs-identifier hs-type"
+	  >Cons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042370"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621685042370"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042371"
+      ><span class="annot"
+	><span class="annottext"
+	  >sep
+</span
+	  ><a href="#local-6989586621685042371"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042372"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmptySep sep a
+</span
+	  ><a href="#local-6989586621685042372"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; sep -&gt; NonEmptySep sep b -&gt; NonEmptySep sep b
+forall sep a. a -&gt; sep -&gt; NonEmptySep sep a -&gt; NonEmptySep sep a
+</span
+	><a href="Data.List.NonEmptySep.html#Cons"
+	><span class="hs-identifier hs-var"
+	  >Cons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621685042369"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621685042370"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>sep
+</span
+	><a href="#local-6989586621685042371"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; b) -&gt; NonEmptySep sep a -&gt; NonEmptySep sep b
+forall a b. (a -&gt; b) -&gt; NonEmptySep sep a -&gt; NonEmptySep sep b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621685042369"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmptySep sep a
+</span
+	><a href="#local-6989586621685042372"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621685042293"
+      ><span id="local-6989586621685042374"
+	><span id="local-6989586621685042380"
+	  ><span id="local-6989586621685042385"
+	    ><span id="local-6989586621685042391"
+	      ><span id="local-6989586621685042394"
+		><span id="local-6989586621685042397"
+		  ><span id="local-6989586621685042400"
+		    ><span id="local-6989586621685042403"
+		      ><span id="local-6989586621685042406"
+			><span id="local-6989586621685042409"
+			  ><span id="local-6989586621685042412"
+			    ><span id="local-6989586621685042415"
+			      ><span id="local-6989586621685042420"
+				><span id="local-6989586621685042425"
+				  ><span id="local-6989586621685042430"
+				    ><span id="local-6989586621685042435"
+				      ><span class="annot"
+					><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+					  ><span class="hs-identifier hs-type"
+					    >Foldable</span
+					    ></a
+					  ></span
+					><span
+					> </span
+					><span class="hs-special"
+					>(</span
+					><span class="annot"
+					><a href="Data.List.NonEmptySep.html#NonEmptySep"
+					  ><span class="hs-identifier hs-type"
+					    >NonEmptySep</span
+					    ></a
+					  ></span
+					><span
+					> </span
+					><span class="annot"
+					><a href="#local-6989586621685042293"
+					  ><span class="hs-identifier hs-type"
+					    >sep</span
+					    ></a
+					  ></span
+					><span class="hs-special"
+					>)</span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621685042441"
+      ><span class="annot"
+	><span class="annottext"
+	  >foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptySep sep a -&gt; b
+</span
+	  ><a href="#local-6989586621685042441"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >foldr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042443"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b -&gt; b
+</span
+	  ><a href="#local-6989586621685042443"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042444"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621685042444"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#Singleton"
+	><span class="hs-identifier hs-type"
+	  >Singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042445"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621685042445"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b -&gt; b
+</span
+	><a href="#local-6989586621685042443"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621685042445"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621685042444"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042446"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b -&gt; b
+</span
+	  ><a href="#local-6989586621685042446"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042447"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621685042447"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#Cons"
+	><span class="hs-identifier hs-type"
+	  >Cons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042448"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621685042448"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>sep
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042449"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmptySep sep a
+</span
+	  ><a href="#local-6989586621685042449"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b -&gt; b
+</span
+	><a href="#local-6989586621685042446"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621685042448"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptySep sep a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptySep sep a -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b -&gt; b
+</span
+	><a href="#local-6989586621685042446"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621685042447"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmptySep sep a
+</span
+	><a href="#local-6989586621685042449"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="local-6989586621685042296"
+      ><span id="local-6989586621685042297"
+	><span class="annot"
+	  ><a href="Data.List.NonEmptySep.html#fromList"
+	    ><span class="hs-identifier hs-type"
+	      >fromList</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621685042296"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621685042297"
+	    ><span class="hs-identifier hs-type"
+	      >sep</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >]</span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621685042296"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Data.List.NonEmptySep.html#NonEmptySep"
+	    ><span class="hs-identifier hs-type"
+	      >NonEmptySep</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621685042297"
+	    ><span class="hs-identifier hs-type"
+	      >sep</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621685042296"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="fromList"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromList :: forall a sep. ([(a, sep)], a) -&gt; NonEmptySep sep a
+</span
+	  ><a href="Data.List.NonEmptySep.html#fromList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621685042450"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621685042450"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; NonEmptySep sep a
+forall sep a. a -&gt; NonEmptySep sep a
+</span
+	><a href="Data.List.NonEmptySep.html#Singleton"
+	><span class="hs-identifier hs-var"
+	  >Singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621685042450"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621685042451"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621685042451"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621685042452"
+      ><span class="annot"
+	><span class="annottext"
+	  >sep
+</span
+	  ><a href="#local-6989586621685042452"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042453"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(a, sep)]
+</span
+	  ><a href="#local-6989586621685042453"
+	  ><span class="hs-identifier hs-var"
+	    >ys</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621685042454"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621685042454"
+	  ><span class="hs-identifier hs-var"
+	    >z</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; sep -&gt; NonEmptySep sep a -&gt; NonEmptySep sep a
+forall sep a. a -&gt; sep -&gt; NonEmptySep sep a -&gt; NonEmptySep sep a
+</span
+	><a href="Data.List.NonEmptySep.html#Cons"
+	><span class="hs-identifier hs-var"
+	  >Cons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621685042451"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>sep
+</span
+	><a href="#local-6989586621685042452"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(a, sep)], a) -&gt; NonEmptySep sep a
+forall a sep. ([(a, sep)], a) -&gt; NonEmptySep sep a
+</span
+	><a href="Data.List.NonEmptySep.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(a, sep)]
+</span
+	><a href="#local-6989586621685042453"
+	><span class="hs-identifier hs-var"
+	  >ys</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621685042454"
+	><span class="hs-identifier hs-var"
+	  >z</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="local-6989586621685042300"
+      ><span id="local-6989586621685042301"
+	><span class="annot"
+	  ><a href="Data.List.NonEmptySep.html#head"
+	    ><span class="hs-identifier hs-type"
+	      >head</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Data.List.NonEmptySep.html#NonEmptySep"
+	    ><span class="hs-identifier hs-type"
+	      >NonEmptySep</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621685042300"
+	    ><span class="hs-identifier hs-type"
+	      >sep</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621685042301"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621685042301"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="head"
+      ><span class="annot"
+	><span class="annottext"
+	  >head :: forall sep a. NonEmptySep sep a -&gt; a
+</span
+	  ><a href="Data.List.NonEmptySep.html#head"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >head</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#Singleton"
+	><span class="hs-identifier hs-type"
+	  >Singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042455"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621685042455"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621685042455"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#head"
+	><span class="hs-identifier hs-var"
+	  >head</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.List.NonEmptySep.html#Cons"
+	><span class="hs-identifier hs-type"
+	  >Cons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621685042456"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621685042456"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>sep
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmptySep sep a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621685042456"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

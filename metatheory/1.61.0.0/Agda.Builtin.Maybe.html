@@ -1,0 +1,11 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Agda.Builtin.Maybe</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--cubical-compatible</a> <a id="34" class="Pragma">--safe</a> <a id="41" class="Pragma">--no-sized-types</a> <a id="58" class="Pragma">--no-guardedness</a> <a id="75" class="Pragma">--level-universe</a> <a id="92" class="Symbol">#-}</a>
+
+<a id="97" class="Keyword">module</a> <a id="104" href="Agda.Builtin.Maybe.html" class="Module">Agda.Builtin.Maybe</a> <a id="123" class="Keyword">where</a>
+
+<a id="130" class="Keyword">data</a> <a id="Maybe"></a><a id="135" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a> <a id="141" class="Symbol">{</a><a id="142" href="Agda.Builtin.Maybe.html#142" class="Bound">a</a><a id="143" class="Symbol">}</a> <a id="145" class="Symbol">(</a><a id="146" href="Agda.Builtin.Maybe.html#146" class="Bound">A</a> <a id="148" class="Symbol">:</a> <a id="150" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="154" href="Agda.Builtin.Maybe.html#142" class="Bound">a</a><a id="155" class="Symbol">)</a> <a id="157" class="Symbol">:</a> <a id="159" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="163" href="Agda.Builtin.Maybe.html#142" class="Bound">a</a> <a id="165" class="Keyword">where</a>
+  <a id="Maybe.just"></a><a id="173" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a> <a id="178" class="Symbol">:</a> <a id="180" href="Agda.Builtin.Maybe.html#146" class="Bound">A</a> <a id="182" class="Symbol">→</a> <a id="184" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a> <a id="190" href="Agda.Builtin.Maybe.html#146" class="Bound">A</a>
+  <a id="Maybe.nothing"></a><a id="194" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a> <a id="202" class="Symbol">:</a> <a id="204" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a> <a id="210" href="Agda.Builtin.Maybe.html#146" class="Bound">A</a>
+
+<a id="213" class="Symbol">{-#</a> <a id="217" class="Keyword">BUILTIN</a> <a id="225" class="Keyword">MAYBE</a> <a id="231" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a> <a id="237" class="Symbol">#-}</a>
+</pre></body></html>

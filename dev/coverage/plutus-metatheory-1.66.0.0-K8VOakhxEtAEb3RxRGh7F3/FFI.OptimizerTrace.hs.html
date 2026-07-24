@@ -1,0 +1,86 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# OPTIONS_GHC -Wall #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module FFI.OptimizerTrace
+<span class="lineno">    4 </span>  ( Trace
+<span class="lineno">    5 </span>  , mkFfiOptimizerTrace
+<span class="lineno">    6 </span>  , toEvalResult
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import FFI.CostInfo
+<span class="lineno">   10 </span>import FFI.Untyped qualified as FFI
+<span class="lineno">   11 </span>import PlutusCore.Evaluation.Machine.ExBudget
+<span class="lineno">   12 </span>import PlutusCore.Evaluation.Machine.ExMemory
+<span class="lineno">   13 </span>import UntypedPlutusCore qualified as UPLC
+<span class="lineno">   14 </span>import UntypedPlutusCore.Evaluation.Machine.Cek
+<span class="lineno">   15 </span>import UntypedPlutusCore.Transform.Certify.Hints (Hints)
+<span class="lineno">   16 </span>import UntypedPlutusCore.Transform.Optimizer
+<span class="lineno">   17 </span>import Prelude hiding (head)
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Data.Coerce
+<span class="lineno">   20 </span>import Data.Functor
+<span class="lineno">   21 </span>import Data.List.NonEmptySep
+<span class="lineno">   22 </span>import Data.SatInt
+<span class="lineno">   23 </span>import Data.Text qualified as T
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- A certifier trace is a non-empty list of asts of type `a`, separated by the
+<span class="lineno">   26 </span>-- optimizer pass that ran and the hints that were emitted
+<span class="lineno">   27 </span>type Trace a = NonEmptySep (OptStage, Hints) a
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>mkFfiOptimizerTrace
+<span class="lineno">   30 </span>  :: OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+<span class="lineno">   31 </span>  -&gt; Trace FFI.UTerm
+<span class="lineno">   32 </span><span class="decl"><span class="istickedoff">mkFfiOptimizerTrace (OptimizerTrace simplNonEmptySep) = go (reverse simplNonEmptySep)</span>
+<span class="lineno">   33 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   34 </span><span class="spaces">    </span><span class="istickedoff">go</span>
+<span class="lineno">   35 </span><span class="spaces">      </span><span class="istickedoff">:: [Optimization UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a]</span>
+<span class="lineno">   36 </span><span class="spaces">      </span><span class="istickedoff">-&gt; Trace FFI.UTerm</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">go [] = <span class="nottickedoff">error &quot;Empty trace&quot;</span></span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="istickedoff">go [Optimization before stage hints after] =</span>
+<span class="lineno">   39 </span><span class="spaces">      </span><span class="istickedoff">case (UPLC.deBruijnTerm before, UPLC.deBruijnTerm after) of</span>
+<span class="lineno">   40 </span><span class="spaces">        </span><span class="istickedoff">(Right before', Right after') -&gt;</span>
+<span class="lineno">   41 </span><span class="spaces">          </span><span class="istickedoff">Cons</span>
+<span class="lineno">   42 </span><span class="spaces">            </span><span class="istickedoff">(FFI.conv (void before'))</span>
+<span class="lineno">   43 </span><span class="spaces">            </span><span class="istickedoff">(stage, hints)</span>
+<span class="lineno">   44 </span><span class="spaces">            </span><span class="istickedoff">(Singleton (FFI.conv (void after')))</span>
+<span class="lineno">   45 </span><span class="spaces">        </span><span class="istickedoff">(Left (err :: UPLC.FreeVariableError), _) -&gt; <span class="nottickedoff">error $ show err</span></span>
+<span class="lineno">   46 </span><span class="spaces">        </span><span class="istickedoff">(_, Left (err :: UPLC.FreeVariableError)) -&gt; <span class="nottickedoff">error $ show err</span></span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="istickedoff">-- ignore _after, it should be equal to subsequent before</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">go (Optimization before stage hints _after : xs) =</span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="istickedoff">case UPLC.deBruijnTerm before of</span>
+<span class="lineno">   50 </span><span class="spaces">        </span><span class="istickedoff">Right before' -&gt;</span>
+<span class="lineno">   51 </span><span class="spaces">          </span><span class="istickedoff">Cons (FFI.conv (void before')) (stage, hints) (go xs)</span>
+<span class="lineno">   52 </span><span class="spaces">        </span><span class="istickedoff">Left (err :: UPLC.FreeVariableError) -&gt; <span class="nottickedoff">error $ show err</span></span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>toEvalResult
+<span class="lineno">   55 </span>  :: Maybe (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+<span class="lineno">   56 </span>  -&gt; ExBudget
+<span class="lineno">   57 </span>  -&gt; EvalResult
+<span class="lineno">   58 </span><span class="decl"><span class="istickedoff">toEvalResult res budget = case res of</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="istickedoff">Just err -&gt; <span class="nottickedoff">EvalFailure (T.pack $ show err) cpu mem</span></span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">Nothing -&gt; EvalSuccess cpu mem</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff">cpu = fromSatInt $ coerce (exBudgetCPU budget)</span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="istickedoff">mem = fromSatInt $ coerce (exBudgetMemory budget)</span></span>
+
+</pre>
+</body>
+</html>

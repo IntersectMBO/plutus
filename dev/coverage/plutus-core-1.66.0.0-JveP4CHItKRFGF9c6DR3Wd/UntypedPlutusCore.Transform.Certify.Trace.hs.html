@@ -1,0 +1,147 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    2 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module UntypedPlutusCore.Transform.Certify.Trace where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import UntypedPlutusCore.Core.Type (Term)
+<span class="lineno">    8 </span>import UntypedPlutusCore.Transform.Certify.Hints qualified as Certify
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.DeepSeq
+<span class="lineno">   11 </span>import GHC.Generics
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>{-| Datatype which represents optimization passes which are also
+<span class="lineno">   14 </span>certified.
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>This means that these passes are formalized as part of the certifier,
+<span class="lineno">   17 </span>and adding a new pass constructor to this type means that it is expected
+<span class="lineno">   18 </span>the pass will be also certified in the same PR.
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>WARNING: the order of the constructors MUST be the same as the order
+<span class="lineno">   21 </span>of their counterparts in 'VerifiedCompilation.Trace'. -}
+<span class="lineno">   22 </span>data CertifiedOptStage
+<span class="lineno">   23 </span>  = FloatDelay
+<span class="lineno">   24 </span>  | ForceDelay
+<span class="lineno">   25 </span>  | ForceCaseDelay
+<span class="lineno">   26 </span>  | Inline
+<span class="lineno">   27 </span>  | CSE
+<span class="lineno">   28 </span>  | ApplyToCase
+<span class="lineno">   29 </span>  | CaseReduce
+<span class="lineno">   30 </span>  | LetFloatOut
+<span class="lineno">   31 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   32 </span>  deriving anyclass (<span class="decl"><span class="istickedoff">NFData</span></span>)
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>{-| Datatype which represents optimization passes which are not yet
+<span class="lineno">   35 </span>certified.
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>WARNING: the order of the constructors MUST be the same as the order
+<span class="lineno">   38 </span>of their counterparts in 'VerifiedCompilation.Trace'.
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>IMPORTANT: if you add a new pass, or modify an existing pass, without
+<span class="lineno">   41 </span>also modifying the certifier in the same PR, you must add/move its
+<span class="lineno">   42 </span>corresponding constructor to this type. Please also open an issue
+<span class="lineno">   43 </span>at https://github.com/IntersectMBO/plutus/issues. -}
+<span class="lineno">   44 </span>data UncertifiedOptStage
+<span class="lineno">   45 </span>  = CaseOfCase
+<span class="lineno">   46 </span>  | ConstantFolding
+<span class="lineno">   47 </span>  | PolyBuiltin
+<span class="lineno">   48 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   49 </span>  deriving anyclass (<span class="decl"><span class="istickedoff">NFData</span></span>)
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>type OptStage = Either UncertifiedOptStage CertifiedOptStage
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>pattern FloatDelayStage :: OptStage
+<span class="lineno">   54 </span>pattern FloatDelayStage = <span class="istickedoff">Right FloatDelay</span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>pattern ForceDelayStage :: OptStage
+<span class="lineno">   57 </span>pattern ForceDelayStage = <span class="istickedoff">Right ForceDelay</span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>pattern ForceCaseDelayStage :: OptStage
+<span class="lineno">   60 </span>pattern ForceCaseDelayStage = <span class="istickedoff">Right ForceCaseDelay</span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>pattern CaseReduceStage :: OptStage
+<span class="lineno">   63 </span>pattern CaseReduceStage = <span class="istickedoff">Right CaseReduce</span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>pattern InlineStage :: OptStage
+<span class="lineno">   66 </span>pattern InlineStage = <span class="istickedoff">Right Inline</span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>pattern CseStage :: OptStage
+<span class="lineno">   69 </span>pattern CseStage = <span class="istickedoff">Right CSE</span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>pattern ApplyToCaseStage :: OptStage
+<span class="lineno">   72 </span>pattern ApplyToCaseStage = <span class="istickedoff">Right ApplyToCase</span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>pattern CaseOfCaseStage :: OptStage
+<span class="lineno">   75 </span>pattern CaseOfCaseStage = <span class="istickedoff">Left CaseOfCase</span>
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>pattern LetFloatOutStage :: OptStage
+<span class="lineno">   78 </span>pattern LetFloatOutStage = <span class="istickedoff">Right LetFloatOut</span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>pattern ConstantFoldingStage :: OptStage
+<span class="lineno">   81 </span>pattern ConstantFoldingStage = <span class="istickedoff">Left ConstantFolding</span>
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>pattern PolyBuiltinStage :: OptStage
+<span class="lineno">   84 </span>pattern PolyBuiltinStage = <span class="istickedoff">Left PolyBuiltin</span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>{-# COMPLETE
+<span class="lineno">   87 </span>  FloatDelayStage
+<span class="lineno">   88 </span>  , ForceDelayStage
+<span class="lineno">   89 </span>  , ForceCaseDelayStage
+<span class="lineno">   90 </span>  , CaseReduceStage
+<span class="lineno">   91 </span>  , InlineStage
+<span class="lineno">   92 </span>  , CseStage
+<span class="lineno">   93 </span>  , ApplyToCaseStage
+<span class="lineno">   94 </span>  , CaseOfCaseStage
+<span class="lineno">   95 </span>  , LetFloatOutStage
+<span class="lineno">   96 </span>  , ConstantFoldingStage
+<span class="lineno">   97 </span>  , PolyBuiltinStage
+<span class="lineno">   98 </span>  #-}
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>data Optimization name uni fun a
+<span class="lineno">  101 </span>  = Optimization
+<span class="lineno">  102 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">beforeAST</span></span></span> :: Term name uni fun a
+<span class="lineno">  103 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">stage</span></span></span> :: OptStage
+<span class="lineno">  104 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">hints</span></span></span> :: Certify.Hints
+<span class="lineno">  105 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">afterAST</span></span></span> :: Term name uni fun a
+<span class="lineno">  106 </span>  }
+<span class="lineno">  107 </span>
+<span class="lineno">  108 </span>-- TODO2: we probably don't want this in memory so after MVP
+<span class="lineno">  109 </span>-- we should consider serializing this to disk
+<span class="lineno">  110 </span>newtype OptimizerTrace name uni fun a
+<span class="lineno">  111 </span>  = OptimizerTrace
+<span class="lineno">  112 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">optimizerTrace</span></span></span>
+<span class="lineno">  113 </span>      :: [Optimization name uni fun a]
+<span class="lineno">  114 </span>  }
+<span class="lineno">  115 </span>
+<span class="lineno">  116 </span>initOptimizerTrace :: OptimizerTrace name uni fun a
+<span class="lineno">  117 </span><span class="decl"><span class="istickedoff">initOptimizerTrace = OptimizerTrace []</span></span>
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>allASTs :: OptimizerTrace name uni fun a -&gt; [Term name uni fun a]
+<span class="lineno">  120 </span><span class="decl"><span class="istickedoff">allASTs = \case</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="istickedoff">OptimizerTrace [] -&gt; <span class="nottickedoff">[]</span></span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="istickedoff">OptimizerTrace xs@(x : _) -&gt;</span>
+<span class="lineno">  123 </span><span class="spaces">    </span><span class="istickedoff">-- `OptimizerTrace` is in reverse order: the first item is the last pass run.</span>
+<span class="lineno">  124 </span><span class="spaces">    </span><span class="istickedoff">afterAST x : map beforeAST xs</span></span>
+
+</pre>
+</body>
+</html>

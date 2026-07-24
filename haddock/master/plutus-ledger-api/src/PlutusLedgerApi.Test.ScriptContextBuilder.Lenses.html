@@ -1,0 +1,5685 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ImplicitPrelude #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Test.ScriptContextBuilder.Lenses</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#scriptContextTxInfoL"
+	><span class="hs-identifier"
+	  >scriptContextTxInfoL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#scriptContextRedeemerL"
+	><span class="hs-identifier"
+	  >scriptContextRedeemerL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#scriptContextScriptInfoL"
+	><span class="hs-identifier"
+	  >scriptContextScriptInfoL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoInputsL"
+	><span class="hs-identifier"
+	  >txInfoInputsL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoMintL"
+	><span class="hs-identifier"
+	  >txInfoMintL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoSignatoriesL"
+	><span class="hs-identifier"
+	  >txInfoSignatoriesL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoOutputsL"
+	><span class="hs-identifier"
+	  >txInfoOutputsL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoValidRangeL"
+	><span class="hs-identifier"
+	  >txInfoValidRangeL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoRedeemersL"
+	><span class="hs-identifier"
+	  >txInfoRedeemersL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoRedeemersAssocL"
+	><span class="hs-identifier"
+	  >txInfoRedeemersAssocL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoFeeL"
+	><span class="hs-identifier"
+	  >txInfoFeeL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoWdrlL"
+	><span class="hs-identifier"
+	  >txInfoWdrlL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoVotesL"
+	><span class="hs-identifier"
+	  >txInfoVotesL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoTxCertsL"
+	><span class="hs-identifier"
+	  >txInfoTxCertsL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoTreasuryDonationL"
+	><span class="hs-identifier"
+	  >txInfoTreasuryDonationL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoReferenceInputsL"
+	><span class="hs-identifier"
+	  >txInfoReferenceInputsL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoProposalProceduresL"
+	><span class="hs-identifier"
+	  >txInfoProposalProceduresL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoIdL"
+	><span class="hs-identifier"
+	  >txInfoIdL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoDataL"
+	><span class="hs-identifier"
+	  >txInfoDataL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoCurrentTreasuryAmountL"
+	><span class="hs-identifier"
+	  >txInfoCurrentTreasuryAmountL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInInfoOutRefL"
+	><span class="hs-identifier"
+	  >txInInfoOutRefL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInInfoResolvedL"
+	><span class="hs-identifier"
+	  >txInInfoResolvedL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutRefIdL"
+	><span class="hs-identifier"
+	  >txOutRefIdL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutRefIdxL"
+	><span class="hs-identifier"
+	  >txOutRefIdxL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutAddressL"
+	><span class="hs-identifier"
+	  >txOutAddressL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutValueL"
+	><span class="hs-identifier"
+	  >txOutValueL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutDatumL"
+	><span class="hs-identifier"
+	  >txOutDatumL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutReferenceScriptL"
+	><span class="hs-identifier"
+	  >txOutReferenceScriptL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#addressCredentialL"
+	><span class="hs-identifier"
+	  >addressCredentialL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#addressStakingCredentialL"
+	><span class="hs-identifier"
+	  >addressStakingCredentialL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#mintValueMapL"
+	><span class="hs-identifier"
+	  >mintValueMapL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#valueMapL"
+	><span class="hs-identifier"
+	  >valueMapL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#ivFromL"
+	><span class="hs-identifier"
+	  >ivFromL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#ivToL"
+	><span class="hs-identifier"
+	  >ivToL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#lowerBoundExtendedL"
+	><span class="hs-identifier"
+	  >lowerBoundExtendedL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#lowerBoundClosureL"
+	><span class="hs-identifier"
+	  >lowerBoundClosureL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#upperBoundExtendedL"
+	><span class="hs-identifier"
+	  >upperBoundExtendedL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#upperBoundClosureL"
+	><span class="hs-identifier"
+	  >upperBoundClosureL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_NegInf"
+	><span class="hs-identifier"
+	  >_NegInf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Finite"
+	><span class="hs-identifier"
+	  >_Finite</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_PosInf"
+	><span class="hs-identifier"
+	  >_PosInf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_NoOutputDatum"
+	><span class="hs-identifier"
+	  >_NoOutputDatum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_OutputDatumHash"
+	><span class="hs-identifier"
+	  >_OutputDatumHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_OutputDatum"
+	><span class="hs-identifier"
+	  >_OutputDatum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Datum"
+	><span class="hs-identifier"
+	  >_Datum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Redeemer"
+	><span class="hs-identifier"
+	  >_Redeemer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>L</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.html"
+	><span class="hs-identifier"
+	  >Data.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#sortBy"
+	><span class="hs-identifier"
+	  >sortBy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier"
+	  >Map</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Ord.html"
+	><span class="hs-identifier"
+	  >Data.Ord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Ord.html#comparing"
+	><span class="hs-identifier"
+	  >comparing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.TH.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.TH</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.TH.html#makeLensesWithL"
+	><span class="hs-identifier"
+	  >makeLensesWithL</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PV1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V3</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V2.Tx.html#OutputDatum"
+	><span class="hs-identifier"
+	  >OutputDatum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#ScriptContext"
+	><span class="hs-identifier"
+	  >ScriptContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#TxInInfo"
+	><span class="hs-identifier"
+	  >TxInInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#TxInfo"
+	><span class="hs-identifier"
+	  >TxInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V2.Tx.html#TxOut"
+	><span class="hs-identifier"
+	  >TxOut</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Tx.html#TxOutRef"
+	><span class="hs-identifier"
+	  >TxOutRef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PV3</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.MintValue.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V3.MintValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.AssocMap.html"
+	><span class="hs-identifier"
+	  >PlutusTx.AssocMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>AssocMap</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span id="scriptContextTxInfoL"
+      ><span id="scriptContextRedeemerL"
+	><span id="scriptContextScriptInfoL"
+	  ><span class="hs-identifier"
+	    >makeLensesWithL</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >''</span
+	    ><span class="hs-identifier"
+	    >ScriptContext</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="txInfoInputsL"
+      ><span id="txInfoMintL"
+	><span id="txInfoSignatoriesL"
+	  ><span id="txInfoOutputsL"
+	    ><span id="txInfoValidRangeL"
+	      ><span id="txInfoFeeL"
+		><span id="txInfoWdrlL"
+		  ><span id="txInfoVotesL"
+		    ><span id="txInfoTxCertsL"
+		      ><span id="txInfoTreasuryDonationL"
+			><span id="txInfoReferenceInputsL"
+			  ><span id="txInfoProposalProceduresL"
+			    ><span id="txInfoIdL"
+			      ><span id="txInfoDataL"
+				><span id="txInfoCurrentTreasuryAmountL"
+				  ><span class="hs-identifier"
+				    >L.makeLensesFor</span
+				    ><span
+				    >
+</span
+				    ><span id="line-78"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >[</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoInputs&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoInputsL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-79"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoMint&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoMintL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-80"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoSignatories&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoSignatoriesL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-81"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoOutputs&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoOutputsL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-82"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoValidRange&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoValidRangeL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-83"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoFee&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoFeeL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-84"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoWdrl&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoWdrlL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-85"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoVotes&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoVotesL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-86"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoTxCerts&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoTxCertsL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-87"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoTreasuryDonation&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoTreasuryDonationL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-88"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoReferenceInputs&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoReferenceInputsL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-89"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoProposalProcedures&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoProposalProceduresL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-90"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoId&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoIdL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-91"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoData&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoDataL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-92"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-string"
+				    >&quot;txInfoCurrentTreasuryAmount&quot;</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span
+				    > </span
+				    ><span class="hs-string"
+				    >&quot;txInfoCurrentTreasuryAmountL&quot;</span
+				    ><span class="hs-special"
+				    >)</span
+				    ><span
+				    >
+</span
+				    ><span id="line-93"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >]</span
+				    ><span
+				    >
+</span
+				    ><span id="line-94"
+				    ></span
+				    ><span
+				    >  </span
+				    ><span class="hs-special"
+				    >''</span
+				    ><span class="hs-identifier"
+				    >TxInfo</span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span id="txInInfoOutRefL"
+      ><span id="txInInfoResolvedL"
+	><span class="hs-identifier"
+	  >makeLensesWithL</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >TxInInfo</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="txOutRefIdL"
+      ><span id="txOutRefIdxL"
+	><span class="hs-identifier"
+	  >makeLensesWithL</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >TxOutRef</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="txOutAddressL"
+      ><span id="txOutValueL"
+	><span id="txOutDatumL"
+	  ><span id="txOutReferenceScriptL"
+	    ><span class="hs-identifier"
+	      >makeLensesWithL</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >''</span
+	      ><span class="hs-identifier"
+	      >TxOut</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span id="addressCredentialL"
+      ><span id="addressStakingCredentialL"
+	><span class="hs-identifier"
+	  >makeLensesWithL</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >PV1.Address</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span id="_PubKeyCredential"
+      ><span id="_ScriptCredential"
+	><span class="hs-identifier"
+	  >L.makePrisms</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >PV1.Credential</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="_StakingHash"
+      ><span id="_StakingPtr"
+	><span class="hs-identifier"
+	  >L.makePrisms</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >PV1.StakingCredential</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span id="_NoOutputDatum"
+      ><span id="_OutputDatumHash"
+	><span id="_OutputDatum"
+	  ><span class="hs-identifier"
+	    >L.makePrisms</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >''</span
+	    ><span class="hs-identifier"
+	    >OutputDatum</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span id="local-6989586621679265908"
+      ><span id="ivFromL"
+	><span id="ivToL"
+	  ><span class="hs-identifier"
+	    >makeLensesWithL</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >''</span
+	    ><span class="hs-identifier"
+	    >PV1.Interval</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span id="local-6989586621679265918"
+      ><span id="local-6989586621679265919"
+	><span id="_NegInf"
+	  ><span id="_Finite"
+	    ><span id="_PosInf"
+	      ><span class="hs-identifier"
+		>L.makePrisms</span
+		><span
+		> </span
+		><span class="hs-special"
+		>''</span
+		><span class="hs-identifier"
+		>PV1.Extended</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Datum"
+	><span class="hs-identifier hs-type"
+	  >_Datum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679265931"
+      ><span class="annot"
+	><a href="#local-6989586621679265931"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	><span class="hs-identifier hs-type"
+	  >PV1.FromData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265931"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	><span class="hs-identifier hs-type"
+	  >PV1.ToData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265931"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>L.Prism'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier hs-type"
+	  >PV1.Datum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265931"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span id="_Datum"
+      ><span class="annot"
+	><span class="annottext"
+	  >_Datum :: forall a. (FromData a, ToData a) =&gt; Prism' Datum a
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Datum"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_Datum</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; Datum) -&gt; (Datum -&gt; Maybe a) -&gt; Prism Datum Datum a a
+forall b s a. (b -&gt; s) -&gt; (s -&gt; Maybe a) -&gt; Prism s s a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.prism'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Datum
+</span
+	><a href="#local-6989586621679266563"
+	><span class="hs-identifier hs-var"
+	  >from</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Datum -&gt; Maybe a
+</span
+	><a href="#local-6989586621679266564"
+	><span class="hs-identifier hs-var"
+	  >to</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266564"
+	><span class="hs-identifier hs-type"
+	  >to</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier hs-type"
+	  >PV1.Datum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265931"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266564"
+      ><span class="annot"
+	><span class="annottext"
+	  >to :: Datum -&gt; Maybe a
+</span
+	  ><a href="#local-6989586621679266564"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >to</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Maybe a
+forall a. FromData a =&gt; BuiltinData -&gt; Maybe a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#fromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >PV1.fromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; Maybe a)
+-&gt; (Datum -&gt; BuiltinData) -&gt; Datum -&gt; Maybe a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Datum -&gt; BuiltinData
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#getDatum"
+	><span class="hs-identifier hs-var"
+	  >PV1.getDatum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266563"
+	><span class="hs-identifier hs-type"
+	  >from</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265931"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier hs-type"
+	  >PV1.Datum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266563"
+      ><span class="annot"
+	><span class="annottext"
+	  >from :: a -&gt; Datum
+</span
+	  ><a href="#local-6989586621679266563"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >from</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Datum
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Datum"
+	><span class="hs-identifier hs-var"
+	  >PV1.Datum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; Datum) -&gt; (a -&gt; BuiltinData) -&gt; a -&gt; Datum
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; BuiltinData
+forall a. ToData a =&gt; a -&gt; BuiltinData
+</span
+	><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#toBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >PV1.toBuiltinData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Redeemer"
+	><span class="hs-identifier hs-type"
+	  >_Redeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679265946"
+      ><span class="annot"
+	><a href="#local-6989586621679265946"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	><span class="hs-identifier hs-type"
+	  >PV1.FromData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265946"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	><span class="hs-identifier hs-type"
+	  >PV1.ToData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265946"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>L.Prism'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-type"
+	  >PV1.Redeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265946"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span id="_Redeemer"
+      ><span class="annot"
+	><span class="annottext"
+	  >_Redeemer :: forall a. (FromData a, ToData a) =&gt; Prism' Redeemer a
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Redeemer"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_Redeemer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; Redeemer)
+-&gt; (Redeemer -&gt; Maybe a) -&gt; Prism Redeemer Redeemer a a
+forall b s a. (b -&gt; s) -&gt; (s -&gt; Maybe a) -&gt; Prism s s a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.prism'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Redeemer
+</span
+	><a href="#local-6989586621679266578"
+	><span class="hs-identifier hs-var"
+	  >from</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Redeemer -&gt; Maybe a
+</span
+	><a href="#local-6989586621679266579"
+	><span class="hs-identifier hs-var"
+	  >to</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266579"
+	><span class="hs-identifier hs-type"
+	  >to</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-type"
+	  >PV1.Redeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265946"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266579"
+      ><span class="annot"
+	><span class="annottext"
+	  >to :: Redeemer -&gt; Maybe a
+</span
+	  ><a href="#local-6989586621679266579"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >to</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Maybe a
+forall a. FromData a =&gt; BuiltinData -&gt; Maybe a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#fromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >PV1.fromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; Maybe a)
+-&gt; (Redeemer -&gt; BuiltinData) -&gt; Redeemer -&gt; Maybe a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Redeemer -&gt; BuiltinData
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#getRedeemer"
+	><span class="hs-identifier hs-var"
+	  >PV1.getRedeemer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266578"
+	><span class="hs-identifier hs-type"
+	  >from</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679265946"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-type"
+	  >PV1.Redeemer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266578"
+      ><span class="annot"
+	><span class="annottext"
+	  >from :: a -&gt; Redeemer
+</span
+	  ><a href="#local-6989586621679266578"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >from</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Redeemer
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-var"
+	  >PV1.Redeemer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; Redeemer) -&gt; (a -&gt; BuiltinData) -&gt; a -&gt; Redeemer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; BuiltinData
+forall a. ToData a =&gt; a -&gt; BuiltinData
+</span
+	><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#toBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >PV1.toBuiltinData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoRedeemersL"
+	><span class="hs-identifier hs-type"
+	  >txInfoRedeemersL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>L.Lens'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#TxInfo"
+	><span class="hs-identifier hs-type"
+	  >PV3.TxInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#ScriptPurpose"
+	><span class="hs-identifier hs-type"
+	  >PV3.ScriptPurpose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-type"
+	  >PV3.Redeemer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span id="txInfoRedeemersL"
+      ><span class="annot"
+	><span class="annottext"
+	  >txInfoRedeemersL :: Lens' TxInfo (Map ScriptPurpose Redeemer)
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoRedeemersL"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >txInfoRedeemersL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TxInfo -&gt; Map ScriptPurpose Redeemer)
+-&gt; (TxInfo -&gt; Map ScriptPurpose Redeemer -&gt; TxInfo)
+-&gt; Lens' TxInfo (Map ScriptPurpose Redeemer)
+forall s a b t. (s -&gt; a) -&gt; (s -&gt; b -&gt; t) -&gt; Lens s t a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.lens</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TxInfo -&gt; Map ScriptPurpose Redeemer
+</span
+	><a href="#local-6989586621679266585"
+	><span class="hs-identifier hs-var"
+	  >getter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TxInfo -&gt; Map ScriptPurpose Redeemer -&gt; TxInfo
+</span
+	><a href="#local-6989586621679266586"
+	><span class="hs-identifier hs-var"
+	  >setter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266585"
+      ><span class="annot"
+	><span class="annottext"
+	  >getter :: TxInfo -&gt; Map ScriptPurpose Redeemer
+</span
+	  ><a href="#local-6989586621679266585"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266589"
+      ><span class="annot"
+	><span class="annottext"
+	  >TxInfo
+</span
+	  ><a href="#local-6989586621679266589"
+	  ><span class="hs-identifier hs-var"
+	    >txInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(ScriptPurpose, Redeemer)] -&gt; Map ScriptPurpose Redeemer
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(ScriptPurpose, Redeemer)] -&gt; Map ScriptPurpose Redeemer)
+-&gt; [(ScriptPurpose, Redeemer)] -&gt; Map ScriptPurpose Redeemer
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map ScriptPurpose Redeemer -&gt; [(ScriptPurpose, Redeemer)]
+forall k v. Map k v -&gt; [(k, v)]
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#toList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map ScriptPurpose Redeemer -&gt; [(ScriptPurpose, Redeemer)])
+-&gt; Map ScriptPurpose Redeemer -&gt; [(ScriptPurpose, Redeemer)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TxInfo -&gt; Map ScriptPurpose Redeemer
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#txInfoRedeemers"
+	><span class="hs-identifier hs-var"
+	  >PV3.txInfoRedeemers</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TxInfo
+</span
+	><a href="#local-6989586621679266589"
+	><span class="hs-identifier hs-var"
+	  >txInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266586"
+      ><span class="annot"
+	><span class="annottext"
+	  >setter :: TxInfo -&gt; Map ScriptPurpose Redeemer -&gt; TxInfo
+</span
+	  ><a href="#local-6989586621679266586"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266593"
+      ><span class="annot"
+	><span class="annottext"
+	  >TxInfo
+</span
+	  ><a href="#local-6989586621679266593"
+	  ><span class="hs-identifier hs-var"
+	    >txInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266594"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map ScriptPurpose Redeemer
+</span
+	  ><a href="#local-6989586621679266594"
+	  ><span class="hs-identifier hs-var"
+	    >redeemerMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TxInfo
+</span
+	><a href="#local-6989586621679266593"
+	><span class="hs-identifier hs-var"
+	  >txInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#txInfoRedeemers"
+	><span class="hs-identifier hs-var"
+	  >PV3.txInfoRedeemers</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#unsafeFromList"
+	><span class="hs-identifier hs-type"
+	  >AssocMap.unsafeFromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-type"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-type"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266594"
+	><span class="hs-identifier hs-type"
+	  >redeemerMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Raw lens into redeemers preserving the 'AssocMap' type (no 'Data.Map' conversion).</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoRedeemersAssocL"
+	><span class="hs-identifier hs-type"
+	  >txInfoRedeemersAssocL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>L.Lens'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#TxInfo"
+	><span class="hs-identifier hs-type"
+	  >PV3.TxInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#Map"
+	><span class="hs-identifier hs-type"
+	  >AssocMap.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#ScriptPurpose"
+	><span class="hs-identifier hs-type"
+	  >PV3.ScriptPurpose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Scripts.html#Redeemer"
+	><span class="hs-identifier hs-type"
+	  >PV3.Redeemer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span id="txInfoRedeemersAssocL"
+      ><span class="annot"
+	><span class="annottext"
+	  >txInfoRedeemersAssocL :: Lens' TxInfo (Map ScriptPurpose Redeemer)
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoRedeemersAssocL"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >txInfoRedeemersAssocL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TxInfo -&gt; Map ScriptPurpose Redeemer)
+-&gt; (TxInfo -&gt; Map ScriptPurpose Redeemer -&gt; TxInfo)
+-&gt; Lens' TxInfo (Map ScriptPurpose Redeemer)
+forall s a b t. (s -&gt; a) -&gt; (s -&gt; b -&gt; t) -&gt; Lens s t a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.lens</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TxInfo -&gt; Map ScriptPurpose Redeemer
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#txInfoRedeemers"
+	><span class="hs-identifier hs-var"
+	  >PV3.txInfoRedeemers</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679266599"
+      ><span class="annot"
+	><span class="annottext"
+	  >TxInfo
+</span
+	  ><a href="#local-6989586621679266599"
+	  ><span class="hs-identifier hs-var"
+	    >ti</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266600"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map ScriptPurpose Redeemer
+</span
+	  ><a href="#local-6989586621679266600"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TxInfo
+</span
+	><a href="#local-6989586621679266599"
+	><span class="hs-identifier hs-var"
+	  >ti</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Contexts.html#txInfoRedeemers"
+	><span class="hs-identifier hs-var"
+	  >PV3.txInfoRedeemers</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266600"
+	><span class="hs-identifier hs-type"
+	  >r</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#mintValueMapL"
+	><span class="hs-identifier hs-type"
+	  >mintValueMapL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>L.Lens'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.MintValue.html#MintValue"
+	><span class="hs-identifier hs-type"
+	  >MintValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#CurrencySymbol"
+	><span class="hs-identifier hs-type"
+	  >PV1.CurrencySymbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#TokenName"
+	><span class="hs-identifier hs-type"
+	  >PV1.TokenName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span id="mintValueMapL"
+      ><span class="annot"
+	><span class="annottext"
+	  >mintValueMapL :: Lens' MintValue (Map CurrencySymbol (Map TokenName Integer))
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#mintValueMapL"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mintValueMapL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(MintValue -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; (MintValue
+    -&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; MintValue)
+-&gt; Lens' MintValue (Map CurrencySymbol (Map TokenName Integer))
+forall s a b t. (s -&gt; a) -&gt; (s -&gt; b -&gt; t) -&gt; Lens s t a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.lens</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MintValue -&gt; Map CurrencySymbol (Map TokenName Integer)
+</span
+	><a href="#local-6989586621679266603"
+	><span class="hs-identifier hs-var"
+	  >getter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MintValue
+-&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; MintValue
+forall {p}.
+p -&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; MintValue
+</span
+	><a href="#local-6989586621679266604"
+	><span class="hs-identifier hs-var"
+	  >setter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266603"
+      ><span class="annot"
+	><span class="annottext"
+	  >getter :: MintValue -&gt; Map CurrencySymbol (Map TokenName Integer)
+</span
+	  ><a href="#local-6989586621679266603"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266611"
+      ><span class="annot"
+	><span class="annottext"
+	  >MintValue
+</span
+	  ><a href="#local-6989586621679266611"
+	  ><span class="hs-identifier hs-var"
+	    >mp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(CurrencySymbol, Map TokenName Integer)]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, Map TokenName Integer)]
+ -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall k v. Map k v -&gt; [(k, v)]
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#toList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer)
+ -&gt; [(CurrencySymbol, Map TokenName Integer)])
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map TokenName Integer -&gt; Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall a b.
+(a -&gt; b) -&gt; Map CurrencySymbol a -&gt; Map CurrencySymbol b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Functor.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >PlutusTx.fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(TokenName, Integer)] -&gt; Map TokenName Integer
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(TokenName, Integer)] -&gt; Map TokenName Integer)
+-&gt; (Map TokenName Integer -&gt; [(TokenName, Integer)])
+-&gt; Map TokenName Integer
+-&gt; Map TokenName Integer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map TokenName Integer -&gt; [(TokenName, Integer)]
+forall k v. Map k v -&gt; [(k, v)]
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#toList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.toList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer)
+ -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MintValue -&gt; Map CurrencySymbol (Map TokenName Integer)
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.MintValue.html#mintValueToMap"
+	><span class="hs-identifier hs-var"
+	  >mintValueToMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MintValue
+</span
+	><a href="#local-6989586621679266611"
+	><span class="hs-identifier hs-var"
+	  >mp</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266604"
+      ><span class="annot"
+	><span class="annottext"
+	  >setter :: p -&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; MintValue
+</span
+	  ><a href="#local-6989586621679266604"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266618"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map CurrencySymbol (Map TokenName Integer)
+</span
+	  ><a href="#local-6989586621679266618"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer) -&gt; MintValue
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.MintValue.html#UnsafeMintValue"
+	><span class="hs-identifier hs-var"
+	  >UnsafeMintValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer) -&gt; MintValue)
+-&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; MintValue
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(CurrencySymbol, Map TokenName Integer)]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall k v. [(k, v)] -&gt; Map k v
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#unsafeFromList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.unsafeFromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, Map TokenName Integer)]
+ -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CurrencySymbol, Map TokenName Integer)
+ -&gt; (CurrencySymbol, Map TokenName Integer) -&gt; Ordering)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#sortBy"
+	><span class="hs-identifier hs-var"
+	  >sortBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CurrencySymbol, Map TokenName Integer) -&gt; CurrencySymbol)
+-&gt; (CurrencySymbol, Map TokenName Integer)
+-&gt; (CurrencySymbol, Map TokenName Integer)
+-&gt; Ordering
+forall a b. Ord a =&gt; (b -&gt; a) -&gt; b -&gt; b -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Ord.html#comparing"
+	><span class="hs-identifier hs-var"
+	  >comparing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CurrencySymbol, Map TokenName Integer) -&gt; CurrencySymbol
+forall a b. (a, b) -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#fst"
+	><span class="hs-identifier hs-var"
+	  >fst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, Map TokenName Integer)]
+ -&gt; [(CurrencySymbol, Map TokenName Integer)])
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer)
+ -&gt; [(CurrencySymbol, Map TokenName Integer)])
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map TokenName Integer -&gt; Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall a b.
+(a -&gt; b) -&gt; Map CurrencySymbol a -&gt; Map CurrencySymbol b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(TokenName, Integer)] -&gt; Map TokenName Integer
+forall k v. [(k, v)] -&gt; Map k v
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#unsafeFromList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.unsafeFromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(TokenName, Integer)] -&gt; Map TokenName Integer)
+-&gt; (Map TokenName Integer -&gt; [(TokenName, Integer)])
+-&gt; Map TokenName Integer
+-&gt; Map TokenName Integer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TokenName, Integer) -&gt; (TokenName, Integer) -&gt; Ordering)
+-&gt; [(TokenName, Integer)] -&gt; [(TokenName, Integer)]
+forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#sortBy"
+	><span class="hs-identifier hs-var"
+	  >sortBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TokenName, Integer) -&gt; TokenName)
+-&gt; (TokenName, Integer) -&gt; (TokenName, Integer) -&gt; Ordering
+forall a b. Ord a =&gt; (b -&gt; a) -&gt; b -&gt; b -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Ord.html#comparing"
+	><span class="hs-identifier hs-var"
+	  >comparing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TokenName, Integer) -&gt; TokenName
+forall a b. (a, b) -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#fst"
+	><span class="hs-identifier hs-var"
+	  >fst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(TokenName, Integer)] -&gt; [(TokenName, Integer)])
+-&gt; (Map TokenName Integer -&gt; [(TokenName, Integer)])
+-&gt; Map TokenName Integer
+-&gt; [(TokenName, Integer)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map TokenName Integer -&gt; [(TokenName, Integer)]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer)
+</span
+	><a href="#local-6989586621679266618"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#valueMapL"
+	><span class="hs-identifier hs-type"
+	  >valueMapL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>L.Lens'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#Value"
+	><span class="hs-identifier hs-type"
+	  >PV1.Value</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#CurrencySymbol"
+	><span class="hs-identifier hs-type"
+	  >PV1.CurrencySymbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#TokenName"
+	><span class="hs-identifier hs-type"
+	  >PV1.TokenName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span id="valueMapL"
+      ><span class="annot"
+	><span class="annottext"
+	  >valueMapL :: Lens' Value (Map CurrencySymbol (Map TokenName Integer))
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#valueMapL"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >valueMapL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Value -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; (Value -&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; Value)
+-&gt; Lens' Value (Map CurrencySymbol (Map TokenName Integer))
+forall s a b t. (s -&gt; a) -&gt; (s -&gt; b -&gt; t) -&gt; Lens s t a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.lens</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Map CurrencySymbol (Map TokenName Integer)
+</span
+	><a href="#local-6989586621679266623"
+	><span class="hs-identifier hs-var"
+	  >getter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; Value
+forall {p}.
+p -&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; Value
+</span
+	><a href="#local-6989586621679266624"
+	><span class="hs-identifier hs-var"
+	  >setter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266623"
+      ><span class="annot"
+	><span class="annottext"
+	  >getter :: Value -&gt; Map CurrencySymbol (Map TokenName Integer)
+</span
+	  ><a href="#local-6989586621679266623"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266628"
+      ><span class="annot"
+	><span class="annottext"
+	  >Value
+</span
+	  ><a href="#local-6989586621679266628"
+	  ><span class="hs-identifier hs-var"
+	    >mp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(CurrencySymbol, Map TokenName Integer)]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, Map TokenName Integer)]
+ -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall k v. Map k v -&gt; [(k, v)]
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#toList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer)
+ -&gt; [(CurrencySymbol, Map TokenName Integer)])
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map TokenName Integer -&gt; Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall a b.
+(a -&gt; b) -&gt; Map CurrencySymbol a -&gt; Map CurrencySymbol b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Functor.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >PlutusTx.fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(TokenName, Integer)] -&gt; Map TokenName Integer
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(TokenName, Integer)] -&gt; Map TokenName Integer)
+-&gt; (Map TokenName Integer -&gt; [(TokenName, Integer)])
+-&gt; Map TokenName Integer
+-&gt; Map TokenName Integer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map TokenName Integer -&gt; [(TokenName, Integer)]
+forall k v. Map k v -&gt; [(k, v)]
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#toList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.toList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer)
+ -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Map CurrencySymbol (Map TokenName Integer)
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#getValue"
+	><span class="hs-identifier hs-var"
+	  >PV1.getValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><a href="#local-6989586621679266628"
+	><span class="hs-identifier hs-var"
+	  >mp</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266624"
+      ><span class="annot"
+	><span class="annottext"
+	  >setter :: p -&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; Value
+</span
+	  ><a href="#local-6989586621679266624"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266633"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map CurrencySymbol (Map TokenName Integer)
+</span
+	  ><a href="#local-6989586621679266633"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer) -&gt; Value
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#Value"
+	><span class="hs-identifier hs-var"
+	  >PV1.Value</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer) -&gt; Value)
+-&gt; Map CurrencySymbol (Map TokenName Integer) -&gt; Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(CurrencySymbol, Map TokenName Integer)]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall k v. [(k, v)] -&gt; Map k v
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#unsafeFromList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.unsafeFromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, Map TokenName Integer)]
+ -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CurrencySymbol, Map TokenName Integer)
+ -&gt; (CurrencySymbol, Map TokenName Integer) -&gt; Ordering)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#sortBy"
+	><span class="hs-identifier hs-var"
+	  >sortBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CurrencySymbol, Map TokenName Integer) -&gt; CurrencySymbol)
+-&gt; (CurrencySymbol, Map TokenName Integer)
+-&gt; (CurrencySymbol, Map TokenName Integer)
+-&gt; Ordering
+forall a b. Ord a =&gt; (b -&gt; a) -&gt; b -&gt; b -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Ord.html#comparing"
+	><span class="hs-identifier hs-var"
+	  >comparing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CurrencySymbol, Map TokenName Integer) -&gt; CurrencySymbol
+forall a b. (a, b) -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#fst"
+	><span class="hs-identifier hs-var"
+	  >fst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, Map TokenName Integer)]
+ -&gt; [(CurrencySymbol, Map TokenName Integer)])
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer)
+ -&gt; [(CurrencySymbol, Map TokenName Integer)])
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(TokenName, Integer)] -&gt; Map TokenName Integer
+forall k v. [(k, v)] -&gt; Map k v
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#unsafeFromList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.unsafeFromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(TokenName, Integer)] -&gt; Map TokenName Integer)
+-&gt; (Map TokenName Integer -&gt; [(TokenName, Integer)])
+-&gt; Map TokenName Integer
+-&gt; Map TokenName Integer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TokenName, Integer) -&gt; (TokenName, Integer) -&gt; Ordering)
+-&gt; [(TokenName, Integer)] -&gt; [(TokenName, Integer)]
+forall a. (a -&gt; a -&gt; Ordering) -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.OldList.html#sortBy"
+	><span class="hs-identifier hs-var"
+	  >sortBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TokenName, Integer) -&gt; TokenName)
+-&gt; (TokenName, Integer) -&gt; (TokenName, Integer) -&gt; Ordering
+forall a b. Ord a =&gt; (b -&gt; a) -&gt; b -&gt; b -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Ord.html#comparing"
+	><span class="hs-identifier hs-var"
+	  >comparing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TokenName, Integer) -&gt; TokenName
+forall a b. (a, b) -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Tuple.html#fst"
+	><span class="hs-identifier hs-var"
+	  >fst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(TokenName, Integer)] -&gt; [(TokenName, Integer)])
+-&gt; (Map TokenName Integer -&gt; [(TokenName, Integer)])
+-&gt; Map TokenName Integer
+-&gt; [(TokenName, Integer)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map TokenName Integer -&gt; [(TokenName, Integer)]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map TokenName Integer -&gt; Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer)
+</span
+	><a href="#local-6989586621679266633"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span id="local-6989586621679265989"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#lowerBoundExtendedL"
+	  ><span class="hs-identifier hs-type"
+	    >lowerBoundExtendedL</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >L.Lens'</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#LowerBound"
+	  ><span class="hs-identifier hs-type"
+	    >PV1.LowerBound</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679265989"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#Extended"
+	  ><span class="hs-identifier hs-type"
+	    >PV1.Extended</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679265989"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span id="lowerBoundExtendedL"
+      ><span class="annot"
+	><span class="annottext"
+	  >lowerBoundExtendedL :: forall a (f :: * -&gt; *).
+Functor f =&gt;
+(Extended a -&gt; f (Extended a)) -&gt; LowerBound a -&gt; f (LowerBound a)
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#lowerBoundExtendedL"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lowerBoundExtendedL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LowerBound a -&gt; Extended a)
+-&gt; (LowerBound a -&gt; Extended a -&gt; LowerBound a)
+-&gt; Lens (LowerBound a) (LowerBound a) (Extended a) (Extended a)
+forall s a b t. (s -&gt; a) -&gt; (s -&gt; b -&gt; t) -&gt; Lens s t a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.lens</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LowerBound a -&gt; Extended a
+forall {a}. LowerBound a -&gt; Extended a
+</span
+	><a href="#local-6989586621679266638"
+	><span class="hs-identifier hs-var"
+	  >getter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LowerBound a -&gt; Extended a -&gt; LowerBound a
+forall {a} {a}. LowerBound a -&gt; Extended a -&gt; LowerBound a
+</span
+	><a href="#local-6989586621679266639"
+	><span class="hs-identifier hs-var"
+	  >setter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266638"
+      ><span class="annot"
+	><span class="annottext"
+	  >getter :: LowerBound a -&gt; Extended a
+</span
+	  ><a href="#local-6989586621679266638"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#LowerBound"
+	><span class="hs-identifier hs-type"
+	  >PV1.LowerBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266641"
+      ><span class="annot"
+	><span class="annottext"
+	  >Extended a
+</span
+	  ><a href="#local-6989586621679266641"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Closure
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><a href="#local-6989586621679266641"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266639"
+      ><span class="annot"
+	><span class="annottext"
+	  >setter :: LowerBound a -&gt; Extended a -&gt; LowerBound a
+</span
+	  ><a href="#local-6989586621679266639"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#LowerBound"
+	><span class="hs-identifier hs-type"
+	  >PV1.LowerBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266642"
+      ><span class="annot"
+	><span class="annottext"
+	  >Closure
+</span
+	  ><a href="#local-6989586621679266642"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679266643"
+      ><span class="annot"
+	><span class="annottext"
+	  >Extended a
+</span
+	  ><a href="#local-6989586621679266643"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a -&gt; Closure -&gt; LowerBound a
+forall a. Extended a -&gt; Closure -&gt; LowerBound a
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#LowerBound"
+	><span class="hs-identifier hs-var"
+	  >PV1.LowerBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><a href="#local-6989586621679266643"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Closure
+</span
+	><a href="#local-6989586621679266642"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span id="local-6989586621679265997"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#lowerBoundClosureL"
+	  ><span class="hs-identifier hs-type"
+	    >lowerBoundClosureL</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >L.Lens'</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#LowerBound"
+	  ><span class="hs-identifier hs-type"
+	    >PV1.LowerBound</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679265997"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#Closure"
+	  ><span class="hs-identifier hs-type"
+	    >PV1.Closure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span id="lowerBoundClosureL"
+      ><span class="annot"
+	><span class="annottext"
+	  >lowerBoundClosureL :: forall a (f :: * -&gt; *).
+Functor f =&gt;
+(Closure -&gt; f Closure) -&gt; LowerBound a -&gt; f (LowerBound a)
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#lowerBoundClosureL"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lowerBoundClosureL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(LowerBound a -&gt; Closure)
+-&gt; (LowerBound a -&gt; Closure -&gt; LowerBound a)
+-&gt; Lens (LowerBound a) (LowerBound a) Closure Closure
+forall s a b t. (s -&gt; a) -&gt; (s -&gt; b -&gt; t) -&gt; Lens s t a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.lens</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LowerBound a -&gt; Closure
+forall {a}. LowerBound a -&gt; Closure
+</span
+	><a href="#local-6989586621679266646"
+	><span class="hs-identifier hs-var"
+	  >getter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LowerBound a -&gt; Closure -&gt; LowerBound a
+forall {a}. LowerBound a -&gt; Closure -&gt; LowerBound a
+</span
+	><a href="#local-6989586621679266647"
+	><span class="hs-identifier hs-var"
+	  >setter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266646"
+      ><span class="annot"
+	><span class="annottext"
+	  >getter :: LowerBound a -&gt; Closure
+</span
+	  ><a href="#local-6989586621679266646"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#LowerBound"
+	><span class="hs-identifier hs-type"
+	  >PV1.LowerBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266648"
+      ><span class="annot"
+	><span class="annottext"
+	  >Closure
+</span
+	  ><a href="#local-6989586621679266648"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Closure
+</span
+	><a href="#local-6989586621679266648"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266647"
+      ><span class="annot"
+	><span class="annottext"
+	  >setter :: LowerBound a -&gt; Closure -&gt; LowerBound a
+</span
+	  ><a href="#local-6989586621679266647"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#LowerBound"
+	><span class="hs-identifier hs-type"
+	  >PV1.LowerBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266649"
+      ><span class="annot"
+	><span class="annottext"
+	  >Extended a
+</span
+	  ><a href="#local-6989586621679266649"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Closure
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a -&gt; Closure -&gt; LowerBound a
+forall a. Extended a -&gt; Closure -&gt; LowerBound a
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#LowerBound"
+	><span class="hs-identifier hs-var"
+	  >PV1.LowerBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><a href="#local-6989586621679266649"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span id="local-6989586621679266002"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#upperBoundExtendedL"
+	  ><span class="hs-identifier hs-type"
+	    >upperBoundExtendedL</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >L.Lens'</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#UpperBound"
+	  ><span class="hs-identifier hs-type"
+	    >PV1.UpperBound</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679266002"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#Extended"
+	  ><span class="hs-identifier hs-type"
+	    >PV1.Extended</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679266002"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span id="upperBoundExtendedL"
+      ><span class="annot"
+	><span class="annottext"
+	  >upperBoundExtendedL :: forall a (f :: * -&gt; *).
+Functor f =&gt;
+(Extended a -&gt; f (Extended a)) -&gt; UpperBound a -&gt; f (UpperBound a)
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#upperBoundExtendedL"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >upperBoundExtendedL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UpperBound a -&gt; Extended a)
+-&gt; (UpperBound a -&gt; Extended a -&gt; UpperBound a)
+-&gt; Lens (UpperBound a) (UpperBound a) (Extended a) (Extended a)
+forall s a b t. (s -&gt; a) -&gt; (s -&gt; b -&gt; t) -&gt; Lens s t a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.lens</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UpperBound a -&gt; Extended a
+forall {a}. UpperBound a -&gt; Extended a
+</span
+	><a href="#local-6989586621679266652"
+	><span class="hs-identifier hs-var"
+	  >getter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UpperBound a -&gt; Extended a -&gt; UpperBound a
+forall {a} {a}. UpperBound a -&gt; Extended a -&gt; UpperBound a
+</span
+	><a href="#local-6989586621679266653"
+	><span class="hs-identifier hs-var"
+	  >setter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266652"
+      ><span class="annot"
+	><span class="annottext"
+	  >getter :: UpperBound a -&gt; Extended a
+</span
+	  ><a href="#local-6989586621679266652"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#UpperBound"
+	><span class="hs-identifier hs-type"
+	  >PV1.UpperBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266655"
+      ><span class="annot"
+	><span class="annottext"
+	  >Extended a
+</span
+	  ><a href="#local-6989586621679266655"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Closure
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><a href="#local-6989586621679266655"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266653"
+      ><span class="annot"
+	><span class="annottext"
+	  >setter :: UpperBound a -&gt; Extended a -&gt; UpperBound a
+</span
+	  ><a href="#local-6989586621679266653"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#UpperBound"
+	><span class="hs-identifier hs-type"
+	  >PV1.UpperBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266656"
+      ><span class="annot"
+	><span class="annottext"
+	  >Closure
+</span
+	  ><a href="#local-6989586621679266656"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679266657"
+      ><span class="annot"
+	><span class="annottext"
+	  >Extended a
+</span
+	  ><a href="#local-6989586621679266657"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a -&gt; Closure -&gt; UpperBound a
+forall a. Extended a -&gt; Closure -&gt; UpperBound a
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#UpperBound"
+	><span class="hs-identifier hs-var"
+	  >PV1.UpperBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><a href="#local-6989586621679266657"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Closure
+</span
+	><a href="#local-6989586621679266656"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span id="local-6989586621679266009"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#upperBoundClosureL"
+	  ><span class="hs-identifier hs-type"
+	    >upperBoundClosureL</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >L.Lens'</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#UpperBound"
+	  ><span class="hs-identifier hs-type"
+	    >PV1.UpperBound</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679266009"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#Closure"
+	  ><span class="hs-identifier hs-type"
+	    >PV1.Closure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span id="upperBoundClosureL"
+      ><span class="annot"
+	><span class="annottext"
+	  >upperBoundClosureL :: forall a (f :: * -&gt; *).
+Functor f =&gt;
+(Closure -&gt; f Closure) -&gt; UpperBound a -&gt; f (UpperBound a)
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#upperBoundClosureL"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >upperBoundClosureL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UpperBound a -&gt; Closure)
+-&gt; (UpperBound a -&gt; Closure -&gt; UpperBound a)
+-&gt; Lens (UpperBound a) (UpperBound a) Closure Closure
+forall s a b t. (s -&gt; a) -&gt; (s -&gt; b -&gt; t) -&gt; Lens s t a b
+</span
+	><span class="hs-identifier hs-var"
+	>L.lens</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UpperBound a -&gt; Closure
+forall {a}. UpperBound a -&gt; Closure
+</span
+	><a href="#local-6989586621679266660"
+	><span class="hs-identifier hs-var"
+	  >getter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UpperBound a -&gt; Closure -&gt; UpperBound a
+forall {a}. UpperBound a -&gt; Closure -&gt; UpperBound a
+</span
+	><a href="#local-6989586621679266661"
+	><span class="hs-identifier hs-var"
+	  >setter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266660"
+      ><span class="annot"
+	><span class="annottext"
+	  >getter :: UpperBound a -&gt; Closure
+</span
+	  ><a href="#local-6989586621679266660"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >getter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#UpperBound"
+	><span class="hs-identifier hs-type"
+	  >PV1.UpperBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266662"
+      ><span class="annot"
+	><span class="annottext"
+	  >Closure
+</span
+	  ><a href="#local-6989586621679266662"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Closure
+</span
+	><a href="#local-6989586621679266662"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679266661"
+      ><span class="annot"
+	><span class="annottext"
+	  >setter :: UpperBound a -&gt; Closure -&gt; UpperBound a
+</span
+	  ><a href="#local-6989586621679266661"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#UpperBound"
+	><span class="hs-identifier hs-type"
+	  >PV1.UpperBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266663"
+      ><span class="annot"
+	><span class="annottext"
+	  >Extended a
+</span
+	  ><a href="#local-6989586621679266663"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Closure
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a -&gt; Closure -&gt; UpperBound a
+forall a. Extended a -&gt; Closure -&gt; UpperBound a
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Interval.html#UpperBound"
+	><span class="hs-identifier hs-var"
+	  >PV1.UpperBound</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extended a
+</span
+	><a href="#local-6989586621679266663"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

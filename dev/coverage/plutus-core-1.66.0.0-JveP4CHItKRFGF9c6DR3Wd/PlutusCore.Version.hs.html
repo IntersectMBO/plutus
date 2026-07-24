@@ -1,0 +1,102 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    2 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module PlutusCore.Version
+<span class="lineno">    6 </span>  ( Version (..)
+<span class="lineno">    7 </span>  , versionMajor
+<span class="lineno">    8 </span>  , versionMinor
+<span class="lineno">    9 </span>  , versionPatch
+<span class="lineno">   10 </span>  , plcVersion100
+<span class="lineno">   11 </span>  , plcVersion110
+<span class="lineno">   12 </span>  , firstVersion
+<span class="lineno">   13 </span>  , latestVersion
+<span class="lineno">   14 </span>  , knownVersions
+<span class="lineno">   15 </span>  ) where
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import PlutusPrelude
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Control.Lens
+<span class="lineno">   20 </span>import Data.Hashable
+<span class="lineno">   21 </span>import Data.Set qualified as Set
+<span class="lineno">   22 </span>import Instances.TH.Lift ()
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>{-|
+<span class="lineno">   25 </span>The version of Plutus Core used by this program.
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>The intention is to convey different levels of backwards compatibility for existing scripts:
+<span class="lineno">   28 </span>- Major version changes are backwards-incompatible
+<span class="lineno">   29 </span>- Minor version changes are backwards-compatible
+<span class="lineno">   30 </span>- Patch version changes should be entirely invisible (and we will likely not use this level)
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>The version used should be changed only when the /language itself/ changes.
+<span class="lineno">   33 </span>For example, adding a new kind of term to the language would require a minor
+<span class="lineno">   34 </span>version bump; removing a kind of term would require a major version bump.
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>Similarly, changing the semantics of the language will require a version bump,
+<span class="lineno">   37 </span>typically a major one. This is the main reason why the version is actually
+<span class="lineno">   38 </span>tracked in the AST: we can have two language versions with identical ASTs but
+<span class="lineno">   39 </span>different semantics, so we need to track the version explicitly.
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>Compatibility is about compatibility for specific scripts, not about e.g. tools which consume
+<span class="lineno">   42 </span>scripts. Adding a new kind of term does not change how existing scripts behave, but does
+<span class="lineno">   43 </span>change what tools would need to do to process scripts. -}
+<span class="lineno">   44 </span>data Version
+<span class="lineno">   45 </span>  = Version {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">_versionMajor</span></span></span> :: Natural, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_versionMinor</span></span></span> :: Natural, <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_versionPatch</span></span></span> :: Natural}
+<span class="lineno">   46 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   47 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">makeLenses ''Version</span></span></span></span></span></span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>-- This is probably what the derived version would do, but better to be explicit since it's
+<span class="lineno">   52 </span>-- important
+<span class="lineno">   53 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord Version</span></span></span></span></span></span></span></span></span></span></span></span> where
+<span class="lineno">   54 </span>  <span class="decl"><span class="istickedoff">compare (Version major1 minor1 patch1) (Version major2 minor2 patch2) =</span>
+<span class="lineno">   55 </span><span class="spaces">    </span><span class="istickedoff">compare major1 major2 &lt;&gt; compare minor1 minor2 &lt;&gt; compare patch1 patch2</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>-- | The first version of Plutus Core supported by this library.
+<span class="lineno">   58 </span>firstVersion :: Version
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">firstVersion = plcVersion100</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>-- | Plutus Core version 1.0.0
+<span class="lineno">   62 </span>plcVersion100 :: Version
+<span class="lineno">   63 </span><span class="decl"><span class="istickedoff">plcVersion100 = Version 1 0 0</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>-- | Plutus Core version 1.1.0
+<span class="lineno">   66 </span>plcVersion110 :: Version
+<span class="lineno">   67 </span><span class="decl"><span class="istickedoff">plcVersion110 = Version 1 1 0</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>-- | The latest version of Plutus Core supported by this library.
+<span class="lineno">   70 </span>latestVersion :: Version
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff">latestVersion = plcVersion110</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>{-| The set of versions that are &quot;known&quot;, i.e. that have been released
+<span class="lineno">   74 </span>and have actual differences associated with them. -}
+<span class="lineno">   75 </span>knownVersions :: Set.Set Version
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">knownVersions = Set.fromList [plcVersion100, plcVersion110]</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>instance <span class="decl"><span class="nottickedoff">Pretty Version</span></span> where
+<span class="lineno">   79 </span>  <span class="decl"><span class="istickedoff">pretty (Version i j k) = pretty i &lt;&gt; &quot;.&quot; &lt;&gt; pretty j &lt;&gt; &quot;.&quot; &lt;&gt; pretty k</span></span>
+
+</pre>
+</body>
+</html>

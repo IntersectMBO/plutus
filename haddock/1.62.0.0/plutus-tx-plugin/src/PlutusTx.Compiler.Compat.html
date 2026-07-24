@@ -1,0 +1,1754 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE CPP #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Compiler.Compat</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Class.html"
+	><span class="hs-identifier"
+	  >GHC.Core.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Expr.html"
+	><span class="hs-identifier"
+	  >GHC.Hs.Expr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html"
+	><span class="hs-identifier"
+	  >GHC.Hs.Extension</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.Info.html"
+	><span class="hs-identifier"
+	  >GHC.Types.Id.Info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.Syntax.Binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Extension.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.Syntax.Extension</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Type.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.Syntax.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#if __GLASGOW_HASKELL__ &lt; 910
+</span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Parser.Annotation.html"
+	><span class="hs-identifier"
+	  >GHC.Parser.Annotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span class="hs-cpp"
+      >#if __GLASGOW_HASKELL__ &lt; 912
+</span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Data.Bag.html"
+	><span class="hs-identifier"
+	  >GHC.Data.Bag</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#maybeGetClassOpId"
+	><span class="hs-identifier hs-type"
+	  >maybeGetClassOpId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.Info.html#IdDetails"
+	><span class="hs-identifier hs-type"
+	  >GHC.IdDetails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Class.html#Class"
+	><span class="hs-identifier hs-type"
+	  >GHC.Class</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#if __GLASGOW_HASKELL__ &gt;= 912
+</span
+      ><span class="hs-identifier"
+      >maybeGetClassOpId</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-identifier"
+      >GHC.ClassOpId</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >cls</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Just</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >cls</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-identifier"
+      >maybeGetClassOpId</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Nothing</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span id="maybeGetClassOpId"
+      ><span class="annot"
+	><span class="annottext"
+	  >maybeGetClassOpId :: IdDetails -&gt; Maybe Class
+</span
+	  ><a href="PlutusTx.Compiler.Compat.html#maybeGetClassOpId"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >maybeGetClassOpId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.Info.html#ClassOpId"
+	><span class="hs-identifier hs-type"
+	  >GHC.ClassOpId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594762"
+      ><span class="annot"
+	><span class="annottext"
+	  >Class
+</span
+	  ><a href="#local-6989586621679594762"
+	  ><span class="hs-identifier hs-var"
+	    >cls</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Class -&gt; Maybe Class
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Class
+</span
+	><a href="#local-6989586621679594762"
+	><span class="hs-identifier hs-var"
+	  >cls</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#maybeGetClassOpId"
+	><span class="hs-identifier hs-var"
+	  >maybeGetClassOpId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IdDetails
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Class
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#hsAppTc"
+	><span class="hs-identifier hs-type"
+	  >hsAppTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#LHsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.LHsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#LHsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.LHsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.HsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#if __GLASGOW_HASKELL__ &gt;= 910
+</span
+      ><span class="hs-identifier"
+      >hsAppTc</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >GHC.HsApp</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >GHC.noExtField</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span id="hsAppTc"
+      ><span class="annot"
+	><span class="annottext"
+	  >hsAppTc :: LHsExpr GhcTc -&gt; LHsExpr GhcTc -&gt; HsExpr GhcTc
+</span
+	  ><a href="PlutusTx.Compiler.Compat.html#hsAppTc"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >hsAppTc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XApp GhcTc -&gt; LHsExpr GhcTc -&gt; LHsExpr GhcTc -&gt; HsExpr GhcTc
+forall p. XApp p -&gt; LHsExpr p -&gt; LHsExpr p -&gt; HsExpr p
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsApp"
+	><span class="hs-identifier hs-var"
+	  >GHC.HsApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XApp GhcTc
+EpAnn NoEpAnns
+forall ann. EpAnn ann
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Parser.Annotation.html#EpAnnNotUsed"
+	><span class="hs-identifier hs-var"
+	  >GHC.EpAnnNotUsed</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#HsAppType"
+	><span class="hs-identifier hs-type"
+	  >HsAppType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621679594730"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Extension.html#XAppTypeE"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.XAppTypeE</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcPass"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.GhcPass</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594730"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-38"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#LHsExpr"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.LHsExpr</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcPass"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.GhcPass</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594730"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-39"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Type.html#LHsWcType"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.LHsWcType</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Extension.html#NoGhcTc"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.NoGhcTc</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcPass"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.GhcPass</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594730"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-40"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsExpr"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.HsExpr</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcPass"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.GhcPass</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594730"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span class="hs-cpp"
+      >
+#if __GLASGOW_HASKELL__ &gt;= 910
+</span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >HsAppType</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >x</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >expr</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >ty</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >GHC.HsAppType</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >x</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >expr</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >ty</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-identifier"
+      >HsAppType</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >x</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >expr</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >ty</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >GHC.HsAppType</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >x</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >expr</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >ty</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="HsAppType"
+      ><span id="%24mHsAppType"
+	><span id="%24bHsAppType"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mHsAppType :: forall {r} {p :: Pass}.
+HsExpr (GhcPass p)
+-&gt; (XAppTypeE (GhcPass p)
+    -&gt; LHsExpr (GhcPass p) -&gt; LHsWcType (NoGhcTc (GhcPass p)) -&gt; r)
+-&gt; ((# #) -&gt; r)
+-&gt; r
+$bHsAppType :: forall (p :: Pass).
+XAppTypeE (GhcPass p)
+-&gt; LHsExpr (GhcPass p)
+-&gt; LHsWcType (NoGhcTc (GhcPass p))
+-&gt; HsExpr (GhcPass p)
+</span
+	      ><a href="PlutusTx.Compiler.Compat.html#HsAppType"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+		>HsAppType</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679594769"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679594770"
+	><span class="hs-identifier hs-type"
+	  >expr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679594771"
+	><span class="hs-identifier hs-type"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsAppType"
+	><span class="hs-identifier hs-type"
+	  >GHC.HsAppType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594769"
+      ><span class="annot"
+	><a href="#local-6989586621679594769"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594770"
+      ><span class="annot"
+	><a href="#local-6989586621679594770"
+	  ><span class="hs-identifier hs-var"
+	    >expr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594771"
+      ><span class="annot"
+	><a href="#local-6989586621679594771"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#HsAppType"
+	><span class="hs-identifier hs-var"
+	  >HsAppType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594773"
+      ><span class="annot"
+	><span class="annottext"
+	  >XAppTypeE (GhcPass p)
+</span
+	  ><a href="#local-6989586621679594773"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594774"
+      ><span class="annot"
+	><span class="annottext"
+	  >LHsExpr (GhcPass p)
+</span
+	  ><a href="#local-6989586621679594774"
+	  ><span class="hs-identifier hs-var"
+	    >expr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594775"
+      ><span class="annot"
+	><span class="annottext"
+	  >LHsWcType (NoGhcTc (GhcPass p))
+</span
+	  ><a href="#local-6989586621679594775"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XAppTypeE (GhcPass p)
+-&gt; LHsExpr (GhcPass p)
+-&gt; LHsToken &quot;@&quot; (GhcPass p)
+-&gt; LHsWcType (NoGhcTc (GhcPass p))
+-&gt; HsExpr (GhcPass p)
+forall p.
+XAppTypeE p
+-&gt; LHsExpr p -&gt; LHsToken &quot;@&quot; p -&gt; LHsWcType (NoGhcTc p) -&gt; HsExpr p
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsAppType"
+	><span class="hs-identifier hs-var"
+	  >GHC.HsAppType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XAppTypeE (GhcPass p)
+</span
+	><a href="#local-6989586621679594773"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LHsExpr (GhcPass p)
+</span
+	><a href="#local-6989586621679594774"
+	><span class="hs-identifier hs-var"
+	  >expr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LHsToken &quot;@&quot; (GhcPass p)
+GenLocated TokenLocation (HsToken &quot;@&quot;)
+forall (tok :: Symbol). GenLocated TokenLocation (HsToken tok)
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#noHsTok"
+	><span class="hs-identifier hs-var"
+	  >GHC.noHsTok</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LHsWcType (NoGhcTc (GhcPass p))
+</span
+	><a href="#local-6989586621679594775"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#WrapExpr"
+	><span class="hs-identifier hs-type"
+	  >WrapExpr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.HsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Expr.html#XXExprGhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.XXExprGhcTc</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#if __GLASGOW_HASKELL__ &gt;= 912
+</span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >WrapExpr</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >e</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >GHC.WrapExpr</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >e</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="WrapExpr"
+      ><span id="%24mWrapExpr"
+	><span class="annot"
+	  ><span class="annottext"
+	    >$mWrapExpr :: forall {r}. XXExprGhcTc -&gt; (HsExpr GhcTc -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+</span
+	    ><a href="PlutusTx.Compiler.Compat.html#WrapExpr"
+	    ><span class="hs-identifier hs-var hs-var"
+	      >WrapExpr</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679594779"
+	><span class="hs-identifier hs-type"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Expr.html#WrapExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.WrapExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Expr.html#HsWrap"
+	><span class="hs-identifier hs-type"
+	  >GHC.HsWrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594779"
+      ><span class="annot"
+	><a href="#local-6989586621679594779"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#HsPar"
+	><span class="hs-identifier hs-type"
+	  >HsPar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#LHsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.LHsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.HsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#if __GLASGOW_HASKELL__ &gt;= 912
+</span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >HsPar</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >e</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >GHC.HsPar</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >e</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="HsPar"
+      ><span id="%24mHsPar"
+	><span class="annot"
+	  ><span class="annottext"
+	    >$mHsPar :: forall {r}.
+HsExpr GhcTc -&gt; (LHsExpr GhcTc -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+</span
+	    ><a href="PlutusTx.Compiler.Compat.html#HsPar"
+	    ><span class="hs-identifier hs-var hs-var"
+	      >HsPar</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679594784"
+	><span class="hs-identifier hs-type"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsPar"
+	><span class="hs-identifier hs-type"
+	  >GHC.HsPar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594784"
+      ><span class="annot"
+	><a href="#local-6989586621679594784"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="local-6989586621679594750"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Compat.html#modifyBinds"
+	  ><span class="hs-identifier hs-type"
+	    >modifyBinds</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>[</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#LHsBindLR"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.LHsBindLR</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594750"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594750"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#LHsBindLR"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.LHsBindLR</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594750"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594750"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>]</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#LHsBinds"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.LHsBinds</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594750"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#LHsBinds"
+	  ><span class="hs-identifier hs-type"
+	    >GHC.LHsBinds</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679594750"
+	  ><span class="hs-identifier hs-type"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-cpp"
+      >
+#if __GLASGOW_HASKELL__ &gt;= 912
+</span
+      ><span class="hs-identifier"
+      >modifyBinds</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-operator"
+      >$</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span class="hs-comment"
+      >-- We need this because for some reason `transformBi` does not work on `Bag`,</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >-- even though `Bag` has a `Data` instance. It it perhaps because the `Data`</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-comment"
+      >-- instance for `Bag` is buggy.</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="modifyBinds"
+      ><span class="annot"
+	><span class="annottext"
+	  >modifyBinds :: forall p.
+([LHsBindLR p p] -&gt; [LHsBindLR p p]) -&gt; LHsBinds p -&gt; LHsBinds p
+</span
+	  ><a href="PlutusTx.Compiler.Compat.html#modifyBinds"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >modifyBinds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679594787"
+      ><span class="annot"
+	><span class="annottext"
+	  >[LHsBindLR p p] -&gt; [LHsBindLR p p]
+</span
+	  ><a href="#local-6989586621679594787"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[LHsBindLR p p] -&gt; Bag (LHsBindLR p p)
+forall a. [a] -&gt; Bag a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Data.Bag.html#listToBag"
+	><span class="hs-identifier hs-var"
+	  >GHC.listToBag</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([LHsBindLR p p] -&gt; Bag (LHsBindLR p p))
+-&gt; (Bag (LHsBindLR p p) -&gt; [LHsBindLR p p])
+-&gt; Bag (LHsBindLR p p)
+-&gt; Bag (LHsBindLR p p)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[LHsBindLR p p] -&gt; [LHsBindLR p p]
+</span
+	><a href="#local-6989586621679594787"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([LHsBindLR p p] -&gt; [LHsBindLR p p])
+-&gt; (Bag (LHsBindLR p p) -&gt; [LHsBindLR p p])
+-&gt; Bag (LHsBindLR p p)
+-&gt; [LHsBindLR p p]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bag (LHsBindLR p p) -&gt; [LHsBindLR p p]
+forall a. Bag a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Data.Bag.html#bagToList"
+	><span class="hs-identifier hs-var"
+	  >GHC.bagToList</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,2544 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.Test.ScriptContextBuilder.Builder</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.65.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.Test.ScriptContextBuilder.Builder</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Helpers</a
+	      ></li
+	    ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:UnitTestArgs"
+	      >UnitTestArgs</a
+	      > = <a href="#v:UnitTestArgs"
+	      >UnitTestArgs</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:utaScriptContext"
+		  >utaScriptContext</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+		  >ScriptContext</a
+		  ></li
+		><li
+		><a href="#v:utaParameters"
+		  >utaParameters</a
+		  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+		  >BuiltinData</a
+		  >]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:InputBuilder"
+	      >InputBuilder</a
+	      > = <a href="#v:InputBuilder"
+	      >InputBuilder</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:runInputBuilder"
+		  >runInputBuilder</a
+		  > &#8759; InputBuilderState &#8594; InputBuilderState</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:TxOutBuilder"
+	      >TxOutBuilder</a
+	      > = <a href="#v:TxOutBuilder"
+	      >TxOutBuilder</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:runTxOutBuilder"
+		  >runTxOutBuilder</a
+		  > &#8759; TxOutBuilderState &#8594; TxOutBuilderState</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ScriptContextBuilder"
+	      >ScriptContextBuilder</a
+	      > = <a href="#v:ScriptContextBuilder"
+	      >ScriptContextBuilder</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:runBuilder"
+		  >runBuilder</a
+		  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilderState" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		  >ScriptContextBuilderState</a
+		  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilderState" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		  >ScriptContextBuilderState</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ScriptContextBuilderState"
+	      >ScriptContextBuilderState</a
+	      > = <a href="#v:ScriptContextBuilderState"
+	      >ScriptContextBuilderState</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:scbInputs"
+		  >scbInputs</a
+		  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+		  >TxInInfo</a
+		  >]</li
+		><li
+		><a href="#v:scbReferenceInputs"
+		  >scbReferenceInputs</a
+		  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+		  >TxInInfo</a
+		  >]</li
+		><li
+		><a href="#v:scbOutputs"
+		  >scbOutputs</a
+		  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+		  >TxOut</a
+		  >]</li
+		><li
+		><a href="#v:scbFee"
+		  >scbFee</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></li
+		><li
+		><a href="#v:scbMint"
+		  >scbMint</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+		  >Value</a
+		  ></li
+		><li
+		><a href="#v:scbCerts"
+		  >scbCerts</a
+		  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxCert" title="PlutusLedgerApi.V3.Contexts"
+		  >TxCert</a
+		  >]</li
+		><li
+		><a href="#v:scbWdrl"
+		  >scbWdrl</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+		  >Map</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+		  >Credential</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+		  >Lovelace</a
+		  ></li
+		><li
+		><a href="#v:scbValidRange"
+		  >scbValidRange</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Time.html#t:POSIXTimeRange" title="PlutusLedgerApi.V1.Time"
+		  >POSIXTimeRange</a
+		  ></li
+		><li
+		><a href="#v:scbSignatories"
+		  >scbSignatories</a
+		  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+		  >PubKeyHash</a
+		  >]</li
+		><li
+		><a href="#v:scbRedeemers"
+		  >scbRedeemers</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+		  >Map</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose" title="PlutusLedgerApi.V3.Contexts"
+		  >ScriptPurpose</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+		  >Redeemer</a
+		  ></li
+		><li
+		><a href="#v:scbTxId"
+		  >scbTxId</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxId" title="PlutusLedgerApi.V3.Tx"
+		  >TxId</a
+		  ></li
+		><li
+		><a href="#v:scbScriptInfo"
+		  >scbScriptInfo</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptInfo" title="PlutusLedgerApi.V3.Contexts"
+		  >ScriptInfo</a
+		  ></li
+		><li
+		><a href="#v:scbRedeemer"
+		  >scbRedeemer</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+		  >BuiltinData</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:buildScriptContext"
+	      >buildScriptContext</a
+	      > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withRedeemer"
+	      >withRedeemer</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withFee"
+	      >withFee</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withSigner"
+	      >withSigner</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	      >PubKeyHash</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withSigners"
+	      >withSigners</a
+	      > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	      >PubKeyHash</a
+	      >] &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withMint"
+	      >withMint</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withMintingScript"
+	      >withMintingScript</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withSpendingScript"
+	      >withSpendingScript</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withRewardingScript"
+	      >withRewardingScript</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	      >Credential</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withRewardingScriptWithBuilder"
+	      >withRewardingScriptWithBuilder</a
+	      > &#8759; (<a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilderState" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilderState</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      >) &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	      >Credential</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withOutput"
+	      >withOutput</a
+	      > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >TxOutBuilder</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withInput"
+	      >withInput</a
+	      > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withScriptInput"
+	      >withScriptInput</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withReferenceInput"
+	      >withReferenceInput</a
+	      > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withValue"
+	      >withValue</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withValidRange"
+	      >withValidRange</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Time.html#t:POSIXTimeRange" title="PlutusLedgerApi.V1.Time"
+	      >POSIXTimeRange</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withOutRef"
+	      >withOutRef</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	      >TxOutRef</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withInlineDatum"
+	      >withInlineDatum</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withReferenceScript"
+	      >withReferenceScript</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:ScriptHash" title="PlutusLedgerApi.V1.Scripts"
+	      >ScriptHash</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withAddress"
+	      >withAddress</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	      >Address</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withWithdrawal"
+	      >withWithdrawal</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	      >Credential</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkInput"
+	      >mkInput</a
+	      > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >InputBuilder</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInInfo</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addInput"
+	      >addInput</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInInfo</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addMint"
+	      >addMint</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkMintingScriptWithPurpose"
+	      >mkMintingScriptWithPurpose</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addChangeOutput"
+	      >addChangeOutput</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	      >PubKeyHash</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:signAndAddChangeOutput"
+	      >signAndAddChangeOutput</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	      >PubKeyHash</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkAdaValue"
+	      >mkAdaValue</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	      >Lovelace</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkTxOut"
+	      >mkTxOut</a
+	      > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >TxOutBuilder</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	      >TxOut</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withTxOutReferenceScript"
+	      >withTxOutReferenceScript</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:ScriptHash" title="PlutusLedgerApi.V1.Scripts"
+	      >ScriptHash</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >TxOutBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withTxOutInlineDatum"
+	      >withTxOutInlineDatum</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	      >BuiltinData</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >TxOutBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withTxOutValue"
+	      >withTxOutValue</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >TxOutBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withTxOutAddress"
+	      >withTxOutAddress</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	      >Address</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >TxOutBuilder</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addOutput"
+	      >addOutput</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	      >TxOut</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addReferenceInput"
+	      >addReferenceInput</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInInfo</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:buildBalancedScriptContext"
+	      >buildBalancedScriptContext</a
+	      > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	      >ScriptContextBuilder</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:balanceWithChangeOutput"
+	      >balanceWithChangeOutput</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builderPlaceHolderTxOutRef"
+	      >builderPlaceHolderTxOutRef</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	      >TxOutRef</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:currencySymbolFromHex"
+	      >currencySymbolFromHex</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Value"
+	      >CurrencySymbol</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:singleCurrencySymbol"
+	      >singleCurrencySymbol</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Value"
+	      >CurrencySymbol</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:UnitTestArgs" class="def"
+	    >UnitTestArgs</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#UnitTestArgs" class="link"
+	    >Source</a
+	    > <a href="#t:UnitTestArgs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Arguments for a unit test: a script context and additional parameters.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:UnitTestArgs" class="def"
+		  >UnitTestArgs</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:utaScriptContext" class="def"
+			  >utaScriptContext</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+			  >ScriptContext</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:utaParameters" class="def"
+			  >utaParameters</a
+			  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UnitTestArgs"
+	    >Instances</h4
+	    ><details id="i:UnitTestArgs" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnitTestArgs:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:UnitTestArgs" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		      >UnitTestArgs</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#line-118" class="link"
+		    >Source</a
+		    > <a href="#t:UnitTestArgs" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnitTestArgs:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html"
+			>PlutusLedgerApi.Test.ScriptContextBuilder.Builder</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:UnitTestArgs" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >UnitTestArgs</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:UnitTestArgs" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >UnitTestArgs</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:UnitTestArgs" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >UnitTestArgs</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:UnitTestArgs" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >UnitTestArgs</a
+			  > x &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:UnitTestArgs" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >UnitTestArgs</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnitTestArgs:Rep:2"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:UnitTestArgs" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		      >UnitTestArgs</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#line-118" class="link"
+		    >Source</a
+		    > <a href="#t:UnitTestArgs" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnitTestArgs:Rep:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html"
+			>PlutusLedgerApi.Test.ScriptContextBuilder.Builder</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:UnitTestArgs" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			>UnitTestArgs</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;UnitTestArgs&quot; &quot;PlutusLedgerApi.Test.ScriptContextBuilder.Builder&quot; &quot;plutus-ledger-api-1.65.0.0-inplace-plutus-ledger-api-testlib&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;UnitTestArgs&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;utaScriptContext&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+			>ScriptContext</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;utaParameters&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> [<a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			>BuiltinData</a
+			>])))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:InputBuilder" class="def"
+	    >InputBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#InputBuilder" class="link"
+	    >Source</a
+	    > <a href="#t:InputBuilder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A composable builder for constructing transaction inputs.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InputBuilder" class="def"
+		  >InputBuilder</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:runInputBuilder" class="def"
+			  >runInputBuilder</a
+			  > &#8759; InputBuilderState &#8594; InputBuilderState</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:InputBuilder"
+	    >Instances</h4
+	    ><details id="i:InputBuilder" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InputBuilder:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		      >InputBuilder</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#line-172" class="link"
+		    >Source</a
+		    > <a href="#t:InputBuilder" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InputBuilder:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html"
+			>PlutusLedgerApi.Test.ScriptContextBuilder.Builder</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  >] &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InputBuilder:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		      >InputBuilder</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#line-169" class="link"
+		    >Source</a
+		    > <a href="#t:InputBuilder" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InputBuilder:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html"
+			>PlutusLedgerApi.Test.ScriptContextBuilder.Builder</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >InputBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:TxOutBuilder" class="def"
+	    >TxOutBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#TxOutBuilder" class="link"
+	    >Source</a
+	    > <a href="#t:TxOutBuilder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A composable builder for constructing transaction outputs.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TxOutBuilder" class="def"
+		  >TxOutBuilder</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:runTxOutBuilder" class="def"
+			  >runTxOutBuilder</a
+			  > &#8759; TxOutBuilderState &#8594; TxOutBuilderState</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TxOutBuilder"
+	    >Instances</h4
+	    ><details id="i:TxOutBuilder" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutBuilder:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		      >TxOutBuilder</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#line-257" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutBuilder" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutBuilder:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html"
+			>PlutusLedgerApi.Test.ScriptContextBuilder.Builder</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  >] &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TxOutBuilder:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		      >TxOutBuilder</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#line-254" class="link"
+		    >Source</a
+		    > <a href="#t:TxOutBuilder" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TxOutBuilder:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html"
+			>PlutusLedgerApi.Test.ScriptContextBuilder.Builder</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >TxOutBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ScriptContextBuilder" class="def"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#ScriptContextBuilder" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptContextBuilder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A composable builder for constructing a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+		>ScriptContext</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ScriptContextBuilder" class="def"
+		  >ScriptContextBuilder</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:runBuilder" class="def"
+			  >runBuilder</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilderState" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilderState</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilderState" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilderState</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ScriptContextBuilder"
+	    >Instances</h4
+	    ><details id="i:ScriptContextBuilder" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptContextBuilder:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		      >ScriptContextBuilder</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#line-422" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptContextBuilder" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptContextBuilder:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html"
+			>PlutusLedgerApi.Test.ScriptContextBuilder.Builder</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  >] &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptContextBuilder:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		      >ScriptContextBuilder</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#line-419" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptContextBuilder" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptContextBuilder:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html"
+			>PlutusLedgerApi.Test.ScriptContextBuilder.Builder</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+			  >ScriptContextBuilder</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ScriptContextBuilderState" class="def"
+	    >ScriptContextBuilderState</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#ScriptContextBuilderState" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptContextBuilderState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Accumulated state for <code
+	      ><a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		>ScriptContextBuilder</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ScriptContextBuilderState" class="def"
+		  >ScriptContextBuilderState</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:scbInputs" class="def"
+			  >scbInputs</a
+			  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+			  >TxInInfo</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbReferenceInputs" class="def"
+			  >scbReferenceInputs</a
+			  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+			  >TxInInfo</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbOutputs" class="def"
+			  >scbOutputs</a
+			  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+			  >TxOut</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbFee" class="def"
+			  >scbFee</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbMint" class="def"
+			  >scbMint</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+			  >Value</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbCerts" class="def"
+			  >scbCerts</a
+			  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxCert" title="PlutusLedgerApi.V3.Contexts"
+			  >TxCert</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbWdrl" class="def"
+			  >scbWdrl</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+			  >Map</a
+			  > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+			  >Credential</a
+			  > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+			  >Lovelace</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbValidRange" class="def"
+			  >scbValidRange</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Time.html#t:POSIXTimeRange" title="PlutusLedgerApi.V1.Time"
+			  >POSIXTimeRange</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbSignatories" class="def"
+			  >scbSignatories</a
+			  > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+			  >PubKeyHash</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbRedeemers" class="def"
+			  >scbRedeemers</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+			  >Map</a
+			  > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose" title="PlutusLedgerApi.V3.Contexts"
+			  >ScriptPurpose</a
+			  > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+			  >Redeemer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbTxId" class="def"
+			  >scbTxId</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxId" title="PlutusLedgerApi.V3.Tx"
+			  >TxId</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbScriptInfo" class="def"
+			  >scbScriptInfo</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptInfo" title="PlutusLedgerApi.V3.Contexts"
+			  >ScriptInfo</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:scbRedeemer" class="def"
+			  >scbRedeemer</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+			  >BuiltinData</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:buildScriptContext" class="def"
+	    >buildScriptContext</a
+	    > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#buildScriptContext" class="link"
+	    >Source</a
+	    > <a href="#v:buildScriptContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Build a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+		>ScriptContext</a
+		></code
+	      > from a <code
+	      ><a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		>ScriptContextBuilder</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withRedeemer" class="def"
+	    >withRedeemer</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withRedeemer" class="link"
+	    >Source</a
+	    > <a href="#v:withRedeemer" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the top-level redeemer for the script context.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withFee" class="def"
+	    >withFee</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withFee" class="link"
+	    >Source</a
+	    > <a href="#v:withFee" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the transaction fee.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withSigner" class="def"
+	    >withSigner</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	    >PubKeyHash</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withSigner" class="link"
+	    >Source</a
+	    > <a href="#v:withSigner" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a signatory to the transaction.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withSigners" class="def"
+	    >withSigners</a
+	    > &#8759; [<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	    >PubKeyHash</a
+	    >] &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withSigners" class="link"
+	    >Source</a
+	    > <a href="#v:withSigners" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add multiple signatories to the transaction.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withMint" class="def"
+	    >withMint</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withMint" class="link"
+	    >Source</a
+	    > <a href="#v:withMint" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a minting entry with the given value and redeemer.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withMintingScript" class="def"
+	    >withMintingScript</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withMintingScript" class="link"
+	    >Source</a
+	    > <a href="#v:withMintingScript" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the script purpose to minting and add a mint entry.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withSpendingScript" class="def"
+	    >withSpendingScript</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withSpendingScript" class="link"
+	    >Source</a
+	    > <a href="#v:withSpendingScript" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the script purpose to spending and add the script input.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withRewardingScript" class="def"
+	    >withRewardingScript</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	    >Credential</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withRewardingScript" class="link"
+	    >Source</a
+	    > <a href="#v:withRewardingScript" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the script purpose to rewarding with a fixed redeemer.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withRewardingScriptWithBuilder" class="def"
+	    >withRewardingScriptWithBuilder</a
+	    > &#8759; (<a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilderState" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilderState</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    >) &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	    >Credential</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withRewardingScriptWithBuilder" class="link"
+	    >Source</a
+	    > <a href="#v:withRewardingScriptWithBuilder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the script purpose to rewarding with a redeemer computed from the builder state.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withOutput" class="def"
+	    >withOutput</a
+	    > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >TxOutBuilder</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withOutput" class="link"
+	    >Source</a
+	    > <a href="#v:withOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a transaction output.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withInput" class="def"
+	    >withInput</a
+	    > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withInput" class="link"
+	    >Source</a
+	    > <a href="#v:withInput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a public-key input. Errors if the address is a script address.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withScriptInput" class="def"
+	    >withScriptInput</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withScriptInput" class="link"
+	    >Source</a
+	    > <a href="#v:withScriptInput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a script input with a redeemer. Errors if the address is not a script address.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withReferenceInput" class="def"
+	    >withReferenceInput</a
+	    > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withReferenceInput" class="link"
+	    >Source</a
+	    > <a href="#v:withReferenceInput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a reference input (read-only, not spent).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withValue" class="def"
+	    >withValue</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withValue" class="link"
+	    >Source</a
+	    > <a href="#v:withValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the value for an input.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withValidRange" class="def"
+	    >withValidRange</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Time.html#t:POSIXTimeRange" title="PlutusLedgerApi.V1.Time"
+	    >POSIXTimeRange</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withValidRange" class="link"
+	    >Source</a
+	    > <a href="#v:withValidRange" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the transaction validity time range.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withOutRef" class="def"
+	    >withOutRef</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	    >TxOutRef</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withOutRef" class="link"
+	    >Source</a
+	    > <a href="#v:withOutRef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the UTXO reference for an input.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withInlineDatum" class="def"
+	    >withInlineDatum</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withInlineDatum" class="link"
+	    >Source</a
+	    > <a href="#v:withInlineDatum" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Attach an inline datum to an input.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withReferenceScript" class="def"
+	    >withReferenceScript</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:ScriptHash" title="PlutusLedgerApi.V1.Scripts"
+	    >ScriptHash</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withReferenceScript" class="link"
+	    >Source</a
+	    > <a href="#v:withReferenceScript" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Attach a reference script to an input.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withAddress" class="def"
+	    >withAddress</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	    >Address</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withAddress" class="link"
+	    >Source</a
+	    > <a href="#v:withAddress" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the address for an input.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withWithdrawal" class="def"
+	    >withWithdrawal</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	    >Credential</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withWithdrawal" class="link"
+	    >Source</a
+	    > <a href="#v:withWithdrawal" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a withdrawal entry for a credential and ADA amount.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkInput" class="def"
+	    >mkInput</a
+	    > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >InputBuilder</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInInfo</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#mkInput" class="link"
+	    >Source</a
+	    > <a href="#v:mkInput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Finalize an <code
+	      ><a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:InputBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		>InputBuilder</a
+		></code
+	      > into a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+		>TxInInfo</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addInput" class="def"
+	    >addInput</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInInfo</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#addInput" class="link"
+	    >Source</a
+	    > <a href="#v:addInput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a transaction input to an existing <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+		>ScriptContext</a
+		></code
+	      >, sorted by <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+		>TxOutRef</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addMint" class="def"
+	    >addMint</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#addMint" class="link"
+	    >Source</a
+	    > <a href="#v:addMint" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a minting entry to an existing <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+		>ScriptContext</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkMintingScriptWithPurpose" class="def"
+	    >mkMintingScriptWithPurpose</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#mkMintingScriptWithPurpose" class="link"
+	    >Source</a
+	    > <a href="#v:mkMintingScriptWithPurpose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Create a minimal <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+		>ScriptContext</a
+		></code
+	      > for a minting script.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addChangeOutput" class="def"
+	    >addChangeOutput</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	    >PubKeyHash</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#addChangeOutput" class="link"
+	    >Source</a
+	    > <a href="#v:addChangeOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compute and add a change output to the given public key hash.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:signAndAddChangeOutput" class="def"
+	    >signAndAddChangeOutput</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	    >PubKeyHash</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#signAndAddChangeOutput" class="link"
+	    >Source</a
+	    > <a href="#v:signAndAddChangeOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a signatory and compute a change output for the same public key hash.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkAdaValue" class="def"
+	    >mkAdaValue</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	    >Lovelace</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#mkAdaValue" class="link"
+	    >Source</a
+	    > <a href="#v:mkAdaValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Create a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+		>Value</a
+		></code
+	      > containing only ADA from a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+		>Lovelace</a
+		></code
+	      > amount.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkTxOut" class="def"
+	    >mkTxOut</a
+	    > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >TxOutBuilder</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	    >TxOut</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#mkTxOut" class="link"
+	    >Source</a
+	    > <a href="#v:mkTxOut" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Finalize a <code
+	      ><a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+		>TxOutBuilder</a
+		></code
+	      > into a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+		>TxOut</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withTxOutReferenceScript" class="def"
+	    >withTxOutReferenceScript</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:ScriptHash" title="PlutusLedgerApi.V1.Scripts"
+	    >ScriptHash</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >TxOutBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withTxOutReferenceScript" class="link"
+	    >Source</a
+	    > <a href="#v:withTxOutReferenceScript" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Attach a reference script to a transaction output.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withTxOutInlineDatum" class="def"
+	    >withTxOutInlineDatum</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:BuiltinData" title="PlutusLedgerApi.Common"
+	    >BuiltinData</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >TxOutBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withTxOutInlineDatum" class="link"
+	    >Source</a
+	    > <a href="#v:withTxOutInlineDatum" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Attach an inline datum to a transaction output.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withTxOutValue" class="def"
+	    >withTxOutValue</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >TxOutBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withTxOutValue" class="link"
+	    >Source</a
+	    > <a href="#v:withTxOutValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add value to a transaction output (accumulates with existing value).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withTxOutAddress" class="def"
+	    >withTxOutAddress</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	    >Address</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:TxOutBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >TxOutBuilder</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#withTxOutAddress" class="link"
+	    >Source</a
+	    > <a href="#v:withTxOutAddress" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the address for a transaction output.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addOutput" class="def"
+	    >addOutput</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	    >TxOut</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#addOutput" class="link"
+	    >Source</a
+	    > <a href="#v:addOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Prepend a transaction output to an existing <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+		>ScriptContext</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addReferenceInput" class="def"
+	    >addReferenceInput</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInInfo</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#addReferenceInput" class="link"
+	    >Source</a
+	    > <a href="#v:addReferenceInput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add a reference input to an existing <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+		>ScriptContext</a
+		></code
+	      >, sorted by <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+		>TxOutRef</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:buildBalancedScriptContext" class="def"
+	    >buildBalancedScriptContext</a
+	    > &#8759; <a href="PlutusLedgerApi-Test-ScriptContextBuilder-Builder.html#t:ScriptContextBuilder" title="PlutusLedgerApi.Test.ScriptContextBuilder.Builder"
+	    >ScriptContextBuilder</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#buildBalancedScriptContext" class="link"
+	    >Source</a
+	    > <a href="#v:buildBalancedScriptContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Build a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+		>ScriptContext</a
+		></code
+	      > and automatically balance it with a change output.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:balanceWithChangeOutput" class="def"
+	    >balanceWithChangeOutput</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#balanceWithChangeOutput" class="link"
+	    >Source</a
+	    > <a href="#v:balanceWithChangeOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Balance the transaction by adding a change output to the first public key input.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builderPlaceHolderTxOutRef" class="def"
+	    >builderPlaceHolderTxOutRef</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	    >TxOutRef</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#builderPlaceHolderTxOutRef" class="link"
+	    >Source</a
+	    > <a href="#v:builderPlaceHolderTxOutRef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Default placeholder <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+		>TxOutRef</a
+		></code
+	      > used when none is specified.</p
+	    ></div
+	  ></div
+	><a href="#g:1" id="g:1"
+	><h1
+	  >Helpers</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:currencySymbolFromHex" class="def"
+	    >currencySymbolFromHex</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Value"
+	    >CurrencySymbol</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#currencySymbolFromHex" class="link"
+	    >Source</a
+	    > <a href="#v:currencySymbolFromHex" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a hex encoded Haskell <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		>String</a
+		></code
+	      > to a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Value"
+		>CurrencySymbol</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:singleCurrencySymbol" class="def"
+	    >singleCurrencySymbol</a
+	    > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Value"
+	    >CurrencySymbol</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#singleCurrencySymbol" class="link"
+	    >Source</a
+	    > <a href="#v:singleCurrencySymbol" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Extract the single currency symbol from a <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+		>Value</a
+		></code
+	      >. Errors if the value
+contains zero or more than one currency symbol. </p
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Eq:Eq:1"
+		  ></span
+		  > <a href="../plutus-tx/PlutusTx-Eq-Class.html#t:Eq" title="PlutusTx.Eq.Class"
+		  >Eq</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose" title="PlutusLedgerApi.V3.Contexts"
+		  >ScriptPurpose</a
+		  ></span
+		> <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Builder.html#line-110" class="link"
+		>Source</a
+		> <a href="#v:-36-fEqScriptPurpose" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Eq:Eq:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:-61--61-"
+		      >(==)</a
+		      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose" title="PlutusLedgerApi.V3.Contexts"
+		      >ScriptPurpose</a
+		      > &#8594; <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose" title="PlutusLedgerApi.V3.Contexts"
+		      >ScriptPurpose</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      > <a href="../../plutus-tx/src" class="link"
+		      >Source</a
+		      > <a href="#v:-61--61-" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

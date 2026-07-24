@@ -1,0 +1,497 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Plugin.Unsupported</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.66.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Plugin.Unsupported.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Plugin.Unsupported</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Module"
+	      >Module</a
+	      > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Class"
+	      >Class</a
+	      > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Method"
+	      >Method</a
+	      > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:UseThisInstead"
+	      >UseThisInstead</a
+	      > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Unsupported"
+	      >Unsupported</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:BaseMethod"
+		  >BaseMethod</a
+		  > <a href="PlutusTx-Plugin-Unsupported.html#t:Class" title="PlutusTx.Plugin.Unsupported"
+		  >Class</a
+		  > <a href="PlutusTx-Plugin-Unsupported.html#t:Method" title="PlutusTx.Plugin.Unsupported"
+		  >Method</a
+		  > <a href="PlutusTx-Plugin-Unsupported.html#t:UseThisInstead" title="PlutusTx.Plugin.Unsupported"
+		  >UseThisInstead</a
+		  ></li
+		><li
+		>| <a href="#v:IO"
+		  >IO</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:renderUnsupported"
+	      >renderUnsupported</a
+	      > &#8759; <a href="PlutusTx-Plugin-Unsupported.html#t:Unsupported" title="PlutusTx.Plugin.Unsupported"
+	      >Unsupported</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isUnsupported"
+	      >isUnsupported</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	      >HsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Plugin-Unsupported.html#t:Unsupported" title="PlutusTx.Plugin.Unsupported"
+	      >Unsupported</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkIO"
+	      >checkIO</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Plugin-Unsupported.html#t:Unsupported" title="PlutusTx.Plugin.Unsupported"
+	      >Unsupported</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkUnsupportedMethod"
+	      >checkUnsupportedMethod</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	      >HsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Plugin-Unsupported.html#t:Unsupported" title="PlutusTx.Plugin.Unsupported"
+	      >Unsupported</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:renderGhcName"
+	      >renderGhcName</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unsupportedBaseClasses"
+	      >unsupportedBaseClasses</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > (<a href="PlutusTx-Plugin-Unsupported.html#t:Module" title="PlutusTx.Plugin.Unsupported"
+	      >Module</a
+	      >, <a href="PlutusTx-Plugin-Unsupported.html#t:Class" title="PlutusTx.Plugin.Unsupported"
+	      >Class</a
+	      >) <a href="PlutusTx-Plugin-Unsupported.html#t:UseThisInstead" title="PlutusTx.Plugin.Unsupported"
+	      >UseThisInstead</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unsupportedMarkerModule"
+	      >unsupportedMarkerModule</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unsupportedMarkerName"
+	      >unsupportedMarkerName</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:injectUnsupportedMarkers"
+	      >injectUnsupportedMarkers</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	      >TcGblEnv</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcM" title="GHC.Tc.Types"
+	      >TcM</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	      >TcGblEnv</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:wrapUnsupported"
+	      >wrapUnsupported</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	      >Id</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	      >LHsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	      >LHsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Module" class="def"
+	    >Module</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#Module" class="link"
+	    >Source</a
+	    > <a href="#t:Module" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Class" class="def"
+	    >Class</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#Class" class="link"
+	    >Source</a
+	    > <a href="#t:Class" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Method" class="def"
+	    >Method</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#Method" class="link"
+	    >Source</a
+	    > <a href="#t:Method" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:UseThisInstead" class="def"
+	    >UseThisInstead</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#UseThisInstead" class="link"
+	    >Source</a
+	    > <a href="#t:UseThisInstead" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Unsupported" class="def"
+	    >Unsupported</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#Unsupported" class="link"
+	    >Source</a
+	    > <a href="#t:Unsupported" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BaseMethod" class="def"
+		  >BaseMethod</a
+		  > <a href="PlutusTx-Plugin-Unsupported.html#t:Class" title="PlutusTx.Plugin.Unsupported"
+		  >Class</a
+		  > <a href="PlutusTx-Plugin-Unsupported.html#t:Method" title="PlutusTx.Plugin.Unsupported"
+		  >Method</a
+		  > <a href="PlutusTx-Plugin-Unsupported.html#t:UseThisInstead" title="PlutusTx.Plugin.Unsupported"
+		  >UseThisInstead</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:IO" class="def"
+		  >IO</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renderUnsupported" class="def"
+	    >renderUnsupported</a
+	    > &#8759; <a href="PlutusTx-Plugin-Unsupported.html#t:Unsupported" title="PlutusTx.Plugin.Unsupported"
+	    >Unsupported</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#renderUnsupported" class="link"
+	    >Source</a
+	    > <a href="#v:renderUnsupported" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isUnsupported" class="def"
+	    >isUnsupported</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	    >HsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Plugin-Unsupported.html#t:Unsupported" title="PlutusTx.Plugin.Unsupported"
+	    >Unsupported</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#isUnsupported" class="link"
+	    >Source</a
+	    > <a href="#v:isUnsupported" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkIO" class="def"
+	    >checkIO</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Plugin-Unsupported.html#t:Unsupported" title="PlutusTx.Plugin.Unsupported"
+	    >Unsupported</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#checkIO" class="link"
+	    >Source</a
+	    > <a href="#v:checkIO" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if the type involves IO.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkUnsupportedMethod" class="def"
+	    >checkUnsupportedMethod</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	    >HsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Plugin-Unsupported.html#t:Unsupported" title="PlutusTx.Plugin.Unsupported"
+	    >Unsupported</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#checkUnsupportedMethod" class="link"
+	    >Source</a
+	    > <a href="#v:checkUnsupportedMethod" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check if an expr is a method of an unsupported <code
+	      >base</code
+	      > class.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renderGhcName" class="def"
+	    >renderGhcName</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#renderGhcName" class="link"
+	    >Source</a
+	    > <a href="#v:renderGhcName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsupportedBaseClasses" class="def"
+	    >unsupportedBaseClasses</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > (<a href="PlutusTx-Plugin-Unsupported.html#t:Module" title="PlutusTx.Plugin.Unsupported"
+	    >Module</a
+	    >, <a href="PlutusTx-Plugin-Unsupported.html#t:Class" title="PlutusTx.Plugin.Unsupported"
+	    >Class</a
+	    >) <a href="PlutusTx-Plugin-Unsupported.html#t:UseThisInstead" title="PlutusTx.Plugin.Unsupported"
+	    >UseThisInstead</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#unsupportedBaseClasses" class="link"
+	    >Source</a
+	    > <a href="#v:unsupportedBaseClasses" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsupportedMarkerModule" class="def"
+	    >unsupportedMarkerModule</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#unsupportedMarkerModule" class="link"
+	    >Source</a
+	    > <a href="#v:unsupportedMarkerModule" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsupportedMarkerName" class="def"
+	    >unsupportedMarkerName</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#unsupportedMarkerName" class="link"
+	    >Source</a
+	    > <a href="#v:unsupportedMarkerName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:injectUnsupportedMarkers" class="def"
+	    >injectUnsupportedMarkers</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	    >TcGblEnv</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcM" title="GHC.Tc.Types"
+	    >TcM</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	    >TcGblEnv</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#injectUnsupportedMarkers" class="link"
+	    >Source</a
+	    > <a href="#v:injectUnsupportedMarkers" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:wrapUnsupported" class="def"
+	    >wrapUnsupported</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	    >Id</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	    >LHsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	    >LHsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > <a href="src/PlutusTx.Plugin.Unsupported.html#wrapUnsupported" class="link"
+	    >Source</a
+	    > <a href="#v:wrapUnsupported" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

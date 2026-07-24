@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Function.Metric.Core</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Core metric definitions</a>
+<a id="133" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="207" class="Symbol">{-#</a> <a id="211" class="Keyword">OPTIONS</a> <a id="219" class="Pragma">--cubical-compatible</a> <a id="240" class="Pragma">--safe</a> <a id="247" class="Symbol">#-}</a>
+
+<a id="252" class="Keyword">module</a> <a id="259" href="Function.Metric.Core.html" class="Module">Function.Metric.Core</a> <a id="280" class="Keyword">where</a>
+
+<a id="287" class="Keyword">open</a> <a id="292" class="Keyword">import</a> <a id="299" href="Level.html" class="Module">Level</a> <a id="305" class="Keyword">using</a> <a id="311" class="Symbol">(</a><a id="312" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="317" class="Symbol">)</a>
+<a id="319" class="Keyword">private</a>
+  <a id="329" class="Keyword">variable</a>
+    <a id="342" href="Function.Metric.Core.html#342" class="Generalizable">a</a> <a id="344" href="Function.Metric.Core.html#344" class="Generalizable">i</a> <a id="346" class="Symbol">:</a> <a id="348" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+
+<a id="355" class="Comment">------------------------------------------------------------------------</a>
+<a id="428" class="Comment">-- Distance functions</a>
+
+<a id="DistanceFunction"></a><a id="451" href="Function.Metric.Core.html#451" class="Function">DistanceFunction</a> <a id="468" class="Symbol">:</a> <a id="470" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="474" href="Function.Metric.Core.html#342" class="Generalizable">a</a> <a id="476" class="Symbol">→</a> <a id="478" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="482" href="Function.Metric.Core.html#344" class="Generalizable">i</a> <a id="484" class="Symbol">→</a> <a id="486" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="490" class="Symbol">_</a>
+<a id="492" href="Function.Metric.Core.html#451" class="Function">DistanceFunction</a> <a id="509" href="Function.Metric.Core.html#509" class="Bound">A</a> <a id="511" href="Function.Metric.Core.html#511" class="Bound">I</a> <a id="513" class="Symbol">=</a> <a id="515" href="Function.Metric.Core.html#509" class="Bound">A</a> <a id="517" class="Symbol">→</a> <a id="519" href="Function.Metric.Core.html#509" class="Bound">A</a> <a id="521" class="Symbol">→</a> <a id="523" href="Function.Metric.Core.html#511" class="Bound">I</a>
+</pre></body></html>

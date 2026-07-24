@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.List</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Lists</a>
+<a id="115" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="189" class="Comment">-- See README.Data.List for examples of how to use and reason about</a>
+<a id="257" class="Comment">-- lists.</a>
+
+<a id="268" class="Symbol">{-#</a> <a id="272" class="Keyword">OPTIONS</a> <a id="280" class="Pragma">--cubical-compatible</a> <a id="301" class="Pragma">--safe</a> <a id="308" class="Symbol">#-}</a>
+<a id="312" class="Symbol">{-#</a> <a id="316" class="Keyword">OPTIONS</a> <a id="324" class="Pragma">--warning=noUserWarning</a> <a id="348" class="Symbol">#-}</a> <a id="352" class="Comment">-- for deprecated scans</a>
+
+<a id="377" class="Keyword">module</a> <a id="384" href="Data.List.html" class="Module">Data.List</a> <a id="394" class="Keyword">where</a>
+
+<a id="401" class="Comment">------------------------------------------------------------------------</a>
+<a id="474" class="Comment">-- Types and basic operations</a>
+
+<a id="505" class="Keyword">open</a> <a id="510" class="Keyword">import</a> <a id="517" href="Data.List.Base.html" class="Module">Data.List.Base</a> <a id="532" class="Keyword">public</a>
+  <a id="541" class="Keyword">hiding</a> <a id="548" class="Symbol">(</a><a id="549" href="Data.List.Base.html#16075" class="Function">scanr</a><a id="554" class="Symbol">;</a> <a id="556" href="Data.List.Base.html#16384" class="Function">scanl</a><a id="561" class="Symbol">)</a>
+<a id="563" class="Keyword">open</a> <a id="568" class="Keyword">import</a> <a id="575" href="Data.List.Scans.Base.html" class="Module">Data.List.Scans.Base</a> <a id="596" class="Keyword">public</a>
+  <a id="605" class="Keyword">using</a> <a id="611" class="Symbol">(</a><a id="612" href="Data.List.Scans.Base.html#818" class="Function">scanr</a><a id="617" class="Symbol">;</a> <a id="619" href="Data.List.Scans.Base.html#1105" class="Function">scanl</a><a id="624" class="Symbol">)</a>
+</pre></body></html>

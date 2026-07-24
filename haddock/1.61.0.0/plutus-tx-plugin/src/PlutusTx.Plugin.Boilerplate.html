@@ -1,0 +1,1077 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Insert necessary or recommended GHC flags and extensions via a driver plugin.
+See https://plutus.cardano.intersectmbo.org/docs/using-plinth/extensions-flags-pragmas -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Plugin.Boilerplate</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html"
+	><span class="hs-identifier"
+	  >GHC.Driver.Flags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-boot-9.6.7/docs/src/GHC.LanguageExtensions.html"
+	><span class="hs-identifier"
+	  >GHC.LanguageExtensions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Plugins.html"
+	><span class="hs-identifier"
+	  >GHC.Plugins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Unfortunately, it seems like the `Strict` extension set by the driver plugin cannot be
+unset via @LANGUAGE NoStrict@. So we add a plugin flag to allow users to do so. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#optNoStrict"
+	><span class="hs-identifier hs-type"
+	  >optNoStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span id="optNoStrict"
+      ><span class="annot"
+	><span class="annottext"
+	  >optNoStrict :: CommandLineOption
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#optNoStrict"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >optNoStrict</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption
+</span
+	><span class="hs-string"
+	>&quot;no-strict&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#boilerplateOpts"
+	><span class="hs-identifier hs-type"
+	  >boilerplateOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span id="boilerplateOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >boilerplateOpts :: [CommandLineOption]
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#boilerplateOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >boilerplateOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#optNoStrict"
+	><span class="hs-identifier hs-var"
+	  >optNoStrict</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#removeBoilerplateOpts"
+	><span class="hs-identifier hs-type"
+	  >removeBoilerplateOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="removeBoilerplateOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >removeBoilerplateOpts :: [CommandLineOption] -&gt; [CommandLineOption]
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#removeBoilerplateOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >removeBoilerplateOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CommandLineOption -&gt; Bool)
+-&gt; [CommandLineOption] -&gt; [CommandLineOption]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#filter"
+	><span class="hs-identifier hs-var"
+	  >filter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption -&gt; [CommandLineOption] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#notElem"
+	><span class="hs-operator hs-var"
+	  >`notElem`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CommandLineOption]
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#boilerplateOpts"
+	><span class="hs-identifier hs-var"
+	  >boilerplateOpts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#addFlagsAndExts"
+	><span class="hs-identifier hs-type"
+	  >addFlagsAndExts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Env.Types.html#HscEnv"
+	><span class="hs-identifier hs-type"
+	  >GHC.HscEnv</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	><span class="hs-identifier hs-type"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Env.Types.html#HscEnv"
+	><span class="hs-identifier hs-type"
+	  >GHC.HscEnv</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span id="addFlagsAndExts"
+      ><span class="annot"
+	><span class="annottext"
+	  >addFlagsAndExts :: [CommandLineOption] -&gt; HscEnv -&gt; IO HscEnv
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#addFlagsAndExts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addFlagsAndExts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679593544"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CommandLineOption]
+</span
+	  ><a href="#local-6989586621679593544"
+	  ><span class="hs-identifier hs-var"
+	    >opts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679593545"
+      ><span class="annot"
+	><span class="annottext"
+	  >HscEnv
+</span
+	  ><a href="#local-6989586621679593545"
+	  ><span class="hs-identifier hs-var"
+	    >env</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv -&gt; IO HscEnv
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv
+</span
+	><a href="#local-6989586621679593545"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Env.Types.html#hsc_dflags"
+	><span class="hs-identifier hs-var"
+	  >GHC.hsc_dflags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679593547"
+	><span class="hs-identifier hs-type"
+	  >dflags</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679593547"
+      ><span class="annot"
+	><span class="annottext"
+	  >dflags :: DynFlags
+</span
+	  ><a href="#local-6989586621679593547"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dflags</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; DynFlags
+</span
+	><a href="#local-6989586621679593548"
+	><span class="hs-identifier hs-var"
+	  >setStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DynFlags -&gt; DynFlags)
+-&gt; (DynFlags -&gt; DynFlags) -&gt; DynFlags -&gt; DynFlags
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; DynFlags
+</span
+	><a href="#local-6989586621679593550"
+	><span class="hs-identifier hs-var"
+	  >unsetFlags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DynFlags -&gt; DynFlags) -&gt; DynFlags -&gt; DynFlags
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv -&gt; DynFlags
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Env.Types.html#hsc_dflags"
+	><span class="hs-identifier hs-var"
+	  >GHC.hsc_dflags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv
+</span
+	><a href="#local-6989586621679593545"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679593550"
+	><span class="hs-identifier hs-type"
+	  >unsetFlags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#DynFlags"
+	><span class="hs-identifier hs-type"
+	  >GHC.DynFlags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#DynFlags"
+	><span class="hs-identifier hs-type"
+	  >GHC.DynFlags</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679593550"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsetFlags :: DynFlags -&gt; DynFlags
+</span
+	  ><a href="#local-6989586621679593550"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsetFlags</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DynFlags -&gt; [GeneralFlag] -&gt; DynFlags)
+-&gt; [GeneralFlag] -&gt; DynFlags -&gt; DynFlags
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DynFlags -&gt; GeneralFlag -&gt; DynFlags)
+-&gt; DynFlags -&gt; [GeneralFlag] -&gt; DynFlags
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldl"
+	><span class="hs-identifier hs-var"
+	  >foldl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; GeneralFlag -&gt; DynFlags
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#gopt_unset"
+	><span class="hs-identifier hs-var"
+	  >GHC.gopt_unset</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_IgnoreInterfacePragmas"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_IgnoreInterfacePragmas</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_OmitInterfacePragmas"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_OmitInterfacePragmas</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_FullLaziness"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_FullLaziness</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_SpecConstr"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_SpecConstr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_Specialise"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_Specialise</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_Strictness"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_Strictness</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_UnboxStrictFields"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_UnboxStrictFields</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_UnboxSmallStrictFields"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_UnboxSmallStrictFields</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679593548"
+	><span class="hs-identifier hs-type"
+	  >setStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#DynFlags"
+	><span class="hs-identifier hs-type"
+	  >GHC.DynFlags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#DynFlags"
+	><span class="hs-identifier hs-type"
+	  >GHC.DynFlags</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679593548"
+      ><span class="annot"
+	><span class="annottext"
+	  >setStrict :: DynFlags -&gt; DynFlags
+</span
+	  ><a href="#local-6989586621679593548"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setStrict</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#optNoStrict"
+	><span class="hs-identifier hs-var"
+	  >optNoStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption -&gt; [CommandLineOption] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#elem"
+	><span class="hs-operator hs-var"
+	  >`elem`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CommandLineOption]
+</span
+	><a href="#local-6989586621679593544"
+	><span class="hs-identifier hs-var"
+	  >opts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; DynFlags
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; Extension -&gt; DynFlags
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#xopt_set"
+	><span class="hs-operator hs-var"
+	  >`GHC.xopt_set`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extension
+</span
+	><a href="https://hackage.haskell.org/package/ghc-boot-th-9.6.7/docs/src/GHC.LanguageExtensions.Type.html#Strict"
+	><span class="hs-identifier hs-var"
+	  >GHC.Strict</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

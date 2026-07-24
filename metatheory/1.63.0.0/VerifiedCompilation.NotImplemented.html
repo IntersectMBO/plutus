@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>NotImplemented</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>NotImplemented</h1>
+    <section>
+      <p>A placeholder relation for unspecified compiler passes.</p>
+
+<pre class="Agda"><a id="106" class="Keyword">module</a> <a id="113" href="VerifiedCompilation.NotImplemented.html" class="Module">VerifiedCompilation.NotImplemented</a> <a id="148" class="Keyword">where</a>
+
+<a id="155" class="Keyword">open</a> <a id="160" class="Keyword">import</a> <a id="167" href="Untyped.html" class="Module">Untyped</a>
+<a id="175" class="Keyword">open</a> <a id="180" class="Keyword">import</a> <a id="187" href="VerifiedCompilation.Certificate.html" class="Module">VerifiedCompilation.Certificate</a>
+<a id="219" class="Keyword">import</a> <a id="226" href="Data.Nat.html" class="Module">Data.Nat</a> <a id="235" class="Keyword">using</a> <a id="241" class="Symbol">(</a><a id="242" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a><a id="243" class="Symbol">)</a>
+</pre>
+<p><code class="language-plaintext highlighter-rouge">Policy</code> determines whether the certifier should succeed or fail when certifying
+this relation.</p>
+
+<pre class="Agda"><a id="351" class="Keyword">data</a> <a id="Policy"></a><a id="356" href="VerifiedCompilation.NotImplemented.html#356" class="Datatype">Policy</a> <a id="363" class="Symbol">:</a> <a id="365" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="369" class="Keyword">where</a>
+  <a id="Policy.accept"></a><a id="377" href="VerifiedCompilation.NotImplemented.html#377" class="InductiveConstructor">accept</a> <a id="384" class="Symbol">:</a> <a id="386" href="VerifiedCompilation.NotImplemented.html#356" class="Datatype">Policy</a>
+  <a id="Policy.reject"></a><a id="395" href="VerifiedCompilation.NotImplemented.html#395" class="InductiveConstructor">reject</a> <a id="402" class="Symbol">:</a> <a id="404" href="VerifiedCompilation.NotImplemented.html#356" class="Datatype">Policy</a>
+</pre>
+<p><code class="language-plaintext highlighter-rouge">NotImplemented reject</code> is an empty type, whereas <code class="language-plaintext highlighter-rouge">NotImplemented accept</code> has a
+trivial inhabitant.</p>
+
+<pre class="Agda"><a id="521" class="Keyword">data</a> <a id="NotImplemented"></a><a id="526" href="VerifiedCompilation.NotImplemented.html#526" class="Datatype">NotImplemented</a> <a id="541" class="Symbol">{</a><a id="542" href="VerifiedCompilation.NotImplemented.html#542" class="Bound">X</a><a id="543" class="Symbol">}</a> <a id="545" class="Symbol">:</a> <a id="547" href="VerifiedCompilation.NotImplemented.html#356" class="Datatype">Policy</a> <a id="554" class="Symbol">→</a> <a id="556" class="Symbol">(</a><a id="557" href="VerifiedCompilation.NotImplemented.html#542" class="Bound">X</a> <a id="559" href="Untyped.html#1784" class="Datatype Operator">⊢</a><a id="560" class="Symbol">)</a> <a id="562" class="Symbol">→</a> <a id="564" class="Symbol">(</a><a id="565" href="VerifiedCompilation.NotImplemented.html#542" class="Bound">X</a> <a id="567" href="Untyped.html#1784" class="Datatype Operator">⊢</a><a id="568" class="Symbol">)</a> <a id="570" class="Symbol">→</a> <a id="572" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="576" class="Keyword">where</a>
+  <a id="NotImplemented.notImplemented"></a><a id="584" href="VerifiedCompilation.NotImplemented.html#584" class="InductiveConstructor">notImplemented</a> <a id="599" class="Symbol">:</a> <a id="601" class="Symbol">∀</a> <a id="603" class="Symbol">{</a><a id="604" href="VerifiedCompilation.NotImplemented.html#604" class="Bound">M</a> <a id="606" href="VerifiedCompilation.NotImplemented.html#606" class="Bound">N</a><a id="607" class="Symbol">}</a> <a id="609" class="Symbol">→</a> <a id="611" href="VerifiedCompilation.NotImplemented.html#526" class="Datatype">NotImplemented</a> <a id="626" href="VerifiedCompilation.NotImplemented.html#377" class="InductiveConstructor">accept</a> <a id="633" href="VerifiedCompilation.NotImplemented.html#604" class="Bound">M</a> <a id="635" href="VerifiedCompilation.NotImplemented.html#606" class="Bound">N</a>
+
+<a id="certNotImplemented"></a><a id="638" href="VerifiedCompilation.NotImplemented.html#638" class="Function">certNotImplemented</a> <a id="657" class="Symbol">:</a> <a id="659" href="VerifiedCompilation.Certificate.html#3763" class="Function">Certifiable</a> <a id="671" class="Symbol">(</a><a id="672" href="VerifiedCompilation.NotImplemented.html#526" class="Datatype">NotImplemented</a> <a id="687" class="Symbol">{</a><a id="688" class="Number">0</a><a id="689" class="Symbol">}</a> <a id="691" href="VerifiedCompilation.NotImplemented.html#377" class="InductiveConstructor">accept</a><a id="697" class="Symbol">)</a>
+<a id="699" href="VerifiedCompilation.NotImplemented.html#638" class="Function">certNotImplemented</a> <a id="718" class="Symbol">_</a> <a id="720" class="Symbol">_</a> <a id="722" class="Symbol">=</a> <a id="724" href="VerifiedCompilation.Certificate.html#2576" class="InductiveConstructor">proof</a> <a id="730" href="VerifiedCompilation.NotImplemented.html#584" class="InductiveConstructor">notImplemented</a>
+</pre>
+
+    </section>
+  </body>
+</html>

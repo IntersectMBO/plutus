@@ -1,0 +1,765 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusConformance.Common</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-conformance-1.0.0.0: Conformance Test Suite for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusConformance.Common.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusConformance.Common</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Plutus conformance test suite library.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:shownParseError"
+	      >shownParseError</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:shownEvaluationFailure"
+	      >shownEvaluationFailure</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:parseTxt"
+	      >parseTxt</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="../plutus-core/PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	      >ParserErrorBundle</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:UplcProg"
+	      >UplcProg</a
+	      > = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:UplcEvaluatorFun"
+	      >UplcEvaluatorFun</a
+	      > res = <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+	      >UplcProg</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > res</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:UplcEvaluator"
+	      >UplcEvaluator</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:UplcEvaluatorWithoutCosting"
+		  >UplcEvaluatorWithoutCosting</a
+		  > (<a href="PlutusConformance-Common.html#t:UplcEvaluatorFun" title="PlutusConformance.Common"
+		  >UplcEvaluatorFun</a
+		  > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+		  >UplcProg</a
+		  >)</li
+		><li
+		>| <a href="#v:UplcEvaluatorWithCosting"
+		  >UplcEvaluatorWithCosting</a
+		  > (<a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+		  >CostModelParams</a
+		  > &#8594; <a href="PlutusConformance-Common.html#t:UplcEvaluatorFun" title="PlutusConformance.Common"
+		  >UplcEvaluatorFun</a
+		  > (<a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+		  >UplcProg</a
+		  >, <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  >))</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:discoverTests"
+	      >discoverTests</a
+	      > &#8759; <a href="PlutusConformance-Common.html#t:UplcEvaluator" title="PlutusConformance.Common"
+	      >UplcEvaluator</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+	      >CostModelParams</a
+	      > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:expectedToProg"
+	      >expectedToProg</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+	      >UplcProg</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getTestedValue"
+	      >getTestedValue</a
+	      > &#8759; <a href="PlutusConformance-Common.html#t:UplcEvaluatorFun" title="PlutusConformance.Common"
+	      >UplcEvaluatorFun</a
+	      > res &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > res)</li
+	    ><li class="src short"
+	    ><a href="#v:compareAlphaEq"
+	      >compareAlphaEq</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+	      >UplcProg</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+	      >UplcProg</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:updateGoldenFile"
+	      >updateGoldenFile</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+	      >UplcProg</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:runUplcEvalTests"
+	      >runUplcEvalTests</a
+	      > &#8759; <a href="PlutusConformance-Common.html#t:UplcEvaluator" title="PlutusConformance.Common"
+	      >UplcEvaluator</a
+	      > &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shownParseError" class="def"
+	    >shownParseError</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusConformance.Common.html#shownParseError" class="link"
+	    >Source</a
+	    > <a href="#v:shownParseError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The default shown text when a parse error occurs.
+We don't want to show the detailed parse errors so that
+users of the test suite can produce the expected output more easily. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shownEvaluationFailure" class="def"
+	    >shownEvaluationFailure</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusConformance.Common.html#shownEvaluationFailure" class="link"
+	    >Source</a
+	    > <a href="#v:shownEvaluationFailure" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The default shown text when evaluation fails.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:parseTxt" class="def"
+	    >parseTxt</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="../plutus-core/PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	    >ParserErrorBundle</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >) <a href="src/PlutusConformance.Common.html#parseTxt" class="link"
+	    >Source</a
+	    > <a href="#v:parseTxt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The default parser to parse UPLC program inputs.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:UplcProg" class="def"
+	    >UplcProg</a
+	    > = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/PlutusConformance.Common.html#UplcProg" class="link"
+	    >Source</a
+	    > <a href="#t:UplcProg" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The input/output UPLC program type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:UplcEvaluatorFun" class="def"
+	    >UplcEvaluatorFun</a
+	    > res = <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+	    >UplcProg</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > res <a href="src/PlutusConformance.Common.html#UplcEvaluatorFun" class="link"
+	    >Source</a
+	    > <a href="#t:UplcEvaluatorFun" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:UplcEvaluator" class="def"
+	    >UplcEvaluator</a
+	    > <a href="src/PlutusConformance.Common.html#UplcEvaluator" class="link"
+	    >Source</a
+	    > <a href="#t:UplcEvaluator" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The evaluator to be tested.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:UplcEvaluatorWithoutCosting" class="def"
+		  >UplcEvaluatorWithoutCosting</a
+		  > (<a href="PlutusConformance-Common.html#t:UplcEvaluatorFun" title="PlutusConformance.Common"
+		  >UplcEvaluatorFun</a
+		  > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+		  >UplcProg</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >An evaluator that just produces an output program, or fails.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UplcEvaluatorWithCosting" class="def"
+		  >UplcEvaluatorWithCosting</a
+		  > (<a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+		  >CostModelParams</a
+		  > &#8594; <a href="PlutusConformance-Common.html#t:UplcEvaluatorFun" title="PlutusConformance.Common"
+		  >UplcEvaluatorFun</a
+		  > (<a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+		  >UplcProg</a
+		  >, <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  >))</td
+		><td class="doc"
+		><p
+		  >An evaluator that produces an output program along with the cost of
+    evaluating it, or fails. Note that nothing cares about the cost of failing
+    programs, so we don't test for conformance there. </p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:discoverTests" class="def"
+	    >discoverTests</a
+	    > <a href="src/PlutusConformance.Common.html#discoverTests" class="link"
+	    >Source</a
+	    > <a href="#v:discoverTests" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusConformance-Common.html#t:UplcEvaluator" title="PlutusConformance.Common"
+		  >UplcEvaluator</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The evaluator to be tested.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html#t:CostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+		  >CostModelParams</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >A function that takes a test directory and returns a Bool indicating
+  whether the evaluation test for the file in that directory is expected to
+  fail. </p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >A function that takes a test directory and returns a Bool indicating
+  whether the budget test for the file in that directory is expected to fail. </p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The directory to search for tests.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		  >IO</a
+		  > <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+		  >TestTree</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Walk a file tree, making test groups for directories with subdirectories,
+   and test cases for directories without.  We expect every test directory to
+   contain a single `.uplc` file whose name matches that of the directory. For
+   example, the directory `modInteger-15` should contain `modInteger-15.uplc`,
+   and that file should contain a textual UPLC program.  The directory should
+   also contain golden files `modInteger-15.uplc.expected`, containing the
+   expected output of the program, and `modInteger-15.uplc.budget.expected`,
+   containing the expected execution budget, although these will be created by
+   the testing machinery if they aren't already present. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:expectedToProg" class="def"
+	    >expectedToProg</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+	    >UplcProg</a
+	    > <a href="src/PlutusConformance.Common.html#expectedToProg" class="link"
+	    >Source</a
+	    > <a href="#v:expectedToProg" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Turn the expected file content in text to a <code
+	      ><a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+		>UplcProg</a
+		></code
+	      > unless the expected
+result is a parse or evaluation error. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getTestedValue" class="def"
+	    >getTestedValue</a
+	    > &#8759; <a href="PlutusConformance-Common.html#t:UplcEvaluatorFun" title="PlutusConformance.Common"
+	    >UplcEvaluatorFun</a
+	    > res &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > res) <a href="src/PlutusConformance.Common.html#getTestedValue" class="link"
+	    >Source</a
+	    > <a href="#v:getTestedValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the tested value from a file (in this case a textual UPLC source
+file). The tested value is either the shown parse error or evaluation error,
+or a <code
+	      ><a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+		>UplcProg</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compareAlphaEq" class="def"
+	    >compareAlphaEq</a
+	    > <a href="src/PlutusConformance.Common.html#compareAlphaEq" class="link"
+	    >Source</a
+	    > <a href="#v:compareAlphaEq" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+		  >UplcProg</a
+		  ></td
+		><td class="doc"
+		><p
+		  >golden value</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+		  >UplcProg</a
+		  ></td
+		><td class="doc"
+		><p
+		  >tested value</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >If two values are the same, it returns <code
+		    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+		      >Nothing</a
+		      ></code
+		    >.
+  If they are different, it returns an error that will be printed to the user. </p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >The comparison function used for the golden test.
+This function checks alpha-equivalence of programs when the output is a program. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:updateGoldenFile" class="def"
+	    >updateGoldenFile</a
+	    > <a href="src/PlutusConformance.Common.html#updateGoldenFile" class="link"
+	    >Source</a
+	    > <a href="#v:updateGoldenFile" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the path to write the golden file to</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  > <a href="PlutusConformance-Common.html#t:UplcProg" title="PlutusConformance.Common"
+		  >UplcProg</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		  >IO</a
+		  > ()</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Update the golden file with the tested value.
+TODO abstract out for other tests. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runUplcEvalTests" class="def"
+	    >runUplcEvalTests</a
+	    > <a href="src/PlutusConformance.Common.html#runUplcEvalTests" class="link"
+	    >Source</a
+	    > <a href="#v:runUplcEvalTests" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="PlutusConformance-Common.html#t:UplcEvaluator" title="PlutusConformance.Common"
+		  >UplcEvaluator</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The action to run the input through for the tests.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >A function that takes a test name and returns
+  whether it should labelled as <code
+		    >ExpectedFailure</code
+		    >. </p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+		  >FilePath</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >A function that takes a test name and returns
+  whether it should labelled as <code
+		    >ExpectedBudgetFailure</code
+		    >. </p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		  >IO</a
+		  > ()</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Run the UPLC evaluation tests given an <code
+	      >evaluator</code
+	      > that evaluates UPLC
+programs. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

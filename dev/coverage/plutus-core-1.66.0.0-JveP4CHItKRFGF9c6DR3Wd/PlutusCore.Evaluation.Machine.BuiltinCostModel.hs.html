@@ -1,0 +1,271 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    4 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    5 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    6 </span>{-# LANGUAGE StrictData #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    8 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    9 </span>-- So that we don't spend a lot of time optimizing loads of Core whose performance doesn't matter.
+<span class="lineno">   10 </span>{-# OPTIONS_GHC -O0 #-}
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>module PlutusCore.Evaluation.Machine.BuiltinCostModel
+<span class="lineno">   13 </span>  ( BuiltinCostModel
+<span class="lineno">   14 </span>  , BuiltinCostModelBase (..)
+<span class="lineno">   15 </span>  , CostingFun (..)
+<span class="lineno">   16 </span>  , UnimplementedCostingFun (..)
+<span class="lineno">   17 </span>  , Intercept (..)
+<span class="lineno">   18 </span>  , Slope (..)
+<span class="lineno">   19 </span>  , Coefficient0 (..)
+<span class="lineno">   20 </span>  , Coefficient1 (..)
+<span class="lineno">   21 </span>  , Coefficient2 (..)
+<span class="lineno">   22 </span>  , Coefficient00 (..)
+<span class="lineno">   23 </span>  , Coefficient10 (..)
+<span class="lineno">   24 </span>  , Coefficient01 (..)
+<span class="lineno">   25 </span>  , Coefficient20 (..)
+<span class="lineno">   26 </span>  , Coefficient11 (..)
+<span class="lineno">   27 </span>  , Coefficient02 (..)
+<span class="lineno">   28 </span>  , Coefficient12 (..)
+<span class="lineno">   29 </span>  , OneVariableLinearFunction (..)
+<span class="lineno">   30 </span>  , OneVariableQuadraticFunction (..)
+<span class="lineno">   31 </span>  , TwoVariableLinearFunction (..)
+<span class="lineno">   32 </span>  , TwoVariableQuadraticFunction (..)
+<span class="lineno">   33 </span>  , TwoVariableWithInteractionFunction (..)
+<span class="lineno">   34 </span>  , ExpModCostingFunction (..)
+<span class="lineno">   35 </span>  , ModelSubtractedSizes (..)
+<span class="lineno">   36 </span>  , ModelConstantOrOneArgument (..)
+<span class="lineno">   37 </span>  , ModelConstantOrTwoArguments (..)
+<span class="lineno">   38 </span>  , ModelConstantOrLinear (..) -- Deprecated: see Note [Backward compatibility for costing functions]
+<span class="lineno">   39 </span>  , ModelOneArgument (..)
+<span class="lineno">   40 </span>  , ModelTwoArguments (..)
+<span class="lineno">   41 </span>  , ModelThreeArguments (..)
+<span class="lineno">   42 </span>  , ModelFourArguments (..)
+<span class="lineno">   43 </span>  , ModelFiveArguments (..)
+<span class="lineno">   44 </span>  , ModelSixArguments (..)
+<span class="lineno">   45 </span>  , runCostingFunOneArgument
+<span class="lineno">   46 </span>  , runCostingFunTwoArguments
+<span class="lineno">   47 </span>  , runCostingFunThreeArguments
+<span class="lineno">   48 </span>  , runCostingFunFourArguments
+<span class="lineno">   49 </span>  , runCostingFunFiveArguments
+<span class="lineno">   50 </span>  , runCostingFunSixArguments
+<span class="lineno">   51 </span>  , Hashable
+<span class="lineno">   52 </span>  , MCostingFun (..)
+<span class="lineno">   53 </span>  )
+<span class="lineno">   54 </span>where
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>import PlutusPrelude hiding (toList)
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>import PlutusCore.Evaluation.Machine.CostingFun.Core
+<span class="lineno">   59 </span>import PlutusCore.Evaluation.Machine.CostingFun.JSON ()
+<span class="lineno">   60 </span>import PlutusCore.Evaluation.Machine.ExBudget
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>import Barbies
+<span class="lineno">   63 </span>import Data.Aeson
+<span class="lineno">   64 </span>import Data.Kind qualified as Kind
+<span class="lineno">   65 </span>import Data.Monoid
+<span class="lineno">   66 </span>import Deriving.Aeson
+<span class="lineno">   67 </span>import Language.Haskell.TH.Syntax hiding (Name, newName)
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>type BuiltinCostModel = BuiltinCostModelBase CostingFun
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>-- See  Note [Budgeting units] in ExBudgeting.hs
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>-- If the types here change there may be difficulties compiling this file
+<span class="lineno">   74 </span>-- because it doesn't match builtinCostModel.json (which is parsed during
+<span class="lineno">   75 </span>-- compilation).  In that case, manually change the JSON to match or do what it
+<span class="lineno">   76 </span>-- says in Note [Modifying the cost model] in ExBudgetingDefaults.hs.
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>{-| The main model which contains all data required to predict the cost of
+<span class="lineno">   79 </span>builtin functions. See 'CostModelGeneration.md' for how this is
+<span class="lineno">   80 </span>generated. Calibrated for the CEK machine. -}
+<span class="lineno">   81 </span>data BuiltinCostModelBase f
+<span class="lineno">   82 </span>  = BuiltinCostModelBase
+<span class="lineno">   83 </span>  { -- Integers
+<span class="lineno">   84 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramAddInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   85 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramSubtractInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   86 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramMultiplyInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   87 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramDivideInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   88 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramQuotientInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   89 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramRemainderInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   90 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramModInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   91 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramEqualsInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   92 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramLessThanInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   93 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramLessThanEqualsInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   94 </span>  , -- Bytestrings
+<span class="lineno">   95 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramAppendByteString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   96 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramConsByteString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">   97 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramSliceByteString</span></span></span> :: f ModelThreeArguments
+<span class="lineno">   98 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramLengthOfByteString</span></span></span> :: f ModelOneArgument
+<span class="lineno">   99 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramIndexByteString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  100 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramEqualsByteString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  101 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramLessThanByteString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  102 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramLessThanEqualsByteString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  103 </span>  , -- Cryptography and hashes
+<span class="lineno">  104 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramSha2_256</span></span></span> :: f ModelOneArgument
+<span class="lineno">  105 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramSha3_256</span></span></span> :: f ModelOneArgument
+<span class="lineno">  106 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBlake2b_256</span></span></span> :: f ModelOneArgument
+<span class="lineno">  107 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramVerifyEd25519Signature</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  108 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramVerifyEcdsaSecp256k1Signature</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  109 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramVerifySchnorrSecp256k1Signature</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  110 </span>  , -- Strings
+<span class="lineno">  111 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramAppendString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  112 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramEqualsString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  113 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramEncodeUtf8</span></span></span> :: f ModelOneArgument
+<span class="lineno">  114 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramDecodeUtf8</span></span></span> :: f ModelOneArgument
+<span class="lineno">  115 </span>  , -- Bool
+<span class="lineno">  116 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramIfThenElse</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  117 </span>  , -- Unit
+<span class="lineno">  118 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramChooseUnit</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  119 </span>  , -- Tracing
+<span class="lineno">  120 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramTrace</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  121 </span>  , -- Pairs
+<span class="lineno">  122 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramFstPair</span></span></span> :: f ModelOneArgument
+<span class="lineno">  123 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramSndPair</span></span></span> :: f ModelOneArgument
+<span class="lineno">  124 </span>  , -- Lists
+<span class="lineno">  125 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramChooseList</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  126 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramMkCons</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  127 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramHeadList</span></span></span> :: f ModelOneArgument
+<span class="lineno">  128 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramTailList</span></span></span> :: f ModelOneArgument
+<span class="lineno">  129 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramNullList</span></span></span> :: f ModelOneArgument
+<span class="lineno">  130 </span>  , -- Data
+<span class="lineno">  131 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramChooseData</span></span></span> :: f ModelSixArguments
+<span class="lineno">  132 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramConstrData</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  133 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramMapData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  134 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramListData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  135 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramIData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  136 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  137 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramUnConstrData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  138 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramUnMapData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  139 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramUnListData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  140 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramUnIData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  141 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramUnBData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  142 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramEqualsData</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  143 </span>  , -- Misc constructors
+<span class="lineno">  144 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramMkPairData</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  145 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramMkNilData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  146 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramMkNilPairData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  147 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramSerialiseData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  148 </span>  , -- BLS12-381
+<span class="lineno">  149 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G1_add</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  150 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G1_neg</span></span></span> :: f ModelOneArgument
+<span class="lineno">  151 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G1_scalarMul</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  152 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G1_multiScalarMul</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  153 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G1_equal</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  154 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G1_compress</span></span></span> :: f ModelOneArgument
+<span class="lineno">  155 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G1_uncompress</span></span></span> :: f ModelOneArgument
+<span class="lineno">  156 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G1_hashToGroup</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  157 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G2_add</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  158 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G2_neg</span></span></span> :: f ModelOneArgument
+<span class="lineno">  159 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G2_scalarMul</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  160 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G2_equal</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  161 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G2_multiScalarMul</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  162 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G2_compress</span></span></span> :: f ModelOneArgument
+<span class="lineno">  163 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G2_uncompress</span></span></span> :: f ModelOneArgument
+<span class="lineno">  164 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_G2_hashToGroup</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  165 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_millerLoop</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  166 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_mulMlResult</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  167 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBls12_381_finalVerify</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  168 </span>  , -- Keccak_256, Blake2b_224
+<span class="lineno">  169 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramKeccak_256</span></span></span> :: f ModelOneArgument
+<span class="lineno">  170 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramBlake2b_224</span></span></span> :: f ModelOneArgument
+<span class="lineno">  171 </span>  , -- Bitwise operations
+<span class="lineno">  172 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramIntegerToByteString</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  173 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramByteStringToInteger</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  174 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramAndByteString</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  175 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramOrByteString</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  176 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramXorByteString</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  177 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramComplementByteString</span></span></span> :: f ModelOneArgument
+<span class="lineno">  178 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramReadBit</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  179 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramWriteBits</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  180 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramReplicateByte</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  181 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramShiftByteString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  182 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramRotateByteString</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  183 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramCountSetBits</span></span></span> :: f ModelOneArgument
+<span class="lineno">  184 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramFindFirstSetBit</span></span></span> :: f ModelOneArgument
+<span class="lineno">  185 </span>  , -- Ripemd_160
+<span class="lineno">  186 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramRipemd_160</span></span></span> :: f ModelOneArgument
+<span class="lineno">  187 </span>  , -- Batch 6
+<span class="lineno">  188 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramExpModInteger</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  189 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramDropList</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  190 </span>  , -- Arrays
+<span class="lineno">  191 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramLengthOfArray</span></span></span> :: f ModelOneArgument
+<span class="lineno">  192 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramListToArray</span></span></span> :: f ModelOneArgument
+<span class="lineno">  193 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramIndexArray</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  194 </span>  , -- Builtin values
+<span class="lineno">  195 </span>    <span class="istickedoff"><span class="decl"><span class="istickedoff">paramLookupCoin</span></span></span> :: f ModelThreeArguments
+<span class="lineno">  196 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramValueContains</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  197 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramValueData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  198 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramUnValueData</span></span></span> :: f ModelOneArgument
+<span class="lineno">  199 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramInsertCoin</span></span></span> :: f ModelFourArguments
+<span class="lineno">  200 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramUnionValue</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  201 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">paramScaleValue</span></span></span> :: f ModelTwoArguments
+<span class="lineno">  202 </span>  }
+<span class="lineno">  203 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Generic</span></span></span></span>)
+<span class="lineno">  204 </span>  deriving anyclass (<span class="decl"><span class="istickedoff">FunctorB</span></span>, <span class="decl"><span class="nottickedoff">TraversableB</span></span>, <span class="decl"><span class="nottickedoff">ConstraintsB</span></span>)
+<span class="lineno">  205 </span>
+<span class="lineno">  206 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  207 </span><span class="spaces">  </span><span class="nottickedoff">CustomJSON</span>
+<span class="lineno">  208 </span><span class="spaces">    </span><span class="nottickedoff">'[FieldLabelModifier (StripPrefix &quot;param&quot;, LowerInitialCharacter)]</span>
+<span class="lineno">  209 </span><span class="spaces">    </span><span class="nottickedoff">(BuiltinCostModelBase CostingFun)</span>
+<span class="lineno">  210 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  211 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON (BuiltinCostModelBase CostingFun)</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  212 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  213 </span><span class="spaces">  </span><span class="nottickedoff">CustomJSON</span>
+<span class="lineno">  214 </span><span class="spaces">    </span><span class="nottickedoff">'[FieldLabelModifier (StripPrefix &quot;param&quot;, LowerInitialCharacter)]</span>
+<span class="lineno">  215 </span><span class="spaces">    </span><span class="nottickedoff">(BuiltinCostModelBase CostingFun)</span>
+<span class="lineno">  216 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  217 </span><span class="spaces">    </span><span class="nottickedoff">FromJSON (BuiltinCostModelBase CostingFun)</span></span></span></span></span></span>
+<span class="lineno">  218 </span>
+<span class="lineno">  219 </span>{-| Same as 'CostingFun' but maybe missing.
+<span class="lineno">  220 </span>We could use 'Compose Maybe CostinFun' instead but we would then need an orphan ToJSON instance. -}
+<span class="lineno">  221 </span>newtype MCostingFun a = MCostingFun (Maybe (CostingFun a))
+<span class="lineno">  222 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">ToJSON</span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">  223 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>) via (Alt Maybe (CostingFun a)) -- for mempty == MCostingFun Nothing
+<span class="lineno">  224 </span>
+<span class="lineno">  225 </span>-- Omit generating JSON for any costing functions that have not been set (are missing).
+<span class="lineno">  226 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  227 </span><span class="spaces">  </span><span class="nottickedoff">CustomJSON</span>
+<span class="lineno">  228 </span><span class="spaces">    </span><span class="nottickedoff">'[OmitNothingFields, FieldLabelModifier (StripPrefix &quot;param&quot;, LowerInitialCharacter)]</span>
+<span class="lineno">  229 </span><span class="spaces">    </span><span class="nottickedoff">(BuiltinCostModelBase MCostingFun)</span>
+<span class="lineno">  230 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  231 </span><span class="spaces">    </span><span class="nottickedoff">ToJSON (BuiltinCostModelBase MCostingFun)</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">  232 </span>
+<span class="lineno">  233 </span>-- Needed to help derive various instances for BuiltinCostModelBase
+<span class="lineno">  234 </span>type AllArgumentModels (constraint :: Kind.Type -&gt; Kind.Constraint) f =
+<span class="lineno">  235 </span>  ( constraint (f ModelOneArgument)
+<span class="lineno">  236 </span>  , constraint (f ModelTwoArguments)
+<span class="lineno">  237 </span>  , constraint (f ModelThreeArguments)
+<span class="lineno">  238 </span>  , constraint (f ModelFourArguments)
+<span class="lineno">  239 </span>  , constraint (f ModelFiveArguments)
+<span class="lineno">  240 </span>  , constraint (f ModelSixArguments)
+<span class="lineno">  241 </span>  )
+<span class="lineno">  242 </span>
+<span class="lineno">  243 </span>-- HLS doesn't like the AllBF from Barbies.
+<span class="lineno">  244 </span><span class="decl"><span class="nottickedoff">deriving anyclass instance AllArgumentModels NFData f =&gt; NFData (BuiltinCostModelBase f)</span></span>
+<span class="lineno">  245 </span><span class="decl"><span class="istickedoff">deriving anyclass instance AllArgumentModels Default f =&gt; Default (BuiltinCostModelBase f)</span></span>
+<span class="lineno">  246 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance AllArgumentModels Lift f =&gt; Lift (BuiltinCostModelBase f)</span></span></span></span>
+<span class="lineno">  247 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance AllArgumentModels Show f =&gt; Show (BuiltinCostModelBase f)</span></span></span></span></span></span>
+<span class="lineno">  248 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance AllArgumentModels Eq f =&gt; Eq (BuiltinCostModelBase f)</span></span></span></span>
+
+</pre>
+</body>
+</html>
