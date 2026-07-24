@@ -18,6 +18,8 @@ module PlutusTx.Compiler.Type
   , getMatch
   , getMatchInstantiated
   , splitGhcName
+  , ghcStrictnessNote
+  , stageViolationHint
   ) where
 
 import PlutusTx.Compiler.Binders
@@ -396,12 +398,9 @@ isOpaqueBuiltinTyCon tc =
       "PlutusTx.Builtins.Internal"
         == GHC.moduleNameString (GHC.moduleName (GHC.nameModule (GHC.getName tc)))
 
-stageViolationError :: GHC.TyCon -> GHC.SDoc
-stageViolationError tc =
-  "Cannot construct a value of type:"
-    GHC.<+> GHC.ppr tc
-    GHC.$+$ ""
-    GHC.$+$ "This error often indicates a stage violation in Plinth compilation."
+stageViolationHint :: GHC.SDoc
+stageViolationHint =
+  "This error often indicates a stage violation in Plinth compilation."
     GHC.$+$ "Variables inside compile quotations must be either:"
     GHC.$+$ "  • Top-level variables, or"
     GHC.$+$ "  • Bound inside the quotation itself"
@@ -409,6 +408,13 @@ stageViolationError tc =
     GHC.$+$ "Common causes:"
     GHC.$+$ "  • Using a function defined in a 'where' clause: move it to the top level"
     GHC.$+$ "  • Referencing local variables from outside the quotation"
+
+stageViolationError :: GHC.TyCon -> GHC.SDoc
+stageViolationError tc =
+  "Cannot construct a value of type:"
+    GHC.<+> GHC.ppr tc
+    GHC.$+$ ""
+    GHC.$+$ stageViolationHint
     GHC.$+$ ""
     GHC.$+$ ghcStrictnessNote
 
