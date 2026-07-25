@@ -70,6 +70,29 @@ pattern IntsManual {int1Manual, int2Manual, int3Manual, int4Manual} <-
 
 AsData.asData
   [d|
+    data RichInts = RichInts
+      { ri1 :: Integer
+      , ri2 :: Integer
+      , ri3 :: Integer
+      , ri4 :: Integer
+      , ri5 :: Integer
+      , ri6 :: Integer
+      , ri7 :: Integer
+      , ri8 :: Integer
+      , ri9 :: Integer
+      , ri10 :: Integer
+      , ri11 :: Integer
+      , ri12 :: Integer
+      , ri13 :: Integer
+      , ri14 :: Integer
+      , ri15 :: Integer
+      , ri16 :: Integer
+      }
+      deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
+
+AsData.asData
+  [d|
     data TheseD a b
       = ThisD a
       | ThatD b
@@ -143,6 +166,22 @@ AsData.asData
     data RichSum
       = RichA Integer Integer Integer Integer Integer Integer
       | RichB Integer Integer Integer Integer Integer Integer Integer
-      | RichC Integer Integer Integer Integer Integer Integer Integer Integer
+      | RichC
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
       deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
