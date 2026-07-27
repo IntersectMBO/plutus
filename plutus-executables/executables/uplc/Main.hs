@@ -336,10 +336,13 @@ plutusOpts =
               )
               <> Help.examplesFooter
                 [ Help.eg
-                    "Apply a flat-encoded validator to its arguments (formats deduced from the .flat extensions)"
+                    "Apply a flat-encoded validator to its arguments (each file's format deduced from its extension)"
                     "uplc apply Validator.flat Datum.flat Redeemer.flat Context.flat -o Script.flat"
                 , Help.eg
-                    "The same, giving the formats explicitly with --if/--of instead of deducing them"
+                    "Input files may mix formats: a textual script applied to flat-encoded arguments"
+                    "uplc apply script.uplc arg1.flat arg2.flat -o Script.flat"
+                , Help.eg
+                    "Force one input format for every file with --if (overriding extension deduction)"
                     "uplc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat"
                 ]
           )
@@ -700,8 +703,11 @@ loadArgsIfEval opts
 {-| Apply one script to a list of others and output the result.  All of the
 scripts must be UPLC.Program objects. -}
 runApply :: ApplyOptions -> IO ()
-runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((readProgram ifmt :: Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
+runApply (ApplyOptions inputfiles outp ofmt mode) = do
+  scripts <-
+    mapM
+      (\(file, ifmt) -> readProgram ifmt (FileInput file) :: IO (UplcProg SrcSpan))
+      inputfiles
   let appliedScript =
         case void <$> scripts of
           [] -> errorWithoutStackTrace "No input files"
@@ -712,12 +718,12 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 {-| Apply a UPLC program to script to a list of flat-encoded Data objects and
 output the result. -}
 runApplyToFlatData :: ApplyOptions -> IO ()
-runApplyToFlatData (ApplyOptions inputfiles ifmt outp ofmt mode) =
+runApplyToFlatData (ApplyOptions inputfiles outp ofmt mode) =
   case inputfiles of
     [] -> errorWithoutStackTrace "No input files"
-    p : ds -> do
+    (p, ifmt) : ds -> do
       prog@(UPLC.Program _ version _) :: UplcProg SrcSpan <- readProgram ifmt (FileInput p)
-      args <- mapM (getDataObject version) ds
+      args <- mapM (getDataObject version . fst) ds
       let prog' = void prog
           appliedScript = foldl1 (unsafeFromRight .* UPLC.applyProgram) (prog' : args)
       writeProgram outp ofmt mode appliedScript
@@ -732,12 +738,12 @@ runApplyToFlatData (ApplyOptions inputfiles ifmt outp ofmt mode) =
 {-| Apply a UPLC program to script to a list of CBOR-encoded flat-encoded Data
 objects and output the result. -}
 runApplyToCborData :: ApplyOptions -> IO ()
-runApplyToCborData (ApplyOptions inputfiles ifmt outp ofmt mode) =
+runApplyToCborData (ApplyOptions inputfiles outp ofmt mode) =
   case inputfiles of
     [] -> errorWithoutStackTrace "No input files"
-    p : ds -> do
+    (p, ifmt) : ds -> do
       prog@(UPLC.Program _ version _) :: UplcProg SrcSpan <- readProgram ifmt (FileInput p)
-      args <- mapM (getCborDataObject version) ds
+      args <- mapM (getCborDataObject version . fst) ds
       let prog' = void prog
           appliedScript = foldl1 (unsafeFromRight .* UPLC.applyProgram) (prog' : args)
       writeProgram outp ofmt mode appliedScript

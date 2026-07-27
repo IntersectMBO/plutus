@@ -120,7 +120,8 @@ plutusOpts =
                 <> "output a script consisting of (... ((f g1) g2) ... gn); "
                 <> "for example, 'plc apply Validator.flat "
                 <> "Datum.flat Redeemer.flat Context.flat -o Script.flat' "
-                <> "(the formats are deduced from the .flat extensions)."
+                <> "(each file's format is deduced from its extension; "
+                <> "--if forces one format for all files)."
           )
       )
       <> command
@@ -205,8 +206,11 @@ plutusOpts =
 {-| Apply one script to a list of others and output the result.  All of the
 scripts must be PLC.Program objects. -}
 runApply :: ApplyOptions -> IO ()
-runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((readProgram ifmt :: Input -> IO (PlcProg PLC.SrcSpan)) . FileInput) inputfiles
+runApply (ApplyOptions inputfiles outp ofmt mode) = do
+  scripts <-
+    mapM
+      (\(file, ifmt) -> readProgram ifmt (FileInput file) :: IO (PlcProg PLC.SrcSpan))
+      inputfiles
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           [] -> errorWithoutStackTrace "No input files"
@@ -217,12 +221,12 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 {-| Apply a PLC program to script to a list of flat-encoded Data objects and
 output the result. -}
 runApplyToData :: ApplyOptions -> IO ()
-runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) = do
+runApplyToData (ApplyOptions inputfiles outp ofmt mode) = do
   case inputfiles of
     [] -> errorWithoutStackTrace "No input files"
-    p : ds -> do
+    (p, ifmt) : ds -> do
       prog@(PLC.Program _ version _) :: PlcProg PLC.SrcSpan <- readProgram ifmt (FileInput p)
-      args <- mapM (getDataObject version) ds
+      args <- mapM (getDataObject version . fst) ds
       let prog' = () <$ prog
           appliedScript = foldl1 (unsafeFromRight .* PLC.applyProgram) (prog' : args)
       writeProgram outp ofmt mode appliedScript

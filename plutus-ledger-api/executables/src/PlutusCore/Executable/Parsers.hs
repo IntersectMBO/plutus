@@ -183,19 +183,15 @@ inputWithFormat =
     <$> input
     <*> inputformatOptional
 
-{-| Like 'inputWithFormat' but for commands taking a list of input files; the
-format is deduced from the first file's extension when @--if@ is not given. -}
-filesWithFormat :: Parser (Files, Format)
-filesWithFormat =
-  (\fs mfmt -> (fs, resolveInputFormat (supportedFormats formatTable) mfmt (firstFileInput fs)))
+{-| Like 'inputWithFormat' but for commands taking a list of input files: each
+file is paired with the format to read it with. When @--if@ is given it forces
+that format for every file; otherwise each file's format is deduced
+independently from its own extension. -}
+filesWithFormats :: Parser [(FilePath, Format)]
+filesWithFormats =
+  (\fs mfmt -> [(f, resolveInputFormat (supportedFormats formatTable) mfmt (FileInput f)) | f <- fs])
     <$> files
     <*> inputformatOptional
-
-{-| The 'Input' to use for extension-based format deduction with a list of
-files: the first file, or stdin (giving the 'Textual' fallback) if empty. -}
-firstFileInput :: Files -> Input
-firstFileInput (f : _) = FileInput f
-firstFileInput [] = StdInput
 
 outputformat :: Parser Format
 outputformat =
@@ -250,8 +246,8 @@ files = some (argument str (metavar "[FILES...]" <> action "file"))
 
 applyOpts :: Parser ApplyOptions
 applyOpts =
-  (\(fs, ifmt) (outp, ofmt) mode -> ApplyOptions fs ifmt outp ofmt mode)
-    <$> filesWithFormat
+  (\fps (outp, ofmt) mode -> ApplyOptions fps outp ofmt mode)
+    <$> filesWithFormats
     <*> outputWithFormat
     <*> printmode
 
@@ -623,9 +619,9 @@ plcInputWithFormat =
     <$> input
     <*> plcInputFormatOptional
 
-plcFilesWithFormat :: Parser (Files, Format)
-plcFilesWithFormat =
-  (\fs mfmt -> (fs, resolveInputFormat (supportedFormats plcFormatTable) mfmt (firstFileInput fs)))
+plcFilesWithFormats :: Parser [(FilePath, Format)]
+plcFilesWithFormats =
+  (\fs mfmt -> [(f, resolveInputFormat (supportedFormats plcFormatTable) mfmt (FileInput f)) | f <- fs])
     <$> files
     <*> plcInputFormatOptional
 
@@ -637,8 +633,8 @@ plcOutputWithFormat =
 
 plcApplyOpts :: Parser ApplyOptions
 plcApplyOpts =
-  (\(fs, ifmt) (outp, ofmt) mode -> ApplyOptions fs ifmt outp ofmt mode)
-    <$> plcFilesWithFormat
+  (\fps (outp, ofmt) mode -> ApplyOptions fps outp ofmt mode)
+    <$> plcFilesWithFormats
     <*> plcOutputWithFormat
     <*> printmode
 
