@@ -14,6 +14,7 @@ import Control.Lens ((^.))
 import Data.List (intercalate)
 import Data.Maybe
 import Options.Applicative
+import System.FilePath (takeExtension)
 
 {-| Parser for an input stream. If none is specified,
 default to stdin for ease of use in pipeline. -}
@@ -95,7 +96,9 @@ formatTable =
 
 formatHelp :: String
 formatHelp =
-  intercalate ", " [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- formatTable]
+  intercalate
+    ", "
+    [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- formatTable]
 
 formatReader :: String -> Maybe Format
 formatReader s = listToMaybe [v | (name, _, v) <- formatTable, name == s]
@@ -115,6 +118,72 @@ inputformat =
         <> completeWith formatNames
         <> help ("Input format: " ++ formatHelp)
     )
+
+{-| Guess the input format from a file name's extension. Returns 'Nothing' for
+an unrecognised extension, in which case callers fall back to 'Textual'. -}
+formatFromExtension :: FilePath -> Maybe Format
+formatFromExtension path =
+  case takeExtension path of
+    ".uplc" -> Just Textual
+    ".plc" -> Just Textual
+    ".pir" -> Just Textual
+    ".flat" -> Just (Flat DeBruijn)
+    ".hex" -> Just Hex
+    ".cbor" -> Just Serialised
+    _ -> Nothing
+
+-- | The formats named in a format table.
+supportedFormats :: [(String, Maybe String, Format)] -> [Format]
+supportedFormats table = [v | (_, _, v) <- table]
+
+{-| Work out which input format to use. An explicit @--if@ always wins;
+otherwise the format is deduced from the input file's extension, restricted to
+@supported@, and falling back to 'Textual' for stdin, an unrecognised
+extension, or a deduced format the command doesn't support (eg @.hex@ for the
+@plc@ command, which only handles textual and Flat). -}
+resolveInputFormat :: [Format] -> Maybe Format -> Input -> Format
+resolveInputFormat _ (Just fmt) _ = fmt
+resolveInputFormat supported Nothing (FileInput path) =
+  case formatFromExtension path of
+    Just fmt | fmt `elem` supported -> fmt
+    _ -> Textual
+resolveInputFormat _ Nothing StdInput = Textual
+
+{-| The @--if@/@--input-format@ option without a default, so we can tell whether
+the user supplied it and deduce the format from the file extension if not. -}
+inputformatOptional :: Parser (Maybe Format)
+inputformatOptional =
+  optional $
+    option
+      (maybeReader formatReader)
+      ( long "if"
+          <> long "input-format"
+          <> metavar "FORMAT"
+          <> completeWith formatNames
+          <> help ("Input format (default: deduced from the file extension, or textual): " ++ formatHelp)
+      )
+
+{-| An input stream together with its format, deducing the format from the
+file extension when @--if@ is not given. See 'resolveInputFormat'. -}
+inputWithFormat :: Parser (Input, Format)
+inputWithFormat =
+  (\inp mfmt -> (inp, resolveInputFormat (supportedFormats formatTable) mfmt inp))
+    <$> input
+    <*> inputformatOptional
+
+{-| Like 'inputWithFormat' but for commands taking a list of input files; the
+format is deduced from the first file's extension when @--if@ is not given. -}
+filesWithFormat :: Parser (Files, Format)
+filesWithFormat =
+  (\fs mfmt -> (fs, resolveInputFormat (supportedFormats formatTable) mfmt (firstFileInput fs)))
+    <$> files
+    <*> inputformatOptional
+
+{-| The 'Input' to use for extension-based format deduction with a list of
+files: the first file, or stdin (giving the 'Textual' fallback) if empty. -}
+firstFileInput :: Files -> Input
+firstFileInput (f : _) = FileInput f
+firstFileInput [] = StdInput
 
 outputformat :: Parser Format
 outputformat =
@@ -145,7 +214,7 @@ files :: Parser Files
 files = some (argument str (metavar "[FILES...]" <> action "file"))
 
 applyOpts :: Parser ApplyOptions
-applyOpts = ApplyOptions <$> files <*> inputformat <*> output <*> outputformat <*> printmode
+applyOpts = uncurry ApplyOptions <$> filesWithFormat <*> output <*> outputformat <*> printmode
 
 printmode :: Parser PrintMode
 printmode =
@@ -189,7 +258,7 @@ printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> output <*> printmode
 
 convertOpts :: Parser ConvertOptions
-convertOpts = ConvertOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
+convertOpts = uncurry ConvertOptions <$> inputWithFormat <*> output <*> outputformat <*> printmode
 
 certifierOutputMode :: Parser CertifierOutputMode
 certifierOutputMode =
@@ -380,9 +449,8 @@ optimiseEvalOpts =
 
 optimiseOpts :: Parser (OptimiseOptions name a)
 optimiseOpts =
-  OptimiseOptions
-    <$> input
-    <*> inputformat
+  uncurry OptimiseOptions
+    <$> inputWithFormat
     <*> output
     <*> outputformat
     <*> printmode
@@ -450,6 +518,90 @@ builtinSemanticsVariant =
           )
     )
 
+-- Specialised parsers for PLC (TPLC), which only supports textual and Flat
+-- formats. The @serialised@, @hex@ and @blueprint@ formats are not implemented
+-- for TPLC (the 'ProgramLike PlcProg' instance's
+-- 'loadASTfromSerialised'/'loadASTfromHex'/'serialiseAST' are unimplemented, and
+-- 'runErase'/'runOptimisations' reject them), so we must not offer them.
+
+plcFormatTable :: [(String, Maybe String, Format)]
+plcFormatTable =
+  [ ("textual", Nothing, Textual)
+  , ("flat-named", Just "names", Flat Named)
+  , ("flat", Just "de Bruijn indices", Flat DeBruijn)
+  , ("flat-deBruijn", Just "alias for flat", Flat DeBruijn)
+  , ("flat-namedDeBruijn", Just "names and de Bruijn indices", Flat NamedDeBruijn)
+  ]
+
+plcFormatHelp :: String
+plcFormatHelp =
+  intercalate
+    ", "
+    [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- plcFormatTable]
+
+plcFormatReader :: String -> Maybe Format
+plcFormatReader s = listToMaybe [v | (name, _, v) <- plcFormatTable, name == s]
+
+plcFormatNames :: [String]
+plcFormatNames = [name | (name, _, _) <- plcFormatTable]
+
+{-| The @--if@ option for @plc@, without a default so the format can be deduced
+from the file extension when it isn't given. -}
+plcInputFormatOptional :: Parser (Maybe Format)
+plcInputFormatOptional =
+  optional $
+    option
+      (maybeReader plcFormatReader)
+      ( long "if"
+          <> long "input-format"
+          <> metavar "FORMAT"
+          <> completeWith plcFormatNames
+          <> help ("Input format (default: deduced from the file extension, or textual): " ++ plcFormatHelp)
+      )
+
+plcOutputFormat :: Parser Format
+plcOutputFormat =
+  option
+    (maybeReader plcFormatReader)
+    ( long "of"
+        <> long "output-format"
+        <> metavar "FORMAT"
+        <> value Textual
+        <> showDefault
+        <> completeWith plcFormatNames
+        <> help ("Output format: " ++ plcFormatHelp)
+    )
+
+plcInputWithFormat :: Parser (Input, Format)
+plcInputWithFormat =
+  (\inp mfmt -> (inp, resolveInputFormat (supportedFormats plcFormatTable) mfmt inp))
+    <$> input
+    <*> plcInputFormatOptional
+
+plcFilesWithFormat :: Parser (Files, Format)
+plcFilesWithFormat =
+  (\fs mfmt -> (fs, resolveInputFormat (supportedFormats plcFormatTable) mfmt (firstFileInput fs)))
+    <$> files
+    <*> plcInputFormatOptional
+
+plcApplyOpts :: Parser ApplyOptions
+plcApplyOpts = uncurry ApplyOptions <$> plcFilesWithFormat <*> output <*> plcOutputFormat <*> printmode
+
+plcConvertOpts :: Parser ConvertOptions
+plcConvertOpts = uncurry ConvertOptions <$> plcInputWithFormat <*> output <*> plcOutputFormat <*> printmode
+
+plcOptimiseOpts :: Parser (OptimiseOptions name a)
+plcOptimiseOpts =
+  uncurry OptimiseOptions
+    <$> plcInputWithFormat
+    <*> output
+    <*> plcOutputFormat
+    <*> printmode
+    <*> certifier
+    <*> certifierOutputMode
+    <*> optimizeOpts
+    <*> optimiseEvalOpts
+
 -- Specialised parsers for PIR, which only supports ASTs over the Textual and
 -- Named types.
 
@@ -461,7 +613,9 @@ pirFormatTable =
 
 pirFormatHelp :: String
 pirFormatHelp =
-  intercalate " or " [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- pirFormatTable]
+  intercalate
+    " or "
+    [maybe name (\d -> name <> " (" <> d <> ")") mdesc | (name, mdesc, _) <- pirFormatTable]
 
 pirFormatReader :: String -> Maybe PirFormat
 pirFormatReader s = listToMaybe [v | (name, _, v) <- pirFormatTable, name == s]

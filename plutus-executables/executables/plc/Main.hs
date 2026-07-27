@@ -63,16 +63,15 @@ data Command
 ---------------- Option parsers ----------------
 
 typecheckOpts :: Parser TypecheckOptions
-typecheckOpts = TypecheckOptions <$> input <*> inputformat <*> output <*> printmode <*> nameformat
+typecheckOpts = uncurry TypecheckOptions <$> plcInputWithFormat <*> output <*> printmode <*> nameformat
 
 eraseOpts :: Parser EraseOptions
-eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
+eraseOpts = uncurry EraseOptions <$> plcInputWithFormat <*> output <*> plcOutputFormat <*> printmode
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions
-    <$> input
-    <*> inputformat
+  uncurry EvalOptions
+    <$> plcInputWithFormat
     <*> output
     <*> printmode
     <*> nameformat
@@ -110,7 +109,7 @@ plutusOpts =
     command
       "apply"
       ( info
-          (Apply <$> applyOpts)
+          (Apply <$> plcApplyOpts)
           ( progDesc $
               "Given a list of input files f g1 g2 ... gn "
                 <> "containing Typed Plutus Core scripts, "
@@ -122,7 +121,7 @@ plutusOpts =
       <> command
         "apply-to-data"
         ( info
-            (ApplyToData <$> applyOpts)
+            (ApplyToData <$> plcApplyOpts)
             ( progDesc $
                 "Given a list f d1 d2 ... dn where f is a "
                   <> "Typed Plutus Core script and d1,...,dn are files "
@@ -142,7 +141,7 @@ plutusOpts =
       <> command
         "convert"
         ( info
-            (Convert <$> convertOpts)
+            (Convert <$> plcConvertOpts)
             (progDesc "Convert a program between various formats")
         )
       <> command
@@ -194,7 +193,7 @@ plutusOpts =
             (progDesc "Print the signatures of the built-in functions.")
         )
   where
-    optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
+    optimise desc = info (Optimise <$> plcOptimiseOpts) $ progDesc desc
 
 ---------------- Script application ----------------
 

@@ -196,9 +196,8 @@ cekmodel =
 
 benchmarkOpts :: Parser BenchmarkOptions
 benchmarkOpts =
-  BenchmarkOptions
-    <$> input
-    <*> inputformat
+  uncurry BenchmarkOptions
+    <$> inputWithFormat
     <*> builtinSemanticsVariant
     <*> option
       auto
@@ -212,9 +211,8 @@ benchmarkOpts =
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions
-    <$> input
-    <*> inputformat
+  uncurry EvalOptions
+    <$> inputWithFormat
     <*> printmode
     <*> nameformat
     <*> budgetmode
@@ -225,9 +223,8 @@ evalOpts =
 
 timeOpts :: Parser TimeEvalOptions
 timeOpts =
-  TimeEvalOptions
-    <$> input
-    <*> inputformat
+  uncurry TimeEvalOptions
+    <$> inputWithFormat
     <*> builtinSemanticsVariant
     <*> option
       auto
@@ -245,9 +242,8 @@ timeOpts =
 
 dbgOpts :: Parser DbgOptions
 dbgOpts =
-  DbgOptions
-    <$> input
-    <*> inputformat
+  uncurry DbgOptions
+    <$> inputWithFormat
     <*> cekmodel
     <*> builtinSemanticsVariant
 
