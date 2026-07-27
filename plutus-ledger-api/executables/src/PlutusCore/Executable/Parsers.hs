@@ -149,6 +149,18 @@ resolveInputFormat supported Nothing (FileInput path) =
     _ -> Textual
 resolveInputFormat _ Nothing StdInput = Textual
 
+{-| The output-format counterpart of 'resolveInputFormat': an explicit @--of@
+always wins; otherwise the format is deduced from the output file's extension
+(restricted to @supported@), falling back to 'Textual' for stdout, the silent
+sink, an unrecognised extension, or an unsupported deduced format. -}
+resolveOutputFormat :: [Format] -> Maybe Format -> Output -> Format
+resolveOutputFormat _ (Just fmt) _ = fmt
+resolveOutputFormat supported Nothing (FileOutput path) =
+  case formatFromExtension path of
+    Just fmt | fmt `elem` supported -> fmt
+    _ -> Textual
+resolveOutputFormat _ Nothing _ = Textual
+
 {-| The @--if@/@--input-format@ option without a default, so we can tell whether
 the user supplied it and deduce the format from the file extension if not. -}
 inputformatOptional :: Parser (Maybe Format)
@@ -198,6 +210,29 @@ outputformat =
         <> help ("Output format: " ++ formatHelp)
     )
 
+{-| The @--of@/@--output-format@ option without a default, so we can tell
+whether the user supplied it and deduce the format from the @-o@ file extension
+if not. -}
+outputformatOptional :: Parser (Maybe Format)
+outputformatOptional =
+  optional $
+    option
+      (maybeReader formatReader)
+      ( long "of"
+          <> long "output-format"
+          <> metavar "FORMAT"
+          <> completeWith formatNames
+          <> help ("Output format (default: deduced from the file extension, or textual): " ++ formatHelp)
+      )
+
+{-| An output stream together with its format, deducing the format from the
+file extension when @--of@ is not given. See 'resolveOutputFormat'. -}
+outputWithFormat :: Parser (Output, Format)
+outputWithFormat =
+  (\outp mfmt -> (outp, resolveOutputFormat (supportedFormats formatTable) mfmt outp))
+    <$> output
+    <*> outputformatOptional
+
 tracemode :: Parser TraceMode
 tracemode =
   option
@@ -214,7 +249,11 @@ files :: Parser Files
 files = some (argument str (metavar "[FILES...]" <> action "file"))
 
 applyOpts :: Parser ApplyOptions
-applyOpts = uncurry ApplyOptions <$> filesWithFormat <*> output <*> outputformat <*> printmode
+applyOpts =
+  (\(fs, ifmt) (outp, ofmt) mode -> ApplyOptions fs ifmt outp ofmt mode)
+    <$> filesWithFormat
+    <*> outputWithFormat
+    <*> printmode
 
 printmode :: Parser PrintMode
 printmode =
@@ -258,7 +297,11 @@ printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> output <*> printmode
 
 convertOpts :: Parser ConvertOptions
-convertOpts = uncurry ConvertOptions <$> inputWithFormat <*> output <*> outputformat <*> printmode
+convertOpts =
+  (\(inp, ifmt) (outp, ofmt) mode -> ConvertOptions inp ifmt outp ofmt mode)
+    <$> inputWithFormat
+    <*> outputWithFormat
+    <*> printmode
 
 certifierOutputMode :: Parser CertifierOutputMode
 certifierOutputMode =
@@ -449,10 +492,11 @@ optimiseEvalOpts =
 
 optimiseOpts :: Parser (OptimiseOptions name a)
 optimiseOpts =
-  uncurry OptimiseOptions
+  ( \(inp, ifmt) (outp, ofmt) mode cert certOut sopts eopts ->
+      OptimiseOptions inp ifmt outp ofmt mode cert certOut sopts eopts
+  )
     <$> inputWithFormat
-    <*> output
-    <*> outputformat
+    <*> outputWithFormat
     <*> printmode
     <*> certifier
     <*> certifierOutputMode
@@ -559,18 +603,19 @@ plcInputFormatOptional =
           <> help ("Input format (default: deduced from the file extension, or textual): " ++ plcFormatHelp)
       )
 
-plcOutputFormat :: Parser Format
-plcOutputFormat =
-  option
-    (maybeReader plcFormatReader)
-    ( long "of"
-        <> long "output-format"
-        <> metavar "FORMAT"
-        <> value Textual
-        <> showDefault
-        <> completeWith plcFormatNames
-        <> help ("Output format: " ++ plcFormatHelp)
-    )
+{-| The @--of@ option for @plc@, without a default so the format can be deduced
+from the file extension when it isn't given. -}
+plcOutputFormatOptional :: Parser (Maybe Format)
+plcOutputFormatOptional =
+  optional $
+    option
+      (maybeReader plcFormatReader)
+      ( long "of"
+          <> long "output-format"
+          <> metavar "FORMAT"
+          <> completeWith plcFormatNames
+          <> help ("Output format (default: deduced from the file extension, or textual): " ++ plcFormatHelp)
+      )
 
 plcInputWithFormat :: Parser (Input, Format)
 plcInputWithFormat =
@@ -584,18 +629,33 @@ plcFilesWithFormat =
     <$> files
     <*> plcInputFormatOptional
 
+plcOutputWithFormat :: Parser (Output, Format)
+plcOutputWithFormat =
+  (\outp mfmt -> (outp, resolveOutputFormat (supportedFormats plcFormatTable) mfmt outp))
+    <$> output
+    <*> plcOutputFormatOptional
+
 plcApplyOpts :: Parser ApplyOptions
-plcApplyOpts = uncurry ApplyOptions <$> plcFilesWithFormat <*> output <*> plcOutputFormat <*> printmode
+plcApplyOpts =
+  (\(fs, ifmt) (outp, ofmt) mode -> ApplyOptions fs ifmt outp ofmt mode)
+    <$> plcFilesWithFormat
+    <*> plcOutputWithFormat
+    <*> printmode
 
 plcConvertOpts :: Parser ConvertOptions
-plcConvertOpts = uncurry ConvertOptions <$> plcInputWithFormat <*> output <*> plcOutputFormat <*> printmode
+plcConvertOpts =
+  (\(inp, ifmt) (outp, ofmt) mode -> ConvertOptions inp ifmt outp ofmt mode)
+    <$> plcInputWithFormat
+    <*> plcOutputWithFormat
+    <*> printmode
 
 plcOptimiseOpts :: Parser (OptimiseOptions name a)
 plcOptimiseOpts =
-  uncurry OptimiseOptions
+  ( \(inp, ifmt) (outp, ofmt) mode cert certOut sopts eopts ->
+      OptimiseOptions inp ifmt outp ofmt mode cert certOut sopts eopts
+  )
     <$> plcInputWithFormat
-    <*> output
-    <*> plcOutputFormat
+    <*> plcOutputWithFormat
     <*> printmode
     <*> certifier
     <*> certifierOutputMode

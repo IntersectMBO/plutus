@@ -66,7 +66,11 @@ typecheckOpts :: Parser TypecheckOptions
 typecheckOpts = uncurry TypecheckOptions <$> plcInputWithFormat <*> output <*> printmode <*> nameformat
 
 eraseOpts :: Parser EraseOptions
-eraseOpts = uncurry EraseOptions <$> plcInputWithFormat <*> output <*> plcOutputFormat <*> printmode
+eraseOpts =
+  (\(inp, ifmt) (outp, ofmt) mode -> EraseOptions inp ifmt outp ofmt mode)
+    <$> plcInputWithFormat
+    <*> plcOutputWithFormat
+    <*> printmode
 
 evalOpts :: Parser EvalOptions
 evalOpts =
@@ -95,8 +99,8 @@ plutus langHelpText =
               "Evaluate a program on the CK machine"
               "plc evaluate -i program.plc"
           , Help.eg
-              "Erase types, producing an untyped Plutus Core program"
-              "plc erase --of textual -i program.plc -o program.uplc"
+              "Erase types, producing an untyped Plutus Core program (formats deduced from the .plc and .uplc extensions)"
+              "plc erase -i program.plc -o program.uplc"
           , Help.eg
               "Enable bash completion for the current shell"
               "source <(plc --bash-completion-script $(command -v plc))"
@@ -114,8 +118,9 @@ plutusOpts =
               "Given a list of input files f g1 g2 ... gn "
                 <> "containing Typed Plutus Core scripts, "
                 <> "output a script consisting of (... ((f g1) g2) ... gn); "
-                <> "for example, 'plc apply --if flat Validator.flat "
-                <> "Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."
+                <> "for example, 'plc apply Validator.flat "
+                <> "Datum.flat Redeemer.flat Context.flat -o Script.flat' "
+                <> "(the formats are deduced from the .flat extensions)."
           )
       )
       <> command
@@ -127,9 +132,9 @@ plutusOpts =
                   <> "Typed Plutus Core script and d1,...,dn are files "
                   <> "containing flat-encoded data ojbects, output a script "
                   <> "consisting of f applied to the data objects; "
-                  <> "for example, 'plc apply-to-data --if "
-                  <> "flat Validator.flat Datum.flat Redeemer.flat Context.flat "
-                  <> "--of flat -o Script.flat'."
+                  <> "for example, 'plc apply-to-data "
+                  <> "Validator.flat Datum.flat Redeemer.flat Context.flat "
+                  <> "-o Script.flat' (the program format is deduced from the .flat extension)."
             )
         )
       <> command

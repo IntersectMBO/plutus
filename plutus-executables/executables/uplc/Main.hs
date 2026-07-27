@@ -106,13 +106,13 @@ topLevelExamples =
       "Evaluate a textual UPLC program on the CEK machine"
       "uplc evaluate -i program.uplc"
   , Help.eg
-      "Evaluate a hex-encoded script and report the CPU/memory budget used"
-      "uplc evaluate --if hex -i script.hex --counting"
+      "Evaluate a hex-encoded script (format deduced from the .hex extension) and report the CPU/memory budget used"
+      "uplc evaluate -i script.hex --counting"
   , Help.eg
-      "Pretty-print a hex-encoded script as readable textual UPLC"
-      "uplc convert --if hex --of textual -i script.hex"
+      "Pretty-print a hex-encoded script as textual UPLC (input format deduced from .hex)"
+      "uplc convert -i script.hex --of textual"
   , Help.eg
-      "Optimise a script"
+      "Optimise a script (formats deduced from the .uplc extensions)"
       "uplc optimize -i program.uplc -o program-opt.uplc"
   , Help.eg
       "List the built-in example programs"
@@ -336,7 +336,10 @@ plutusOpts =
               )
               <> Help.examplesFooter
                 [ Help.eg
-                    "Apply a flat-encoded validator to its arguments"
+                    "Apply a flat-encoded validator to its arguments (formats deduced from the .flat extensions)"
+                    "uplc apply Validator.flat Datum.flat Redeemer.flat Context.flat -o Script.flat"
+                , Help.eg
+                    "The same, giving the formats explicitly with --if/--of instead of deducing them"
                     "uplc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat"
                 ]
           )
@@ -353,8 +356,8 @@ plutusOpts =
                 )
                 <> Help.examplesFooter
                   [ Help.eg
-                      "Apply a script to flat-encoded Data arguments"
-                      "uplc apply-to-flat-data --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat"
+                      "Apply a script to flat-encoded Data arguments (program format deduced from the .flat extension)"
+                      "uplc apply-to-flat-data Validator.flat Datum.flat Redeemer.flat Context.flat -o Script.flat"
                   ]
             )
         )
@@ -370,8 +373,8 @@ plutusOpts =
                 )
                 <> Help.examplesFooter
                   [ Help.eg
-                      "Apply a script to CBOR-encoded Data arguments"
-                      "uplc apply-to-cbor-data --if flat Validator.flat Datum.cbor Redeemer.cbor Context.cbor --of flat -o Script.flat"
+                      "Apply a script to CBOR-encoded Data arguments (program format deduced from the .flat extension)"
+                      "uplc apply-to-cbor-data Validator.flat Datum.cbor Redeemer.cbor Context.cbor -o Script.flat"
                   ]
             )
         )
@@ -388,11 +391,14 @@ plutusOpts =
             ( progDesc "Convert a program between various formats."
                 <> Help.examplesFooter
                   [ Help.eg
-                      "Pretty-print a hex-encoded script as readable textual UPLC"
-                      "uplc convert --if hex --of textual -i script.hex"
+                      "Flat-encode a textual UPLC program (formats deduced from the .uplc and .flat extensions)"
+                      "uplc convert -i program.uplc -o program.flat"
                   , Help.eg
-                      "Flat-encode a textual UPLC program"
-                      "uplc convert --if textual --of flat -i program.uplc -o program.flat"
+                      "Convert a hex-encoded script to a textual file (both formats deduced from the extensions)"
+                      "uplc convert -i script.hex -o script.uplc"
+                  , Help.eg
+                      "Pretty-print a hex-encoded script to stdout; --if/--of override the deduced formats"
+                      "uplc convert --if hex --of textual -i script.hex"
                   ]
             )
         )
@@ -428,13 +434,16 @@ plutusOpts =
             ( progDesc "Evaluate an untyped Plutus Core program using the CEK machine."
                 <> Help.examplesFooter
                   [ Help.eg
-                      "Evaluate a textual UPLC program"
+                      "Evaluate a textual UPLC program (format deduced from the .uplc extension)"
                       "uplc evaluate -i program.uplc"
                   , Help.eg
-                      "Evaluate a hex-encoded script and report the budget used"
+                      "Evaluate a hex-encoded script (format deduced from .hex) and report the budget used"
+                      "uplc evaluate -i script.hex --counting"
+                  , Help.eg
+                      "The same, forcing the input format explicitly with --if instead of deducing it"
                       "uplc evaluate --if hex -i script.hex --counting"
                   , Help.eg
-                      "Evaluate a program piped in on stdin"
+                      "Evaluate a program piped in on stdin (defaults to textual)"
                       "echo '(program 1.1.0 (con integer 42))' | uplc evaluate"
                   ]
             )
@@ -478,10 +487,10 @@ plutusOpts =
         progDesc desc
           <> Help.examplesFooter
             [ Help.eg
-                "Optimise a textual UPLC script"
+                "Optimise a textual UPLC script (formats deduced from the .uplc extensions)"
                 "uplc optimize -i program.uplc -o program-opt.uplc"
             , Help.eg
-                "Optimise every validator in a CIP-57 blueprint"
+                "Optimise every validator in a CIP-57 blueprint (blueprint isn't deduced from .json, so give it explicitly)"
                 "uplc optimize --if blueprint --of blueprint -i bp.json -o bp-opt.json"
             ]
 
