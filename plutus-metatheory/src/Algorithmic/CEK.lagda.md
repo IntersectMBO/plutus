@@ -48,6 +48,9 @@ open Sig
 open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π
     using (sig2type;⊢♯2TyNe♯;SigTy;sig2SigTy;saturatedSigTy;convSigTy)
 open SigTy
+
+import Builtin.CInteger as CInt
+open CInt using (CInteger; cInt)
 ```
 
 ````
@@ -186,6 +189,11 @@ discharge (V-con c)  = con c refl
 discharge (V-I⇒ b bt) = dischargeB bt
 discharge (V-IΠ b bt) = dischargeB bt
 discharge (V-constr i Tss s refl) = constr i Tss refl (dischargeStack s)
+
+mkCInteger : ℤ → Either (∅ ⊢Nf⋆ *) CInteger
+mkCInteger i with CInt.minBound ≤? i | i ≤? CInt.maxBound
+mkCInteger i | yes p | yes q = return (cInt i p q)
+mkCInteger i | _ | _ = inj₁ (con (ne (^ (atomic aInteger))))
 ```
 
 ## Builtin Semantics
@@ -194,28 +202,50 @@ If a builtin returns a value, then this function produces a `Value`, otherwise i
 a type that could be used in constructing the error term.
 ```
 BUILTIN : ∀ b {A} → {Ab : saturatedSigTy (signature b) A} → BApp b A Ab → Either (∅ ⊢Nf⋆ *) (Value A)
-BUILTIN addInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i + i'))
-BUILTIN subtractInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i - i'))
-BUILTIN multiplyInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i ** i'))
-BUILTIN divideInteger (base $ V-con i $ V-con i') = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con (ne (^ (atomic aInteger)))))
-  (inj₂ (V-con (div i i')))
-BUILTIN quotientInteger (base $ V-con i $ V-con i') = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con (ne (^ (atomic aInteger)))))
-  (inj₂ (V-con (quot i i')))
-BUILTIN remainderInteger (base $ V-con i $ V-con i') = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con (ne (^ (atomic aInteger)))))
-  (inj₂ (V-con (rem i i')))
-BUILTIN modInteger (base $ V-con i $ V-con i') = decIf
-  (i' ≟ ℤ.pos 0)
-   (inj₁ (con (ne (^ (atomic aInteger)))))
-  (inj₂ (V-con (mod i i')))
-BUILTIN lessThanInteger (base $ V-con i $ V-con i') = decIf (i <? i') (inj₂ (V-con true)) (inj₂ (V-con false))
-BUILTIN lessThanEqualsInteger (base $ V-con i $ V-con i') = decIf (i ≤? i') (inj₂ (V-con true)) (inj₂ (V-con false))
-BUILTIN equalsInteger (base $ V-con i $ V-con i') = decIf (i ≟ i') (inj₂ (V-con true)) (inj₂ (V-con false))
+BUILTIN addInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.add i₁ i₂))
+BUILTIN subtractInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.subtract i₁ i₂))
+BUILTIN multiplyInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.multiply i₁ i₂))
+BUILTIN divideInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  i₁/i₂ ← maybeToEither (con (ne (^ (atomic aInteger)))) (CInt.div i₁ i₂)
+  return (V-con i₁/i₂)
+BUILTIN quotientInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  i₁/i₂ ← maybeToEither (con (ne (^ (atomic aInteger)))) (CInt.quot i₁ i₂)
+  return (V-con i₁/i₂)
+BUILTIN remainderInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  i₁%i₂ ← maybeToEither (con (ne (^ (atomic aInteger)))) (CInt.rem i₁ i₂)
+  return (V-con i₁%i₂)
+BUILTIN modInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  i₁%i₂ ← maybeToEither (con (ne (^ (atomic aInteger)))) (CInt.mod i₁ i₂)
+  return (V-con i₁%i₂)
+BUILTIN lessThanInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.lessThan i₁ i₂))
+BUILTIN lessThanEqualsInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.lessThanEquals i₁ i₂))
+BUILTIN equalsInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.equals i₁ i₂))
 BUILTIN appendByteString (base $ V-con b $ V-con b') = inj₂ (V-con (concat b b'))
 BUILTIN lessThanByteString (base $ V-con b $ V-con b') = inj₂ (V-con (B< b b'))
 BUILTIN lessThanEqualsByteString (base $ V-con b $ V-con b') = inj₂ (V-con (B<= b b'))

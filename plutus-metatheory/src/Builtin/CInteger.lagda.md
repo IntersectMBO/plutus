@@ -12,8 +12,8 @@ module Builtin.CInteger where
 ## Imports
 
 ```
-open import Data.Integer.Properties using (_≟_)
-open import Relation.Nullary using (Dec; yes; no)
+open import Data.Integer.Properties using (_≟_; _<?_; _≤?_)
+open import Relation.Nullary using (Dec; yes; no; isYes)
 open import Data.Integer.Base
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Sign.Base as S using (Sign)
@@ -26,17 +26,17 @@ open RawMonad {f = Level.lzero} MaybeEff.monad
 open import Relation.Binary.PropositionalEquality 
 open import Data.Maybe.Properties using (≡-dec)
 import Builtin.Integer.Base as Bℤ
+open import Data.Bool using (Bool)
 
 ```
 
 ## The CInteger type
 
 ```
-private
-  minBound : ℤ
-  minBound = - ((+ 2) ^ 262143)
-  maxBound : ℤ
-  maxBound = ((+ 2) ^ 262143) - (+ 1)
+minBound : ℤ
+minBound = - ((+ 2) ^ 262143)
+maxBound : ℤ
+maxBound = ((+ 2) ^ 262143) - (+ 1)
 
 data CInteger : Set where
   cInt
@@ -52,8 +52,8 @@ data CInteger : Set where
 add : CInteger → CInteger → ℤ
 add (cInt i _ _) (cInt j _ _) = i + j
 
-substract : CInteger → CInteger → ℤ
-substract (cInt i _ _) (cInt j _ _) = i - j
+subtract : CInteger → CInteger → ℤ
+subtract (cInt i _ _) (cInt j _ _) = i - j
 
 multiply : CInteger → CInteger → ℤ
 multiply (cInt i _ _) (cInt j _ _) = i * j
@@ -83,7 +83,12 @@ div mod : CInteger → CInteger → Maybe ℤ
 div n d = map proj₁ (divMod n d)
 mod n d = map proj₂ (divMod n d)
 
--- TODO: theorems for impure div-mod and quot-rem, add a separate module 
+lessThan : CInteger → CInteger → Bool
+lessThan (cInt i _ _) (cInt j _ _) = isYes (i <? j)
 
+lessThanEquals : CInteger → CInteger → Bool
+lessThanEquals (cInt i _ _) (cInt j _ _) = isYes (i ≤? j)
 
+equals : CInteger → CInteger → Bool
+equals (cInt i _ _) (cInt j _ _) = isYes (i ≟ j)
 ```

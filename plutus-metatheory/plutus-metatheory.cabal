@@ -158,8 +158,10 @@ library
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Algorithmic.Signature
     MAlonzo.Code.Builtin
+    MAlonzo.Code.Builtin.CInteger
     MAlonzo.Code.Builtin.Constant.AtomicType
     MAlonzo.Code.Builtin.Constant.Type
+    MAlonzo.Code.Builtin.Integer.Base
     MAlonzo.Code.Builtin.Signature
     MAlonzo.Code.Certifier
     MAlonzo.Code.CertifierReport

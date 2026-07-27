@@ -38,6 +38,9 @@ open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
 open _⊢♯
 open Sig
 open import RawU using (TmCon;tmCon;TyTag;decTyTag;⟦_⟧tag)
+import Builtin.CInteger as CInt
+open CInt using (CInteger; cInt)
+open import Data.Integer using (_≤?_)
 ```
 
 ```
@@ -146,61 +149,88 @@ V-I b {tm = suc tm} bt = V-IΠ b bt
 fullyAppliedBuiltin : ∀ b → Set
 fullyAppliedBuiltin b = BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b)))
 
+mkCInteger : ℤ → Either RuntimeError CInteger
+mkCInteger i with CInt.minBound ≤? i | i ≤? CInt.maxBound
+mkCInteger i | yes p | yes q = return (cInt i p q)
+mkCInteger i | _ | _ = inj₁ userError
+
 {-
 The BUILTIN function provides the semantics of builtin functions.
 -}
 
 BUILTIN : ∀ b → fullyAppliedBuiltin b → Either RuntimeError Value
 BUILTIN addInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i + i'))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con integer (CInt.add i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN subtractInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i - i'))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con integer (CInt.subtract i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN multiplyInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i ** i'))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con integer (CInt.multiply i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN divideInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf
-      (i' ≟ ℤ.pos 0)
-      (inj₁ userError)
-      (inj₂ (V-con integer (div i i')))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      i₁/i₂ ← maybeToEither userError (CInt.div i₁ i₂)
+      return (V-con integer (i₁/i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN quotientInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf
-      (i' ≟ ℤ.pos 0)
-      (inj₁ userError)
-      (inj₂ (V-con integer (quot i i')))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      i₁/i₂ ← maybeToEither userError (CInt.quot i₁ i₂)
+      return (V-con integer (i₁/i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN remainderInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf
-      (i' ≟ ℤ.pos 0)
-      (inj₁ userError)
-      (inj₂ (V-con integer (rem i i')))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      i₁%i₂ ← maybeToEither userError (CInt.rem i₁ i₂)
+      return (V-con integer (i₁%i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN modInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf
-      (i' ≟ ℤ.pos 0)
-      (inj₁ userError)
-      (inj₂ (V-con integer (mod i i')))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      i₁%i₂ ← maybeToEither userError (CInt.mod i₁ i₂)
+      return (V-con integer (i₁%i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN lessThanInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf (i <? i') (inj₂ (V-con bool true)) (inj₂ (V-con bool false))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con bool (CInt.lessThan i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN lessThanEqualsInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf (i ≤? i') (inj₂ (V-con bool true)) (inj₂ (V-con bool false))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con bool (CInt.lessThanEquals i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN equalsInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> decIf (i ≟ i') (inj₂ (V-con bool true)) (inj₂ (V-con bool false))
+  { (app (app base (V-con integer i)) (V-con integer i')) -> do
+      i₁ ← mkCInteger i
+      i₂ ← mkCInteger i'
+      return (V-con bool (CInt.equals i₁ i₂))
   ; _ -> inj₁ userError
   }
 BUILTIN appendByteString = λ
