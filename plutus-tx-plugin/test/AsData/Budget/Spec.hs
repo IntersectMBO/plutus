@@ -24,6 +24,9 @@ tests =
           "onlyUseFirstField-manual"
           onlyUseFirstFieldManual
           (onlyUseFirstFieldManual `unsafeApplyCode` inp)
+      , goldenBundle "richInts1" richInts1 (richInts1 `unsafeApplyCode` inpRich)
+      , goldenBundle "richInts2" richInts2 (richInts2 `unsafeApplyCode` inpRich)
+      , goldenBundle "richInts3" richInts3 (richInts3 `unsafeApplyCode` inpRich)
       , goldenBundle "patternMatching" patternMatching (patternMatching `unsafeApplyCode` inp)
       , goldenBundle "recordFields" recordFields (recordFields `unsafeApplyCode` inp)
       , goldenBundle "destructSum" destructSum (destructSum `unsafeApplyCode` inpSum)
@@ -32,9 +35,17 @@ tests =
           destructSumManual
           (destructSumManual `unsafeApplyCode` inpSumM)
       , goldenBundle
-          "richSumSingleField"
-          richSumSingleField
-          (richSumSingleField `unsafeApplyCode` inpRichSum)
+          "richSumA"
+          richSum
+          (richSum `unsafeApplyCode` inpRichSumA)
+      , goldenBundle
+          "richSumB"
+          richSum
+          (richSum `unsafeApplyCode` inpRichSumB)
+      , goldenBundle
+          "richSumC"
+          richSum
+          (richSum `unsafeApplyCode` inpRichSumC)
       ]
 
 -- A function that only accesses the first field of `Ints`.
@@ -50,6 +61,27 @@ onlyUseFirstFieldManual =
   plinthc
     ( \d -> case PlutusTx.unsafeFromBuiltinData d of
         IntsManual {int1Manual = x} -> x
+    )
+
+richInts1 :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richInts1 =
+  plinthc
+    ( \d -> case PlutusTx.unsafeFromBuiltinData d of
+        RichInts {ri16 = x} -> x
+    )
+
+richInts2 :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richInts2 =
+  plinthc
+    ( \d -> case PlutusTx.unsafeFromBuiltinData d of
+        RichInts {ri9 = x, ri14 = y} -> PlutusTx.addInteger x y
+    )
+
+richInts3 :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richInts3 =
+  plinthc
+    ( \d -> case PlutusTx.unsafeFromBuiltinData d of
+        RichInts {ri4 = x, ri8 = y, ri15 = z} -> PlutusTx.addInteger x (PlutusTx.addInteger y z)
     )
 
 patternMatching :: CompiledCode (PlutusTx.BuiltinData -> Integer)
@@ -139,19 +171,22 @@ destructSumManual =
     )
 
 -- Only a small number of fields of a sum type are accessed.
-richSumSingleField :: CompiledCode (PlutusTx.BuiltinData -> Integer)
-richSumSingleField =
+richSum :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+richSum =
   plinthc
-    ( \d ->
+    ( \d0 ->
         matchRichSum
-          (PlutusTx.unsafeFromBuiltinData d)
-          (\a _ _ _ _ _ -> a)
-          (\_ b _ _ _ _ _ -> b)
-          (\_ _ c _ _ _ _ _ -> c)
+          (PlutusTx.unsafeFromBuiltinData d0)
+          (\_ b _ _ _ _ -> b)
+          (\_ _ c _ _ _ g -> PlutusTx.addInteger c g)
+          (\_ _ _ d _ _ _ _ i _ _ _ _ n _ _ -> PlutusTx.addInteger d (PlutusTx.addInteger i n))
     )
 
 inp :: CompiledCode PlutusTx.BuiltinData
 inp = liftCodeDef (PlutusTx.toBuiltinData (Ints 10 20 30 40))
+
+inpRich :: CompiledCode PlutusTx.BuiltinData
+inpRich = liftCodeDef (PlutusTx.toBuiltinData (RichInts 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16))
 
 inpSum :: CompiledCode PlutusTx.BuiltinData
 inpSum = liftCodeDef (PlutusTx.toBuiltinData (TheseD (Ints 10 20 30 40) (Ints 10 20 30 40)))
@@ -159,5 +194,23 @@ inpSum = liftCodeDef (PlutusTx.toBuiltinData (TheseD (Ints 10 20 30 40) (Ints 10
 inpSumM :: CompiledCode PlutusTx.BuiltinData
 inpSumM = liftCodeDef (PlutusTx.toBuiltinData (TheseDManual (Ints 10 20 30 40) (Ints 10 20 30 40)))
 
-inpRichSum :: CompiledCode PlutusTx.BuiltinData
-inpRichSum = liftCodeDef (PlutusTx.toBuiltinData (RichC 10 20 30 40 50 60 70 80))
+inpRichSumA :: CompiledCode PlutusTx.BuiltinData
+inpRichSumA =
+  liftCodeDef
+    ( PlutusTx.toBuiltinData
+        (RichA 10 20 30 40 50 60)
+    )
+
+inpRichSumB :: CompiledCode PlutusTx.BuiltinData
+inpRichSumB =
+  liftCodeDef
+    ( PlutusTx.toBuiltinData
+        (RichB 10 20 30 40 50 60 70)
+    )
+
+inpRichSumC :: CompiledCode PlutusTx.BuiltinData
+inpRichSumC =
+  liftCodeDef
+    ( PlutusTx.toBuiltinData
+        (RichC 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160)
+    )
