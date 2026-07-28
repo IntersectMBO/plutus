@@ -5,7 +5,7 @@ sidebar_position: 28
 # UPLC CLI Tool
 
 `uplc` is a command-line tool for working with Untyped Plutus Core (UPLC).
-It ships with every [Plutus release](https://github.com/IntersectMBO/plutus/releases) and is useful for developers who build, test, or ship plutus scripts.
+It ships with every [Plutus release](https://github.com/IntersectMBO/plutus/releases) and is useful for developers who build, test, or ship Plutus scripts.
 
 You can also build `uplc` from source by cloning the Plutus repository, running `nix develop`, and then running `cabal build uplc`.
 
