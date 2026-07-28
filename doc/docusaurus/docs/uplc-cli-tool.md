@@ -87,6 +87,14 @@ Scripts as they appear on-chain (in blueprints, wallets, or block explorers) are
 uplc evaluate --if hex -i script.hex
 ```
 
+`uplc` can usually deduce the input format from the file's extension, so if the file is actually named with a `.hex` extension the `--if hex` above is optional:
+
+```bash
+uplc evaluate -i script.hex
+```
+
+See [Input and output formats](#input-and-output-formats) below for the full list of extensions `uplc` recognises.
+
 By default evaluation is silent about resource usage. To see how much CPU and memory a program consumes, pick a budget mode:
 
 - `--counting` (`-c`) — run to completion and report the total budget spent.
@@ -113,6 +121,15 @@ uplc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of f
 # arguments are CBOR-encoded Data
 uplc apply-to-cbor-data --if flat Validator.flat Datum.cbor Redeemer.cbor Context.cbor --of flat -o Script.flat
 ```
+
+Since the file extensions here already indicate the formats, `--if` and `--of` aren't actually needed in these examples.
+For `apply` and its `apply-to-*-data` variants, each input file's format is deduced independently from its own extension, so formats can even be mixed:
+
+```bash
+uplc apply Validator.flat Datum.uplc Redeemer.flat Context.flat -o Script.flat
+```
+
+Passing `--if` explicitly overrides deduction and forces that one format for every input file instead.
 
 You can then evaluate the fully-applied script with `uplc evaluate`.
 
@@ -157,6 +174,8 @@ You can feed a blueprint straight into `uplc` and get an optimized blueprint bac
 uplc optimize --if blueprint --of blueprint -i MyBlueprint.json -o MyBlueprint.opt.json
 ```
 
+#### Supported formats
+
 The full list of supported formats is:
 
 - `textual` — human-readable UPLC syntax
@@ -164,8 +183,21 @@ The full list of supported formats is:
 - `flat-named` — flat-encoded with textual names
 - `flat-namedDeBruijn` — flat-encoded with named de Bruijn indices
 - `serialised` — CBOR-wrapped flat with de Bruijn indices
-- `hex` — `serialised` plus hex encoding (what blueprints and most tools use)
+- `hex` — `serialised` plus textual hex encoding (what blueprints and most tools use)
 - `blueprint` — blueprint JSON
+
+#### Deducing formats from file extensions
+
+You often don't need to pass `--if`/`--of` at all: if `-i`/`-o` names a file with one of the extensions below, `uplc` deduces the format from the extension automatically.
+
+| Extension | Deduced format |
+| --- | --- |
+| `.uplc` | `textual` |
+| `.flat` | `flat` (`flat-deBruijn`) |
+| `.hex` | `hex` |
+| `.cbor` | `serialised` |
+
+An explicit `--if`/`--of` always takes precedence over the extension. Any other extension (including `.json`, used for blueprints) isn't recognised and the tool falls back to `textual`, so blueprint input/output still needs `--if blueprint`/`--of blueprint` given explicitly. Reading from stdin or writing to stdout (when `-i`/`-o` is omitted) also defaults to `textual`.
 
 ### Configuring the optimization pipeline
 
