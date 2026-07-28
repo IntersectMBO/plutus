@@ -82,7 +82,7 @@ library
     PlutusTx.NonCanonicalRational
 
   build-depends:
-    , aeson              >=2.3
+    , aeson
     , base               >=4.9   && <5
     , containers
     , filepath
