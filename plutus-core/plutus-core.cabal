@@ -327,7 +327,6 @@ library
     , data-default-class
     , deepseq
     , dependent-sum               >=0.7.1.0
-    , deriving-aeson              >=0.2.3
     , deriving-compat
     , dlist
     , exceptions
