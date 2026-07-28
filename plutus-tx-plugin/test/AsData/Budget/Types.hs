@@ -68,6 +68,8 @@ pattern IntsManual {int1Manual, int2Manual, int3Manual, int4Manual} <-
             )
         )
 
+-- This is for testing that the CollapseCase pass rewrites consecutive unused
+-- casing on lists into `dropList`.
 AsData.asData
   [d|
     data RichInts = RichInts
