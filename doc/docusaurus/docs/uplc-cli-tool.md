@@ -140,7 +140,7 @@ uplc evaluate --if hex -i script.hex
 uplc evaluate -i script.hex
 ```
 
-See [Input and output formats](#input-and-output-formats) below for the full list of extensions `uplc` recognises.
+See [Input and output formats](#input-and-output-formats) above for the full list of extensions `uplc` recognises.
 
 By default evaluation is silent about resource usage. To see how much CPU and memory a program consumes, pick a budget mode:
 
@@ -155,10 +155,10 @@ uplc evaluate -i program.uplc --tallying
 
 To capture `trace` output emitted by the program, use `--trace-mode`, e.g. `--trace-mode Logs`.
 
-## Applying arguments to a script
+## Applying a script to arguments
 
-A validator becomes a runnable program only once its arguments (datum, redeemer, script context, …) have been applied.
-`uplc apply` builds that application for you.
+A validator becomes a runnable program only once its arguments (datum, redeemer, script context, …) have been supplied.
+`uplc apply` builds the required application for you.
 Use `apply` when the arguments are themselves UPLC scripts, and `apply-to-flat-data` / `apply-to-cbor-data` when they are encoded `Data` values (the common case for on-chain arguments):
 
 ```bash
@@ -201,9 +201,10 @@ The report lists each pass that ran, in order, and shows the AST size before and
 When evaluation is enabled (see below), each row additionally shows the CPU and memory cost at that stage and the deltas against the previous stage.
 When `--certify --certifier-report` is used, the same per-pass numbers are also included in the certifier report file.
 
-## Input and output formats
+### Hex-encoded and blueprint inputs
 
-`uplc` has always supported textual and flat-encoded scripts, but two recent additions make it much easier to plug into existing toolchains:
+The `uplc` executable has always supported textual and flat-encoded scripts, but
+two recent additions make it much easier to plug into existing toolchains:
 
 __Hex-encoded scripts__.
 This is the format most off-chain tools, wallets, and block explorers use.
