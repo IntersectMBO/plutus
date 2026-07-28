@@ -5,7 +5,7 @@ sidebar_position: 28
 # UPLC CLI Tool
 
 `uplc` is a command-line tool for working with Untyped Plutus Core (UPLC).
-It ships with every [Plutus release](https://github.com/IntersectMBO/plutus/releases) and is useful for developers who build, test, or ship Plutus scripts.
+It ships with every [Plutus release](https://github.com/IntersectMBO/plutus/releases) and is useful for developers who build, test, or ship plutus scripts.
 
 You can also build `uplc` from source by cloning the Plutus repository, running `nix develop`, and then running `cabal build uplc`.
 
@@ -29,6 +29,52 @@ Both `uplc --help` and the `--help` of the most commonly used subcommands end wi
 | `example` | Show built-in example programs (`uplc example -a` lists them). |
 | `dump-cost-model` | Dump the cost model parameters. |
 | `print-builtin-signatures` | Print the signatures of the built-in functions. |
+
+#### Other tools
+
+There are two related (but less commonly used) tools called `pir` and `plc` for
+dealing with PIR (Plutus Intermediate Representation) and Typed Plutus Core
+respectively.  This document doesn't describe these tools in detail, but like
+`uplc` they have built-in help for both the main command and for subcommands,
+accessed via the `--help` option .
+
+### Input and output formats
+
+Most of the subcommands take an input file specified with the `-i` option (or can read from the
+standard input stream using `--stdin`). The input can be provided in a number of formats, specified
+using the `--if` or `--input-format` option.  Similarly, the `-o`/`--stdout` and `--of`/`--output-format`
+options can be used to specify an output stream and its format.
+
+The `uplc` executable understands the following file formats:
+
+- `textual` — human-readable UPLC syntax
+- `flat` / `flat-deBruijn` — flat-encoded with de Bruijn indices
+- `flat-named` — flat-encoded with textual names
+- `flat-namedDeBruijn` — flat-encoded with named de Bruijn indices
+- `serialised` — CBOR-wrapped flat with de Bruijn indices
+- `hex` — `serialised` plus textual hex encoding (what blueprints and most tools use)
+- `blueprint` — blueprint JSON
+
+#### Deducing formats from file extensions
+
+You often don't need to provide `--if`/`--of` explicitly: if `-i`/`-o` names a file with one of the extensions below, `uplc` deduces the format from the extension automatically.
+
+| Extension | Deduced format |
+| --- | --- |
+| `.uplc` | `textual` |
+| `.flat` | `flat` |
+| `.hex` | `hex` |
+| `.cbor` | `serialised` |
+
+An explicit `--if`/`--of` always takes precedence over the extension. Any other extension (including `.json`, used for blueprints) isn't recognised, so the tool falls back to `textual`, meaning blueprint input/output still needs `--if blueprint`/`--of blueprint` given explicitly. Reading from stdin or writing to stdout (when `-i`/`-o` is omitted) also defaults to `textual`.
+
+The same per-file deduction applies to `apply`, `apply-to-flat-data`, and `apply-to-cbor-data`: each input file's format is deduced independently from its own extension, unless `--if` is given, in which case it forces that one format for every file.
+
+
+Similarly the `plc` tool recognises its own textual extension, `.plc`, and also `.flat` (it doesn't support `serialised`, `hex`, or `blueprint`); `pir` recognises `.pir` for `textual` and `.flat` for `flat-named` (PIR doesn't have de Bruijn name variants, and doesn't support `serialised`, `hex`, or `blueprint` either).
+
+In all three tools a mismatched or unrecognised extension (e.g. a `.plc` file passed to `uplc`) is treated as `textual`; however `--if` and `--of` can always be used to specify a format explicitly.  
+
 
 ## Shell completion
 
@@ -70,6 +116,7 @@ uplc --fish-completion-script (command -v uplc) > ~/.config/fish/completions/upl
 ```
 
 The same flags work for the `plc` and `pir` tools; just substitute the program name.
+
 
 ## Evaluating scripts
 
@@ -154,7 +201,7 @@ The report lists each pass that ran, in order, and shows the AST size before and
 When evaluation is enabled (see below), each row additionally shows the CPU and memory cost at that stage and the deltas against the previous stage.
 When `--certify --certifier-report` is used, the same per-pass numbers are also included in the certifier report file.
 
-### Input and output formats
+## Input and output formats
 
 `uplc` has always supported textual and flat-encoded scripts, but two recent additions make it much easier to plug into existing toolchains:
 
@@ -173,31 +220,6 @@ You can feed a blueprint straight into `uplc` and get an optimized blueprint bac
 ```
 uplc optimize --if blueprint --of blueprint -i MyBlueprint.json -o MyBlueprint.opt.json
 ```
-
-#### Supported formats
-
-The full list of supported formats is:
-
-- `textual` — human-readable UPLC syntax
-- `flat` / `flat-deBruijn` — flat-encoded with de Bruijn indices
-- `flat-named` — flat-encoded with textual names
-- `flat-namedDeBruijn` — flat-encoded with named de Bruijn indices
-- `serialised` — CBOR-wrapped flat with de Bruijn indices
-- `hex` — `serialised` plus textual hex encoding (what blueprints and most tools use)
-- `blueprint` — blueprint JSON
-
-#### Deducing formats from file extensions
-
-You often don't need to pass `--if`/`--of` at all: if `-i`/`-o` names a file with one of the extensions below, `uplc` deduces the format from the extension automatically.
-
-| Extension | Deduced format |
-| --- | --- |
-| `.uplc` | `textual` |
-| `.flat` | `flat` (`flat-deBruijn`) |
-| `.hex` | `hex` |
-| `.cbor` | `serialised` |
-
-An explicit `--if`/`--of` always takes precedence over the extension. Any other extension (including `.json`, used for blueprints) isn't recognised and the tool falls back to `textual`, so blueprint input/output still needs `--if blueprint`/`--of blueprint` given explicitly. Reading from stdin or writing to stdout (when `-i`/`-o` is omitted) also defaults to `textual`.
 
 ### Configuring the optimization pipeline
 
@@ -289,3 +311,5 @@ uplc optimize --if blueprint --of blueprint -i MyBlueprint.json -o MyBlueprint-o
 
 Each validator is evaluated with the arguments under the corresponding subdirectory.
 The result is an optimized blueprint, and a per-validator report showing how the execution budget changed at each optimization step.
+
+
