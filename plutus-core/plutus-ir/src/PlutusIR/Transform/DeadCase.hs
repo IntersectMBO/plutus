@@ -6,7 +6,6 @@
 See Note [Dropping redundant unsafeCaseList calls produced by AsData]. -}
 module PlutusIR.Transform.DeadCase
   ( deadCase
-  , deadCasePass
   , deadCasePassSC
   ) where
 
@@ -23,17 +22,10 @@ import PlutusIR.TypeCheck qualified as TC
 import Control.Lens (transformOf)
 
 deadCasePassSC
-  :: (PLC.Typecheckable uni fun, PLC.GEq uni, PLC.MonadQuote m, Ord a, AnnCase a)
-  => TC.PirTCConfig uni fun
-  -> Pass m TyName Name uni fun a
-deadCasePassSC tcconfig =
-  renamePass <> deadCasePass tcconfig
-
-deadCasePass
   :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m, AnnCase a)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
-deadCasePass tcconfig =
+deadCasePassSC tcconfig =
   NamedPass "eliminate dead cases" $
     Pass
       (pure . deadCase)

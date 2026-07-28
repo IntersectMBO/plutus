@@ -569,6 +569,7 @@ library plutus-ir
     PlutusIR.Transform.Beta
     PlutusIR.Transform.CaseOfCase
     PlutusIR.Transform.CaseReduce
+    PlutusIR.Transform.CollapseCase
     PlutusIR.Transform.DeadCase
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.EvaluateBuiltins

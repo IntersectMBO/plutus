@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -70,6 +71,7 @@ import PlutusIR.Error
 import PlutusIR.Pass qualified as P
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.CaseReduce qualified as CaseReduce
+import PlutusIR.Transform.CollapseCase qualified as CollapseCase
 import PlutusIR.Transform.DeadCase qualified as DeadCase
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
@@ -87,6 +89,8 @@ import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusPrelude
+
+import Data.Typeable
 
 isVerbose :: Compiling m uni fun a => m Bool
 isVerbose = view $ ccOpts . coVerbose
@@ -139,7 +143,8 @@ floatInPasses = do
           ]
 
 simplifierIteration
-  :: Compiling m uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
+  :: forall m uni fun a
+   . Compiling m uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
 simplifierIteration suffix = do
   opts <- view ccOpts
   tcconfig <- view ccTypeCheckConfig
@@ -167,6 +172,9 @@ simplifierIteration suffix = do
             Inline.inlinePassSC threshUnconditional threshCallsite ic tcconfig hints binfo
         , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
         , DeadCase.deadCasePassSC tcconfig
+        , case (eqT @uni @PLC.DefaultUni, eqT @fun @PLC.DefaultFun) of
+            (Just Refl, Just Refl) -> CollapseCase.collapseCasePassSC tcconfig
+            _ -> P.NoOpPass
         ]
 
 simplifier :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
