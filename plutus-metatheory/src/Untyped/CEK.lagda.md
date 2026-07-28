@@ -227,10 +227,8 @@ BUILTIN lessThanEqualsInteger = λ
   ; _ -> inj₁ userError
   }
 BUILTIN equalsInteger = λ
-  { (app (app base (V-con integer i)) (V-con integer i')) -> do
-      i₁ ← mkCInteger i
-      i₂ ← mkCInteger i'
-      return (V-con bool (CInt.equals i₁ i₂))
+  { (app (app base (V-con integer i)) (V-con integer i')) ->
+      decIf (i ≟ i') (inj₂ (V-con bool true)) (inj₂ (V-con bool false))
   ; _ -> inj₁ userError
   }
 BUILTIN appendByteString = λ

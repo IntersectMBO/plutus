@@ -3,7 +3,7 @@ title: CInteger
 layout: page
 ---
 
-This module contains the formalisation of CIntegers.
+This module contains the formalisation of Cardano Integers.
 
 ```
 module Builtin.CInteger where
@@ -31,6 +31,12 @@ open import Data.Bool using (Bool)
 ```
 
 ## The CInteger type
+
+The `CInteger` type is a restriction of the `ℤ` type to the range of integers specified by `minBound` and `maxBound`.
+
+This type constitutes the denotational semantics of the Cardano `BuiltinInteger` type for all of the inputs to the `BuiltinInteger` builtin functions, except `equalsInteger` and `expModInteger`.
+
+The inputs to `equalsInteger` are of the unrestricted `ℤ` type. The `expModInteger` function is not yet formalised and is left as future work.
 
 ```
 minBound : ℤ
@@ -79,8 +85,10 @@ divMod (cInt n _ _) (cInt d _ _) with d ≟ + 0
   where instance
     _ = ≢-nonZero d≢0
 
-div mod : CInteger → CInteger → Maybe ℤ
+div : CInteger → CInteger → Maybe ℤ
 div n d = map proj₁ (divMod n d)
+
+mod : CInteger → CInteger → Maybe ℤ
 mod n d = map proj₂ (divMod n d)
 
 lessThan : CInteger → CInteger → Bool
@@ -88,7 +96,4 @@ lessThan (cInt i _ _) (cInt j _ _) = isYes (i <? j)
 
 lessThanEquals : CInteger → CInteger → Bool
 lessThanEquals (cInt i _ _) (cInt j _ _) = isYes (i ≤? j)
-
-equals : CInteger → CInteger → Bool
-equals (cInt i _ _) (cInt j _ _) = isYes (i ≟ j)
 ```

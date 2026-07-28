@@ -242,10 +242,8 @@ BUILTIN lessThanEqualsInteger (base $ V-con i $ V-con i') = do
   i₁ ← mkCInteger i
   i₂ ← mkCInteger i'
   return (V-con (CInt.lessThanEquals i₁ i₂))
-BUILTIN equalsInteger (base $ V-con i $ V-con i') = do
-  i₁ ← mkCInteger i
-  i₂ ← mkCInteger i'
-  return (V-con (CInt.equals i₁ i₂))
+BUILTIN equalsInteger (base $ V-con i $ V-con i') =
+  decIf (i ≟ i') (inj₂ (V-con true)) (inj₂ (V-con false))
 BUILTIN appendByteString (base $ V-con b $ V-con b') = inj₂ (V-con (concat b b'))
 BUILTIN lessThanByteString (base $ V-con b $ V-con b') = inj₂ (V-con (B< b b'))
 BUILTIN lessThanEqualsByteString (base $ V-con b $ V-con b') = inj₂ (V-con (B<= b b'))

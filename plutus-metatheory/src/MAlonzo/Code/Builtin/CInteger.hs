@@ -417,8 +417,8 @@ d_div_162 v0 v1
       (\ v2 -> MAlonzo.Code.Agda.Builtin.Sigma.d_fst_28 (coe v2))
       (d_divMod_136 (coe v0) (coe v1))
 -- Builtin.CInteger.mod
-d_mod_164 :: T_CInteger_60 -> T_CInteger_60 -> Maybe Integer
-d_mod_164 v0 v1
+d_mod_168 :: T_CInteger_60 -> T_CInteger_60 -> Maybe Integer
+d_mod_168 v0 v1
   = coe
       MAlonzo.Code.Data.Maybe.Base.du_map_64
       (\ v2 -> MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30 (coe v2))
@@ -448,20 +448,6 @@ d_lessThanEquals_180 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.du_isYes_132
                     (coe
                        MAlonzo.Code.Data.Integer.Properties.d__'8804''63'__2880 (coe v2)
-                       (coe v5))
-             _ -> MAlonzo.RTE.mazUnreachableError
-      _ -> MAlonzo.RTE.mazUnreachableError
--- Builtin.CInteger.equals
-d_equals_186 :: T_CInteger_60 -> T_CInteger_60 -> Bool
-d_equals_186 v0 v1
-  = case coe v0 of
-      C_cInt_64 v2 v3 v4
-        -> case coe v1 of
-             C_cInt_64 v5 v6 v7
-               -> coe
-                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du_isYes_132
-                    (coe
-                       MAlonzo.Code.Data.Integer.Properties.d__'8799'__2800 (coe v2)
                        (coe v5))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
