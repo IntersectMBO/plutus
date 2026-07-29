@@ -427,6 +427,8 @@ unitCostBuiltinCostModel =
     , paramInsertCoin = unitCostFourArguments
     , paramUnionValue = unitCostTwoArguments
     , paramScaleValue = unitCostTwoArguments
+    , -- Batch 7
+      paramMultiIndexArray = unitCostTwoArguments
     }
 
 unitCekParameters

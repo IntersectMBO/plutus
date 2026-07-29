@@ -556,4 +556,6 @@ main =
       , -- FIXME: the test for unValueData fails. This may be because of a rounding error in the top coefficient.
         -- , $(genTest 1 "unValueData")
         $(genTest 2 "scaleValue") Everywhere
+      , -- Arrays (batch 7)
+        $(genTest 2 "multiIndexArray") Everywhere
       ]
