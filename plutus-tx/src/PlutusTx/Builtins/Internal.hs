@@ -46,6 +46,7 @@ import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import GHC.Generics (Generic)
+import PlutusCore.Arrays qualified as Arrays
 import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -689,17 +690,17 @@ indexArray (BuiltinArray v) i
 {-# OPAQUE indexArray #-}
 
 {-| Returns the elements at the given indices, in index-list order with duplicates preserved.
-  Fails if any index is not in the range @[0..j)@, where @j@ is the length of the array. -}
+  Fails if any index is not in the range @[0..j)@, where @j@ is the length of the array, or if
+  there are more indices than 'Arrays.maximumIndexCount'.
+  See 'PlutusCore.Arrays.multiIndexArray', which this shares with the builtin so that the two
+  cannot fail in different places. -}
 multiIndexArray :: BuiltinArray a -> BuiltinList BuiltinInteger -> BuiltinList a
 multiIndexArray (BuiltinArray v) (BuiltinList is) =
-  case traverse lookupIndex is of
-    Just els -> BuiltinList els
-    Nothing -> Haskell.error "array index out of bounds"
-  where
-    len = toInteger (Vector.length v)
-    lookupIndex i
-      | 0 <= i && i < len = Just (Vector.unsafeIndex v (fromInteger i))
-      | otherwise = Nothing
+  case Arrays.multiIndexArray v is of
+    BuiltinSuccess els -> BuiltinList els
+    BuiltinSuccessWithLogs logs els -> traceAll logs $ BuiltinList els
+    BuiltinFailure logs err ->
+      traceAll (logs <> pure (display err)) $ Haskell.error "multiIndexArray errored."
 {-# OPAQUE multiIndexArray #-}
 
 {-

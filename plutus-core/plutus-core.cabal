@@ -104,6 +104,7 @@ library
     PlutusCore.Analysis.Usages
     PlutusCore.Annotation
     PlutusCore.Arity
+    PlutusCore.Arrays
     PlutusCore.AstSize
     PlutusCore.Bitwise
     PlutusCore.Builtin
@@ -850,6 +851,7 @@ executable cost-model-budgeting-bench
     , deepseq
     , directory
     , filepath
+    , ghc-compact
     , hedgehog
     , mtl
     , optparse-applicative
