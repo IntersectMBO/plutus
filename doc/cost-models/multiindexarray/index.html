@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ValueData - Plutus Cost Model Visualization</title>
+  <title>MultiIndexArray - Plutus Cost Model Visualization</title>
   <link rel="stylesheet" href="../shared/styles.css">
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -11,23 +11,29 @@
   <nav>
     <ul>
       <li><a href="../index.html">Home</a></li>
-      <li><a href="../valuedata/index.html" class="active">ValueData</a></li>
+      <li><a href="../valuedata/index.html">ValueData</a></li>
       <li><a href="../unvaluedata/index.html">UnValueData</a></li>
       <li><a href="../valuecontains/index.html">ValueContains</a></li>
       <li><a href="../lookupcoin/index.html">LookupCoin</a></li>
+      <li><a href="../insertcoin/index.html">InsertCoin</a></li>
+      <li><a href="../unionvalue/index.html">UnionValue</a></li>
+      <li><a href="../scalevalue/index.html">ScaleValue</a></li>
       <li><a href="../listtoarray/index.html">ListToArray</a></li>
       <li><a href="../lengthofarray/index.html">LengthOfArray</a></li>
       <li><a href="../indexarray/index.html">IndexArray</a></li>
-      <li><a href="../multiindexarray/index.html">MultiIndexArray</a></li>
+      <li><a href="../multiindexarray/index.html" class="active">MultiIndexArray</a></li>
       <li><a href="../indexbytestring/index.html">IndexByteString</a></li>
     </ul>
   </nav>
 
   <div class="container">
-    <h1>ValueData Cost Model Visualization</h1>
+    <h1>MultiIndexArray Cost Model Visualization</h1>
     <p>
-      Interactive visualization of benchmark data and fitted cost model for the <code>ValueData</code> builtin function.
-      This function converts a Plutus <code>Value</code> to <code>Data</code> representation.
+      Interactive visualization of benchmark data and fitted cost model for the <code>MultiIndexArray</code> builtin function.
+      This function looks up a list of indices (needles) in a Plutus array (haystack); the cost depends on the
+      number of indices and not on the array size, so the model surface in the 3D view is flat along the
+      haystack axis. The number of indices is limited, because beyond that limit the execution time is not
+      predictable from the index count alone; the histogram below shows the per-index time distribution.
     </p>
 
     <div class="controls" id="data-source-controls">
@@ -62,10 +68,18 @@
           <label for="show-model">Show model predictions</label>
         </div>
         <div class="control-group">
-          <label for="y-axis-mode">Y-axis range:</label>
-          <select id="y-axis-mode">
+          <label for="z-axis-mode">Z-axis range:</label>
+          <select id="z-axis-mode">
             <option value="zero">Start from 0</option>
             <option value="auto">Auto-scale from min</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="hist-threshold">Histogram: min index count:</label>
+          <select id="hist-threshold">
+            <option value="1000">1000</option>
+            <option value="2000" selected>2000</option>
+            <option value="3000">3000</option>
           </select>
         </div>
       </div>
@@ -82,13 +96,17 @@
         <div class="info-section">
           <dl>
             <dt>X-axis:</dt>
-            <dd id="info-x-axis">Value Size</dd>
+            <dd id="info-x-axis">Haystack size (array length, log scale)</dd>
 
             <dt>Y-axis:</dt>
-            <dd id="info-y-axis">Time (nanoseconds)</dd>
+            <dd id="info-y-axis">Needles size (length of the index list)</dd>
+
+            <dt>Z-axis:</dt>
+            <dd id="info-z-axis">Time (nanoseconds)</dd>
 
             <dt>Description:</dt>
-            <dd id="info-description">Each point represents one benchmark run</dd>
+            <dd id="info-description">Each point is one benchmark. The model surface is flat along the
+              haystack axis and rises along the needles axis.</dd>
           </dl>
         </div>
 
@@ -108,8 +126,11 @@
             <dt>Data points:</dt>
             <dd id="info-data-points">-</dd>
 
-            <dt>Value Size range:</dt>
+            <dt>Index count range:</dt>
             <dd id="info-x-range">-</dd>
+
+            <dt>Array size range:</dt>
+            <dd id="info-array-range">-</dd>
 
             <dt>Time range:</dt>
             <dd id="info-time-range">-</dd>
@@ -119,9 +140,20 @@
         <div class="info-section">
           <dt>Data sources:</dt>
           <dd><a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/benching-conway.csv" target="_blank">benching-conway.csv</a></dd>
-          <dd><a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/builtinCostModelE.json" target="_blank">builtinCostModelE.json</a></dd>
+          <dd><a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/builtinCostModelE.json" target="_blank">builtinCostModelE.json</a>
+            (PlutusV3 from PV&nbsp;11 / vanRossem)</dd>
         </div>
       </div>
+    </div>
+
+    <h2>Per-index time distribution</h2>
+    <p>
+      Net time per index, <code>(t &minus; overhead) / indexCount</code>, for benchmarks with at least the
+      selected number of indices. The dashed line marks the fitted model's net time per index at that
+      number of indices.
+    </p>
+    <div id="hist-container">
+      <div class="loading">Loading...</div>
     </div>
   </div>
 
