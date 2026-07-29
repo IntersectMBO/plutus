@@ -30,6 +30,52 @@ Both `uplc --help` and the `--help` of the most commonly used subcommands end wi
 | `dump-cost-model` | Dump the cost model parameters. |
 | `print-builtin-signatures` | Print the signatures of the built-in functions. |
 
+#### Other tools
+
+There are two related (but less commonly used) tools called `pir` and `plc` for
+dealing with PIR (Plutus Intermediate Representation) and Typed Plutus Core
+respectively.  This document doesn't describe these tools in detail, but like
+`uplc` they have built-in help for both the main command and for subcommands,
+accessed via the `--help` option .
+
+### Input and output formats
+
+Most of the subcommands take an input file specified with the `-i` option (or can read from the
+standard input stream using `--stdin`). The input can be provided in a number of formats, specified
+using the `--if` or `--input-format` option.  Similarly, the `-o`/`--stdout` and `--of`/`--output-format`
+options can be used to specify an output stream and its format.
+
+The `uplc` executable understands the following file formats:
+
+- `textual` — human-readable UPLC syntax
+- `flat` / `flat-deBruijn` — flat-encoded with de Bruijn indices
+- `flat-named` — flat-encoded with textual names
+- `flat-namedDeBruijn` — flat-encoded with named de Bruijn indices
+- `serialised` — CBOR-wrapped flat with de Bruijn indices
+- `hex` — `serialised` plus textual hex encoding (what blueprints and most tools use)
+- `blueprint` — blueprint JSON
+
+#### Deducing formats from file extensions
+
+You often don't need to provide `--if`/`--of` explicitly: if `-i`/`-o` names a file with one of the extensions below, `uplc` deduces the format from the extension automatically.
+
+| Extension | Deduced format |
+| --- | --- |
+| `.uplc` | `textual` |
+| `.flat` | `flat` |
+| `.hex` | `hex` |
+| `.cbor` | `serialised` |
+
+An explicit `--if`/`--of` always takes precedence over the extension. Any other extension (including `.json`, used for blueprints) isn't recognised, so the tool falls back to `textual`, meaning blueprint input/output still needs `--if blueprint`/`--of blueprint` given explicitly. Reading from stdin or writing to stdout (when `-i`/`-o` is omitted) also defaults to `textual`.
+
+The same per-file deduction applies to `apply`, `apply-to-flat-data`, and `apply-to-cbor-data`: each input file's format is deduced independently from its own extension, unless `--if` is given, in which case it forces that one format for every file.
+
+
+Similarly the `plc` tool recognises its own textual extension, `.plc`, and also `.flat` (it doesn't support `serialised`, `hex`, or `blueprint`); `pir` recognises `.pir` for `textual` and `.flat` for `flat-named` (PIR doesn't have de Bruijn name variants, and doesn't support `serialised`, `hex`, or `blueprint` either).
+
+In all three tools a mismatched or unrecognised extension (e.g. a `.plc` file passed to `uplc`) is treated as `textual`; however `--if` and `--of` can always be used to specify a format explicitly.  
+
+
 ## Shell completion
 
 `uplc` can generate a completion script for `bash`, `zsh`, or `fish`.
@@ -71,6 +117,7 @@ uplc --fish-completion-script (command -v uplc) > ~/.config/fish/completions/upl
 
 The same flags work for the `plc` and `pir` tools; just substitute the program name.
 
+
 ## Evaluating scripts
 
 `uplc evaluate` runs a UPLC program on the CEK machine.
@@ -87,6 +134,14 @@ Scripts as they appear on-chain (in blueprints, wallets, or block explorers) are
 uplc evaluate --if hex -i script.hex
 ```
 
+`uplc` can usually deduce the input format from the file's extension, so if the file is actually named with a `.hex` extension the `--if hex` above is optional:
+
+```bash
+uplc evaluate -i script.hex
+```
+
+See [Input and output formats](#input-and-output-formats) above for the full list of extensions `uplc` recognises.
+
 By default evaluation is silent about resource usage. To see how much CPU and memory a program consumes, pick a budget mode:
 
 - `--counting` (`-c`) — run to completion and report the total budget spent.
@@ -100,10 +155,10 @@ uplc evaluate -i program.uplc --tallying
 
 To capture `trace` output emitted by the program, use `--trace-mode`, e.g. `--trace-mode Logs`.
 
-## Applying arguments to a script
+## Applying a script to arguments
 
-A validator becomes a runnable program only once its arguments (datum, redeemer, script context, …) have been applied.
-`uplc apply` builds that application for you.
+A validator becomes a runnable program only once its arguments (datum, redeemer, script context, …) have been supplied.
+`uplc apply` builds the required application for you.
 Use `apply` when the arguments are themselves UPLC scripts, and `apply-to-flat-data` / `apply-to-cbor-data` when they are encoded `Data` values (the common case for on-chain arguments):
 
 ```bash
@@ -113,6 +168,15 @@ uplc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of f
 # arguments are CBOR-encoded Data
 uplc apply-to-cbor-data --if flat Validator.flat Datum.cbor Redeemer.cbor Context.cbor --of flat -o Script.flat
 ```
+
+Since the file extensions here already indicate the formats, `--if` and `--of` aren't actually needed in these examples.
+For `apply` and its `apply-to-*-data` variants, each input file's format is deduced independently from its own extension, so formats can even be mixed:
+
+```bash
+uplc apply Validator.flat Datum.uplc Redeemer.flat Context.flat -o Script.flat
+```
+
+Passing `--if` explicitly overrides deduction and forces that one format for every input file instead.
 
 You can then evaluate the fully-applied script with `uplc evaluate`.
 
@@ -137,9 +201,10 @@ The report lists each pass that ran, in order, and shows the AST size before and
 When evaluation is enabled (see below), each row additionally shows the CPU and memory cost at that stage and the deltas against the previous stage.
 When `--certify --certifier-report` is used, the same per-pass numbers are also included in the certifier report file.
 
-### Input and output formats
+### Hex-encoded and blueprint inputs
 
-`uplc` has always supported textual and flat-encoded scripts, but two recent additions make it much easier to plug into existing toolchains:
+The `uplc` executable has always supported textual and flat-encoded scripts, but
+two recent additions make it much easier to plug into existing toolchains:
 
 __Hex-encoded scripts__.
 This is the format most off-chain tools, wallets, and block explorers use.
@@ -156,16 +221,6 @@ You can feed a blueprint straight into `uplc` and get an optimized blueprint bac
 ```
 uplc optimize --if blueprint --of blueprint -i MyBlueprint.json -o MyBlueprint.opt.json
 ```
-
-The full list of supported formats is:
-
-- `textual` — human-readable UPLC syntax
-- `flat` / `flat-deBruijn` — flat-encoded with de Bruijn indices
-- `flat-named` — flat-encoded with textual names
-- `flat-namedDeBruijn` — flat-encoded with named de Bruijn indices
-- `serialised` — CBOR-wrapped flat with de Bruijn indices
-- `hex` — `serialised` plus hex encoding (what blueprints and most tools use)
-- `blueprint` — blueprint JSON
 
 ### Configuring the optimization pipeline
 
@@ -257,3 +312,5 @@ uplc optimize --if blueprint --of blueprint -i MyBlueprint.json -o MyBlueprint-o
 
 Each validator is evaluated with the arguments under the corresponding subdirectory.
 The result is an optimized blueprint, and a per-validator report showing how the execution budget changed at each optimization step.
+
+

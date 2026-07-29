@@ -106,7 +106,10 @@ data OptimiseOptions name a
       OptimiseEvalOpts
 data PrintOptions = PrintOptions Input Output PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
-data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
+
+{-| Each input file is paired with the input format to read it with (the
+explicit @--if@, or the format deduced from that file's own extension). -}
+data ApplyOptions = ApplyOptions [(FilePath, Format)] Output Format PrintMode
 
 data EvalArgKind
   = -- | Each argument is a program

@@ -63,16 +63,19 @@ data Command
 ---------------- Option parsers ----------------
 
 typecheckOpts :: Parser TypecheckOptions
-typecheckOpts = TypecheckOptions <$> input <*> inputformat <*> output <*> printmode <*> nameformat
+typecheckOpts = uncurry TypecheckOptions <$> plcInputWithFormat <*> output <*> printmode <*> nameformat
 
 eraseOpts :: Parser EraseOptions
-eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
+eraseOpts =
+  (\(inp, ifmt) (outp, ofmt) mode -> EraseOptions inp ifmt outp ofmt mode)
+    <$> plcInputWithFormat
+    <*> plcOutputWithFormat
+    <*> printmode
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions
-    <$> input
-    <*> inputformat
+  uncurry EvalOptions
+    <$> plcInputWithFormat
     <*> output
     <*> printmode
     <*> nameformat
@@ -96,8 +99,8 @@ plutus langHelpText =
               "Evaluate a program on the CK machine"
               "plc evaluate -i program.plc"
           , Help.eg
-              "Erase types, producing an untyped Plutus Core program"
-              "plc erase --of textual -i program.plc -o program.uplc"
+              "Erase types, producing an untyped Plutus Core program (formats deduced from the .plc and .uplc extensions)"
+              "plc erase -i program.plc -o program.uplc"
           , Help.eg
               "Enable bash completion for the current shell"
               "source <(plc --bash-completion-script $(command -v plc))"
@@ -110,27 +113,29 @@ plutusOpts =
     command
       "apply"
       ( info
-          (Apply <$> applyOpts)
+          (Apply <$> plcApplyOpts)
           ( progDesc $
               "Given a list of input files f g1 g2 ... gn "
                 <> "containing Typed Plutus Core scripts, "
                 <> "output a script consisting of (... ((f g1) g2) ... gn); "
-                <> "for example, 'plc apply --if flat Validator.flat "
-                <> "Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."
+                <> "for example, 'plc apply Validator.flat "
+                <> "Datum.flat Redeemer.flat Context.flat -o Script.flat' "
+                <> "(each file's format is deduced from its extension; "
+                <> "--if forces one format for all files)."
           )
       )
       <> command
         "apply-to-data"
         ( info
-            (ApplyToData <$> applyOpts)
+            (ApplyToData <$> plcApplyOpts)
             ( progDesc $
                 "Given a list f d1 d2 ... dn where f is a "
                   <> "Typed Plutus Core script and d1,...,dn are files "
                   <> "containing flat-encoded data ojbects, output a script "
                   <> "consisting of f applied to the data objects; "
-                  <> "for example, 'plc apply-to-data --if "
-                  <> "flat Validator.flat Datum.flat Redeemer.flat Context.flat "
-                  <> "--of flat -o Script.flat'."
+                  <> "for example, 'plc apply-to-data "
+                  <> "Validator.flat Datum.flat Redeemer.flat Context.flat "
+                  <> "-o Script.flat' (the program format is deduced from the .flat extension)."
             )
         )
       <> command
@@ -142,7 +147,7 @@ plutusOpts =
       <> command
         "convert"
         ( info
-            (Convert <$> convertOpts)
+            (Convert <$> plcConvertOpts)
             (progDesc "Convert a program between various formats")
         )
       <> command
@@ -194,15 +199,18 @@ plutusOpts =
             (progDesc "Print the signatures of the built-in functions.")
         )
   where
-    optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
+    optimise desc = info (Optimise <$> plcOptimiseOpts) $ progDesc desc
 
 ---------------- Script application ----------------
 
 {-| Apply one script to a list of others and output the result.  All of the
 scripts must be PLC.Program objects. -}
 runApply :: ApplyOptions -> IO ()
-runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((readProgram ifmt :: Input -> IO (PlcProg PLC.SrcSpan)) . FileInput) inputfiles
+runApply (ApplyOptions inputfiles outp ofmt mode) = do
+  scripts <-
+    mapM
+      (\(file, ifmt) -> readProgram ifmt (FileInput file) :: IO (PlcProg PLC.SrcSpan))
+      inputfiles
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           [] -> errorWithoutStackTrace "No input files"
@@ -213,12 +221,12 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 {-| Apply a PLC program to script to a list of flat-encoded Data objects and
 output the result. -}
 runApplyToData :: ApplyOptions -> IO ()
-runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) = do
+runApplyToData (ApplyOptions inputfiles outp ofmt mode) = do
   case inputfiles of
     [] -> errorWithoutStackTrace "No input files"
-    p : ds -> do
+    (p, ifmt) : ds -> do
       prog@(PLC.Program _ version _) :: PlcProg PLC.SrcSpan <- readProgram ifmt (FileInput p)
-      args <- mapM (getDataObject version) ds
+      args <- mapM (getDataObject version . fst) ds
       let prog' = () <$ prog
           appliedScript = foldl1 (unsafeFromRight .* PLC.applyProgram) (prog' : args)
       writeProgram outp ofmt mode appliedScript
