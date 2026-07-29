@@ -113,15 +113,15 @@ propMatchParser =
         let original = structuralPrefixMatchParserProgram
             source = displayPlc original
         assertBool ("expected wildcard-rest prefix syntax in: " <> T.unpack source) $
-          "(prefix (list) (wildcard))" `T.isInfixOf` source
+          "(list (prefix (wildcard)))" `T.isInfixOf` source
         assertBool ("expected capture-rest prefix syntax in: " <> T.unpack source) $
-          "(prefix (list (integer 1) (bind)) (bind))" `T.isInfixOf` source
+          "(list (prefix (integer 1) (bind) (bind)))" `T.isInfixOf` source
         assertBool ("expected data-constr prefix syntax in: " <> T.unpack source) $
-          "(prefix (data-constr 0) (wildcard))" `T.isInfixOf` source
+          "(data-constr 0 (prefix (wildcard)))" `T.isInfixOf` source
         assertBool ("expected data-map prefix syntax in: " <> T.unpack source) $
-          "(prefix (data-map) (bind))" `T.isInfixOf` source
+          "(data-map (prefix (bind)))" `T.isInfixOf` source
         assertBool ("expected data-list prefix syntax in: " <> T.unpack source) $
-          "(prefix (data-list) (wildcard))" `T.isInfixOf` source
+          "(data-list (prefix (wildcard)))" `T.isInfixOf` source
         case runQuoteT $ parseProgram source of
           Left err -> assertFailure $ display err
           Right parsed -> void parsed @?= original
@@ -144,18 +144,31 @@ propMatchParser =
         assertMatchParseRejects $
           "(program 1.2.0 (match (con integer 0) "
             <> "(pattern (data-constr 18446744073709551616) (con integer 0))))"
+    , testCase "requires exactly one Data.I/Data.B payload pattern" $ do
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con data (I 0)) "
+            <> "(pattern (data-i) (con integer 0))))"
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con data (B #)) "
+            <> "(pattern (data-b) (con integer 0))))"
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con data (I 0)) "
+            <> "(pattern (data-i (wildcard) (wildcard)) (con integer 0))))"
+        assertMatchParseRejects $
+          "(program 1.2.0 (match (con data (B #)) "
+            <> "(pattern (data-b (wildcard) (wildcard)) (con integer 0))))"
     , testCase "rejects prefix without a final rest pattern" $
         assertMatchParseRejects $
           "(program 1.2.0 (match (con (list integer) []) "
-            <> "(pattern (prefix (list)) (con integer 0))))"
+            <> "(pattern (list (prefix)) (con integer 0))))"
     , testCase "rejects prefix whose rest is not wildcard or bind" $
         assertMatchParseRejects $
           "(program 1.2.0 (match (con (list integer) [1]) "
-            <> "(pattern (prefix (list (wildcard)) (integer 0)) (con integer 0))))"
-    , testCase "rejects prefix on a non-field pattern" $
+            <> "(pattern (list (prefix (wildcard) (integer 0))) (con integer 0))))"
+    , testCase "rejects legacy outer prefix syntax" $
         assertMatchParseRejects $
-          "(program 1.2.0 (match (con integer 1) "
-            <> "(pattern (prefix (integer 1) (wildcard)) (con integer 0))))"
+          "(program 1.2.0 (match (con (list integer) [1]) "
+            <> "(pattern (prefix (list (wildcard)) (wildcard)) (con integer 0))))"
     ]
   where
     assertMatchParseRejects source =

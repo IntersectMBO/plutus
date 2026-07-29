@@ -2,7 +2,7 @@
 (program 1.2.0
   (match (con (list integer) [1, 2, 3, 4, 5, 6])
     (pattern
-      (prefix (list (wildcard) (wildcard) (bind)) (bind))
+      (list (prefix (wildcard) (wildcard) (bind) (bind)))
       (lam third (lam rest rest)))
     (pattern (wildcard) (error)))
 )

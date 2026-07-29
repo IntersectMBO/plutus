@@ -88,10 +88,10 @@ dataConstrPattern
 dataConstrPattern tag = patternChildren (DefaultPatternDataConstr tag)
 
 dataIPattern :: DefaultBuiltinPattern -> DefaultBuiltinPattern
-dataIPattern = DefaultPatternDataI . Just
+dataIPattern = DefaultPatternDataI
 
 dataBPattern :: DefaultBuiltinPattern -> DefaultBuiltinPattern
-dataBPattern = DefaultPatternDataB . Just
+dataBPattern = DefaultPatternDataB
 
 pairPattern :: DefaultBuiltinPattern -> DefaultBuiltinPattern -> DefaultBuiltinPattern
 pairPattern = DefaultPatternPair
@@ -412,7 +412,8 @@ selectTwoCaptureHandler :: Int -> UTerm
 selectTwoCaptureHandler selected =
   UPLC.LamAbs () first $
     UPLC.LamAbs () second $
-      UPLC.Var () $ [first, second] !! selected
+      UPLC.Var () $
+        [first, second] !! selected
   where
     first = Name "first" (Unique 13)
     second = Name "second" (Unique 14)
@@ -629,7 +630,8 @@ test_patterns =
                         DefaultPatternFieldsPrefixWildcard
                     term =
                       matchSingle pat handler $
-                        constantData $ PLC.List [PLC.Constr 7 [PLC.I 42], PLC.B "tail"]
+                        constantData $
+                          PLC.List [PLC.Constr 7 [PLC.I 42], PLC.B "tail"]
                 assertBothEvaluateTo (constantInteger 42) term
                 assertBothPatternBudget (ExBudget 8 0) term
             , testCase "fixed captures precede a captured list Data suffix" $ do

@@ -2,7 +2,7 @@
 (program 1.2.0
   (match (con (list integer) [1, 2])
     (pattern
-      (prefix (list (wildcard) (wildcard) (bind)) (wildcard))
+      (list (prefix (wildcard) (wildcard) (bind) (wildcard)))
       (lam third third))
     (pattern (wildcard) (con integer 99)))
 )

@@ -99,35 +99,17 @@ matchPattern =
     , PLC.DefaultPatternByteString <$> (symbol "bytestring" *> conBS)
     , PLC.DefaultPatternBool <$> (symbol "bool" *> conBool)
     , PLC.DefaultPatternUnit <$ symbol "unit"
-    , do
-        structural <- symbol "prefix" *> matchPattern
-        rest <- matchPattern
-        fieldEnd <- case rest of
-          PLC.DefaultPatternWildcard -> pure PLC.DefaultPatternFieldsPrefixWildcard
-          PLC.DefaultPatternCapture -> pure PLC.DefaultPatternFieldsPrefixCapture
-          _ -> fail "prefix rest must be (wildcard) or (bind)"
-        case structural of
-          PLC.DefaultPatternList PLC.DefaultPatternFieldsExact children ->
-            pure $ PLC.DefaultPatternList fieldEnd children
-          PLC.DefaultPatternDataConstr tag PLC.DefaultPatternFieldsExact children ->
-            pure $ PLC.DefaultPatternDataConstr tag fieldEnd children
-          PLC.DefaultPatternDataMap PLC.DefaultPatternFieldsExact children ->
-            pure $ PLC.DefaultPatternDataMap fieldEnd children
-          PLC.DefaultPatternDataList PLC.DefaultPatternFieldsExact children ->
-            pure $ PLC.DefaultPatternDataList fieldEnd children
-          _ -> fail "prefix requires an exact list, data-constr, data-map, or data-list pattern"
-    , withChildren (PLC.DefaultPatternList PLC.DefaultPatternFieldsExact) "list"
+    , withChildren PLC.DefaultPatternList "list"
     , PLC.DefaultPatternPair
         <$> (symbol "pair" *> matchPattern)
         <*> matchPattern
     , do
         tag <- symbol "data-constr" *> patternWord64
-        PLC.DefaultPatternDataConstr tag PLC.DefaultPatternFieldsExact . V.fromList
-          <$> many matchPattern
-    , withChildren (PLC.DefaultPatternDataMap PLC.DefaultPatternFieldsExact) "data-map"
-    , withChildren (PLC.DefaultPatternDataList PLC.DefaultPatternFieldsExact) "data-list"
-    , PLC.DefaultPatternDataI <$> (symbol "data-i" *> optional matchPattern)
-    , PLC.DefaultPatternDataB <$> (symbol "data-b" *> optional matchPattern)
+        patternFields $ PLC.DefaultPatternDataConstr tag
+    , withChildren PLC.DefaultPatternDataMap "data-map"
+    , withChildren PLC.DefaultPatternDataList "data-list"
+    , PLC.DefaultPatternDataI <$> (symbol "data-i" *> matchPattern)
+    , PLC.DefaultPatternDataB <$> (symbol "data-b" *> matchPattern)
     ]
   where
     patternInt64 = do
@@ -142,9 +124,22 @@ matchPattern =
       when (value < 0 || value > toInteger (maxBound :: Word64)) $
         fail "data-constr pattern tag is outside the Word64 range"
       pure $ fromInteger value
-    withChildren ctor keyword = do
-      _ <- symbol keyword
-      ctor . V.fromList <$> many matchPattern
+    withChildren ctor keyword = symbol keyword *> patternFields ctor
+    patternFields ctor =
+      try (prefixFields ctor)
+        <|> (ctor PLC.DefaultPatternFieldsExact . V.fromList <$> many matchPattern)
+    prefixFields ctor =
+      leadingWhitespace . inParens $ do
+        _ <- symbol "prefix"
+        patterns <- many matchPattern
+        case reverse patterns of
+          [] -> fail "prefix requires a final rest pattern"
+          rest : reversedChildren -> do
+            fieldEnd <- case rest of
+              PLC.DefaultPatternWildcard -> pure PLC.DefaultPatternFieldsPrefixWildcard
+              PLC.DefaultPatternCapture -> pure PLC.DefaultPatternFieldsPrefixCapture
+              _ -> fail "prefix rest must be (wildcard) or (bind)"
+            pure . ctor fieldEnd . V.fromList $ reverse reversedChildren
 
 matchTerm :: SrcSpan -> Parser PTerm
 matchTerm sp = do

@@ -177,9 +177,9 @@ data DefaultPatternFieldEnd
 {-| A complete, recursive pattern language for values in 'DefaultUni'. 'Match' is deliberately
 built-in-only: UPLC constructors continue to use 'Case'. Homogeneous structural fields can be
 matched exactly or as a fixed prefix, with the unconsumed fields ignored or captured as a built-in
-list. Pair arity is represented directly, and the optional payload patterns for @Data.I@ and
-@Data.B@ make malformed arities unrepresentable. Pattern matching is incrementally metered as it
-traverses this raw syntax, so the AST carries no cached or caller-supplied costing metadata. -}
+list. Pair arity is represented directly, and @Data.I@ and @Data.B@ each require exactly one payload
+pattern. Pattern matching is incrementally metered as it traverses this raw syntax, so the AST
+carries no cached or caller-supplied costing metadata. -}
 data DefaultBuiltinPattern
   = DefaultPatternWildcard
   | DefaultPatternCapture
@@ -201,8 +201,8 @@ data DefaultBuiltinPattern
   | DefaultPatternDataList
       !DefaultPatternFieldEnd
       !(Vector.Vector DefaultBuiltinPattern)
-  | DefaultPatternDataI !(Maybe DefaultBuiltinPattern)
-  | DefaultPatternDataB !(Maybe DefaultBuiltinPattern)
+  | DefaultPatternDataI !DefaultBuiltinPattern
+  | DefaultPatternDataB !DefaultBuiltinPattern
   deriving stock (Eq, Show, Generic)
   deriving anyclass (NFData)
 
@@ -255,14 +255,19 @@ instance Pretty DefaultBuiltinPattern where
       prettyFields "data-map" [] fieldEnd children
     DefaultPatternDataList fieldEnd children ->
       prettyFields "data-list" [] fieldEnd children
-    DefaultPatternDataI child -> prettyOptionalChild "data-i" child
-    DefaultPatternDataB child -> prettyOptionalChild "data-b" child
+    DefaultPatternDataI child -> prettyChild "data-i" child
+    DefaultPatternDataB child -> prettyChild "data-b" child
     where
       prettyPatternChildren = fmap pretty . Vector.toList
-      prettyOptionalChild name = parens . sep . (name :) . maybe [] (pure . pretty)
+      prettyChild name child = parens . sep $ [name, pretty child]
       prettyFields name leading fieldEnd children =
-        let exact = parens . sep $ name : leading <> prettyPatternChildren children
-            prefix rest = parens . sep $ ["prefix", exact, parens rest]
+        let prettyChildren = prettyPatternChildren children
+            exact = parens . sep $ name : leading <> prettyChildren
+            prefix rest =
+              parens . sep $
+                name
+                  : leading
+                    <> [parens . sep $ "prefix" : prettyChildren <> [parens rest]]
          in case fieldEnd of
               DefaultPatternFieldsExact -> exact
               DefaultPatternFieldsPrefixWildcard -> prefix "wildcard"
@@ -291,12 +296,11 @@ instance Flat DefaultBuiltinPattern where
       encodeFields fieldEnd $ tag 9 <> encodeChildren children
     DefaultPatternDataList fieldEnd children ->
       encodeFields fieldEnd $ tag 10 <> encodeChildren children
-    DefaultPatternDataI child -> tag 11 <> encodeOptionalChild child
-    DefaultPatternDataB child -> tag 12 <> encodeOptionalChild child
+    DefaultPatternDataI child -> tag 11 <> encode child
+    DefaultPatternDataB child -> tag 12 <> encode child
     where
       tag = safeEncodeBits defaultBuiltinPatternTagWidth
       encodeChildren = encodeListWith encode . Vector.toList
-      encodeOptionalChild = encodeListWith encode . maybe [] pure
       encodeFields fieldEnd exactDescriptor = case fieldEnd of
         DefaultPatternFieldsExact -> exactDescriptor
         DefaultPatternFieldsPrefixWildcard ->
@@ -317,17 +321,12 @@ instance Flat DefaultBuiltinPattern where
       8 -> decodeFieldsDescriptor (pure DefaultPatternFieldsExact) 8
       9 -> decodeFieldsDescriptor (pure DefaultPatternFieldsExact) 9
       10 -> decodeFieldsDescriptor (pure DefaultPatternFieldsExact) 10
-      11 -> DefaultPatternDataI <$> decodeOptionalChild
-      12 -> DefaultPatternDataB <$> decodeOptionalChild
+      11 -> DefaultPatternDataI <$> decode
+      12 -> DefaultPatternDataB <$> decode
       13 -> dBEBits8 defaultBuiltinPatternTagWidth >>= decodeFieldsDescriptor decodePrefixEnd
       tag -> fail $ "Unknown default built-in pattern tag: " ++ show tag
     where
       decodeChildren = Vector.fromList <$> decodeListWith decode
-      decodeOptionalChild =
-        decodeListWith decode >>= \case
-          [] -> pure Nothing
-          [child] -> pure $ Just child
-          _ -> fail "Default Data.I/Data.B pattern takes at most one child"
       decodeFieldsDescriptor decodeFieldEnd = \case
         6 -> do
           children <- decodeChildren
@@ -371,11 +370,10 @@ instance Flat DefaultBuiltinPattern where
             sizeFields fieldEnd $ sizeChildren children sz'
           DefaultPatternDataList fieldEnd children ->
             sizeFields fieldEnd $ sizeChildren children sz'
-          DefaultPatternDataI child -> sizeOptionalChild child sz'
-          DefaultPatternDataB child -> sizeOptionalChild child sz'
+          DefaultPatternDataI child -> size child sz'
+          DefaultPatternDataB child -> size child sz'
     where
       sizeChildren = sizeListWith size . Vector.toList
-      sizeOptionalChild = sizeListWith size . maybe [] pure
       sizeFields fieldEnd exactSize = case fieldEnd of
         DefaultPatternFieldsExact -> exactSize
         DefaultPatternFieldsPrefixWildcard -> prefixSize exactSize
@@ -1455,10 +1453,9 @@ matchDefaultAlternatives rootValue alternatives =
                   captures
               _ -> nextAlternative rest
             _ -> nextAlternative rest
-          DefaultPatternDataI child -> case currentUni of
-            DefaultUniData -> case (child, currentValue) of
-              (Nothing, PLC.I _) -> resumeWork rest captures
-              (Just nested, PLC.I integer) ->
+          DefaultPatternDataI nested -> case currentUni of
+            DefaultUniData -> case currentValue of
+              PLC.I integer ->
                 matchValue
                   nested
                   (someValueOf DefaultUniInteger integer)
@@ -1466,10 +1463,9 @@ matchDefaultAlternatives rootValue alternatives =
                   captures
               _ -> nextAlternative rest
             _ -> nextAlternative rest
-          DefaultPatternDataB child -> case currentUni of
-            DefaultUniData -> case (child, currentValue) of
-              (Nothing, PLC.B _) -> resumeWork rest captures
-              (Just nested, PLC.B bytes) ->
+          DefaultPatternDataB nested -> case currentUni of
+            DefaultUniData -> case currentValue of
+              PLC.B bytes ->
                 matchValue
                   nested
                   (someValueOf DefaultUniByteString bytes)
@@ -1557,15 +1553,15 @@ matchDefaultAlternatives rootValue alternatives =
                  in if Vector.null remainingPatterns
                       then case fieldEnd of
                         DefaultPatternFieldsExact -> case remainingFields of
-                            [] ->
-                              -- The field-edge spend covers this final child dispatch. Entering
-                              -- the paid matcher directly retains the exact-pattern fast path.
-                              matchPaidValue
-                                currentPattern
-                                (someValueOf elemUni field)
-                                rest
-                                currentCaptures
-                            _ -> nextAlternative rest
+                          [] ->
+                            -- The field-edge spend covers this final child dispatch. Entering
+                            -- the paid matcher directly retains the exact-pattern fast path.
+                            matchPaidValue
+                              currentPattern
+                              (someValueOf elemUni field)
+                              rest
+                              currentCaptures
+                          _ -> nextAlternative rest
                         DefaultPatternFieldsPrefixWildcard -> continueFields
                         DefaultPatternFieldsPrefixCapture -> continueFields
                       else case remainingFields of

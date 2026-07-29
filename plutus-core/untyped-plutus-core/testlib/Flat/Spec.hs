@@ -50,8 +50,8 @@ instance Flat RawTag where
   decode = fail "RawTag is encode-only"
   size (RawTag width _) n = width + n
 
--- | Encode adjacent tags without asking 'safeEncodeBits' to encode a full byte. Its overflow
--- guard computes the bound at the input's 'Word8' type, so an eight-bit bound wraps around.
+{-| Encode adjacent tags without asking 'safeEncodeBits' to encode a full byte. Its overflow
+guard computes the bound at the input's 'Word8' type, so an eight-bit bound wraps around. -}
 newtype RawTags = RawTags [(Int, Word8)]
 
 instance Flat RawTags where
@@ -488,8 +488,10 @@ test_patternProgramFlat =
           , DefaultPatternDataMap DefaultPatternFieldsPrefixWildcard emptyChildren
           , DefaultPatternDataList DefaultPatternFieldsExact emptyChildren
           , DefaultPatternDataList DefaultPatternFieldsPrefixCapture emptyChildren
-          , DefaultPatternDataI Nothing
-          , DefaultPatternDataB Nothing
+          , DefaultPatternDataI DefaultPatternWildcard
+          , DefaultPatternDataI DefaultPatternCapture
+          , DefaultPatternDataB DefaultPatternWildcard
+          , DefaultPatternDataB DefaultPatternCapture
           ]
     , testCase "version 1.2 match stable encoding" $
         flatBytes (UnrestrictedProgram $ matchProg (Version 1 2 0))
@@ -549,8 +551,10 @@ test_patternProgramFlat =
             ( DefaultPatternDataList DefaultPatternFieldsPrefixWildcard emptyChildren
             , [218, 0]
             )
-          , (DefaultPatternDataI Nothing, [176])
-          , (DefaultPatternDataB Nothing, [192])
+          , (DefaultPatternDataI DefaultPatternWildcard, [176])
+          , (DefaultPatternDataI DefaultPatternCapture, [177])
+          , (DefaultPatternDataB DefaultPatternWildcard, [192])
+          , (DefaultPatternDataB DefaultPatternCapture, [193])
           ]
     , testCase "match is rejected before version 1.2" $ do
         assertUnrestrictedRejects "pre-1.2 match program" $ matchProg (Version 1 1 0)
