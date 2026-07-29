@@ -18,6 +18,7 @@ module PlutusCore.Default.Builtins where
 
 import PlutusPrelude
 
+import PlutusCore.Arrays qualified as Arrays
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
@@ -2484,17 +2485,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         multiIndexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) indices =
           case uni of
             DefaultUniArray uniA ->
-              let len = toInteger (Vector.length vec)
-                  lookupIndex i
-                    | 0 <= i && i < len = pure $ Vector.unsafeIndex vec $ fromInteger i
-                    | otherwise = fail "Array index out of bounds"
-               in fromValueOf (DefaultUniList uniA) <$> traverse lookupIndex indices
+              fromValueOf (DefaultUniList uniA) <$> Arrays.multiIndexArray vec indices
             _ ->
               throwError $ structuralUnliftingError "Expected an array but got something else"
         {-# INLINE multiIndexArrayDenotation #-}
      in makeBuiltinMeaning
           multiIndexArrayDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+          (runCostingFunTwoArguments . paramMultiIndexArray)
   toBuiltinMeaning _semvar Policies =
     let policiesDenotation :: Value -> [ByteString]
         policiesDenotation = Value.policies
