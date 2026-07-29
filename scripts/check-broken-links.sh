@@ -2,7 +2,6 @@ TARGETS=(
     .github/{ISSUE_TEMPLATE/*,*.md,*.yml} 
     **/{LICENSE,NOTICE,README.md,TRIAGE.md} 
     CODE_OF_CONDUCT.md 
-    *.adoc
 )
 
 # For some reason linkchecker fails to check these URLs though they are valid.

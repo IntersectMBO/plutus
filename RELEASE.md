@@ -1,37 +1,34 @@
-= Plutus Release Process
-:toc: left
-:reproducible:
-:figure-caption!:
+# Plutus Release Process
 
-== Packages
+## Packages
 
 The following packages are versioned and released:
 
-- `plutus-core`, which provides
-* The main library `plutus-core:plutus-core`
-* Three executables, `plutus-core:pir`, `plutus-core:plc`, `plutus-core:uplc`
-- `plutus-ledger-api`
-* The main library `plutus-ledger-api:plutus-ledger-api`
-- `plutus-tx`
-* The main library `plutus-tx:plutus-tx`
-- `plutus-tx-plugin`
-* The main library `plutus-tx-plugin:plutus-tx-plugin`
+* `plutus-core`, which provides
+  * The main library `plutus-core:plutus-core`
+  * Three executables, `plutus-core:pir`, `plutus-core:plc`, `plutus-core:uplc`
+* `plutus-ledger-api`
+  * The main library `plutus-ledger-api:plutus-ledger-api`
+* `plutus-tx`
+  * The main library `plutus-tx:plutus-tx`
+* `plutus-tx-plugin`
+  * The main library `plutus-tx-plugin:plutus-tx-plugin`
 
-== Version Scheme
+## Version Scheme
 
 All above packages are versioned and released in sync.
 That is, whenever one package releases version X, so do all other packages.
 
-We follow https://pvp.haskell.org/[the PVP version scheme] for the packages, where version numbers have a `major.major.minor.patch` pattern with the following semantics:
+We follow [the PVP version scheme](https://pvp.haskell.org/) for the packages, where version numbers have a `major.major.minor.patch` pattern with the following semantics:
 
-- A major release (e.g., 3.5.2.1 -> 3.6.0.0 or 4.0.0.0) may contain arbitrary changes to the API (subject to the backwards compatibility requirements described below).
-- A minor release (e.g., 3.5.2.1 -> 3.5.3.0) may contain changes such as new features, which technically can be breaking, but are unlikely to cause breakage in practice, and if it does, the fix should be straightforward (e.g., by renaming).
-+
-A minor release is also allowed to change the observable behaviors of functions that users should not rely on.
-For example, if a function returns a list of things and makes no promise on the order of elements in the returned list, then a minor release may change the order.
-- A patch release (e.g., 3.5.2.1 -> 3.5.2.2) can only contain such things as simple bug fixes, performance improvements, and documentation updates.
+* A major release (e.g., 3.5.2.1 -> 3.6.0.0 or 4.0.0.0) may contain arbitrary changes to the API (subject to the backwards compatibility requirements described below).
+* A minor release (e.g., 3.5.2.1 -> 3.5.3.0) may contain changes such as new features, which technically can be breaking, but are unlikely to cause breakage in practice, and if it does, the fix should be straightforward (e.g., by renaming).
 
-== Release Frequency
+  A minor release is also allowed to change the observable behaviors of functions that users should not rely on.
+  For example, if a function returns a list of things and makes no promise on the order of elements in the returned list, then a minor release may change the order.
+* A patch release (e.g., 3.5.2.1 -> 3.5.2.2) can only contain such things as simple bug fixes, performance improvements, and documentation updates.
+
+## Release Frequency
 
 We will begin by making a new major or minor release every 4 weeks, and evaluate and adjust the frequency in the future.
 Ad-hoc releases can be made upon request.
@@ -39,17 +36,17 @@ Ad-hoc releases can be made upon request.
 We only make patch releases for version `x.y.z`, if a cardano-node release candidate depends on `x.y.z.w`, and an issue is found during the node release process that requires patching plutus.
 In all other cases, we always start a new major or minor release from master.
 
-== Release Process
+## Release Process
 
 Run `./scripts/interactive-release.sh` to manage the release process. 
 
-== Make Broken Release Unbuildable
+## Make Broken Release Unbuildable
 
 Once a release has been published to CHaP, it cannot be removed. If a release is found to be broken or unsafe, it should be marked as unbuildable in CHaP to prevent cabal from selecting it during dependency resolution. This can be accomplished by setting `base < 0` in the `build-depends` section of each affected `.cabal` file.
 
-To do this, follow https://github.com/IntersectMBO/cardano-haskell-packages?tab=readme-ov-file#how-to-add-a-new-package-metadata-revision[the instructions] provided in the CHaP documentation. In summary: clone the CHaP repository, download the https://github.com/intersectmbo/cardano-haskell-packages/archive/refs/heads/repo.zip[pre-built repository] into the `_repo` top-level directory, run `./scripts/add-revision.sh _repo PACKAGE_NAME PACKAGE_VERSION` for each relevant `plutus-*` package and for the target version (e.g. `./scripts/add-revision _repo plutus-core 1.54.0.0`) then commit and push your changes to CHaP. Please refer to this https://github.com/IntersectMBO/cardano-haskell-packages/pull/1178[pull request] as an example.
+To do this, follow [the instructions](https://github.com/IntersectMBO/cardano-haskell-packages?tab=readme-ov-file#how-to-add-a-new-package-metadata-revision) provided in the CHaP documentation. In summary: clone the CHaP repository, download the [pre-built repository](https://github.com/intersectmbo/cardano-haskell-packages/archive/refs/heads/repo.zip) into the `_repo` top-level directory, run `./scripts/add-revision.sh _repo PACKAGE_NAME PACKAGE_VERSION` for each relevant `plutus-*` package and for the target version (e.g. `./scripts/add-revision _repo plutus-core 1.54.0.0`) then commit and push your changes to CHaP. Please refer to this [pull request](https://github.com/IntersectMBO/cardano-haskell-packages/pull/1178) as an example.
 
-== Backwards Compatibility with Cardano API
+## Backwards Compatibility with Cardano API
 
 It is a good idea to avoid breaking the latest version of Cardano API in a new Plutus release.
 This makes it easy for downstream projects to update Plutus version without needing a new Cardano API release.
@@ -57,14 +54,14 @@ This makes it easy for downstream projects to update Plutus version without need
 For example, suppose we make some improvements to `plutus-tx-plugin` and make a new major release.
 Since all packages are released in sync, we also make a new major release for `plutus-core`.
 Although it is a major release, we should avoid making changes that is incompatible with the latest version of Cardano API.
-Otherwise, downstream projects such as Plutus Tools won't be able to use the new Plutus version and take advantage of the plugin improvements, until a new Cardano API version is published.
+Otherwise, downstream projects such as Plutus Tools won’t be able to use the new Plutus version and take advantage of the plugin improvements, until a new Cardano API version is published.
 
 To do so, rather than making changes to the Plutus API that breaks Cardano API (e.g., changing the type of a function), we can temporarily keep both the old Plutus API and the new Plutus API, until a new Cardano API version is released that no longer depends on the old Plutus API.
 This is not a hard rule, and does not need to be strictly adhered to if it is too much trouble for small or unclear benefits.
 
 This will not be needed once Cardano API starts to make more frequent releases.
 
-== Participation in the `cardano-node` release process
+## Participation in the `cardano-node` release process
 
 Some Plutus features and changes require integration testing on devnets and testnets.
 Such tests are typically performed by the node QA team or the ecosystem collaborators.

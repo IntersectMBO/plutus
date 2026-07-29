@@ -28,7 +28,7 @@ The benchmarking portion of the code lives in `marlowe/bench`, which depends on 
 
 (2) Profiling: look at each script in more detail, what functions are taking up the most budget? How can they be optimized?
 
-See [CONTRIBUTING.md](https://github.com/IntersectMBO/plutus/blob/master/CONTRIBUTING.adoc#how-to-build-the-code-with-profiling) for profiling instructions.
+See [CONTRIBUTING.md](https://github.com/IntersectMBO/plutus/blob/master/CONTRIBUTING.md#how-to-build-the-code-with-profiling) for profiling instructions.
 
 Of the most common Marlowe transactions, input application transactions are the most relevant, as they are complex and can go over the execution limits at times. So there is a priority on examining those contracts.
 

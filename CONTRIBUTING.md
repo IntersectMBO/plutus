@@ -1,8 +1,6 @@
-= Contributing to Plutus
-:toc: left
-:reproducible:
+# Contributing to Plutus
 
-== Setting up and working with our development tools
+## Setting up and working with our development tools
 
 This project relies on Nix to provision the complete toolchain needed to build all repository artifacts.
 
@@ -10,15 +8,15 @@ Thanks to Nix we ensure that everyone has consistent versions of the tools that 
 
 Please use Nix since problems due to mismatched versions of tools are particularly annoying to fix!
 
-If you _really_ cannot use Nix and still want to contribute to Plutus then xref:develop-without-nix[skip to the relevant section].
+If you _really_ cannot use Nix and still want to contribute to Plutus then [skip to the relevant section](#how-to-develop-without-nix).
 
-=== Installing and setting up Nix
+### Installing and setting up Nix
 
-For instructions on how to install and configure nix (including how to enable access to our binary caches), refer to link:https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md[this document].
+For instructions on how to install and configure nix (including how to enable access to our binary caches), refer to [this document](https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md).
 
 If you already have nix installed and setup, you may enter the development shell by running `nix develop`.
 
-=== Note on pre-commit hooks
+### Note on pre-commit hooks
 
 If you are committing code outside `nix develop`, you will get this error:
 ```
@@ -28,83 +26,82 @@ In that case, you may either pass the flag `--no-verify` to `git commit`, or `pi
 
 The `pre-commit` checks will be run by CI anyway, so any formatting errors will be caught when submitting your PR.
 
-=== What to do once inside the `nix develop` shell
+### What to do once inside the `nix develop` shell
 
 Your prompt will change to `[plutus-shell]` and you will be presented with a menu of available commands.
 
 Please read that menu carefully.
 
-=== How to build the code during development
+### How to build the code during development
 
 The `nix develop` environment has the correct GHC with all the external Haskell dependencies of the project.
 
 From here you can build the project packages directly with `cabal`.
 
-NOTE: You may need to run `cabal update` so that `cabal` knows about the index state xref:update-haskell-deps[we have pinned].
+**📌 NOTE**\
+You may need to run `cabal update` so that `cabal` knows about the index state [we have pinned](#how-to-update-our-haskell-dependencies).
 
 Run `cabal build plutus-core` from the root to build the Plutus Core library.
 
-See the link:./cabal.project[cabal project file] for a list of other packages that you can build with `cabal`.
+See the [cabal project file](./cabal.project) for a list of other packages that you can build with `cabal`.
 
-=== How to setup `haskell-language-server`
+### How to setup `haskell-language-server`
 
 The `nix develop` environment has a `haskell-language-server` binary for the right version of GHC.
 
-IMPORTANT: This binary is called `haskell-language-server`, rather than `haskell-language-server-wrapper`, which is what some of the editor integrations expect.
+**❗ IMPORTANT**\
+This binary is called `haskell-language-server`, rather than `haskell-language-server-wrapper`, which is what some of the editor integrations expect.
 
-We don't have a `hie.yaml`, the implicit cradle support in HLS seems to work fine these days.
+We don’t have a `hie.yaml`, the implicit cradle support in HLS seems to work fine these days.
 
-[[build-with-nix]]
-=== How to build the project's artifacts with Nix
+### How to build the project’s artifacts with Nix
 
-Haskell components are provisioned by Nix via link:https://github.com/input-output-hk/haskell.nix[Haskell.nix]
+Haskell components are provisioned by Nix via [Haskell.nix](https://github.com/input-output-hk/haskell.nix)
 
 In general you can run `nix build .#cabalProject.SYSTEM.hsPkgs.PACKAGE.components.COMPONENT`
 
 For example `nix build .#cabalProject.x86_64-linux.hsPkgs.plutus-core.components.library`
 
-For full documentation about the Nix code see the link:nix/README.md[Nix README].
+For full documentation about the Nix code see the [Nix README](nix/README.md).
 
 There you will find how to build all other artifacts, which are mostly related to documentation.
 
-[[develop-without-nix]]
-=== How to develop without Nix
+### How to develop without Nix
 
-You can build some of the Haskell packages without Nix, but this is not recommended and we don't guarantee that these prerequisites are sufficient.
+You can build some of the Haskell packages without Nix, but this is not recommended and we don’t guarantee that these prerequisites are sufficient.
 
-If you use Nix, these tools are provided for you via `nix develop`, and you do *not* need to install them yourself.
+If you use Nix, these tools are provided for you via `nix develop`, and you do **not** need to install them yourself.
 
-* If you want to build our Agda code, then install https://github.com/agda/agda[Agda] and the https://github.com/agda/agda-stdlib[standard library].
-* If you want to build our Haskell packages with https://www.haskell.org/cabal/[`cabal`], then install it.
+* If you want to build our Agda code, then install [Agda](https://github.com/agda/agda) and the [standard library](https://github.com/agda/agda-stdlib).
+* If you want to build our Haskell packages with [`cabal`](https://www.haskell.org/cabal/), then install it.
 
-[WARNING]
-====
+<dl><dt><strong>⚠️ WARNING</strong></dt><dd>
+
 * We rely on forked or new versions of some system libraries.
-** You can read the https://developers.cardano.org/docs/operate-a-stake-pool/node-operations/installing-cardano-node/[Cardano node documentation] to find out how to install these.
+  * You can read the [Cardano node documentation](https://developers.cardano.org/docs/operate-a-stake-pool/node-operations/installing-cardano-node/) to find out how to install these.
 * You may get different versions of packages.
-** This *shouldn't* happen, but we can't guarantee it.
+  * This **shouldn’t** happen, but we can’t guarantee it.
 * We are not currently enabling the Nix integration for these tools, so
 they will use your system GHC and libraries, rather than that ones that
 will be used by Nix.
-** We sometimes patch the GHC that we use in Nix, so
-this can at least potentially cause problems or cause you to be missing
-bug workarounds.
-====
+  * We sometimes patch the GHC that we use in Nix, so
+  this can at least potentially cause problems or cause you to be missing
+  bug workarounds.
+</dd></dl>
 
-=== How to add a new Haskell package
+### How to add a new Haskell package
 
 You need to do a few things when adding a new package, in the following order:
 
-- Add the cabal file for the new package.
-- Add the package to link:cabal.project[`cabal.project`].
-- Check that you can build the package with nix as well (see xref:build-with-nix[How to build with Nix]) or wait for CI to check this for you.
+* Add the cabal file for the new package.
+* Add the package to [`cabal.project`](cabal.project).
+* Check that you can build the package with nix as well (see [How to build with Nix](#how-to-build-the-projects-artifacts-with-nix)) or wait for CI to check this for you.
 
-[[update-haskell-deps]]
-=== How to update our Haskell dependencies
+### How to update our Haskell dependencies
 
 Our Haskell packages come from two package repositories:
 - Hackage
-- https://github.com/IntersectMBO/cardano-haskell-packages[CHaP] (which is essentially another Hackage)
+- [CHaP](https://github.com/IntersectMBO/cardano-haskell-packages) (which is essentially another Hackage)
 
 The "index state" of each repository is pinned to a particular time in `cabal.project`.
 This tells Cabal to treat the repository "as if" it was the specified time, ensuring reproducibility.
@@ -115,74 +112,73 @@ That typically just means that we need to fix the breakage (and add a lower-boun
 Note that `cabal` itself keeps track of what index states it knows about, so when you bump the pinned index state you may need call `cabal update` in order for `cabal` to be happy.
 
 The Nix code which builds our packages also cares about the index state.
-This is represented by some pinned inputs in our flake (see xref:update-nix-pins[here] for more details)
+This is represented by some pinned inputs in our flake (see [here](#how-to-update-our-pinned-nix-dependencies) for more details)
 You can update these by running:
 - `nix flake update hackage` for Hackage
 - `nix flake update CHaP` for CHaP
 
-==== Use of `source-repository-package`s
+#### Use of `source-repository-package`s
 
-We *can* use Cabal's `source-repository-package` mechanism to pull in un-released package versions.
+We **can** use Cabal’s `source-repository-package` mechanism to pull in un-released package versions.
 However, we should try and avoid this.
 In particular, we should not release our packages while we depend on a `source-repository-package`.
 
-If we are stuck in a situation where we need a long-running fork of a package, we should release it to CHaP instead (see the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP README] for more).
+If we are stuck in a situation where we need a long-running fork of a package, we should release it to CHaP instead (see the [CHaP README](https://github.com/IntersectMBO/cardano-haskell-packages) for more).
 
 If you do add a `source-repository-package`, you need to update the `sha256` mapping in `nix/project.nix`.
 For the moment you have to do this by hand, using the following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`, or by just getting it wrong and trying to build it, in which case Nix will give you the right value.
 
-[[update-nix-pins]]
-=== How to update our pinned Nix dependencies
+### How to update our pinned Nix dependencies
 
 We pin versions of some git repositories that are used by Nix, for example `nixpkgs`.
 
-For documentation see https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs[the Nix flake inputs documentation]
-and https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-lock.html[the Nix flake lock command].
+For documentation see [the Nix flake inputs documentation](https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs)
+and [the Nix flake lock command](https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-lock.html).
 
 Specifically, you will probably want to say `nix flake update <input-name>`.
 
-Do *not* use `nix flake update`, as that will update all the inputs, which we typically don't want to do.
+Do **not** use `nix flake update`, as that will update all the inputs, which we typically don’t want to do.
 
-=== How to build the code with profiling
+### How to build the code with profiling
 
 TODO: Currently not available, coming soon
 
 If you launch `nix develop .#profiled` you will get a shell where all the dependencies have been built with profiling.
 
-[WARNING]
-====
+<dl><dt><strong>⚠️ WARNING</strong></dt><dd>
+
 The shell with profiling dependencies is not currently cached, so this will result in you rebuilding all of our dependencies with profiling on your machine.
-This will take a *long* time.
-====
+This will take a **long** time.
+</dd></dl>
 
-Once you have a shell with profiling libraries for our dependencies, add `profiling: true` to `cabal.project.local`, which will tell cabal that you want profiling (in particular, that will cause it to build *our* libraries with profiling).
+Once you have a shell with profiling libraries for our dependencies, add `profiling: true` to `cabal.project.local`, which will tell cabal that you want profiling (in particular, that will cause it to build **our** libraries with profiling).
 
-Alternatively, you can pass the `--enable-profiling` option to `cabal` on an ad-hoc basis, but adding the option to `cabal.project.local` will make it apply to everything, which is probably what you want when you're doing profiling work.
+Alternatively, you can pass the `--enable-profiling` option to `cabal` on an ad-hoc basis, but adding the option to `cabal.project.local` will make it apply to everything, which is probably what you want when you’re doing profiling work.
 
 At this point you need to configure which cost centres you want GHC to insert.
 
-The https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/profiling.html[GHC user guide] explains this very well.
+The [GHC user guide](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/profiling.html) explains this very well.
 
 A typical way of doing this is to add `-fprof-auto` to either the `ghc-options` in the `.cabal` file for the project, or in an `OPTIONS_GHC` pragma in the module you care about.
 
-[WARNING]
-====
-Do *not* set the `-prof` option yourself!
+<dl><dt><strong>⚠️ WARNING</strong></dt><dd>
+
+Do **not** set the `-prof` option yourself!
 This will enable profiling libraries unconditionally, which interferes with what `cabal` wants.
 Setting `profiling: true` already sorts this out properly.
-====
+</dd></dl>
 
 Then you can use the RTS `-p` option to dump a profile e.g. `cabal run plc ... -- +RTS -p`.
 
-[WARNING]
-====
+<dl><dt><strong>⚠️ WARNING</strong></dt><dd>
+
 When building `plutus-core`, you might get a compilation error similar to the following:
 
 ```
 ghc: ^^ Could not load 'recursionzmschemeszm5zi2zm8KxPjFseRtMJfccAAVODSC_DataziFunctorziFoldableziTH_zdfMakeBaseFunctorNamezuzdcmakeBaseFunctor_closure', dependency unresolved. See top entry above.
 
 ByteCodeLink.lookupCE
-During interactive linking, GHCi couldn't find the following symbol:
+During interactive linking, GHCi couldn’t find the following symbol:
   recursionzmschemeszm5zi2zm8KxPjFseRtMJfccAAVODSC_DataziFunctorziFoldableziTH_zdfMakeBaseFunctorNamezuzdcmakeBaseFunctor_closure
 ```
 
@@ -195,11 +191,11 @@ package plutus-core
 
 This issue is tracked upstream at https://gitlab.haskell.org/ghc/ghc/-/issues/18320
 
-====
+</dd></dl>
 
 There are various tools for visualizing the resulting profile, e.g. https://hackage.haskell.org/package/ghc-prof-flamegraph.
 
-== GHC versions
+## GHC versions
 
 We have a set of supported GHC major versions, which are built in CI and which we commit to keeping working.
 
@@ -215,10 +211,10 @@ At the moment, our supported GHC versions are:
 - 9.12
 - 9.14
 
-=== Plugin support
+### Plugin support
 
 Making `plutus-tx-plugin` work on multiple GHC versions can be painful, because it uses a lot of GHC internals.
-Since the plugin is not in the dependency closure of the Cardano node, we don't _need_ to support all the GHC versions, which is helpful.
+Since the plugin is not in the dependency closure of the Cardano node, we don’t _need_ to support all the GHC versions, which is helpful.
 We mostly commit to supporting our primary development version, but we _may_ support other versions as well if it is easy.
 
 The plugin and its dependents should be marked as unbuildable with cabal conditionals on any non-supported major GHC versions.
@@ -228,27 +224,27 @@ We currently support the plugin on:
 - 9.6
 - 9.12
 
-=== Per-version tooling
+### Per-version tooling
 
 We have a dev shell for each supported GHC version which you can use if you need to fix issues on that specific version.
 You can access them like this: `nix develop .#ghc912`.
 
-Note that HLS in particular won't work in the non-primary dev shell as it will still be built with the primary GHC version, but other tooling should work fine.
+Note that HLS in particular won’t work in the non-primary dev shell as it will still be built with the primary GHC version, but other tooling should work fine.
 
-=== Per-version testing
+### Per-version testing
 
 As far as we know, given an exact GHC compiler version
 the GHC compiler will generate the same (reproducible) GHC-Core, from any Haskell code, running under any platform (linux/osx/windows/etc).
 
 However, when comparing the GHC-Core output coming from different GHC versions, this might not still hold.
 Because the PlutusTx language heavily relies on GHC-Core, any (slight) GHC-Core differences will change the resulting plutus core (and its archetypes, plutus ir and typed plutus core).
-Since our (test) code must be reproducible with multiple GHC versions (see xref:plugin-support[Plugin Support]) _at the same time_ in the repository,
+Since our (test) code must be reproducible with multiple GHC versions (see [Plugin Support](#plugin-support)) _at the same time_ in the repository,
 we keep multiple test output directories (containg golden plutus files), one for each GHC version that the plugin supports.
 
 To test and/or regenerate test golden test output, one has to run _for each_  GHC version supported by the plugin:
 
 ```
-nix develop ".#ghc<version>" --command cabal test plutus-tx-plugin --test-options=--accept
+nix develop ".#ghc&lt;version>" --command cabal test plutus-tx-plugin --test-options=--accept
 ```
 
 where `<version>` is the GHC major version with the decimal points removed (eg
@@ -256,16 +252,16 @@ where `<version>` is the GHC major version with the decimal points removed (eg
 something similar.  You can also just type `nix develop .#ghc<version>` to get a
 nix shell with the appropriate version of GHC.
 
-== Working conventions
+## Working conventions
 
-=== Style guide
+### Style guide
 
-Please follow our link:STYLEGUIDE{outfilesuffix}[Haskell style guide], which documents most of our conventions for working on Haskell code.
+Please follow our [Haskell style guide](STYLEGUIDE.md), which documents most of our conventions for working on Haskell code.
 
-=== Code is communication
+### Code is communication
 
 We are a relatively large team working on sometimes quite abstruse problems.
-As such, it's important that future people who work on the project know how things work, and just as importantly, why.
+As such, it’s important that future people who work on the project know how things work, and just as importantly, why.
 These future people may even be yourself - we forget things very quickly!
 
 When writing, try to put yourself in the position of someone coming to this code for the first time.
@@ -275,10 +271,10 @@ Write it down!
 Code review is a good lens for this: if you have to explain something to a reviewer, then it is probably not clear in the code and should have a note.
 
 This applies both to the code itself (structure, naming, etc.) and also to comments.
-How to write useful comments is a large topic which we don't attempt to cover here, but link:http://antirez.com/news/124[Antirez] is good.
+How to write useful comments is a large topic which we don’t attempt to cover here, but [Antirez](http://antirez.com/news/124) is good.
 If in doubt: write more!
 
-==== "Notes"
+#### "Notes"
 
 One special kind of comment is worth drawing attention to.
 We adopt a convention (stolen from GHC) of writing fairly substantial notes in our code with a particular structure.
@@ -292,7 +288,7 @@ The structure is:
 
 For example:
 
-----
+```
 {- Note [How to write a note]
 A note should look a bit like this.
 
@@ -303,13 +299,13 @@ A ----> B >> C
 
 And of course, you should see Note [Another note].
 -}
-----
+```
 
 Notes are a great place to put substantial discussion that you need to refer to from multiple places.
 For example, if you used an encoding trick to fit more data into an output format,
 you could write a Note describing the trick (and justifying its usage!), and then refer to it from the encoder and the decoder.
 
-=== Code formatting
+### Code formatting
 
 We use `stylish-haskell` for Haskell code formatting, and `cabal-fmt` for cabal files.
 They are run automatically as pre-commit hooks, but CI will run them again and expect that to be a no-op, so if you somehow don’t apply them your PR will not go green.
@@ -318,51 +314,51 @@ To run `stylish-haskell` or `cabal-fmt` manually over your tree, type `pre-commi
 
 Without the `--all-files` flag, `pre-commit` will only run on the files that have changed since the last commit.
 
-=== Code linting
+### Code linting
 
 There are two `.hlint.yaml` files, one in `./` and the other in `.github/`.
 The one in `./` is the default hint file used by editors, and the one in `.github/` is used by CI.
 Think of the former as suggested hints, and the latter as enforced hints.
 
-=== Compiler warnings
+### Compiler warnings
 
 The CI builds Haskell code with `-Werror`, so will fail if there are any compiler warnings.
 So fix your own warnings!
 
-If the warnings are stupid, we can turn them off, e.g. sometimes it makes sense to add `-Wno-orphans` to a file where we know it's safe.
+If the warnings are stupid, we can turn them off, e.g. sometimes it makes sense to add `-Wno-orphans` to a file where we know it’s safe.
 
-=== Commit messages
+### Commit messages
 
 Please make informative commit messages!
-It makes it much easier to work out why things are the way they are when you're debugging things later.
+It makes it much easier to work out why things are the way they are when you’re debugging things later.
 
 A commit message is communication, so as usual, put yourself in the position of the reader: what does a reviewer, or someone reading the commit message later need to do their job?
 Write it down!
-It is even better to include this information in the code itself, but sometimes it doesn't belong there (e.g. ticket info).
+It is even better to include this information in the code itself, but sometimes it doesn’t belong there (e.g. ticket info).
 
 Also, include any relevant meta-information, such as ticket numbers.
-If a commit completely addresses a ticket, you can put that in the headline if you want, but it's fine to just put it in the body.
+If a commit completely addresses a ticket, you can put that in the headline if you want, but it’s fine to just put it in the body.
 
-There is plenty to say on this topic, but broadly the guidelines in link:https://chris.beams.io/posts/git-commit/[this post] are good.
+There is plenty to say on this topic, but broadly the guidelines in [this post](https://chris.beams.io/posts/git-commit/) are good.
 
-=== Commit signing
+### Commit signing
 
-Set it up if you can, it's relatively easy to do.
+Set it up if you can, it’s relatively easy to do.
 
-== Making and reviewing changes
+## Making and reviewing changes
 
-=== Changelogs
+### Changelogs
 
 We write changelogs for our versioned and published packages, which currently include:
 
-- plutus-core
-- plutus-ledger-api
-- plutus-tx
-- plutus-tx-plugin
+* plutus-core
+* plutus-ledger-api
+* plutus-tx
+* plutus-tx-plugin
 
-To do this we use https://github.com/nedbat/scriv[`scriv`], a changelog management tool.
+To do this we use [`scriv`](https://github.com/nedbat/scriv), a changelog management tool.
 
-==== When to write a changelog entry
+#### When to write a changelog entry
 
 We have no clear policy here, it is up to the judgement of the contributor.
 Not all PRs need changelog entries.
@@ -371,22 +367,22 @@ However our CI will check for changelog entries unless the 'No Changelog Require
 The broad heuristic is to put yourself in the position of the consumer of the piece of software in question and ask if you would want to know about this change.
 If the answer is yes, then write a quick changelog entry.
 
-==== How to write a changelog entry
+#### How to write a changelog entry
 
 The basic idea is that you write a changelog "fragment" in the `changelog.d` directory.
 When we do a release, these will be collected into the main `CHANGELOG.md`.
-Usually we don't edit `CHANGELOG.md` directly.
+Usually we don’t edit `CHANGELOG.md` directly.
 
 You can make a changelog fragment using `scriv create` in the package directory, but you can also just create the fragment directly with an editor.
 A fragment is a markdown file beginning with a header giving the category of change.
 Currently these are:
 
-- Removed
-- Added
-- Changed
-- Deprecated
-- Fixed
-- Security
+* Removed
+* Added
+* Changed
+* Deprecated
+* Fixed
+* Security
 
 We can change these categories if we want.
 
@@ -403,36 +399,36 @@ Updated foo to take a bar.
 Deprecated baz.
 ```
 
-=== Opening a pull request
+### Opening a pull request
 
 A pull request is a change to the codebase, but it is also an artifact which goes through a change acceptance process.
 There are a bunch of things which we can do to make this process smooth which may have nothing to do with the code itself.
 
 The key bottleneck in getting a PR merged is code review.
-Code review is great (see below), but it can slow you down if you don't take the time to make it easy.
+Code review is great (see below), but it can slow you down if you don’t take the time to make it easy.
 
-The amount of time it's worth spending doing this is probably much more than you think.
+The amount of time it’s worth spending doing this is probably much more than you think.
 
-==== What branch to target
+#### What branch to target
 
 PRs should target `master` unless there is a very good reason not to.
 The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
-For more details, see link:./RELEASE{outfilesuffix}[Plutus Release Process].
+For more details, see [Plutus Release Process](./RELEASE.md).
 
-==== What changes to include, and pull request sizes
+#### What changes to include, and pull request sizes
 
 When developing a non-trivial new feature, usually the best way to get the code reviewed is to break the implementation down to a chain of small diffs, each representing a meaningful, logical and reviewable step.
-Unfortunately GitHub doesn't have good support for this.
+Unfortunately GitHub doesn’t have good support for this.
 You basically have three options:
 
-- Open the first PR against master, the second PR against the first PR's branch, and so on.
+* Open the first PR against master, the second PR against the first PR’s branch, and so on.
   Merging a stack of PRs created this way into master can be non-trivial.
-- Wait until one PR is merged before opening the next PR.
-- Use a single PR for the whole feature that contains multiple small commits.
-  The problem is that Github doesn't support approving, rejecting or merging individual commits in a PR.
-  You can look at each individual commit, but it's not necessarily useful or even appropriate - many PRs have quite messy commits, and commits are sometimes overwritten via force push.
+* Wait until one PR is merged before opening the next PR.
+* Use a single PR for the whole feature that contains multiple small commits.
+  The problem is that Github doesn’t support approving, rejecting or merging individual commits in a PR.
+  You can look at each individual commit, but it’s not necessarily useful or even appropriate - many PRs have quite messy commits, and commits are sometimes overwritten via force push.
 
-The first two options are often referred to as link:https://trunkbaseddevelopment.com/[trunk-based development], while the third "long-lived feature branches".
+The first two options are often referred to as [trunk-based development](https://trunkbaseddevelopment.com/), while the third "long-lived feature branches".
 There is no single best option for all cases, although in general we encourage adopting trunk-based development styles.
 Long-lived feature branches with too many commits are harmful because
 
@@ -445,31 +441,31 @@ You can simply not turn them on until they are ready, or guard them with conditi
 
 But this is not a hard rule and should be determined on a case-by-case basis.
 Sometimes for a small or medium-sized piece of work, you may not want to break it into multiple PRs, and wait till each PR is merged before creating the next one.
-You'd rather put all your code out quickly in a single PR for review.
-And that's fine.
-Or maybe it's a piece of performance improvement work, and you don't know whether or not it actually improves the performance, until you finish implementing and testing the whole thing.
+You’d rather put all your code out quickly in a single PR for review.
+And that’s fine.
+Or maybe it’s a piece of performance improvement work, and you don’t know whether or not it actually improves the performance, until you finish implementing and testing the whole thing.
 
 Whichever option you choose, please keep each of your PR to a single topic.
 Do not mix business logic with such things as reformatting and refactoring in a single PR.
 
-==== Pull request descriptions
+#### Pull request descriptions
 
 A pull request is communication, so as usual, put yourself in the position of the reader: what does your audience (the reviewer) need to know to do their job?
 This information is easy for you to access, but hard for them to figure out, so write it down!
 
 However, better to put information in the code, commit messages, or changelog if possible: these persist but PR descriptions do not.
-It's okay to repeat information from such places, or simply to point to it.
-For one-commit PRs, Github will automatically populate the PR description with the commit message, so if you've written a good commit message you're done!
-Sometimes there is "change-related" information that doesn't belong in a commit message but is useful ("Kris I think this will fix the issue you had yesterday").
+It’s okay to repeat information from such places, or simply to point to it.
+For one-commit PRs, Github will automatically populate the PR description with the commit message, so if you’ve written a good commit message you’re done!
+Sometimes there is "change-related" information that doesn’t belong in a commit message but is useful ("Kris I think this will fix the issue you had yesterday").
 
-==== Misc PR tips
+#### Misc PR tips
 
 * Review the diff of your own PR at the last minute before hitting "create".
-It's amazing how many obvious things you spot here, and it stops the reviewer having to point them all out.
-* It's fine to make WIP PRs if you just want to show your code to someone else or have the CI check it.
+It’s amazing how many obvious things you spot here, and it stops the reviewer having to point them all out.
+* It’s fine to make WIP PRs if you just want to show your code to someone else or have the CI check it.
 Use the Github "draft" feature for this.
 
-=== Rebasing and force pushing
+### Rebasing and force pushing
 
 Force pushing to master (or any other protected branch) is never allowed.
 There is no exception to this rule.
@@ -480,58 +476,58 @@ Indeed, if you need to update your branch with changes from master, rebasing is 
 Some projects do not allow force pushing to any remote branch.
 This is not a popular policy and we do not adopt it, because
 
-- This means you must only ever use the "merge commit" merge method (or occasionally, fast forward merge, which GitHub doesn't support).
-- This means you aren't even allowed to clean up commits in your own PR, and must eventually merge everything into master.
+* This means you must only ever use the "merge commit" merge method (or occasionally, fast forward merge, which GitHub doesn’t support).
+* This means you aren’t even allowed to clean up commits in your own PR, and must eventually merge everything into master.
   It discourages people from pushing commits frequently when developing.
   We should instead _encourage_ cleaning up commits in PRs, at least before merging.
-- The argument that this will cause massive pain for those who merge other people's PR branch into their branch is questionable.
+* The argument that this will cause massive pain for those who merge other people’s PR branch into their branch is questionable.
   This should be rare to begin with, if we adopt trunk-based development in general, instead of long-lived feature branches.
-  And even if you do need to depend on other people's unmerged work, you can instead rebase your branch on theirs, and if their branch changes, just rebase again.
+  And even if you do need to depend on other people’s unmerged work, you can instead rebase your branch on theirs, and if their branch changes, just rebase again.
 
 Rebasing and force pushing can be used to your advantage, for example:
 
 * Add low-effort or WIP commits to fix review comments, and then squash them away before merging the PR.
-* If you have already had a PR review, don't rebase away the old commits until the PR is ready to merge, so that the reviewer only has to look at the "new" commits.
+* If you have already had a PR review, don’t rebase away the old commits until the PR is ready to merge, so that the reviewer only has to look at the "new" commits.
 * Rewrite the commits to make the story clearer where possible.
 
 It is advisable to always prefer `git push --force-with-lease` instead of `git push --force` to ensure that no work gets accidentally deleted.
 
-=== Code review
+### Code review
 
 All pull-requests should be approved by at least one other person.
-We don't enforce this, though: a PR fixing a typo is fine to self-merge, beyond that use your judgement.
+We don’t enforce this, though: a PR fixing a typo is fine to self-merge, beyond that use your judgement.
 
 As an author, code review is an opportunity for you to get feedback from clear eyes.
 As a reviewer, code review is an opportunity for you to help your colleagues and learn about what they are doing.
 Make the best use of it you can!
 
-==== For the author
+#### For the author
 
 * Pick the right reviewer(s).
-If you don't know who to pick, ask!
+If you don’t know who to pick, ask!
 * Respect your reviewers' time.
-Their time is as valuable as yours, and it's typically more efficient for you to spend time explaining or clarifying something in advance than for them to puzzle it out or pose a question.
-* If someone had to ask about your code, it wasn't clear enough so change it or add a comment.
+Their time is as valuable as yours, and it’s typically more efficient for you to spend time explaining or clarifying something in advance than for them to puzzle it out or pose a question.
+* If someone had to ask about your code, it wasn’t clear enough so change it or add a comment.
 
 Read this blog post for more good tips: https://mtlynch.io/code-review-love/
 
-==== For the reviewer
+#### For the reviewer
 
 * Respond to review requests as quickly as you can.
-If you can't review it all, say what you can and come back to it.
+If you can’t review it all, say what you can and come back to it.
 Waiting for review is often a blocker for other people, so prioritize it.
-* If you don't understand something, ask.
-You are as clever as any person who will read this in the future, if it confuses you it's confusing.
+* If you don’t understand something, ask.
+You are as clever as any person who will read this in the future, if it confuses you it’s confusing.
 * Do spend the time to understand the code.
 This will help you make more useful comments, help you review future changes more easily, and help you if you ever need to work on it yourself.
 * More reviewing is usually helpful.
-If you think a PR is interesting, you can review it even if nobody asked you to, you will probably have things to contribute and you'll learn something.
+If you think a PR is interesting, you can review it even if nobody asked you to, you will probably have things to contribute and you’ll learn something.
 
 Read these blog posts for more good tips:
 - https://mtlynch.io/human-code-reviews-1/
 - https://mtlynch.io/human-code-reviews-2/
 
-=== Benchmarking PRs
+### Benchmarking PRs
 
 Sometimes it is useful to benchmark a PR, and we have some automation for this.
 To trigger it, make a comment on the PR with this form: `/benchmark <benchmark-component>`, where `<benchmark-component>` is as you would provide it to cabal.
@@ -545,9 +541,9 @@ The job will:
 3. Compare the two runs.
 4. Post the comparison as a comment to the PR.
 
-=== Merging PRs
+### Merging PRs
 
-==== Merge method and commit history
+#### Merge method and commit history
 
 All 3 Github merge methods (merge commit, squash and merge, and rebase and merge) are allowed.
 Use whichever you deem appropriate.
@@ -556,7 +552,7 @@ The best merge method is different for different cases.
 
 That being said, there are not many cases where "rebase and merge" is appropriate, and you might as well rebase it yourself.
 And if you use this method, your PR must have a clean commit history: every commit should have a meaningful message, and should be buildable.
-You don't want to have commits like "fix a typo", "this may work" or "wip, done for the day" in master with a linear history.
+You don’t want to have commits like "fix a typo", "this may work" or "wip, done for the day" in master with a linear history.
 And if some of these commits are non-buildable, it can create problems for "git bisect".
 
 This is slightly less of a problem when you use the "merge commit" method.
@@ -564,61 +560,62 @@ While these interim commits would still be unpleasant, at least the merge commit
 
 The best thing to do, of course, is to not have those interim commits.
 If you think merging multiple commits makes more sense, clean up the history.
-If you don't, squash. The option chosen can vary from PR to PR.
+If you don’t, squash. The option chosen can vary from PR to PR.
 
-==== Beware divergence of master and PR branch
+#### Beware divergence of master and PR branch
 
 Merging a PR can break master, if the PR branch has diverged from master, even if CI on the PR is green.
 This happens because the PRs conflict in a way that isn’t obvious to git, e.g. one adds a usage of a function and the other removes that function.
 The problems with a broken master include inconveniencing other developers, and causing problems for "git bisect".
-There are ways to guarantee master never breaks, such as GitHub's link:https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue[merge queue].
+There are ways to guarantee master never breaks, such as GitHub’s [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue).
 
-We don't use the merge queue because
+We don’t use the merge queue because
 
-- A broken master has historically been quite infrequent.
-- The merge queue increases the time it takes to merge a PR, which causes productivity loss if you are waiting to create the next PR after merging the current one (which happens often).
+* A broken master has historically been quite infrequent.
+* The merge queue increases the time it takes to merge a PR, which causes productivity loss if you are waiting to create the next PR after merging the current one (which happens often).
 
 However, if your PR branch has diverged too much from master, it is recommended that you rebase or merge master into the PR branch before merging.
 And whenever you notice a broken master, please fix it ASAP.
 
-== External contributors
+## External contributors
 
 The Plutus team welcomes contributions from external contributors.
-However, it can be difficult for the Plutus team to quickly review contributions from people where we don't have an existing relationship.
+However, it can be difficult for the Plutus team to quickly review contributions from people where we don’t have an existing relationship.
 For that reason, we ask you to follow these additional guidelines (the rest of the document also applies!), which will make it easier for us to review your work, and therefore make the contributing process smoother for you.
 
-=== All changes must have an issue
+### All changes must have an issue
 
 Make sure that any change you make has a corresponding GitHub issue.
 The issue should describe the problem and describe your proposed solutiion.
 Before you start working on implementing it, you must get a comment from the Plutus team that the solution seems sensible.
 This functions as a light "design review" before you get too stuck into doing a PR.
 
-Reviewing the issue makes things easier for the Plutus team (it's easier to read an issue than a PR); and less frustrating for the contributor (it's nicer to get design feeback *before* you have done lots of work on the implementation).
-We can also offer advice on implementation, or let you know that we're already planning to fix the issue (or that there is a good reason not to!).
+Reviewing the issue makes things easier for the Plutus team (it’s easier to read an issue than a PR); and less frustrating for the contributor (it’s nicer to get design feeback **before** you have done lots of work on the implementation).
+We can also offer advice on implementation, or let you know that we’re already planning to fix the issue (or that there is a good reason not to!).
 
-=== Keep changes well-scoped
+### Keep changes well-scoped
 
 Try to keep your PR focussed on one change.
-This is a pratice we try to follow generally, but especially for external contributions where reviews tend to be more laborious, it's good to keep things focussed.
-If your PR contains a dozen drive-by refactorings, it's unlikely to be merged as such!
+This is a pratice we try to follow generally, but especially for external contributions where reviews tend to be more laborious, it’s good to keep things focussed.
+If your PR contains a dozen drive-by refactorings, it’s unlikely to be merged as such!
 
-== Supporting systems
+## Supporting systems
 
-=== Continuous integration
+### Continuous integration
 
 We have two sources of CI checks at the moment:
 
-- Hydra
-- Github Actions
+* Hydra
+* Github Actions
 
 The CI will report statuses on your PRs with links to the logs in case of failure.
 Pull requests cannot be merged without at least the Hydra CI check being green.
 
-NOTE: This isn't strictly true: repository admins (notably Lorenzo) can force-merge PRs without the checks being green
+**📌 NOTE**\
+This isn’t strictly true: repository admins (notably Lorenzo) can force-merge PRs without the checks being green
 If you really need this, ask.
 
-==== Hydra
+#### Hydra
 
 Hydra is the "standard" CI builder for Nix-based projects.
 It builds everything in the project, including all the tests, documentation, etc.
@@ -627,31 +624,31 @@ Hydra builds jobs based on the `hydraJobs` flake output.
 
 Hydra can be a bit flaky, unfortunately:
 - If evaluation fails saying "out of memory" or "unexpected EOF reading line", then this is likely a transient failure.
-These will be automatically retried, but if you're in a hurry Lorenzo has permissions to force a new evaluation.
+These will be automatically retried, but if you’re in a hurry Lorenzo has permissions to force a new evaluation.
 - If a build fails spuriously, this is a _problem_: please report it to whoever is responsible for that build and we should try and iron it out.
 Nondeterministic failures are very annoying.
 Lorenzo also has permissions to restart failed builds.
 
-==== Docusaurus
+#### Docusaurus
 
 The documentation site is built with Docusaurus.
 
 Refer to the [README.md](doc/docusaurus/README.md) for more information.
 
-==== Github Actions
+#### Github Actions
 
 These perform some of the same checks as Hydra, but Github Actions is often more available, so they return faster and act as a "smoke check".
 
-== Project roles and responsibilities
+## Project roles and responsibilities
 
-- The regular contributors to the Haskell code, all of whom can review and merge PRs are:
-    - @ana-pantilie
-    - @bezirg
-    - @effectfully
-    - @kwxm
-    - @Unisay
-    - @zliu41
-- The maintainer of the Agda code is @jmchapman, @effectfully can help with small issues.
-- If you have a technical dispute that you need help resolving, you can ask @zliu41.
-- For problems with the developer environment setup, builds, or CI, you can ask @zeme-iohk or @zliu41.
-- The regular contributors take turns releasing our software, but if you have a specific problem ask @zliu41.
+* The regular contributors to the Haskell code, all of whom can review and merge PRs are:
+* @ana-pantilie
+* @bezirg
+* @effectfully
+* @kwxm
+* @Unisay
+* @zliu41
+* The maintainer of the Agda code is @jmchapman, @effectfully can help with small issues.
+* If you have a technical dispute that you need help resolving, you can ask @zliu41.
+* For problems with the developer environment setup, builds, or CI, you can ask @zeme-iohk or @zliu41.
+* The regular contributors take turns releasing our software, but if you have a specific problem ask @zliu41.
