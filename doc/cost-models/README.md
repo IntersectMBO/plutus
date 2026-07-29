@@ -59,7 +59,7 @@ doc/cost-models/
 ## Data Sources
 
 - **Benchmark Data**: `plutus-core/cost-model/data/benching-conway.csv`
-- **Cost Models**: `plutus-core/cost-model/data/builtinCostModelC.json`
+- **Cost Models**: `plutus-core/cost-model/data/builtinCostModelE.json`
 
 Data is loaded dynamically from the Plutus repository using the browser's `fetch()` API.
 
@@ -164,7 +164,7 @@ No build process required - the workflow copies static files directly to `gh-pag
 
 **Model not found:**
 
-- Verify function name matches key in `builtinCostModelC.json`
+- Verify function name matches key in `builtinCostModelE.json`
 - Check console for detailed error messages
 
 **Plot not rendering:**

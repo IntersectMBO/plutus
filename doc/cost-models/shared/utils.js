@@ -239,7 +239,7 @@ function evaluateCostModel(modelType, coefficients, args) {
 }
 
 /**
- * Extract cost model from builtinCostModelC.json for a specific function
+ * Extract cost model from builtinCostModelE.json for a specific function
  * Returns { modelType, coefficients } or null if not found
  */
 function extractCostModel(costModelJson, functionName) {

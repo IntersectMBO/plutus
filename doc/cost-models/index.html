@@ -20,6 +20,7 @@
       <li><a href="listtoarray/index.html">ListToArray</a></li>
       <li><a href="lengthofarray/index.html">LengthOfArray</a></li>
       <li><a href="indexarray/index.html">IndexArray</a></li>
+      <li><a href="multiindexarray/index.html">MultiIndexArray</a></li>
       <li><a href="indexbytestring/index.html">IndexByteString</a></li>
     </ul>
   </nav>
@@ -136,6 +137,16 @@
         </li>
 
         <li>
+          <a href="multiindexarray/index.html">MultiIndexArray</a>
+          <p class="description">
+            Looks up a list of indices in a Plutus array; linear in the number of indices,
+            independent of the array size.
+            (3D visualization: Haystack Size &times; Needles Size vs Time, plus per-index time
+            distribution histogram)
+          </p>
+        </li>
+
+        <li>
           <a href="indexbytestring/index.html">IndexByteString</a>
           <p class="description">
             Retrieves a byte at a given index from a ByteString in O(1) time. Performs a bounds check and returns the byte value (Word8).
@@ -157,7 +168,7 @@
         </li>
         <li>
           <strong>Cost Models:</strong>
-          <a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/builtinCostModelC.json" target="_blank">builtinCostModelC.json</a>
+          <a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/builtinCostModelE.json" target="_blank">builtinCostModelE.json</a>
         </li>
       </ul>
       <p>
@@ -239,7 +250,7 @@
         </li>
         <li>
           <strong>Model not found:</strong> Verify function name matches the key in
-          <code>builtinCostModelC.json</code>
+          <code>builtinCostModelE.json</code>
         </li>
         <li>
           <strong>Plot not rendering:</strong> Check Plotly errors in console;
