@@ -1821,7 +1821,7 @@ test_SignatureVerification =
         , testPropertyNamed
             "Schnorr verification behaves correctly on all inputs"
             "schnorr_correct"
-            . mapTestLimitAtLeast 99 (`div` 10)
+            . mapTestLimitAtLeast 5000 (`div` 10)
             $ property schnorrSecp256k1Prop
         ]
     ]
