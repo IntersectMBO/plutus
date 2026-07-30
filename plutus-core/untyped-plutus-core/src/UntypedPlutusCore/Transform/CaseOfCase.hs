@@ -60,8 +60,8 @@ caseOfCase
      , PLC.Closed uni
      , uni `PLC.Everywhere` Eq
      )
-  => Term name uni fun pat a
-  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
+  => Term name uni fun a
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 caseOfCase term = do
   let result = snd $ processTermWithMatch term
   recordOptimization term CaseOfCaseStage result
@@ -78,8 +78,8 @@ processTermWithMatch
      , PLC.Closed uni
      , uni `PLC.Everywhere` Eq
      )
-  => Term name uni fun pat a
-  -> (Bool, Term name uni fun pat a)
+  => Term name uni fun a
+  -> (Bool, Term name uni fun a)
 processTermWithMatch term =
   let (childHasMatch, term') = mapAccumLOf termSubterms processChild False term
       hasMatch = isMatch term || childHasMatch
@@ -99,7 +99,7 @@ processTerm
      , PLC.Closed uni
      , uni `PLC.Everywhere` Eq
      )
-  => Term name uni fun pat a -> Term name uni fun pat a
+  => Term name uni fun a -> Term name uni fun a
 processTerm term = case term of
   Case ann scrut alts
     | ( ite@(Force a (Builtin _ PLC.IfThenElse))

@@ -27,14 +27,14 @@ Inlining this function makes a big difference,
 since it will usually be called in a context where all the type variables are known.
 That then means that GHC can optimize go locally in a completely monomorphic setting, which helps a lot. -}
 checkScope
-  :: forall m name uni fun pat a
+  :: forall m name uni fun a
    . (HasIndex name, MonadError FreeVariableError m)
-  => UPLC.Term name uni fun pat a
+  => UPLC.Term name uni fun a
   -> m ()
 checkScope = go 0
   where
     -- the current level as a reader value
-    go :: Word -> UPLC.Term name uni fun pat a -> m ()
+    go :: Word -> UPLC.Term name uni fun a -> m ()
     go !lvl = \case
       Var _ n -> do
         let i = n ^. index

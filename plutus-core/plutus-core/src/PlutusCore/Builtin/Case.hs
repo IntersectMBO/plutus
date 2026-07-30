@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
 module PlutusCore.Builtin.Case where
@@ -94,7 +95,9 @@ spendPatternMatchNext :: PatternMatchM s ()
 spendPatternMatchNext = PatternMatchM $ \spend -> spend PatternMatchNextWork
 {-# INLINE spendPatternMatchNext #-}
 
-class MatchBuiltin uni pat where
+class MatchBuiltin uni where
+  type BuiltinPattern uni
+
   {-| Given a built-in constant and an ordered vector of pattern/handler alternatives, choose the
   first matching handler while paying incrementally through 'spendPatternWork',
   'spendPatternStructuralWork', and 'spendPatternMatchNext'. The CEK supplies the concrete budget
@@ -121,7 +124,7 @@ class MatchBuiltin uni pat where
   alternatives. The 'PatternMatchM' context is a trusted costing boundary. -}
   matchBuiltin
     :: Some (ValueOf uni)
-    -> Vector (pat, term)
+    -> Vector (BuiltinPattern uni, term)
     -> PatternMatchM s (HeadSpine Text term (Some (ValueOf uni)))
   matchBuiltin _ _ =
     pure $ HeadError "built-in patterns are not supported by this universe"
@@ -139,11 +142,11 @@ data CaserBuiltin uni = CaserBuiltin
 
 {-| A data version of 'MatchBuiltin'. It is separate from 'CaserBuiltin' so that adding a pattern
 language to UPLC does not parameterize the typed CK machine or change legacy built-in casing APIs. -}
-data MatcherBuiltin uni pat = MatcherBuiltin
+data MatcherBuiltin uni = MatcherBuiltin
   { unMatchBuiltin
       :: !( forall s term
              . Some (ValueOf uni)
-            -> Vector (pat, term)
+            -> Vector (BuiltinPattern uni, term)
             -> PatternMatchM s (HeadSpine Text term (Some (ValueOf uni)))
           )
   }
@@ -156,25 +159,25 @@ deriving via
   instance
     NoThunks (CaserBuiltin uni)
 
-instance NFData (MatcherBuiltin uni pat) where
+instance NFData (MatcherBuiltin uni) where
   rnf = rwhnf
 
 deriving via
-  OnlyCheckWhnfNamed "PlutusCore.Builtin.Case.MatcherBuiltin" (MatcherBuiltin uni pat)
+  OnlyCheckWhnfNamed "PlutusCore.Builtin.Case.MatcherBuiltin" (MatcherBuiltin uni)
   instance
-    NoThunks (MatcherBuiltin uni pat)
+    NoThunks (MatcherBuiltin uni)
 
 availableCaserBuiltin :: CaseBuiltin uni => CaserBuiltin uni
 availableCaserBuiltin = CaserBuiltin caseBuiltin
 
 availableMatcherBuiltin
-  :: MatchBuiltin uni pat => MatcherBuiltin uni pat
+  :: MatchBuiltin uni => MatcherBuiltin uni
 availableMatcherBuiltin = MatcherBuiltin matchBuiltin
 
 instance CaseBuiltin uni => Default (CaserBuiltin uni) where
   def = availableCaserBuiltin
 
-instance MatchBuiltin uni pat => Default (MatcherBuiltin uni pat) where
+instance MatchBuiltin uni => Default (MatcherBuiltin uni) where
   def = availableMatcherBuiltin
 
 unavailableCaserBuiltin :: Int -> CaserBuiltin uni
@@ -185,7 +188,7 @@ unavailableCaserBuiltin ver =
           "'case' on values of built-in types is not supported in protocol version " <> display ver
     )
 
-unavailableMatcherBuiltin :: Int -> MatcherBuiltin uni pat
+unavailableMatcherBuiltin :: Int -> MatcherBuiltin uni
 unavailableMatcherBuiltin ver =
   MatcherBuiltin
     ( \_ _ ->

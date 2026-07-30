@@ -21,10 +21,10 @@ import Data.Functor (void)
 evalCounting
   :: EvaluationContext
   -> MajorProtocolVersion
-  -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()
+  -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
   -> ( Either
-         (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern)
-         (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ())
+         (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+         (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
      , ExBudget
      )
 evalCounting evalCtx pv term =
@@ -55,11 +55,11 @@ mkDefaultEvalCtx semvar =
 in counting mode. Returns @(Maybe error, budget)@. -}
 evalOptimizerTrace
   :: EvaluationContext
-  -> OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
-  -> [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()]
+  -> OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  -> [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()]
   -- ^ Arguments to apply to each AST before evaluation
   -> [ ( Maybe
-           (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern)
+           (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
        , ExBudget
        )
      ]
@@ -68,7 +68,7 @@ evalOptimizerTrace evalCtx trace args =
     <$> appliedTerms
   where
     appliedTerms
-      :: [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()]
+      :: [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()]
     appliedTerms =
       ( \ast ->
           F.foldl'
@@ -88,10 +88,10 @@ at the most recent protocol version with restrictingEnormous budget mode
 (no budget tracking overhead). Suitable for timing. -}
 evaluateCekLikeInProd
   :: EvaluationContext
-  -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()
+  -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
   -> Either
-       (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern)
-       (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ())
+       (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+       (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
 evaluateCekLikeInProd evalCtx term =
   cekResultToEither . _cekReportResult $
     evaluateTerm restrictingEnormous newestPV Quiet evalCtx term
@@ -100,12 +100,12 @@ evaluateCekLikeInProd evalCtx term =
 Returns @(Maybe error, budget)@. -}
 evalCountingWithArgs
   :: EvaluationContext
-  -> UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()
+  -> UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
   -- ^ Main program
-  -> [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern ()]
+  -> [UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()]
   -- ^ Arguments
   -> ( Maybe
-         (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern)
+         (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
      , ExBudget
      )
 evalCountingWithArgs evalCtx term args =

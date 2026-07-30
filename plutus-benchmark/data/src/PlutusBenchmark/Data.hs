@@ -15,13 +15,8 @@ import PlutusCore.MkPlc
 import UntypedPlutusCore qualified as UPLC
 
 debruijnTermUnsafe
-  :: UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun PLC.DefaultBuiltinPattern ann
-  -> UPLC.Term
-       UPLC.NamedDeBruijn
-       UPLC.DefaultUni
-       UPLC.DefaultFun
-       PLC.DefaultBuiltinPattern
-       ann
+  :: UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ann
+  -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ann
 debruijnTermUnsafe =
   fromRight (Prelude.error "debruijnTermUnsafe")
     . runExcept @UPLC.FreeVariableError

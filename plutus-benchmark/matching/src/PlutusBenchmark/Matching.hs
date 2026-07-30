@@ -25,8 +25,8 @@ import PlutusCore.Name.Unique (Name (..), Unique (..))
 import UntypedPlutusCore qualified as UPLC
 
 debruijnTermUnsafe
-  :: UPLC.Term UPLC.Name uni fun pat ann
-  -> UPLC.Term UPLC.NamedDeBruijn uni fun pat ann
+  :: UPLC.Term UPLC.Name uni fun ann
+  -> UPLC.Term UPLC.NamedDeBruijn uni fun ann
 debruijnTermUnsafe =
   fromRight (Prelude.error "debruijnTermUnsafe")
     . runExcept @UPLC.FreeVariableError
@@ -239,7 +239,7 @@ dataConstrMatchComparison requestedWidth =
             ]
         )
 
-type NamedTerm = UPLC.Term UPLC.Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+type NamedTerm = UPLC.Term UPLC.Name DefaultUni DefaultFun ()
 
 {-| Repeatedly execute a match through a call-by-value fixed-point combinator.
 

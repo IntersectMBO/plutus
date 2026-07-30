@@ -16,14 +16,14 @@ import PlutusCore.Quote
 import Data.Proxy
 import Data.Vector qualified as Vector
 
-firstBound :: Term name uni fun pat ann -> [name]
+firstBound :: Term name uni fun ann -> [name]
 firstBound (Apply _ (LamAbs _ name body) _) = name : firstBound body
 firstBound _ = []
 
-instance name ~ Name => Reference Name (Term name uni fun pat) where
+instance name ~ Name => Reference Name (Term name uni fun) where
   referenceVia reg name term = Apply NotAName term $ Var (reg name) name
 
-instance name ~ Name => EstablishScoping (Term name uni fun pat) where
+instance name ~ Name => EstablishScoping (Term name uni fun) where
   establishScoping (LamAbs _ nameDup body) = do
     name <- freshenName nameDup
     establishScopingBinder (\ann name' _ -> LamAbs ann name') name Proxy body
@@ -65,10 +65,10 @@ instance name ~ Name => EstablishScoping (Term name uni fun pat) where
       Case NotAName aScoped . Vector.fromList $
         map referenceInBranch esScopedPoked
 
-instance name ~ Name => EstablishScoping (Program name uni fun pat) where
+instance name ~ Name => EstablishScoping (Program name uni fun) where
   establishScoping (Program _ ver term) = Program NotAName ver <$> establishScoping term
 
-instance name ~ Name => CollectScopeInfo (Term name uni fun pat) where
+instance name ~ Name => CollectScopeInfo (Term name uni fun) where
   collectScopeInfo (LamAbs ann name body) = handleSname ann name <> collectScopeInfo body
   collectScopeInfo (Delay _ body) = collectScopeInfo body
   collectScopeInfo (Apply _ fun arg) = collectScopeInfo fun <> collectScopeInfo arg
@@ -82,5 +82,5 @@ instance name ~ Name => CollectScopeInfo (Term name uni fun pat) where
   collectScopeInfo (Match _ arg alternatives) =
     collectScopeInfo arg <> foldMap (collectScopeInfo . snd) alternatives
 
-instance name ~ Name => CollectScopeInfo (Program name uni fun pat) where
+instance name ~ Name => CollectScopeInfo (Program name uni fun) where
   collectScopeInfo (Program _ _ term) = collectScopeInfo term

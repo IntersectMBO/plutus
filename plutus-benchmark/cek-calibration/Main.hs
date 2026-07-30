@@ -31,7 +31,7 @@ import Control.Monad.Except
 import Criterion.Main
 import Criterion.Types qualified as C
 
-type PlainTerm = UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
 
 rev :: [()] -> [()]
 rev l0 = rev' l0 []
@@ -62,14 +62,10 @@ go :: Integer -> [()]
 go n = zipl (mkList n) (rev $ mkList n)
 {-# INLINEABLE go #-}
 
-mkListProg
-  :: Integer
-  -> UPLC.Program NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+mkListProg :: Integer -> UPLC.Program NamedDeBruijn DefaultUni DefaultFun ()
 mkListProg n = Tx.getPlcNoAnn $ $$(Tx.compile [||go||]) `Tx.unsafeApplyCode` Tx.liftCodeDef n
 
-mkListTerm
-  :: Integer
-  -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+mkListTerm :: Integer -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun ()
 mkListTerm n =
   let (UPLC.Program _ _ code) = mkListProg n
    in code
@@ -80,9 +76,7 @@ mkListBM ctx n = bench (Haskell.show n) $ benchTermCek ctx (mkListTerm n)
 mkListBMs :: EvaluationContext -> [Integer] -> Benchmark
 mkListBMs ctx ns = bgroup "List" [mkListBM ctx n | n <- ns]
 
-writePlc
-  :: UPLC.Program NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
-  -> Haskell.IO ()
+writePlc :: UPLC.Program NamedDeBruijn DefaultUni DefaultFun () -> Haskell.IO ()
 writePlc p =
   case runExcept @UPLC.FreeVariableError
     $ runQuoteT

@@ -9,7 +9,6 @@ import PlutusBenchmark.NaturalSort
 import PlutusBenchmark.Validation.Common
 
 import PlutusCore.Annotation qualified as PLC
-import PlutusCore.Default qualified as PLC
 import PlutusTx.Code qualified as Tx
 import PlutusTx.Test qualified as Tx
 import UntypedPlutusCore qualified as UPLC
@@ -29,24 +28,10 @@ mkCase path name = do
     parsed
       :: Either
            DecodeException
-           ( UPLC.Program
-               UPLC.NamedDeBruijn
-               UPLC.DefaultUni
-               UPLC.DefaultFun
-               PLC.DefaultBuiltinPattern
-               PLC.SrcSpans
-           )
+           (UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun PLC.SrcSpans)
     parsed =
       (fmap mempty . UPLC.programMapNames UPLC.fakeNameDeBruijn . UPLC.unUnrestrictedProgram)
-        <$> unflat
-          @( UPLC.UnrestrictedProgram
-               UPLC.DeBruijn
-               UPLC.DefaultUni
-               UPLC.DefaultFun
-               UPLC.DefaultBuiltinPattern
-               ()
-           )
-          bs
+        <$> unflat @(UPLC.UnrestrictedProgram UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()) bs
   case parsed of
     Left err -> error $ show err
     Right parsed' ->

@@ -100,7 +100,7 @@ testDischargeFree =
                    ]
           )
 
-    dis = dischargeCekValue @DefaultUni @DefaultFun @DefaultBuiltinPattern
+    dis = dischargeCekValue @DefaultUni @DefaultFun
     v = Var () . DeBruijn
 
 test_freevars :: TestTree
@@ -112,7 +112,5 @@ test_freevars =
     ]
 
 -- shortcuts
-toFakeTerm
-  :: Term DeBruijn uni fun pat ann
-  -> Term NamedDeBruijn uni fun pat ann
+toFakeTerm :: Term DeBruijn uni fun ann -> Term NamedDeBruijn uni fun ann
 toFakeTerm = termMapNames fakeNameDeBruijn

@@ -34,14 +34,14 @@ minArgs = 3
 
 applyToCase
   :: Monad m
-  => Term name uni fun pat a
-  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
+  => Term name uni fun a
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 applyToCase term = do
   let result = processTerm term
   recordOptimization term ApplyToCaseStage result
   pure result
 
-processTerm :: Term name uni fun pat a -> Term name uni fun pat a
+processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = snd . go
   where
     go term = case splitApplication term of

@@ -16,7 +16,6 @@ import PlutusBenchmark.NaturalSort
 
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
-import PlutusCore.Default qualified as PLC
 import UntypedPlutusCore qualified as UPLC
 
 import Criterion.Main
@@ -85,14 +84,7 @@ l `withAnyPrefixFrom` ps =
   concatMap (\p -> filter (isPrefixOf p) l) ps
 
 unsafeUnflat
-  :: String
-  -> BS.ByteString
-  -> UPLC.Program
-       UPLC.DeBruijn
-       UPLC.DefaultUni
-       UPLC.DefaultFun
-       PLC.DefaultBuiltinPattern
-       ()
+  :: String -> BS.ByteString -> UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 unsafeUnflat file contents =
   case unflat contents of
     Left e -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
@@ -144,8 +136,7 @@ benchWith act = do
       env (BS.readFile $ dir </> file) $ \(~scriptBS) ->
         bench (dropExtension file) $ act file scriptBS
 
-type Term =
-  UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun PLC.DefaultBuiltinPattern ()
+type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 
 {-| If the term is an application of something to some arguments, peel off
 those arguments which are 'Data' constants. -}

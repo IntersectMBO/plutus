@@ -102,16 +102,7 @@ evaluate it, then produce the required Haskell value from the results. If we fai
 instead fail the test and report the failure. -}
 evaluateToHaskell
   :: forall (a :: Type)
-   . ReadKnownIn
-       UPLC.DefaultUni
-       ( UPLC.Term
-           UPLC.Name
-           UPLC.DefaultUni
-           UPLC.DefaultFun
-           UPLC.DefaultBuiltinPattern
-           ()
-       )
-       a
+   . ReadKnownIn UPLC.DefaultUni (UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()) a
   => PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
   -> PropertyT IO a
 evaluateToHaskell expr =

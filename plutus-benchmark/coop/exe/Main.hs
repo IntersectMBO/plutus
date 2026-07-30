@@ -51,7 +51,6 @@ createIfNotExists name term = do
                      UPLC.NamedDeBruijn
                      UPLC.DefaultUni
                      UPLC.DefaultFun
-                     UPLC.DefaultBuiltinPattern
                      SrcSpans
                  )
                 bs

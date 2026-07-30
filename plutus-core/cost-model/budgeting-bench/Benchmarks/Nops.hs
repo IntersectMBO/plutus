@@ -133,8 +133,7 @@ nopCostParameters
   :: MachineParameters
        CekMachineCosts
        NopFun
-       (CekValue DefaultUni NopFun DefaultBuiltinPattern ())
-       DefaultBuiltinPattern
+       (CekValue DefaultUni NopFun ())
 nopCostParameters =
   MachineParameters def def . mkMachineVariantParameters def $
     CostModel defaultCekMachineCostsForTesting nopCostModel

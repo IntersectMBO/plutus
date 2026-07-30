@@ -457,7 +457,7 @@ goldenVsEvaluatedCEK name =
 
 eraseDefault
   :: Term TyName Name DefaultUni DefaultFun ()
-  -> UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> UPLC.Term Name DefaultUni DefaultFun ()
 eraseDefault = eraseTerm
 
 runTypecheck

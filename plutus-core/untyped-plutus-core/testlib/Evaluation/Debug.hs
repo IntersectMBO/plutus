@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
@@ -22,7 +23,6 @@ import Control.Monad.ST
 import Control.Monad.Writer
 import Data.ByteString.Lazy.Char8 qualified as BS
 import Data.Text qualified as T
-import Data.Typeable (Typeable)
 import Data.Void
 import Prettyprinter
 import System.FilePath
@@ -45,7 +45,7 @@ instance Breakpointable EmptyAnn Breakpoints where
 examples
   :: [ ( String
        , [Cmd Breakpoints]
-       , NTerm DefaultUni DefaultFun DefaultBuiltinPattern EmptyAnn
+       , NTerm DefaultUni DefaultFun EmptyAnn
        )
      ]
 examples =
@@ -58,7 +58,7 @@ examples =
 goldenVsDebug
   :: ( TestName
      , [Cmd Breakpoints]
-     , NTerm DefaultUni DefaultFun DefaultBuiltinPattern EmptyAnn
+     , NTerm DefaultUni DefaultFun EmptyAnn
      )
   -> TestTree
 goldenVsDebug (name, cmds, term) =
@@ -74,7 +74,7 @@ goldenVsDebug (name, cmds, term) =
 mock
   :: [Cmd Breakpoints]
   -- ^ commands to feed
-  -> NTerm DefaultUni DefaultFun DefaultBuiltinPattern EmptyAnn
+  -> NTerm DefaultUni DefaultFun EmptyAnn
   -- ^ term to debug
   -> [String]
   -- ^ mocking output
@@ -95,17 +95,16 @@ mock cmds t = runST $ unCekM $ do
 -------------------------------
 
 handle
-  :: forall uni fun pat s m
+  :: forall uni fun s m
    . ( ThrowableBuiltins uni fun
-     , Pretty pat
-     , Typeable pat
+     , Pretty (BuiltinPattern uni)
      , MonadWriter [String] m
      , MonadReader [Cmd Breakpoints] m
      , PrimMonad m
      , PrimState m ~ s
      )
-  => CekTrans uni fun pat EmptyAnn s
-  -> DebugF uni fun pat EmptyAnn Breakpoints (m ())
+  => CekTrans uni fun EmptyAnn s
+  -> DebugF uni fun EmptyAnn Breakpoints (m ())
   -> m ()
 handle cekTrans = \case
   StepF prevState k -> do

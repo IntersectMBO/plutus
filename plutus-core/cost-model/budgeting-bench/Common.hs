@@ -48,7 +48,7 @@ import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
 import Data.Typeable (Typeable)
 
-type PlainTerm uni fun = UPLC.Term Name uni fun DefaultBuiltinPattern ()
+type PlainTerm uni fun = UPLC.Term Name uni fun ()
 
 showMemoryUsage :: ExMemoryUsage a => a -> String
 showMemoryUsage = show . sumCostStream . flattenCostRose . memoryUsage
@@ -109,11 +109,7 @@ data Normaliser
 benchWith
   :: (Pretty fun, Typeable fun, NFData fun)
   => Normaliser
-  -> MachineParameters
-       CekMachineCosts
-       fun
-       (CekValue DefaultUni fun DefaultBuiltinPattern ())
-       DefaultBuiltinPattern
+  -> MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
   -> String
   -> PlainTerm DefaultUni fun
   -> Benchmark

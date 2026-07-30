@@ -21,8 +21,7 @@ import PlutusConformance.Common
   )
 import PlutusCore (Error (..))
 import PlutusCore.Default
-  ( DefaultBuiltinPattern
-  , DefaultFun
+  ( DefaultFun
   , DefaultUni
   )
 import PlutusCore.Evaluation.Machine.CostModelInterface
@@ -102,7 +101,7 @@ agdaEvalUplcProg WithCosting =
         :: ExceptT
              FreeVariableError
              Quote
-             (UPLC.Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+             (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
       tmUDB = deBruijnTerm tmU
      in
       case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
@@ -131,7 +130,7 @@ agdaEvalUplcProg WithoutCosting =
           :: ExceptT
                FreeVariableError
                Quote
-               (UPLC.Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+               (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
         tmUDB = deBruijnTerm tmU
      in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
           Left _ -> Nothing

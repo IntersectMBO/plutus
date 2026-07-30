@@ -240,7 +240,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
 
 class PrintBudgetState cost where
   printBudgetState
-    :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+    :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
     -> CekModel
     -> cost
     -> IO ()
@@ -424,7 +424,7 @@ data SomeTypedExample = SomeTypeExample TypeExample | SomeTypedTermExample Typed
 
 newtype UntypedTermExample
   = UntypedTermExample
-      (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ())
+      (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 newtype SomeUntypedExample = SomeUntypedTermExample UntypedTermExample
 
 data SomeExample = SomeTypedExample SomeTypedExample | SomeUntypedExample SomeUntypedExample

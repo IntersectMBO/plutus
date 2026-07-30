@@ -31,16 +31,16 @@ import Control.Lens (transformOf)
 
 letFloatOut
   :: ( PLC.MonadQuote m
-     , PLC.Rename (Term name uni fun pat a)
+     , PLC.Rename (Term name uni fun a)
      )
-  => Term name uni fun pat a
-  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
+  => Term name uni fun a
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 letFloatOut term = do
   result <- transformOf termSubterms processTerm <$> PLC.rename term
   recordOptimization term LetFloatOutStage result
   pure result
 
-processTerm :: Term name uni fun pat a -> Term name uni fun pat a
+processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
   Case ca (Apply aa (LamAbs la x body) rhs) branches ->
     Apply aa (LamAbs la x (Case ca body branches)) rhs

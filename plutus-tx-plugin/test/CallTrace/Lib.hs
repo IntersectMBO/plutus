@@ -21,7 +21,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Internal qualified as UPLC
 import PlutusTx.Test (prettyBudget, prettyCodeSize)
 
 goldenEvalCekTraceWithEmitter
-  :: UPLC.EmitterMode UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern
+  :: UPLC.EmitterMode UPLC.DefaultUni UPLC.DefaultFun
   -> TestName
   -> CompiledCode a
   -> TestNested

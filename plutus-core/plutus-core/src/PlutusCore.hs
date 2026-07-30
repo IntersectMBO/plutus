@@ -35,6 +35,7 @@ module PlutusCore
   , HasTypeLevel
   , HasTermLevel
   , HasTypeAndTermLevel
+  , BuiltinPattern
   , DefaultUni (..)
   , DefaultBuiltinPattern (..)
   , DefaultPatternFieldEnd (..)

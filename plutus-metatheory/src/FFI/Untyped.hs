@@ -32,10 +32,10 @@ data UTerm
 unIndex :: Index -> Integer
 unIndex (Index n) = toInteger n
 
-convP :: Program NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern a -> UTerm
+convP :: Program NamedDeBruijn DefaultUni DefaultFun a -> UTerm
 convP (Program _ _ t) = conv t
 
-conv :: Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern a -> UTerm
+conv :: Term NamedDeBruijn DefaultUni DefaultFun a -> UTerm
 conv (Var _ x) = UVar (unIndex (ndbnIndex x) - 1)
 conv (LamAbs _ _ t) = ULambda (conv t)
 conv (Apply _ t u) = UApp (conv t) (conv u)
@@ -51,7 +51,7 @@ conv Match {} = error "UPLC 1.2 'match' is not yet supported by the Agda metathe
 tmname :: Int -> String
 tmname i = 'x' : show i
 
-uconv :: Int -> UTerm -> Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+uconv :: Int -> UTerm -> Term NamedDeBruijn DefaultUni DefaultFun ()
 uconv i (UVar x) =
   Var
     ()

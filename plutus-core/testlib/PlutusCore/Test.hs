@@ -178,13 +178,13 @@ instance ToTPlc a uni fun => ToTPlc (ExceptT SomeException IO a) uni fun where
 instance ToTPlc (TPLC.Program TPLC.TyName TPLC.Name uni fun ()) uni fun where
   toTPlc = pure
 
-class ToUPlc a uni fun pat | a -> uni fun pat where
-  toUPlc :: a -> ExceptT SomeException IO (UPLC.Program TPLC.Name uni fun pat ())
+class ToUPlc a uni fun | a -> uni fun where
+  toUPlc :: a -> ExceptT SomeException IO (UPLC.Program TPLC.Name uni fun ())
 
-instance ToUPlc a uni fun pat => ToUPlc (ExceptT SomeException IO a) uni fun pat where
+instance ToUPlc a uni fun => ToUPlc (ExceptT SomeException IO a) uni fun where
   toUPlc a = a >>= toUPlc
 
-instance ToUPlc (UPLC.Program TPLC.Name uni fun pat ()) uni fun pat where
+instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
   toUPlc = pure
 
 instance
@@ -194,12 +194,13 @@ instance
   , TPLC.GEq uni
   , TPLC.Closed uni
   , TPLC.Everywhere uni Eq
+  , Eq (BuiltinPattern uni)
+  , Hashable (BuiltinPattern uni)
   )
   => ToUPlc
        (TPLC.Program TPLC.TyName UPLC.Name uni fun ())
        uni
        fun
-       TPLC.DefaultBuiltinPattern
   where
   toUPlc =
     pure
@@ -207,7 +208,7 @@ instance
       . flip runReaderT TPLC.defaultCompilationOpts
       . TPLC.compileProgram
 
-instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun pat ()) uni fun pat where
+instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
   toUPlc p =
     withExceptT @_ @FreeVariableError toException $
       TPLC.runQuoteT $
@@ -267,7 +268,7 @@ instance
   => Exception (EvaluationExceptionWithLogsAndBudget err)
 
 runUPlcFull
-  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
   => [a]
   -> ExceptT
        SomeException
@@ -276,7 +277,6 @@ runUPlcFull
            TPLC.Name
            TPLC.DefaultUni
            TPLC.DefaultFun
-           TPLC.DefaultBuiltinPattern
            ()
        , TPLC.ExBudget
        , [Text]
@@ -291,7 +291,7 @@ runUPlcFull values = do
     Right resT -> pure (resT, budget, logs)
 
 runUPlc
-  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
   => [a]
   -> ExceptT
        SomeException
@@ -300,7 +300,6 @@ runUPlc
            TPLC.Name
            TPLC.DefaultUni
            TPLC.DefaultFun
-           TPLC.DefaultBuiltinPattern
            ()
        )
 runUPlc values = do
@@ -308,7 +307,7 @@ runUPlc values = do
   pure t
 
 runUPlcBudget
-  :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun
   => [a]
   -> ExceptT
        SomeException
@@ -319,7 +318,7 @@ runUPlcBudget values = do
   pure budget
 
 runUPlcLogs
-  :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun
   => [a]
   -> ExceptT
        SomeException
@@ -330,7 +329,7 @@ runUPlcLogs values = do
   pure logs
 
 runUPlcProfile
-  :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun
   => [a]
   -> ExceptT
        SomeException
@@ -348,7 +347,7 @@ runUPlcProfile values = do
     Right _ -> pure logs
 
 runUPlcProfile'
-  :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun
   => [a]
   -> ExceptT
        SomeException
@@ -410,7 +409,7 @@ goldenTPlcReadable
 goldenTPlcReadable = goldenTPlcWith ppCatchReadable
 
 goldenUPlcWith
-  :: ToUPlc a UPLC.DefaultUni UPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a UPLC.DefaultUni UPLC.DefaultFun
   => ( ExceptT
          SomeException
          IO
@@ -418,7 +417,6 @@ goldenUPlcWith
              UPLC.NamedDeBruijn
              UPLC.DefaultUni
              UPLC.DefaultFun
-             TPLC.DefaultBuiltinPattern
              ()
          )
        -> IO (Doc ann)
@@ -431,14 +429,14 @@ goldenUPlcWith pp name value = nestedGoldenVsDocM name ".uplc" $ pp $ do
   withExceptT @_ @FreeVariableError toException $ traverseOf UPLC.progTerm UPLC.deBruijnTerm p
 
 goldenUPlc
-  :: ToUPlc a UPLC.DefaultUni UPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a UPLC.DefaultUni UPLC.DefaultFun
   => TestName
   -> a
   -> TestNested
 goldenUPlc = goldenUPlcWith ppCatch
 
 goldenUPlcReadable
-  :: ToUPlc a UPLC.DefaultUni UPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a UPLC.DefaultUni UPLC.DefaultFun
   => TestName
   -> a
   -> TestNested
@@ -453,14 +451,14 @@ goldenTEval name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runTPlc values
 
 goldenUEval
-  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
   => TestName
   -> [a]
   -> TestNested
 goldenUEval name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlc values
 
 goldenUEvalLogs
-  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
   => TestName
   -> [a]
   -> TestNested
@@ -470,21 +468,21 @@ goldenUEvalLogs name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPl
 tested with one of the other functions, as it's a drop-in
 replacement and you can then pass the output into `traceToStacks`. -}
 goldenUEvalProfile
-  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
   => TestName
   -> [a]
   -> TestNested
 goldenUEvalProfile name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcProfile values
 
 goldenUEvalBudget
-  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
   => TestName
   -> [a]
   -> TestNested
 goldenUEvalBudget name values = nestedGoldenVsDocM name ".budget" $ ppCatch $ runUPlcBudget values
 
 goldenAstSize
-  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
   => TestName
   -> a
   -> TestNested
@@ -495,7 +493,7 @@ goldenAstSize name value =
 tested with one of the other functions, as it's a drop-in
 replacement and you can then pass the output into `traceToStacks`. -}
 goldenUEvalProfile'
-  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun TPLC.DefaultBuiltinPattern
+  :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
   => TestName
   -> [a]
   -> TestNested

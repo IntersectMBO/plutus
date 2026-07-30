@@ -1572,7 +1572,8 @@ matchDefaultAlternatives rootValue alternatives =
                         _ -> continueFields
 {-# OPAQUE matchDefaultAlternatives #-}
 
-instance MatchBuiltin DefaultUni DefaultBuiltinPattern where
+instance MatchBuiltin DefaultUni where
+  type BuiltinPattern DefaultUni = DefaultBuiltinPattern
   matchBuiltin
     :: Some (ValueOf DefaultUni)
     -> Vector.Vector (DefaultBuiltinPattern, term)

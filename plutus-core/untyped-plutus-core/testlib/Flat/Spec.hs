@@ -444,7 +444,7 @@ test_uplcProgramFlat =
         flatBytes (UnrestrictedProgram prog) @?= [1, 1, 0, 72, 0, 0]
     ]
   where
-    prog :: Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern () =
+    prog :: Program DeBruijn DefaultUni DefaultFun () =
       Program
         ()
         (Version 1 1 0)
@@ -594,7 +594,7 @@ test_patternProgramFlat =
 
     matchProg
       :: Version
-      -> Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+      -> Program DeBruijn DefaultUni DefaultFun ()
     matchProg version = Program () version matchBody
 
     nestedPattern :: DefaultBuiltinPattern
@@ -607,7 +607,7 @@ test_patternProgramFlat =
               (Vector.singleton DefaultPatternCapture)
           )
 
-    matchBody :: Term DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+    matchBody :: Term DeBruijn DefaultUni DefaultFun ()
     matchBody =
       Match
         ()
@@ -620,7 +620,7 @@ test_patternProgramFlat =
 
     wideMatchProg
       :: Int
-      -> Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+      -> Program DeBruijn DefaultUni DefaultFun ()
     wideMatchProg childCount =
       Program
         ()
@@ -640,14 +640,14 @@ test_patternProgramFlat =
       :: BS.ByteString
       -> Either
            DecodeException
-           (Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+           (Program DeBruijn DefaultUni DefaultFun ())
     unrestrictedDecode = fmap unUnrestrictedProgram . unflat
 
     restrictedDecode
       :: BS.ByteString
       -> Either
            DecodeException
-           (Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+           (Program DeBruijn DefaultUni DefaultFun ())
     restrictedDecode =
       unflatWith $
         decodeProgram
@@ -660,7 +660,7 @@ test_patternProgramFlat =
       :: BS.ByteString
       -> Either
            DecodeException
-           (Program DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+           (Program DeBruijn DefaultUni DefaultFun ())
     patternRestrictedDecode =
       unflatWith $
         decodeProgram
@@ -706,7 +706,7 @@ test_patternProgramFlat =
             (flat $ RawTag 4 tag)
             :: Either
                  DecodeException
-                 (Term DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+                 (Term DeBruijn DefaultUni DefaultFun ())
         )
 
     assertReservedDefaultPatternTag tag =

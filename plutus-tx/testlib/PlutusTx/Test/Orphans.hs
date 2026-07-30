@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -25,8 +26,8 @@ import PlutusCore.Flat (Flat)
 import Test.Tasty.Extras ()
 
 instance
-  (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, Flat pat)
-  => ToUPlc (CompiledCodeIn uni fun pat a) uni fun pat
+  (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, Flat (PLC.BuiltinPattern uni))
+  => ToUPlc (CompiledCodeIn uni fun a) uni fun
   where
   toUPlc compiledCode = toUPlc =<< catchAll (getPlcNoAnn compiledCode)
 
@@ -44,7 +45,7 @@ instance
   , Default (PIR.BuiltinsInfo uni fun)
   , Default (PIR.RewriteRules uni fun)
   )
-  => ToTPlc (CompiledCodeIn uni fun pat a) uni fun
+  => ToTPlc (CompiledCodeIn uni fun a) uni fun
   where
   toTPlc compiledCode =
     catchAll (getPir compiledCode) >>= \case

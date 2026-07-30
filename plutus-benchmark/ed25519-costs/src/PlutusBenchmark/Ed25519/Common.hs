@@ -6,7 +6,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 {-| Check how many Ed25519 signature verifications we can perform within the
    limits specified in the protocol parameters. -}
@@ -18,7 +17,7 @@ import PlutusBenchmark.Common
 import System.IO (Handle)
 
 import Plinth.Plugin ()
-import PlutusCore (DefaultBuiltinPattern, DefaultFun, DefaultUni)
+import PlutusCore (DefaultFun, DefaultUni)
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusTx qualified as Tx
 import PlutusTx.List qualified as List
@@ -143,9 +142,7 @@ verifyInputs hash d =
 
 {-| Create the input data, convert it to BuiltinData, and apply the
 verification script to that. -}
-mkSigCheckScript
-  :: Integer
-  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+mkSigCheckScript :: Integer -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkSigCheckScript n =
   Tx.getPlcNoAnn
     $ $$(Tx.compile [||verifyInputs builtinHash||])

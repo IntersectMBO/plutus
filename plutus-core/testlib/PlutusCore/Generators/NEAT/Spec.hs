@@ -128,7 +128,7 @@ handleUError
   :: U.ErrorWithCause (U.EvaluationError structural operational) term
   -> Either
        (U.ErrorWithCause (U.EvaluationError structural operational) term)
-       (U.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ())
+       (U.Term Name DefaultUni DefaultFun ())
 handleUError e = case U._ewcError e of
   U.StructuralError _ -> throwError e
   U.OperationalError _ -> return (U.Error ())
@@ -251,7 +251,7 @@ data TestFail
   | AgdaErrorP ()
   | FVErrorP FreeVariableError
   | CkP (CkEvaluationException DefaultUni DefaultFun)
-  | UCekP (U.CekEvaluationException Name DefaultUni DefaultFun DefaultBuiltinPattern)
+  | UCekP (U.CekEvaluationException Name DefaultUni DefaultFun)
   | Ctrex Ctrex
 
 data Ctrex
@@ -301,7 +301,7 @@ data Ctrex
   | CtrexUntypedTermEvaluationMismatch
       ClosedTypeG
       ClosedTermG
-      [(String, U.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ())]
+      [(String, U.Term Name DefaultUni DefaultFun ())]
 
 instance Show TestFail where
   show (TypeError e) = "type error: " ++ show e

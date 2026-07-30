@@ -53,10 +53,10 @@ builtins and their denotations. This bundles one of those together with the cost
 steps, a 'CaserBuiltin' specifying how casing on values of built-in types works, and a
 'MatcherBuiltin' specifying how universe-specific patterns inspect built-in values.
 The @val@ type will be 'CekValue' when we're using this with the CEK machine. -}
-data MachineParameters machineCosts fun val pat
+data MachineParameters machineCosts fun val
   = MachineParameters
   { machineCaserBuiltin :: CaserBuiltin (UniOf val)
-  , machineMatcherBuiltin :: MatcherBuiltin (UniOf val) pat
+  , machineMatcherBuiltin :: MatcherBuiltin (UniOf val)
   , machineVariantParameters :: MachineVariantParameters machineCosts fun val
   }
   deriving stock (Generic)
@@ -73,7 +73,7 @@ instance
 
 instance
   (NoThunks machinecosts, Bounded fun, Enum fun)
-  => NoThunks (MachineParameters machinecosts fun val pat)
+  => NoThunks (MachineParameters machinecosts fun val)
   where
   wNoThunks ctx (MachineParameters caser matcher varPars) =
     allNoThunks [noThunks ctx caser, noThunks ctx matcher, noThunks ctx varPars]

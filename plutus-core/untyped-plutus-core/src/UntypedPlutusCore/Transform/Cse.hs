@@ -204,24 +204,24 @@ type Path = [Int]
 isAncestorOrSelf :: Path -> Path -> Bool
 isAncestorOrSelf = isSuffixOf
 
-data CseCandidate uni fun pat ann = CseCandidate
+data CseCandidate uni fun ann = CseCandidate
   { ccFreshName :: Name
-  , ccTerm :: Term Name uni fun pat ()
-  , ccAnnotatedTerm :: Term Name uni fun pat (Path, ann)
+  , ccTerm :: Term Name uni fun ()
+  , ccAnnotatedTerm :: Term Name uni fun (Path, ann)
   {-^ `ccTerm` is needed for equality comparison, while `ccAnnotatedTerm` is needed
   for the actual substitution. They are always the same term barring the annotations. -}
   }
 
 cse
   :: ( MonadQuote m
-     , Hashable (Term Name uni fun pat ())
-     , Rename (Term Name uni fun pat ann)
+     , Hashable (Term Name uni fun ())
+     , Rename (Term Name uni fun ann)
      , ToBuiltinMeaning uni fun
      )
   => CseWhichSubterms
   -> BuiltinSemanticsVariant fun
-  -> Term Name uni fun pat ann
-  -> OptimizerT Name uni fun pat ann m (Term Name uni fun pat ann)
+  -> Term Name uni fun ann
+  -> OptimizerT Name uni fun ann m (Term Name uni fun ann)
 cse whichSubterms builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
@@ -240,14 +240,14 @@ cse whichSubterms builtinSemanticsVariant t0 = do
   return result
 
 -- | The first pass. See Note [CSE].
-annotate :: Term name uni fun pat ann -> Term name uni fun pat (Path, ann)
+annotate :: Term name uni fun ann -> Term name uni fun (Path, ann)
 annotate = flip evalState 0 . flip runReaderT [] . go
   where
     -- The integer state is the highest ID assigned so far.
     -- The reader context is the current path.
     go
-      :: Term name uni fun pat ann
-      -> ReaderT Path (State Int) (Term name uni fun pat (Path, ann))
+      :: Term name uni fun ann
+      -> ReaderT Path (State Int) (Term name uni fun (Path, ann))
     go t = do
       path <- ask
       case t of
@@ -292,10 +292,10 @@ annotate = flip evalState 0 . flip runReaderT [] . go
 {-| The notion of work-free expressions is extended to also include partially
 applied/forced built-ins. -}
 isWorkFree'
-  :: forall name uni fun pat a
+  :: forall name uni fun a
    . ToBuiltinMeaning uni fun
   => BuiltinSemanticsVariant fun
-  -> Term name uni fun pat a
+  -> Term name uni fun a
   -> Bool
 isWorkFree' builtinSemanticsVariant term =
   isWorkFree builtinSemanticsVariant term
@@ -315,12 +315,12 @@ isWorkFree' builtinSemanticsVariant term =
 
 -- | The second pass. See Note [CSE].
 countOccs
-  :: forall name uni fun pat ann
-   . (Hashable (Term name uni fun pat ()), ToBuiltinMeaning uni fun)
+  :: forall name uni fun ann
+   . (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun)
   => CseWhichSubterms
   -> BuiltinSemanticsVariant fun
-  -> Term name uni fun pat (Path, ann)
-  -> HashMap (Term name uni fun pat ()) [(Path, Term name uni fun pat (Path, ann), Int)]
+  -> Term name uni fun (Path, ann)
+  -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
   {-^ Here, the value of the inner map not only contains the count, but also contains
   the annotated term, corresponding to the term that is the key of the outer map.
   The annotated terms need to be recorded since they will be used for substitution. -}
@@ -332,13 +332,13 @@ countOccs whichSubterms builtinSemanticsVariant =
   where
     addOrSkip
       , addToMap
-        :: Term name uni fun pat (Path, ann)
+        :: Term name uni fun (Path, ann)
         -> HashMap
-             (Term name uni fun pat ())
-             [(Path, Term name uni fun pat (Path, ann), Int)]
+             (Term name uni fun ())
+             [(Path, Term name uni fun (Path, ann), Int)]
         -> HashMap
-             (Term name uni fun pat ())
-             [(Path, Term name uni fun pat (Path, ann), Int)]
+             (Term name uni fun ())
+             [(Path, Term name uni fun (Path, ann), Int)]
 
     addOrSkip t0
       | isWorkFree' builtinSemanticsVariant t0 = id
@@ -357,17 +357,17 @@ countOccs whichSubterms builtinSemanticsVariant =
 
 -- | Combine a new path with a number of existing (path, count) pairs.
 combinePaths
-  :: forall name uni fun pat ann
-   . Term name uni fun pat (Path, ann)
+  :: forall name uni fun ann
+   . Term name uni fun (Path, ann)
   -> Path
-  -> [(Path, Term name uni fun pat (Path, ann), Int)]
-  -> [(Path, Term name uni fun pat (Path, ann), Int)]
+  -> [(Path, Term name uni fun (Path, ann), Int)]
+  -> [(Path, Term name uni fun (Path, ann), Int)]
 combinePaths t path = go 1
   where
     go
       :: Int
-      -> [(Path, Term name uni fun pat (Path, ann), Int)]
-      -> [(Path, Term name uni fun pat (Path, ann), Int)]
+      -> [(Path, Term name uni fun (Path, ann), Int)]
+      -> [(Path, Term name uni fun (Path, ann), Int)]
     -- The new path is not a descendent-or-self of any existing path.
     go acc [] = [(path, t, acc)]
     go acc ((path', t', cnt) : paths)
@@ -382,29 +382,29 @@ combinePaths t path = go 1
       | otherwise = (path', t', cnt) : go acc paths
 
 mkCseTerm
-  :: forall uni fun pat ann m
-   . (MonadQuote m, Eq (Term Name uni fun pat ()))
-  => [Term Name uni fun pat (Path, ann)]
-  -> Term Name uni fun pat (Path, ann)
+  :: forall uni fun ann m
+   . (MonadQuote m, Eq (Term Name uni fun ()))
+  => [Term Name uni fun (Path, ann)]
+  -> Term Name uni fun (Path, ann)
   -- ^ The original annotated term
-  -> m (Term Name uni fun pat ann)
+  -> m (Term Name uni fun ann)
 mkCseTerm ts t = do
   cs <- traverse mkCseCandidate ts
   pure . fmap snd $ Foldable.foldl' (flip applyCse) t cs
 
 applyCse
-  :: forall uni fun pat ann
-   . Eq (Term Name uni fun pat ())
-  => CseCandidate uni fun pat ann
-  -> Term Name uni fun pat (Path, ann)
-  -> Term Name uni fun pat (Path, ann)
+  :: forall uni fun ann
+   . Eq (Term Name uni fun ())
+  => CseCandidate uni fun ann
+  -> Term Name uni fun (Path, ann)
+  -> Term Name uni fun (Path, ann)
 applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
   where
     candidatePath = fst (getAnn (ccAnnotatedTerm candidate))
 
     substCseVarForTerm
-      :: Term Name uni fun pat (Path, ann)
-      -> Term Name uni fun pat (Path, ann)
+      :: Term Name uni fun (Path, ann)
+      -> Term Name uni fun (Path, ann)
     substCseVarForTerm t =
       if currTerm == ccTerm candidate && candidatePath `isAncestorOrSelf` currPath
         then Var (getAnn t) (ccFreshName candidate)
@@ -413,7 +413,7 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
         currTerm = void t
         currPath = fst (getAnn t)
 
-    mkLamApp :: Term Name uni fun pat (Path, ann) -> Term Name uni fun pat (Path, ann)
+    mkLamApp :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
     mkLamApp t
       | currPath == candidatePath = placeCseBinding t
       | currPath `isAncestorOrSelf` candidatePath = case t of
@@ -436,8 +436,8 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
 
         -- See Note [CSE and immediately applied lambdas]
         placeCseBinding
-          :: Term Name uni fun pat (Path, ann)
-          -> Term Name uni fun pat (Path, ann)
+          :: Term Name uni fun (Path, ann)
+          -> Term Name uni fun (Path, ann)
         placeCseBinding node = case node of
           -- Immediately applied lambda: if `arg` does not use `cseName`, we'd want to be sure
           -- to descend into the *body* of the lambda.
@@ -478,7 +478,7 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
                 (LamAbs (getAnn n) cseName n)
                 (ccAnnotatedTerm candidate)
 
-occursIn :: Eq name => name -> Term name uni fun pat a -> Bool
+occursIn :: Eq name => name -> Term name uni fun a -> Bool
 occursIn n = go
   where
     go = \case
@@ -494,10 +494,10 @@ occursIn n = go
 
 -- | Generate a fresh variable for the common subexpression.
 mkCseCandidate
-  :: forall uni fun pat ann m
+  :: forall uni fun ann m
    . MonadQuote m
-  => Term Name uni fun pat (Path, ann)
-  -> m (CseCandidate uni fun pat ann)
+  => Term Name uni fun (Path, ann)
+  -> m (CseCandidate uni fun ann)
 mkCseCandidate t = CseCandidate <$> freshName "cse" <*> pure (void t) <*> pure t
 
 {- Note [CSE and immediately applied lambdas]

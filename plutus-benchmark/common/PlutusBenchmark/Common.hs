@@ -86,7 +86,7 @@ getConfig limit = do
 
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
 getCostsCek
-  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+  :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
   -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
   case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
@@ -131,20 +131,17 @@ evaluateCekLikeInProd
        PLC.NamedDeBruijn
        PLC.DefaultUni
        PLC.DefaultFun
-       PLC.DefaultBuiltinPattern
        ()
   -> Either
        ( UPLC.CekEvaluationException
            UPLC.NamedDeBruijn
            UPLC.DefaultUni
            UPLC.DefaultFun
-           UPLC.DefaultBuiltinPattern
        )
        ( UPLC.Term
            UPLC.NamedDeBruijn
            UPLC.DefaultUni
            UPLC.DefaultFun
-           PLC.DefaultBuiltinPattern
            ()
        )
 evaluateCekLikeInProd evalCtx term =
@@ -163,7 +160,6 @@ evaluateCekForBench
        PLC.NamedDeBruijn
        PLC.DefaultUni
        PLC.DefaultFun
-       PLC.DefaultBuiltinPattern
        ()
   -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
@@ -211,7 +207,7 @@ protocol parameters. -}
 printSizeStatistics
   :: Handle
   -> TestSize
-  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
   -> IO ()
 printSizeStatistics h n script = do
   let serialised = Flat.flat (UPLC.UnrestrictedProgram $ toAnonDeBruijnProg script)

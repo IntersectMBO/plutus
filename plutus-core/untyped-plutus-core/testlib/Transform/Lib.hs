@@ -30,7 +30,7 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Word (Word64)
 import GHC.Exts (fromList)
-import PlutusCore.Default (DefaultBuiltinPattern, DefaultFun (IfThenElse), DefaultUni)
+import PlutusCore.Default (DefaultFun (IfThenElse), DefaultUni)
 import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Name.Unique (Name (..), Unique (..))
 import UntypedPlutusCore.Core.Type (Term (..))
@@ -63,7 +63,7 @@ aliasing silently.
 -}
 
 -- | Convenient alias used throughout the test modules.
-type T = Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+type T = Term Name DefaultUni DefaultFun ()
 
 {-| A 'Var' occurrence of the variable with the given name.
 See Note [Names from strings] -}

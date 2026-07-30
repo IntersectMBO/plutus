@@ -9,7 +9,6 @@ import Transform.Simplify.Lib (testCse, testOptimize)
 import Transform.Simplify.Spec (testCseInputs, testSimplifyInputs)
 import UntypedPlutusCore
   ( CseWhichSubterms (..)
-  , DefaultBuiltinPattern
   , DefaultFun
   , DefaultUni
   , Name
@@ -18,16 +17,16 @@ import UntypedPlutusCore
   )
 
 type SimplifierFunc =
-  Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+  Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> PLC.Quote
-       ( Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
-       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+       ( Term Name PLC.DefaultUni PLC.DefaultFun ()
+       , OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun ()
        )
 
 mkUPLCTest
   :: SimplifierFunc
   -> String
-  -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> Term Name DefaultUni DefaultFun ()
   -> TestTree
 mkUPLCTest simplifierFunc name input =
   testCase name $
@@ -42,14 +41,14 @@ mkUPLCTest simplifierFunc name input =
 
 mkUPLCSimplifierTest
   :: String
-  -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> Term Name DefaultUni DefaultFun ()
   -> TestTree
 mkUPLCSimplifierTest = mkUPLCTest testOptimize
 
 mkUPLCCseTest
   :: CseWhichSubterms
   -> String
-  -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> Term Name DefaultUni DefaultFun ()
   -> TestTree
 mkUPLCCseTest which = mkUPLCTest (testCse which)
 

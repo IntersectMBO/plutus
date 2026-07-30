@@ -680,12 +680,7 @@ genR = Gen.integral (Range.constant 1 255)
 -- Helpers
 
 evaluateAndVerify
-  :: UPLC.Term
-       UPLC.Name
-       UPLC.DefaultUni
-       UPLC.DefaultFun
-       UPLC.DefaultBuiltinPattern
-       ()
+  :: UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
   -> PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
   -> PropertyT IO ()
 evaluateAndVerify expected actual =
@@ -720,12 +715,7 @@ evaluateShouldFail expr = case typecheckEvaluateCek def defaultBuiltinCostModelF
     PLC.EvaluationSuccess _ -> assertFailure "should have failed, but didn't"
 
 evaluateAssertEqual
-  :: UPLC.Term
-       UPLC.Name
-       UPLC.DefaultUni
-       UPLC.DefaultFun
-       UPLC.DefaultBuiltinPattern
-       ()
+  :: UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
   -> PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
   -> IO ()
 evaluateAssertEqual expected actual =

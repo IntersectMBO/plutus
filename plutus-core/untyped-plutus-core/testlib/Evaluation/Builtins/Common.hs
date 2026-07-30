@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Evaluation.Builtins.Common
@@ -63,7 +64,7 @@ typecheckAnd
      , TPLC.Typecheckable uni fun
      , GEq uni
      , CaseBuiltin uni
-     , MatchBuiltin uni DefaultBuiltinPattern
+     , MatchBuiltin uni
      , Closed uni
      , uni `Everywhere` ExMemoryUsage
      )
@@ -71,9 +72,8 @@ typecheckAnd
   -> ( MachineParameters
          CekMachineCosts
          fun
-         (CekValue uni fun DefaultBuiltinPattern ())
-         DefaultBuiltinPattern
-       -> UPLC.Term Name uni fun DefaultBuiltinPattern ()
+         (CekValue uni fun ())
+       -> UPLC.Term Name uni fun ()
        -> a
      )
   -> CostingPart uni fun
@@ -99,13 +99,14 @@ typecheckEvaluateCek
      , uni `Everywhere` ExMemoryUsage
      , PrettyUni uni
      , Pretty fun
+     , Pretty (BuiltinPattern uni)
      , CaseBuiltin uni
-     , MatchBuiltin uni DefaultBuiltinPattern
+     , MatchBuiltin uni
      )
   => BuiltinSemanticsVariant fun
   -> CostingPart uni fun
   -> TPLC.Term TyName Name uni fun ()
-  -> m (EvaluationResult (UPLC.Term Name uni fun DefaultBuiltinPattern ()), [Text])
+  -> m (EvaluationResult (UPLC.Term Name uni fun ()), [Text])
 typecheckEvaluateCek semvar =
   typecheckAnd semvar $ \params ->
     first unsafeSplitStructuralOperational . evaluateCek logEmitter params
@@ -118,13 +119,14 @@ typecheckEvaluateCekNoEmit
      , uni `Everywhere` ExMemoryUsage
      , PrettyUni uni
      , Pretty fun
+     , Pretty (BuiltinPattern uni)
      , CaseBuiltin uni
-     , MatchBuiltin uni DefaultBuiltinPattern
+     , MatchBuiltin uni
      )
   => BuiltinSemanticsVariant fun
   -> CostingPart uni fun
   -> TPLC.Term TyName Name uni fun ()
-  -> m (EvaluationResult (UPLC.Term Name uni fun DefaultBuiltinPattern ()))
+  -> m (EvaluationResult (UPLC.Term Name uni fun ()))
 typecheckEvaluateCekNoEmit semvar =
   typecheckAnd semvar $ \params ->
     unsafeSplitStructuralOperational . evaluateCekNoEmit params
@@ -137,14 +139,15 @@ typecheckReadKnownCek
      , uni `Everywhere` ExMemoryUsage
      , PrettyUni uni
      , Pretty fun
+     , Pretty (BuiltinPattern uni)
      , CaseBuiltin uni
-     , MatchBuiltin uni DefaultBuiltinPattern
-     , ReadKnown (UPLC.Term Name uni fun DefaultBuiltinPattern ()) a
+     , MatchBuiltin uni
+     , ReadKnown (UPLC.Term Name uni fun ()) a
      )
   => BuiltinSemanticsVariant fun
   -> CostingPart uni fun
   -> TPLC.Term TyName Name uni fun ()
-  -> m (Either (CekEvaluationException Name uni fun DefaultBuiltinPattern) a)
+  -> m (Either (CekEvaluationException Name uni fun) a)
 typecheckReadKnownCek semvar =
   typecheckAnd semvar readKnownCek
 
@@ -158,7 +161,6 @@ type UplcTerm =
     TPLC.Name
     TPLC.DefaultUni
     TPLC.DefaultFun
-    TPLC.DefaultBuiltinPattern
     ()
 
 -- Possible CEK evluation results, flattened out

@@ -21,8 +21,8 @@ import UntypedPlutusCore.Transform.Optimizer
 
 caseReduce
   :: (Monad m, CaseBuiltin uni)
-  => Term name uni fun pat a
-  -> OptimizerT name uni fun pat a m (Term name uni fun pat a)
+  => Term name uni fun a
+  -> OptimizerT name uni fun a m (Term name uni fun a)
 caseReduce term = do
   let result = snd $ processTermWithMatch term
   recordOptimization term CaseReduceStage result
@@ -30,8 +30,8 @@ caseReduce term = do
 
 processTermWithMatch
   :: CaseBuiltin uni
-  => Term name uni fun pat a
-  -> (Bool, Term name uni fun pat a)
+  => Term name uni fun a
+  -> (Bool, Term name uni fun a)
 processTermWithMatch term =
   let (childHasMatch, term') = mapAccumLOf termSubterms processChild False term
       hasMatch = isMatch term || childHasMatch
@@ -46,8 +46,8 @@ processTermWithMatch term =
 
 processTerm
   :: CaseBuiltin uni
-  => Term name uni fun pat a
-  -> Term name uni fun pat a
+  => Term name uni fun a
+  -> Term name uni fun a
 processTerm term = case term of
   -- We could've rewritten those patterns as 'Error' in the 'Nothing' cases, but that would turn a
   -- structural error into an operational one, which would be unfortunate, so instead we decided

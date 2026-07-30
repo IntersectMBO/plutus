@@ -45,37 +45,37 @@ This module is just a boring port of the typed version.
 Will throw an error if a free variable is encountered. -}
 deBruijnTerm
   :: MonadError FreeVariableError m
-  => Term Name uni fun pat ann -> m (Term NamedDeBruijn uni fun pat ann)
+  => Term Name uni fun ann -> m (Term NamedDeBruijn uni fun ann)
 deBruijnTerm = deBruijnTermWith freeUniqueThrow
 
 {-| Convert a 'Term' with 'DeBruijn's into a 'Term' with 'Name's.
 Will throw an error if a free variable is encountered. -}
 unDeBruijnTerm
   :: (MonadQuote m, MonadError FreeVariableError m)
-  => Term NamedDeBruijn uni fun pat ann -> m (Term Name uni fun pat ann)
+  => Term NamedDeBruijn uni fun ann -> m (Term Name uni fun ann)
 unDeBruijnTerm = unDeBruijnTermWith freeIndexThrow
 
 -- | Takes a "handler" function to execute when encountering free variables.
 deBruijnTermWith
   :: Monad m
   => (Unique -> ReaderT LevelInfo m Index)
-  -> Term Name uni fun pat ann
-  -> m (Term NamedDeBruijn uni fun pat ann)
+  -> Term Name uni fun ann
+  -> m (Term NamedDeBruijn uni fun ann)
 deBruijnTermWith = (runDeBruijnT .) . deBruijnTermWithM
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWith
   :: MonadQuote m
   => (Index -> ReaderT LevelInfo m Unique)
-  -> Term NamedDeBruijn uni fun pat ann
-  -> m (Term Name uni fun pat ann)
+  -> Term NamedDeBruijn uni fun ann
+  -> m (Term Name uni fun ann)
 unDeBruijnTermWith = (runDeBruijnT .) . unDeBruijnTermWithM
 
 deBruijnTermWithM
   :: MonadReader LevelInfo m
   => (Unique -> m Index)
-  -> Term Name uni fun pat ann
-  -> m (Term NamedDeBruijn uni fun pat ann)
+  -> Term Name uni fun ann
+  -> m (Term NamedDeBruijn uni fun ann)
 deBruijnTermWithM h = go
   where
     go = \case
@@ -101,8 +101,8 @@ deBruijnTermWithM h = go
 unDeBruijnTermWithM
   :: (MonadReader LevelInfo m, MonadQuote m)
   => (Index -> m Unique)
-  -> Term NamedDeBruijn uni fun pat ann
-  -> m (Term Name uni fun pat ann)
+  -> Term NamedDeBruijn uni fun ann
+  -> m (Term Name uni fun ann)
 unDeBruijnTermWithM h = go
   where
     go = \case

@@ -57,7 +57,6 @@ data EvaluationError
            NamedDeBruijn
            DefaultUni
            DefaultFun
-           DefaultBuiltinPattern
        )
   | -- | An error in the pre-evaluation step of converting from de-Bruijn indices
     DeBruijnError !FreeVariableError
@@ -115,7 +114,7 @@ mkTermToEvaluate
   -- ^ the script to evaluate
   -> [Plutus.Data]
   -- ^ the arguments that the script's underlying term will be applied to
-  -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ())
+  -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
 mkTermToEvaluate ll pv script args = do
   let ScriptNamedDeBruijn (UPLC.Program _ v t) = deserialisedScript script
       termArgs = fmap (UPLC.mkConstant ()) args
@@ -179,7 +178,7 @@ data EvaluationContext = EvaluationContext
   transactions in old PVs, so maybe it doesn't matter. -}
   , _evalCtxMatcherBuiltin
       :: MajorProtocolVersion
-      -> MatcherBuiltin DefaultUni DefaultBuiltinPattern
+      -> MatcherBuiltin DefaultUni
   {-^ Specifies how 'match' on built-in values works. Match belongs to the experimental
   Plutus Core 1.2 language, which has no ledger protocol activation yet, so all current
   ledger evaluation contexts provide an unavailable matcher. -}
@@ -210,7 +209,7 @@ mkDynEvaluationContext
   :: MonadError CostModelApplyError m
   => PlutusLedgerLanguage
   -> (MajorProtocolVersion -> CaserBuiltin DefaultUni)
-  -> (MajorProtocolVersion -> MatcherBuiltin DefaultUni DefaultBuiltinPattern)
+  -> (MajorProtocolVersion -> MatcherBuiltin DefaultUni)
   -> [BuiltinSemanticsVariant DefaultFun]
   -> (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
   -> Plutus.CostModelParams
@@ -227,12 +226,12 @@ assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defa
 {-| Evaluate a fully-applied term using the CEK machine. Useful for mimicking the behaviour of the
 on-chain evaluator. -}
 evaluateTerm
-  :: UPLC.ExBudgetMode cost DefaultUni DefaultFun DefaultBuiltinPattern
+  :: UPLC.ExBudgetMode cost DefaultUni DefaultFun
   -> MajorProtocolVersion
   -> VerboseMode
   -> EvaluationContext
-  -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
-  -> UPLC.CekReport cost NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern
+  -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+  -> UPLC.CekReport cost NamedDeBruijn DefaultUni DefaultFun
 evaluateTerm budgetMode pv verbose ectx =
   UPLC.runCekDeBruijn
     (toMachineParameters pv ectx)
@@ -306,7 +305,7 @@ processLogsAndErrors
    . (MonadError EvaluationError m, MonadWriter LogOutput m)
   => PlutusLedgerLanguage
   -> LogOutput
-  -> UPLC.CekResult NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern
+  -> UPLC.CekResult NamedDeBruijn DefaultUni DefaultFun
   -> m ()
 processLogsAndErrors ll logs res = do
   tell logs

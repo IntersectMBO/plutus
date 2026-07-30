@@ -29,7 +29,7 @@ import Test.Certifier.AST (testFailureItem, testSuccessItem)
 -- (force (ƛ (delay (con integer 1)) · (con integer 2)))
 -- ==> (ƛ (con integer 1) · (con integer 2))
 -- Constructors positive: [0,2,3,4]
-simpleSuccessBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+simpleSuccessBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleSuccessBefore = runQuote $ do
   x <- freshName "x"
   return
@@ -46,7 +46,7 @@ simpleSuccessBefore = runQuote $ do
         )
     )
 
-simpleSuccessAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+simpleSuccessAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleSuccessAfter = runQuote $ do
   x <- freshName "x"
   return
@@ -64,7 +64,7 @@ simpleSuccessAfter = runQuote $ do
 -- ==>
 -- ((ƛ ((ƛ (con Two)) · (con Three))) · (con One))
 -- Constructors positive: [0,1,2,3,5]
-nestedBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+nestedBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 nestedBefore = runQuote $ do
   x <- freshName "x"
   y <- freshName "y"
@@ -99,7 +99,7 @@ nestedBefore = runQuote $ do
         )
     )
 
-nestedAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+nestedAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 nestedAfter = runQuote $ do
   x <- freshName "x"
   y <- freshName "y"
@@ -137,7 +137,7 @@ nestedAfter = runQuote $ do
 --      (con integer 2)
 -- ]
 -- Constructors positive: [6]
-ifThenElseSuccessBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+ifThenElseSuccessBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 ifThenElseSuccessBefore =
   ( Force
       ()
@@ -156,7 +156,7 @@ ifThenElseSuccessBefore =
       )
   )
 
-ifThenElseSuccessAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+ifThenElseSuccessAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 ifThenElseSuccessAfter =
   ( Apply
       ()
@@ -177,16 +177,16 @@ ifThenElseSuccessAfter =
 
 -- Just lose a force for no reason
 -- Constructors violated: [0]
-simpleForceBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+simpleForceBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleForceBreakBefore = (Force () (mkConstant () (1 :: Integer)))
 
-simpleForceBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+simpleForceBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleForceBreakAfter = (mkConstant () (1 :: Integer))
 
 -- Extra delay removed.
 -- Constructors [0,1,4]
 -- Constructors violated: [1]
-simpleFailBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+simpleFailBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleFailBefore =
   ( Force
       ()
@@ -196,12 +196,12 @@ simpleFailBefore =
       )
   )
 
-simpleFailAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+simpleFailAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleFailAfter = (mkConstant () (1 :: Integer))
 
 -- Traverse an application when you shouldn't -- no matching lambda
 -- Constructors violated: [2]
-simpleAppBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+simpleAppBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleAppBreakBefore =
   ( Force
       ()
@@ -212,7 +212,7 @@ simpleAppBreakBefore =
       )
   )
 
-simpleAppBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+simpleAppBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleAppBreakAfter =
   ( Apply
       ()
@@ -222,7 +222,7 @@ simpleAppBreakAfter =
 
 -- Traverse an application when you shouldn't -- broken applied term
 -- Constructors violated: [2,0]
-appTermBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+appTermBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 appTermBreakBefore = runQuote $ do
   x <- freshName "x"
   return
@@ -232,7 +232,7 @@ appTermBreakBefore = runQuote $ do
         (Force () (mkConstant () (2 :: Integer)))
     )
 
-appTermBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+appTermBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 appTermBreakAfter = runQuote $ do
   x <- freshName "x"
   return
@@ -244,7 +244,7 @@ appTermBreakAfter = runQuote $ do
 
 -- Traverse a lambda when you shouldn't -- no applied term
 -- Constructors violated: [3]
-lambdaBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+lambdaBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lambdaBreakBefore = runQuote $ do
   x <- freshName "x"
   return
@@ -253,17 +253,17 @@ lambdaBreakBefore = runQuote $ do
         (LamAbs () x (Delay () (mkConstant () (1 :: Integer))))
     )
 
-lambdaBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+lambdaBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lambdaBreakAfter = runQuote $ do
   x <- freshName "x"
   return (LamAbs () x (mkConstant () (1 :: Integer)))
 
 -- Valid force-delay, but invalid sub-tree change.
 -- Constructors violated: [4]
-lastDelayBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+lastDelayBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lastDelayBreakBefore = (Force () (Delay () (mkConstant () (1 :: Integer))))
 
-lastDelayBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+lastDelayBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lastDelayBreakAfter = (mkConstant () (2 :: Integer))
 
 -- Valid force-delay, but invalid sub-tree change after an abstraction.
@@ -271,7 +271,7 @@ lastDelayBreakAfter = (mkConstant () (2 :: Integer))
 -- =|=>
 -- ((ƛ (con-integer 2)) · (con-integer 3)))
 -- Constructors violated: [5]
-lastAbsBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+lastAbsBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lastAbsBreakBefore = runQuote $ do
   x <- freshName "x"
   return
@@ -286,7 +286,7 @@ lastAbsBreakBefore = runQuote $ do
             )
         )
     )
-lastAbsBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+lastAbsBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lastAbsBreakAfter = runQuote $ do
   x <- freshName "x"
   return
@@ -299,8 +299,8 @@ lastAbsBreakAfter = runQuote $ do
 successItems
   :: [ ( String
        , OptStage
-       , Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
-       , Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+       , Term Name PLC.DefaultUni PLC.DefaultFun ()
+       , Term Name PLC.DefaultUni PLC.DefaultFun ()
        )
      ]
 successItems =
@@ -326,8 +326,8 @@ successItems =
 failItems
   :: [ ( String
        , OptStage
-       , Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
-       , Term Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern ()
+       , Term Name PLC.DefaultUni PLC.DefaultFun ()
+       , Term Name PLC.DefaultUni PLC.DefaultFun ()
        )
      ]
 failItems =

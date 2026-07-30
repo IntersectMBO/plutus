@@ -31,7 +31,7 @@ import System.IO.Extra
 import Test.Tasty
 import Test.Tasty.Golden
 
-loadFrom :: FilePath -> IO (OptimizerTrace Name DefaultUni DefaultFun DefaultBuiltinPattern ())
+loadFrom :: FilePath -> IO (OptimizerTrace Name DefaultUni DefaultFun ())
 loadFrom name = do
   root <- getDataDir
   prog <-
@@ -53,10 +53,10 @@ loadFrom name = do
   pure . runQuote $ snd <$> simplify term
 
 simplify
-  :: Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  :: Term Name DefaultUni DefaultFun ()
   -> Quote
-       ( Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
-       , OptimizerTrace Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+       ( Term Name DefaultUni DefaultFun ()
+       , OptimizerTrace Name DefaultUni DefaultFun ()
        )
 simplify =
   runOptimizerT
@@ -71,10 +71,9 @@ evalCtx = mkDefaultEvalCtx def
 {-# OPAQUE evalCtx #-}
 
 evalTrace
-  :: OptimizerTrace Name DefaultUni DefaultFun DefaultBuiltinPattern ()
-  -> [Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()]
-  -> [ ( Maybe
-           (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern)
+  :: OptimizerTrace Name DefaultUni DefaultFun ()
+  -> [Term NamedDeBruijn DefaultUni DefaultFun ()]
+  -> [ ( Maybe (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
        , ExBudget
        )
      ]
@@ -82,7 +81,7 @@ evalTrace trace args =
   first (either Just (const Nothing)) . evalCounting evalCtx newestPV
     <$> appliedTerms
   where
-    appliedTerms :: [Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()]
+    appliedTerms :: [Term NamedDeBruijn DefaultUni DefaultFun ()]
     appliedTerms =
       ( \ast ->
           F.foldl'

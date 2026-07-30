@@ -40,7 +40,7 @@ import PlutusCore.Version
 
 -- | A parsable UPLC term.
 type PTerm =
-  UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern SrcSpan
+  UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan
 
 conTerm :: SrcSpan -> Parser PTerm
 conTerm sp =
@@ -197,7 +197,6 @@ program
            PLC.Name
            PLC.DefaultUni
            PLC.DefaultFun
-           PLC.DefaultBuiltinPattern
            SrcSpan
        )
 program = leadingWhitespace go
@@ -226,7 +225,6 @@ parseProgram
            PLC.Name
            PLC.DefaultUni
            PLC.DefaultFun
-           PLC.DefaultBuiltinPattern
            SrcSpan
        )
 parseProgram = parseGen program
@@ -241,7 +239,6 @@ parseScoped
            PLC.Name
            PLC.DefaultUni
            PLC.DefaultFun
-           PLC.DefaultBuiltinPattern
            SrcSpan
        )
 -- don't require there to be no free variables at this point, we might be parsing an open term

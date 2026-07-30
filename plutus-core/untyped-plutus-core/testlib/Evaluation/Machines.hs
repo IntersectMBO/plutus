@@ -49,14 +49,14 @@ import Test.Tasty.Hedgehog
 testMachine
   :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc structural)
   => String
-  -> ( Term Name uni fun DefaultBuiltinPattern ()
+  -> ( Term Name uni fun ()
        -> Either
             ( EvaluationException
                 structural
                 operational
-                (Term Name uni fun DefaultBuiltinPattern ())
+                (Term Name uni fun ())
             )
-            (Term Name uni fun DefaultBuiltinPattern ())
+            (Term Name uni fun ())
      )
   -> TestTree
 testMachine machine eval =
@@ -78,9 +78,9 @@ test_machines =
 
 testBudget
   :: (Ix fun, Show fun, Hashable fun, Pretty fun, Typeable fun)
-  => BuiltinsRuntime fun (CekValue DefaultUni fun DefaultBuiltinPattern ())
+  => BuiltinsRuntime fun (CekValue DefaultUni fun ())
   -> TestName
-  -> Term Name DefaultUni fun DefaultBuiltinPattern ()
+  -> Term Name DefaultUni fun ()
   -> TestNested
 testBudget runtime name term =
   nestedGoldenVsText
@@ -155,7 +155,7 @@ test_budget =
     folder runtime =
       foldPlcFolderContents testNested mempty (\name -> testBudget runtime name . eraseTerm)
 
-testTallying :: TestName -> Term Name DefaultUni DefaultFun DefaultBuiltinPattern () -> TestNested
+testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testTallying name term =
   nestedGoldenVsText
     name

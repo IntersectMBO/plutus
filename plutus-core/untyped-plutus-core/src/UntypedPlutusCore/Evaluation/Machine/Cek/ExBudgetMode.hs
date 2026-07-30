@@ -1,11 +1,13 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
@@ -29,6 +31,8 @@ import PlutusPrelude
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
+import PlutusCore.Builtin (BuiltinPattern)
+
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
@@ -48,7 +52,7 @@ import Text.PrettyBy (IgnorePrettyConfig (..))
 {-| Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.
 The value then gets added to the current state via @(<>)@. -}
 monoidalBudgeting
-  :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun pat
+  :: Monoid cost => (ExBudgetCategory fun -> ExBudget -> cost) -> ExBudgetMode cost uni fun
 monoidalBudgeting toCost = ExBudgetMode $ do
   costRef <- newSTRef mempty
   budgetRef <- newSTRef mempty
@@ -69,7 +73,7 @@ instance Pretty CountingSt where
   pretty (CountingSt budget) = parens $ "required budget:" <+> pretty budget <> line
 
 -- | For calculating the cost of execution.
-counting :: ExBudgetMode CountingSt uni fun pat
+counting :: ExBudgetMode CountingSt uni fun
 counting = monoidalBudgeting $ const CountingSt
 
 {-| For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
@@ -109,7 +113,7 @@ instance (Show fun, Ord fun) => Pretty (TallyingSt fun) where
         ]
 
 -- | For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
-tallying :: Hashable fun => ExBudgetMode (TallyingSt fun) uni fun pat
+tallying :: Hashable fun => ExBudgetMode (TallyingSt fun) uni fun
 tallying =
   monoidalBudgeting $ \key budgetToSpend ->
     TallyingSt (CekExTally $ singleton key budgetToSpend) budgetToSpend
@@ -124,8 +128,8 @@ instance Pretty RestrictingSt where
 
 -- | For execution, to avoid overruns.
 restricting
-  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
-  => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun pat
+  :: (ThrowableBuiltins uni fun, Pretty (BuiltinPattern uni))
+  => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
 restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMode $ do
   -- We keep the counters in a PrimArray. This is better than an STRef since it stores its contents unboxed.
   --
@@ -173,12 +177,12 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
 
 -- | 'restricting' instantiated at 'largeBudget'.
 restrictingLarge
-  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
-  => ExBudgetMode RestrictingSt uni fun pat
+  :: (ThrowableBuiltins uni fun, Pretty (BuiltinPattern uni))
+  => ExBudgetMode RestrictingSt uni fun
 restrictingLarge = restricting largeBudget
 
 -- | 'restricting' instantiated at 'enormousBudget'.
 restrictingEnormous
-  :: (ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
-  => ExBudgetMode RestrictingSt uni fun pat
+  :: (ThrowableBuiltins uni fun, Pretty (BuiltinPattern uni))
+  => ExBudgetMode RestrictingSt uni fun
 restrictingEnormous = restricting enormousBudget

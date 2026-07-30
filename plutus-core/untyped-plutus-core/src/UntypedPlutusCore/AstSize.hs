@@ -11,7 +11,7 @@ import Control.Lens
 import Data.Foldable
 
 -- | Count the number of AST nodes in a term.
-termAstSize :: Term name uni fun pat ann -> AstSize
+termAstSize :: Term name uni fun ann -> AstSize
 termAstSize term =
   fold
     [ AstSize 1
@@ -24,5 +24,5 @@ termAstSize term =
     ]
 
 -- | Count the number of AST nodes in a program.
-programAstSize :: Program name uni fun pat ann -> AstSize
+programAstSize :: Program name uni fun ann -> AstSize
 programAstSize (Program _ _ t) = termAstSize t

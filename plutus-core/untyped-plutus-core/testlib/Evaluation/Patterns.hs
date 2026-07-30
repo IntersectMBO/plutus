@@ -41,7 +41,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
   )
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek qualified as SteppableCek
 
-type UTerm = UPLC.Term Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+type UTerm = UPLC.Term Name DefaultUni DefaultFun ()
 
 patternChildren
   :: (DefaultPatternFieldEnd -> Vector.Vector DefaultBuiltinPattern -> DefaultBuiltinPattern)
@@ -174,29 +174,27 @@ defaultParameters
   :: MachineParameters
        Cek.CekMachineCosts
        DefaultFun
-       (Cek.CekValue DefaultUni DefaultFun DefaultBuiltinPattern ())
-       DefaultBuiltinPattern
+       (Cek.CekValue DefaultUni DefaultFun ())
 defaultParameters = defaultCekParametersForTesting
 
 unitParameters
   :: MachineParameters
        Cek.CekMachineCosts
        DefaultFun
-       (Cek.CekValue DefaultUni DefaultFun DefaultBuiltinPattern ())
-       DefaultBuiltinPattern
+       (Cek.CekValue DefaultUni DefaultFun ())
 unitParameters = case defaultParameters of
   MachineParameters caser matcher (MachineVariantParameters _ runtime) ->
     MachineParameters caser matcher (MachineVariantParameters unitCekMachineCosts runtime)
 
 selectedStepOnly
   :: Cek.StepKind
-  -> Cek.ExBudgetMode ExBudget DefaultUni DefaultFun DefaultBuiltinPattern
+  -> Cek.ExBudgetMode ExBudget DefaultUni DefaultFun
 selectedStepOnly wanted = Cek.monoidalBudgeting $ \category budget -> case category of
   Cek.BStep actual | actual == wanted -> budget
   _ -> mempty
 
 selectedPatternOnly
-  :: Cek.ExBudgetMode ExBudget DefaultUni DefaultFun DefaultBuiltinPattern
+  :: Cek.ExBudgetMode ExBudget DefaultUni DefaultFun
 selectedPatternOnly = Cek.monoidalBudgeting $ \category budget -> case category of
   Cek.BStep Cek.BMatch -> budget
   Cek.BStep Cek.BPattern -> budget
@@ -206,7 +204,7 @@ selectedPatternOnly = Cek.monoidalBudgeting $ \category budget -> case category 
 
 selectedCategoryOnly
   :: Cek.ExBudgetCategory DefaultFun
-  -> Cek.ExBudgetMode ExBudget DefaultUni DefaultFun DefaultBuiltinPattern
+  -> Cek.ExBudgetMode ExBudget DefaultUni DefaultFun
 selectedCategoryOnly wanted = Cek.monoidalBudgeting $ \category budget ->
   if category == wanted then budget else mempty
 

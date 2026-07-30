@@ -22,19 +22,19 @@ import Data.Hashable
 import Data.Vector qualified as V
 
 instance
-  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq pat, Eq ann)
-  => Eq (Term Name uni fun pat ann)
+  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq (BuiltinPattern uni), Eq ann)
+  => Eq (Term Name uni fun ann)
   where
   term1 == term2 = runEqRename $ eqTermM term1 term2
 
-type HashableTermConstraints uni fun pat ann =
+type HashableTermConstraints uni fun ann =
   ( GEq uni
   , Closed uni
   , uni `Everywhere` Eq
   , uni `Everywhere` Hashable
   , Hashable ann
   , Hashable fun
-  , Hashable pat
+  , Hashable (BuiltinPattern uni)
   )
 
 -- This instance is the only logical one, and exists also in the package `vector-instances`.
@@ -42,7 +42,7 @@ type HashableTermConstraints uni fun pat ann =
 instance Hashable a => Hashable (V.Vector a) where
   hashWithSalt s = hashWithSalt s . toList
 
-instance HashableTermConstraints uni fun pat ann => Hashable (Term Name uni fun pat ann)
+instance HashableTermConstraints uni fun ann => Hashable (Term Name uni fun ann)
 
 -- Simple Structural Equality of a `Term NamedDeBruijn`. This implies three things:
 -- a) We ignore the name part of the nameddebruijn
@@ -50,37 +50,37 @@ instance HashableTermConstraints uni fun pat ann => Hashable (Term Name uni fun 
 -- c) We do not do equality ""modulo annotations".
 -- If a user wants to ignore annotations he must prior do `void <$> term`, to throw away any annotations.
 deriving stock instance
-  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq pat, Eq ann)
-  => Eq (Term NamedDeBruijn uni fun pat ann)
+  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq (BuiltinPattern uni), Eq ann)
+  => Eq (Term NamedDeBruijn uni fun ann)
 
 instance
-  HashableTermConstraints uni fun pat ann
-  => Hashable (Term NamedDeBruijn uni fun pat ann)
+  HashableTermConstraints uni fun ann
+  => Hashable (Term NamedDeBruijn uni fun ann)
 
 deriving stock instance
-  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq pat, Eq ann)
-  => Eq (Term FakeNamedDeBruijn uni fun pat ann)
+  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq (BuiltinPattern uni), Eq ann)
+  => Eq (Term FakeNamedDeBruijn uni fun ann)
 
 instance
-  HashableTermConstraints uni fun pat ann
-  => Hashable (Term FakeNamedDeBruijn uni fun pat ann)
+  HashableTermConstraints uni fun ann
+  => Hashable (Term FakeNamedDeBruijn uni fun ann)
 
 deriving stock instance
-  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq pat, Eq ann)
-  => Eq (Term DeBruijn uni fun pat ann)
+  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq (BuiltinPattern uni), Eq ann)
+  => Eq (Term DeBruijn uni fun ann)
 
-instance HashableTermConstraints uni fun pat ann => Hashable (Term DeBruijn uni fun pat ann)
+instance HashableTermConstraints uni fun ann => Hashable (Term DeBruijn uni fun ann)
 
 deriving stock instance
   ( GEq uni
   , Closed uni
   , uni `Everywhere` Eq
   , Eq fun
-  , Eq pat
+  , Eq (BuiltinPattern uni)
   , Eq ann
-  , Eq (Term name uni fun pat ann)
+  , Eq (Term name uni fun ann)
   )
-  => Eq (Program name uni fun pat ann)
+  => Eq (Program name uni fun ann)
 
 -- | Check equality of two 'Term's.
 eqTermM
@@ -88,12 +88,12 @@ eqTermM
      , Closed uni
      , uni `Everywhere` Eq
      , Eq fun
-     , Eq pat
+     , Eq (BuiltinPattern uni)
      , Eq ann
      , HasUnique name TermUnique
      )
-  => Term name uni fun pat ann
-  -> Term name uni fun pat ann
+  => Term name uni fun ann
+  -> Term name uni fun ann
   -> EqRename (Renaming TermUnique)
 eqTermM (Constant ann1 con1) (Constant ann2 con2) = do
   eqM ann1 ann2

@@ -73,6 +73,8 @@ instance
 instance
   ( PLC.GEq uni
   , uni `PLC.Everywhere` Eq
+  , Eq (PLC.BuiltinPattern uni)
+  , Hashable (PLC.BuiltinPattern uni)
   , PLC.Typecheckable uni fun
   , PLC.CaseBuiltin uni
   , PLC.PrettyUni uni
@@ -91,7 +93,6 @@ instance
        (PIR.Program PIR.TyName PIR.Name uni fun a)
        uni
        fun
-       PLC.DefaultBuiltinPattern
   where
   toUPlc = toTPlc >=> toUPlc
 
@@ -237,14 +238,14 @@ goldenPlcFromPirScott = goldenPirM $ \ast -> ppCatch prettyPlcReadableSimple $ d
   withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
 
 goldenNamedUPlcFromPir
-  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
   => Parser a
   -> String
   -> TestNested
 goldenNamedUPlcFromPir = goldenPirM $ ppCatch prettyPlcReadableSimple . toUPlc
 
 goldenEvalPir
-  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
   => Parser a
   -> String
   -> TestNested

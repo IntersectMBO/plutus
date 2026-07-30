@@ -1,4 +1,6 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main (main) where
@@ -107,7 +109,7 @@ data SomeBudgetMode
   = forall cost.
     (Eq cost, NFData cost, PrintBudgetState cost) =>
     SomeBudgetMode
-      (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun PLC.DefaultBuiltinPattern)
+      (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 
 data EvalOptions
   = EvalOptions
@@ -493,10 +495,10 @@ optimiseProgram
   :: forall m name a
    . (UPLC.HasUnique name UPLC.TermUnique, Monad m, Ord name, Typeable name)
   => UPLC.OptimizeOpts name a
-  -> UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
+  -> UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
   -> m
-       ( UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
-       , UPLC.OptimizerTrace name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
+       ( UPLC.Program name UPLC.DefaultUni UPLC.DefaultFun a
+       , UPLC.OptimizerTrace name UPLC.DefaultUni UPLC.DefaultFun a
        )
 optimiseProgram opts prog = PLC.runQuoteT $ do
   renamed <- PLC.rename prog
@@ -505,7 +507,7 @@ optimiseProgram opts prog = PLC.runQuoteT $ do
   UPLC.optimizeProgramWithTrace opts defaultBuiltinSemanticsVariant renamed
 
 execCertifier
-  :: UPLC.OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun UPLC.DefaultBuiltinPattern a
+  :: UPLC.OptimizerTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -> CertName
   -> CertifierOutput
   -> [ ( Maybe
@@ -513,7 +515,6 @@ execCertifier
                UPLC.NamedDeBruijn
                UPLC.DefaultUni
                UPLC.DefaultFun
-               UPLC.DefaultBuiltinPattern
            )
        , ExBudget
        )
@@ -842,9 +843,9 @@ instance D.Breakpointable DAnn MaybeBreakpoint where
 
 -- Peel off one layer
 handleDbg
-  :: (Cek.ThrowableBuiltins uni fun, Pretty pat, Typeable pat)
-  => D.CekTrans uni fun pat DAnn RealWorld
-  -> D.DebugF uni fun pat DAnn MaybeBreakpoint (Repl.InputT IO ())
+  :: (Cek.ThrowableBuiltins uni fun, Pretty (UPLC.BuiltinPattern uni))
+  => D.CekTrans uni fun DAnn RealWorld
+  -> D.DebugF uni fun DAnn MaybeBreakpoint (Repl.InputT IO ())
   -> Repl.InputT IO ()
 handleDbg cekTrans = \case
   D.StepF prevState k -> do

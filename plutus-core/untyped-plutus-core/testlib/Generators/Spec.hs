@@ -90,7 +90,7 @@ propParser = testPropertyNamed "Parser" "parser" $ property $ do
       :: T.Text
       -> Either
            ParserErrorBundle
-           (Program Name DefaultUni DefaultFun DefaultBuiltinPattern SrcSpan)
+           (Program Name DefaultUni DefaultFun SrcSpan)
     parseProg = runQuoteT . parseProgram
 
 propMatchParser :: TestTree
@@ -178,7 +178,7 @@ propMatchParser =
 
 matchParserProgram
   :: UPLC.Version
-  -> Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  -> Program Name DefaultUni DefaultFun ()
 matchParserProgram version =
   UPLC.Program
     ()
@@ -198,7 +198,7 @@ matchParserProgram version =
     )
 
 boundaryMatchParserProgram
-  :: Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  :: Program Name DefaultUni DefaultFun ()
 boundaryMatchParserProgram =
   UPLC.Program
     ()
@@ -218,7 +218,7 @@ boundaryMatchParserProgram =
     )
 
 structuralPrefixMatchParserProgram
-  :: Program Name DefaultUni DefaultFun DefaultBuiltinPattern ()
+  :: Program Name DefaultUni DefaultFun ()
 structuralPrefixMatchParserProgram =
   UPLC.Program
     ()

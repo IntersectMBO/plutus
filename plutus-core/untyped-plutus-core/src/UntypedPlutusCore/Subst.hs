@@ -27,44 +27,44 @@ import Universe
 -- | Applicatively replace a variable using the given function.
 substVarA
   :: Applicative f
-  => (name -> ann -> f (Maybe (Term name uni fun pat ann)))
-  -> Term name uni fun pat ann
-  -> f (Term name uni fun pat ann)
+  => (name -> ann -> f (Maybe (Term name uni fun ann)))
+  -> Term name uni fun ann
+  -> f (Term name uni fun ann)
 substVarA nameF t@(Var a name) = fromMaybe t <$> nameF name a
 substVarA _ t = pure t
 
 -- | Replace a variable using the given function.
 substVar
-  :: (name -> ann -> Maybe (Term name uni fun pat ann))
-  -> Term name uni fun pat ann
-  -> Term name uni fun pat ann
+  :: (name -> ann -> Maybe (Term name uni fun ann))
+  -> Term name uni fun ann
+  -> Term name uni fun ann
 substVar = purely (substVarA . curry) . uncurry
 
 -- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
 termSubstNamesM
   :: Monad m
-  => (name -> ann -> m (Maybe (Term name uni fun pat ann)))
-  -> Term name uni fun pat ann
-  -> m (Term name uni fun pat ann)
+  => (name -> ann -> m (Maybe (Term name uni fun ann)))
+  -> Term name uni fun ann
+  -> m (Term name uni fun ann)
 termSubstNamesM = transformMOf termSubterms . substVarA
 
 -- | Naively substitute names using the given function (i.e. do not substitute binders).
 termSubstNames
-  :: (name -> ann -> Maybe (Term name uni fun pat ann))
-  -> Term name uni fun pat ann
-  -> Term name uni fun pat ann
+  :: (name -> ann -> Maybe (Term name uni fun ann))
+  -> Term name uni fun ann
+  -> Term name uni fun ann
 termSubstNames = purely (termSubstNamesM . curry) . uncurry
 
 -- | Completely replace the names with a new name type.
 termMapNames
-  :: forall name name' uni fun pat ann
+  :: forall name name' uni fun ann
    . (name -> name')
-  -> Term name uni fun pat ann
-  -> Term name' uni fun pat ann
+  -> Term name uni fun ann
+  -> Term name' uni fun ann
 termMapNames f = go
   where
     -- This is all a bit clunky because of the type-changing, I'm not sure of a nicer way to do it
-    go :: Term name uni fun pat ann -> Term name' uni fun pat ann
+    go :: Term name uni fun ann -> Term name' uni fun ann
     go = \case
       LamAbs ann name body -> LamAbs ann (f name) (go body)
       Var ann name -> Var ann (f name)
@@ -79,44 +79,44 @@ termMapNames f = go
       Error ann -> Error ann
 
 programMapNames
-  :: forall name name' uni fun pat ann
+  :: forall name name' uni fun ann
    . (name -> name')
-  -> Program name uni fun pat ann
-  -> Program name' uni fun pat ann
+  -> Program name uni fun ann
+  -> Program name' uni fun ann
 programMapNames f (Program a v term) = Program a v (termMapNames f term)
 
 -- TODO: this could be a Traversal
 -- | Get all the term variables in a term.
-vTerm :: Fold (Term name uni fun pat ann) name
+vTerm :: Fold (Term name uni fun ann) name
 vTerm = termSubtermsDeep . termVars
 
 -- | Applicatively replace a constant using the given function.
 substConstantA
   :: Applicative f
-  => (ann -> Some (ValueOf uni) -> f (Maybe (Term name uni fun pat ann)))
-  -> Term name uni fun pat ann
-  -> f (Term name uni fun pat ann)
+  => (ann -> Some (ValueOf uni) -> f (Maybe (Term name uni fun ann)))
+  -> Term name uni fun ann
+  -> f (Term name uni fun ann)
 substConstantA valF t@(Constant ann val) = fromMaybe t <$> valF ann val
 substConstantA _ t = pure t
 
 -- | Replace a constant using the given function.
 substConstant
-  :: (ann -> Some (ValueOf uni) -> Maybe (Term name uni fun pat ann))
-  -> Term name uni fun pat ann
-  -> Term name uni fun pat ann
+  :: (ann -> Some (ValueOf uni) -> Maybe (Term name uni fun ann))
+  -> Term name uni fun ann
+  -> Term name uni fun ann
 substConstant = purely (substConstantA . curry) . uncurry
 
 -- | Monadically substitute constants using the given function.
 termSubstConstantsM
   :: Monad m
-  => (ann -> Some (ValueOf uni) -> m (Maybe (Term name uni fun pat ann)))
-  -> Term name uni fun pat ann
-  -> m (Term name uni fun pat ann)
+  => (ann -> Some (ValueOf uni) -> m (Maybe (Term name uni fun ann)))
+  -> Term name uni fun ann
+  -> m (Term name uni fun ann)
 termSubstConstantsM = transformMOf termSubterms . substConstantA
 
 -- | Substitute constants using the given function.
 termSubstConstants
-  :: (ann -> Some (ValueOf uni) -> Maybe (Term name uni fun pat ann))
-  -> Term name uni fun pat ann
-  -> Term name uni fun pat ann
+  :: (ann -> Some (ValueOf uni) -> Maybe (Term name uni fun ann))
+  -> Term name uni fun ann
+  -> Term name uni fun ann
 termSubstConstants = purely (termSubstConstantsM . curry) . uncurry

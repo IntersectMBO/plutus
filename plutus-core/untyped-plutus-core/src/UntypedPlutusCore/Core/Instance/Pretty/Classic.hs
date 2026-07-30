@@ -23,10 +23,10 @@ instance
   ( PrettyClassicBy configName name
   , PrettyUni uni
   , Pretty fun
-  , Pretty pat
+  , Pretty (BuiltinPattern uni)
   , Pretty ann
   )
-  => PrettyBy (PrettyConfigClassic configName) (Term name uni fun pat ann)
+  => PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann)
   where
   prettyBy config = \case
     Var ann n ->
@@ -101,8 +101,8 @@ instance
       prettyTypeOf (Some (ValueOf uni _)) = prettyBy juxtRenderContext $ SomeTypeIn uni
 
 instance
-  (PrettyClassicBy configName (Term name uni fun pat ann), Pretty ann)
-  => PrettyBy (PrettyConfigClassic configName) (Program name uni fun pat ann)
+  (PrettyClassicBy configName (Term name uni fun ann), Pretty ann)
+  => PrettyBy (PrettyConfigClassic configName) (Program name uni fun ann)
   where
   prettyBy config (Program ann version term) =
     sexp "program" (consAnnIf config ann [pretty version, prettyBy config term])

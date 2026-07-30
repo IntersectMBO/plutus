@@ -190,8 +190,7 @@ defaultCekParametersA
   => MachineParameters
        CekMachineCosts
        DefaultFun
-       (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ann)
-       DefaultBuiltinPattern
+       (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersA =
   MachineParameters def def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantA cekCostModelVariantA
@@ -202,8 +201,7 @@ defaultCekParametersB
   => MachineParameters
        CekMachineCosts
        DefaultFun
-       (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ann)
-       DefaultBuiltinPattern
+       (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersB =
   MachineParameters def def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantB cekCostModelVariantB
@@ -214,8 +212,7 @@ defaultCekParametersC
   => MachineParameters
        CekMachineCosts
        DefaultFun
-       (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ann)
-       DefaultBuiltinPattern
+       (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersC =
   MachineParameters def def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantC cekCostModelVariantC
@@ -226,8 +223,7 @@ defaultCekParametersD
   => MachineParameters
        CekMachineCosts
        DefaultFun
-       (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ann)
-       DefaultBuiltinPattern
+       (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersD =
   MachineParameters def def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantD cekCostModelVariantD
@@ -238,8 +234,7 @@ defaultCekParametersE
   => MachineParameters
        CekMachineCosts
        DefaultFun
-       (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ann)
-       DefaultBuiltinPattern
+       (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersE =
   MachineParameters def def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantE cekCostModelVariantE
@@ -270,8 +265,7 @@ defaultCekParametersForVariant
   -> MachineParameters
        CekMachineCosts
        DefaultFun
-       (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ann)
-       DefaultBuiltinPattern
+       (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersForVariant = \case
   DefaultFunSemanticsVariantA -> defaultCekParametersA
   DefaultFunSemanticsVariantB -> defaultCekParametersB
@@ -302,8 +296,7 @@ defaultCekParametersForTesting
   => MachineParameters
        CekMachineCosts
        DefaultFun
-       (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ann)
-       DefaultBuiltinPattern
+       (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersForTesting = defaultCekParametersE
 
 defaultCekMachineCostsForTesting :: CekMachineCosts
@@ -468,8 +461,7 @@ unitCekParameters
   => MachineParameters
        CekMachineCosts
        DefaultFun
-       (CekValue DefaultUni DefaultFun DefaultBuiltinPattern ann)
-       DefaultBuiltinPattern
+       (CekValue DefaultUni DefaultFun ann)
 unitCekParameters =
   -- See Note [noinline for saving on ticks].
   MachineParameters def def $

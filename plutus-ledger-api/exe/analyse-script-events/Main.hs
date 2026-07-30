@@ -299,7 +299,7 @@ analyseDatum _ctx _params ev = do
         l -> printf "* Unexpected number of %s script arguments: %d" (show ledgerLanguage) (length l)
 
 -- Print statistics about Data objects in a Term
-analyseTermDataObjects :: Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern () -> IO ()
+analyseTermDataObjects :: Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()
 analyseTermDataObjects = go
   where
     go =
@@ -324,7 +324,7 @@ analyseTermDataObjects = go
 type BuiltinCounts = P.MutablePrimArray (PrimState IO) Int
 
 countBuiltinsInTerm
-  :: BuiltinCounts -> Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern () -> IO ()
+  :: BuiltinCounts -> Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()
 countBuiltinsInTerm counts = go
   where
     go = \case
@@ -443,7 +443,7 @@ analyseCosts ctx _ ev =
 
 -- Extract the script from an evaluation event and apply some analysis function
 analyseUnappliedScript
-  :: (Term NamedDeBruijn DefaultUni DefaultFun DefaultBuiltinPattern () -> IO ()) -> EventAnalyser
+  :: (Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()) -> EventAnalyser
 analyseUnappliedScript
   analyse
   _ctx

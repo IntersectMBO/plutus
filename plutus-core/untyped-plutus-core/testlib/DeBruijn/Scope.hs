@@ -16,7 +16,7 @@ import Control.Monad.Except
 import Test.Tasty.Extras
 import Test.Tasty.HUnit
 
-type T = Term DeBruijn DefaultUni DefaultFun DefaultBuiltinPattern ()
+type T = Term DeBruijn DefaultUni DefaultFun ()
 
 testsOk :: [(String, T)]
 testsOk =
