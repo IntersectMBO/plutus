@@ -109,7 +109,7 @@ test-suite agda-conformance
   hs-source-dirs: agda test-cases
   other-modules:
   build-depends:
-    , aeson               >=2.3
+    , aeson
     , base                >=4.9   && <5
     , plutus-conformance
     , plutus-core         ^>=1.66

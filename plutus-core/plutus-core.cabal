@@ -309,18 +309,17 @@ library
     untyped-plutus-core/src prelude
 
   -- Notes on dependencies:
-  -- * Bound on cardano-crypto-class for the fixed SECP primitives and 9.6 support
-  -- * This bound also includes support for the bls12-381 msm primitives (see CIP-133)
-  -- * The bound on 'dependent-sum' is needed to avoid https://github.com/obsidiansystems/dependent-sum/issues/72
+  -- * cardano-crypto-class >=2.2.3 provides blsMSM (CIP-133). Do not drop this:
+  --   without it, GHC 9.6 can resolve cardano-crypto-class-2.1.x (cryptonite era)  -- * The bound on 'dependent-sum' is needed to avoid https://github.com/obsidiansystems/dependent-sum/issues/72
   build-depends:
-    , aeson                       >=2.3
+    , aeson
     , array
     , barbies
     , base                        >=4.9     && <5
     , base64-bytestring
     , bimap
     , bytestring
-    , cardano-crypto-class
+    , cardano-crypto-class        >=2.2.3
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
@@ -398,7 +397,7 @@ test-suite plutus-core-test
 
   default-language: Haskell2010
   build-depends:
-    , aeson                            >=2.3
+    , aeson
     , base                             >=4.9     && <5
     , base16-bytestring                ^>=1.0
     , bytestring
@@ -947,7 +946,7 @@ executable print-cost-model
   hs-source-dirs: cost-model/print-cost-model
   other-modules:  Paths_plutus_core
   build-depends:
-    , aeson        >=2.3
+    , aeson
     , base         >=4.9   && <5
     , bytestring
     , plutus-core  ^>=1.66
@@ -962,7 +961,7 @@ library satint
   exposed-modules: Data.SatInt
   hs-source-dirs:  satint/src
   build-depends:
-    , aeson             >=2.3
+    , aeson
     , base              >=4.9 && <5
     , cassava
     , deepseq
