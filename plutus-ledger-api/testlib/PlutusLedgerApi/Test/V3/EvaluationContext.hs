@@ -36,8 +36,11 @@ costModelParamsForTesting =
 -- | The PlutusV3 "cost model" is constructed by the v4 "cost model", by clearing v4 introductions.
 mCostModel :: MCostModel
 mCostModel =
-  -- nothing to clear because v4 does not exist (yet).
-  toMCostModel defaultCekCostModelForTesting & builtinCostModel %~ clearBuiltinCostModel'
+  toMCostModel defaultCekCostModelForTesting
+    & machineCostModel
+    %~ clearPatternMachineCostModel
+    & builtinCostModel
+    %~ clearBuiltinCostModel'
 
 {-| Assign to `mempty` those CEK constructs that @PlutusV3@ introduces (indirectly by introducing
 a ledger language version with those CEK constructs).
@@ -46,9 +49,20 @@ This can be used to generate a (machine) cost model of the previous plutus versi
 by omitting the generation of the costs concerning the missing @PlutusV3@ CEK constructs. -}
 clearMachineCostModel :: m ~ MCekMachineCosts => m -> m
 clearMachineCostModel r =
+  clearPatternMachineCostModel
+    ( r
+        { cekConstrCost = mempty
+        , cekCaseCost = mempty
+        }
+    )
+
+clearPatternMachineCostModel :: m ~ MCekMachineCosts => m -> m
+clearPatternMachineCostModel r =
   r
-    { cekConstrCost = mempty
-    , cekCaseCost = mempty
+    { cekMatchCost = mempty
+    , cekPatternCost = mempty
+    , cekPatternStructuralCost = mempty
+    , cekPatternFailureCost = mempty
     }
 
 {-| Assign to `mempty` those builtins that the @PlutusV3@ introduces.
