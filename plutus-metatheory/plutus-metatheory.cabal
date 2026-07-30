@@ -20,6 +20,11 @@ data-files:
 
 extra-source-files: file-embed/certificate-README.md
 
+-- Mirrors plutus-core's with-crypto flag; see plutus-core.cabal.
+flag with-crypto
+  manual:  True
+  default: True
+
 common lang
   default-language:   Haskell2010
   default-extensions:
@@ -431,6 +436,10 @@ test-suite test-NEAT
 
 test-suite test-certifier
   import:         lang, os-support, ghc-version-support
+
+  if !flag(with-crypto)
+    buildable: False
+
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test/certifier

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -9,11 +10,14 @@ module PlutusCore.Crypto.Secp256k1
 import PlutusCore.Builtin.Result
 import PlutusCore.Crypto.Utils
 
+import Data.ByteString qualified as BS
+
+#ifdef WITH_CRYPTO
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
 import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
-import Data.ByteString qualified as BS
 import Data.Text (Text)
+#endif
 
 {-| Verify an ECDSA signature made using the SECP256k1 curve.
 
@@ -45,6 +49,7 @@ verifyEcdsaSecp256k1Signature
   -> BS.ByteString
   -- ^ Signature    (64 bytes)
   -> BuiltinResult Bool
+#ifdef WITH_CRYPTO
 verifyEcdsaSecp256k1Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @EcdsaSecp256k1DSIGN pk of
     Nothing -> failWithMessage loc "Invalid verification key."
@@ -58,6 +63,9 @@ verifyEcdsaSecp256k1Signature pk msg sig =
   where
     loc :: Text
     loc = "ECDSA SECP256k1 signature verification"
+#else
+verifyEcdsaSecp256k1Signature _pk _msg _sig = cryptoDisabled "verifyEcdsaSecp256k1Signature"
+#endif
 
 {-| Verify a Schnorr signature made using the SECP256k1 curve.
 
@@ -84,6 +92,7 @@ verifySchnorrSecp256k1Signature
   -> BS.ByteString
   -- ^ Signature  (64 bytes)
   -> BuiltinResult Bool
+#ifdef WITH_CRYPTO
 verifySchnorrSecp256k1Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @SchnorrSecp256k1DSIGN pk of
     Nothing -> failWithMessage loc "Invalid verification key."
@@ -95,3 +104,6 @@ verifySchnorrSecp256k1Signature pk msg sig =
   where
     loc :: Text
     loc = "Schnorr SECP256k1 signature verification"
+#else
+verifySchnorrSecp256k1Signature _pk _msg _sig = cryptoDisabled "verifySchnorrSecp256k1Signature"
+#endif
