@@ -51,11 +51,7 @@ testMachine
   => String
   -> ( Term Name uni fun ()
        -> Either
-            ( EvaluationException
-                structural
-                operational
-                (Term Name uni fun ())
-            )
+            (EvaluationException structural operational (Term Name uni fun ()))
             (Term Name uni fun ())
      )
   -> TestTree

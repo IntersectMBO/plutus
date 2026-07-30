@@ -162,10 +162,7 @@ evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEn
 {-| Unlift a value using a machine.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 readKnownCek
-  :: ( ThrowableBuiltins uni fun
-     , Pretty (BuiltinPattern uni)
-     , ReadKnown (Term Name uni fun ()) a
-     )
+  :: (ThrowableBuiltins uni fun, Pretty (BuiltinPattern uni), ReadKnown (Term Name uni fun ()) a)
   => MachineRunner RestrictingSt uni fun ann
   -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> Term Name uni fun ann

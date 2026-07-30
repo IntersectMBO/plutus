@@ -71,10 +71,7 @@ instance
   wNoThunks ctx (MachineVariantParameters costs runtime) =
     allNoThunks [noThunks ctx costs, noThunks ctx runtime]
 
-instance
-  (NoThunks machinecosts, Bounded fun, Enum fun)
-  => NoThunks (MachineParameters machinecosts fun val)
-  where
+instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
   wNoThunks ctx (MachineParameters caser matcher varPars) =
     allNoThunks [noThunks ctx caser, noThunks ctx matcher, noThunks ctx varPars]
 

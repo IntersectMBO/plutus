@@ -182,11 +182,9 @@ instance MatchBuiltin uni => Default (MatcherBuiltin uni) where
 
 unavailableCaserBuiltin :: Int -> CaserBuiltin uni
 unavailableCaserBuiltin ver =
-  CaserBuiltin
-    ( \_ _ ->
-        HeadError $
-          "'case' on values of built-in types is not supported in protocol version " <> display ver
-    )
+  CaserBuiltin $ \_ _ ->
+    HeadError $
+      "'case' on values of built-in types is not supported in protocol version " <> display ver
 
 unavailableMatcherBuiltin :: Int -> MatcherBuiltin uni
 unavailableMatcherBuiltin ver =

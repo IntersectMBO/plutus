@@ -298,9 +298,7 @@ sizeProgram (Program ann v t) sz = size ann $ size v $ sizeTerm t sz
 on the set of allowable builtins or term constructs. It is generally
 safe to use this newtype for serializing, but it should only be used
 for deserializing in tests. -}
-newtype UnrestrictedProgram name uni fun ann = UnrestrictedProgram
-  { unUnrestrictedProgram :: Program name uni fun ann
-  }
+newtype UnrestrictedProgram name uni fun ann = UnrestrictedProgram {unUnrestrictedProgram :: Program name uni fun ann}
   deriving newtype (Functor)
 
 makeWrapped ''UnrestrictedProgram

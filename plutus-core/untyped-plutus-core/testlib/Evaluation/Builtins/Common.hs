@@ -69,10 +69,7 @@ typecheckAnd
      , uni `Everywhere` ExMemoryUsage
      )
   => BuiltinSemanticsVariant fun
-  -> ( MachineParameters
-         CekMachineCosts
-         fun
-         (CekValue uni fun ())
+  -> ( MachineParameters CekMachineCosts fun (CekValue uni fun ())
        -> UPLC.Term Name uni fun ()
        -> a
      )
@@ -156,12 +153,7 @@ typecheckReadKnownCek semvar =
 type PlcType = TPLC.Type TPLC.TyName TPLC.DefaultUni ()
 type PlcTerm = TPLC.Term TPLC.TyName TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
 type PlcError = TypeErrorPlc TPLC.DefaultUni TPLC.DefaultFun ()
-type UplcTerm =
-  UPLC.Term
-    TPLC.Name
-    TPLC.DefaultUni
-    TPLC.DefaultFun
-    ()
+type UplcTerm = UPLC.Term TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
 
 -- Possible CEK evluation results, flattened out
 data TypeErrorOrCekResult

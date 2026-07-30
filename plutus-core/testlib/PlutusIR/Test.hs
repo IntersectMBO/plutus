@@ -89,10 +89,7 @@ instance
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
   )
-  => ToUPlc
-       (PIR.Program PIR.TyName PIR.Name uni fun a)
-       uni
-       fun
+  => ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
   toUPlc = toTPlc >=> toUPlc
 

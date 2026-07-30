@@ -49,9 +49,7 @@ termVars f = \case
   x -> pure x
 
 -- | Get all the direct child 'Unique's of the given 'Term'.
-termUniques
-  :: HasUniques (Term name uni fun ann)
-  => Traversal' (Term name uni fun ann) Unique
+termUniques :: HasUniques (Term name uni fun ann) => Traversal' (Term name uni fun ann) Unique
 termUniques f = \case
   LamAbs ann n t -> theUnique f n <&> \n' -> LamAbs ann n' t
   Var ann n -> theUnique f n <&> Var ann
@@ -83,9 +81,7 @@ termSubtermsDeep :: Fold (Term name uni fun ann) (Term name uni fun ann)
 termSubtermsDeep = cosmosOf termSubterms
 
 -- | Get all the transitive child 'Unique's of the given 'Term'.
-termUniquesDeep
-  :: HasUniques (Term name uni fun ann)
-  => Fold (Term name uni fun ann) Unique
+termUniquesDeep :: HasUniques (Term name uni fun ann) => Fold (Term name uni fun ann) Unique
 termUniquesDeep = termSubtermsDeep . termUniques
 
 -- | View a term as a constant.

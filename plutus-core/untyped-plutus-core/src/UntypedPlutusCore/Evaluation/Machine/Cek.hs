@@ -117,10 +117,7 @@ evaluateCekNoEmit = Common.evaluateCekNoEmit runCekDeBruijn
 {-| Unlift a value using the CEK machine.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
 readKnownCek
-  :: ( ThrowableBuiltins uni fun
-     , Pretty (BuiltinPattern uni)
-     , ReadKnown (Term Name uni fun ()) a
-     )
+  :: (ThrowableBuiltins uni fun, Pretty (BuiltinPattern uni), ReadKnown (Term Name uni fun ()) a)
   => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> Term Name uni fun ann
   -> Either (CekEvaluationException Name uni fun) a

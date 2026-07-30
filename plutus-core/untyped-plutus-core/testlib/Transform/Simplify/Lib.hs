@@ -39,8 +39,7 @@ goldenVsPretty extn name value =
     pure . BSL.fromStrict . encodeUtf8 . render $
       prettyPlcReadableSimple value
 
-goldenVsOptimized
-  :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
+goldenVsOptimized :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsOptimized name t =
   testGroup
     name
@@ -55,13 +54,7 @@ goldenVsOptimized name t =
     (t', trace) = PLC.runQuote (testOptimize t)
     hintsPath = "untyped-plutus-core/test/Transform/" ++ name ++ ".golden.certifier-hints"
 
-renderCertifierHints
-  :: Trace.OptimizerTrace
-       Name
-       PLC.DefaultUni
-       PLC.DefaultFun
-       ()
-  -> Text
+renderCertifierHints :: Trace.OptimizerTrace Name PLC.DefaultUni PLC.DefaultFun () -> Text
 renderCertifierHints (Trace.OptimizerTrace ss)
   | null ss = "<no certifier hints in trace>"
   | otherwise =

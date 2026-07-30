@@ -53,17 +53,13 @@ deriving stock instance
   (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq (BuiltinPattern uni), Eq ann)
   => Eq (Term NamedDeBruijn uni fun ann)
 
-instance
-  HashableTermConstraints uni fun ann
-  => Hashable (Term NamedDeBruijn uni fun ann)
+instance HashableTermConstraints uni fun ann => Hashable (Term NamedDeBruijn uni fun ann)
 
 deriving stock instance
   (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq (BuiltinPattern uni), Eq ann)
   => Eq (Term FakeNamedDeBruijn uni fun ann)
 
-instance
-  HashableTermConstraints uni fun ann
-  => Hashable (Term FakeNamedDeBruijn uni fun ann)
+instance HashableTermConstraints uni fun ann => Hashable (Term FakeNamedDeBruijn uni fun ann)
 
 deriving stock instance
   (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq (BuiltinPattern uni), Eq ann)
@@ -92,9 +88,7 @@ eqTermM
      , Eq ann
      , HasUnique name TermUnique
      )
-  => Term name uni fun ann
-  -> Term name uni fun ann
-  -> EqRename (Renaming TermUnique)
+  => Term name uni fun ann -> Term name uni fun ann -> EqRename (Renaming TermUnique)
 eqTermM (Constant ann1 con1) (Constant ann2 con2) = do
   eqM ann1 ann2
   eqM con1 con2

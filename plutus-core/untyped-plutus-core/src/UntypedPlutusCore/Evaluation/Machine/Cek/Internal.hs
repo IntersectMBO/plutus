@@ -390,10 +390,10 @@ we opted for option 1, which also happens to be simpler to implement.
 {- Note [Structure of the step counter]
 The step counter is kept in a 'MutablePrimArray', which is a fast way of storing a bunch of
 mutable 'Word8's.
-This suits our purposes, as we need one counter for every step type and one for the total number.
+This suits our purposes, as we need one counter for every step type, and one for the total number.
 
-We keep the counters for each step in the first indices, so we can index them simply by using the
-'Enum' instance of 'StepKind'. The total counter follows those indices.
+We keep the counters for each step in the first indices, so we can index them simply by using
+the 'Enum' instance of 'StepKind', and the total counter in the last index.
 -}
 
 -- So that we don't need to update 'NumberOfStepCounters' manually, which would be extremely
@@ -414,7 +414,7 @@ type family CountConstructorsEnum rep where
 of 'StepKind'. -}
 type NumberOfStepCounters = CountConstructorsEnum (Rep StepKind)
 
-{-| The total number of counters that we need: one extra for the total step counter.
+{-| The total number of counters that we need, one extra for the total counter.
 See Note [Structure of the step counter] -}
 type CounterSize = NumberOfStepCounters + 1
 
@@ -478,8 +478,7 @@ they don't actually take the context as an argument even at the source level.
 -}
 
 -- | Implicit parameter for the builtin runtime.
-type GivenCekRuntime uni fun ann =
-  (?cekRuntime :: BuiltinsRuntime fun (CekValue uni fun ann))
+type GivenCekRuntime uni fun ann = (?cekRuntime :: BuiltinsRuntime fun (CekValue uni fun ann))
 
 type GivenCekCaserBuiltin uni = (?cekCaserBuiltin :: CaserBuiltin uni)
 
@@ -519,9 +518,9 @@ data CekUserError
   deriving stock (Show, Eq, Generic)
   deriving anyclass (NFData)
 
-type CekM
-  :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
--- \| The monad the CEK machine runs in.
+type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
+
+-- | The monad the CEK machine runs in.
 newtype CekM uni fun s a = CekM
   { unCekM :: ST s a
   }
@@ -677,8 +676,7 @@ dischargeResultToTerm (DischargeNonConstant term) = term
 
 {-| Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 they're bound to (which themselves have to be obtained by recursively discharging values). -}
-dischargeCekValue
-  :: forall uni fun ann. CekValue uni fun ann -> DischargeResult uni fun
+dischargeCekValue :: forall uni fun ann. CekValue uni fun ann -> DischargeResult uni fun
 dischargeCekValue (VCon val) = DischargeConstant val
 dischargeCekValue value0 = DischargeNonConstant $ goValue value0
   where
@@ -697,11 +695,7 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
-    goValEnv
-      :: CekValEnv uni fun ann
-      -> Word64
-      -> NTerm uni fun ann
-      -> NTerm uni fun ()
+    goValEnv :: CekValEnv uni fun ann -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
     goValEnv env = go
       where
         -- @shift@ is just a counter that measures how many lambda-abstractions we have descended
@@ -758,10 +752,7 @@ data Context uni fun ann
   = -- | @[V _]@
     FrameAwaitArg !(CekValue uni fun ann) !(Context uni fun ann)
   | -- | @[_ N]@
-    FrameAwaitFunTerm
-      !(CekValEnv uni fun ann)
-      !(NTerm uni fun ann)
-      !(Context uni fun ann)
+    FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
   | -- | @[_ V]@
     FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
   | -- | @[_ V1 .. Vn]@
@@ -777,10 +768,7 @@ data Context uni fun ann
       !(ArgStack uni fun ann)
       !(Context uni fun ann)
   | -- | @(case _ C0 .. Cn)@
-    FrameCases
-      !(CekValEnv uni fun ann)
-      !(V.Vector (NTerm uni fun ann))
-      !(Context uni fun ann)
+    FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
   | -- | @(match _ (P0,H0) .. (Pn,Hn))@
     FrameMatches
       !(CekValEnv uni fun ann)
@@ -793,10 +781,7 @@ deriving stock instance
   => Show (Context uni fun ann)
 
 -- See Note [ExMemoryUsage instances for non-constants].
-instance
-  (Closed uni, uni `Everywhere` ExMemoryUsage)
-  => ExMemoryUsage (CekValue uni fun ann)
-  where
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
   memoryUsage = \case
     VCon c -> memoryUsage c
     VDelay {} -> singletonRose 1
@@ -825,10 +810,7 @@ runCekM
   => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
   -> ExBudgetMode cost uni fun
   -> EmitterMode uni fun
-  -> ( forall s
-        . GivenCekReqs uni fun ann s
-       => CekM uni fun s (DischargeResult uni fun)
-     )
+  -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s (DischargeResult uni fun))
   -> CekReport cost NamedDeBruijn uni fun
 runCekM
   (MachineParameters caser matcher (MachineVariantParameters costs runtime))
@@ -871,10 +853,7 @@ data CekCaseMatchers uni fun s
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
   :: forall uni fun ann s
-   . ( ThrowableBuiltins uni fun
-     , Pretty (BuiltinPattern uni)
-     , GivenCekReqs uni fun ann s
-     )
+   . (ThrowableBuiltins uni fun, Pretty (BuiltinPattern uni), GivenCekReqs uni fun ann s)
   => Context uni fun ann
   -> CekValEnv uni fun ann
   -> NTerm uni fun ann
@@ -1134,8 +1113,7 @@ enterComputeCek = computeCek
         totalCountIndex = fromIntegral $ natVal $ Proxy @TotalCountIndex
     {-# INLINE spend #-}
 
-    -- \| Accumulate a machine step, and maybe spend the budget that has accumulated, but only if
-    -- we've exceeded our slippage.
+    -- \| Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
     stepAndMaybeSpend :: StepKind -> CekM uni fun s ()
     stepAndMaybeSpend !kind = do
       -- See Note [Structure of the step counter]
@@ -1216,10 +1194,7 @@ enterComputeCek = computeCek
     {-# INLINE spendBudget #-}
 
     -- \| Look up a variable name in the environment.
-    lookupVarName
-      :: NamedDeBruijn
-      -> CekValEnv uni fun ann
-      -> CekM uni fun s (CekValue uni fun ann)
+    lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
       Env.contIndexOne
         (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)

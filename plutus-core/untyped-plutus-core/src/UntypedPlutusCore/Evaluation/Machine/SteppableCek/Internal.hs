@@ -101,11 +101,7 @@ data Context uni fun ann
   = -- | @[V _]@
     FrameAwaitArg ann !(CekValue uni fun ann) !(Context uni fun ann)
   | -- | @[_ N]@
-    FrameAwaitFunTerm
-      ann
-      !(CekValEnv uni fun ann)
-      !(NTerm uni fun ann)
-      !(Context uni fun ann)
+    FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
   | FrameAwaitFunConN ann !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
   | FrameAwaitFunValueN ann !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
   | -- | @(force _)@
@@ -117,11 +113,7 @@ data Context uni fun ann
       ![NTerm uni fun ann]
       !(ArgStack uni fun ann)
       !(Context uni fun ann)
-  | FrameCases
-      ann
-      !(CekValEnv uni fun ann)
-      !(V.Vector (NTerm uni fun ann))
-      !(Context uni fun ann)
+  | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
   | FrameMatches
       ann
       !(CekValEnv uni fun ann)
@@ -384,8 +376,7 @@ enterComputeCek
   -> CekM uni fun s (DischargeResult uni fun)
 enterComputeCek ctx env term = iterToFinalState $ Computing ctx env term
   where
-    iterToFinalState
-      :: CekState uni fun ann -> CekM uni fun s (DischargeResult uni fun)
+    iterToFinalState :: CekState uni fun ann -> CekM uni fun s (DischargeResult uni fun)
     iterToFinalState =
       cekTrans
         >=> \case
@@ -535,9 +526,7 @@ throwErrorDischarged err = throwErrorWithCause err . dischargeResultToTerm . dis
 lookupVarName
   :: forall uni fun ann s
    . (ThrowableBuiltins uni fun, Pretty (BuiltinPattern uni))
-  => NamedDeBruijn
-  -> CekValEnv uni fun ann
-  -> CekM uni fun s (CekValue uni fun ann)
+  => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
   Env.contIndexOne
     (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
@@ -578,11 +567,7 @@ evalBuiltinApp ctx fun term runtime = case runtime of
   _ -> returnCek ctx $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
-spendBudget
-  :: GivenCekSpender uni fun s
-  => ExBudgetCategory fun
-  -> ExBudget
-  -> CekM uni fun s ()
+spendBudget :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudget = unCekBudgetSpender ?cekBudgetSpender
 
 -- | Spend the budget that has been accumulated for a number of machine steps.
@@ -606,8 +591,7 @@ spendAccumulatedBudget = do
       where
         totalCountIndex = fromIntegral $ natVal $ Proxy @TotalCountIndex
 
-{-| Accumulate a machine step, and maybe spend the budget that has accumulated for a number of
-machine steps, but only if we've exceeded our slippage. -}
+-- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
 stepAndMaybeSpend :: GivenCekReqs uni fun ann s => StepKind -> CekM uni fun s ()
 stepAndMaybeSpend !kind = do
   -- See Note [Structure of the step counter]

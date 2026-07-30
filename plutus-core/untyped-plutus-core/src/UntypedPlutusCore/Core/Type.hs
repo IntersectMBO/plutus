@@ -143,12 +143,7 @@ instance ExMemoryUsage (Term name uni fun ann) where
     Prelude.error "Internal error: 'memoryUsage' for UPLC 'Term' is not supposed to be forced"
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-type role
-  Program
-    representational
-    nominal
-    representational
-    representational
+type role Program representational nominal representational representational
 
 data Program name uni fun ann = Program
   { _progAnn :: ann
@@ -203,9 +198,7 @@ instance TPLC.HasConstant (Term name uni fun ()) where
   fromConstant = Constant ()
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
-type instance
-  TPLC.HasUniques (Program name uni fun ann) =
-    TPLC.HasUniques (Term name uni fun ann)
+type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
 
 -- | An untyped "variable declaration", i.e. a name for a variable.
 data UVarDecl name ann = UVarDecl
