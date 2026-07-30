@@ -1,105 +1,31 @@
 (program
    1.1.0
-   ((\forced
-      d ->
+   ((\forced forced d ->
        case
          (unConstrData d)
-         [ (\idx
-             args ->
+         [ (\idx args ->
               case
                 idx
                 [ (case args [(\hd tl -> case tl [(\hd tl -> unIData hd)])])
                 , (case
-                     args
-                     [ (\hd
-                         tl ->
-                          case
-                            tl
-                            [ (\hd
-                                tl ->
-                                 case
-                                   tl
-                                   [ (\hd
-                                       tl ->
-                                        case
-                                          tl
-                                          [ (\hd
-                                              tl ->
-                                               case
-                                                 tl
-                                                 [ (\hd
-                                                     tl ->
-                                                      case
-                                                        tl
-                                                        [ (\hd
-                                                            tl ->
-                                                             addInteger
-                                                               (unIData hd)
-                                                               (unIData
-                                                                  (forced
-                                                                     tl))) ]) ]) ]) ]) ]) ])
+                     (forced 2 args)
+                     [ (\hd tl ->
+                          addInteger
+                            (unIData hd)
+                            (unIData (forced (forced 3 tl)))) ])
                 , (case
-                     args
-                     [ (\hd
-                         tl ->
+                     (forced 3 args)
+                     [ (\hd tl ->
                           case
-                            tl
-                            [ (\hd
-                                tl ->
+                            (forced 4 tl)
+                            [ (\hd tl ->
                                  case
-                                   tl
-                                   [ (\hd
-                                       tl ->
-                                        case
-                                          tl
-                                          [ (\hd
-                                              tl ->
-                                               case
-                                                 tl
-                                                 [ (\hd
-                                                     tl ->
-                                                      case
-                                                        tl
-                                                        [ (\hd
-                                                            tl ->
-                                                             case
-                                                               tl
-                                                               [ (\hd
-                                                                   tl ->
-                                                                    case
-                                                                      tl
-                                                                      [ (\hd
-                                                                          tl ->
-                                                                           case
-                                                                             tl
-                                                                             [ (\hd
-                                                                                 tl ->
-                                                                                  case
-                                                                                    tl
-                                                                                    [ (\hd
-                                                                                        tl ->
-                                                                                         case
-                                                                                           tl
-                                                                                           [ (\hd
-                                                                                               tl ->
-                                                                                                case
-                                                                                                  tl
-                                                                                                  [ (\hd
-                                                                                                      tl ->
-                                                                                                       case
-                                                                                                         tl
-                                                                                                         [ (\hd
-                                                                                                             tl ->
-                                                                                                              case
-                                                                                                                tl
-                                                                                                                [ (\hd
-                                                                                                                    tl ->
-                                                                                                                     addInteger
-                                                                                                                       (unIData
-                                                                                                                          hd)
-                                                                                                                       (addInteger
-                                                                                                                          (unIData
-                                                                                                                             hd)
-                                                                                                                          (unIData
-                                                                                                                             hd))) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ])
-      (force headList)))
+                                   (forced 4 tl)
+                                   [ (\hd tl ->
+                                        addInteger
+                                          (unIData hd)
+                                          (addInteger
+                                             (unIData hd)
+                                             (unIData hd))) ]) ]) ]) ]) ])
+      (force headList)
+      (force dropList)))

@@ -13,7 +13,7 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test (goldenBundle)
+import PlutusTx.Test
 
 tests :: TestNested
 tests =
@@ -38,13 +38,11 @@ tests =
           "richSumA"
           richSum
           (richSum `unsafeApplyCode` inpRichSumA)
-      , goldenBundle
+      , goldenEvalCekCatchBudget
           "richSumB"
-          richSum
           (richSum `unsafeApplyCode` inpRichSumB)
-      , goldenBundle
+      , goldenEvalCekCatchBudget
           "richSumC"
-          richSum
           (richSum `unsafeApplyCode` inpRichSumC)
       ]
 

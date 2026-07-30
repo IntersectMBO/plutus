@@ -3,105 +3,14 @@ let
     Unit : Unit
 in
 \(d : data) ->
-  case
-    integer
-    ((let
-         b = list data
-       in
-       \(x : pair integer b) -> case b x [(\(l : integer) (r : b) -> r)])
-       (unConstrData d))
-    [ (\(ds : data)
-        (ds : list data) ->
-         case
-           integer
-           ds
-           [ (\(ds : data)
-               (ds : list data) ->
-                case
-                  integer
-                  ds
-                  [ (\(ds : data)
-                      (ds : list data) ->
-                       case
-                         integer
-                         ds
-                         [ (\(ds : data)
-                             (ds : list data) ->
-                              case
-                                integer
-                                ds
-                                [ (\(ds : data)
-                                    (ds : list data) ->
-                                     case
-                                       integer
-                                       ds
-                                       [ (\(ds : data)
-                                           (ds : list data) ->
-                                            case
-                                              integer
-                                              ds
-                                              [ (\(ds : data)
-                                                  (ds : list data) ->
-                                                   case
-                                                     integer
-                                                     ds
-                                                     [ (\(ds : data)
-                                                         (ds : list data) ->
-                                                          case
-                                                            integer
-                                                            ds
-                                                            [ (\(ds : data)
-                                                                (ds :
-                                                                   list data) ->
-                                                                 case
-                                                                   integer
-                                                                   ds
-                                                                   [ (\(ds :
-                                                                          data)
-                                                                       (ds :
-                                                                          list
-                                                                            data) ->
-                                                                        case
-                                                                          integer
-                                                                          ds
-                                                                          [ (\(ds :
-                                                                                 data)
-                                                                              (ds :
-                                                                                 list
-                                                                                   data) ->
-                                                                               case
-                                                                                 integer
-                                                                                 ds
-                                                                                 [ (\(ds :
-                                                                                        data)
-                                                                                     (ds :
-                                                                                        list
-                                                                                          data) ->
-                                                                                      case
-                                                                                        integer
-                                                                                        ds
-                                                                                        [ (\(ds :
-                                                                                               data)
-                                                                                            (ds :
-                                                                                               list
-                                                                                                 data) ->
-                                                                                             case
-                                                                                               integer
-                                                                                               ds
-                                                                                               [ (\(ds :
-                                                                                                      data)
-                                                                                                   (ds :
-                                                                                                      list
-                                                                                                        data) ->
-                                                                                                    case
-                                                                                                      integer
-                                                                                                      ds
-                                                                                                      [ (\(ds :
-                                                                                                             data)
-                                                                                                          (ds :
-                                                                                                             list
-                                                                                                               data) ->
-                                                                                                           unIData
-                                                                                                             (headList
-                                                                                                                {data}
-                                                                                                                ds)) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]
+  unIData
+    (headList
+       {data}
+       (dropList
+          {data}
+          15
+          ((let
+               b = list data
+             in
+             \(x : pair integer b) -> case b x [(\(l : integer) (r : b) -> r)])
+             (unConstrData d))))

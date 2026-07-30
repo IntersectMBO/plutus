@@ -1,64 +1,10 @@
 (program
    1.1.0
-   (\d ->
-      case
-        (case (unConstrData d) [(\l r -> r)])
-        [ (\ds
-            ds ->
-             case
-               ds
-               [ (\ds
-                   ds ->
-                    case
-                      ds
-                      [ (\ds
-                          ds ->
-                           case
-                             ds
-                             [ (\ds
-                                 ds ->
-                                  case
-                                    ds
-                                    [ (\ds
-                                        ds ->
-                                         case
-                                           ds
-                                           [ (\ds
-                                               ds ->
-                                                case
-                                                  ds
-                                                  [ (\ds
-                                                      ds ->
-                                                       case
-                                                         ds
-                                                         [ (\ds
-                                                             ds ->
-                                                              case
-                                                                ds
-                                                                [ (\ds
-                                                                    ds ->
-                                                                     case
-                                                                       ds
-                                                                       [ (\ds
-                                                                           ds ->
-                                                                            case
-                                                                              ds
-                                                                              [ (\ds
-                                                                                  ds ->
-                                                                                   case
-                                                                                     ds
-                                                                                     [ (\ds
-                                                                                         ds ->
-                                                                                          case
-                                                                                            ds
-                                                                                            [ (\ds
-                                                                                                ds ->
-                                                                                                 case
-                                                                                                   ds
-                                                                                                   [ (\ds
-                                                                                                       ds ->
-                                                                                                        addInteger
-                                                                                                          (unIData
-                                                                                                             ds)
-                                                                                                          (unIData
-                                                                                                             ds)) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]))
+   ((\forced d ->
+       case
+         (forced 8 (case (unConstrData d) [(\l r -> r)]))
+         [ (\ds ds ->
+              case
+                (forced 4 ds)
+                [(\ds ds -> addInteger (unIData ds) (unIData ds))]) ])
+      (force dropList)))

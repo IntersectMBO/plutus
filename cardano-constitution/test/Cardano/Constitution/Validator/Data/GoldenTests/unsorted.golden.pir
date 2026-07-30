@@ -5200,148 +5200,131 @@ program
   \(ds : data) ->
     Maybe_match
       {List (Tuple2 data data)}
-      (case
-         (Maybe (List (Tuple2 data data)))
-         (case
-            (list data)
-            (unConstrData
-               (let
-                 !tup : pair integer (list data)
-                   = unConstrData
-                       (case
-                          data
-                          (case
-                             (list data)
-                             (unConstrData ds)
-                             [(\(l : integer) (r : list data) -> r)])
+      (let
+        !nt : data
+          = headList
+              {data}
+              (dropList
+                 {data}
+                 2
+                 (case
+                    (list data)
+                    (unConstrData
+                       (let
+                         !tup : pair integer (list data)
+                           = unConstrData
+                               (headList
+                                  {data}
+                                  (dropList
+                                     {data}
+                                     2
+                                     (case
+                                        (list data)
+                                        (unConstrData ds)
+                                        [ (\(l : integer) (r : list data) ->
+                                             r) ])))
+                       in
+                       case
+                         (all dead. data)
+                         (equalsInteger
+                            5
+                            (case
+                               integer
+                               tup
+                               [(\(l : integer) (r : list data) -> l)]))
+                         [ (/\dead -> error {data})
+                         , (/\dead ->
+                              case
+                                data
+                                (case
+                                   (list data)
+                                   tup
+                                   [(\(l : integer) (r : list data) -> r)])
+                                [ (\(ds : data) (ds : list data) ->
+                                     headList {data} ds) ]) ]
+                         {all dead. dead}))
+                    [(\(l : integer) (r : list data) -> r)]))
+      in
+      (let
+          r = Maybe (List (Tuple2 data data))
+        in
+        \(scrut : data)
+         (cont : Maybe data -> data -> Maybe bytestring -> r)
+         (fail : unit -> r) ->
+          let
+            !tup : pair integer (list data) = unConstrData scrut
+          in
+          case
+            (all dead. r)
+            (equalsInteger
+               0
+               (case integer tup [(\(l : integer) (r : list data) -> l)]))
+            [ (/\dead -> fail ())
+            , (/\dead ->
+                 case
+                   r
+                   (case
+                      (list data)
+                      tup
+                      [(\(l : integer) (r : list data) -> r)])
+                   [ (\(ds : data) (ds : list data) ->
+                        case
+                          r
+                          ds
                           [ (\(ds : data) (ds : list data) ->
-                               case
-                                 data
+                               cont
+                                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                    {data}
+                                    (\(d : data) -> d)
+                                    ds)
                                  ds
-                                 [ (\(ds : data) (ds : list data) ->
-                                      headList {data} ds) ]) ])
+                                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                    {bytestring}
+                                    unBData
+                                    (headList {data} ds))) ]) ]) ]
+            {all dead. dead})
+        nt
+        (\(ds : Maybe data) (cparams : data) (ds : Maybe bytestring) ->
+           Just {List (Tuple2 data data)} (matchData_go (unMapData cparams)))
+        (\(void : unit) ->
+           (let
+               r = Maybe (List (Tuple2 data data))
+             in
+             \(scrut : data)
+              (cont :
+                 (\k a -> list (pair data data)) data integer ->
+                 Maybe bytestring ->
+                 r)
+              (fail : unit -> r) ->
+               let
+                 !tup : pair integer (list data) = unConstrData scrut
                in
                case
-                 (all dead. data)
+                 (all dead. r)
                  (equalsInteger
-                    5
+                    2
                     (case integer tup [(\(l : integer) (r : list data) -> l)]))
-                 [ (/\dead -> error {data})
+                 [ (/\dead -> fail ())
                  , (/\dead ->
                       case
-                        data
+                        r
                         (case
                            (list data)
                            tup
                            [(\(l : integer) (r : list data) -> r)])
                         [ (\(ds : data) (ds : list data) ->
-                             headList {data} ds) ]) ]
-                 {all dead. dead}))
-            [(\(l : integer) (r : list data) -> r)])
-         [ (\(ds : data) (ds : list data) ->
-              case
-                (Maybe (List (Tuple2 data data)))
-                ds
-                [ (\(ds : data) (ds : list data) ->
-                     let
-                       !nt : data = headList {data} ds
-                     in
-                     (let
-                         r = Maybe (List (Tuple2 data data))
-                       in
-                       \(scrut : data)
-                        (cont : Maybe data -> data -> Maybe bytestring -> r)
-                        (fail : unit -> r) ->
-                         let
-                           !tup : pair integer (list data) = unConstrData scrut
-                         in
-                         case
-                           (all dead. r)
-                           (equalsInteger
-                              0
-                              (case
-                                 integer
-                                 tup
-                                 [(\(l : integer) (r : list data) -> l)]))
-                           [ (/\dead -> fail ())
-                           , (/\dead ->
-                                case
-                                  r
-                                  (case
-                                     (list data)
-                                     tup
-                                     [(\(l : integer) (r : list data) -> r)])
-                                  [ (\(ds : data) (ds : list data) ->
-                                       case
-                                         r
-                                         ds
-                                         [ (\(ds : data) (ds : list data) ->
-                                              cont
-                                                (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                   {data}
-                                                   (\(d : data) -> d)
-                                                   ds)
-                                                ds
-                                                (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                   {bytestring}
-                                                   unBData
-                                                   (headList
-                                                      {data}
-                                                      ds))) ]) ]) ]
-                           {all dead. dead})
-                       nt
-                       (\(ds : Maybe data)
-                         (cparams : data)
-                         (ds : Maybe bytestring) ->
-                          Just
-                            {List (Tuple2 data data)}
-                            (matchData_go (unMapData cparams)))
-                       (\(void : unit) ->
-                          (let
-                              r = Maybe (List (Tuple2 data data))
-                            in
-                            \(scrut : data)
-                             (cont :
-                                (\k a -> list (pair data data)) data integer ->
-                                Maybe bytestring ->
-                                r)
-                             (fail : unit -> r) ->
-                              let
-                                !tup : pair integer (list data)
-                                  = unConstrData scrut
-                              in
-                              case
-                                (all dead. r)
-                                (equalsInteger
-                                   2
-                                   (case
-                                      integer
-                                      tup
-                                      [(\(l : integer) (r : list data) -> l)]))
-                                [ (/\dead -> fail ())
-                                , (/\dead ->
-                                     case
-                                       r
-                                       (case
-                                          (list data)
-                                          tup
-                                          [ (\(l : integer) (r : list data) ->
-                                               r) ])
-                                       [ (\(ds : data) (ds : list data) ->
-                                            cont
-                                              (unMapData ds)
-                                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                 {bytestring}
-                                                 unBData
-                                                 (headList {data} ds))) ]) ]
-                                {all dead. dead})
-                            nt
-                            (\(ds :
-                                 (\k a -> list (pair data data)) data integer)
-                              (ds : Maybe bytestring) ->
-                               Nothing {List (Tuple2 data data)})
-                            (\(void : unit) ->
-                               error {Maybe (List (Tuple2 data data))}))) ]) ])
+                             cont
+                               (unMapData ds)
+                               (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                  {bytestring}
+                                  unBData
+                                  (headList {data} ds))) ]) ]
+                 {all dead. dead})
+             nt
+             (\(ds : (\k a -> list (pair data data)) data integer)
+               (ds : Maybe bytestring) ->
+                Nothing {List (Tuple2 data data)})
+             (\(void : unit) -> error {Maybe (List (Tuple2 data data))})))
       {all dead. unit}
       (\(cparams : List (Tuple2 data data)) ->
          /\dead ->
