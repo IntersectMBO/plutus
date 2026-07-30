@@ -179,7 +179,19 @@ the given type/term, which are things like "must be able to type the constructor
 These are then cashed out into constraints on the instance.
 -}
 
-data Dep = TypeableDep TH.Type | LiftDep TH.Type deriving stock (Show, Eq, Ord)
+data Dep = TypeableDep TH.Type | LiftDep TH.Type deriving stock (Show, Ord)
+
+-- Defining both methods avoids GHC 9.12 turning the default, INLINE '(/=)' method into a
+-- loop breaker while running Core Lint.
+instance Eq Dep where
+  TypeableDep lhs == TypeableDep rhs = lhs == rhs
+  LiftDep lhs == LiftDep rhs = lhs == rhs
+  _ == _ = False
+
+  TypeableDep lhs /= TypeableDep rhs = lhs /= rhs
+  LiftDep lhs /= LiftDep rhs = lhs /= rhs
+  _ /= _ = True
+
 type Deps = Set.Set Dep
 
 withTyVars :: MonadReader (LocalVars uni) m => [(TH.Name, TyVarDecl TyName ())] -> m a -> m a

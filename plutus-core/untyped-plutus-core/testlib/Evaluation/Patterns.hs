@@ -7,7 +7,7 @@ module Evaluation.Patterns (test_patterns) where
 import Data.ByteString qualified as BS
 import Data.Functor.Identity (runIdentity)
 import Data.Int (Int64)
-import Data.List (foldl')
+import Data.List qualified as List
 import Data.Vector qualified as Vector
 import Data.Word (Word64)
 import PlutusCore.Data qualified as PLC
@@ -790,12 +790,12 @@ test_patterns =
         let depth :: Int
             depth = 100000
             deepPattern =
-              foldl'
+              List.foldl'
                 (\pat _ -> patternChildren DefaultPatternDataList [pat])
                 DefaultPatternWildcard
                 [1 .. depth]
             deepData =
-              foldl'
+              List.foldl'
                 (\value _ -> PLC.List [value])
                 (PLC.I 0)
                 [1 .. depth]
@@ -841,12 +841,12 @@ test_patterns =
         let depth :: Int
             depth = 10000
             deepPattern =
-              foldl'
+              List.foldl'
                 (\pat _ -> patternChildren DefaultPatternDataList [pat])
                 DefaultPatternWildcard
                 [1 .. depth]
             deepData =
-              foldl'
+              List.foldl'
                 (\value _ -> PLC.List [value])
                 (PLC.I 0)
                 [1 .. depth]
@@ -873,7 +873,7 @@ test_patterns =
         let depth :: Int
             depth = 4096
             deepHandler =
-              foldl'
+              List.foldl'
                 (\handler _ -> UPLC.Constr () 0 [handler])
                 (UPLC.Constr () 0 [])
                 [1 .. depth]

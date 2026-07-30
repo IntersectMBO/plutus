@@ -18,7 +18,7 @@ import PlutusCore.Data qualified as PLCData
 import PlutusCore.Default
   ( DefaultBuiltinPattern (..)
   , DefaultFun
-  , DefaultListPrefixRest (..)
+  , DefaultPatternFieldEnd (..)
   )
 import PlutusCore.MkPlc
 import PlutusCore.Name.Unique (Name (..), Unique (..))
@@ -65,7 +65,8 @@ matchingExactList i =
         ()
         (mkConstant @[Integer] () $ replicate width 0)
         ( V.singleton
-            ( DefaultPatternList $ V.replicate width DefaultPatternWildcard
+            ( DefaultPatternList DefaultPatternFieldsExact $
+                V.replicate width DefaultPatternWildcard
             , mkConstant @Integer () 0
             )
         )
@@ -80,7 +81,8 @@ matchingCaptureList i =
         ()
         (mkConstant @[Integer] () $ replicate width 0)
         ( V.singleton
-            ( DefaultPatternList $ V.replicate width DefaultPatternCapture
+            ( DefaultPatternList DefaultPatternFieldsExact $
+                V.replicate width DefaultPatternCapture
             , handler
             )
         )
@@ -91,9 +93,9 @@ matchingListPrefixWildcard requestedPrefixWidth requestedSuffixWidth =
   let prefixWidth = max 0 $ fromIntegral requestedPrefixWidth
       suffixWidth = max 0 $ fromIntegral requestedSuffixWidth
       pat =
-        DefaultPatternListPrefix
+        DefaultPatternList
+          DefaultPatternFieldsPrefixWildcard
           (V.replicate prefixWidth DefaultPatternWildcard)
-          DefaultListPrefixRestWildcard
    in UPLC.Match
         ()
         (mkConstant @[Integer] () $ replicate (prefixWidth + suffixWidth) 0)
@@ -105,9 +107,9 @@ matchingListPrefixCaptureRest requestedPrefixWidth requestedSuffixWidth =
   let prefixWidth = max 0 $ fromIntegral requestedPrefixWidth
       suffixWidth = max 0 $ fromIntegral requestedSuffixWidth
       pat =
-        DefaultPatternListPrefix
+        DefaultPatternList
+          DefaultPatternFieldsPrefixCapture
           (V.replicate prefixWidth DefaultPatternWildcard)
-          DefaultListPrefixRestCapture
       binder = UPLC.NamedDeBruijn "rest" (UPLC.Index 0)
       handler = UPLC.LamAbs () binder $ mkConstant @Integer () 0
    in UPLC.Match
@@ -214,7 +216,8 @@ dataConstrMatchComparison requestedWidth =
         scrutinee
         ( V.fromList
             [
-              ( DefaultPatternDataConstr 42 $ V.replicate width DefaultPatternWildcard
+              ( DefaultPatternDataConstr 42 DefaultPatternFieldsExact $
+                  V.replicate width DefaultPatternWildcard
               , success
               )
             , (DefaultPatternWildcard, fallback)
@@ -228,7 +231,8 @@ dataConstrMatchComparison requestedWidth =
         scrutinee
         ( V.fromList
             [
-              ( DefaultPatternDataConstr 42 $ V.replicate width DefaultPatternCapture
+              ( DefaultPatternDataConstr 42 DefaultPatternFieldsExact $
+                  V.replicate width DefaultPatternCapture
               , captureHandler
               )
             , (DefaultPatternWildcard, fallback)
@@ -302,7 +306,7 @@ loopingMatch scrutinee branchShapes = debruijnTermUnsafe $ runQuote $ do
 matchingFixpointExactList :: Integer -> Term
 matchingFixpointExactList requestedWidth =
   let width = max 1 $ fromIntegral requestedWidth
-      pat = DefaultPatternList $ V.replicate width DefaultPatternWildcard
+      pat = DefaultPatternList DefaultPatternFieldsExact $ V.replicate width DefaultPatternWildcard
    in loopingMatch
         (mkConstant @[Integer] () $ replicate width 0)
         [(pat, 0)]
@@ -313,7 +317,7 @@ matchingFixpointLateListMismatch requestedWidth =
   let width = max 1 $ fromIntegral requestedWidth
       finalMismatch = DefaultPatternInteger 1
       children = V.replicate (width - 1) DefaultPatternWildcard `V.snoc` finalMismatch
-      pat = DefaultPatternList children
+      pat = DefaultPatternList DefaultPatternFieldsExact children
    in loopingMatch
         (mkConstant @[Integer] () $ replicate width 0)
         [(pat, 0), (DefaultPatternWildcard, 0)]
@@ -325,7 +329,7 @@ matchingFixpointAbandonedCaptures requestedWidth =
   let width = max 1 $ fromIntegral requestedWidth
       finalMismatch = DefaultPatternInteger 1
       children = V.replicate (width - 1) DefaultPatternCapture `V.snoc` finalMismatch
-      pat = DefaultPatternList children
+      pat = DefaultPatternList DefaultPatternFieldsExact children
    in loopingMatch
         (mkConstant @[Integer] () $ replicate width 0)
         [(pat, width - 1), (DefaultPatternWildcard, 0)]
@@ -335,7 +339,9 @@ matchingFixpointListArityMismatch :: Integer -> Integer -> Term
 matchingFixpointListArityMismatch requestedPatternWidth requestedDelta =
   let patternWidth = max 1 $ fromIntegral requestedPatternWidth
       scrutineeWidth = max 0 $ patternWidth + fromIntegral requestedDelta
-      pat = DefaultPatternList $ V.replicate patternWidth DefaultPatternWildcard
+      pat =
+        DefaultPatternList DefaultPatternFieldsExact $
+          V.replicate patternWidth DefaultPatternWildcard
    in loopingMatch
         (mkConstant @[Integer] () $ replicate scrutineeWidth 0)
         [(pat, 0), (DefaultPatternWildcard, 0)]
@@ -344,7 +350,7 @@ matchingFixpointListArityMismatch requestedPatternWidth requestedDelta =
 matchingFixpointCaptureList :: Integer -> Term
 matchingFixpointCaptureList requestedWidth =
   let width = max 1 $ fromIntegral requestedWidth
-      pat = DefaultPatternList $ V.replicate width DefaultPatternCapture
+      pat = DefaultPatternList DefaultPatternFieldsExact $ V.replicate width DefaultPatternCapture
    in loopingMatch
         (mkConstant @[Integer] () $ replicate width 0)
         [(pat, width)]
@@ -365,7 +371,7 @@ matchingFixpointWideAlternatives requestedAlternatives requestedWidth =
       width = max 1 $ fromIntegral requestedWidth
       finalMismatch = DefaultPatternInteger 1
       children = V.replicate (width - 1) DefaultPatternWildcard `V.snoc` finalMismatch
-      miss = DefaultPatternList children
+      miss = DefaultPatternList DefaultPatternFieldsExact children
    in loopingMatch
         (mkConstant @[Integer] () $ replicate width 0)
         (replicate alternativeCount (miss, 0) <> [(DefaultPatternWildcard, 0)])
@@ -376,7 +382,7 @@ matchingFixpointNestedData requestedDepth =
   let depth = max 1 (fromIntegral requestedDepth) :: Int
       pat =
         foldl'
-          (\child _ -> DefaultPatternDataList $ V.singleton child)
+          (\child _ -> DefaultPatternDataList DefaultPatternFieldsExact $ V.singleton child)
           DefaultPatternWildcard
           [1 .. depth]
       value = foldl' (\child _ -> PLCData.List [child]) (PLCData.I 0) [1 .. depth]
@@ -388,7 +394,9 @@ matchingFixpointNestedDataConstr requestedDepth =
   let depth = max 1 (fromIntegral requestedDepth) :: Int
       pat =
         foldl'
-          (\child _ -> DefaultPatternDataConstr 0 $ V.singleton child)
+          ( \child _ ->
+              DefaultPatternDataConstr 0 DefaultPatternFieldsExact $ V.singleton child
+          )
           DefaultPatternWildcard
           [1 .. depth]
       value = foldl' (\child _ -> PLCData.Constr 0 [child]) (PLCData.I 0) [1 .. depth]
@@ -398,14 +406,16 @@ matchingFixpointNestedDataConstr requestedDepth =
 matchingFixpointWideDataConstr :: Integer -> Term
 matchingFixpointWideDataConstr requestedWidth =
   let width = max 1 $ fromIntegral requestedWidth
-      pat = DefaultPatternDataConstr 0 $ V.replicate width DefaultPatternWildcard
+      pat =
+        DefaultPatternDataConstr 0 DefaultPatternFieldsExact $
+          V.replicate width DefaultPatternWildcard
       value = PLCData.Constr 0 $ replicate width (PLCData.I 0)
    in loopingMatch (mkConstant @PLCData.Data () value) [(pat, 0)]
 
 -- | Repeated successful match of the smallest 'Data.Constr' pattern and value.
 matchingFixpointEmptyDataConstr :: Term
 matchingFixpointEmptyDataConstr =
-  let pat = DefaultPatternDataConstr 0 V.empty
+  let pat = DefaultPatternDataConstr 0 DefaultPatternFieldsExact V.empty
    in loopingMatch (mkConstant @PLCData.Data () $ PLCData.Constr 0 []) [(pat, 0)]
 
 -- | Repeated equality of an immediate 'Integer', the cheapest scalar representation.
@@ -444,5 +454,5 @@ matchingFixpointMaxDataTag :: Term
 matchingFixpointMaxDataTag =
   let expected = maxBound :: Word64
       actual = toInteger expected
-      pat = DefaultPatternDataConstr expected V.empty
+      pat = DefaultPatternDataConstr expected DefaultPatternFieldsExact V.empty
    in loopingMatch (mkConstant @PLCData.Data () $ PLCData.Constr actual []) [(pat, 0)]
