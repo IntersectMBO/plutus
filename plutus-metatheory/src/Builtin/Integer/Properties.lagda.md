@@ -23,6 +23,9 @@ import Data.Nat.Properties as ℕP
 open import Data.Integer.Properties
 open import Data.Nat.DivMod
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+open import Level using (0ℓ)
+open import Algebra.Bundles.Raw using (RawMonoid)
+open import Algebra.Morphism.Structures using (IsMonoidHomomorphism)
 ```
 
 ## Properties
@@ -110,6 +113,113 @@ rem-mult-law n d = begin
   ≡⟨ cong (λ z → sign (n * d) ◃ z) (m*n%n≡0 ∣ n ∣ ∣ d ∣) ⟩
   0ℤ
   ∎
+
+-- For fixed b, `remainderInteger _ b` is an additive homomorphism on non-negative integers
+-- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b
+rem-additive-pos-law
+  : (a a' b : ℤ) .{{_ : NonNegative a}} .{{_ : NonNegative a'}} .{{_ : NonZero b}}
+  → rem (a + a') b ≡ rem ((rem a b) + (rem a' b)) b 
+rem-additive-pos-law (+_ m) (+_ n) b = begin
+  rem (+ m + + n) b
+  ≡⟨⟩
+  sign (+ m + + n) ◃ (∣ + m + + n ∣ ℕ.% ∣ b ∣)
+  ≡⟨⟩
+  S.+ ◃ (∣ + m + + n ∣ ℕ.% ∣ b ∣)
+  ≡⟨ +◃n≡+n _ ⟩
+  + ((m ℕ.+ n) ℕ.% ∣ b ∣)
+  ≡⟨ cong (+_) (%-distribˡ-+ m n ∣ b ∣) ⟩
+  + ((m ℕ.% ∣ b ∣ ℕ.+ n ℕ.% ∣ b ∣) ℕ.% ∣ b ∣)
+  ≡⟨ sym (+◃n≡+n _) ⟩
+  S.+ ◃ (m ℕ.% ∣ b ∣ ℕ.+ n ℕ.% ∣ b ∣) ℕ.% ∣ b ∣
+  ≡⟨ cong₂ (λ x y → rem (x + y) b) (sym (+◃n≡+n (m ℕ.% ∣ b ∣))) (sym (+◃n≡+n (n ℕ.% ∣ b ∣))) ⟩
+  rem (rem (+ m) b + rem (+ n) b) b
+  ∎
+
+-- The remainder of zero is zero
+rem-zero-law : (b : ℤ) .{{_ : NonZero b}} → rem 0ℤ b ≡ 0ℤ
+rem-zero-law b = cong (S.+ ◃_) (m*n%n≡0 0 ∣ b ∣)
+
+-- Negating an integer flips the sign it is built from
+neg-◃ : (n : ℕ.ℕ) → - (S.+ ◃ n) ≡ S.- ◃ n
+neg-◃ n = trans (cong (-_) (+◃n≡+n n)) (sym (-◃n≡-n n))
+
+-- For fixed b, `remainderInteger _ b` is an odd function
+rem-neg-law : (n b : ℤ) .{{_ : NonZero b}} → rem (- n) b ≡ - rem n b
+rem-neg-law +0 b = trans (rem-zero-law b) (cong (-_) (sym (rem-zero-law b)))
+rem-neg-law +[1+ m ] b = sym (neg-◃ (ℕ.suc m ℕ.% ∣ b ∣))
+rem-neg-law -[1+ m ] b =
+  trans (sym (neg-involutive (S.+ ◃ (ℕ.suc m ℕ.% ∣ b ∣))))
+        (cong (-_) (neg-◃ (ℕ.suc m ℕ.% ∣ b ∣)))
+
+-- The additive homomorphism law for non-positive integers, stated on the
+-- negations of non-negative ones: it follows from `rem-additive-pos-law`
+-- because `rem _ b` is odd and `-_` distributes over `_+_`
+rem-additive-neg-law′
+  : (a a' b : ℤ) .{{_ : NonNegative a}} .{{_ : NonNegative a'}} .{{_ : NonZero b}}
+  → rem (- a + - a') b ≡ rem ((rem (- a) b) + (rem (- a') b)) b
+rem-additive-neg-law′ a a' b = begin
+  rem (- a + - a') b
+  ≡⟨ cong (λ z → rem z b) (sym (neg-distrib-+ a a')) ⟩
+  rem (- (a + a')) b
+  ≡⟨ rem-neg-law (a + a') b ⟩
+  - rem (a + a') b
+  ≡⟨ cong (-_) (rem-additive-pos-law a a' b) ⟩
+  - rem (rem a b + rem a' b) b
+  ≡⟨ sym (rem-neg-law (rem a b + rem a' b) b) ⟩
+  rem (- (rem a b + rem a' b)) b
+  ≡⟨ cong (λ z → rem z b) (neg-distrib-+ (rem a b) (rem a' b)) ⟩
+  rem (- rem a b + - rem a' b) b
+  ≡⟨ cong₂ (λ x y → rem (x + y) b) (sym (rem-neg-law a b)) (sym (rem-neg-law a' b)) ⟩
+  rem (rem (- a) b + rem (- a') b) b
+  ∎
+
+-- For fixed b, `remainderInteger _ b` is an additive homomorphism on non-positive integers
+-- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b
+rem-additive-neg-law
+  : (a a' b : ℤ) .{{_ : NonPositive a}} .{{_ : NonPositive a'}} .{{_ : NonZero b}}
+  → rem (a + a') b ≡ rem ((rem a b) + (rem a' b)) b
+rem-additive-neg-law +0        +0        b = rem-additive-neg-law′ +0 +0 b
+rem-additive-neg-law +0        -[1+ n ]  b = rem-additive-neg-law′ +0 +[1+ n ] b
+rem-additive-neg-law -[1+ m ]  +0        b = rem-additive-neg-law′ +[1+ m ] +0 b
+rem-additive-neg-law -[1+ m ]  -[1+ n ]  b = rem-additive-neg-law′ +[1+ m ] +[1+ n ] b
+
+-- The two additive laws, packaged with the standard library's homomorphism
+-- vocabulary. The domain must be ℕ rather than sign-restricted ℤ: the stdlib
+-- morphism types quantify over the whole carrier, and the unrestricted law is
+-- false for mixed signs (a = 4, a' = -2, b = 3 is a counterexample). The sign
+-- is baked into the map instead: `rem (+ m) b` and `rem (- + m) b`.
+
+-- The common target: ℤ with "add, then take the remainder by b"
+rem-+-rawMonoid : (b : ℤ) .{{_ : NonZero b}} → RawMonoid 0ℓ 0ℓ
+rem-+-rawMonoid b = record
+  { Carrier = ℤ
+  ; _≈_ = _≡_
+  ; _∙_ = λ x y → rem (x + y) b
+  ; ε = 0ℤ
+  }
+
+rem-+-isMonoidHomomorphism-pos
+  : (b : ℤ) .{{_ : NonZero b}}
+  → IsMonoidHomomorphism ℕ.+-0-rawMonoid (rem-+-rawMonoid b) (λ m → rem (+ m) b)
+rem-+-isMonoidHomomorphism-pos b = record
+  { isMagmaHomomorphism = record
+    { isRelHomomorphism = record { cong = cong (λ m → rem (+ m) b) }
+    ; homo = λ m n → rem-additive-pos-law (+ m) (+ n) b
+    }
+  ; ε-homo = rem-zero-law b
+  }
+
+rem-+-isMonoidHomomorphism-neg
+  : (b : ℤ) .{{_ : NonZero b}}
+  → IsMonoidHomomorphism ℕ.+-0-rawMonoid (rem-+-rawMonoid b) (λ m → rem (- + m) b)
+rem-+-isMonoidHomomorphism-neg b = record
+  { isMagmaHomomorphism = record
+    { isRelHomomorphism = record { cong = cong (λ m → rem (- + m) b) }
+    ; homo = λ m n → trans (cong (λ z → rem z b) (neg-distrib-+ (+ m) (+ n)))
+                           (rem-additive-neg-law′ (+ m) (+ n) b)
+    }
+  ; ε-homo = rem-zero-law b
+  }
 
 -- Rearrangement behind the floored-division fixup:
 --   (q - 1) * d + (r + d) ≡ q * d + r
