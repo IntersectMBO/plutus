@@ -1010,10 +1010,10 @@ test_patterns =
     , testCase "the pre-activation Match coefficients cap ledger-scale work" $
         case defaultParameters of
           MachineParameters _ _ (MachineVariantParameters costs _) -> do
-            runIdentity (cekMatchCost costs) @?= ExBudget 210000 100
-            runIdentity (cekPatternCost costs) @?= ExBudget 2500 100
-            runIdentity (cekPatternStructuralCost costs) @?= ExBudget 27500 60
-            runIdentity (cekPatternFailureCost costs) @?= ExBudget 32500 100
+            runIdentity (cekMatchCost costs) @?= ExBudget 26000 100
+            runIdentity (cekPatternCost costs) @?= ExBudget 20000 100
+            runIdentity (cekPatternStructuralCost costs) @?= ExBudget 13000 60
+            runIdentity (cekPatternFailureCost costs) @?= ExBudget 17000 100
     , testCase "Data.Constr Match costs less than direct and checked UnConstrData" $ do
         let assertCpuCheaper label candidateBudget baselineBudget =
               case (candidateBudget, baselineBudget) of
@@ -1040,11 +1040,11 @@ test_patterns =
                 (1633 + 400 * fromIntegral width)
             expectedWildcards width =
               ExBudget
-                (244600 + 27500 * fromIntegral width)
+                (78100 + 13000 * fromIntegral width)
                 (500 + 60 * fromIntegral width)
             expectedCaptures width =
               ExBudget
-                (244600 + 48500 * fromIntegral width)
+                (78100 + 69000 * fromIntegral width)
                 (500 + 360 * fromIntegral width)
         mapM_
           ( \width -> do
