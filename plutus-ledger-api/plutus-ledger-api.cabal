@@ -99,8 +99,12 @@ library
     PlutusLedgerApi.V3.ParamName
     PlutusLedgerApi.V3.Tx
     PlutusLedgerApi.V4
+    PlutusLedgerApi.V4.Address
     PlutusLedgerApi.V4.Contexts
+    PlutusLedgerApi.V4.Data.Address
     PlutusLedgerApi.V4.Data.Contexts
+    PlutusLedgerApi.V4.Data.Tx
+    PlutusLedgerApi.V4.Tx
 
   other-modules:
     PlutusLedgerApi.Common.Eval

@@ -204,7 +204,6 @@ import PlutusLedgerApi.V3.Data.Contexts
   , HotCommitteeCredential (..)
   , ProposalProcedure
   , ProtocolVersion
-  , TxInInfo
   , Vote
   , Voter
   , committeeMembers
@@ -218,7 +217,6 @@ import PlutusLedgerApi.V3.Data.Contexts
   , matchGovernanceActionId
   , matchProposalProcedure
   , matchProtocolVersion
-  , matchTxInInfo
   , matchVote
   , matchVoter
   , ppDeposit
@@ -226,8 +224,6 @@ import PlutusLedgerApi.V3.Data.Contexts
   , ppReturnAddr
   , pvMajor
   , pvMinor
-  , txInInfoOutRef
-  , txInInfoResolved
   , pattern Abstain
   , pattern Committee
   , pattern CommitteeVoter
@@ -248,13 +244,14 @@ import PlutusLedgerApi.V3.Data.Contexts
   , pattern ProtocolVersion
   , pattern StakePoolVoter
   , pattern TreasuryWithdrawals
-  , pattern TxInInfo
   , pattern UpdateCommittee
   , pattern VoteNo
   , pattern VoteYes
   )
 import PlutusLedgerApi.V3.Data.MintValue qualified as V3
 import PlutusLedgerApi.V3.Data.Tx qualified as V3
+import PlutusLedgerApi.V4.Data.Address (AccountId (..), pattern Address)
+import PlutusLedgerApi.V4.Data.Tx (TxOut, txOutAddress, txOutValue, pattern TxOut)
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.BuiltinList qualified as BuiltinList
@@ -265,20 +262,6 @@ import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Prelude qualified as PlutusTx
 
 import Prelude qualified as Haskell
-
-newtype AccountId = AccountId V2.Credential
-  deriving stock (Generic)
-  deriving (Pretty) via (PrettyShow AccountId)
-  deriving newtype
-    ( Haskell.Eq
-    , Haskell.Show
-    , PlutusTx.Eq
-    , PlutusTx.ToData
-    , PlutusTx.FromData
-    , PlutusTx.UnsafeFromData
-    )
-
-PlutusTx.makeLift ''AccountId
 
 PlutusTx.asData
   [d|
@@ -349,12 +332,29 @@ PlutusTx.makeLift ''ScriptPurpose
 
 PlutusTx.asData
   [d|
+    data TxInInfo = TxInInfo
+      { txInInfoOutRef :: V3.TxOutRef
+      , txInInfoResolved :: TxOut
+      }
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
+
+PlutusTx.deriveEq ''TxInInfo
+PlutusTx.makeLift ''TxInInfo
+
+instance Pretty TxInInfo where
+  pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
+    pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
+
+PlutusTx.asData
+  [d|
     data TxInfo = TxInfo
       { txInfoId :: V3.TxId
       , txInfoSubTxIx :: Haskell.Maybe Haskell.Integer
       , txInfoInputs :: List TxInInfo
       , txInfoReferenceInputs :: List TxInInfo
-      , txInfoOutputs :: List V2.TxOut
+      , txInfoOutputs :: List TxOut
       , txInfoFee :: V2.Lovelace
       , txInfoMint :: V3.MintValue
       , txInfoTxCerts :: List TxCert
@@ -383,7 +383,7 @@ PlutusTx.asData
       { ttisIds :: List V3.TxId
       , ttisInputs :: List TxInInfo
       , ttisReferenceInputs :: List TxInInfo
-      , ttisOutputs :: List V2.TxOut
+      , ttisOutputs :: List TxOut
       , ttisMints :: V3.MintValue
       , ttisBurns :: V3.MintValue
       , ttisTxCerts :: List TxCert
@@ -489,12 +489,12 @@ that pay to the same script address we are currently spending from. This does no
 the outputs of the whole transaction. -}
 findContinuingOutputs :: ScriptContext -> List Haskell.Integer
 findContinuingOutputs ctx
-  | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <- findOwnInput ctx =
+  | Haskell.Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
       Data.List.findIndices
         (f txOutAddress)
         (txInfoOutputs (scriptContextTxInfo ctx))
   where
-    f addr V2.TxOut {txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+    f addr TxOut {txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 findContinuingOutputs _ = PlutusTx.traceError "Le"
 
 {-# INLINEABLE getContinuingOutputs #-}
@@ -502,12 +502,12 @@ findContinuingOutputs _ = PlutusTx.traceError "Le"
 {-| Get the outputs in the current sub-transaction or top-level transaction that pay to
 the same script address we are currently spending from. This does not search the outputs
 of the whole transaction. -}
-getContinuingOutputs :: ScriptContext -> List V2.TxOut
+getContinuingOutputs :: ScriptContext -> List TxOut
 getContinuingOutputs ctx
-  | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <- findOwnInput ctx =
+  | Haskell.Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
       Data.List.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
   where
-    f addr V2.TxOut {txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+    f addr TxOut {txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 getContinuingOutputs _ = PlutusTx.traceError "Lf"
 
 {-# INLINEABLE txSignedBy #-}
@@ -523,7 +523,7 @@ txSignedBy TxInfo {txInfoGuards} keyHash =
 {-# INLINEABLE pubKeyOutputsAt #-}
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> List V2.Value
 pubKeyOutputsAt pk p =
-  let flt V2.TxOut {txOutAddress = V2.Address (V2.PubKeyCredential pk') _, txOutValue}
+  let flt TxOut {txOutAddress = Address (V2.PubKeyCredential pk') _, txOutValue}
         | pk PlutusTx.== pk' = Haskell.Just txOutValue
       flt _ = Haskell.Nothing
    in Data.List.mapMaybe flt (txInfoOutputs p)
@@ -534,11 +534,11 @@ valuePaidTo ptx pkh = Data.List.mconcat (pubKeyOutputsAt pkh ptx)
 
 {-# INLINEABLE valueSpent #-}
 valueSpent :: TxInfo -> V2.Value
-valueSpent = Data.List.foldMap (V2.txOutValue PlutusTx.. txInInfoResolved) PlutusTx.. txInfoInputs
+valueSpent = Data.List.foldMap (txOutValue PlutusTx.. txInInfoResolved) PlutusTx.. txInfoInputs
 
 {-# INLINEABLE valueProduced #-}
 valueProduced :: TxInfo -> V2.Value
-valueProduced = Data.List.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
+valueProduced = Data.List.foldMap txOutValue PlutusTx.. txInfoOutputs
 
 {-# INLINEABLE ownCurrencySymbol #-}
 ownCurrencySymbol :: ScriptContext -> V2.CurrencySymbol

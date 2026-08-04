@@ -134,9 +134,6 @@ module PlutusLedgerApi.Data.V4
   , V2.fromBytes
 
     -- *** Credentials
-  , V2.StakingCredential
-  , pattern V2.StakingHash
-  , pattern V2.StakingPtr
   , V2.Credential
   , pattern V2.PubKeyCredential
   , pattern V2.ScriptCredential
@@ -184,10 +181,15 @@ module PlutusLedgerApi.Data.V4
   , V2.POSIXTimeRange
 
     -- *** Types for representing transactions
-  , V2.Address
-  , pattern V2.Address
-  , V2.addressCredential
-  , V2.addressStakingCredential
+  , Address.Address
+  , pattern Address.Address
+  , Address.addressCredential
+  , Address.addressStakingAccountId
+  , Address.pubKeyHashAddress
+  , Address.toPubKeyHash
+  , Address.toScriptHash
+  , Address.scriptHashAddress
+  , Address.stakingAccountId
   , V2.PubKeyHash (..)
   , Tx.TxId (..)
   , Contexts.TxInfo
@@ -212,12 +214,12 @@ module PlutusLedgerApi.Data.V4
   , Contexts.txInfoProposalProcedures
   , Contexts.txInfoCurrentTreasuryAmount
   , Contexts.txInfoTreasuryDonation
-  , V2.TxOut
-  , pattern V2.TxOut
-  , V2.txOutAddress
-  , V2.txOutValue
-  , V2.txOutDatum
-  , V2.txOutReferenceScript
+  , Tx.TxOut
+  , pattern Tx.TxOut
+  , Tx.txOutAddress
+  , Tx.txOutValue
+  , Tx.txOutDatum
+  , Tx.txOutReferenceScript
   , Tx.TxOutRef
   , pattern Tx.TxOutRef
   , Tx.txOutRefId
@@ -226,10 +228,10 @@ module PlutusLedgerApi.Data.V4
   , pattern Contexts.TxInInfo
   , Contexts.txInInfoOutRef
   , Contexts.txInInfoResolved
-  , V2.OutputDatum
-  , pattern V2.NoOutputDatum
-  , pattern V2.OutputDatum
-  , pattern V2.OutputDatumHash
+  , Tx.OutputDatum
+  , pattern Tx.NoOutputDatum
+  , pattern Tx.OutputDatum
+  , pattern Tx.OutputDatumHash
 
     -- *** Intervals
   , V2.Interval
@@ -293,6 +295,7 @@ module PlutusLedgerApi.Data.V4
 import PlutusLedgerApi.Common qualified as Common
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Data.MintValue qualified as MintValue
-import PlutusLedgerApi.V3.Data.Tx qualified as Tx
+import PlutusLedgerApi.V4.Data.Address qualified as Address
 import PlutusLedgerApi.V4.Data.Contexts qualified as Contexts
+import PlutusLedgerApi.V4.Data.Tx qualified as Tx
 import PlutusTx.Ratio qualified as Ratio

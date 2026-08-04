@@ -73,19 +73,19 @@ import PlutusLedgerApi.V3.Contexts
   , HotCommitteeCredential (..)
   , ProposalProcedure (..)
   , ProtocolVersion (..)
-  , TxInInfo (..)
   , Vote (..)
   , Voter (..)
   )
 import PlutusLedgerApi.V3.MintValue qualified as V3
 import PlutusLedgerApi.V3.Tx qualified as V3
+import PlutusLedgerApi.V4.Address (AccountId (..), Address (..))
+import PlutusLedgerApi.V4.Tx (TxOut (..))
 import PlutusTx (makeIsDataSchemaIndexed)
 import PlutusTx qualified
 import PlutusTx.AssocMap (Map, lookup, toList)
 import PlutusTx.Blueprint
   ( HasBlueprintDefinition
   , HasBlueprintSchema
-  , HasSchemaDefinition
   , SchemaInfo (..)
   )
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
@@ -98,30 +98,6 @@ import PlutusTx.Prelude qualified as PlutusTx
 import Prettyprinter (nest, vsep, (<+>))
 import Prettyprinter.Extras (Pretty (pretty), PrettyShow (PrettyShow))
 import Prelude qualified as Haskell
-
-newtype AccountId = AccountId V2.Credential
-  deriving stock (Generic)
-  deriving anyclass (HasBlueprintDefinition)
-  deriving (Pretty) via (PrettyShow AccountId)
-  deriving newtype
-    ( Haskell.Eq
-    , Haskell.Ord
-    , Haskell.Show
-    , PlutusTx.Eq
-    , PlutusTx.ToData
-    , PlutusTx.FromData
-    , PlutusTx.UnsafeFromData
-    )
-
-instance
-  ( HasSchemaDefinition V2.PubKeyHash referencedTypes
-  , HasSchemaDefinition V2.ScriptHash referencedTypes
-  )
-  => HasBlueprintSchema AccountId referencedTypes
-  where
-  schema =
-    schema @V2.Credential @referencedTypes
-      & withSchemaInfo \info -> info {title = Haskell.Just "AccountId"}
 
 data AccountBalanceInterval
   = AccountBalanceLowerBound V2.Lovelace
@@ -197,12 +173,26 @@ data ScriptPurpose
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
+-- | An input of a pending transaction.
+data TxInInfo = TxInInfo
+  { txInInfoOutRef :: V3.TxOutRef
+  , txInInfoResolved :: TxOut
+  }
+  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving anyclass (HasBlueprintDefinition)
+
+PlutusTx.deriveEq ''TxInInfo
+
+instance Pretty TxInInfo where
+  pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
+    pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
+
 data TxInfo = TxInfo
   { txInfoId :: V3.TxId
   , txInfoSubTxIx :: Haskell.Maybe Haskell.Integer
   , txInfoInputs :: [TxInInfo]
   , txInfoReferenceInputs :: [TxInInfo]
-  , txInfoOutputs :: [V2.TxOut]
+  , txInfoOutputs :: [TxOut]
   , txInfoFee :: V2.Lovelace
   , txInfoMint :: V3.MintValue
   , txInfoTxCerts :: [TxCert]
@@ -251,7 +241,7 @@ data TopTxInfoSimplified = TopTxInfoSimplified
   { ttisIds :: [V3.TxId]
   , ttisInputs :: [TxInInfo]
   , ttisReferenceInputs :: [TxInInfo]
-  , ttisOutputs :: [V2.TxOut]
+  , ttisOutputs :: [TxOut]
   , ttisMints :: V3.MintValue
   , ttisBurns :: V3.MintValue
   , ttisTxCerts :: [TxCert]
@@ -343,9 +333,9 @@ that pay to the same script address we are currently spending from. This does no
 the outputs of the whole transaction. -}
 findContinuingOutputs :: ScriptContext -> [Haskell.Integer]
 findContinuingOutputs ctx
-  | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <- findOwnInput ctx =
+  | Haskell.Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
       List.findIndices
-        (\V2.TxOut {txOutAddress = otherAddress} -> txOutAddress PlutusTx.== otherAddress)
+        (\TxOut {txOutAddress = otherAddress} -> txOutAddress PlutusTx.== otherAddress)
         (txInfoOutputs (scriptContextTxInfo ctx))
 findContinuingOutputs _ = PlutusTx.traceError "Le"
 {-# INLINEABLE findContinuingOutputs #-}
@@ -353,11 +343,11 @@ findContinuingOutputs _ = PlutusTx.traceError "Le"
 {-| Get the outputs in the current sub-transaction or top-level transaction that pay to
 the same script address we are currently spending from. This does not search the outputs
 of the whole transaction. -}
-getContinuingOutputs :: ScriptContext -> [V2.TxOut]
+getContinuingOutputs :: ScriptContext -> [TxOut]
 getContinuingOutputs ctx
-  | Haskell.Just TxInInfo {txInInfoResolved = V2.TxOut {txOutAddress}} <- findOwnInput ctx =
+  | Haskell.Just TxInInfo {txInInfoResolved = TxOut {txOutAddress}} <- findOwnInput ctx =
       List.filter
-        (\V2.TxOut {txOutAddress = otherAddress} -> txOutAddress PlutusTx.== otherAddress)
+        (\TxOut {txOutAddress = otherAddress} -> txOutAddress PlutusTx.== otherAddress)
         (txInfoOutputs (scriptContextTxInfo ctx))
 getContinuingOutputs _ = PlutusTx.traceError "Lf"
 {-# INLINEABLE getContinuingOutputs #-}
@@ -369,7 +359,7 @@ txSignedBy TxInfo {txInfoGuards} keyHash =
 
 pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> [V2.Value]
 pubKeyOutputsAt pk txInfo =
-  let atPubKey V2.TxOut {txOutAddress = V2.Address (V2.PubKeyCredential pk') _, txOutValue}
+  let atPubKey TxOut {txOutAddress = Address (V2.PubKeyCredential pk') _, txOutValue}
         | pk PlutusTx.== pk' = Haskell.Just txOutValue
       atPubKey _ = Haskell.Nothing
    in PlutusTx.mapMaybe atPubKey (txInfoOutputs txInfo)
@@ -380,11 +370,11 @@ valuePaidTo txInfo keyHash = PlutusTx.mconcat (pubKeyOutputsAt keyHash txInfo)
 {-# INLINEABLE valuePaidTo #-}
 
 valueSpent :: TxInfo -> V2.Value
-valueSpent = F.foldMap (V2.txOutValue PlutusTx.. txInInfoResolved) PlutusTx.. txInfoInputs
+valueSpent = F.foldMap (txOutValue PlutusTx.. txInInfoResolved) PlutusTx.. txInfoInputs
 {-# INLINEABLE valueSpent #-}
 
 valueProduced :: TxInfo -> V2.Value
-valueProduced = F.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
+valueProduced = F.foldMap txOutValue PlutusTx.. txInfoOutputs
 {-# INLINEABLE valueProduced #-}
 
 ownCurrencySymbol :: ScriptContext -> V2.CurrencySymbol
@@ -400,8 +390,6 @@ spendsOutput txInfo txId outputIndex =
     )
     (txInfoInputs txInfo)
 {-# INLINEABLE spendsOutput #-}
-
-$(makeLift ''AccountId)
 
 $(makeLift ''AccountBalanceIntervals)
 
@@ -434,6 +422,9 @@ $( makeIsDataSchemaIndexed
      , ('Guarding, 6)
      ]
  )
+
+$(makeLift ''TxInInfo)
+$(makeIsDataSchemaIndexed ''TxInInfo [('TxInInfo, 0)])
 
 $(makeLift ''TxInfo)
 $(makeIsDataSchemaIndexed ''TxInfo [('TxInfo, 0)])
