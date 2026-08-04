@@ -341,10 +341,11 @@ enterMatchAlternatives ann ctx env alternatives scrutinee = do
           (OperationalError $ CekPatternMatchError "match scrutinee is not a built-in value")
           Nothing
   where
-    !spendPattern = \case
-      PatternWork units -> stepAndMaybeSpendN BPattern units
-      PatternStructuralWork -> stepAndMaybeSpend BStructural
-      PatternMatchNextWork -> stepAndMaybeSpend BMatchNext
+    !spendPattern = \(PatternWork matchUnits patternUnits structuralUnits nextUnits) -> do
+      stepAndMaybeSpendN BMatch matchUnits
+      stepAndMaybeSpendN BPattern patternUnits
+      stepAndMaybeSpendN BStructural structuralUnits
+      stepAndMaybeSpendN BMatchNext nextUnits
 
     enterSelected = \case
       HeadError err -> patternFailure err scrutinee

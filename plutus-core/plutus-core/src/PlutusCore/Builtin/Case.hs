@@ -42,26 +42,24 @@ class CaseBuiltin uni where
 
   {-# MINIMAL caseBuiltin #-}
 
-{-| A pattern-matcher work event. The constructors distinguish bounded work with materially
-different execution costs without storing a measure in the pattern AST.
+{-| A pattern-matcher charge expressed in the four existing Match costing quanta. The quanta form
+an additive basis: universe-specific matchers combine them to represent logical actions whose
+costs differ without requiring a cost-model field for every action.
 
-'PatternWork' carries a non-negative number of units of cheap root/scalar work, bytestring words,
-or capture work. 'spendPatternWork' records those units as one event so the CEK can add them to its
-ordinary bounded-slippage step counter in bulk.
-'PatternStructuralWork' covers one reached child/field edge, including child dispatch and its
-bounded exact-arity probe.
-'PatternMatchNextWork' covers abandoning a failed alternative and probing the next one; the matcher
-spends it after a mismatch is known but before performing that transition and probe. -}
-data PatternWork
-  = PatternWork !Word64
-  | PatternStructuralWork
-  | PatternMatchNextWork
+Every component is a non-negative multiplicity. A matcher emits one strict 'PatternWork' before
+performing the work it represents, and the CEK adds each non-zero component to its ordinary
+bounded-slippage step counter in bulk. -}
+data PatternWork = PatternWork
+  { patternMatchUnits :: !Word64
+  , patternUnits :: !Word64
+  , patternStructuralUnits :: !Word64
+  , patternMatchNextUnits :: !Word64
+  }
 
 {-| The fixed effect used by universe-specific pattern matchers. It is a Reader over 'ST': the CEK
-supplies its budget action once when running the matcher, while matcher code calls the three
-specialized spending helpers directly from its monadic context. Keeping the monad fixed lets GHC
-erase the Reader and 'ST' newtypes and optimize sequencing without a per-step unknown-'Monad'
-dictionary. -}
+supplies its budget action once when running the matcher, while matcher code calls
+'spendPatternWork' directly from its monadic context. Keeping the monad fixed lets GHC erase the
+Reader and 'ST' newtypes and optimize sequencing without a per-step unknown-'Monad' dictionary. -}
 newtype PatternMatchM s a = PatternMatchM
   { runPatternMatchM :: (PatternWork -> ST s ()) -> ST s a
   }
@@ -82,26 +80,17 @@ instance Monad (PatternMatchM s) where
     PatternMatchM $ \spend -> action spend >>= \value -> runPatternMatchM (next value) spend
   {-# INLINE (>>=) #-}
 
-spendPatternWork :: Word64 -> PatternMatchM s ()
-spendPatternWork 0 = pure ()
-spendPatternWork work = PatternMatchM $ \spend -> spend (PatternWork work)
+spendPatternWork :: PatternWork -> PatternMatchM s ()
+spendPatternWork (PatternWork 0 0 0 0) = pure ()
+spendPatternWork work = PatternMatchM $ \spend -> spend work
 {-# INLINE spendPatternWork #-}
-
-spendPatternStructuralWork :: PatternMatchM s ()
-spendPatternStructuralWork = PatternMatchM $ \spend -> spend PatternStructuralWork
-{-# INLINE spendPatternStructuralWork #-}
-
-spendPatternMatchNext :: PatternMatchM s ()
-spendPatternMatchNext = PatternMatchM $ \spend -> spend PatternMatchNextWork
-{-# INLINE spendPatternMatchNext #-}
 
 class MatchBuiltin uni where
   type BuiltinPattern uni
 
   {-| Given a built-in constant and an ordered vector of pattern/handler alternatives, choose the
-  first matching handler while paying incrementally through 'spendPatternWork',
-  'spendPatternStructuralWork', and 'spendPatternMatchNext'. The CEK supplies the concrete budget
-  dispatcher when it runs the resulting 'PatternMatchM'.
+  first matching handler while paying incrementally through 'spendPatternWork'. The CEK supplies
+  the concrete four-quantum budget dispatcher when it runs the resulting 'PatternMatchM'.
 
   Accounting is a strict sequencing boundary: the matcher must call the appropriate helper before
   the work charged to it. The CEK can defer the actual budget deduction by its usual bounded step
@@ -114,9 +103,10 @@ class MatchBuiltin uni where
   streamed alongside their child patterns with a spend before each reached field edge; the final
   edge can include the bounded exact-arity probe. They must not be traversed with 'length'. Early
   mismatch stops without paying for unreachable pattern work. Each reached capture is charged
-  before it is retained. That accounting covers both its later strict 'Spine' materialization and
-  its implicit application to the selected handler, even when a subsequent mismatch abandons the
-  capture. Other events cover only the immediately following bounded operation.
+  before it is retained, including when a subsequent mismatch abandons it. Successful capture
+  materialization has its own charge before the strict 'Spine' is built; applying that spine to the
+  selected handler remains ordinary CEK work. Other events cover only the immediately following
+  bounded operation.
 
   Alternative ordering and selection belong to the universe matcher, not the CEK machine. A
   successful matcher returns the selected handler and captures directly in head-spine form and

@@ -49,24 +49,16 @@ data CekMachineCostsBase f
   , cekConstrCost :: f ExBudget
   , cekCaseCost :: f ExBudget
   , cekMatchCost :: f ExBudget
-  {-^ Fixed cost of entering a 'Match' node. This is separate from 'cekPatternCost' so repeated
-  shallow matches remain bounded without making wide structural matching more expensive than the
-  equivalent builtin program. -}
+  {-^ High-memory Match quantum. A 'Match' node pays one on entry, and the matcher reuses it for
+  reached captures. -}
   , cekPatternCost :: f ExBudget
-  {-^ Cost of cheap Match work counted as ordinary CEK steps: an alternative/root probe, one
-  compared 64-bit bytestring word, or one unit of reached-capture work. Each reached capture counts
-  two units before retention: one for its eventual strict spine cell and one for its implicit
-  handler application. -}
+  {-^ Low-memory bounded-compute quantum. Universe-specific matchers combine small integer
+  multiples of this with the other three Match quanta to price logical actions. -}
   , cekPatternStructuralCost :: f ExBudget
-  {-^ Cost of one reached Match child/field edge, including dispatch of that child and the bounded
-  exact-arity probe at the edge. It is separate because structural traversal is materially more
-  expensive than scalar work. -}
+  -- ^ Cost of one reached Match child/field edge and its bounded arity probe.
   , cekPatternFailureCost :: f ExBudget
-  {-^ Cost of abandoning a known-failed alternative, advancing, and probing the next ordered
-  alternative. The work that discovers the mismatch is covered by its preceding base or structural
-  charge; this step is accounted before the transition and next probe. There is no pattern
-  pre-scan, cached measure, or refund. Reached captures retain their earlier
-  materialization/application accounting even when later work abandons the alternative. -}
+  {-^ Streaming payload/control quantum. It prices compared ByteString words directly and combines
+  with bounded-compute quanta for endpoints and ordered-alternative transitions. -}
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)

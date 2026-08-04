@@ -1120,10 +1120,10 @@ outOfBoundsErr x branches =
     , display $ Vector.length branches
     ]
 
-byteStringPatternWords :: ByteString -> Int
+byteStringPatternWords :: ByteString -> Word64
 byteStringPatternWords bs =
   let (wholeWords, trailingBytes) = B.length bs `quotRem` 8
-   in max 1 $ wholeWords + if trailingBytes == 0 then 0 else 1
+   in fromIntegral $ wholeWords + if trailingBytes == 0 then 0 else 1
 {-# INLINE byteStringPatternWords #-}
 
 instance AnnotateCaseBuiltin DefaultUni where
@@ -1227,21 +1227,44 @@ On success, the strict tail-recursive materializer consumes the list directly in
 handler-application order. -}
 type DefaultReverseCaptures = [Some (ValueOf DefaultUni)]
 
+-- The four existing cost-model fields are an additive basis for the independently measured
+-- matcher actions. Keep this projection beside the Default universe matcher so every emission
+-- point has a named, auditable recipe and the generic CEK remains unaware of Default patterns.
+defaultPatternAttemptWork :: PatternWork
+defaultPatternAttemptWork = PatternWork 0 1 0 0
+
+defaultPatternCaptureWork :: PatternWork
+defaultPatternCaptureWork = PatternWork 1 0 0 0
+
+defaultPatternCaptureFinishWork :: PatternWork
+defaultPatternCaptureFinishWork = PatternWork 0 2 0 0
+
+defaultPatternByteStringBaseWork :: PatternWork
+defaultPatternByteStringBaseWork = PatternWork 0 10 0 0
+
+defaultPatternByteStringWordWork :: Word64 -> PatternWork
+defaultPatternByteStringWordWork wordCount = PatternWork 0 0 0 wordCount
+
+defaultPatternEndpointWork :: PatternWork
+defaultPatternEndpointWork = PatternWork 0 2 0 1
+
+defaultPatternContainerWork :: PatternWork
+defaultPatternContainerWork = PatternWork 0 7 0 0
+
+defaultPatternPairOrDispatchWork :: PatternWork
+defaultPatternPairOrDispatchWork = PatternWork 0 6 0 0
+
+defaultPatternStructuralWork :: PatternWork
+defaultPatternStructuralWork = PatternWork 0 0 1 0
+
+defaultPatternMatchNextWork :: PatternWork
+defaultPatternMatchNextWork = PatternWork 0 4 0 1
+
 spendDefaultPatternWork
-  :: Word64
+  :: PatternWork
   -> PatternMatchM s ()
 spendDefaultPatternWork = spendPatternWork
 {-# INLINE spendDefaultPatternWork #-}
-
-spendDefaultStructuralWork
-  :: PatternMatchM s ()
-spendDefaultStructuralWork = spendPatternStructuralWork
-{-# INLINE spendDefaultStructuralWork #-}
-
-spendDefaultMatchNext
-  :: PatternMatchM s ()
-spendDefaultMatchNext = spendPatternMatchNext
-{-# INLINE spendDefaultMatchNext #-}
 
 {-| Select the first matching alternative. The alternative loop lives beside the universe-specific
 matcher so the CEK invokes matching once, just as it invokes builtin casing once.
@@ -1259,9 +1282,16 @@ matchDefaultAlternatives rootValue alternatives =
     runPatternMatchM (attemptSpend >> goPaidAlternative alternatives) spend
   where
     -- Reusing these actions reruns their spending effects; it does not prepay work.
-    attemptSpend = spendDefaultPatternWork 1
-    structuralSpend = spendDefaultStructuralWork
-    matchNextSpend = spendDefaultMatchNext
+    attemptSpend = spendDefaultPatternWork defaultPatternAttemptWork
+    captureSpend = spendDefaultPatternWork defaultPatternCaptureWork
+    captureFinishSpend = spendDefaultPatternWork defaultPatternCaptureFinishWork
+    byteStringBaseSpend = spendDefaultPatternWork defaultPatternByteStringBaseWork
+    byteStringWordSpend = spendDefaultPatternWork . defaultPatternByteStringWordWork
+    endpointSpend = spendDefaultPatternWork defaultPatternEndpointWork
+    containerSpend = spendDefaultPatternWork defaultPatternContainerWork
+    pairOrDispatchSpend = spendDefaultPatternWork defaultPatternPairOrDispatchWork
+    structuralSpend = spendDefaultPatternWork defaultPatternStructuralWork
+    matchNextSpend = spendDefaultPatternWork defaultPatternMatchNextWork
 
     goPaidAlternative
       :: Vector.Vector (DefaultBuiltinPattern, term)
@@ -1292,7 +1322,8 @@ matchDefaultAlternatives rootValue alternatives =
       -> DefaultReverseCaptures
       -> PatternMatchM s (HeadSpine Text term (Some (ValueOf DefaultUni)))
     finish handler [] = pure $ HeadOnly handler
-    finish handler (finalCapture : previousCaptures) =
+    finish handler (finalCapture : previousCaptures) = do
+      captureFinishSpend
       let materialize
             :: Spine (Some (ValueOf DefaultUni))
             -> DefaultReverseCaptures
@@ -1301,7 +1332,7 @@ matchDefaultAlternatives rootValue alternatives =
           materialize !acc (capture : previous) =
             materialize (SpineCons capture acc) previous
           !captureSpine = materialize (SpineLast finalCapture) previousCaptures
-       in pure $ HeadSpine handler captureSpine
+      pure $ HeadSpine handler captureSpine
 
     resumeWork
       :: DefaultPatternWorkStack term
@@ -1360,9 +1391,7 @@ matchDefaultAlternatives rootValue alternatives =
           DefaultPatternWildcard ->
             resumeWork rest captures
           DefaultPatternCapture -> do
-            -- One unit accounts for the later strict Spine cell, and one for its implicit handler
-            -- application. Both remain counted if later work abandons this alternative.
-            spendDefaultPatternWork 2
+            captureSpend
             let !captures' = currentValueOf : captures
             resumeWork rest captures'
           DefaultPatternInteger expected -> case currentUni of
@@ -1370,20 +1399,20 @@ matchDefaultAlternatives rootValue alternatives =
               | currentValue == toInteger expected ->
                   resumeWork rest captures
             _ -> nextAlternative rest
-          DefaultPatternByteString expected -> case currentUni of
-            DefaultUniByteString
-              | B.length currentValue /= B.length expected ->
-                  nextAlternative rest
-              | otherwise ->
-                  -- Length is strict bytestring metadata. Account for the entire native comparison
-                  -- before equality is allowed to inspect the payload.
-                  spendDefaultPatternWork
-                    (fromIntegral $ byteStringPatternWords expected)
-                    >>= \() ->
-                      if currentValue == expected
-                        then resumeWork rest captures
-                        else nextAlternative rest
-            _ -> nextAlternative rest
+          DefaultPatternByteString expected -> do
+            -- Base work covers type and length inspection. Payload equality is separately prepaid
+            -- in eight-byte quanta, so an empty comparison emits no payload quantum.
+            byteStringBaseSpend
+            case currentUni of
+              DefaultUniByteString
+                | B.length currentValue /= B.length expected ->
+                    nextAlternative rest
+                | otherwise -> do
+                    byteStringWordSpend $ byteStringPatternWords expected
+                    if currentValue == expected
+                      then resumeWork rest captures
+                      else nextAlternative rest
+              _ -> nextAlternative rest
           DefaultPatternBool expected -> case currentUni of
             DefaultUniBool
               | currentValue == expected ->
@@ -1392,67 +1421,77 @@ matchDefaultAlternatives rootValue alternatives =
           DefaultPatternUnit -> case currentUni of
             DefaultUniUnit -> resumeWork rest captures
             _ -> nextAlternative rest
-          DefaultPatternList fieldEnd children -> case currentUni of
-            DefaultUniList elemUni ->
-              matchFields
-                fieldEnd
-                children
-                elemUni
-                currentValue
-                rest
-                captures
-            _ -> nextAlternative rest
-          DefaultPatternPair leftPattern rightPattern -> case currentUni of
-            DefaultUniPair leftUni rightUni -> case currentValue of
-              (left, right) ->
-                matchValue
-                  leftPattern
-                  (someValueOf leftUni left)
-                  ( DefaultPatternValueWork
-                      (defaultPatternWorkAlternatives rest)
-                      rightPattern
-                      (someValueOf rightUni right)
-                      rest
-                  )
-                  captures
-            _ -> nextAlternative rest
-          DefaultPatternDataConstr expectedTag fieldEnd children -> case currentUni of
-            DefaultUniData -> case currentValue of
-              PLC.Constr actualTag fields
-                | actualTag == toInteger expectedTag ->
-                    matchFields
-                      fieldEnd
-                      children
-                      DefaultUniData
-                      fields
-                      rest
-                      captures
-              _ -> nextAlternative rest
-            _ -> nextAlternative rest
-          DefaultPatternDataMap fieldEnd children -> case currentUni of
-            DefaultUniData -> case currentValue of
-              PLC.Map fields ->
+          DefaultPatternList fieldEnd children -> do
+            containerSpend
+            case currentUni of
+              DefaultUniList elemUni ->
                 matchFields
                   fieldEnd
                   children
-                  (DefaultUniPair DefaultUniData DefaultUniData)
-                  fields
+                  elemUni
+                  currentValue
                   rest
                   captures
               _ -> nextAlternative rest
-            _ -> nextAlternative rest
-          DefaultPatternDataList fieldEnd children -> case currentUni of
-            DefaultUniData -> case currentValue of
-              PLC.List fields ->
-                matchFields
-                  fieldEnd
-                  children
-                  DefaultUniData
-                  fields
-                  rest
-                  captures
+          DefaultPatternPair leftPattern rightPattern -> do
+            pairOrDispatchSpend
+            case currentUni of
+              DefaultUniPair leftUni rightUni -> case currentValue of
+                (left, right) ->
+                  matchValue
+                    leftPattern
+                    (someValueOf leftUni left)
+                    ( DefaultPatternValueWork
+                        (defaultPatternWorkAlternatives rest)
+                        rightPattern
+                        (someValueOf rightUni right)
+                        rest
+                    )
+                    captures
               _ -> nextAlternative rest
-            _ -> nextAlternative rest
+          DefaultPatternDataConstr expectedTag fieldEnd children -> do
+            containerSpend
+            case currentUni of
+              DefaultUniData -> case currentValue of
+                PLC.Constr actualTag fields
+                  | actualTag == toInteger expectedTag ->
+                      matchFields
+                        fieldEnd
+                        children
+                        DefaultUniData
+                        fields
+                        rest
+                        captures
+                _ -> nextAlternative rest
+              _ -> nextAlternative rest
+          DefaultPatternDataMap fieldEnd children -> do
+            containerSpend
+            case currentUni of
+              DefaultUniData -> case currentValue of
+                PLC.Map fields ->
+                  matchFields
+                    fieldEnd
+                    children
+                    (DefaultUniPair DefaultUniData DefaultUniData)
+                    fields
+                    rest
+                    captures
+                _ -> nextAlternative rest
+              _ -> nextAlternative rest
+          DefaultPatternDataList fieldEnd children -> do
+            containerSpend
+            case currentUni of
+              DefaultUniData -> case currentValue of
+                PLC.List fields ->
+                  matchFields
+                    fieldEnd
+                    children
+                    DefaultUniData
+                    fields
+                    rest
+                    captures
+                _ -> nextAlternative rest
+              _ -> nextAlternative rest
           DefaultPatternDataI nested -> case currentUni of
             DefaultUniData -> case currentValue of
               PLC.I integer ->
@@ -1501,18 +1540,25 @@ matchDefaultAlternatives rootValue alternatives =
               [] -> resumeWork rest currentCaptures
               _ -> nextAlternative rest
             DefaultPatternFieldsPrefixWildcard -> do
-              spendDefaultPatternWork 1
+              endpointSpend
               resumeWork rest currentCaptures
             DefaultPatternFieldsPrefixCapture -> do
-              spendDefaultPatternWork 1
-              spendDefaultPatternWork 2
+              endpointSpend
+              captureSpend
               let !capture = someValueOf (DefaultUniList elemUni) currentFields
                   !captures' = capture : currentCaptures
               resumeWork rest captures'
           Just (currentPattern, remainingPatterns) -> do
             structuralSpend
             case currentFields of
-              [] -> nextAlternative rest
+              [] -> do
+                -- A non-trivial requested child still incurs dispatch when its field is missing.
+                -- Inline wildcards and captures can reject directly.
+                case currentPattern of
+                  DefaultPatternWildcard -> pure ()
+                  DefaultPatternCapture -> pure ()
+                  _ -> pairOrDispatchSpend
+                nextAlternative rest
               field : remainingFields ->
                 let continueFields = case currentPattern of
                       DefaultPatternWildcard ->
@@ -1524,7 +1570,7 @@ matchDefaultAlternatives rootValue alternatives =
                           rest
                           currentCaptures
                       DefaultPatternCapture -> do
-                        spendDefaultPatternWork 2
+                        captureSpend
                         let !capture = someValueOf elemUni field
                             !captures' = capture : currentCaptures
                         matchFields
@@ -1535,32 +1581,31 @@ matchDefaultAlternatives rootValue alternatives =
                           rest
                           captures'
                       nested ->
-                        -- This field-edge spend includes dispatch of the child. A nested match
-                        -- therefore enters the paid matcher directly; any later edge resumes this
-                        -- general field loop through the explicit work stack.
-                        matchPaidValue
-                          nested
-                          (someValueOf elemUni field)
-                          ( DefaultPatternFieldsWork
-                              (defaultPatternWorkAlternatives rest)
-                              fieldEnd
-                              remainingPatterns
-                              elemUni
-                              remainingFields
-                              rest
-                          )
-                          currentCaptures
+                        pairOrDispatchSpend
+                          >> matchPaidValue
+                            nested
+                            (someValueOf elemUni field)
+                            ( DefaultPatternFieldsWork
+                                (defaultPatternWorkAlternatives rest)
+                                fieldEnd
+                                remainingPatterns
+                                elemUni
+                                remainingFields
+                                rest
+                            )
+                            currentCaptures
                  in if Vector.null remainingPatterns
                       then case fieldEnd of
                         DefaultPatternFieldsExact -> case remainingFields of
                           [] ->
-                            -- The field-edge spend covers this final child dispatch. Entering
-                            -- the paid matcher directly retains the exact-pattern fast path.
-                            matchPaidValue
-                              currentPattern
-                              (someValueOf elemUni field)
-                              rest
-                              currentCaptures
+                            -- Every successful exact-final child is dispatched here. The
+                            -- over-wide branch below rejects without visiting or charging it.
+                            pairOrDispatchSpend
+                              >> matchPaidValue
+                                currentPattern
+                                (someValueOf elemUni field)
+                                rest
+                                currentCaptures
                           _ -> nextAlternative rest
                         DefaultPatternFieldsPrefixWildcard -> continueFields
                         DefaultPatternFieldsPrefixCapture -> continueFields

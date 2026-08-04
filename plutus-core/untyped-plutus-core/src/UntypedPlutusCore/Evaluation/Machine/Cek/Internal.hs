@@ -216,10 +216,10 @@ data StepKind
   | BBuiltin -- Cost of evaluating a Builtin AST node, not the function itself
   | BConstr
   | BCase
-  | BMatch
-  | BPattern -- Root/scalar work, bytestring words, and reached captures
-  | BStructural -- Reached child/field edges and their bounded arity probes
-  | BMatchNext -- Abandoning a failed alternative and probing the next one
+  | BMatch -- High-memory fixed Match/capture quantum
+  | BPattern -- Low-memory bounded matcher-compute quantum
+  | BStructural -- Reached child/field-edge quantum
+  | BMatchNext -- Streaming payload/control quantum
   deriving stock (Show, Eq, Ord, Generic, Enum, Bounded)
   deriving anyclass (NFData, Hashable)
 
@@ -863,10 +863,11 @@ enterComputeCek = computeCek
     -- This is deliberately shared by the whole recursive group. The old implicit parameters stay
     -- at the exported boundary for the steppable evaluator, while the production worker captures
     -- one packed pointer in place of separate case, match, and pattern-spending references.
-    !spendPattern = \case
-      PatternWork units -> stepAndMaybeSpendN BPattern units
-      PatternStructuralWork -> stepAndMaybeSpend BStructural
-      PatternMatchNextWork -> stepAndMaybeSpend BMatchNext
+    !spendPattern = \(PatternWork matchUnits patternUnits structuralUnits nextUnits) -> do
+      stepAndMaybeSpendN BMatch matchUnits
+      stepAndMaybeSpendN BPattern patternUnits
+      stepAndMaybeSpendN BStructural structuralUnits
+      stepAndMaybeSpendN BMatchNext nextUnits
     !caseMatchers =
       CekCaseMatchers
         ?cekCaserBuiltin

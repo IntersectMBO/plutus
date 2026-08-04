@@ -158,17 +158,22 @@ validateCases evalCtx cases =
                     <> show actual
 
 budgetsFromCounts :: MatchStepCounts -> MatchStepBudgets
-budgetsFromCounts (MatchStepCounts m c _ b w e _ _ s _ n k l) =
+budgetsFromCounts (MatchStepCounts m c f b w e container pair s dispatch n k l) =
   MatchStepBudgets
-    (unit m)
-    (unit $ m + 2 * c + e + byteStringWork)
+    (unit $ m + c)
+    ( unit $
+        m
+          + 2 * f
+          + 10 * b
+          + 2 * e
+          + 7 * container
+          + 6 * pair
+          + 6 * dispatch
+          + 4 * n
+    )
     (unit s)
-    (unit n)
+    (unit $ w + e + n)
     (unit k)
     (unit l)
   where
-    -- The current four-kind evaluator charges ByteString equality as BPattern units. The
-    -- calibration cases are homogeneous: an empty comparison has one Base and no Word event in
-    -- the semantic design row, while a non-empty comparison records its prepaid Word count.
-    byteStringWork = if w == 0 then b else w
     unit count = ExBudget (fromIntegral count) 0

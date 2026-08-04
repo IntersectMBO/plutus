@@ -509,8 +509,8 @@ test_patterns =
                 longer = term [1, 2, 3, 4, 5, 6]
             assertBothEvaluateTo (constantInteger 3) exact
             assertBothEvaluateTo (constantInteger 3) longer
-            assertBothPatternBudget (ExBudget 8 0) exact
-            assertBothPatternBudget (ExBudget 8 0) longer
+            assertBothPatternBudget (ExBudget 18 0) exact
+            assertBothPatternBudget (ExBudget 18 0) longer
         , testCase "capture rest returns the whole empty or non-empty suffix" $ do
             let rest = Name "rest" (Unique 6001)
                 handler = UPLC.LamAbs () rest $ UPLC.Var () rest
@@ -523,8 +523,8 @@ test_patterns =
                 longerSuffix = term [1, 2, 3, 4]
             assertBothEvaluateTo (mkConstant @[Integer] () []) emptySuffix
             assertBothEvaluateTo (mkConstant @[Integer] () [3, 4]) longerSuffix
-            assertBothPatternBudget (ExBudget 7 0) emptySuffix
-            assertBothPatternBudget (ExBudget 7 0) longerSuffix
+            assertBothPatternBudget (ExBudget 23 0) emptySuffix
+            assertBothPatternBudget (ExBudget 23 0) longerSuffix
         , testCase "zero fixed heads type-check or capture the entire list" $ do
             let rest = Name "rest" (Unique 6002)
                 captureWholeHandler = UPLC.LamAbs () rest $ UPLC.Var () rest
@@ -542,9 +542,9 @@ test_patterns =
             assertBothEvaluateTo (constantInteger 42) emptyWildcard
             assertBothEvaluateTo (constantInteger 42) longerWildcard
             assertBothEvaluateTo (mkConstant @[Integer] () [1, 2]) wholeList
-            assertBothPatternBudget (ExBudget 3 0) emptyWildcard
-            assertBothPatternBudget (ExBudget 3 0) longerWildcard
-            assertBothPatternBudget (ExBudget 5 0) wholeList
+            assertBothPatternBudget (ExBudget 12 0) emptyWildcard
+            assertBothPatternBudget (ExBudget 12 0) longerWildcard
+            assertBothPatternBudget (ExBudget 15 0) wholeList
         , testCase "too-short and non-list scrutinees fall through" $ do
             let pat =
                   listPrefixPattern
@@ -563,8 +563,8 @@ test_patterns =
                 nonList = withFallback $ constantInteger 1
             assertBothEvaluateTo (constantInteger 99) tooShort
             assertBothEvaluateTo (constantInteger 99) nonList
-            assertBothPatternBudget (ExBudget 6 0) tooShort
-            assertBothPatternBudget (ExBudget 3 0) nonList
+            assertBothPatternBudget (ExBudget 17 0) tooShort
+            assertBothPatternBudget (ExBudget 14 0) nonList
         , testCase "captures before a nested mismatch are discarded on fallback" $ do
             let whole = Name "whole" (Unique 6004)
                 scrutinee = mkConstant @[(Integer, Integer)] () [(1, 2), (3, 4), (5, 6)]
@@ -601,7 +601,7 @@ test_patterns =
                   matchSingle pat handler $
                     mkConstant @[(Integer, Integer)] () [(1, 2), (3, 4)]
             assertBothEvaluateTo (constantInteger 2) term
-            assertBothPatternBudget (ExBudget 8 0) term
+            assertBothPatternBudget (ExBudget 30 0) term
         , testCase "fixed-head captures precede the captured rest" $ do
             let pat =
                   listPrefixPattern
@@ -613,7 +613,7 @@ test_patterns =
             assertBothEvaluateTo (constantInteger 10) $ term 0
             assertBothEvaluateTo (constantInteger 20) $ term 1
             assertBothEvaluateTo (mkConstant @[Integer] () [30, 40]) $ term 2
-            mapM_ (assertBothPatternBudget $ ExBudget 11 0) $ fmap term [0 .. 2]
+            mapM_ (assertBothPatternBudget $ ExBudget 19 0) $ fmap term [0 .. 2]
         ]
     , testGroup
         "Data field-prefix patterns"
@@ -631,7 +631,7 @@ test_patterns =
                         constantData $
                           PLC.List [PLC.Constr 7 [PLC.I 42], PLC.B "tail"]
                 assertBothEvaluateTo (constantInteger 42) term
-                assertBothPatternBudget (ExBudget 8 0) term
+                assertBothPatternBudget (ExBudget 37 0) term
             , testCase "fixed captures precede a captured list Data suffix" $ do
                 let pat =
                       dataListPrefixPattern
@@ -645,7 +645,7 @@ test_patterns =
                 assertBothEvaluateTo
                   (mkConstant @[PLC.Data] () [PLC.B "tail", PLC.Constr 0 []])
                   (term 1)
-                mapM_ (assertBothPatternBudget $ ExBudget 8 0) $ fmap term [0, 1]
+                mapM_ (assertBothPatternBudget $ ExBudget 17 0) $ fmap term [0, 1]
             , testCase "too-short fields fall through before the rest operation" $ do
                 let pat =
                       dataListPrefixPattern
@@ -661,7 +661,7 @@ test_patterns =
                             ]
                         )
                 assertBothEvaluateTo (constantInteger 1) term
-                assertBothPatternBudget (ExBudget 5 0) term
+                assertBothPatternBudget (ExBudget 16 0) term
             ]
         , testGroup
             "Data.Constr"
@@ -684,8 +684,8 @@ test_patterns =
                     wrongTag = term $ PLC.Constr 8 [PLC.I 1, PLC.B "tail"]
                 assertBothEvaluateTo (constantInteger 7) matching
                 assertBothEvaluateTo (constantInteger 0) wrongTag
-                assertBothPatternBudget (ExBudget 5 0) matching
-                assertBothPatternBudget (ExBudget 3 0) wrongTag
+                assertBothPatternBudget (ExBudget 20 0) matching
+                assertBothPatternBudget (ExBudget 14 0) wrongTag
             , testCase "capture rest exposes the remaining constructor fields as list Data" $ do
                 let pat =
                       dataConstrPrefixPattern
@@ -700,7 +700,7 @@ test_patterns =
                 assertBothEvaluateTo
                   (mkConstant @[PLC.Data] () [PLC.B "tail", PLC.List []])
                   (term 1)
-                mapM_ (assertBothPatternBudget $ ExBudget 8 0) $ fmap term [0, 1]
+                mapM_ (assertBothPatternBudget $ ExBudget 17 0) $ fmap term [0, 1]
             , testCase "too-short constructor fields fall through" $ do
                 let pat =
                       dataConstrPrefixPattern
@@ -717,7 +717,7 @@ test_patterns =
                             ]
                         )
                 assertBothEvaluateTo (constantInteger 1) term
-                assertBothPatternBudget (ExBudget 5 0) term
+                assertBothPatternBudget (ExBudget 16 0) term
             ]
         , testGroup
             "Data.Map"
@@ -738,7 +738,7 @@ test_patterns =
                             , (PLC.I 2, PLC.B "two")
                             ]
                 assertBothEvaluateTo (constantInteger 1) term
-                assertBothPatternBudget (ExBudget 9 0) term
+                assertBothPatternBudget (ExBudget 40 0) term
             , testCase "fixed captures precede a captured list-of-pairs suffix" $ do
                 let firstEntry = (PLC.I 1, PLC.B "one")
                     remainingEntries =
@@ -755,7 +755,7 @@ test_patterns =
                 assertBothEvaluateTo
                   (mkConstant @[(PLC.Data, PLC.Data)] () remainingEntries)
                   (term 1)
-                mapM_ (assertBothPatternBudget $ ExBudget 8 0) $ fmap term [0, 1]
+                mapM_ (assertBothPatternBudget $ ExBudget 17 0) $ fmap term [0, 1]
             , testCase "too-short map entries fall through" $ do
                 let pat =
                       dataMapPrefixPattern
@@ -771,7 +771,7 @@ test_patterns =
                             ]
                         )
                 assertBothEvaluateTo (constantInteger 1) term
-                assertBothPatternBudget (ExBudget 5 0) term
+                assertBothPatternBudget (ExBudget 16 0) term
             ]
         ]
     , testCase "nested captures are supplied depth-first and left-to-right" $ do
@@ -859,7 +859,7 @@ test_patterns =
                 )
             shallowTerm = term DefaultPatternWildcard (PLC.I 0)
             deepTerm = term deepPattern deepData
-            shallowBudget = ExBudget 4 0
+            shallowBudget = ExBudget 15 0
         deepPattern `seq` deepData `seq` pure ()
         assertBothEvaluateTo (constantInteger 1) shallowTerm
         assertBothEvaluateTo (constantInteger 1) deepTerm
@@ -893,17 +893,18 @@ test_patterns =
                     , constantInteger 0
                     )
                 )
-        patternBudget (exactConstr 0 DefaultPatternWildcard) @?= ExBudget 2 0
-        patternBudget noCaptureTerm @?= ExBudget 5 0
-        patternBudget captureTerm @?= ExBudget 11 0
-        patternBudget matchNoCaptureTerm @?= ExBudget 5 0
+        patternBudget (exactConstr 0 DefaultPatternWildcard) @?= ExBudget 9 0
+        patternBudget noCaptureTerm @?= ExBudget 18 0
+        patternBudget captureTerm @?= ExBudget 23 0
+        patternBudget matchNoCaptureTerm @?= ExBudget 18 0
         stepBudget Cek.BApply noCaptureTerm @?= ExBudget 0 0
         stepBudget Cek.BApply captureTerm @?= ExBudget 0 0
         assertBothCategoryBudget (ExBudget 1 0) (Cek.BStep Cek.BMatch) noCaptureTerm
-        assertBothCategoryBudget (ExBudget 1 0) (Cek.BStep Cek.BPattern) noCaptureTerm
+        assertBothCategoryBudget (ExBudget 14 0) (Cek.BStep Cek.BPattern) noCaptureTerm
         assertBothCategoryBudget (ExBudget 3 0) (Cek.BStep Cek.BStructural) noCaptureTerm
         assertBothCategoryBudget (ExBudget 0 0) (Cek.BStep Cek.BMatchNext) noCaptureTerm
-        assertBothCategoryBudget (ExBudget 7 0) (Cek.BStep Cek.BPattern) captureTerm
+        assertBothCategoryBudget (ExBudget 4 0) (Cek.BStep Cek.BMatch) captureTerm
+        assertBothCategoryBudget (ExBudget 16 0) (Cek.BStep Cek.BPattern) captureTerm
         assertBothCategoryBudget (ExBudget 3 0) (Cek.BStep Cek.BStructural) captureTerm
     , testCase "failed alternatives are charged separately from pattern inspection" $ do
         let term =
@@ -916,9 +917,9 @@ test_patterns =
                     ]
                 )
         assertBothEvaluateTo (constantInteger 2) term
-        assertBothPatternBudget (ExBudget 3 0) term
+        assertBothPatternBudget (ExBudget 7 0) term
         assertBothCategoryBudget (ExBudget 1 0) (Cek.BStep Cek.BMatch) term
-        assertBothCategoryBudget (ExBudget 1 0) (Cek.BStep Cek.BPattern) term
+        assertBothCategoryBudget (ExBudget 5 0) (Cek.BStep Cek.BPattern) term
         assertBothCategoryBudget (ExBudget 0 0) (Cek.BStep Cek.BStructural) term
         assertBothCategoryBudget (ExBudget 1 0) (Cek.BStep Cek.BMatchNext) term
     , testCase "every reached capture is charged before alternative selection completes" $ do
@@ -1000,20 +1001,20 @@ test_patterns =
         assertBothEvaluateTo (constantInteger 1) $ abandonedCaptureWithSuffix 0
         assertBothEvaluateTo (constantInteger 1) $ abandonedCaptureWithSuffix 1000
         assertBothEvaluateTo (constantInteger 20) resetCaptures
-        assertPatternBudget (ExBudget 4 0) rootCapture
-        assertPatternBudget (ExBudget 5 0) finalFieldCapture
-        assertPatternBudget (ExBudget 6 0) nonFinalFieldCapture
-        assertPatternBudget (ExBudget 10 0) $ abandonedCaptures 0
-        assertPatternBudget (ExBudget 10 0) $ abandonedCaptures 1000
-        assertPatternBudget (ExBudget 7 0) $ abandonedCaptureWithSuffix 0
-        assertPatternBudget (ExBudget 7 0) $ abandonedCaptureWithSuffix 1000
+        assertPatternBudget (ExBudget 5 0) rootCapture
+        assertPatternBudget (ExBudget 19 0) finalFieldCapture
+        assertPatternBudget (ExBudget 20 0) nonFinalFieldCapture
+        assertPatternBudget (ExBudget 25 0) $ abandonedCaptures 0
+        assertPatternBudget (ExBudget 25 0) $ abandonedCaptures 1000
+        assertPatternBudget (ExBudget 23 0) $ abandonedCaptureWithSuffix 0
+        assertPatternBudget (ExBudget 23 0) $ abandonedCaptureWithSuffix 1000
     , testCase "the pre-activation Match coefficients cap ledger-scale work" $
         case defaultParameters of
           MachineParameters _ _ (MachineVariantParameters costs _) -> do
-            runIdentity (cekMatchCost costs) @?= ExBudget 26000 100
-            runIdentity (cekPatternCost costs) @?= ExBudget 20000 100
+            runIdentity (cekMatchCost costs) @?= ExBudget 33002 200
+            runIdentity (cekPatternCost costs) @?= ExBudget 9492 1
             runIdentity (cekPatternStructuralCost costs) @?= ExBudget 13000 60
-            runIdentity (cekPatternFailureCost costs) @?= ExBudget 17000 100
+            runIdentity (cekPatternFailureCost costs) @?= ExBudget 1771 100
     , testCase "Data.Constr Match costs less than direct and checked UnConstrData" $ do
         let assertCpuCheaper label candidateBudget baselineBudget =
               case (candidateBudget, baselineBudget) of
@@ -1038,14 +1039,16 @@ test_patterns =
               ExBudget
                 (317021 + 64000 * fromIntegral width)
                 (1633 + 400 * fromIntegral width)
+            expectedWildcards 0 = ExBudget 141038 508
             expectedWildcards width =
               ExBudget
-                (78100 + 13000 * fromIntegral width)
-                (500 + 60 * fromIntegral width)
+                (197990 + 13000 * fromIntegral width)
+                (514 + 60 * fromIntegral width)
+            expectedCaptures 0 = ExBudget 141038 508
             expectedCaptures width =
               ExBudget
-                (78100 + 69000 * fromIntegral width)
-                (500 + 360 * fromIntegral width)
+                (216974 + 62002 * fromIntegral width)
+                (516 + 360 * fromIntegral width)
         mapM_
           ( \width -> do
               let traditional = traditionalDataConstrMatch width
@@ -1069,7 +1072,7 @@ test_patterns =
                 captures
                 directUnConstr
           )
-          [0, 1, 3, 16]
+          [0, 1, 3, 16, 48, 128, 1024]
     , testCase "fixed-width integer and Data tag patterns have constant scalar cost" $ do
         let integerTerm expected =
               matchSingle
@@ -1098,10 +1101,10 @@ test_patterns =
               [dataConstrTerm 0, dataConstrTerm (maxBound :: Word64)]
             byteTerms = [bytesTerm smallBytes, bytesTerm largeBytes, bytesTerm slippageBoundaryBytes]
         mapM_ (\term -> patternBudget term @?= ExBudget 2 0) integerTerms
-        mapM_ (\term -> patternBudget term @?= ExBudget 2 0) dataConstrTerms
-        patternBudget (bytesTerm smallBytes) @?= ExBudget 3 0
-        patternBudget (bytesTerm largeBytes) @?= ExBudget 11 0
-        patternBudget (bytesTerm slippageBoundaryBytes) @?= ExBudget 203 0
+        mapM_ (\term -> patternBudget term @?= ExBudget 9 0) dataConstrTerms
+        patternBudget (bytesTerm smallBytes) @?= ExBudget 13 0
+        patternBudget (bytesTerm largeBytes) @?= ExBudget 21 0
+        patternBudget (bytesTerm slippageBoundaryBytes) @?= ExBudget 213 0
         mapM_
           ( \term -> do
               assertBothEvaluateTo (constantInteger 0) term
@@ -1122,9 +1125,9 @@ test_patterns =
         assertBothEvaluateTo (constantInteger 1) $ listTerm [1, 2]
         assertBothEvaluateTo (constantInteger 1) $ listTerm [1, 2, 3, 4]
         assertBothEvaluateTo (constantInteger 0) $ listTerm [1, 2, 3]
-        patternBudget (listTerm [1, 2]) @?= ExBudget 5 0
-        patternBudget (listTerm [1, 2, 3, 4]) @?= ExBudget 6 0
-        patternBudget (listTerm [1, 2, 3]) @?= ExBudget 5 0
+        patternBudget (listTerm [1, 2]) @?= ExBudget 16 0
+        patternBudget (listTerm [1, 2, 3, 4]) @?= ExBudget 17 0
+        patternBudget (listTerm [1, 2, 3]) @?= ExBudget 18 0
     , testCase "production and steppable CEK agree on Match and Apply budgets" $ do
         let assertParity wanted term =
               steppableStepBudget wanted term @?= stepBudget wanted term
