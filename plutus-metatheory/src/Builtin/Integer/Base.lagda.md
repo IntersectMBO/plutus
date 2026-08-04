@@ -25,7 +25,7 @@ This follows the implementation of Haskell's `integerQuotRem#`.
 
 ```
 quot : (n d : ℤ) .{{_ : NonZero d}} → ℤ
-quot n d = ((sign n S.* sign d) ◃ (∣ n ∣ ℕ./ ∣ d ∣))
+quot n d = (sign n S.* sign d) ◃ (∣ n ∣ ℕ./ ∣ d ∣)
 
 rem : (n d : ℤ) .{{_ : NonZero d}} → ℤ
 rem n d = sign n ◃ (∣ n ∣ ℕ.% ∣ d ∣)

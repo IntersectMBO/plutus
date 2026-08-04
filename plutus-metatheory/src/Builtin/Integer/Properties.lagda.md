@@ -3,7 +3,7 @@ title: Builtin.Integer.Properties
 layout: page
 ---
 
-This module contains proved properties of the extra functions defined in `Builtin.Integer.Base`.
+This module contains proved properties of the functions defined in `Builtin.Integer.Base`.
 
 ```
 module Builtin.Integer.Properties where
@@ -28,6 +28,17 @@ open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 ## Properties
 
 ```
+signs≡ : (n d : ℤ) → (sign n S.* sign d) S.* sign d ≡ sign n
+signs≡ n d = begin
+  (sign n S.* sign d) S.* sign d
+  ≡⟨ SP.*-assoc (sign n) (sign d) (sign d) ⟩
+  sign n S.* (sign d S.* sign d)
+  ≡⟨ cong (sign n S.*_) (SP.s*s≡+ (sign d)) ⟩
+  sign n S.* S.+
+  ≡⟨ SP.*-identityʳ (sign n) ⟩
+  sign n
+  ∎
+
 quotRem-law : (n d : ℤ) .{{_ : NonZero d}} → (quot n d) * d + (rem n d) ≡ n
 quotRem-law n d = begin
   quot n d * d + rem n d
@@ -37,7 +48,7 @@ quotRem-law n d = begin
   ((sign n S.* sign d) ◃ q) * (sign d ◃ ∣ d ∣) + (sign n ◃ r)
   ≡⟨ cong (_+ (sign n ◃ r)) (sym (◃-distrib-* (sign n S.* sign d) (sign d) q ∣ d ∣)) ⟩
   (((sign n S.* sign d) S.* sign d) ◃ (q ℕ.* ∣ d ∣)) + (sign n ◃ r)
-  ≡⟨ cong (λ s → (s ◃ (q ℕ.* ∣ d ∣)) + (sign n ◃ r)) signs≡ ⟩
+  ≡⟨ cong (λ s → (s ◃ (q ℕ.* ∣ d ∣)) + (sign n ◃ r)) (signs≡ n d) ⟩
   (sign n ◃ (q ℕ.* ∣ d ∣)) + (sign n ◃ r)
   ≡⟨ sym (◃-distrib-+ (sign n) (q ℕ.* ∣ d ∣) r) ⟩
   sign n ◃ (q ℕ.* ∣ d ∣ ℕ.+ r)
@@ -49,16 +60,6 @@ quotRem-law n d = begin
   where
     q = ∣ n ∣ ℕ./ ∣ d ∣
     r = ∣ n ∣ ℕ.% ∣ d ∣
-    signs≡ : (sign n S.* sign d) S.* sign d ≡ sign n
-    signs≡ = begin
-      (sign n S.* sign d) S.* sign d
-      ≡⟨ SP.*-assoc (sign n) (sign d) (sign d) ⟩
-      sign n S.* (sign d S.* sign d)
-      ≡⟨ cong (sign n S.*_) (SP.s*s≡+ (sign d)) ⟩
-      sign n S.* S.+
-      ≡⟨ SP.*-identityʳ (sign n) ⟩
-      sign n
-      ∎
     nat-law : q ℕ.* ∣ d ∣ ℕ.+ r ≡ ∣ n ∣
     nat-law = begin
       q ℕ.* ∣ d ∣ ℕ.+ r
@@ -67,6 +68,48 @@ quotRem-law n d = begin
       ≡⟨ sym (m≡m%n+[m/n]*n ∣ n ∣ ∣ d ∣) ⟩
       ∣ n ∣
       ∎
+
+sign-mult-◃⁺
+  : (n d : ℤ) .{{_ : NonZero n}} .{{_ : NonZero d}}
+  → (sign (n * d) S.* sign d) ◃ ∣ n ∣ ≡ n
+sign-mult-◃⁺ n d = begin
+  (sign (n * d) S.* sign d) ◃ ∣ n ∣
+  ≡⟨ cong (λ s → (s S.* sign d) ◃ ∣ n ∣) (sign-* n d {{i*j≢0 n d}}) ⟩
+  ((sign n S.* sign d) S.* sign d) ◃ ∣ n ∣
+  ≡⟨ cong (_◃ ∣ n ∣) (signs≡ n d) ⟩
+  sign n ◃ ∣ n ∣
+  ≡⟨ ◃-inverse n ⟩
+  n
+  ∎
+
+sign-mult-◃ : (n d : ℤ) .{{_ : NonZero d}} → (sign (n * d) S.* sign d) ◃ ∣ n ∣ ≡ n
+sign-mult-◃ +0 d = refl
+sign-mult-◃ +[1+ m ] d = sign-mult-◃⁺ +[1+ m ] d
+sign-mult-◃ -[1+ m ] d = sign-mult-◃⁺ -[1+ m ] d
+
+quot-mult-law : (n d : ℤ) .{{_ : NonZero d}} → quot (n * d) d ≡ n
+quot-mult-law n d = begin
+  quot (n * d) d
+  ≡⟨⟩
+  (sign (n * d) S.* sign d) ◃ (∣ n * d ∣ ℕ./ ∣ d ∣)
+  ≡⟨ cong (λ z → (sign (n * d) S.* sign d) ◃ (z ℕ./ ∣ d ∣)) (∣i*j∣≡∣i∣*∣j∣ n d) ⟩
+  (sign (n * d) S.* sign d) ◃ (∣ n ∣ ℕ.* ∣ d ∣ ℕ./ ∣ d ∣)
+  ≡⟨ cong (λ z → (sign (n * d) S.* sign d) ◃ z) (m*n/n≡m ∣ n ∣ ∣ d ∣) ⟩
+  (sign (n * d) S.* sign d) ◃ ∣ n ∣
+  ≡⟨ sign-mult-◃ n d ⟩
+  n
+  ∎
+
+rem-mult-law : (n d : ℤ) .{{_ : NonZero d}} → rem (n * d) d ≡ 0ℤ
+rem-mult-law n d = begin
+  rem (n * d) d
+  ≡⟨⟩
+  sign (n * d) ◃ (∣ n * d ∣ ℕ.% ∣ d ∣)
+  ≡⟨ cong (λ z → sign (n * d) ◃ (z ℕ.% ∣ d ∣)) (∣i*j∣≡∣i∣*∣j∣ n d) ⟩
+  sign (n * d) ◃ (∣ n ∣ ℕ.* ∣ d ∣ ℕ.% ∣ d ∣)
+  ≡⟨ cong (λ z → sign (n * d) ◃ z) (m*n%n≡0 ∣ n ∣ ∣ d ∣) ⟩
+  0ℤ
+  ∎
 
 -- Rearrangement behind the floored-division fixup:
 --   (q - 1) * d + (r + d) ≡ q * d + r
