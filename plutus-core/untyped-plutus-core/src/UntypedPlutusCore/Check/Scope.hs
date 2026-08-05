@@ -52,5 +52,9 @@ checkScope = go 0
       Apply _ t1 t2 -> go lvl t1 >> go lvl t2
       Force _ t -> go lvl t
       Delay _ t -> go lvl t
-      _ -> pure ()
+      Constr _ _i ts -> mapM_ (go lvl) ts
+      Case _ t ts -> go lvl t >> mapM_ (go lvl) ts
+      Constant _ _ -> pure ()
+      Error _ -> pure ()
+      Builtin _ _ -> pure ()
 {-# INLINE checkScope #-}
