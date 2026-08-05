@@ -1,5 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -139,7 +138,6 @@ module PlutusCore.Evaluation.Machine.ExBudget
   , minusExBudget
   , ExBudgetBuiltin (..)
   , ExRestrictingBudget (..)
-  , LowerInitialCharacter
   , largeBudget
   , enormousBudget
   ) where
@@ -148,18 +146,20 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusPrelude hiding (toList)
 
 import Codec.Serialise (Serialise (..))
+import Data.Aeson
+  ( FromJSON (..)
+  , Options
+  , ToJSON (..)
+  , defaultOptions
+  , fieldLabelModifier
+  , genericParseJSON
+  , genericToEncoding
+  , genericToJSON
+  )
 import Data.Semigroup
-import Deriving.Aeson
 import Language.Haskell.TH.Lift (Lift)
 import NoThunks.Class
 import Prettyprinter
-
-{-| This is used elsewhere to convert cost models into JSON objects where the
-names of the fields are exactly the same as the names of the builtins. -}
-data LowerInitialCharacter
-
-instance StringModifier LowerInitialCharacter where
-  getStringModifier = lowerInitialChar
 
 {-| A class for injecting a 'Builtin' into an @exBudgetCat@.
 We need it, because the constant application machinery calls 'spendBudget' before reducing a
@@ -175,9 +175,18 @@ instance ExBudgetBuiltin fun () where
 data ExBudget = ExBudget {exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory}
   deriving stock (Eq, Show, Generic, Lift)
   deriving anyclass (PrettyBy config, NFData, NoThunks, Serialise)
-  deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerInitialCharacter] ExBudget
 
--- LowerInitialCharacter won't actually do anything here, but let's have it in case we change the field names.
+-- 'lowerInitialChar' won't actually do anything here, but let's have it in case we change the
+-- field names.
+exBudgetOptions :: Options
+exBudgetOptions = defaultOptions {fieldLabelModifier = lowerInitialChar}
+
+instance ToJSON ExBudget where
+  toJSON = genericToJSON exBudgetOptions
+  toEncoding = genericToEncoding exBudgetOptions
+
+instance FromJSON ExBudget where
+  parseJSON = genericParseJSON exBudgetOptions
 
 -- | Subtract one 'ExBudget' from another. Does not guarantee that the result is positive.
 minusExBudget :: ExBudget -> ExBudget -> ExBudget

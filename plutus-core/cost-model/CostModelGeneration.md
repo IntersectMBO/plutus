@@ -292,7 +292,7 @@ our case, the costing function is given by the
 type. The type prefix `ModelTwoArguments` is removed from the
 constructor name and the remaining `MinSize` is converted to
 `min_size` by the Aeson library's
-[`CamelToSnake`](https://hackage.haskell.org/package/deriving-aeson-0.2.8/docs/Deriving-Aeson.html#t:CamelToSnake)
+[`camelTo2`](https://hackage.haskell.org/package/aeson/docs/Data-Aeson.html#v:camelTo2)
 transformation.  Similarly, the names of the
 `modelMinSizeIntercept` and `modelMinSizeSlope` fields in the
 `ModelMinSize` type are converted to `slope` and `intercept`.  In
