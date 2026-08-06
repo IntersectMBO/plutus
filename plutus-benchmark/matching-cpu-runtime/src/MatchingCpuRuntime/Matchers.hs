@@ -44,7 +44,8 @@ shallowMatcher makeBody =
     pure $ UPLC.LamAbs () argumentName body
 
 sumCapturedIntegers :: [UPLC.Name] -> NamedTerm
-sumCapturedIntegers =
+sumCapturedIntegers [] = mkConstant @Integer () 0
+sumCapturedIntegers (firstCapture : laterCaptures) =
   foldl'
     ( \acc captureName ->
         UPLC.Apply
@@ -52,7 +53,8 @@ sumCapturedIntegers =
           (UPLC.Apply () (UPLC.Builtin () PLC.AddInteger) acc)
           (UPLC.Var () captureName)
     )
-    (mkConstant @Integer () 0)
+    (UPLC.Var () firstCapture)
+    laterCaptures
 
 captureIntegerField :: UPLC.Name -> FieldMatcher
 captureIntegerField captureName fieldName continuation =
@@ -66,17 +68,45 @@ captureIntegerField captureName fieldName continuation =
           )
       )
 
+captureIntegerAlternatives :: UPLC.Name -> FieldMatcher
+captureIntegerAlternatives captureName fieldName continuation =
+  let handler = UPLC.LamAbs () captureName continuation
+   in pure $
+        UPLC.Match
+          ()
+          (UPLC.Var () fieldName)
+          ( Vector.fromList
+              [
+                ( DefaultPatternDataB DefaultPatternFieldBind
+                , handler
+                )
+              ,
+                ( DefaultPatternDataI DefaultPatternFieldBind
+                , handler
+                )
+              ]
+          )
+
+capturedFieldsAtNodeWith
+  :: (Int -> UPLC.Name -> FieldMatcher)
+  -> Int
+  -> Int
+  -> [(Int, UPLC.Name)]
+  -> [(Int, FieldMatcher)]
+capturedFieldsAtNodeWith captureField width nodeId capturePairs =
+  [ ((captureValue - 1) `mod` width, captureField captureValue captureName)
+  | (captureValue, captureName) <- capturePairs
+  , captureValue > (nodeId - 1) * width
+  , captureValue <= nodeId * width
+  ]
+
 capturedFieldsAtNode
   :: Int
   -> Int
   -> [(Int, UPLC.Name)]
   -> [(Int, FieldMatcher)]
-capturedFieldsAtNode width nodeId capturePairs =
-  [ ((captureValue - 1) `mod` width, captureIntegerField captureName)
-  | (captureValue, captureName) <- capturePairs
-  , captureValue > (nodeId - 1) * width
-  , captureValue <= nodeId * width
-  ]
+capturedFieldsAtNode =
+  capturedFieldsAtNodeWith $ const captureIntegerField
 
 withCapturedValues
   :: [Int]
@@ -627,34 +657,39 @@ match_benchmark_constr_binary_stress_d8_w8_c32_shallow =
               continuation
       go 1 8 1 argumentName result
 
--- Match: Constr 1 [@c2,...] ~ ... ~ Constr 15 [...,@c16,...];
---        c16 ~ {Constr 999 [_,_,_,@d,...] | Constr 16 [_,_,_,@d,...]}; d* ~ I @ => 544.
+-- Match: Constr 1 [@c2,_,_,_,_,_,_,@d] ~ ... ~ Constr 16 [...];
+--        d ~ {B @ | I @}; captured integers => 544.
 match_benchmark_constr_alt_spine_d16_w8_c8_shallow :: Term
 match_benchmark_constr_alt_spine_d16_w8_c8_shallow =
   shallowMatcher $ \argumentName -> do
-    let captureValues = [12, 28, 44, 60, 76, 92, 108, 124] :: [Int]
+    let captureValues = [8, 28, 44, 60, 76, 92, 108, 128] :: [Int]
         childPositions = [0, 7, 2, 5, 0, 7, 2, 5, 0, 7, 2, 5, 0, 7, 2] :: [Int]
     withCapturedValues captureValues $ \capturePairs result -> do
       let go nodeId remainingPositions scrutinee continuation = do
-            let scalarFields = capturedFieldsAtNode 8 nodeId capturePairs
+            let captureField captureValue =
+                  if captureValue == 8
+                    then captureIntegerAlternatives
+                    else captureIntegerField
+                scalarFields =
+                  capturedFieldsAtNodeWith captureField 8 nodeId capturePairs
                 childFields = case remainingPositions of
                   [] -> []
                   childPosition : laterPositions ->
                     [(childPosition, go (nodeId + 1) laterPositions)]
             matchConstrNode
               8
-              (if nodeId == 16 then [999, 16] else [fromIntegral nodeId])
+              [fromIntegral nodeId]
               (scalarFields <> childFields)
               scrutinee
               continuation
       go 1 childPositions argumentName result
 
--- Match: Constr 1 [@c2,...,@c6,...,@c9] ~ ... ~ Constr 9 [...,@c10,...];
---        c10 ~ {Constr 999 [...,@d,_] | Constr 10 [...,@d,_]}; d* ~ I @ => 469.
+-- Match: Constr 1 [@c2,...,@c6,...,@c9] ~ ... ~ Constr 9 [...,@c10,...,@d];
+--        d ~ {B @ | I @}; captured integers => 469.
 match_benchmark_constr_alt_rootfork3_d5_w10_c9_shallow :: Term
 match_benchmark_constr_alt_rootfork3_d5_w10_c9_shallow =
   shallowMatcher $ \argumentName -> do
-    let captureValues = [5, 11, 27, 50, 52, 68, 74, 83, 99] :: [Int]
+    let captureValues = [11, 14, 27, 50, 52, 68, 74, 83, 90] :: [Int]
         children nodeId = case nodeId of
           1 -> [(0, 2), (5, 6), (9, 9)]
           2 -> [(2, 3)]
@@ -666,19 +701,24 @@ match_benchmark_constr_alt_rootfork3_d5_w10_c9_shallow =
           _ -> []
     withCapturedValues captureValues $ \capturePairs result -> do
       let go nodeId scrutinee continuation = do
-            let scalarFields = capturedFieldsAtNode 10 nodeId capturePairs
+            let captureField captureValue =
+                  if captureValue == 90
+                    then captureIntegerAlternatives
+                    else captureIntegerField
+                scalarFields =
+                  capturedFieldsAtNodeWith captureField 10 nodeId capturePairs
                 childFields =
                   [(fieldIndex, go childId) | (fieldIndex, childId) <- children nodeId]
             matchConstrNode
               10
-              (if nodeId == 10 then [999, 10] else [fromIntegral nodeId])
+              [fromIntegral nodeId]
               (scalarFields <> childFields)
               scrutinee
               continuation
       go 1 argumentName result
 
--- Match: Constr 1 [@c2,_,_,_,_,_,_,@c129] ~ ... ~ Constr 253 [@c254,_,...,@c255];
---        c255 ~ {Constr 999 [_,...,_] | Constr 255 [_,...,_]}; d* ~ I @ => 33024.
+-- Match: Constr 1 [@c2,_,_,_,_,_,_,@c129] ~ ... ~ Constr 129 [...,@d];
+--        d ~ {B @ | I @}; captured integers => 33024.
 match_benchmark_constr_alt_binary_d8_w8_c32_shallow :: Term
 match_benchmark_constr_alt_binary_d8_w8_c32_shallow =
   shallowMatcher $ \argumentName -> do
@@ -698,7 +738,7 @@ match_benchmark_constr_alt_binary_d8_w8_c32_shallow =
           , 812
           , 868
           , 932
-          , 988
+          , 1032
           , 1076
           , 1132
           , 1196
@@ -714,7 +754,7 @@ match_benchmark_constr_alt_binary_d8_w8_c32_shallow =
           , 1828
           , 1884
           , 1948
-          , 2004
+          , 1960
           ]
             :: [Int]
 
@@ -732,7 +772,12 @@ match_benchmark_constr_alt_binary_d8_w8_c32_shallow =
                   ]
     withCapturedValues captureValues $ \capturePairs result -> do
       let go treeLevel remainingHeight nodeId scrutinee continuation = do
-            let scalarFields = capturedFieldsAtNode 8 nodeId capturePairs
+            let captureField captureValue =
+                  if captureValue == 1032
+                    then captureIntegerAlternatives
+                    else captureIntegerField
+                scalarFields =
+                  capturedFieldsAtNodeWith captureField 8 nodeId capturePairs
                 childFields =
                   [ ( fieldIndex
                     , go (treeLevel + 1) (remainingHeight - 1) childId
@@ -741,7 +786,7 @@ match_benchmark_constr_alt_binary_d8_w8_c32_shallow =
                   ]
             matchConstrNode
               8
-              (if nodeId == 255 then [999, 255] else [fromIntegral nodeId])
+              [fromIntegral nodeId]
               (scalarFields <> childFields)
               scrutinee
               continuation

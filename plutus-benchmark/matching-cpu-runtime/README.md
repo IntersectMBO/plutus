@@ -25,7 +25,8 @@ Cartesian suite generator, runtime tree specification, or external term generato
 - Every structural pattern requires exactly `W` fields.
 - Every unselected integer field is a plain pattern wildcard; neither implementation inspects
   its `Data` discriminator.
-- The result starts at integer zero and performs exactly `C` `addInteger` operations.
+- With one capture the result is returned directly. With `C > 1`, the captures are summed
+  with exactly `C - 1` `addInteger` operations.
 
 The following grammar is documentation notation only. Each Haskell `*_arg :: Term` definition
 spells out its own layout with a small local fold or local node bindings.
@@ -142,17 +143,17 @@ Child positions are zero-based. Capture lists contain the actual `I q` values.
 | 17 | `constr_rootfork4_d4_w8_c8` | Root `[0,2,5,7]`; lengths `[3,2,1,1]` | 4 | 8 | 8 | `[4,9,21,32,35,47,51,62]` | 261 | Sparse record with four nested fields |
 | 18 | `constr_spine_stress_d10_w100_c20` | Fields `[0,50,99,20,80,10,60,30,90]` | 10 | 100 | 20 | `[17,83,117,183,217,283,317,383,417,483,517,583,617,683,717,783,817,883,917,983]` | 10000 | 1000 total field slots |
 | 19 | `constr_binary_stress_d8_w8_c32` | Full binary; alternating `[0,7]` / `[2,5]` | 8 | 8 | 32 | Field 3 on the first of every four preorder leaves: `[60,116,...,1948,2004]` | 33024 | Repeated branching through 8 levels and 255 nodes |
-| 20 | `constr_alt_spine_d16_w8_c8` | Spine fields `[0,7,2,5,...]`; matcher leaf alternatives `[999,16]` | 16 | 8 | 8 | `[12,28,44,60,76,92,108,124]` | 544 | Deep late failure before the successful alternative |
-| 21 | `constr_alt_rootfork3_d5_w10_c9` | Same Data as #16; matcher leaf alternatives `[999,10]` | 5 | 10 | 9 | `[5,11,27,50,52,68,74,83,99]` | 469 | Late failure after traversing three root branches |
-| 22 | `constr_alt_binary_d8_w8_c32` | Same Data as #19; matcher leaf alternatives `[999,255]` | 8 | 8 | 32 | same as #19 | 33024 | Late failure after traversing the full binary tree |
+| 20 | `constr_alt_spine_d16_w8_c8` | Spine fields `[0,7,2,5,...]`; root field 7 alternatives `{B @ \| I @}` | 16 | 8 | 8 | `[8,28,44,60,76,92,108,128]` | 544 | First pattern fails on the final visited capture |
+| 21 | `constr_alt_rootfork3_d5_w10_c9` | Same Data as #16; node 9 field 9 alternatives `{B @ \| I @}` | 5 | 10 | 9 | `[11,14,27,50,52,68,74,83,90]` | 469 | First pattern fails after all three root branches |
+| 22 | `constr_alt_binary_d8_w8_c32` | Same Data as #19; node 129 field 7 alternatives `{B @ \| I @}` | 8 | 8 | 32 | `[60,116,...,932,1032,...,1948,1960]` | 33024 | First pattern fails after the full binary tree |
 
 The branching cases model real ScriptContext relationships: V1/V2 have two root children, V3 has
 three, while `TxInInfo`, `Address`, interval bounds, `TxOut`, and governance records have
 multiple nested siblings. Depth 64/100 and width 1000 are scaling boundaries, not literal current
 ledger layouts. Cases 12-14 cover wider fan-out at depth 3; case 19 separately stresses branching
 that repeats at every level, which the deep spine cases do not exercise. Cases 20-22 measure a
-late failed alternative followed by the matching alternative on spine, root-fork, and full-tree
-shapes.
+failed first pattern at the literal final field in evaluator traversal order, followed by the
+matching alternative on spine, root-fork, and full-tree shapes.
 
 ## Measurement and memory isolation
 
