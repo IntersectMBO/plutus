@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
@@ -9,7 +10,7 @@
 
 The pattern table is represented statically by a closed 'TySOP'. Alternative @n@ describes the
 fields of @Data.Constr n@, and every field must have type 'Data'. Before erasure the table is
-reified to the list of constructor arities. At runtime the builtin returns a constructor with the
+reified to an array of constructor arities. At runtime the builtin returns a constructor with the
 same index and the original 'Data' fields as its captures. -}
 module PlutusCore.Default.MatchData
   ( matchData
@@ -24,6 +25,7 @@ import PlutusCore.Default.Universe
 
 import Control.Monad (unless)
 import Data.Text (Text)
+import Data.Vector.Strict qualified as Strict
 
 decodePatternTableType
   :: Type tyname DefaultUni ann
@@ -54,35 +56,23 @@ matchDataTypeApplication =
         pure $ TyFun () (mkTyBuiltin @_ @Data ()) tableTy
     , btaReifyArgument = \tableTy -> do
         arities <- decodePatternTableType tableTy
-        pure . someValue $ fmap toInteger arities
+        pure . someValue . Strict.fromList $ fmap toInteger arities
     }
 
 -- | Match a 'Data.Constr' tag to the same SOP branch and capture its fields directly.
 matchData
   :: forall val
-   . (HasConstantIn DefaultUni val, HasConstr val)
-  => [Integer]
+   . (HasConstantIn DefaultUni val, HasConstr val ())
+  => Strict.Vector Integer
   -> Data
   -> BuiltinResult (OpaqueVConstr val)
-matchData [] _ = fail "matchData requires a non-empty pattern table"
 matchData encodedArities (Data.Constr tag fields) = do
-  arities <-
-    traverse
-      ( \arity ->
-          if 0 <= arity && arity <= toInteger (maxBound :: Int)
-            then pure $ fromInteger arity
-            else fail "matchData field count is outside the supported range"
-      )
-      encodedArities
-  unless (0 <= tag && tag <= toInteger (maxBound :: Int)) $
+  unless (0 <= tag && tag < toInteger (Strict.length encodedArities)) $
     fail "No matchData constructor corresponds to the Data.Constr tag"
-  expectedArity <- case drop (fromInteger tag) arities of
-    arity : _ -> pure arity
-    [] -> fail "No matchData constructor corresponds to the Data.Constr tag"
-  unless (expectedArity == length fields) $
+  let expectedArity = Strict.unsafeIndex encodedArities $ fromInteger tag
+  unless (expectedArity == toInteger (length fields)) $
     fail "matchData payload length does not match the statically declared pattern arity"
-  let resultTy :: forall tyname. Type tyname DefaultUni ()
-      resultTy =
-        TySOP () $ fmap (\arity -> replicate arity $ mkTyBuiltin @_ @Data ()) arities
-  pure . OpaqueVConstr $ fromConstr resultTy (fromInteger tag) (fmap fromValue fields)
+  pure . OpaqueVConstr $
+    fromConstr () (fromInteger tag) (fmap fromValue fields)
 matchData _ _ = fail "matchData only supports Data.Constr"
+{-# INLINE matchData #-}

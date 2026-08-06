@@ -70,7 +70,11 @@ data BuiltinMeaning val cost
 
 -- | Constraints available when defining a built-in function.
 type HasMeaningIn uni val =
-  (Typeable val, ExMemoryUsage val, HasConstantIn uni val, HasConstr val)
+  ( Typeable val
+  , ExMemoryUsage val
+  , HasConstantIn uni val
+  , HasConstr val ()
+  )
 
 {-| Metadata for a builtin whose direct type application has special typechecking and erasure
 behavior.
@@ -119,7 +123,12 @@ class
 -- | Feed the 'TypeScheme' of the given built-in function to the continuation.
 withTypeSchemeOfBuiltinFunction
   :: forall val fun r
-   . (ToBuiltinMeaning (UniOf val) fun, ExMemoryUsage val, Typeable val, HasConstant val, HasConstr val)
+   . ( ToBuiltinMeaning (UniOf val) fun
+     , ExMemoryUsage val
+     , Typeable val
+     , HasConstant val
+     , HasConstr val ()
+     )
   => BuiltinSemanticsVariant fun
   -> fun
   -> (forall args res. TypeScheme val args res -> r)

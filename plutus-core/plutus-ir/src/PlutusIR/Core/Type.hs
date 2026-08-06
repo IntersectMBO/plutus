@@ -172,8 +172,8 @@ instance HasConstant (Term tyname name uni fun ()) where
 
   fromConstant = Constant ()
 
-instance HasConstr (Term tyname name uni fun ()) where
-  fromConstr ty = Constr () ty
+instance HasConstr (Term tyname name uni fun ()) () where
+  fromConstr () = Constr () $ TySOP () []
   {-# INLINE fromConstr #-}
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where

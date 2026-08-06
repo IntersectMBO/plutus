@@ -10,6 +10,7 @@ import Control.Monad.Except (runExcept)
 import Data.Either (fromRight)
 import Data.List (foldl', sortOn)
 import Data.Vector qualified as Vector
+import Data.Vector.Strict qualified as Strict
 import PlutusBenchmark.Common (Term)
 import PlutusCore (freshName, runQuote)
 import PlutusCore qualified as PLC
@@ -216,7 +217,9 @@ matchConstrNode width expectedTag fieldsToMatch scrutinee continuation = do
         builtinApp
           0
           PLC.MatchData
-          [mkConstant @[Integer] () encodedArities, UPLC.Var () scrutinee]
+          [ mkConstant @(Strict.Vector Integer) () $ Strict.fromList encodedArities
+          , UPLC.Var () scrutinee
+          ]
   pure $
     UPLC.Case
       ()

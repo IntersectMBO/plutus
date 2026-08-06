@@ -1,6 +1,8 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -173,6 +175,8 @@ instance ExMemoryUsage Val where
 instance HasConstant Val where
   asConstant _ = throwError notAConstant
   fromConstant _ = Val
+instance HasConstr Val () where
+  fromConstr () _ _ = Val
 
 {-| Return the last element of the list that is smaller than or equal to the given one.
 

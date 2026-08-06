@@ -137,8 +137,8 @@ instance HasConstant (CkValue uni fun) where
 
   fromConstant = VCon
 
-instance HasConstr (CkValue uni fun) where
-  fromConstr ty = VConstr ty
+instance HasConstr (CkValue uni fun) () where
+  fromConstr () = VConstr $ TySOP () []
   {-# INLINE fromConstr #-}
 
 data Frame uni fun

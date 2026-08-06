@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
@@ -50,9 +51,9 @@ and connects @term@ and its @uni@. -}
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
 -- | Ensures that a builtin result carrier can construct a sum-of-products value.
-class HasConstr term where
+class HasConstr term constrType where
   fromConstr
-    :: (forall tyname. Type tyname (UniOf term) ())
+    :: constrType
     -> Word64
     -> [term]
     -> term
@@ -73,6 +74,6 @@ instance HasConstant (Term TyName Name uni fun ()) where
 
   fromConstant = Constant ()
 
-instance HasConstr (Term TyName Name uni fun ()) where
-  fromConstr ty = Constr () ty
+instance HasConstr (Term TyName Name uni fun ()) () where
+  fromConstr () = Constr () $ TySOP () []
   {-# INLINE fromConstr #-}

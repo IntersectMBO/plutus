@@ -118,7 +118,7 @@ here only because this benchmark constructs UPLC directly:
 
 ```text
 lambda arg.
-  case ((builtin matchData) [0, 4] arg) of
+  case ((builtin matchData) (con (array integer) [0, 4]) arg) of
     tag 0 -> error
     tag 1 field0 field1 field2 field3 ->
       matchConstr 2 field0 (...)
