@@ -1,8 +1,19 @@
-// UnionValue plot configuration and rendering (3D)
+// MultiIndexArray plot configuration and rendering
+//
+// Benchmark names are MultiIndexArray/<arraySize>/<indexCount>, so
+// args[0] = array size (haystack) and args[1] = index count (needles).  The
+// cost model is linear_in_y: linear in the number of indices, independent of
+// the array size.
+//
+// The main view is a 3D scatter (haystack size, needles size, time) with the
+// fitted model drawn as a plane: flat along the haystack axis, sloping along
+// the needles axis.  A histogram of net per-index times at large index counts
+// makes the distribution of the benchmark results (and any multi-modality)
+// directly visible.
 
 // Configuration
-const FUNCTION_NAME = 'UnionValue';  // CSV uses PascalCase
-const COST_MODEL_NAME = 'unionValue';  // JSON uses camelCase
+const FUNCTION_NAME = 'MultiIndexArray';  // CSV uses PascalCase
+const COST_MODEL_NAME = 'multiIndexArray';  // JSON uses camelCase
 const ARITY = 2;
 
 // Default configuration
@@ -25,13 +36,15 @@ let costModel = null;
 let overhead = 0;
 let showModel = true;
 let zAxisMode = 'zero';
+let histThreshold = 2000;
 
 // Generate URL from template and branch
 function generateUrlFromBranch(branch) {
   return URL_TEMPLATE.replace('{BRANCH}', branch);
 }
 
-// Get file URLs
+// Get file URLs.  Variant E is the PlutusV3 cost model from the vanRossem
+// hard fork (PV 11) onwards (C is the previous V3 era).
 function getFileUrls(baseUrl) {
   return {
     csv: `${baseUrl}/benching-conway.csv`,
@@ -196,9 +209,9 @@ async function loadAndRenderData() {
     // Update info panel
     updateInfoPanel();
 
-    // Render plot
+    // Render plots
     renderPlot();
-
+    renderHistogram();
 
   } catch (error) {
     console.error('Initialization error:', error);
@@ -207,25 +220,20 @@ async function loadAndRenderData() {
 }
 
 function updateInfoPanel() {
-  // Calculate stats
-  const stats = calculateStats(benchmarkData);
+  // Calculate stats over the index count (second argument)
+  const stats = calculateStats(benchmarkData, 1);
 
   // Update data points
   document.getElementById('info-data-points').textContent = stats.dataPoints;
 
-  // Update ranges for X and Y axes (Value sizes)
-  if (benchmarkData.length > 0) {
-    const xValues = benchmarkData.map(d => d.args[0]);
-    const yValues = benchmarkData.map(d => d.args[1]);
-
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
-    const minY = Math.min(...yValues);
-    const maxY = Math.max(...yValues);
-
-    document.getElementById('info-x-range').textContent = `${minX} - ${maxX}`;
-    document.getElementById('info-y-range').textContent = `${minY} - ${maxY}`;
+  // Update ranges
+  if (stats.minArg !== undefined) {
+    document.getElementById('info-x-range').textContent = `${stats.minArg} - ${stats.maxArg}`;
   }
+
+  const arraySizes = benchmarkData.map(d => d.args[0]);
+  document.getElementById('info-array-range').textContent =
+    `${Math.min(...arraySizes)} - ${Math.max(...arraySizes)}`;
 
   document.getElementById('info-time-range').textContent = stats.timeRange;
 
@@ -250,51 +258,67 @@ function updateInfoPanel() {
   }
 }
 
-function renderPlot() {
-  // Prepare benchmark trace (3D scatter)
-  const benchmarkX = benchmarkData.map(d => d.args[0]);
-  const benchmarkY = benchmarkData.map(d => d.args[1]);
-  const benchmarkZ = benchmarkData.map(d => d.time);
+// The model plane: z = intercept + slope * needles (+ overhead), flat along
+// the haystack axis.
+function modelPlaneTrace() {
+  const haystacks = [...new Set(benchmarkData.map(d => d.args[0]))].sort((a, b) => a - b);
+  const maxNeedles = Math.max(...benchmarkData.map(d => d.args[1]));
+  const steps = 30;
+  const needles = Array.from({ length: steps + 1 }, (_, i) => Math.max(1, Math.round(i * maxNeedles / steps)));
 
+  const intercept = costModel.coefficients.intercept || 0;
+  const slope = costModel.coefficients.slope || 0;
+
+  // z[i][j] corresponds to (y = needles[i], x = haystacks[j])
+  const z = needles.map(n => haystacks.map(() => (intercept + slope * n) / 1000 + overhead));
+
+  return {
+    x: haystacks,
+    y: needles,
+    z: z,
+    type: 'surface',
+    name: 'Model Prediction',
+    showscale: false,
+    opacity: 0.35,
+    colorscale: [[0, '#E53E3E'], [1, '#E53E3E']],
+    hovertemplate: 'needles: %{y}<br>model: %{z:.0f} ns<extra></extra>'
+  };
+}
+
+function renderPlot() {
   const benchmarkTrace = {
-    x: benchmarkX,
-    y: benchmarkY,
-    z: benchmarkZ,
+    x: benchmarkData.map(d => d.args[0]),
+    y: benchmarkData.map(d => d.args[1]),
+    z: benchmarkData.map(d => d.time),
     mode: 'markers',
     type: 'scatter3d',
     name: 'Benchmark Data',
+    hovertemplate: 'haystack: %{x}<br>needles: %{y}<br>time: %{z:.0f} ns<extra></extra>',
     marker: {
-      size: 4,
+      size: 3.5,
       color: '#0033AD',
-      opacity: 0.7
+      opacity: 0.75
     }
   };
 
   const traces = [benchmarkTrace];
 
-  // Prepare model trace if available
-  if (showModel && modelPredictions.length > 0) {
-    const modelX = modelPredictions.map(d => d.args[0]);
-    const modelY = modelPredictions.map(d => d.args[1]);
-    const modelZ = modelPredictions.map(d => d.predictedTime);
-
-    const modelTrace = {
-      x: modelX,
-      y: modelY,
-      z: modelZ,
+  if (showModel && costModel && costModel.modelType === 'linear_in_y') {
+    traces.push(modelPlaneTrace());
+  } else if (showModel && modelPredictions.length > 0) {
+    // Fallback for other model shapes: prediction markers at the data points
+    traces.push({
+      x: modelPredictions.map(d => d.args[0]),
+      y: modelPredictions.map(d => d.args[1]),
+      z: modelPredictions.map(d => d.predictedTime),
       mode: 'markers',
       type: 'scatter3d',
       name: 'Model Predictions',
-      marker: {
-        size: 4,
-        color: '#E53E3E',
-        opacity: 0.4,
-        symbol: 'x'
-      }
-    };
-
-    traces.push(modelTrace);
+      marker: { size: 3.5, color: '#E53E3E', opacity: 0.4, symbol: 'x' }
+    });
   }
+
+  const benchmarkZ = benchmarkTrace.z;
 
   // Layout configuration
   const layout = {
@@ -304,16 +328,20 @@ function renderPlot() {
     },
     scene: {
       xaxis: {
-        title: 'Value 1 total size',
+        title: 'Haystack Size (array, log)',
+        type: 'log',
         gridcolor: '#E0E0E0'
       },
       yaxis: {
-        title: 'Value 2 total size',
+        title: 'Needles Size (index count)',
         gridcolor: '#E0E0E0'
       },
       zaxis: {
         title: 'Time (nanoseconds)',
         gridcolor: '#E0E0E0'
+      },
+      camera: {
+        eye: { x: 1.7, y: -1.7, z: 0.6 }
       }
     },
     showlegend: true,
@@ -345,10 +373,83 @@ function renderPlot() {
   };
 
   // Render
-  // Clear loading message
   const container = document.getElementById('plot-container');
   container.innerHTML = '';
   Plotly.newPlot('plot-container', traces, layout, config);
+}
+
+function renderHistogram() {
+  const container = document.getElementById('hist-container');
+
+  // Net per-index time for large index counts
+  const points = benchmarkData.filter(d => d.args[1] >= histThreshold);
+  if (points.length === 0) {
+    container.innerHTML = `<div class="error"><p>No benchmarks with index count ≥ ${histThreshold}</p></div>`;
+    return;
+  }
+
+  const perIndex = points.map(d => (d.time - overhead) / d.args[1]);
+
+  const histTrace = {
+    x: perIndex,
+    type: 'histogram',
+    name: `per-index time (y ≥ ${histThreshold})`,
+    xbins: { size: 1 },
+    marker: {
+      color: '#0033AD',
+      opacity: 0.8
+    }
+  };
+
+  const layout = {
+    title: {
+      text: `Distribution of net per-index time (index count ≥ ${histThreshold}, n = ${points.length})`,
+      font: { size: 18 }
+    },
+    xaxis: {
+      title: 'Net time per index (nanoseconds)',
+      gridcolor: '#E0E0E0'
+    },
+    yaxis: {
+      title: 'Benchmark count',
+      gridcolor: '#E0E0E0'
+    },
+    bargap: 0.05,
+    plot_bgcolor: '#FAFAFA',
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    shapes: [],
+    annotations: []
+  };
+
+  // Mark the model's net slope (ps -> ns) on the distribution
+  if (costModel && (costModel.modelType === 'linear_in_y')) {
+    const slopeNs = (costModel.coefficients.slope || 0) / 1000;
+    layout.shapes.push({
+      type: 'line',
+      x0: slopeNs, x1: slopeNs,
+      y0: 0, y1: 1,
+      yref: 'paper',
+      line: { color: '#E53E3E', width: 2, dash: 'dash' }
+    });
+    layout.annotations.push({
+      x: slopeNs,
+      y: 1,
+      yref: 'paper',
+      yanchor: 'bottom',
+      text: `model slope: ${slopeNs.toFixed(1)} ns/index`,
+      showarrow: false,
+      font: { color: '#E53E3E' }
+    });
+  }
+
+  const config = {
+    responsive: true,
+    displayModeBar: true,
+    displaylogo: false
+  };
+
+  container.innerHTML = '';
+  Plotly.newPlot('hist-container', [histTrace], layout, config);
 }
 
 function setupControls() {
@@ -364,6 +465,13 @@ function setupControls() {
   zAxisModeSelect.addEventListener('change', (e) => {
     zAxisMode = e.target.value;
     renderPlot();
+  });
+
+  // Histogram threshold selector
+  const histThresholdSelect = document.getElementById('hist-threshold');
+  histThresholdSelect.addEventListener('change', (e) => {
+    histThreshold = parseInt(e.target.value, 10);
+    renderHistogram();
   });
 }
 

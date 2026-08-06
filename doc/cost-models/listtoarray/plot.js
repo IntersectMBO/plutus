@@ -35,7 +35,7 @@ function generateUrlFromBranch(branch) {
 function getFileUrls(baseUrl) {
   return {
     csv: `${baseUrl}/benching-conway.csv`,
-    json: `${baseUrl}/builtinCostModelC.json`
+    json: `${baseUrl}/builtinCostModelE.json`
   };
 }
 

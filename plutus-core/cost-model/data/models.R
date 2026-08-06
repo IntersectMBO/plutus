@@ -159,6 +159,7 @@ arity <- function(name) {
         "ValueData" = 1,
         "UnValueData" = 1,
         "ScaleValue" = 2,
+        "MultiIndexArray" = 2,
         -1  ## Default for missing values
         )
 }
@@ -815,6 +816,40 @@ modelFun <- function(path) {
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
     listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
+    ## Cost is linear in the number of indices (y) and independent of the array
+    ## size (x).  Per-index time rises slowly across the benchmarked range, which
+    ## makes the data slightly convex, and least squares on convex data returns a
+    ## negative intercept: the fit moves the fixed cost of a call into the slope,
+    ## adjustModel then clamps the intercept, and the fixed cost is lost.  Fitting
+    ## the line through the extremes of the range keeps it, and for convex data
+    ## that line is an upper bound in between.  The fit is checked against every
+    ## point below.
+    multiIndexArrayModel <- {
+        fname <- "MultiIndexArray"
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.overhead ()
+        lo <- min(filtered$y_mem)
+        hi <- max(filtered$y_mem)
+        if (lo == hi) {
+            stop ("Need at least two distinct index counts for ", fname)
+        }
+        ## Slowest observation at each end, so that the line also covers the
+        ## spread of repeated measurements.
+        ends <- data.frame(
+            y_mem = c(lo, hi),
+            t = c(max(filter(filtered, y_mem == lo)$t),
+                  max(filter(filtered, y_mem == hi)$t))
+            )
+        m <- lm(t ~ y_mem, ends)
+        predicted <- predict(m, filtered)
+        if (any(filtered$t > predicted)) {
+            cat (sprintf ("*** WARNING: %d of %d %s points lie above the fitted line (worst %.1f%%)\n",
+                 sum(filtered$t > predicted), nrow(filtered), fname,
+                 100 * max((filtered$t - predicted) / predicted)))
+        }
+        mk.result(m, "linear_in_y")
+    }
 
     ## Values
 
@@ -971,7 +1006,8 @@ modelFun <- function(path) {
         unValueDataModel                     = unValueDataModel,
         insertCoinModel                      = insertCoinModel,
         unionValueModel                      = unionValueModel,
-        scaleValueModel                      = scaleValueModel
+        scaleValueModel                      = scaleValueModel,
+        multiIndexArrayModel                 = multiIndexArrayModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

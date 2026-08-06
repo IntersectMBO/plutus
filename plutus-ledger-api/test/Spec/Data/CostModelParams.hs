@@ -39,9 +39,9 @@ tests =
     "CostModelParams"
     "costModelParams"
     [ embed $ testCase "length" do
-        332 @=? length v1_ParamNames
-        332 @=? length v2_ParamNames
-        350 @=? length v3_ParamNames
+        336 @=? length v1_ParamNames
+        336 @=? length v2_ParamNames
+        354 @=? length v3_ParamNames
     , embed $ testCase "tripping paramname" do
         for_ v1_ParamNames \p ->
           assertBool "tripping v1 cm params failed" $
