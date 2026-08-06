@@ -56,7 +56,7 @@ withSelectedCase requested run = case requested of
       1
       1
       1
-      Matchers.match_benchmark_constr_flat_d1_w1_c1_traditional
+      Matchers.match_benchmark_constr_flat_d1_w1_c1_matchdata
       Arguments.match_benchmark_constr_flat_d1_w1_c1_arg
   "constr_flat_d1_w16_c4" ->
     run
@@ -65,7 +65,7 @@ withSelectedCase requested run = case requested of
       16
       4
       34
-      Matchers.match_benchmark_constr_flat_d1_w16_c4_traditional
+      Matchers.match_benchmark_constr_flat_d1_w16_c4_matchdata
       Arguments.match_benchmark_constr_flat_d1_w16_c4_arg
   "constr_flat_d1_w1000_c1" ->
     run
@@ -74,7 +74,7 @@ withSelectedCase requested run = case requested of
       1000
       1
       997
-      Matchers.match_benchmark_constr_flat_d1_w1000_c1_traditional
+      Matchers.match_benchmark_constr_flat_d1_w1000_c1_matchdata
       Arguments.match_benchmark_constr_flat_d1_w1000_c1_arg
   "constr_flat_d1_w1000_c16" ->
     run
@@ -83,7 +83,7 @@ withSelectedCase requested run = case requested of
       1000
       16
       8452
-      Matchers.match_benchmark_constr_flat_d1_w1000_c16_traditional
+      Matchers.match_benchmark_constr_flat_d1_w1000_c16_matchdata
       Arguments.match_benchmark_constr_flat_d1_w1000_c16_arg
   "constr_spine_front_d4_w16_c8" ->
     run
@@ -92,7 +92,7 @@ withSelectedCase requested run = case requested of
       16
       8
       266
-      Matchers.match_benchmark_constr_spine_front_d4_w16_c8_traditional
+      Matchers.match_benchmark_constr_spine_front_d4_w16_c8_matchdata
       Arguments.match_benchmark_constr_spine_front_d4_w16_c8_arg
   "constr_spine_middle_d4_w16_c8" ->
     run
@@ -101,7 +101,7 @@ withSelectedCase requested run = case requested of
       16
       8
       266
-      Matchers.match_benchmark_constr_spine_middle_d4_w16_c8_traditional
+      Matchers.match_benchmark_constr_spine_middle_d4_w16_c8_matchdata
       Arguments.match_benchmark_constr_spine_middle_d4_w16_c8_arg
   "constr_spine_last_d4_w16_c8" ->
     run
@@ -110,7 +110,7 @@ withSelectedCase requested run = case requested of
       16
       8
       266
-      Matchers.match_benchmark_constr_spine_last_d4_w16_c8_traditional
+      Matchers.match_benchmark_constr_spine_last_d4_w16_c8_matchdata
       Arguments.match_benchmark_constr_spine_last_d4_w16_c8_arg
   "constr_spine_irregular_d4_w16_c8" ->
     run
@@ -119,7 +119,7 @@ withSelectedCase requested run = case requested of
       16
       8
       266
-      Matchers.match_benchmark_constr_spine_irregular_d4_w16_c8_traditional
+      Matchers.match_benchmark_constr_spine_irregular_d4_w16_c8_matchdata
       Arguments.match_benchmark_constr_spine_irregular_d4_w16_c8_arg
   "constr_spine_irregular_d8_w8_c8" ->
     run
@@ -128,7 +128,7 @@ withSelectedCase requested run = case requested of
       8
       8
       257
-      Matchers.match_benchmark_constr_spine_irregular_d8_w8_c8_traditional
+      Matchers.match_benchmark_constr_spine_irregular_d8_w8_c8_matchdata
       Arguments.match_benchmark_constr_spine_irregular_d8_w8_c8_arg
   "constr_spine_front_d64_w2_c8" ->
     run
@@ -137,7 +137,7 @@ withSelectedCase requested run = case requested of
       2
       8
       520
-      Matchers.match_benchmark_constr_spine_front_d64_w2_c8_traditional
+      Matchers.match_benchmark_constr_spine_front_d64_w2_c8_matchdata
       Arguments.match_benchmark_constr_spine_front_d64_w2_c8_arg
   "constr_spine_zigzag_d100_w2_c10" ->
     run
@@ -146,7 +146,7 @@ withSelectedCase requested run = case requested of
       2
       10
       1005
-      Matchers.match_benchmark_constr_spine_zigzag_d100_w2_c10_traditional
+      Matchers.match_benchmark_constr_spine_zigzag_d100_w2_c10_matchdata
       Arguments.match_benchmark_constr_spine_zigzag_d100_w2_c10_arg
   "constr_binary_d3_w16_c8" ->
     run
@@ -155,7 +155,7 @@ withSelectedCase requested run = case requested of
       16
       8
       504
-      Matchers.match_benchmark_constr_binary_d3_w16_c8_traditional
+      Matchers.match_benchmark_constr_binary_d3_w16_c8_matchdata
       Arguments.match_benchmark_constr_binary_d3_w16_c8_arg
   "constr_ternary_d3_w8_c10" ->
     run
@@ -164,7 +164,7 @@ withSelectedCase requested run = case requested of
       8
       10
       556
-      Matchers.match_benchmark_constr_ternary_d3_w8_c10_traditional
+      Matchers.match_benchmark_constr_ternary_d3_w8_c10_matchdata
       Arguments.match_benchmark_constr_ternary_d3_w8_c10_arg
   "constr_quaternary_d3_w8_c17" ->
     run
@@ -173,7 +173,7 @@ withSelectedCase requested run = case requested of
       8
       17
       1485
-      Matchers.match_benchmark_constr_quaternary_d3_w8_c17_traditional
+      Matchers.match_benchmark_constr_quaternary_d3_w8_c17_matchdata
       Arguments.match_benchmark_constr_quaternary_d3_w8_c17_arg
   "constr_rootfork2_d6_w12_c8" ->
     run
@@ -182,7 +182,7 @@ withSelectedCase requested run = case requested of
       12
       8
       389
-      Matchers.match_benchmark_constr_rootfork2_d6_w12_c8_traditional
+      Matchers.match_benchmark_constr_rootfork2_d6_w12_c8_matchdata
       Arguments.match_benchmark_constr_rootfork2_d6_w12_c8_arg
   "constr_rootfork3_d5_w10_c9" ->
     run
@@ -191,7 +191,7 @@ withSelectedCase requested run = case requested of
       10
       9
       469
-      Matchers.match_benchmark_constr_rootfork3_d5_w10_c9_traditional
+      Matchers.match_benchmark_constr_rootfork3_d5_w10_c9_matchdata
       Arguments.match_benchmark_constr_rootfork3_d5_w10_c9_arg
   "constr_rootfork4_d4_w8_c8" ->
     run
@@ -200,7 +200,7 @@ withSelectedCase requested run = case requested of
       8
       8
       261
-      Matchers.match_benchmark_constr_rootfork4_d4_w8_c8_traditional
+      Matchers.match_benchmark_constr_rootfork4_d4_w8_c8_matchdata
       Arguments.match_benchmark_constr_rootfork4_d4_w8_c8_arg
   "constr_spine_stress_d10_w100_c20" ->
     run
@@ -209,7 +209,7 @@ withSelectedCase requested run = case requested of
       100
       20
       10000
-      Matchers.match_benchmark_constr_spine_stress_d10_w100_c20_traditional
+      Matchers.match_benchmark_constr_spine_stress_d10_w100_c20_matchdata
       Arguments.match_benchmark_constr_spine_stress_d10_w100_c20_arg
   "constr_binary_stress_d8_w8_c32" ->
     run
@@ -218,7 +218,7 @@ withSelectedCase requested run = case requested of
       8
       32
       33024
-      Matchers.match_benchmark_constr_binary_stress_d8_w8_c32_traditional
+      Matchers.match_benchmark_constr_binary_stress_d8_w8_c32_matchdata
       Arguments.match_benchmark_constr_binary_stress_d8_w8_c32_arg
   "constr_alt_spine_d16_w8_c8" ->
     run
@@ -227,7 +227,7 @@ withSelectedCase requested run = case requested of
       8
       8
       544
-      Matchers.match_benchmark_constr_alt_spine_d16_w8_c8_traditional
+      Matchers.match_benchmark_constr_alt_spine_d16_w8_c8_matchdata
       Arguments.match_benchmark_constr_alt_spine_d16_w8_c8_arg
   "constr_alt_rootfork3_d5_w10_c9" ->
     run
@@ -236,7 +236,7 @@ withSelectedCase requested run = case requested of
       10
       9
       469
-      Matchers.match_benchmark_constr_alt_rootfork3_d5_w10_c9_traditional
+      Matchers.match_benchmark_constr_alt_rootfork3_d5_w10_c9_matchdata
       Arguments.match_benchmark_constr_alt_rootfork3_d5_w10_c9_arg
   "constr_alt_binary_d8_w8_c32" ->
     run
@@ -245,7 +245,7 @@ withSelectedCase requested run = case requested of
       8
       32
       33024
-      Matchers.match_benchmark_constr_alt_binary_d8_w8_c32_traditional
+      Matchers.match_benchmark_constr_alt_binary_d8_w8_c32_matchdata
       Arguments.match_benchmark_constr_alt_binary_d8_w8_c32_arg
   _ -> ioError . userError $ "unknown benchmark case: " <> requested
 

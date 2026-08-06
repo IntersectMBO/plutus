@@ -1,10 +1,11 @@
-# Nested, shallow, and traditional matching: CEK wall time
+# Nested, shallow, traditional, and `matchData` matching: CEK wall time
 
-This compares three implementations of the same 22 `Data.Constr` matches:
+This compares four implementations of the same 22 `Data.Constr` matches:
 
 - one recursive nested `Match` pattern;
 - continuation-nested shallow `Match` terms; and
-- traditional `UnConstrData`, `Case`, and list builtins, with no `Match` AST.
+- traditional `UnConstrData`, `Case`, and list builtins, with no `Match` AST; and
+- the type-directed `matchData` builtin returning a `VConstr` directly to `Case`.
 
 `Data.List` traverses fields like `Data.Constr`, so the suite does not duplicate every topology for
 both discriminators. This is not cost-model calibration: Criterion reports only CEK wall time.
@@ -26,7 +27,8 @@ positions, captures, and recursion. There is no generated Cartesian suite or run
   positions, including repeated tree branches.
 - Every structural pattern requires exactly `W` fields.
 - Nested and shallow matching use a plain wildcard for every unselected integer field;
-  traditional matching skips it without calling `UnIData`.
+  traditional matching skips it without calling `UnIData`; and `matchData` passes it through as
+  an uninspected handler argument.
 - One capture is returned directly. `C > 1` uses exactly `C - 1` `addInteger` operations; no
   matcher evaluates `addInteger 0 x`.
 
@@ -110,12 +112,28 @@ lambda arg.
 
 These are builtin-pair, builtin-Bool, and builtin-list `Case` nodes; they do not use `Match`.
 
+The `matchData` implementation uses the direct erased form of a PLC type application. The hidden
+arity table is generated from the `TySOP` type argument before evaluation; it is shown explicitly
+here only because this benchmark constructs UPLC directly:
+
+```text
+lambda arg.
+  case ((builtin matchData) [0, 4] arg) of
+    tag 0 -> error
+    tag 1 field0 field1 field2 field3 ->
+      matchConstr 2 field0 (...)
+```
+
+The returned constructor index is the original `Data.Constr` tag, and its captures are the
+original fields. A handler therefore has exactly `W` lambdas, while only selected fields are
+decoded with `unIData`.
+
 For a gap of one to three ignored fields, the cursor advances with repeated `tailList`; a larger
 gap uses one `dropList`. A selected field is obtained by a list `Case`, which binds its head and
 tail together. A final sentinel field must exist and its tail must case to `Nil`, enforcing exactly
 `W` fields. Repeated `tailList`, `dropList`, `unConstrData`, `equalsInteger`, or `unIData` builtin
 values are lambda-bound once and reused; a single use stays direct. `addInteger` stays inline at
-its exact `C - 1` call sites in all three implementations.
+its exact `C - 1` call sites in all four implementations.
 
 Captures use `UnIData` only after their field is selected. Its decoding expression is substituted
 directly into the successful continuation, without an extra capture lambda/application. The
@@ -135,9 +153,9 @@ shallow:     match shared prefix; match terminal with {B @ | I @}
 traditional: case shared prefix; chooseData terminal {B -> unBData; I -> unIData}
 ```
 
-Nested matching retries a complete recursive pattern. Shallow matching and traditional
-`ChooseData` share the structural prefix. All three return the same integer and perform identical
-explicit arithmetic.
+Nested matching retries a complete recursive pattern. Shallow matching, traditional matching,
+and `matchData` share the structural prefix and use `ChooseData` only for the scalar alternative.
+All four return the same integer and perform identical explicit arithmetic.
 
 ## Explicit cases
 
@@ -178,9 +196,9 @@ reuse the spine, root-fork, or full-tree prefix.
 
 ## Measurement and memory isolation
 
-The required `*_arg :: Term` and `*_nested`, `*_shallow`, or `*_traditional` matcher definitions
-are CAFs. A forced CAF cannot be reclaimed within its process, so each executable invocation runs
-exactly one implementation and one selected case:
+The required `*_arg :: Term` and `*_nested`, `*_shallow`, `*_traditional`, or `*_matchdata`
+matcher definitions are CAFs. A forced CAF cannot be reclaimed within its process, so each
+executable invocation runs exactly one implementation and one selected case:
 
 1. Select the case before constructing the Criterion tree; other argument and matcher CAFs remain
    unforced.
@@ -190,10 +208,10 @@ exactly one implementation and one selected case:
 4. Time only `whnf runCEK appliedTerm`, with `restrictingEnormous` and no emitter.
 5. Exit before selecting another case, releasing its argument and matcher with the process.
 
-`--validate-case` is a separate untimed preflight. It checks the output and serializes only the
-matcher function: traditional terms use UPLC 1.1, while nested and shallow `Match` terms use UPLC
-1.2. It asserts the 16,384-byte script, 10,000,000,000-CPU, and 14,000,000-memory limits. Budgets
-are validation metadata, never Criterion measurements or comparison results.
+`--validate-case` is a separate untimed preflight for implementations with a completed cost model.
+The prototype `matchData` costing function is deliberately unimplemented, so its exact-result
+check runs in benchmark setup but it makes no protocol-budget claim. Budgets are never Criterion
+measurements or comparison results.
 
 ```sh
 matching-cpu-runtime --validate-case constr_binary_d3_w16_c8
@@ -204,6 +222,6 @@ Invoke those commands once per ID returned by `--list-cases`.
 
 ## Recorded run
 
-See [`RESULTS.md`](RESULTS.md) for the complete three-way, 22-case wall-time comparison and
-untimed correctness/protocol-limit preflight measured on 2026-08-06. It also records a control run
-of the same traditional UPLC under all three historical CEK evaluators.
+See [`RESULTS.md`](RESULTS.md) for the complete four-way, 22-case wall-time comparison measured on
+2026-08-06, plus the existing baseline correctness/protocol-limit preflight. It also records a
+control run of the same traditional UPLC under all three historical CEK evaluators.
