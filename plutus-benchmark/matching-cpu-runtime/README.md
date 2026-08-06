@@ -113,11 +113,13 @@ These are builtin-pair, builtin-Bool, and builtin-list `Case` nodes; they do not
 For a gap of one to three ignored fields, the cursor advances with repeated `tailList`; a larger
 gap uses one `dropList`. A selected field is obtained by a list `Case`, which binds its head and
 tail together. A final sentinel field must exist and its tail must case to `Nil`, enforcing exactly
-`W` fields. If a forced `tailList` or `dropList` builtin value is used more than once, it is
-lambda-bound once and reused.
+`W` fields. Repeated `tailList`, `dropList`, `unConstrData`, `equalsInteger`, or `unIData` builtin
+values are lambda-bound once and reused; a single use stays direct. `addInteger` stays inline at
+its exact `C - 1` call sites in all three implementations.
 
-Captures use `UnIData` only after their field is selected. The successful continuation performs
-the same two additions as the nested and shallow sketches:
+Captures use `UnIData` only after their field is selected. Its decoding expression is substituted
+directly into the successful continuation, without an extra capture lambda/application. The
+continuation performs the same two additions as the nested and shallow sketches:
 
 ```text
 addInteger (addInteger i7 i2) i10
@@ -203,4 +205,5 @@ Invoke those commands once per ID returned by `--list-cases`.
 ## Recorded run
 
 See [`RESULTS.md`](RESULTS.md) for the complete three-way, 22-case wall-time comparison and
-untimed correctness/protocol-limit preflight measured on 2026-08-06.
+untimed correctness/protocol-limit preflight measured on 2026-08-06. It also records a control run
+of the same traditional UPLC under all three historical CEK evaluators.

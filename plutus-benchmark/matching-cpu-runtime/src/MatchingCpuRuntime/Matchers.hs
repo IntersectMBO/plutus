@@ -39,7 +39,22 @@ traditionalMatcher makeBody =
       hoistRepeatedBuiltin PLC.TailList (freshName "tailList") body
     bodyWithSharedListBuiltins <-
       hoistRepeatedBuiltin PLC.DropList (freshName "dropList") bodyWithSharedTailList
-    pure $ UPLC.LamAbs () argumentName bodyWithSharedListBuiltins
+    bodyWithSharedUnConstrData <-
+      hoistRepeatedBareBuiltin
+        PLC.UnConstrData
+        (freshName "unConstrData")
+        bodyWithSharedListBuiltins
+    bodyWithSharedEqualsInteger <-
+      hoistRepeatedBareBuiltin
+        PLC.EqualsInteger
+        (freshName "equalsInteger")
+        bodyWithSharedUnConstrData
+    bodyWithSharedUnIData <-
+      hoistRepeatedBareBuiltin
+        PLC.UnIData
+        (freshName "unIData")
+        bodyWithSharedEqualsInteger
+    pure $ UPLC.LamAbs () argumentName bodyWithSharedUnIData
 
 -- Share a forced polymorphic list builtin only when the matcher uses it repeatedly.
 hoistRepeatedBuiltin
@@ -92,6 +107,57 @@ replaceForcedBuiltin builtinName replacement = go
       UPLC.Case ann scrutinee branches ->
         UPLC.Case ann (go scrutinee) $ fmap go branches
 
+-- Share a monomorphic builtin value only when it occurs at multiple emitted call sites.
+hoistRepeatedBareBuiltin
+  :: PLC.DefaultFun
+  -> PLC.Quote UPLC.Name
+  -> NamedTerm
+  -> PLC.Quote NamedTerm
+hoistRepeatedBareBuiltin builtinName makeName body
+  | bareBuiltinOccurrences builtinName body <= 1 = pure body
+  | otherwise = do
+      name <- makeName
+      pure $
+        UPLC.Apply
+          ()
+          (UPLC.LamAbs () name $ replaceBareBuiltin builtinName name body)
+          (UPLC.Builtin () builtinName)
+
+bareBuiltinOccurrences :: PLC.DefaultFun -> NamedTerm -> Int
+bareBuiltinOccurrences builtinName = go
+  where
+    go = \case
+      UPLC.Var {} -> 0
+      UPLC.LamAbs _ _ body -> go body
+      UPLC.Apply _ function argument -> go function + go argument
+      UPLC.Force _ term -> go term
+      UPLC.Delay _ term -> go term
+      UPLC.Constant {} -> 0
+      UPLC.Builtin _ foundBuiltin
+        | foundBuiltin == builtinName -> 1
+        | otherwise -> 0
+      UPLC.Error {} -> 0
+      UPLC.Constr _ _ fields -> sum $ fmap go fields
+      UPLC.Case _ scrutinee branches -> go scrutinee + sum (fmap go branches)
+
+replaceBareBuiltin :: PLC.DefaultFun -> UPLC.Name -> NamedTerm -> NamedTerm
+replaceBareBuiltin builtinName replacement = go
+  where
+    go term = case term of
+      UPLC.Var {} -> term
+      UPLC.LamAbs ann name body -> UPLC.LamAbs ann name $ go body
+      UPLC.Apply ann function argument -> UPLC.Apply ann (go function) (go argument)
+      UPLC.Force ann forced -> UPLC.Force ann $ go forced
+      UPLC.Delay ann delayed -> UPLC.Delay ann $ go delayed
+      UPLC.Constant {} -> term
+      UPLC.Builtin ann foundBuiltin
+        | foundBuiltin == builtinName -> UPLC.Var ann replacement
+        | otherwise -> term
+      UPLC.Error {} -> term
+      UPLC.Constr ann tag fields -> UPLC.Constr ann tag $ fmap go fields
+      UPLC.Case ann scrutinee branches ->
+        UPLC.Case ann (go scrutinee) $ fmap go branches
+
 sumCapturedIntegers :: [UPLC.Name] -> NamedTerm
 sumCapturedIntegers [] = mkConstant @Integer () 0
 sumCapturedIntegers (firstCapture : laterCaptures) =
@@ -130,17 +196,16 @@ chooseData value whenConstr whenMap whenList whenI whenB =
 captureIntegerField :: UPLC.Name -> FieldMatcher
 captureIntegerField captureName fieldName continuation =
   pure $
-    UPLC.Apply
-      ()
-      (UPLC.LamAbs () captureName continuation)
+    inlineCapturedValue
+      captureName
       (builtinApp 0 PLC.UnIData [UPLC.Var () fieldName])
+      continuation
 
 captureIntegerAlternatives :: UPLC.Name -> FieldMatcher
 captureIntegerAlternatives captureName fieldName continuation =
   pure $
-    UPLC.Apply
-      ()
-      (UPLC.LamAbs () captureName continuation)
+    inlineCapturedValue
+      captureName
       ( chooseData
           (UPLC.Var () fieldName)
           (UPLC.Error ())
@@ -149,6 +214,12 @@ captureIntegerAlternatives captureName fieldName continuation =
           (builtinApp 0 PLC.UnIData [UPLC.Var () fieldName])
           (builtinApp 0 PLC.UnBData [UPLC.Var () fieldName])
       )
+      continuation
+
+inlineCapturedValue :: UPLC.Name -> NamedTerm -> NamedTerm -> NamedTerm
+inlineCapturedValue captureName capturedValue =
+  UPLC.termSubstNames $ \name _ ->
+    if name == captureName then Just capturedValue else Nothing
 
 capturedFieldsAtNodeWith
   :: (Int -> UPLC.Name -> FieldMatcher)
