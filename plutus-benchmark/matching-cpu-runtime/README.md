@@ -1,17 +1,19 @@
-# Nested versus shallow Match: CEK wall-time benchmark
+# Nested, shallow, and traditional matching: CEK wall time
 
-This compares recursive nested patterns with their equivalent sequence of shallow patterns. It uses
-only `Data.Constr`: `Data.List` has the same field traversal behavior, so duplicating every
-topology for both discriminators would add cases without improving the comparison.
+This compares three implementations of the same 22 `Data.Constr` matches:
 
-This is not a cost-model calibration suite. Criterion reports CEK wall time only.
+- one recursive nested `Match` pattern;
+- continuation-nested shallow `Match` terms; and
+- traditional `UnConstrData`, `Case`, and list builtins, with no `Match` AST.
+
+`Data.List` traverses fields like `Data.Constr`, so the suite does not duplicate every topology for
+both discriminators. This is not cost-model calibration: Criterion reports only CEK wall time.
 
 ## Target structure
 
-Every case has one explicit closed argument function and one explicit matcher function. Small
-module-level helpers fill one constructor/pattern node and build the repeated capture sum; each
-case still declares its own width, tags, child positions, captures, and recursion. There is no
-Cartesian suite generator, runtime tree specification, or external term generator.
+Every case has one explicit closed argument and one explicit matcher per implementation. Small
+helpers fill a constructor or pattern node, but each case declares its own width, tags, child
+positions, captures, and recursion. There is no generated Cartesian suite or runtime tree spec.
 
 - `D`: maximum number of nested `Data.Constr` nodes on a root-to-leaf path.
 - `W`: exact number of immediate fields in every constructor.
@@ -20,16 +22,16 @@ Cartesian suite generator, runtime tree specification, or external term generato
 - Node `n` uses constructor tag `n`.
 - At node `n`, an ordinary zero-based field `f` is
   `I ((n - 1) * W + f + 1)`.
-- A child at field `f` replaces that integer. A node may have one to four children, placed at
-  front, middle, last, or irregular positions.
+- A child at field `f` replaces that integer. Children appear at front, middle, last, and irregular
+  positions, including repeated tree branches.
 - Every structural pattern requires exactly `W` fields.
-- Every unselected integer field is a plain pattern wildcard; neither implementation inspects
-  its `Data` discriminator.
-- With one capture the result is returned directly. With `C > 1`, the captures are summed
-  with exactly `C - 1` `addInteger` operations.
+- Nested and shallow matching use a plain wildcard for every unselected integer field;
+  traditional matching skips it without calling `UnIData`.
+- One capture is returned directly. `C > 1` uses exactly `C - 1` `addInteger` operations; no
+  matcher evaluates `addInteger 0 x`.
 
-The following grammar is documentation notation only. Each Haskell `*_arg :: Term` definition
-spells out its own layout with a small local fold or local node bindings.
+The notation below abbreviates repeated scalar fields only. Each `*_arg :: Term` still spells out
+its own layout with local folds or node bindings.
 
 ```text
 Node(n, W, childrenByField) =
@@ -42,7 +44,7 @@ Node(n, W, childrenByField) =
 
 ## Matching pseudo-UPLC
 
-A genuine branch with children at the front and in the middle can look like this:
+For example:
 
 ```text
 argument =
@@ -57,66 +59,83 @@ captures = [2, 7, 10]
 expected = 19
 ```
 
-The nested implementation uses one recursive pattern:
+Nested matching puts the complete structure in one pattern:
 
 ```text
 lambda arg.
   match arg with
-    data-constr 1 exact [
-      data-constr 2 exact [wildcard, wildcard, data-i(bind), wildcard],
-      data-i(bind),
-      data-constr 3 exact [wildcard, data-i(bind), wildcard, wildcard],
-      wildcard
-    ]
-    -> lambda i7 i2 i10.
-         addInteger (addInteger (addInteger 0 i7) i2) i10
+    Constr 1 exact [
+      Constr 2 exact [_, _, I @, _],
+      I @,
+      Constr 3 exact [_, I @, _, _],
+      _
+    ] -> lambda i7 i2 i10.
+           addInteger (addInteger i7 i2) i10
 ```
 
-The shallow implementation matches one constructor at a time. Selected scalar fields and every
-child are first bound as `Data`; a selected scalar then needs a separate shallow `data-i` match.
-Sibling child matches are continuation-nested, so no subtree can be skipped:
+Shallow matching binds immediate `Data` fields, then continues with another `Match` for every
+child or selected `I` field:
 
 ```text
 lambda arg.
   match arg with
-    data-constr 1 exact [bind, bind, bind, wildcard]
-    -> lambda child0 d2 child2.
-         match child0 with
-           data-constr 2 exact [wildcard, wildcard, bind, wildcard]
+    Constr 1 exact [@child2, @d2, @child3, _]
+    -> lambda child2 d2 child3.
+         match child2 with
+           Constr 2 exact [_, _, @d7, _]
            -> lambda d7.
-                match d7 with data-i(bind) -> lambda i7.
-                  match d2 with data-i(bind) -> lambda i2.
-                    match child2 with
-                      data-constr 3 exact [wildcard, bind, wildcard, wildcard]
+                match d7 with I @ -> lambda i7.
+                  match d2 with I @ -> lambda i2.
+                    match child3 with
+                      Constr 3 exact [_, @d10, _, _]
                       -> lambda d10.
-                           match d10 with data-i(bind) -> lambda i10.
-                             addInteger (addInteger (addInteger 0 i7) i2) i10
+                           match d10 with I @ -> lambda i10.
+                             addInteger (addInteger i7 i2) i10
 ```
 
-Late-failing alternative cases put the wrong tag only on the final leaf of the first alternative.
-For the D=16 spine, the argument ends in `Constr 16 [I 121, I 122, I 123, I 124, ..., I 128]`:
+Traditional matching directly cases the builtin pair returned by `UnConstrData`, cases the
+`EqualsInteger` Bool for the tag, and threads one list cursor through selected fields:
 
 ```text
-nested:
-  match arg with
-    Constr 1 [... Constr 2 [... ... Constr 999 [... data-i(bind) ...] ...] ...] -> unreachable
-    Constr 1 [... Constr 2 [... ... Constr 16  [... data-i(bind) ...] ...] ...] -> sum captures
-
-shallow:
-  match Constr 1; ...; match Constr 15; bind leaf
-  match leaf with
-    Constr 999 [wildcard, wildcard, wildcard, bind, ...]
-      -> lambda d124. match d124 with data-i(bind) -> unreachable
-    Constr 16  [wildcard, wildcard, wildcard, bind, ...]
-      -> lambda d124. match d124 with data-i(bind) -> sum captures
+lambda arg.
+  case unConstrData arg of
+    (tag, fields) ->
+      case equalsInteger tag 1 of
+        False -> error
+        True  ->
+          case fields of
+            child2 : fields1 -> matchConstr 2 child2 (...)
+            []              -> error
 ```
 
-Nested matching retries two complete recursive patterns. Shallow matching traverses the shared
-prefix once and keeps the alternatives only at the final leaf.
+These are builtin-pair, builtin-Bool, and builtin-list `Case` nodes; they do not use `Match`.
 
-Both sides therefore validate to the same integer and perform identical explicit arithmetic. The
-timing difference comes from recursive pattern traversal versus repeated shallow Match nodes and
-their handler applications.
+For a gap of one to three ignored fields, the cursor advances with repeated `tailList`; a larger
+gap uses one `dropList`. A selected field is obtained by a list `Case`, which binds its head and
+tail together. A final sentinel field must exist and its tail must case to `Nil`, enforcing exactly
+`W` fields. If a forced `tailList` or `dropList` builtin value is used more than once, it is
+lambda-bound once and reused.
+
+Captures use `UnIData` only after their field is selected. The successful continuation performs
+the same two additions as the nested and shallow sketches:
+
+```text
+addInteger (addInteger i7 i2) i10
+```
+
+The three alternative cases place `{B @ | I @}` at the literal final visited field:
+
+```text
+argument:    Constr 1 [Constr 2 [...], ..., I terminal]
+
+nested:      match arg with {whole structure ending B @ | whole structure ending I @}
+shallow:     match shared prefix; match terminal with {B @ | I @}
+traditional: case shared prefix; chooseData terminal {B -> unBData; I -> unIData}
+```
+
+Nested matching retries a complete recursive pattern. Shallow matching and traditional
+`ChooseData` share the structural prefix. All three return the same integer and perform identical
+explicit arithmetic.
 
 ## Explicit cases
 
@@ -151,26 +170,28 @@ The branching cases model real ScriptContext relationships: V1/V2 have two root 
 three, while `TxInInfo`, `Address`, interval bounds, `TxOut`, and governance records have
 multiple nested siblings. Depth 64/100 and width 1000 are scaling boundaries, not literal current
 ledger layouts. Cases 12-14 cover wider fan-out at depth 3; case 19 separately stresses branching
-that repeats at every level, which the deep spine cases do not exercise. Cases 20-22 measure a
-failed first pattern at the literal final field in evaluator traversal order, followed by the
-matching alternative on spine, root-fork, and full-tree shapes.
+that repeats at every level, which the deep spine cases do not exercise. In cases 20-22, nested
+`Match` retries after the literal final field, while shallow `Match` and traditional `ChooseData`
+reuse the spine, root-fork, or full-tree prefix.
 
 ## Measurement and memory isolation
 
-The required `*_arg :: Term` and `*_nested/shallow :: Term` definitions are CAFs. A forced CAF
-cannot be reclaimed within that process, so the executable deliberately runs exactly one selected
-case:
+The required `*_arg :: Term` and `*_nested`, `*_shallow`, or `*_traditional` matcher definitions
+are CAFs. A forced CAF cannot be reclaimed within its process, so each executable invocation runs
+exactly one implementation and one selected case:
 
-1. Select one case before constructing the Criterion tree.
-2. Fully construct and force `applyTerm matcher argument` in Criterion `env` setup.
+1. Select the case before constructing the Criterion tree; other argument and matcher CAFs remain
+   unforced.
+2. Generate that case's argument and matcher, construct `applyTerm matcher argument`, and fully
+   force it in Criterion `env` setup.
 3. Run CEK once outside timing and check the exact expected integer.
 4. Time only `whnf runCEK appliedTerm`, with `restrictingEnormous` and no emitter.
-5. Exit the process before selecting the next case.
+5. Exit before selecting another case, releasing its argument and matcher with the process.
 
-`--validate-case` is a separate untimed preflight. It checks the output, serializes only the
-matcher function as a UPLC 1.2 ledger script, and asserts the 16,384-byte script,
-10,000,000,000-CPU, and 14,000,000-memory limits. Those budget values are validation metadata, not
-Criterion measurements or comparison results.
+`--validate-case` is a separate untimed preflight. It checks the output and serializes only the
+matcher function: traditional terms use UPLC 1.1, while nested and shallow `Match` terms use UPLC
+1.2. It asserts the 16,384-byte script, 10,000,000,000-CPU, and 14,000,000-memory limits. Budgets
+are validation metadata, never Criterion measurements or comparison results.
 
 ```sh
 matching-cpu-runtime --validate-case constr_binary_d3_w16_c8
@@ -181,5 +202,5 @@ Invoke those commands once per ID returned by `--list-cases`.
 
 ## Recorded run
 
-See [`RESULTS.md`](RESULTS.md) for the complete 22-case wall-time comparison and untimed
-correctness/protocol-limit preflight measured on 2026-08-06.
+See [`RESULTS.md`](RESULTS.md) for the complete three-way, 22-case wall-time comparison and
+untimed correctness/protocol-limit preflight measured on 2026-08-06.
