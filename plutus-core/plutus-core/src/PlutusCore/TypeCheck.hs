@@ -61,10 +61,13 @@ builtinMeaningsToTypes
   -> ann
   -> m (BuiltinTypes uni fun)
 builtinMeaningsToTypes semvar ann =
-  runQuoteT . fmap BuiltinTypes . sequence . tabulateArray $ \fun -> do
-    let ty = typeOfBuiltinFunction semvar fun
-    _ <- inferKind defKindCheckConfig $ ann <$ ty
-    dupable <$> normalizeType ty
+  runQuoteT . fmap BuiltinTypes . sequence . tabulateArray $ \fun ->
+    case toBuiltinTypeApplication semvar fun of
+      Just typeApplication -> pure $ TypeAppliedBuiltin typeApplication
+      Nothing -> do
+        let ty = typeOfBuiltinFunction semvar fun
+        _ <- inferKind defKindCheckConfig $ ann <$ ty
+        OrdinaryBuiltinType . dupable <$> normalizeType ty
 
 -- | Get the default type checking config.
 getDefTypeCheckConfig

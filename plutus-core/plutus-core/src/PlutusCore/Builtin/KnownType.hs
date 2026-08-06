@@ -493,6 +493,10 @@ instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
   makeKnown = coerceArg pure
   {-# INLINE makeKnown #-}
 
+instance uni ~ UniOf val => MakeKnownIn uni val (OpaqueVConstr val) where
+  makeKnown = coerceArg pure
+  {-# INLINE makeKnown #-}
+
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
   readKnown = coerceArg pure
   {-# INLINE readKnown #-}

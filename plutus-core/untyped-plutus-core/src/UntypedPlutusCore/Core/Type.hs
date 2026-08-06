@@ -156,6 +156,10 @@ instance TPLC.HasConstant (Term name uni fun ()) where
 
   fromConstant = Constant ()
 
+instance TPLC.HasConstr (Term name uni fun ()) where
+  fromConstr _ = Constr ()
+  {-# INLINE fromConstr #-}
+
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
 

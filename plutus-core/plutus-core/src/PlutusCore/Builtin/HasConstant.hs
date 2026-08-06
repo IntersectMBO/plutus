@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -8,6 +9,7 @@ module PlutusCore.Builtin.HasConstant
   , notAConstant
   , HasConstant (..)
   , HasConstantIn
+  , HasConstr (..)
   , fromValueOf
   , fromValue
   ) where
@@ -19,6 +21,7 @@ import PlutusCore.Name.Unique
 import Universe
 
 import Control.Monad.Except
+import Data.Word (Word64)
 
 {- Note [Existence of HasConstant]
 We don't really need 'HasConstant' and could get away with only having 'HasConstantIn', however
@@ -46,6 +49,14 @@ class HasConstant term where
 and connects @term@ and its @uni@. -}
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
+-- | Ensures that a builtin result carrier can construct a sum-of-products value.
+class HasConstr term where
+  fromConstr
+    :: (forall tyname. Type tyname (UniOf term) ())
+    -> Word64
+    -> [term]
+    -> term
+
 -- | Wrap a Haskell value (given its explicit type tag) as a @term@.
 fromValueOf :: forall a term. HasConstant term => UniOf term (Esc a) -> a -> term
 fromValueOf uni = fromConstant . someValueOf uni
@@ -61,3 +72,7 @@ instance HasConstant (Term TyName Name uni fun ()) where
   asConstant _ = throwError notAConstant
 
   fromConstant = Constant ()
+
+instance HasConstr (Term TyName Name uni fun ()) where
+  fromConstr ty = Constr () ty
+  {-# INLINE fromConstr #-}

@@ -34,8 +34,11 @@ import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
+import Data.Some.Newtype qualified as SomeNewtype
+import Data.Text (Text)
 import GHC.Exts (inline, lazy, oneShot)
 import GHC.TypeLits
+import Universe.Core (ValueOf)
 
 {-| Turn a list of Haskell types @args@ into a functional type ending in @res@.
 
@@ -66,7 +69,21 @@ data BuiltinMeaning val cost
       (cost -> BuiltinRuntime val)
 
 -- | Constraints available when defining a built-in function.
-type HasMeaningIn uni val = (Typeable val, ExMemoryUsage val, HasConstantIn uni val)
+type HasMeaningIn uni val =
+  (Typeable val, ExMemoryUsage val, HasConstantIn uni val, HasConstr val)
+
+{-| Metadata for a builtin whose direct type application has special typechecking and erasure
+behavior.
+
+The first component computes the type exposed to PLC from the raw type argument. The second
+component reifies that same argument as a builtin constant for erasure. Keeping both operations
+together ensures that the typechecker and eraser accept exactly the same type syntax. -}
+data BuiltinTypeApplication uni = BuiltinTypeApplication
+  { btaInferType :: Type TyName uni () -> Either Text (Type TyName uni ())
+  , btaReifyArgument
+      :: forall tyname ann
+       . Type tyname uni ann -> Either Text (SomeNewtype.Some (ValueOf uni))
+  }
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class
@@ -92,10 +109,17 @@ class
     -> fun
     -> BuiltinMeaning val (CostingPart uni fun)
 
+  -- | Describe special handling for a direct type application of a builtin, if any.
+  toBuiltinTypeApplication
+    :: BuiltinSemanticsVariant fun
+    -> fun
+    -> Maybe (BuiltinTypeApplication uni)
+  toBuiltinTypeApplication _ _ = Nothing
+
 -- | Feed the 'TypeScheme' of the given built-in function to the continuation.
 withTypeSchemeOfBuiltinFunction
   :: forall val fun r
-   . (ToBuiltinMeaning (UniOf val) fun, ExMemoryUsage val, Typeable val, HasConstant val)
+   . (ToBuiltinMeaning (UniOf val) fun, ExMemoryUsage val, Typeable val, HasConstant val, HasConstr val)
   => BuiltinSemanticsVariant fun
   -> fun
   -> (forall args res. TypeScheme val args res -> r)
@@ -114,6 +138,7 @@ typeOfBuiltinFunction
 typeOfBuiltinFunction semVar fun =
   withTypeSchemeOfBuiltinFunction @(Term TyName Name uni fun ()) semVar fun typeSchemeToType
 
+-- | Return the standalone PLC type of a builtin, if it has one.
 {- Note [Builtin semantics variants]
 The purpose of the "builtin semantics variant" feature is to provide multiple,
 different denotations (implementations) for the same builtin(s).  An example use

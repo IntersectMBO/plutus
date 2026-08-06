@@ -27,7 +27,7 @@ compileTerm
 compileTerm t = do
   optimizeOpts <- view coOptimizeOpts
   builtinSemanticsVariant <- view coBuiltinSemanticsVariant
-  let erased = eraseTerm t
+  let erased = eraseTermWithSemantics builtinSemanticsVariant t
   renamed <- rename erased
   UPLC.optimizeTerm optimizeOpts builtinSemanticsVariant renamed
 
@@ -51,7 +51,7 @@ compileProgramWithTrace
 compileProgramWithTrace (Program a v t) = do
   optimizeOpts <- view coOptimizeOpts
   builtinSemanticsVariant <- view coBuiltinSemanticsVariant
-  let erased = eraseTerm t
+  let erased = eraseTermWithSemantics builtinSemanticsVariant t
   renamedProgram <- UPLC.Program a v <$> rename erased
   UPLC.optimizeProgramWithTrace
     optimizeOpts

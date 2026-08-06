@@ -716,6 +716,14 @@ instance HasConstant (CekValue uni fun ann) where
   fromConstant = VCon
   {-# INLINE fromConstant #-}
 
+instance HasConstr (CekValue uni fun ann) where
+  fromConstr _ i [] = VConstr i EmptyStack
+  fromConstr _ i (x : xs) = VConstr i . MultiStack $ go x xs
+    where
+      go y [] = LastStackNonEmpty y
+      go y (z : zs) = ConsStackNonEmpty y $ go z zs
+  {-# INLINE fromConstr #-}
+
 {-|
 The context in which the machine operates.
 

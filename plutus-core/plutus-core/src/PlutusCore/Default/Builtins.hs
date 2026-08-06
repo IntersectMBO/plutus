@@ -20,6 +20,7 @@ import PlutusPrelude
 
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
+import PlutusCore.Default.MatchData qualified as MatchData
 import PlutusCore.Default.Universe
 import PlutusCore.Default.Universe.Cardano
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -221,6 +222,7 @@ data DefaultFun
   | -- Batch 7
     MultiIndexArray
   | Policies
+  | MatchData
   deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
   deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2502,8 +2504,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           policiesDenotation
           (runCostingFunOneArgument . unimplementedCostingFun)
+  toBuiltinMeaning _semvar MatchData =
+    let matchDataDenotation
+          :: [Integer]
+          -> Data
+          -> BuiltinResult (OpaqueVConstr val)
+        matchDataDenotation = MatchData.matchData
+        {-# INLINE matchDataDenotation #-}
+     in makeBuiltinMeaning
+          matchDataDenotation
+          (runCostingFunTwoArguments . unimplementedCostingFun)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
+
+  toBuiltinTypeApplication _semvar MatchData = Just MatchData.matchDataTypeApplication
+  toBuiltinTypeApplication _semvar _ = Nothing
+  {-# INLINE toBuiltinTypeApplication #-}
 
 -- \*** IMPORTANT! *** When you're adding a new builtin above you typically won't
 --       be able to add a sensible costing function until the implementation is
@@ -2647,6 +2663,7 @@ instance Flat DefaultFun where
       ScaleValue -> 100
       MultiIndexArray -> 101
       Policies -> 102
+      MatchData -> 103
 
   decode = go =<< decodeBuiltin
     where
@@ -2753,6 +2770,7 @@ instance Flat DefaultFun where
       go 100 = pure ScaleValue
       go 101 = pure MultiIndexArray
       go 102 = pure Policies
+      go 103 = pure MatchData
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth

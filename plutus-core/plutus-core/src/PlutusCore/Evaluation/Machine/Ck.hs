@@ -137,6 +137,10 @@ instance HasConstant (CkValue uni fun) where
 
   fromConstant = VCon
 
+instance HasConstr (CkValue uni fun) where
+  fromConstr ty = VConstr ty
+  {-# INLINE fromConstr #-}
+
 data Frame uni fun
   = -- | @[V _]@
     FrameAwaitArg (CkValue uni fun)

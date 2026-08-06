@@ -32,7 +32,7 @@ module PlutusIR.Core.Type
 
 import PlutusCore (Kind, Name, TyName, Type (..), Version (..))
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin (HasConstant (..), notAConstant)
+import PlutusCore.Builtin (HasConstant (..), HasConstr (..), notAConstant)
 import PlutusCore.Core (UniOf)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.FlatInstances ()
@@ -171,6 +171,10 @@ instance HasConstant (Term tyname name uni fun ()) where
   asConstant _ = throwError notAConstant
 
   fromConstant = Constant ()
+
+instance HasConstr (Term tyname name uni fun ()) where
+  fromConstr ty = Constr () ty
+  {-# INLINE fromConstr #-}
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
   var = Var

@@ -272,6 +272,14 @@ instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (Opaque val rep)
   type ToBinds uni acc (Opaque _ rep) = ToBinds uni acc rep
   typeAst = toTypeAst $ Proxy @rep
 
+{-| A provisional type used only by automatic builtin-signature derivation. A type-directed
+builtin application replaces it with the precise SOP type before the builtin is exposed to PLC. -}
+instance KnownTypeAst tyname uni (OpaqueVConstr val) where
+  type IsBuiltin _ (OpaqueVConstr val) = 'False
+  type ToHoles _ _ (OpaqueVConstr val) = '[]
+  type ToBinds _ acc (OpaqueVConstr val) = acc
+  typeAst = TySOP () []
+
 -- | Return the Plutus counterpart of the @x@ type.
 toTypeAst
   :: forall a tyname uni (x :: a) proxy

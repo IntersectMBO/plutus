@@ -12,6 +12,7 @@ import PlutusPrelude
 
 import PlutusCore.Generators.Hedgehog.AST qualified as PLC
 
+import PlutusCore.Builtin (ToBuiltinMeaning)
 import PlutusCore.Compiler.Erase
 import UntypedPlutusCore as UPLC
 
@@ -29,13 +30,14 @@ regenConstantsUntil p =
 
 genTerm
   :: forall fun
-   . (Bounded fun, Enum fun)
+   . ToBuiltinMeaning DefaultUni fun
   => PLC.AstGen (Term Name DefaultUni fun ())
 genTerm = fmap eraseTerm PLC.genTerm
 
 genProgram
   :: forall fun
-   . (Bounded fun, Enum fun) => PLC.AstGen (Program Name DefaultUni fun ())
+   . ToBuiltinMeaning DefaultUni fun
+  => PLC.AstGen (Program Name DefaultUni fun ())
 genProgram = fmap eraseProgram PLC.genProgram
 
 -- See Note [Name mangling]

@@ -34,13 +34,18 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
 import PlutusCore (toPatFuncKind, tyVarDeclName)
-import PlutusCore.Builtin (annotateCaseBuiltin)
+import PlutusCore.Builtin (BuiltinTypeApplication (btaInferType), annotateCaseBuiltin)
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
 import PlutusCore.MkPlc (mkIterTyFun)
 
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
-import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
+import PlutusCore.TypeCheck.Internal hiding
+  ( checkTypeM
+  , inferTypeInstantiationM
+  , inferTypeM
+  , runTypeCheckM
+  )
 
 import Control.Monad (when)
 import Control.Monad.Except
@@ -149,8 +154,12 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
-inferTypeM (Builtin ann bn) =
-  mapReaderT (modifyError PLCTypeError) $ lookupBuiltinM ann bn
+inferTypeM (Builtin ann fun) = do
+  typeApplication <-
+    mapReaderT (modifyError PLCTypeError) $ lookupBuiltinTypeApplicationM ann fun
+  case typeApplication of
+    Nothing -> mapReaderT (modifyError PLCTypeError) $ lookupBuiltinM ann fun
+    Just _ -> throwError . PLCTypeError $ BuiltinMustBeTypeApplied ann fun
 -- [infer| G !- v : ty]    ty ~> vTy
 -- ---------------------------------
 -- [infer| G !- var v : vTy]
@@ -188,16 +197,21 @@ inferTypeM (Apply ann fun arg) = do
 -- [infer| G !- body : all (n :: nK) vCod]    [check| G !- ty :: tyK]    ty ~> vTy
 -- -------------------------------------------------------------------------------
 -- [infer| G !- body {ty} : NORM ([vTy / n] vCod)]
-inferTypeM (TyInst ann body ty) = do
-  vBodyTy <- inferTypeM body
-  case unNormalized vBodyTy of
-    TyForall _ n nK vCod -> do
-      mapReaderT (modifyError PLCTypeError) $ checkKindM ann ty nK
-      vTy <- normalizeTypeM $ void ty
-      substNormalizeTypeM vTy n vCod
-    _ -> do
-      let expectedTyForall = ExpectedShape "all a kind body" ["a", "kind", "body"]
-      throwError $ PLCTypeError (TypeMismatch ann (void body) expectedTyForall vBodyTy)
+inferTypeM (TyInst ann body@(Builtin _ fun) ty) = do
+  typeApplication <-
+    mapReaderT (modifyError PLCTypeError) $ lookupBuiltinTypeApplicationM ann fun
+  case typeApplication of
+    Nothing -> inferTypeInstantiationM ann body ty
+    Just application -> do
+      mapReaderT (modifyError PLCTypeError) $ checkKindM ann ty $ Type ()
+      inferred <-
+        either
+          (throwError . PLCTypeError . InvalidBuiltinTypeApplication ann fun)
+          pure
+          $ btaInferType application (void ty)
+      normalizeTypeM inferred
+inferTypeM (TyInst ann body ty) =
+  inferTypeInstantiationM ann body ty
 
 -- [infer| G !- arg :: k]    [check| G !- pat :: (k -> *) -> k -> *]    pat ~> vPat    arg ~> vArg
 -- [check| G !- term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
@@ -351,6 +365,23 @@ inferTypeM (Let ann r@Rec bs inTerm) = do
   -- check the in-term's inferred type has kind * (except at toplevel)
   checkStarInferred ann ty
   pure ty
+
+inferTypeInstantiationM
+  :: MonadTypeCheckPir uni fun ann m
+  => ann
+  -> Term TyName Name uni fun ann
+  -> Type TyName uni ann
+  -> PirTCEnv uni fun m (Normalized (Type TyName uni ()))
+inferTypeInstantiationM ann body ty = do
+  vBodyTy <- inferTypeM body
+  case unNormalized vBodyTy of
+    TyForall _ n nK vCod -> do
+      mapReaderT (modifyError PLCTypeError) $ checkKindM ann ty nK
+      vTy <- normalizeTypeM $ void ty
+      substNormalizeTypeM vTy n vCod
+    _ -> do
+      let expectedTyForall = ExpectedShape "all a kind body" ["a", "kind", "body"]
+      throwError $ PLCTypeError (TypeMismatch ann (void body) expectedTyForall vBodyTy)
 
 {-| This checks that a newly-introduced type variable is correctly kinded.
 

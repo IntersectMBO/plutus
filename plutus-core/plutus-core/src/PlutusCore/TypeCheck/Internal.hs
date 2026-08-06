@@ -96,9 +96,14 @@ functions that cannot fail look like this:
 -- ## Type definitions ##
 -- ######################
 
--- | Mapping from 'Builtin's to their 'Normalized' 'Type's.
+-- | Typechecking information for a 'Builtin'.
+data BuiltinTypeInfo uni
+  = OrdinaryBuiltinType (Dupable (Normalized (Type TyName uni ())))
+  | TypeAppliedBuiltin (BuiltinTypeApplication uni)
+
+-- | Typechecking information for each 'Builtin'.
 newtype BuiltinTypes uni fun = BuiltinTypes
-  { unBuiltinTypes :: Array fun (Dupable (Normalized (Type TyName uni ())))
+  { unBuiltinTypes :: Array fun (BuiltinTypeInfo uni)
   }
 
 type TyVarKinds = UniqueMap TypeUnique (Named (Kind ()))
@@ -257,7 +262,19 @@ lookupBuiltinM ann fun = do
   -- safely.
   case preview (ix fun) arr of
     Nothing -> throwError $ UnknownBuiltinFunctionE ann fun
-    Just ty -> liftDupable ty
+    Just (OrdinaryBuiltinType ty) -> liftDupable ty
+    Just TypeAppliedBuiltin {} -> throwError $ BuiltinMustBeTypeApplied ann fun
+
+-- | Look up special handling for a direct type application of a builtin.
+lookupBuiltinTypeApplicationM
+  :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
+  => ann -> fun -> TypeCheckT uni fun cfg m (Maybe (BuiltinTypeApplication uni))
+lookupBuiltinTypeApplicationM ann fun = do
+  BuiltinTypes arr <- view $ tceTypeCheckConfig . tccBuiltinTypes
+  case preview (ix fun) arr of
+    Nothing -> throwError $ UnknownBuiltinFunctionE ann fun
+    Just OrdinaryBuiltinType {} -> pure Nothing
+    Just (TypeAppliedBuiltin typeApplication) -> pure $ Just typeApplication
 
 -- | Extend the context of a 'TypeCheckM' computation with a typed variable.
 withVar
@@ -453,8 +470,11 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
-inferTypeM (Builtin ann fun) =
-  lookupBuiltinM ann fun
+inferTypeM (Builtin ann fun) = do
+  typeApplication <- lookupBuiltinTypeApplicationM ann fun
+  case typeApplication of
+    Nothing -> lookupBuiltinM ann fun
+    Just _ -> throwError $ BuiltinMustBeTypeApplied ann fun
 -- [infer| G !- v : ty]    ty ~> vTy
 -- ---------------------------------
 -- [infer| G !- var v : vTy]
@@ -492,16 +512,18 @@ inferTypeM (Apply ann fun arg) = do
 -- [infer| G !- body : all (n :: nK) vCod]    [check| G !- ty :: tyK]    ty ~> vTy
 -- -------------------------------------------------------------------------------
 -- [infer| G !- body {ty} : NORM ([vTy / n] vCod)]
-inferTypeM (TyInst ann body ty) = do
-  vBodyTy <- inferTypeM body
-  case unNormalized vBodyTy of
-    TyForall _ n nK vCod -> do
-      checkKindM ann ty nK
-      vTy <- normalizeTypeM $ void ty
-      substNormalizeTypeM vTy n vCod
-    _ -> do
-      let expectedTyForall = ExpectedShape "all a kind body" ["a", "kind", "body"]
-      throwError (TypeMismatch ann (void body) expectedTyForall vBodyTy)
+inferTypeM (TyInst ann body@(Builtin _ fun) ty) = do
+  typeApplication <- lookupBuiltinTypeApplicationM ann fun
+  case typeApplication of
+    Nothing -> inferTypeInstantiationM ann body ty
+    Just application -> do
+      checkKindM ann ty $ Type ()
+      inferred <-
+        either (throwError . InvalidBuiltinTypeApplication ann fun) pure $
+          btaInferType application (void ty)
+      normalizeTypeM inferred
+inferTypeM (TyInst ann body ty) =
+  inferTypeInstantiationM ann body ty
 
 -- [infer| G !- arg :: k]    [check| G !- pat :: (k -> *) -> k -> *]    pat ~> vPat    arg ~> vArg
 -- [check| G !- term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
@@ -602,6 +624,23 @@ inferTypeM (Case ann resTy scrut branches) = do
   -- they all result in vResTy, so we can safely conclude that that is the type of the
   -- whole expression.
   pure vResTy
+
+inferTypeInstantiationM
+  :: (MonadTypeCheckPlc uni fun ann m, HasTypeCheckConfig cfg uni fun)
+  => ann
+  -> Term TyName Name uni fun ann
+  -> Type TyName uni ann
+  -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
+inferTypeInstantiationM ann body ty = do
+  vBodyTy <- inferTypeM body
+  case unNormalized vBodyTy of
+    TyForall _ n nK vCod -> do
+      checkKindM ann ty nK
+      vTy <- normalizeTypeM $ void ty
+      substNormalizeTypeM vTy n vCod
+    _ -> do
+      let expectedTyForall = ExpectedShape "all a kind body" ["a", "kind", "body"]
+      throwError (TypeMismatch ann (void body) expectedTyForall vBodyTy)
 
 -- See Note [Global uniqueness in the type checker].
 -- See Note [Typing rules].
