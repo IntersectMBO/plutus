@@ -7,6 +7,7 @@ module MatchingCpuRuntime.Matchers where
 
 import Control.Monad (unless)
 import Control.Monad.Except (runExcept)
+import Data.ByteString qualified as BS
 import Data.Either (fromRight)
 import Data.List (foldl', sortOn)
 import Data.Vector qualified as Vector
@@ -187,7 +188,7 @@ withCapturedValues captureValues makeBody = do
   captureNames <- traverse (const $ freshName "capture") captureValues
   makeBody (zip captureValues captureNames) (sumCapturedIntegers captureNames)
 
--- | MatchData returns the original fields directly to the branch handler.
+-- | MatchData returns only selected fields to the branch handler.
 matchConstrNode
   :: Int
   -> Int
@@ -196,7 +197,6 @@ matchConstrNode
   -> NamedTerm
   -> PLC.Quote NamedTerm
 matchConstrNode width expectedTag fieldsToMatch scrutinee continuation = do
-  fieldNames <- traverse (const $ freshName "field") [1 .. width]
   let orderedFields = sortOn fst fieldsToMatch
       selectedIndices = fmap fst orderedFields
   unless
@@ -204,20 +204,24 @@ matchConstrNode width expectedTag fieldsToMatch scrutinee continuation = do
         && and (zipWith (<) selectedIndices $ drop 1 selectedIndices)
     )
     $ error "matchConstrNode: duplicate or out-of-range field"
+  fieldNames <- traverse (const $ freshName "field") orderedFields
   fieldsBody <-
     foldr
-      ( \(fieldIndex, matchField) rest ->
-          rest >>= matchField (fieldNames !! fieldIndex)
+      ( \((_, matchField), fieldName) rest ->
+          rest >>= matchField fieldName
       )
       (pure continuation)
-      orderedFields
+      (zip orderedFields fieldNames)
   let handler = foldr (UPLC.LamAbs ()) fieldsBody fieldNames
-      encodedArities = replicate expectedTag 0 <> [toInteger width]
+      captureMask =
+        BS.pack [if index `elem` selectedIndices then 1 else 0 | index <- [0 .. width - 1]]
+      encodedPatterns =
+        Strict.fromList $ replicate expectedTag BS.empty <> [captureMask]
       matched =
         builtinApp
           0
           PLC.MatchData
-          [ mkConstant @(Strict.Vector Integer) () $ Strict.fromList encodedArities
+          [ mkConstant @(Strict.Vector BS.ByteString) () encodedPatterns
           , UPLC.Var () scrutinee
           ]
   pure $

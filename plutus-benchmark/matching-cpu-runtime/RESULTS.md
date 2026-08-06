@@ -2,60 +2,54 @@
 
 ## Outcome
 
-Shallow matching had the lowest mean in 13 of 22 cases, nested matching in 7, and traditional
-deconstruction in 2. The optimized array-backed `matchData` won none. Its mean was `1.345968x`
-to `11.807296x` the fastest existing implementation, with a median ratio of `1.880341x`.
+Sparse capture makes `matchData` competitive with shallow `Match`. A `Data` marker in the static
+`TySOP` captures a field and a `Unit` marker skips it; the inferred result `TySOP` contains only
+the captured fields. Erasure reifies each branch to a byte mask, and the builtin traverses only
+the selected constructor's mask and payload before constructing `VConstr`.
 
-Replacing `[Integer]` with `(array integer)`, indexing it directly, checking only the selected
-arity, and removing runtime `TySOP` construction improved 19 of 22 cases. The array/list mean
-ratio ranged from `0.298172x` to `1.038156x`, with a median of `0.933240x`. It was faster than
-traditional deconstruction in 18 of 22 cases, but never faster than shallow or nested matching.
-The clearest boundaries were:
+The sparse revision was faster than the earlier array/arity revision in all 22 cases. Its
+sparse/array mean ratio ranged from `0.070819x` to `0.913429x`, with a median of `0.650378x`. It
+beat traditional deconstruction in all 22 cases, shallow `Match` in 3, and nested `Match` in 6.
+It was the overall fastest implementation in 3 cases.
 
-- The D=100/W=2 spine fell from `42.070296 us` to `16.972738 us` (`2.479x` faster).
-- The D=8 binary tree fell from `307.455899 us` to `94.772987 us` (`3.244x` faster); its
-  terminal-alternative version fell from `317.782897 us` to `94.753825 us` (`3.354x` faster).
-- Tag-zero cases changed little because lookup was already constant-depth. D=1/W=16 took
-  `1.388737 us`, `1.345968x` shallow and `0.864452x` traditional.
-- D=1/W=1000 with one late capture still took `22.636016 us`, `11.807296x` traditional.
+Against the fastest existing implementation per case, sparse `matchData` ranged from `0.782013x`
+to `2.313987x`, with a median of `1.178107x`. It won both W=1000 cases and the D=10/W=100 sparse
+spine. The remaining loss grows with the number of matched constructors: every node still pays
+for generic builtin application and unlifting, an intermediate `VConstr`, and generic `Case`
+dispatch. Native `Match` performs that dispatch and capture construction directly in the CEK.
 
-The hidden array is unlifted directly as a strict vector. Runtime work is one tag bounds check,
-one direct index, one comparison against the selected constructor's field count, and construction
-of `VConstr`; neither `matchData` nor the CEK instance constructs a PLC type. The remaining wide
-case cost comes from `Case` feeding all `W` fields to the handler even when the source pattern
-captures only a sparse subset.
+`sparse / fastest` is directed as written; less than one means sparse `matchData` won. These are
+host wall times, not portable cost-model coefficients.
 
-`array / fastest baseline` is directed as written; greater than one means a baseline was faster.
-These are host wall times, not portable cost-model coefficients.
-
-| Case | Shallow (us) | Nested (us) | Traditional (us) | List `matchData` (us) | Array `matchData` (us) | Array / fastest baseline |
+| Case | Shallow (us) | Nested (us) | Traditional (us) | Dense `matchData` (us) | Sparse `matchData` (us) | Sparse / fastest |
 |---|---:|---:|---:|---:|---:|---:|
-| `constr_flat_d1_w1_c1` | 0.357901 | 0.377854 | 0.667046 | 0.513657 | 0.517601 | 1.446212 |
-| `constr_flat_d1_w16_c4` | 1.031776 | 1.067766 | 1.606495 | 1.387602 | 1.388737 | 1.345968 |
-| `constr_flat_d1_w1000_c1` | 3.893735 | 7.142544 | 1.917121 | 23.270224 | 22.636016 | 11.807296 |
-| `constr_flat_d1_w1000_c16` | 6.698639 | 9.939033 | 5.745813 | 25.285131 | 24.734217 | 4.304738 |
-| `constr_spine_front_d4_w16_c8` | 2.034489 | 2.224007 | 3.835260 | 3.550008 | 3.371043 | 1.656948 |
-| `constr_spine_middle_d4_w16_c8` | 2.045473 | 2.235749 | 4.025645 | 3.507088 | 3.640903 | 1.779981 |
-| `constr_spine_last_d4_w16_c8` | 2.059960 | 2.137027 | 3.817799 | 3.537941 | 3.424507 | 1.662414 |
-| `constr_spine_irregular_d4_w16_c8` | 2.073076 | 2.210344 | 3.935280 | 3.695254 | 3.401149 | 1.640629 |
-| `constr_spine_irregular_d8_w8_c8` | 2.404038 | 2.371215 | 5.718656 | 4.015385 | 3.739383 | 1.576990 |
-| `constr_spine_front_d64_w2_c8` | 5.498050 | 4.415301 | 17.525628 | 20.763720 | 12.244688 | 2.773240 |
-| `constr_spine_zigzag_d100_w2_c10` | 8.022903 | 5.985006 | 28.262511 | 42.070296 | 16.972738 | 2.835877 |
-| `constr_binary_d3_w16_c8` | 2.445819 | 2.607416 | 4.674805 | 5.105599 | 4.884401 | 1.997041 |
-| `constr_ternary_d3_w8_c10` | 3.139957 | 3.067398 | 7.350378 | 6.193607 | 5.694395 | 1.856425 |
-| `constr_quaternary_d3_w8_c17` | 5.151877 | 4.783671 | 11.630594 | 10.496837 | 9.109339 | 1.904257 |
-| `constr_rootfork2_d6_w12_c8` | 2.563802 | 2.638462 | 5.520768 | 5.396487 | 4.999849 | 1.950170 |
-| `constr_rootfork3_d5_w10_c9` | 2.814644 | 2.762332 | 6.258073 | 5.471540 | 5.078564 | 1.838506 |
-| `constr_rootfork4_d4_w8_c8` | 2.278199 | 2.308060 | 4.947085 | 4.035142 | 3.815984 | 1.675000 |
-| `constr_spine_stress_d10_w100_c20` | 8.296058 | 10.892651 | 11.166538 | 28.178468 | 27.073926 | 3.263469 |
-| `constr_binary_stress_d8_w8_c32` | 28.182496 | 27.443982 | 116.878475 | 307.455899 | 94.772987 | 3.453325 |
-| `constr_alt_spine_d16_w8_c8` | 3.067825 | 4.632294 | 8.327314 | 7.069894 | 6.244932 | 2.035622 |
-| `constr_alt_rootfork3_d5_w10_c9` | 2.844845 | 4.093085 | 6.540113 | 5.625446 | 5.261009 | 1.849313 |
-| `constr_alt_binary_d8_w8_c32` | 28.255839 | 50.902547 | 114.013661 | 317.782897 | 94.753825 | 3.353425 |
+| `constr_flat_d1_w1_c1` | 0.357901 | 0.377854 | 0.667046 | 0.517601 | 0.472792 | 1.321013 |
+| `constr_flat_d1_w16_c4` | 1.031776 | 1.067766 | 1.606495 | 1.388737 | 1.128484 | 1.093730 |
+| `constr_flat_d1_w1000_c1` | 3.893735 | 7.142544 | 1.917121 | 22.636016 | 1.603069 | 0.836186 |
+| `constr_flat_d1_w1000_c16` | 6.698639 | 9.939033 | 5.745813 | 24.734217 | 4.493298 | 0.782013 |
+| `constr_spine_front_d4_w16_c8` | 2.034489 | 2.224007 | 3.835260 | 3.371043 | 2.299260 | 1.130141 |
+| `constr_spine_middle_d4_w16_c8` | 2.045473 | 2.235749 | 4.025645 | 3.640903 | 2.264956 | 1.107302 |
+| `constr_spine_last_d4_w16_c8` | 2.059960 | 2.137027 | 3.817799 | 3.424507 | 2.554383 | 1.240016 |
+| `constr_spine_irregular_d4_w16_c8` | 2.073076 | 2.210344 | 3.935280 | 3.401149 | 2.310997 | 1.114767 |
+| `constr_spine_irregular_d8_w8_c8` | 2.404038 | 2.371215 | 5.718656 | 3.739383 | 2.769863 | 1.168120 |
+| `constr_spine_front_d64_w2_c8` | 5.498050 | 4.415301 | 17.525628 | 12.244688 | 9.086431 | 2.057941 |
+| `constr_spine_zigzag_d100_w2_c10` | 8.022903 | 5.985006 | 28.262511 | 16.972738 | 13.849227 | 2.313987 |
+| `constr_binary_d3_w16_c8` | 2.445819 | 2.607416 | 4.674805 | 4.884401 | 2.661273 | 1.088091 |
+| `constr_ternary_d3_w8_c10` | 3.139957 | 3.067398 | 7.350378 | 5.694395 | 3.748650 | 1.222095 |
+| `constr_quaternary_d3_w8_c17` | 5.151877 | 4.783671 | 11.630594 | 9.109339 | 6.077036 | 1.270371 |
+| `constr_rootfork2_d6_w12_c8` | 2.563802 | 2.638462 | 5.520768 | 4.999849 | 2.855564 | 1.113800 |
+| `constr_rootfork3_d5_w10_c9` | 2.814644 | 2.762332 | 6.258073 | 5.078564 | 3.124216 | 1.131007 |
+| `constr_rootfork4_d4_w8_c8` | 2.278199 | 2.308060 | 4.947085 | 3.815984 | 2.712580 | 1.190668 |
+| `constr_spine_stress_d10_w100_c20` | 8.296058 | 10.892651 | 11.166538 | 27.073926 | 6.747983 | 0.813396 |
+| `constr_binary_stress_d8_w8_c32` | 28.182496 | 27.443982 | 116.878475 | 94.772987 | 42.717893 | 1.556549 |
+| `constr_alt_spine_d16_w8_c8` | 3.067825 | 4.632294 | 8.327314 | 6.244932 | 3.850168 | 1.255016 |
+| `constr_alt_rootfork3_d5_w10_c9` | 2.844845 | 4.093085 | 6.540113 | 5.261009 | 3.379943 | 1.188094 |
+| `constr_alt_binary_d8_w8_c32` | 28.255839 | 50.902547 | 114.013661 | 94.753825 | 43.268227 | 1.531302 |
 
 Complete means, confidence intervals, and standard deviations are in
-[`results/2026-08-06-criterion-wall-time.csv`](results/2026-08-06-criterion-wall-time.csv) and
-[`results/2026-08-06-matchdata-array-criterion-wall-time.csv`](results/2026-08-06-matchdata-array-criterion-wall-time.csv).
+[`results/2026-08-06-criterion-wall-time.csv`](results/2026-08-06-criterion-wall-time.csv),
+[`results/2026-08-06-matchdata-array-criterion-wall-time.csv`](results/2026-08-06-matchdata-array-criterion-wall-time.csv),
+and [`results/2026-08-06-matchdata-sparse-criterion-wall-time.csv`](results/2026-08-06-matchdata-sparse-criterion-wall-time.csv).
 
 ## Measurement contract
 
@@ -67,7 +61,8 @@ Complete means, confidence intervals, and standard deviations are in
   - Traditional: the pre-Match mainline commit
     `b9d726d7cc957fa154c6ba9f01959952887f1246`.
 - List-backed `matchData` uses the `origin/master`-based type-directed builtin prototype at
-  `21c747279`; array-backed `matchData` uses the optimized revision containing this report.
+  `21c747279`; dense array-backed `matchData` uses `a03a07ce5`; sparse `matchData` uses the
+  revision containing this report.
 - Runner logic, arguments, case order, expected values, and arithmetic were identical. `Main.hs`
   differed only in its explicit `_shallow`, `_nested`, `_traditional`, or `_matchdata` matcher
   references and in validation serialization. Serialization was not part of the timed action.
@@ -77,10 +72,9 @@ Complete means, confidence intervals, and standard deviations are in
 - All 66 emitted baseline terms were inspected structurally. Traditional terms
   share repeated `tailList`, `dropList`, `unConstrData`, `equalsInteger`, and `unIData` builtin
   values, leave single uses direct, and substitute selected decoding expressions into the result
-  continuation without administrative capture lambdas/applications. The direct `matchData`
-  emitter uses the hidden `(array integer)` arity table `[0, ..., W]` at each constructor node,
-  cases the returned `VConstr` at the same `Data.Constr` index, and binds exactly `W` original
-  fields before decoding selected integers.
+  continuation without administrative capture lambdas/applications. The sparse `matchData`
+  emitter uses a hidden `(array bytestring)` with one byte mask per constructor, cases the returned
+  `VConstr` at the same `Data.Constr` index, and binds only the fields selected by that mask.
 - GHC 9.6.7, Criterion 1.6.5.0, Cabal `-O1`, one GHC capability (`-N1`), process pinned to CPU 0.
 - Host: AMD Ryzen 9 7950X, Linux 7.0.0-27-generic x86_64.
 - Criterion wall-clock time, `-L 2`, 1000 bootstrap resamples, with implementation order rotated
@@ -92,7 +86,7 @@ Complete means, confidence intervals, and standard deviations are in
   `constr_flat_d1_w16_c4` and `constr_spine_middle_d4_w16_c8` were rerun at `-L 8` after exceeding
   2%. Array-backed `constr_spine_middle_d4_w16_c8` was likewise rerun at `-L 8`; its largest final
   coefficient of variation was 1.377947%. The largest value in the baseline matrix was
-  1.630382%.
+  1.630382%. All sparse cases used `-L 2`; their largest coefficient of variation was 1.3497%.
 - Each OS process selected exactly one case. Argument and matcher generation, full forcing,
   `applyTerm`, and exact-result checking happened before timing. Criterion measured only
   `whnf runCEK appliedTerm`.
@@ -121,5 +115,6 @@ was faster in 21 of 22 control cases. Every control sample had coefficient of va
 Substituting any of the three control means for traditional matching leaves the lowest-mean
 implementation unchanged in all 22 cases. The complete control is in
 [`results/2026-08-06-traditional-evaluator-sensitivity.csv`](results/2026-08-06-traditional-evaluator-sensitivity.csv).
-The closest array-backed `matchData` result is still 34.5968% slower than the fastest baseline, well outside
-the evaluator variation observed by this control.
+Sparse `matchData` ranges from 21.7987% faster to 131.3987% slower than the fastest historical
+baseline. Small differences, such as its 1.3064% loss on the D=4/W=16 middle spine, are within the
+evaluator variation measured by this control; the wide-case wins and deep-tree losses are not.

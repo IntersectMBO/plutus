@@ -2506,7 +2506,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . unimplementedCostingFun)
   toBuiltinMeaning _semvar MatchData =
     let matchDataDenotation
-          :: Vector Integer
+          :: Vector ByteString
           -> Data
           -> BuiltinResult (OpaqueVConstr val)
         matchDataDenotation = MatchData.matchData

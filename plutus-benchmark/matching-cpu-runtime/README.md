@@ -27,8 +27,8 @@ positions, captures, and recursion. There is no generated Cartesian suite or run
   positions, including repeated tree branches.
 - Every structural pattern requires exactly `W` fields.
 - Nested and shallow matching use a plain wildcard for every unselected integer field;
-  traditional matching skips it without calling `UnIData`; and `matchData` passes it through as
-  an uninspected handler argument.
+  traditional matching skips it without calling `UnIData`; and `matchData` omits it from the
+  returned constructor captures.
 - One capture is returned directly. `C > 1` uses exactly `C - 1` `addInteger` operations; no
   matcher evaluates `addInteger 0 x`.
 
@@ -112,21 +112,24 @@ lambda arg.
 
 These are builtin-pair, builtin-Bool, and builtin-list `Case` nodes; they do not use `Match`.
 
-The `matchData` implementation uses the direct erased form of a PLC type application. The hidden
-arity table is generated from the `TySOP` type argument before evaluation; it is shown explicitly
-here only because this benchmark constructs UPLC directly:
+The `matchData` implementation uses the direct erased form of a PLC type application. Each field
+in its `TySOP` argument is `Data` to capture or `Unit` to skip. Type inference removes the `Unit`
+positions from the result `TySOP`, so the handler type exposes only captured fields. For example,
+the descriptor for tag 1 below is `[Data, Unit, Unit, Unit]` and its result branch is `[Data]`.
+
+Before evaluation the markers are reified to one byte mask per constructor. The hidden masks are
+shown explicitly here only because this benchmark constructs UPLC directly:
 
 ```text
 lambda arg.
-  case ((builtin matchData) (con (array integer) [0, 4]) arg) of
+  case ((builtin matchData) (con (array bytestring) [#, #01000000]) arg) of
     tag 0 -> error
-    tag 1 field0 field1 field2 field3 ->
+    tag 1 field0 ->
       matchConstr 2 field0 (...)
 ```
 
-The returned constructor index is the original `Data.Constr` tag, and its captures are the
-original fields. A handler therefore has exactly `W` lambdas, while only selected fields are
-decoded with `unIData`.
+The returned constructor index is the original `Data.Constr` tag. Its captures are the selected
+original fields in source-position order, so this handler has one lambda rather than `W` lambdas.
 
 For a gap of one to three ignored fields, the cursor advances with repeated `tailList`; a larger
 gap uses one `dropList`. A selected field is obtained by a list `Case`, which binds its head and

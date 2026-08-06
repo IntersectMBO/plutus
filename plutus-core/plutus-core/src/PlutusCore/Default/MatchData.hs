@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
@@ -9,9 +10,9 @@
 {-| Shallow matching on 'Data.Constr' for the 'MatchData' builtin.
 
 The pattern table is represented statically by a closed 'TySOP'. Alternative @n@ describes the
-fields of @Data.Constr n@, and every field must have type 'Data'. Before erasure the table is
-reified to an array of constructor arities. At runtime the builtin returns a constructor with the
-same index and the original 'Data' fields as its captures. -}
+fields of @Data.Constr n@: 'Data' marks a captured field and 'Unit' marks a skipped field. Before
+erasure the table is reified to an array of capture masks. At runtime the builtin returns a
+constructor with the same index and only the captured 'Data' fields. -}
 module PlutusCore.Default.MatchData
   ( matchData
   , matchDataTypeApplication
@@ -23,26 +24,28 @@ import PlutusCore.Data (Data)
 import PlutusCore.Data qualified as Data
 import PlutusCore.Default.Universe
 
-import Control.Monad (unless)
+import Data.Bits (toIntegralSized)
+import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS
+import Data.ByteString.Unsafe qualified as BSU
 import Data.Text (Text)
 import Data.Vector.Strict qualified as Strict
 
 decodePatternTableType
   :: Type tyname DefaultUni ann
-  -> Either Text [Int]
+  -> Either Text [[Bool]]
 decodePatternTableType = \case
   TySOP _ [] -> Left "matchData requires a non-empty pattern table"
   TySOP _ products ->
     traverse
       ( \productTy ->
-          if all
+          traverse
             ( \case
-                TyBuiltin _ (SomeTypeIn DefaultUniData) -> True
-                _ -> False
+                TyBuiltin _ (SomeTypeIn DefaultUniUnit) -> Right False
+                TyBuiltin _ (SomeTypeIn DefaultUniData) -> Right True
+                _ -> Left "matchData constructor fields must have type Unit or Data"
             )
             productTy
-            then Right $ length productTy
-            else Left "matchData constructor fields must all have type Data"
       )
       products
   _ -> Left "matchData requires a sum-of-products type argument"
@@ -52,27 +55,47 @@ matchDataTypeApplication :: BuiltinTypeApplication DefaultUni
 matchDataTypeApplication =
   BuiltinTypeApplication
     { btaInferType = \tableTy -> do
-        _ <- decodePatternTableType tableTy
-        pure $ TyFun () (mkTyBuiltin @_ @Data ()) tableTy
+        captureMasks <- decodePatternTableType tableTy
+        let dataTy = mkTyBuiltin @_ @Data ()
+            captureTy =
+              TySOP () $
+                fmap (\mask -> dataTy <$ filter id mask) captureMasks
+        pure $ TyFun () dataTy captureTy
     , btaReifyArgument = \tableTy -> do
-        arities <- decodePatternTableType tableTy
-        pure . someValue . Strict.fromList $ fmap toInteger arities
+        captureMasks <- decodePatternTableType tableTy
+        pure . someValue . Strict.fromList $
+          fmap (BS.pack . fmap (\capture -> if capture then 1 else 0)) captureMasks
     }
 
 -- | Match a 'Data.Constr' tag to the same SOP branch and capture its fields directly.
 matchData
   :: forall val
    . (HasConstantIn DefaultUni val, HasConstr val ())
-  => Strict.Vector Integer
+  => Strict.Vector ByteString
   -> Data
   -> BuiltinResult (OpaqueVConstr val)
-matchData encodedArities (Data.Constr tag fields) = do
-  unless (0 <= tag && tag < toInteger (Strict.length encodedArities)) $
-    fail "No matchData constructor corresponds to the Data.Constr tag"
-  let expectedArity = Strict.unsafeIndex encodedArities $ fromInteger tag
-  unless (expectedArity == toInteger (length fields)) $
-    fail "matchData payload length does not match the statically declared pattern arity"
+matchData encodedPatterns (Data.Constr tag fields) = do
+  tagIndex <-
+    maybe (fail "No matchData constructor corresponds to the Data.Constr tag") pure $
+      toIntegralSized tag
+  captureMask <-
+    maybe (fail "No matchData constructor corresponds to the Data.Constr tag") pure $
+      encodedPatterns Strict.!? tagIndex
+  let fieldCount = BS.length captureMask
+      go !index []
+        | index == fieldCount = Just []
+        | otherwise = Nothing
+      go !index (field : remainingFields)
+        | index == fieldCount = Nothing
+        | BSU.unsafeIndex captureMask index /= 0 =
+            (fromValue field :) <$> go (index + 1) remainingFields
+        | otherwise = go (index + 1) remainingFields
+  captures <-
+    maybe
+      (fail "matchData payload length does not match the statically declared pattern arity")
+      pure
+      $ go 0 fields
   pure . OpaqueVConstr $
-    fromConstr () (fromInteger tag) (fmap fromValue fields)
+    fromConstr () (fromIntegral tagIndex) captures
 matchData _ _ = fail "matchData only supports Data.Constr"
 {-# INLINE matchData #-}
