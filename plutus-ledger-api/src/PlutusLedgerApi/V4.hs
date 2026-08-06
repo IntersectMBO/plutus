@@ -43,7 +43,6 @@ module PlutusLedgerApi.V4
   , V2.fromBytes
 
     -- *** Credentials
-  , V2.StakingCredential (..)
   , V2.Credential (..)
 
     -- *** Value
@@ -89,14 +88,19 @@ module PlutusLedgerApi.V4
   , V2.POSIXTimeRange
 
     -- *** Types for representing transactions
-  , V2.Address (..)
+  , Address.Address (..)
+  , Address.pubKeyHashAddress
+  , Address.toPubKeyHash
+  , Address.toScriptHash
+  , Address.scriptHashAddress
+  , Address.stakingAccountId
   , V2.PubKeyHash (..)
   , Tx.TxId (..)
   , Contexts.TxInfo (..)
-  , V2.TxOut (..)
+  , Tx.TxOut (..)
   , Tx.TxOutRef (..)
   , Contexts.TxInInfo (..)
-  , V2.OutputDatum (..)
+  , Tx.OutputDatum (..)
 
     -- *** Intervals
   , V2.Interval (..)
@@ -152,6 +156,7 @@ module PlutusLedgerApi.V4
 import PlutusLedgerApi.Common qualified as Common
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3.MintValue qualified as MintValue
-import PlutusLedgerApi.V3.Tx qualified as Tx
+import PlutusLedgerApi.V4.Address qualified as Address
 import PlutusLedgerApi.V4.Contexts qualified as Contexts
+import PlutusLedgerApi.V4.Tx qualified as Tx
 import PlutusTx.Ratio qualified as Ratio
