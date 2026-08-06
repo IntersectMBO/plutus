@@ -117,12 +117,15 @@ in its `TySOP` argument is `Data` to capture or `Unit` to skip. Type inference r
 positions from the result `TySOP`, so the handler type exposes only captured fields. For example,
 the descriptor for tag 1 below is `[Data, Unit, Unit, Unit]` and its result branch is `[Data]`.
 
-Before evaluation the markers are reified to one byte mask per constructor. The hidden masks are
-shown explicitly here only because this benchmark constructs UPLC directly:
+Before evaluation the markers are reified to one `ByteString` gap program per constructor. Each
+byte is the number of payload fields to skip before the next capture. `0xff` skips 255 fields and
+continues the same gap, so constructor width is not limited to 255. A final gap consumes the
+suffix and checks exact arity. The hidden programs are shown explicitly here only because this
+benchmark constructs UPLC directly:
 
 ```text
 lambda arg.
-  case ((builtin matchData) (con (array bytestring) [#, #01000000]) arg) of
+  case ((builtin matchData) (con (array bytestring) [#, #0003]) arg) of
     tag 0 -> error
     tag 1 field0 ->
       matchConstr 2 field0 (...)

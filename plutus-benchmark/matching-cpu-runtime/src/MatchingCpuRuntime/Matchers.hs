@@ -213,10 +213,17 @@ matchConstrNode width expectedTag fieldsToMatch scrutinee continuation = do
       (pure continuation)
       (zip orderedFields fieldNames)
   let handler = foldr (UPLC.LamAbs ()) fieldsBody fieldNames
-      captureMask =
-        BS.pack [if index `elem` selectedIndices then 1 else 0 | index <- [0 .. width - 1]]
+      captureGaps =
+        zipWith
+          (\next previous -> next - previous - 1)
+          (selectedIndices <> [width])
+          (-1 : selectedIndices)
+      encodeGap gap
+        | gap < 255 = [fromIntegral gap]
+        | otherwise = 255 : encodeGap (gap - 255)
+      capturePattern = BS.pack $ concatMap encodeGap captureGaps
       encodedPatterns =
-        Strict.fromList $ replicate expectedTag BS.empty <> [captureMask]
+        Strict.fromList $ replicate expectedTag BS.empty <> [capturePattern]
       matched =
         builtinApp
           0

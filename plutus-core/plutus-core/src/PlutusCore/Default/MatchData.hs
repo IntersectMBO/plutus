@@ -1,6 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
@@ -11,8 +11,9 @@
 
 The pattern table is represented statically by a closed 'TySOP'. Alternative @n@ describes the
 fields of @Data.Constr n@: 'Data' marks a captured field and 'Unit' marks a skipped field. Before
-erasure the table is reified to an array of capture masks. At runtime the builtin returns a
-constructor with the same index and only the captured 'Data' fields. -}
+erasure the table is reified to an array of distances between captures. At runtime the builtin
+returns a constructor with the same index and only the captured 'Data' fields. A @255@ byte
+continues the same distance, and the final distance checks the exact constructor arity. -}
 module PlutusCore.Default.MatchData
   ( matchData
   , matchDataTypeApplication
@@ -63,8 +64,19 @@ matchDataTypeApplication =
         pure $ TyFun () dataTy captureTy
     , btaReifyArgument = \tableTy -> do
         captureMasks <- decodePatternTableType tableTy
+        let encodeGap gap
+              | gap < 255 = [fromIntegral gap]
+              | otherwise = 255 : encodeGap (gap - 255)
+            encodePattern mask =
+              let captureIndices = [index | (index, True) <- zip [0 ..] mask]
+                  gaps =
+                    zipWith
+                      (\next previous -> next - previous - 1)
+                      (captureIndices <> [length mask])
+                      (-1 : captureIndices)
+               in BS.pack $ concatMap encodeGap gaps
         pure . someValue . Strict.fromList $
-          fmap (BS.pack . fmap (\capture -> if capture then 1 else 0)) captureMasks
+          fmap encodePattern captureMasks
     }
 
 -- | Match a 'Data.Constr' tag to the same SOP branch and capture its fields directly.
@@ -78,18 +90,36 @@ matchData encodedPatterns (Data.Constr tag fields) = do
   tagIndex <-
     maybe (fail "No matchData constructor corresponds to the Data.Constr tag") pure $
       toIntegralSized tag
-  captureMask <-
+  capturePattern <-
     maybe (fail "No matchData constructor corresponds to the Data.Constr tag") pure $
       encodedPatterns Strict.!? tagIndex
-  let fieldCount = BS.length captureMask
-      go !index []
-        | index == fieldCount = Just []
-        | otherwise = Nothing
-      go !index (field : remainingFields)
-        | index == fieldCount = Nothing
-        | BSU.unsafeIndex captureMask index /= 0 =
-            (fromValue field :) <$> go (index + 1) remainingFields
-        | otherwise = go (index + 1) remainingFields
+  let patternSize = BS.length capturePattern
+      go :: Int -> [Data] -> Maybe [val]
+      go !offset remainingFields
+        | offset == patternSize = Nothing
+        | byte == 255 = skipMore (offset + 1) 255 remainingFields
+        | otherwise = skipFinal (offset + 1) (fromIntegral byte) remainingFields
+        where
+          byte = BSU.unsafeIndex capturePattern offset
+      skipMore :: Int -> Int -> [Data] -> Maybe [val]
+      skipMore !nextOffset !count remainingFields
+        | count == 0 = go nextOffset remainingFields
+        | otherwise = case remainingFields of
+            _ : rest -> skipMore nextOffset (count - 1) rest
+            [] -> Nothing
+      skipFinal :: Int -> Int -> [Data] -> Maybe [val]
+      skipFinal !nextOffset !count remainingFields
+        | count == 0 =
+            if nextOffset == patternSize
+              then case remainingFields of
+                [] -> Just []
+                _ -> Nothing
+              else case remainingFields of
+                field : rest -> (fromValue field :) <$> go nextOffset rest
+                [] -> Nothing
+        | otherwise = case remainingFields of
+            _ : rest -> skipFinal nextOffset (count - 1) rest
+            [] -> Nothing
   captures <-
     maybe
       (fail "matchData payload length does not match the statically declared pattern arity")
