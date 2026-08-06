@@ -70,8 +70,9 @@ The complete mean confidence intervals and standard deviations are in
   `d118a596556784d599bf6e9a80c9fcffa01d2cf0`.
 - Nested base: `sho/builtinMatching` at
   `20d7f06ed4dc5f29439b5b0d4b1ab8a62627f3b3`.
-- Shared runner, arguments, case order, expected values, and documentation were byte-identical.
-  Only `MatchingCpuRuntime.Matchers` differed.
+- Runner logic, arguments, case order, expected values, and documentation were identical.
+  `Main.hs` differed only in whether each case referenced its explicit `*_shallow` or
+  `*_nested` matcher; the matcher implementations were branch-specific.
 - Every successful matcher captures the same `C` integers, uses one handler binder per capture,
   and performs the same left-associated `C - 1` `addInteger` operations. No nested-only handler
   specialization was used.
