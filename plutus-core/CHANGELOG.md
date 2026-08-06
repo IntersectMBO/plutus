@@ -1,4 +1,23 @@
 
+<a id='changelog-1.67.0.0'></a>
+# 1.67.0.0 — 2026-08-06
+
+## Removed
+
+- `LowerInitialCharacter` is no longer exported from `PlutusCore.Evaluation.Machine.ExBudget`; it existed solely to support `deriving-aeson`, which `plutus-core` no longer depends on.
+
+## Added
+
+- New builtin `multiIndexArray` ([CIP-0156](https://cips.cardano.org/cip/CIP-0156)) of type `forall a. array a -> list integer -> list a`, returning the array elements at the given indices in order (duplicates preserved) and failing the whole call on any out-of-bounds index. Placeholder costing; gated under `futurePV`, so it is not available in any released protocol version.
+
+- The `policies` builtin ([CIP-0168](https://github.com/cardano-foundation/CIPs/pull/1090)): returns the currency symbols of a `Value` in ascending order. Expected to be enabled at PV12.
+
+- A PIR optimization pass, CollapseCase, that rewrites list casing into `dropList`.
+
+## Changed
+
+- Replaced the `deriving-aeson`-based JSON instances of the cost model types with plain `aeson` generic instances. The JSON format is unchanged.
+
 <a id='changelog-1.66.0.0'></a>
 # 1.66.0.0 — 2026-07-09
 

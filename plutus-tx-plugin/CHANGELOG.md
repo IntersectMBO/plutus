@@ -1,4 +1,17 @@
 
+<a id='changelog-1.67.0.0'></a>
+# 1.67.0.0 — 2026-08-06
+
+## Removed
+
+- Removed the `BuiltinCasing` option for Plinth compiler flag `datatypes`.
+  Use the `SumsOfProducts` option (which is the default) to enable builtin casing.
+
+## Added
+
+- Compilation support for the `multiIndexArray` builtin
+  ([CIP-0156](https://cips.cardano.org/cip/CIP-0156)).
+
 <a id='changelog-1.65.0.0'></a>
 # 1.65.0.0 — 2026-05-21
 

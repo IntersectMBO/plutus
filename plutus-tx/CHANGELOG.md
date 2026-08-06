@@ -1,4 +1,35 @@
 
+<a id='changelog-1.67.0.0'></a>
+# 1.67.0.0 — 2026-08-06
+
+## Added
+
+- `PlutusTx.Builtins.multiIndexArray`: the `multiIndexArray` builtin from
+  [CIP-0156](https://cips.cardano.org/cip/CIP-0156), returning the array elements at the given
+  indices and failing on any out-of-bounds index.
+
+- `PlutusTx.Builtins.policies`, exposing the `policies` builtin ([CIP-0168](https://github.com/cardano-foundation/CIPs/pull/1090)). Expected to be enabled at PV12.
+
+## Changed
+
+- Improve `asData` codegen to use list casing instead of `head` and `tail`.
+
+## Fixed
+
+- Evaluating the Haskell definition of `PlutusTx.Builtins.indexArray` with an index exceeding
+  `maxBound :: Int` now fails, matching the builtin, instead of silently indexing with the
+  wrapped value.
+- The Haskell definitions of `indexByteString`, `sliceByteString`, `readBit`, `replicateByte`
+  and `caseInteger` likewise check their integer arguments in the `Integer` domain, matching
+  the builtins, instead of silently wrapping values that exceed the machine-integer range.
+- The Haskell definition of `consByteString` now follows the PlutusV3 builtin semantics and
+  fails on a byte outside `[0..255]`; the PlutusV1/V2 builtins reduce the byte modulo 256
+  instead, which a single Haskell definition cannot also mirror.
+
+- The Haskell definitions of `shiftByteString` and `rotateByteString` now fail when the shift
+  or rotation amount does not fit in a machine `Int`, matching the builtin semantics that the
+  van Rossem HF activates (variants D and E); earlier variants accept any amount on-chain.
+
 <a id='changelog-1.60.0.0'></a>
 # 1.60.0.0 — 2026-03-18
 
