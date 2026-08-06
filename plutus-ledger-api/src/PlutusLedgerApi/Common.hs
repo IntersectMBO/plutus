@@ -95,7 +95,7 @@ module PlutusLedgerApi.Common
 
     -- * Data
   , PLC.Data (..)
-  , Builtins.BuiltinData (..)
+  , Builtins.BuiltinData (BuiltinData)
   , IsData.ToData (..)
   , IsData.FromData (..)
   , IsData.UnsafeFromData (..)
