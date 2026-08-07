@@ -85,6 +85,10 @@ instance
       sexp "extra1" (consAnnIf config ann [])
     Extra2 ann ->
       sexp "extra2" (consAnnIf config ann [])
+    Extra3 ann ->
+      sexp "extra3" (consAnnIf config ann [])
+    Extra4 ann ->
+      sexp "extra4" (consAnnIf config ann [])
     where
       prettyTypeOf :: Some (ValueOf uni) -> Doc dann
       prettyTypeOf (Some (ValueOf uni _)) = prettyBy juxtRenderContext $ SomeTypeIn uni

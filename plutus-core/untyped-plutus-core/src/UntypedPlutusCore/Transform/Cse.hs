@@ -263,6 +263,8 @@ annotate = flip evalState 0 . flip runReaderT [] . go
         Var ann name -> pure $ Var (path, ann) name
         Extra1 ann -> pure $ Extra1 (path, ann)
         Extra2 ann -> pure $ Extra2 (path, ann)
+        Extra3 ann -> pure $ Extra3 (path, ann)
+        Extra4 ann -> pure $ Extra4 (path, ann)
         LamAbs ann n body -> do
           freshId <- (+ 1) <$> lift get
           lift $ put freshId
@@ -414,6 +416,8 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
           Case ann scrut branches -> Case ann (mkLamApp scrut) (mkLamApp <$> branches)
           Extra1 ann -> Extra1 ann
           Extra2 ann -> Extra2 ann
+          Extra3 ann -> Extra3 ann
+          Extra4 ann -> Extra4 ann
       | otherwise = t
       where
         currPath = fst (getAnn t)

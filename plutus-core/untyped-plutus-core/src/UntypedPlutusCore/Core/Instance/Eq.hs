@@ -117,6 +117,8 @@ eqTermM (Case ann1 a1 cs1) (Case ann2 a2 cs2) = do
     Nothing -> empty
 eqTermM (Extra1 ann1) (Extra1 ann2) = eqM ann1 ann2
 eqTermM (Extra2 ann1) (Extra2 ann2) = eqM ann1 ann2
+eqTermM (Extra3 ann1) (Extra3 ann2) = eqM ann1 ann2
+eqTermM (Extra4 ann1) (Extra4 ann2) = eqM ann1 ann2
 eqTermM Constant {} _ = empty
 eqTermM Builtin {} _ = empty
 eqTermM Var {} _ = empty
@@ -129,3 +131,5 @@ eqTermM Constr {} _ = empty
 eqTermM Case {} _ = empty
 eqTermM Extra1 {} _ = empty
 eqTermM Extra2 {} _ = empty
+eqTermM Extra3 {} _ = empty
+eqTermM Extra4 {} _ = empty

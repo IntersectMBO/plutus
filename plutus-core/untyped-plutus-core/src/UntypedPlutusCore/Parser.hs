@@ -81,6 +81,14 @@ extra2Term :: SrcSpan -> Parser PTerm
 extra2Term sp =
   return (UPLC.Extra2 sp)
 
+extra3Term :: SrcSpan -> Parser PTerm
+extra3Term sp =
+  return (UPLC.Extra3 sp)
+
+extra4Term :: SrcSpan -> Parser PTerm
+extra4Term sp =
+  return (UPLC.Extra4 sp)
+
 constrTerm :: SrcSpan -> Parser PTerm
 constrTerm sp = do
   let maxTag = fromIntegral (maxBound :: Word64)
@@ -131,8 +139,10 @@ term =
               , symbol "case" *> caseTerm sp
               , symbol "extra1" *> extra1Term sp
               , symbol "extra2" *> extra2Term sp
+              , symbol "extra3" *> extra3Term sp
+              , symbol "extra4" *> extra4Term sp
               ]
-              <?> "term keyword (builtin, lam, constr, con, delay, force, error, case, extra1, extra2)"
+              <?> "term keyword (builtin, lam, constr, con, delay, force, error, case, extra1, extra2, extra3, extra4)"
           )
 
 -- | Parser for UPLC programs.

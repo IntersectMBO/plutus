@@ -78,6 +78,8 @@ termMapNames f = go
       Error ann -> Error ann
       Extra1 ann -> Extra1 ann
       Extra2 ann -> Extra2 ann
+      Extra3 ann -> Extra3 ann
+      Extra4 ann -> Extra4 ann
 
 programMapNames
   :: forall name name' uni fun ann

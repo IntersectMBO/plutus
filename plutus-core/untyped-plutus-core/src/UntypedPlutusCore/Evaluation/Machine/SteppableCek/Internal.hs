@@ -167,9 +167,9 @@ computeCek !ctx !env (Case ann scrut cs) = do
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
   throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
--- 'Extra1'/'Extra2' are no-op placeholder constructors: see Note [Extra constructors] in
--- 'UntypedPlutusCore.Core.Type'. They are never produced by any real program, so hitting one
--- here is an internal panic, not a normal evaluation failure.
+-- 'Extra1'/'Extra2'/'Extra3'/'Extra4' are no-op placeholder constructors: see Note [Extra
+-- constructors] in 'UntypedPlutusCore.Core.Type'. They are never produced by any real program,
+-- so hitting one here is an internal panic, not a normal evaluation failure.
 computeCek !_ !_ (Extra1 _) =
   throwErrorWithCause
     (StructuralError (PanicMachineError "Extra1 is a placeholder constructor and cannot be evaluated"))
@@ -178,6 +178,14 @@ computeCek !_ !_ (Extra2 _) =
   throwErrorWithCause
     (StructuralError (PanicMachineError "Extra2 is a placeholder constructor and cannot be evaluated"))
     (Extra2 ())
+computeCek !_ !_ (Extra3 _) =
+  throwErrorWithCause
+    (StructuralError (PanicMachineError "Extra3 is a placeholder constructor and cannot be evaluated"))
+    (Extra3 ())
+computeCek !_ !_ (Extra4 _) =
+  throwErrorWithCause
+    (StructuralError (PanicMachineError "Extra4 is a placeholder constructor and cannot be evaluated"))
+    (Extra4 ())
 
 returnCek
   :: forall uni fun ann s

@@ -65,7 +65,7 @@ tags and their used/available encoding possibilities.
 \| Data type        | Function          | Bit Width | Total | Used | Remaining |
 \|------------------|-------------------|-----------|-------|------|-----------|
 \| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
-\| Terms            | encodeTerm        | 4         | 16    | 12   | 4         |
+\| Terms            | encodeTerm        | 4         | 16    | 14   | 2         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -126,6 +126,8 @@ encodeTerm = \case
   Case ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
   Extra1 ann -> encodeTermTag 10 <> encode ann
   Extra2 ann -> encodeTermTag 11 <> encode ann
+  Extra3 ann -> encodeTermTag 12 <> encode ann
+  Extra4 ann -> encodeTermTag 13 <> encode ann
 
 decodeTerm
   :: forall name uni fun ann
@@ -187,6 +189,8 @@ decodeTerm version constantPred builtinPred constrPred = go
       Case <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
     handleTerm 10 = Extra1 <$> decode
     handleTerm 11 = Extra2 <$> decode
+    handleTerm 12 = Extra3 <$> decode
+    handleTerm 13 = Extra4 <$> decode
     handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -218,6 +222,8 @@ sizeTerm tm sz =
       Case ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm (V.toList cs) sz'
       Extra1 ann -> size ann sz'
       Extra2 ann -> size ann sz'
+      Extra3 ann -> size ann sz'
+      Extra4 ann -> size ann sz'
 
 {-| An encoder for programs.
 

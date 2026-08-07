@@ -36,6 +36,8 @@ renameTermM con@Constant {} = pure con
 renameTermM bi@Builtin {} = pure bi
 renameTermM e1@Extra1 {} = pure e1
 renameTermM e2@Extra2 {} = pure e2
+renameTermM e3@Extra3 {} = pure e3
+renameTermM e4@Extra4 {} = pure e4
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM

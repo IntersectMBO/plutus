@@ -49,20 +49,20 @@ Additionally, the first 7 (or 3 on 32-bit systems) constructors will get *pointe
 more efficient access when casing on them. So we ideally want to keep the number of constructors
 at 7 or fewer.
 
-We've got 10 constructors, *but* the last three (Error, Extra1, Extra2) are only going to be
-seen at most once per program (Extra1/Extra2 aren't produced at all in practice), so it's not
-too big a deal if they don't get a tag.
+We've got 12 constructors, *but* the last five (Error, Extra1, Extra2, Extra3, Extra4) are only
+going to be seen at most once per program (Extra1/Extra2/Extra3/Extra4 aren't produced at all in
+practice), so it's not too big a deal if they don't get a tag.
 
 See the GHC Notes "Tagging big families" and "Double switching for big families" in
 GHC.StgToCmm.Expr for more details.
 -}
 
 {- Note [Extra constructors]
-'Extra1' and 'Extra2' are placeholder no-op constructors. They carry no payload other than an
-annotation and are not produced by any real compiler, parser or transformation: they exist purely
-as an extension point. Every pass over 'Term' still has to handle them exhaustively, but the
-handling is always trivial (e.g. treat them like 'Error' structurally, without the "abort
-evaluation" semantics that 'Error' has).
+'Extra1', 'Extra2', 'Extra3' and 'Extra4' are placeholder no-op constructors. They carry no
+payload other than an annotation and are not produced by any real compiler, parser or
+transformation: they exist purely as an extension point. Every pass over 'Term' still has to
+handle them exhaustively, but the handling is always trivial (e.g. treat them like 'Error'
+structurally, without the "abort evaluation" semantics that 'Error' has).
 -}
 
 {- Note [Supported case-expressions]
@@ -113,6 +113,8 @@ data Term name uni fun ann
   | -- See Note [Extra constructors]. No-ops: never produced by real programs.
     Extra1 !ann
   | Extra2 !ann
+  | Extra3 !ann
+  | Extra4 !ann
   deriving stock (Functor, Generic)
 
 deriving stock instance
@@ -194,6 +196,8 @@ instance HasAnn (Term name uni fun) where
   getAnn (Case ann _ _) = ann
   getAnn (Extra1 ann) = ann
   getAnn (Extra2 ann) = ann
+  getAnn (Extra3 ann) = ann
+  getAnn (Extra4 ann) = ann
   modifyAnn f = \case
     Constant ann c -> Constant (f ann) c
     Builtin ann b -> Builtin (f ann) b
@@ -207,6 +211,8 @@ instance HasAnn (Term name uni fun) where
     Case ann scrut alts -> Case (f ann) scrut alts
     Extra1 ann -> Extra1 (f ann)
     Extra2 ann -> Extra2 (f ann)
+    Extra3 ann -> Extra3 (f ann)
+    Extra4 ann -> Extra4 (f ann)
 
 bindFunM
   :: Monad m
@@ -227,6 +233,8 @@ bindFunM f = go
     go (Case ann arg cs) = Case ann <$> go arg <*> traverse go cs
     go (Extra1 ann) = pure $ Extra1 ann
     go (Extra2 ann) = pure $ Extra2 ann
+    go (Extra3 ann) = pure $ Extra3 ann
+    go (Extra4 ann) = pure $ Extra4 ann
 
 bindFun
   :: (ann -> fun -> Term name uni fun' ann)

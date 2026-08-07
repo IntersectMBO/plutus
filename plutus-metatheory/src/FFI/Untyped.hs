@@ -46,11 +46,13 @@ conv (Delay _ t) = UDelay (conv t)
 conv (Force _ t) = UForce (conv t)
 conv (Constr _ i es) = UConstr (toInteger i) (toList (fmap conv es))
 conv (Case _ arg cs) = UCase (conv arg) (toList (fmap conv cs))
--- 'Extra1'/'Extra2' are no-op placeholder constructors (see Note [Extra constructors] in
--- 'UntypedPlutusCore.Core.Type') that are never produced by any real program, and have no
--- counterpart in the Agda formalisation's untyped syntax.
+-- 'Extra1'/'Extra2'/'Extra3'/'Extra4' are no-op placeholder constructors (see Note [Extra
+-- constructors] in 'UntypedPlutusCore.Core.Type') that are never produced by any real program,
+-- and have no counterpart in the Agda formalisation's untyped syntax.
 conv (Extra1 _) = error "conv: 'Extra1' is a placeholder constructor with no Agda representation"
 conv (Extra2 _) = error "conv: 'Extra2' is a placeholder constructor with no Agda representation"
+conv (Extra3 _) = error "conv: 'Extra3' is a placeholder constructor with no Agda representation"
+conv (Extra4 _) = error "conv: 'Extra4' is a placeholder constructor with no Agda representation"
 
 tmname :: Int -> String
 tmname i = 'x' : show i

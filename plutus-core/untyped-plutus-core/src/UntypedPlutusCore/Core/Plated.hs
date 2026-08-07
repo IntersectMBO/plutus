@@ -36,6 +36,8 @@ termConstants f term0 = case term0 of
   Case {} -> pure term0
   Extra1 {} -> pure term0
   Extra2 {} -> pure term0
+  Extra3 {} -> pure term0
+  Extra4 {} -> pure term0
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
 termBinds :: Traversal' (Term name uni fun ann) name
@@ -71,6 +73,8 @@ termSubterms f = \case
   b@Builtin {} -> pure b
   e1@Extra1 {} -> pure e1
   e2@Extra2 {} -> pure e2
+  e3@Extra3 {} -> pure e3
+  e4@Extra4 {} -> pure e4
 {-# INLINE termSubterms #-}
 
 -- | Get all the transitive child 'Constant's of the given 'Term'.

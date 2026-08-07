@@ -704,6 +704,8 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
           Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
           Extra1 _ -> Extra1 ()
           Extra2 _ -> Extra2 ()
+          Extra3 _ -> Extra3 ()
+          Extra4 _ -> Extra4 ()
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
@@ -875,9 +877,9 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
       throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
-    -- 'Extra1'/'Extra2' are no-op placeholder constructors: see Note [Extra constructors] in
-    -- 'UntypedPlutusCore.Core.Type'. They are never produced by any real program, so hitting one
-    -- here is an internal panic, not a normal evaluation failure.
+    -- 'Extra1'/'Extra2'/'Extra3'/'Extra4' are no-op placeholder constructors: see Note [Extra
+    -- constructors] in 'UntypedPlutusCore.Core.Type'. They are never produced by any real
+    -- program, so hitting one here is an internal panic, not a normal evaluation failure.
     computeCek !_ !_ (Extra1 _) =
       throwErrorWithCause
         (StructuralError (PanicMachineError "Extra1 is a placeholder constructor and cannot be evaluated"))
@@ -886,6 +888,14 @@ enterComputeCek = computeCek
       throwErrorWithCause
         (StructuralError (PanicMachineError "Extra2 is a placeholder constructor and cannot be evaluated"))
         (Extra2 ())
+    computeCek !_ !_ (Extra3 _) =
+      throwErrorWithCause
+        (StructuralError (PanicMachineError "Extra3 is a placeholder constructor and cannot be evaluated"))
+        (Extra3 ())
+    computeCek !_ !_ (Extra4 _) =
+      throwErrorWithCause
+        (StructuralError (PanicMachineError "Extra4 is a placeholder constructor and cannot be evaluated"))
+        (Extra4 ())
 
     -- \| The returning phase of the CEK machine.
     --    Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame

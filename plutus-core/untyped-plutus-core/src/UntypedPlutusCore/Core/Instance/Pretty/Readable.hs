@@ -56,6 +56,8 @@ instance
     Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg (toList cs)]
     Extra1 _ -> unitDocM "extra1"
     Extra2 _ -> unitDocM "extra2"
+    Extra3 _ -> unitDocM "extra3"
+    Extra4 _ -> unitDocM "extra4"
 
 instance
   PrettyReadableBy configName (Term name uni fun a)

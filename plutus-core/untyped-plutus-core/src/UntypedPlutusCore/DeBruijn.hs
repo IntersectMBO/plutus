@@ -97,6 +97,8 @@ deBruijnTermWithM h = go
       Error ann -> pure $ Error ann
       Extra1 ann -> pure $ Extra1 ann
       Extra2 ann -> pure $ Extra2 ann
+      Extra3 ann -> pure $ Extra3 ann
+      Extra4 ann -> pure $ Extra4 ann
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWithM
@@ -127,3 +129,5 @@ unDeBruijnTermWithM h = go
       Error ann -> pure $ Error ann
       Extra1 ann -> pure $ Extra1 ann
       Extra2 ann -> pure $ Extra2 ann
+      Extra3 ann -> pure $ Extra3 ann
+      Extra4 ann -> pure $ Extra4 ann
