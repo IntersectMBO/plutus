@@ -1,4 +1,15 @@
 
+<a id='changelog-1.67.0.0'></a>
+# 1.67.0.0 — 2026-08-06
+
+## Added
+
+- Postulated definitions for `Value` and its corresponding built-in functions
+
+## Fixed
+
+- Fixed a performance bug in the certifier regarding decidable equality.
+
 <a id='changelog-1.65.0.0'></a>
 # 1.65.0.0 — 2026-05-21
 
