@@ -20,7 +20,7 @@ import Control.Monad.Except
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Error qualified as PLC
-import PlutusPrelude ((&&&), getAnn, setAnn, through)
+import PlutusPrelude (getAnn, setAnn, through, (&&&))
 import Text.Megaparsec hiding (ParseError, State, parse)
 import Text.Megaparsec.Char (char)
 import Text.Megaparsec.Char.Lexer qualified as Lex
@@ -58,8 +58,8 @@ lamTerm sp =
 
 appTerm :: SrcSpan -> Parser PTerm
 appTerm sp =
-  setAnn sp <$>
-    (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
+  setAnn sp
+    <$> (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
 
 delayTerm :: SrcSpan -> Parser PTerm
 delayTerm sp =
@@ -72,6 +72,14 @@ forceTerm sp =
 errorTerm :: SrcSpan -> Parser PTerm
 errorTerm sp =
   return (UPLC.Error sp)
+
+extra1Term :: SrcSpan -> Parser PTerm
+extra1Term sp =
+  return (UPLC.Extra1 sp)
+
+extra2Term :: SrcSpan -> Parser PTerm
+extra2Term sp =
+  return (UPLC.Extra2 sp)
 
 constrTerm :: SrcSpan -> Parser PTerm
 constrTerm sp = do
@@ -121,8 +129,10 @@ term =
               , symbol "force" *> forceTerm sp
               , symbol "error" *> errorTerm sp
               , symbol "case" *> caseTerm sp
+              , symbol "extra1" *> extra1Term sp
+              , symbol "extra2" *> extra2Term sp
               ]
-              <?> "term keyword (builtin, lam, constr, con, delay, force, error, case)"
+              <?> "term keyword (builtin, lam, constr, con, delay, force, error, case, extra1, extra2)"
           )
 
 -- | Parser for UPLC programs.

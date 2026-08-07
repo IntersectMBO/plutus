@@ -261,6 +261,8 @@ annotate = flip evalState 0 . flip runReaderT [] . go
         Error ann -> pure $ Error (path, ann)
         Builtin ann fun -> pure $ Builtin (path, ann) fun
         Var ann name -> pure $ Var (path, ann) name
+        Extra1 ann -> pure $ Extra1 (path, ann)
+        Extra2 ann -> pure $ Extra2 (path, ann)
         LamAbs ann n body -> do
           freshId <- (+ 1) <$> lift get
           lift $ put freshId
@@ -410,6 +412,8 @@ applyCse candidate = mkLamApp . transformOf termSubterms substCseVarForTerm
           Error ann -> Error ann
           Constr ann i ts -> Constr ann i (mkLamApp <$> ts)
           Case ann scrut branches -> Case ann (mkLamApp scrut) (mkLamApp <$> branches)
+          Extra1 ann -> Extra1 ann
+          Extra2 ann -> Extra2 ann
       | otherwise = t
       where
         currPath = fst (getAnn t)

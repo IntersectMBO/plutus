@@ -54,6 +54,8 @@ instance
     Constr _ i es -> iterAppDocM $ \_ prettyArg ->
       ("constr" <+> prettyArg i) :| [prettyArg es]
     Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg (toList cs)]
+    Extra1 _ -> unitDocM "extra1"
+    Extra2 _ -> unitDocM "extra2"
 
 instance
   PrettyReadableBy configName (Term name uni fun a)

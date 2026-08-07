@@ -81,6 +81,10 @@ instance
             ann
             (prettyBy config arg : fmap (prettyBy config) (toList cs))
         )
+    Extra1 ann ->
+      sexp "extra1" (consAnnIf config ann [])
+    Extra2 ann ->
+      sexp "extra2" (consAnnIf config ann [])
     where
       prettyTypeOf :: Some (ValueOf uni) -> Doc dann
       prettyTypeOf (Some (ValueOf uni _)) = prettyBy juxtRenderContext $ SomeTypeIn uni

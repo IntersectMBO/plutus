@@ -76,6 +76,8 @@ termMapNames f = go
       Constant ann c -> Constant ann c
       Builtin ann b -> Builtin ann b
       Error ann -> Error ann
+      Extra1 ann -> Extra1 ann
+      Extra2 ann -> Extra2 ann
 
 programMapNames
   :: forall name name' uni fun ann

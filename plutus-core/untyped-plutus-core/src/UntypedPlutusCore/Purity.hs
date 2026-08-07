@@ -229,6 +229,13 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
         evalThis (EvalTerm Pure WorkFree t)
       t@Constant {} ->
         evalThis (EvalTerm Pure WorkFree t)
+      t@Extra1 {} ->
+        -- Never produced by real programs; treated like 'Error' (definitely effectful, terminates).
+        evalThis (EvalTerm MaybeImpure WorkFree t)
+          <> evalThis Unknown
+      t@Extra2 {} ->
+        evalThis (EvalTerm MaybeImpure WorkFree t)
+          <> evalThis Unknown
 
 {-| Will evaluating this term have side effects (looping or error)?
 This is slightly wider than the definition of a value, as

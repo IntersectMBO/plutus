@@ -38,6 +38,8 @@ instance name ~ Name => EstablishScoping (Term name uni fun) where
   establishScoping (Constant _ con) = pure $ Constant NotAName con
   establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
   establishScoping (Constr _ i es) = Constr NotAName <$> pure i <*> traverse establishScoping es
+  establishScoping (Extra1 _) = pure $ Extra1 NotAName
+  establishScoping (Extra2 _) = pure $ Extra2 NotAName
   establishScoping (Case _ a es) = do
     esScoped <- traverse establishScoping es
     let esScopedPoked = addTheRest . map (\e -> (e, firstBound e)) $ Vector.toList esScoped
@@ -65,6 +67,8 @@ instance name ~ Name => CollectScopeInfo (Term name uni fun) where
   collectScopeInfo (Builtin _ _) = mempty
   collectScopeInfo (Constr _ _ es) = foldMap collectScopeInfo es
   collectScopeInfo (Case _ arg cs) = collectScopeInfo arg <> foldMap collectScopeInfo cs
+  collectScopeInfo (Extra1 _) = mempty
+  collectScopeInfo (Extra2 _) = mempty
 
 instance name ~ Name => CollectScopeInfo (Program name uni fun) where
   collectScopeInfo (Program _ _ term) = collectScopeInfo term

@@ -489,6 +489,8 @@ isStrictIn name = go
       Error {} -> False
       Constr _ann _idx terms -> any go terms
       Case _ann scrut _branches -> go scrut
+      Extra1 {} -> False
+      Extra2 {} -> False
 
 effectSafe
   :: forall name uni fun a b
@@ -546,6 +548,8 @@ costIsAcceptable = \case
   Case {} -> False
   Force {} -> False
   Delay {} -> True
+  Extra1 {} -> True
+  Extra2 {} -> True
 
 -- | Fully apply and beta reduce.
 fullyApplyAndBetaReduce
@@ -699,6 +703,12 @@ mkHints = go
           Error {} -> CertifierHints.InlError
           Constr _ _ args -> CertifierHints.InlConstr (go <$> args)
           Case _ scrut alts -> CertifierHints.InlCase (go scrut) (go <$> V.toList alts)
+          -- 'Extra1'/'Extra2' are no-op placeholders never produced by real programs (see Note
+          -- [Extra constructors] in 'UntypedPlutusCore.Core.Type'), so this case is unreachable in
+          -- practice; we reuse 'InlError' rather than extending the certifier's 'Inline' type
+          -- (which would require corresponding changes on the Agda side).
+          Extra1 {} -> CertifierHints.InlError
+          Extra2 {} -> CertifierHints.InlError
 
 {- Note [Inliner's Certifier Hints]
 

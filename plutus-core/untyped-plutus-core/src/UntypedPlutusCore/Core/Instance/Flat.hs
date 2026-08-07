@@ -65,7 +65,7 @@ tags and their used/available encoding possibilities.
 \| Data type        | Function          | Bit Width | Total | Used | Remaining |
 \|------------------|-------------------|-----------|-------|------|-----------|
 \| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
-\| Terms            | encodeTerm        | 4         | 16    | 10   | 6         |
+\| Terms            | encodeTerm        | 4         | 16    | 12   | 4         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -124,6 +124,8 @@ encodeTerm = \case
   Builtin ann bn -> encodeTermTag 7 <> encode ann <> encode bn
   Constr ann i es -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
   Case ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
+  Extra1 ann -> encodeTermTag 10 <> encode ann
+  Extra2 ann -> encodeTermTag 11 <> encode ann
 
 decodeTerm
   :: forall name uni fun ann
@@ -183,6 +185,8 @@ decodeTerm version constantPred builtinPred constrPred = go
         fail $
           "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
       Case <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
+    handleTerm 10 = Extra1 <$> decode
+    handleTerm 11 = Extra2 <$> decode
     handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -212,6 +216,8 @@ sizeTerm tm sz =
       Builtin ann bn -> size ann $ size bn sz'
       Constr ann i es -> size ann $ size i $ sizeListWith sizeTerm es sz'
       Case ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm (V.toList cs) sz'
+      Extra1 ann -> size ann sz'
+      Extra2 ann -> size ann sz'
 
 {-| An encoder for programs.
 

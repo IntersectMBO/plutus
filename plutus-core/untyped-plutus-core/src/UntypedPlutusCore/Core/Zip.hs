@@ -66,6 +66,8 @@ tzipWith f term1 term2 = do
     go (Constr a1 i1 ts1) (Constr a2 _i2 ts2) = Constr (f a1 a2) i1 <$> zipExactWithM go ts1 ts2
     go (Case a1 t1 vs1) (Case a2 t2 vs2) =
       Case (f a1 a2) <$> go t1 t2 <*> (fromList <$> zipExactWithM go (toList vs1) (toList vs2))
+    go (Extra1 a1) (Extra1 a2) = pure $ Extra1 (f a1 a2)
+    go (Extra2 a1) (Extra2 a2) = pure $ Extra2 (f a1 a2)
     go _ _ =
       throwError "zip: This should not happen, because we prior established term equality."
 

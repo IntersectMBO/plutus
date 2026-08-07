@@ -702,6 +702,8 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
           Error _ -> Error ()
           Constr _ ind args -> Constr () ind $ map (go shift) args
           Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
+          Extra1 _ -> Extra1 ()
+          Extra2 _ -> Extra2 ()
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
@@ -873,6 +875,17 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
       throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
+    -- 'Extra1'/'Extra2' are no-op placeholder constructors: see Note [Extra constructors] in
+    -- 'UntypedPlutusCore.Core.Type'. They are never produced by any real program, so hitting one
+    -- here is an internal panic, not a normal evaluation failure.
+    computeCek !_ !_ (Extra1 _) =
+      throwErrorWithCause
+        (StructuralError (PanicMachineError "Extra1 is a placeholder constructor and cannot be evaluated"))
+        (Extra1 ())
+    computeCek !_ !_ (Extra2 _) =
+      throwErrorWithCause
+        (StructuralError (PanicMachineError "Extra2 is a placeholder constructor and cannot be evaluated"))
+        (Extra2 ())
 
     -- \| The returning phase of the CEK machine.
     --    Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame

@@ -49,11 +49,20 @@ Additionally, the first 7 (or 3 on 32-bit systems) constructors will get *pointe
 more efficient access when casing on them. So we ideally want to keep the number of constructors
 at 7 or fewer.
 
-We've got 8 constructors, *but* the last one is Error, which is only going to be seen at most
-once per program, so it's not too big a deal if it doesn't get a tag.
+We've got 10 constructors, *but* the last three (Error, Extra1, Extra2) are only going to be
+seen at most once per program (Extra1/Extra2 aren't produced at all in practice), so it's not
+too big a deal if they don't get a tag.
 
 See the GHC Notes "Tagging big families" and "Double switching for big families" in
 GHC.StgToCmm.Expr for more details.
+-}
+
+{- Note [Extra constructors]
+'Extra1' and 'Extra2' are placeholder no-op constructors. They carry no payload other than an
+annotation and are not produced by any real compiler, parser or transformation: they exist purely
+as an extension point. Every pass over 'Term' still has to handle them exhaustively, but the
+handling is always trivial (e.g. treat them like 'Error' structurally, without the "abort
+evaluation" semantics that 'Error' has).
 -}
 
 {- Note [Supported case-expressions]
@@ -101,6 +110,9 @@ data Term name uni fun ann
     Constr !ann !Word64 ![Term name uni fun ann]
   | -- See Note [Supported case-expressions].
     Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
+  | -- See Note [Extra constructors]. No-ops: never produced by real programs.
+    Extra1 !ann
+  | Extra2 !ann
   deriving stock (Functor, Generic)
 
 deriving stock instance
@@ -180,6 +192,8 @@ instance HasAnn (Term name uni fun) where
   getAnn (Error ann) = ann
   getAnn (Constr ann _ _) = ann
   getAnn (Case ann _ _) = ann
+  getAnn (Extra1 ann) = ann
+  getAnn (Extra2 ann) = ann
   modifyAnn f = \case
     Constant ann c -> Constant (f ann) c
     Builtin ann b -> Builtin (f ann) b
@@ -191,6 +205,8 @@ instance HasAnn (Term name uni fun) where
     Error ann -> Error (f ann)
     Constr ann i args -> Constr (f ann) i args
     Case ann scrut alts -> Case (f ann) scrut alts
+    Extra1 ann -> Extra1 (f ann)
+    Extra2 ann -> Extra2 (f ann)
 
 bindFunM
   :: Monad m
@@ -209,6 +225,8 @@ bindFunM f = go
     go (Error ann) = pure $ Error ann
     go (Constr ann i args) = Constr ann i <$> traverse go args
     go (Case ann arg cs) = Case ann <$> go arg <*> traverse go cs
+    go (Extra1 ann) = pure $ Extra1 ann
+    go (Extra2 ann) = pure $ Extra2 ann
 
 bindFun
   :: (ann -> fun -> Term name uni fun' ann)

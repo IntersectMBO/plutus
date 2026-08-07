@@ -115,6 +115,8 @@ eqTermM (Case ann1 a1 cs1) (Case ann2 a2 cs2) = do
   case zipExact (toList cs1) (toList cs2) of
     Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
     Nothing -> empty
+eqTermM (Extra1 ann1) (Extra1 ann2) = eqM ann1 ann2
+eqTermM (Extra2 ann1) (Extra2 ann2) = eqM ann1 ann2
 eqTermM Constant {} _ = empty
 eqTermM Builtin {} _ = empty
 eqTermM Var {} _ = empty
@@ -125,3 +127,5 @@ eqTermM Force {} _ = empty
 eqTermM Error {} _ = empty
 eqTermM Constr {} _ = empty
 eqTermM Case {} _ = empty
+eqTermM Extra1 {} _ = empty
+eqTermM Extra2 {} _ = empty
