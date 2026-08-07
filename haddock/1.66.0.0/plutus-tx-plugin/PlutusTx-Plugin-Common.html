@@ -1,0 +1,1381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Plugin.Common</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.66.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Plugin.Common.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Plugin.Common</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PluginCtx"
+	      >PluginCtx</a
+	      > = <a href="#v:PluginCtx"
+	      >PluginCtx</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:pcOpts"
+		  >pcOpts</a
+		  > &#8759; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+		  >PluginOptions</a
+		  ></li
+		><li
+		><a href="#v:pcFamEnvs"
+		  >pcFamEnvs</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-FamInstEnv.html#t:FamInstEnvs" title="GHC.Core.FamInstEnv"
+		  >FamInstEnvs</a
+		  ></li
+		><li
+		><a href="#v:pcMarkerName"
+		  >pcMarkerName</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		  >Name</a
+		  ></li
+		><li
+		><a href="#v:pcAnchorName"
+		  >pcAnchorName</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		  >Name</a
+		  ></li
+		><li
+		><a href="#v:pcModuleName"
+		  >pcModuleName</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Module-Name.html#t:ModuleName" title="Language.Haskell.Syntax.Module.Name"
+		  >ModuleName</a
+		  ></li
+		><li
+		><a href="#v:pcModuleModBreaks"
+		  >pcModuleModBreaks</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-ByteCode-Types.html#t:ModBreaks" title="GHC.ByteCode.Types"
+		  >ModBreaks</a
+		  ></li
+		><li
+		><a href="#v:pcPackageName"
+		  >pcPackageName</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:installCorePlugin"
+	      >installCorePlugin</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	      >CommandLineOption</a
+	      >] &#8594; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Pipeline-Types.html#t:CoreToDo" title="GHC.Core.Opt.Pipeline.Types"
+	      >CoreToDo</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Monad.html#t:CoreM" title="GHC.Core.Opt.Monad"
+	      >CoreM</a
+	      > [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Pipeline-Types.html#t:CoreToDo" title="GHC.Core.Opt.Pipeline.Types"
+	      >CoreToDo</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:plinthcModName"
+	      >plinthcModName</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:anchorName"
+	      >anchorName</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:injectAnchors"
+	      >injectAnchors</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	      >TcGblEnv</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcM" title="GHC.Tc.Types"
+	      >TcM</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	      >TcGblEnv</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:anchorExpr"
+	      >anchorExpr</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	      >Id</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	      >LHsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	      >LHsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isAnchorWorthy"
+	      >isAnchorWorthy</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	      >Id</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	      >HsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isTick"
+	      >isTick</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	      >HsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isAnchorApp"
+	      >isAnchorApp</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	      >Id</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	      >HsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:stripGuardAnchors"
+	      >stripGuardAnchors</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	      >Id</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:GRHS" title="Language.Haskell.Syntax.Expr"
+	      >GRHS</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > (<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	      >LHsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:GRHS" title="Language.Haskell.Syntax.Expr"
+	      >GRHS</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > (<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	      >LHsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:stripHsAnchor"
+	      >stripHsAnchor</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	      >Id</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	      >LHsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	      >LHsExpr</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkSimplPass"
+	      >mkSimplPass</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Session.html#t:DynFlags" title="GHC.Driver.Session"
+	      >DynFlags</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Pipeline-Types.html#t:CoreToDo" title="GHC.Core.Opt.Pipeline.Types"
+	      >CoreToDo</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkPluginPass"
+	      >mkPluginPass</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Pipeline-Types.html#t:CoreToDo" title="GHC.Core.Opt.Pipeline.Types"
+	      >CoreToDo</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PluginM"
+	      >PluginM</a
+	      > uni fun = <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	      >ReaderT</a
+	      > <a href="PlutusTx-Plugin-Common.html#t:PluginCtx" title="PlutusTx.Plugin.Common"
+	      >PluginCtx</a
+	      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > (<a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	      >CompileError</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      >) <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Monad.html#t:CoreM" title="GHC.Core.Opt.Monad"
+	      >CoreM</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:runPluginM"
+	      >runPluginM</a
+	      > &#8759; &#8704; uni fun a. (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun) &#8658; <a href="PlutusTx-Plugin-Common.html#t:PluginCtx" title="PlutusTx.Plugin.Common"
+	      >PluginCtx</a
+	      > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	      >PluginM</a
+	      > uni fun a &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Monad.html#t:CoreM" title="GHC.Core.Opt.Monad"
+	      >CoreM</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:getSourceSnippet"
+	      >getSourceSnippet</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-SrcLoc.html#t:RealSrcSpan" title="GHC.Types.SrcLoc"
+	      >RealSrcSpan</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann))</li
+	    ><li class="src short"
+	    ><a href="#v:formatSourceSnippet"
+	      >formatSourceSnippet</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:compileBind"
+	      >compileBind</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreBind" title="GHC.Core"
+	      >CoreBind</a
+	      > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	      >PluginM</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreBind" title="GHC.Core"
+	      >CoreBind</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:compileMarkedExprs"
+	      >compileMarkedExprs</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	      >PluginM</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:compileMarkedExprOrDefer"
+	      >compileMarkedExprOrDefer</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	      >PluginM</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:emitRuntimeError"
+	      >emitRuntimeError</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun) &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	      >Type</a
+	      > &#8594; <a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	      >CompileError</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	      >PluginM</a
+	      > uni fun <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:compileMarkedExpr"
+	      >compileMarkedExpr</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	      >PluginM</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:runCompiler"
+	      >runCompiler</a
+	      > &#8759; &#8704; uni fun m. (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	      >CompileContext</a
+	      > uni fun) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+	      >MonadState</a
+	      > <a href="PlutusTx-Compiler-Types.html#t:CompileState" title="PlutusTx.Compiler.Types"
+	      >CompileState</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+	      >MonadWriter</a
+	      > <a href="../plutus-tx/PlutusTx-Coverage.html#t:CoverageIndex" title="PlutusTx.Coverage"
+	      >CoverageIndex</a
+	      > m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	      >CompileError</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	      >Ann</a
+	      >) m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-IO-Class.html#t:MonadIO" title="Control.Monad.IO.Class"
+	      >MonadIO</a
+	      > m) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRProgram" title="PlutusTx.PIRTypes"
+	      >PIRProgram</a
+	      > uni fun, <a href="PlutusTx-PLCTypes.html#t:UPLCProgram" title="PlutusTx.PLCTypes"
+	      >UPLCProgram</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:generateCertificate"
+	      >generateCertificate</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Transform-Certify-Trace.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptimizerTrace</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:thNameToGhcNameOrFail"
+	      >thNameToGhcNameOrFail</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	      >PluginM</a
+	      > uni fun <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:makeByteStringLiteral"
+	      >makeByteStringLiteral</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	      >PluginM</a
+	      > uni fun <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:stripTicks"
+	      >stripTicks</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:stripCoreAnchors"
+	      >stripCoreAnchors</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	      >Name</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	      >CoreExpr</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkCompiledCode"
+	      >mkCompiledCode</a
+	      > &#8759; &#8704; a. <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:makePrimitiveNameInfo"
+	      >makePrimitiveNameInfo</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	      >Name</a
+	      >] &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	      >PluginM</a
+	      > uni fun <a href="PlutusTx-Compiler-Types.html#t:NameInfo" title="PlutusTx.Compiler.Types"
+	      >NameInfo</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:makeRewriteRules"
+	      >makeRewriteRules</a
+	      > &#8759; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > &#8594; <a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	      >RewriteRules</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PluginCtx" class="def"
+	    >PluginCtx</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#PluginCtx" class="link"
+	    >Source</a
+	    > <a href="#t:PluginCtx" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PluginCtx" class="def"
+		  >PluginCtx</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:pcOpts" class="def"
+			  >pcOpts</a
+			  > &#8759; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+			  >PluginOptions</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:pcFamEnvs" class="def"
+			  >pcFamEnvs</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-FamInstEnv.html#t:FamInstEnvs" title="GHC.Core.FamInstEnv"
+			  >FamInstEnvs</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:pcMarkerName" class="def"
+			  >pcMarkerName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+			  >Name</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:pcAnchorName" class="def"
+			  >pcAnchorName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+			  >Name</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:pcModuleName" class="def"
+			  >pcModuleName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Module-Name.html#t:ModuleName" title="Language.Haskell.Syntax.Module.Name"
+			  >ModuleName</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:pcModuleModBreaks" class="def"
+			  >pcModuleModBreaks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-ByteCode-Types.html#t:ModBreaks" title="GHC.ByteCode.Types"
+			  >ModBreaks</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:pcPackageName" class="def"
+			  >pcPackageName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:installCorePlugin" class="def"
+	    >installCorePlugin</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	    >CommandLineOption</a
+	    >] &#8594; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Pipeline-Types.html#t:CoreToDo" title="GHC.Core.Opt.Pipeline.Types"
+	    >CoreToDo</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Monad.html#t:CoreM" title="GHC.Core.Opt.Monad"
+	    >CoreM</a
+	    > [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Pipeline-Types.html#t:CoreToDo" title="GHC.Core.Opt.Pipeline.Types"
+	    >CoreToDo</a
+	    >] <a href="src/PlutusTx.Plugin.Common.html#installCorePlugin" class="link"
+	    >Source</a
+	    > <a href="#v:installCorePlugin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:plinthcModName" class="def"
+	    >plinthcModName</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#plinthcModName" class="link"
+	    >Source</a
+	    > <a href="#v:plinthcModName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:anchorName" class="def"
+	    >anchorName</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#anchorName" class="link"
+	    >Source</a
+	    > <a href="#v:anchorName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:injectAnchors" class="def"
+	    >injectAnchors</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	    >TcGblEnv</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcM" title="GHC.Tc.Types"
+	    >TcM</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	    >TcGblEnv</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#injectAnchors" class="link"
+	    >Source</a
+	    > <a href="#v:injectAnchors" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Wrap certain <code
+	      >HsExpr</code
+	      >s in the typed checked module with <code
+	      >anchor</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:anchorExpr" class="def"
+	    >anchorExpr</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	    >Id</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	    >LHsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	    >LHsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#anchorExpr" class="link"
+	    >Source</a
+	    > <a href="#v:anchorExpr" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Wrap an <code
+	      >HsExpr</code
+	      > with <code
+	      >anchor</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isAnchorWorthy" class="def"
+	    >isAnchorWorthy</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	    >Id</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	    >HsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#isAnchorWorthy" class="link"
+	    >Source</a
+	    > <a href="#v:isAnchorWorthy" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isTick" class="def"
+	    >isTick</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	    >HsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#isTick" class="link"
+	    >Source</a
+	    > <a href="#v:isTick" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isAnchorApp" class="def"
+	    >isAnchorApp</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	    >Id</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:HsExpr" title="Language.Haskell.Syntax.Expr"
+	    >HsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#isAnchorApp" class="link"
+	    >Source</a
+	    > <a href="#v:isAnchorApp" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stripGuardAnchors" class="def"
+	    >stripGuardAnchors</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	    >Id</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:GRHS" title="Language.Haskell.Syntax.Expr"
+	    >GRHS</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > (<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	    >LHsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:GRHS" title="Language.Haskell.Syntax.Expr"
+	    >GRHS</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > (<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	    >LHsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    >) <a href="src/PlutusTx.Plugin.Common.html#stripGuardAnchors" class="link"
+	    >Source</a
+	    > <a href="#v:stripGuardAnchors" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Remove anchors in guards. We can't wrap <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:otherwise" title="Data.Bool"
+		>otherwise</a
+		></code
+	      > with an anchor, since it would
+cause GHC to emit a &quot;non-exhuastive&quot; warning. In general, anchors in guards are
+probably not very useful, so we remove all anchors within guards. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stripHsAnchor" class="def"
+	    >stripHsAnchor</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	    >Id</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	    >LHsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Expr.html#t:LHsExpr" title="Language.Haskell.Syntax.Expr"
+	    >LHsExpr</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#stripHsAnchor" class="link"
+	    >Source</a
+	    > <a href="#v:stripHsAnchor" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkSimplPass" class="def"
+	    >mkSimplPass</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Session.html#t:DynFlags" title="GHC.Driver.Session"
+	    >DynFlags</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Pipeline-Types.html#t:CoreToDo" title="GHC.Core.Opt.Pipeline.Types"
+	    >CoreToDo</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#mkSimplPass" class="link"
+	    >Source</a
+	    > <a href="#v:mkSimplPass" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A simplifier pass, implemented by GHC</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkPluginPass" class="def"
+	    >mkPluginPass</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Pipeline-Types.html#t:CoreToDo" title="GHC.Core.Opt.Pipeline.Types"
+	    >CoreToDo</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#mkPluginPass" class="link"
+	    >Source</a
+	    > <a href="#v:mkPluginPass" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Our plugin works at haskell-module level granularity; the plugin
+looks at the module's top-level bindings for markers and compiles their right-hand-side core
+expressions. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PluginM" class="def"
+	    >PluginM</a
+	    > uni fun = <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+	    >ReaderT</a
+	    > <a href="PlutusTx-Plugin-Common.html#t:PluginCtx" title="PlutusTx.Plugin.Common"
+	    >PluginCtx</a
+	    > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > (<a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	    >CompileError</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    >) <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Monad.html#t:CoreM" title="GHC.Core.Opt.Monad"
+	    >CoreM</a
+	    >) <a href="src/PlutusTx.Plugin.Common.html#PluginM" class="link"
+	    >Source</a
+	    > <a href="#t:PluginM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The monad where the plugin runs in for each module.
+It is a core-&gt;core compiler monad, called PluginM, augmented with pure errors. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runPluginM" class="def"
+	    >runPluginM</a
+	    > &#8759; &#8704; uni fun a. (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun) &#8658; <a href="PlutusTx-Plugin-Common.html#t:PluginCtx" title="PlutusTx.Plugin.Common"
+	    >PluginCtx</a
+	    > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	    >PluginM</a
+	    > uni fun a &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Monad.html#t:CoreM" title="GHC.Core.Opt.Monad"
+	    >CoreM</a
+	    > a <a href="src/PlutusTx.Plugin.Common.html#runPluginM" class="link"
+	    >Source</a
+	    > <a href="#v:runPluginM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Runs the plugin monad in a given context; throws a Ghc.Exception when compilation fails.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getSourceSnippet" class="def"
+	    >getSourceSnippet</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-SrcLoc.html#t:RealSrcSpan" title="GHC.Types.SrcLoc"
+	    >RealSrcSpan</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann)) <a href="src/PlutusTx.Plugin.Common.html#getSourceSnippet" class="link"
+	    >Source</a
+	    > <a href="#v:getSourceSnippet" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:formatSourceSnippet" class="def"
+	    >formatSourceSnippet</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/PlutusTx.Plugin.Common.html#formatSourceSnippet" class="link"
+	    >Source</a
+	    > <a href="#v:formatSourceSnippet" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileBind" class="def"
+	    >compileBind</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreBind" title="GHC.Core"
+	    >CoreBind</a
+	    > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	    >PluginM</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreBind" title="GHC.Core"
+	    >CoreBind</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#compileBind" class="link"
+	    >Source</a
+	    > <a href="#v:compileBind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compiles all the marked expressions in the given binder into PLC literals.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileMarkedExprs" class="def"
+	    >compileMarkedExprs</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	    >PluginM</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#compileMarkedExprs" class="link"
+	    >Source</a
+	    > <a href="#v:compileMarkedExprs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compiles all the core-expressions surrounded by the marker in the given expression
+into PLC literals. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileMarkedExprOrDefer" class="def"
+	    >compileMarkedExprOrDefer</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	    >PluginM</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#compileMarkedExprOrDefer" class="link"
+	    >Source</a
+	    > <a href="#v:compileMarkedExprOrDefer" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Behaves the same as <code
+	      ><a href="PlutusTx-Plugin-Common.html#v:compileMarkedExpr" title="PlutusTx.Plugin.Common"
+		>compileMarkedExpr</a
+		></code
+	      >, unless a compilation error occurs ;
+if a compilation error happens and the 'defer-errors' option is turned on,
+the compilation error is suppressed and the original hs expression is replaced with a
+haskell runtime-error expression. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:emitRuntimeError" class="def"
+	    >emitRuntimeError</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun) &#8658; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	    >Type</a
+	    > &#8594; <a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	    >CompileError</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	    >PluginM</a
+	    > uni fun <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#emitRuntimeError" class="link"
+	    >Source</a
+	    > <a href="#v:emitRuntimeError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given an expected Haskell type <code
+	      >a</code
+	      >, it generates Haskell code which throws a GHC runtime error
+&quot;as&quot; 'CompiledCode a'. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileMarkedExpr" class="def"
+	    >compileMarkedExpr</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Type.html#t:Type" title="GHC.Core.Type"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	    >PluginM</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#compileMarkedExpr" class="link"
+	    >Source</a
+	    > <a href="#v:compileMarkedExpr" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compile the core expression that is surrounded by a <code
+	      >plc</code
+	      > marker,
+and return a core expression which evaluates to the compiled plc AST as a serialized bytestring,
+to be injected back to the Haskell program. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runCompiler" class="def"
+	    >runCompiler</a
+	    > &#8759; &#8704; uni fun m. (uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >, fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > (<a href="PlutusTx-Compiler-Types.html#t:CompileContext" title="PlutusTx.Compiler.Types"
+	    >CompileContext</a
+	    > uni fun) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+	    >MonadState</a
+	    > <a href="PlutusTx-Compiler-Types.html#t:CompileState" title="PlutusTx.Compiler.Types"
+	    >CompileState</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+	    >MonadWriter</a
+	    > <a href="../plutus-tx/PlutusTx-Coverage.html#t:CoverageIndex" title="PlutusTx.Coverage"
+	    >CoverageIndex</a
+	    > m, <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="PlutusTx-Compiler-Error.html#t:CompileError" title="PlutusTx.Compiler.Error"
+	    >CompileError</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Annotation.html#t:Ann" title="PlutusCore.Annotation"
+	    >Ann</a
+	    >) m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-IO-Class.html#t:MonadIO" title="Control.Monad.IO.Class"
+	    >MonadIO</a
+	    > m) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > &#8594; m (<a href="PlutusTx-PIRTypes.html#t:PIRProgram" title="PlutusTx.PIRTypes"
+	    >PIRProgram</a
+	    > uni fun, <a href="PlutusTx-PLCTypes.html#t:UPLCProgram" title="PlutusTx.PLCTypes"
+	    >UPLCProgram</a
+	    > uni fun) <a href="src/PlutusTx.Plugin.Common.html#runCompiler" class="link"
+	    >Source</a
+	    > <a href="#v:runCompiler" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The GHC.Core to PIR to PLC compiler pipeline. Returns both the PIR and PLC output.
+It invokes the whole compiler chain:  Core expr -&gt; PIR expr -&gt; PLC expr -&gt; UPLC expr. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:generateCertificate" class="def"
+	    >generateCertificate</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Transform-Certify-Trace.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptimizerTrace</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusTx.Plugin.Common.html#generateCertificate" class="link"
+	    >Source</a
+	    > <a href="#v:generateCertificate" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:thNameToGhcNameOrFail" class="def"
+	    >thNameToGhcNameOrFail</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	    >PluginM</a
+	    > uni fun <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	    >Name</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#thNameToGhcNameOrFail" class="link"
+	    >Source</a
+	    > <a href="#v:thNameToGhcNameOrFail" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the <code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+		>Name</a
+		></code
+	      > corresponding to the given <code
+	      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		>Name</a
+		></code
+	      >, or throw an error if we can't get it.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:makeByteStringLiteral" class="def"
+	    >makeByteStringLiteral</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	    >PluginM</a
+	    > uni fun <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#makeByteStringLiteral" class="link"
+	    >Source</a
+	    > <a href="#v:makeByteStringLiteral" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Create a GHC Core expression that will evaluate to the given ByteString at runtime.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stripTicks" class="def"
+	    >stripTicks</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#stripTicks" class="link"
+	    >Source</a
+	    > <a href="#v:stripTicks" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Strips all enclosing <code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core-Opt-Stats.html#t:Tick" title="GHC.Core.Opt.Stats"
+		>Tick</a
+		></code
+	      >s off an expression.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stripCoreAnchors" class="def"
+	    >stripCoreAnchors</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Name.html#t:Name" title="GHC.Types.Name"
+	    >Name</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Core.html#t:CoreExpr" title="GHC.Core"
+	    >CoreExpr</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#stripCoreAnchors" class="link"
+	    >Source</a
+	    > <a href="#v:stripCoreAnchors" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkCompiledCode" class="def"
+	    >mkCompiledCode</a
+	    > &#8759; &#8704; a. <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a <a href="src/PlutusTx.Plugin.Common.html#mkCompiledCode" class="link"
+	    >Source</a
+	    > <a href="#v:mkCompiledCode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Helper to avoid doing too much construction of Core ourselves</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:makePrimitiveNameInfo" class="def"
+	    >makePrimitiveNameInfo</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+	    >Name</a
+	    >] &#8594; <a href="PlutusTx-Plugin-Common.html#t:PluginM" title="PlutusTx.Plugin.Common"
+	    >PluginM</a
+	    > uni fun <a href="PlutusTx-Compiler-Types.html#t:NameInfo" title="PlutusTx.Compiler.Types"
+	    >NameInfo</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#makePrimitiveNameInfo" class="link"
+	    >Source</a
+	    > <a href="#v:makePrimitiveNameInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make a <code
+	      ><a href="PlutusTx-Compiler-Types.html#t:NameInfo" title="PlutusTx.Compiler.Types"
+		>NameInfo</a
+		></code
+	      > mapping the given set of TH names to their
+<code
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-TyThing.html#t:TyThing" title="GHC.Types.TyThing"
+		>TyThing</a
+		></code
+	      >s for later reference. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:makeRewriteRules" class="def"
+	    >makeRewriteRules</a
+	    > &#8759; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > &#8594; <a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+	    >RewriteRules</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > <a href="src/PlutusTx.Plugin.Common.html#makeRewriteRules" class="link"
+	    >Source</a
+	    > <a href="#v:makeRewriteRules" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

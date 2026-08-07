@@ -1,0 +1,153 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>-- | Kind/type inference/checking.
+<span class="lineno">    5 </span>module PlutusCore.TypeCheck
+<span class="lineno">    6 </span>  ( ToKind
+<span class="lineno">    7 </span>  , MonadKindCheck
+<span class="lineno">    8 </span>  , MonadTypeCheck
+<span class="lineno">    9 </span>  , TypeErrorPlc
+<span class="lineno">   10 </span>  , Typecheckable
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>    -- * Configuration.
+<span class="lineno">   13 </span>  , BuiltinTypes (..)
+<span class="lineno">   14 </span>  , KindCheckConfig (..)
+<span class="lineno">   15 </span>  , TypeCheckConfig (..)
+<span class="lineno">   16 </span>  , tccBuiltinTypes
+<span class="lineno">   17 </span>  , defKindCheckConfig
+<span class="lineno">   18 </span>  , builtinMeaningsToTypes
+<span class="lineno">   19 </span>  , getDefTypeCheckConfig
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>    -- * Kind/type inference/checking.
+<span class="lineno">   22 </span>  , inferKind
+<span class="lineno">   23 </span>  , checkKind
+<span class="lineno">   24 </span>  , inferType
+<span class="lineno">   25 </span>  , checkType
+<span class="lineno">   26 </span>  , inferTypeOfProgram
+<span class="lineno">   27 </span>  , checkTypeOfProgram
+<span class="lineno">   28 </span>  ) where
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>import PlutusPrelude
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>import PlutusCore.Builtin
+<span class="lineno">   33 </span>import PlutusCore.Core
+<span class="lineno">   34 </span>import PlutusCore.Default
+<span class="lineno">   35 </span>import PlutusCore.Error
+<span class="lineno">   36 </span>import PlutusCore.Name.Unique
+<span class="lineno">   37 </span>import PlutusCore.Normalize
+<span class="lineno">   38 </span>import PlutusCore.Quote
+<span class="lineno">   39 </span>import PlutusCore.Rename
+<span class="lineno">   40 </span>import PlutusCore.TypeCheck.Internal
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>{-| The constraint for built-in types\/functions are kind\/type-checkable.
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>We keep this separate from 'MonadKindCheck'\/'MonadTypeCheck', because those mainly constrain the
+<span class="lineno">   45 </span>monad and 'Typecheckable' constraints only the builtins. In particular useful when the monad gets
+<span class="lineno">   46 </span>instantiated and builtins don't. Another reason is that 'Typecheckable' is not required during
+<span class="lineno">   47 </span>type checking, since it's only needed for computing 'BuiltinTypes', which is passed as a regular
+<span class="lineno">   48 </span>argument to the worker of the type checker. -}
+<span class="lineno">   49 </span>type Typecheckable uni fun =
+<span class="lineno">   50 </span>  (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun, AnnotateCaseBuiltin uni)
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>-- | The default kind checking config.
+<span class="lineno">   53 </span>defKindCheckConfig :: KindCheckConfig
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">defKindCheckConfig = KindCheckConfig DetectNameMismatches</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>{-| Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
+<span class="lineno">   57 </span>corresponding 'Type' for each built-in function. -}
+<span class="lineno">   58 </span>builtinMeaningsToTypes
+<span class="lineno">   59 </span>  :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, Typecheckable uni fun)
+<span class="lineno">   60 </span>  =&gt; BuiltinSemanticsVariant fun
+<span class="lineno">   61 </span>  -&gt; ann
+<span class="lineno">   62 </span>  -&gt; m (BuiltinTypes uni fun)
+<span class="lineno">   63 </span><span class="decl"><span class="istickedoff">builtinMeaningsToTypes semvar ann =</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="istickedoff">runQuoteT . fmap BuiltinTypes . sequence . tabulateArray $ \fun -&gt; do</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="istickedoff">let ty = typeOfBuiltinFunction semvar fun</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">_ &lt;- inferKind defKindCheckConfig $ <span class="nottickedoff">ann</span> &lt;$ ty</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">dupable &lt;$&gt; normalizeType ty</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>-- | Get the default type checking config.
+<span class="lineno">   70 </span>getDefTypeCheckConfig
+<span class="lineno">   71 </span>  :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, Typecheckable uni fun)
+<span class="lineno">   72 </span>  =&gt; ann -&gt; m (TypeCheckConfig uni fun)
+<span class="lineno">   73 </span><span class="decl"><span class="istickedoff">getDefTypeCheckConfig ann =</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">TypeCheckConfig defKindCheckConfig &lt;$&gt; builtinMeaningsToTypes def <span class="nottickedoff">ann</span></span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>-- | Infer the kind of a type.
+<span class="lineno">   77 </span>inferKind
+<span class="lineno">   78 </span>  :: MonadKindCheck (TypeError term uni fun ann) term uni fun ann m
+<span class="lineno">   79 </span>  =&gt; KindCheckConfig -&gt; Type TyName uni ann -&gt; m (Kind ())
+<span class="lineno">   80 </span><span class="decl"><span class="istickedoff">inferKind config = runTypeCheckM config . inferKindM</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>{-| Check a type against a kind.
+<span class="lineno">   83 </span>Infers the kind of the type and checks that it's equal to the given kind
+<span class="lineno">   84 </span>throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise. -}
+<span class="lineno">   85 </span>checkKind
+<span class="lineno">   86 </span>  :: MonadKindCheck (TypeError term uni fun ann) term uni fun ann m
+<span class="lineno">   87 </span>  =&gt; KindCheckConfig -&gt; ann -&gt; Type TyName uni ann -&gt; Kind () -&gt; m ()
+<span class="lineno">   88 </span><span class="decl"><span class="istickedoff">checkKind config ann ty = runTypeCheckM config . checkKindM <span class="nottickedoff">ann</span> ty</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>-- | Infer the type of a term.
+<span class="lineno">   91 </span>inferType
+<span class="lineno">   92 </span>  :: MonadTypeCheckPlc uni fun ann m
+<span class="lineno">   93 </span>  =&gt; TypeCheckConfig uni fun
+<span class="lineno">   94 </span>  -&gt; Term TyName Name uni fun ann
+<span class="lineno">   95 </span>  -&gt; m (Normalized (Type TyName uni ()))
+<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">inferType config = rename &gt;=&gt; runTypeCheckM config . inferTypeM</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>{-| Check a term against a type.
+<span class="lineno">   99 </span>Infers the type of the term and checks that it's equal to the given type
+<span class="lineno">  100 </span>throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise. -}
+<span class="lineno">  101 </span>checkType
+<span class="lineno">  102 </span>  :: MonadTypeCheckPlc uni fun ann m
+<span class="lineno">  103 </span>  =&gt; TypeCheckConfig uni fun
+<span class="lineno">  104 </span>  -&gt; ann
+<span class="lineno">  105 </span>  -&gt; Term TyName Name uni fun ann
+<span class="lineno">  106 </span>  -&gt; Normalized (Type TyName uni ())
+<span class="lineno">  107 </span>  -&gt; m ()
+<span class="lineno">  108 </span><span class="decl"><span class="istickedoff">checkType config ann term ty = do</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="istickedoff">termRen &lt;- rename term</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff">runTypeCheckM config $ checkTypeM <span class="nottickedoff">ann</span> termRen ty</span></span>
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>-- | Infer the type of a program.
+<span class="lineno">  113 </span>inferTypeOfProgram
+<span class="lineno">  114 </span>  :: MonadTypeCheckPlc uni fun ann m
+<span class="lineno">  115 </span>  =&gt; TypeCheckConfig uni fun
+<span class="lineno">  116 </span>  -&gt; Program TyName Name uni fun ann
+<span class="lineno">  117 </span>  -&gt; m (Normalized (Type TyName uni ()))
+<span class="lineno">  118 </span><span class="decl"><span class="istickedoff">inferTypeOfProgram config (Program _ _ term) = inferType config term</span></span>
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>{-| Check a program against a type.
+<span class="lineno">  121 </span>Infers the type of the program and checks that it's equal to the given type
+<span class="lineno">  122 </span>throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise. -}
+<span class="lineno">  123 </span>checkTypeOfProgram
+<span class="lineno">  124 </span>  :: MonadTypeCheckPlc uni fun ann m
+<span class="lineno">  125 </span>  =&gt; TypeCheckConfig uni fun
+<span class="lineno">  126 </span>  -&gt; ann
+<span class="lineno">  127 </span>  -&gt; Program TyName Name uni fun ann
+<span class="lineno">  128 </span>  -&gt; Normalized (Type TyName uni ())
+<span class="lineno">  129 </span>  -&gt; m ()
+<span class="lineno">  130 </span><span class="decl"><span class="nottickedoff">checkTypeOfProgram config ann (Program _ _ term) = checkType config ann term</span></span>
+
+</pre>
+</body>
+</html>

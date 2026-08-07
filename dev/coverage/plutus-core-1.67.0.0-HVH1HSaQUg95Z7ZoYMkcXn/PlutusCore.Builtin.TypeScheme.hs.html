@@ -1,0 +1,124 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    4 </span>{-# LANGUAGE StrictData #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>{-| This module assigns types to built-ins.
+<span class="lineno">   10 </span>See the @plutus/plutus-core/docs/Constant application.md@
+<span class="lineno">   11 </span>article for how this emerged. -}
+<span class="lineno">   12 </span>module PlutusCore.Builtin.TypeScheme
+<span class="lineno">   13 </span>  ( Typeable
+<span class="lineno">   14 </span>  , TypeScheme (..)
+<span class="lineno">   15 </span>  , argProxy
+<span class="lineno">   16 </span>  , typeSchemeToType
+<span class="lineno">   17 </span>  ) where
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import PlutusCore.Builtin.KnownKind
+<span class="lineno">   20 </span>import PlutusCore.Builtin.KnownType
+<span class="lineno">   21 </span>import PlutusCore.Builtin.KnownTypeAst
+<span class="lineno">   22 </span>import PlutusCore.Core
+<span class="lineno">   23 </span>import PlutusCore.Name.Unique
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>import Data.Kind qualified as GHC (Type)
+<span class="lineno">   26 </span>import Data.Proxy
+<span class="lineno">   27 </span>import Data.Text qualified as Text
+<span class="lineno">   28 </span>import Data.Typeable
+<span class="lineno">   29 </span>import GHC.TypeLits
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>infixr 9 `TypeSchemeArrow`
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>{- Note [MakeKnown in TypeSchemeArrow]
+<span class="lineno">   34 </span>There's a @MakeKnown val arg@ constrained packed in the 'TypeSchemeArrow' constructor. It's not
+<span class="lineno">   35 </span>supposed to be there, but unfortunately, in the @Generators@ tests we use 'TypeScheme' for
+<span class="lineno">   36 </span>generation of arbitrary arguments of builtins and that requires 'makeKnown', which makes us have
+<span class="lineno">   37 </span>the 'MakeKnown' in 'TypeSchemeArrow'.
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>The solution is to fix the @Generators@ tests. Explicitly constraining @args@ outside of
+<span class="lineno">   40 </span>'TypeScheme' sounds like a promising strategy. Maybe we could just delete those tests altogether.
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>However it's also worth considering untangling 'RuntimeScheme' from 'TypeScheme' and generating the
+<span class="lineno">   43 </span>two in parallel, so that we only need to optimize the former. Then we will be able to afford having
+<span class="lineno">   44 </span>any kind of nonsense in 'TypeScheme'. Another reason for that would be the fact that Core output
+<span class="lineno">   45 </span>has 'typeSchemeToRuntimeScheme' all over the place as it can't be inlined due to being a recursive
+<span class="lineno">   46 </span>function, which we can't turn into an inlinable class method, because the indices of 'TypeScheme'
+<span class="lineno">   47 </span>don't reflect its structure due to the 'TypeSchemeAll' constructor not being reflected at the type
+<span class="lineno">   48 </span>level in any way. It's unlikely that having those 'typeSchemeToRuntimeScheme' has any impact on
+<span class="lineno">   49 </span>performance, because they're only evaluated once during initialization, but it certainly has impact
+<span class="lineno">   50 </span>on readability of the Core output.
+<span class="lineno">   51 </span>-}
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>-- We have these 'Typeable' constraints here just for the generators tests. It's fine since
+<span class="lineno">   54 </span>-- 'TypeScheme' is not used for evaluation and so we can shove into 'TypeScheme' whatever we want.
+<span class="lineno">   55 </span>{-| The type of type schemes of built-in functions.
+<span class="lineno">   56 </span>@args@ is a list of types of arguments, @res@ is the resulting type.
+<span class="lineno">   57 </span>E.g. @Text -&gt; Bool -&gt; Integer@ is encoded as @TypeScheme val [Text, Bool] Integer@. -}
+<span class="lineno">   58 </span>data TypeScheme val (args :: [GHC.Type]) res where
+<span class="lineno">   59 </span>  TypeSchemeResult
+<span class="lineno">   60 </span>    :: (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res)
+<span class="lineno">   61 </span>    =&gt; TypeScheme val '[] res
+<span class="lineno">   62 </span>  TypeSchemeArrow
+<span class="lineno">   63 </span>    :: (Typeable arg, KnownTypeAst TyName (UniOf val) arg, MakeKnown val arg, ReadKnown val arg)
+<span class="lineno">   64 </span>    =&gt; TypeScheme val args res -&gt; TypeScheme val (arg ': args) res
+<span class="lineno">   65 </span>  TypeSchemeAll
+<span class="lineno">   66 </span>    :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
+<span class="lineno">   67 </span>    =&gt; Proxy '(text, uniq, kind)
+<span class="lineno">   68 </span>    -&gt; TypeScheme val args res
+<span class="lineno">   69 </span>    -&gt; TypeScheme val args res
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>argProxy :: TypeScheme val (arg ': args) res -&gt; Proxy arg
+<span class="lineno">   72 </span><span class="decl"><span class="nottickedoff">argProxy _ = Proxy</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>-- | Convert a 'TypeScheme' to the corresponding 'Type'.
+<span class="lineno">   75 </span>typeSchemeToType :: TypeScheme val args res -&gt; Type TyName (UniOf val) ()
+<span class="lineno">   76 </span><span class="decl"><span class="istickedoff">typeSchemeToType sch@TypeSchemeResult = toTypeAst <span class="nottickedoff">sch</span></span>
+<span class="lineno">   77 </span><span class="spaces"></span><span class="istickedoff">typeSchemeToType sch@(TypeSchemeArrow schB) =</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">TyFun () (toTypeAst $ <span class="nottickedoff">argProxy sch</span>) $ typeSchemeToType schB</span>
+<span class="lineno">   79 </span><span class="spaces"></span><span class="istickedoff">typeSchemeToType (TypeSchemeAll (_ :: Proxy '(text, uniq, kind)) schB) =</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="istickedoff">let text = Text.pack $ symbolVal @text <span class="nottickedoff">Proxy</span></span>
+<span class="lineno">   81 </span><span class="spaces">      </span><span class="istickedoff">uniq = fromIntegral $ natVal @uniq <span class="nottickedoff">Proxy</span></span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="istickedoff">a = TyName $ Name text $ Unique uniq</span>
+<span class="lineno">   83 </span><span class="spaces">   </span><span class="istickedoff">in TyForall () a (demoteKind $ knownKind @kind) $ typeSchemeToType schB</span></span>
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>-- The precedence of @-&gt;@ is @-1@, which is why this number appears in the implementation of the
+<span class="lineno">   86 </span>-- instance.
+<span class="lineno">   87 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show (TypeScheme val args res)</span></span></span></span> where
+<span class="lineno">   88 </span>  <span class="decl"><span class="istickedoff">showsPrec p sch@TypeSchemeResult =</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">showParen (p &gt; 0) $</span>
+<span class="lineno">   90 </span><span class="spaces">      </span><span class="istickedoff">showsPrec (-1) (typeRep <span class="nottickedoff">sch</span>)</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">showsPrec p sch@(TypeSchemeArrow schB) =</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">showParen (p &gt; 0) $ -- @0@ is to account for associativity, see https://stackoverflow.com/a/43639618</span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="istickedoff">showsPrec 0 (typeRep $ <span class="nottickedoff">argProxy sch</span>)</span>
+<span class="lineno">   94 </span><span class="spaces">        </span><span class="istickedoff">. showString &quot; -&gt; &quot;</span>
+<span class="lineno">   95 </span><span class="spaces">        </span><span class="istickedoff">. showsPrec (-1) schB</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">showsPrec p (TypeSchemeAll (_ :: Proxy '(text, uniq, kind)) schB) =</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="istickedoff">showParen (p &gt; 0) $</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="istickedoff">showString &quot;forall &quot;</span>
+<span class="lineno">   99 </span><span class="spaces">        </span><span class="istickedoff">. showString (symbolVal @text <span class="nottickedoff">Proxy</span>)</span>
+<span class="lineno">  100 </span><span class="spaces">        </span><span class="istickedoff">. showString &quot;. &quot;</span>
+<span class="lineno">  101 </span><span class="spaces">        </span><span class="istickedoff">. showsPrec 0 schB</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Transform.LetFloatOut</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.62.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Transform.LetFloatOut.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Transform.LetFloatOut</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Floats immediately-applied lambdas (&quot;let bindings&quot;) outwards, as long as doing so
+cannot cause any expression to be evaluated more than before.</p
+	  ><p
+	  >This can unlock further optimizations, such as case-constr and force-delay cancellation.</p
+	  ><p
+	  >Specifically, it floats bindings from the following positions: <code
+	    >case</code
+	    > scrutinee,
+<code
+	    >force</code
+	    > body, and the function of <code
+	    >apply</code
+	    >.</p
+	  ><p
+	  >If we don't care about the order of effects, we can also float bindings from <code
+	    >apply</code
+	    >
+arguments and <code
+	    >constr</code
+	    > arguments, but there's no evidence that doing so is beneficial,
+so we don't do it.</p
+	  ><p
+	  >This pass only floats one bindings from each location. Since the pass runs once per
+simplifier iteration, this should be sufficient. Floating out multi-lets at once would
+complicate things, since we'd need to consider both <code
+	    >(a b. M) A B</code
+	    > and
+<code
+	    >(a. (b -&gt; M) B) A</code
+	    >. </p
+	  ></div
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:letFloatOut" class="def"
+	    >letFloatOut</a
+	    > &#8759; (<a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	    >Rename</a
+	    > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a)) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerT</a
+	    > name uni fun a m (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a) <a href="src/UntypedPlutusCore.Transform.LetFloatOut.html#letFloatOut" class="link"
+	    >Source</a
+	    > <a href="#v:letFloatOut" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

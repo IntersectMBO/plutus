@@ -1,0 +1,2627 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.Code.Utils</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.61.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.Code.Utils.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.Code.Utils</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Pair" class="def"
+	    >Pair</a
+	    > a b = (a, b) <a href="src/MAlonzo.Code.Utils.html#Pair" class="link"
+	    >Source</a
+	    > <a href="#t:Pair" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Either_6" class="def"
+	    >d_Either_6</a
+	    > &#8759; p &#8594; p &#8594; () <a href="src/MAlonzo.Code.Utils.html#d_Either_6" class="link"
+	    >Source</a
+	    > <a href="#v:d_Either_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Either_6" class="def"
+	    >T_Either_6</a
+	    > a0 a1 = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > a0 a1 <a href="src/MAlonzo.Code.Utils.html#T_Either_6" class="link"
+	    >Source</a
+	    > <a href="#t:T_Either_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_inj-39-8321-39-_12" class="def"
+	    >C_inj'8321'_12</a
+	    > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > a b <a href="src/MAlonzo.Code.Utils.html#C_inj%278321%27_12" class="link"
+	    >Source</a
+	    > <a href="#v:C_inj-39-8321-39-_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_inj-39-8322-39-_14" class="def"
+	    >C_inj'8322'_14</a
+	    > &#8759; &#8704; {a} {b}. b &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > a b <a href="src/MAlonzo.Code.Utils.html#C_inj%278322%27_14" class="link"
+	    >Source</a
+	    > <a href="#v:C_inj-39-8322-39-_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_inj-39-8321-39-_12" class="def"
+	    >check_inj'8321'_12</a
+	    > &#8759; &#8704; xA. &#8704; xB. xA &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > xA xB <a href="src/MAlonzo.Code.Utils.html#check_inj%278321%27_12" class="link"
+	    >Source</a
+	    > <a href="#v:check_inj-39-8321-39-_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_inj-39-8322-39-_14" class="def"
+	    >check_inj'8322'_14</a
+	    > &#8759; &#8704; xA. &#8704; xB. xB &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > xA xB <a href="src/MAlonzo.Code.Utils.html#check_inj%278322%27_14" class="link"
+	    >Source</a
+	    > <a href="#v:check_inj-39-8322-39-_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_Either_6" class="def"
+	    >cover_Either_6</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > a1 a2 &#8594; () <a href="src/MAlonzo.Code.Utils.html#cover_Either_6" class="link"
+	    >Source</a
+	    > <a href="#v:cover_Either_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_either_22" class="def"
+	    >d_either_22</a
+	    > &#8759; () &#8594; () &#8594; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_either_22" class="link"
+	    >Source</a
+	    > <a href="#v:d_either_22" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_either_22" class="def"
+	    >du_either_22</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_either_22" class="link"
+	    >Source</a
+	    > <a href="#v:du_either_22" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_is-39-45-39-inj-39-8321-39-_40" class="def"
+	    >d_is'45'inj'8321'_40</a
+	    > &#8759; () &#8594; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_is%2745%27inj%278321%27_40" class="link"
+	    >Source</a
+	    > <a href="#v:d_is-39-45-39-inj-39-8321-39-_40" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_is-39-45-39-inj-39-8321-39-_40" class="def"
+	    >du_is'45'inj'8321'_40</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_is%2745%27inj%278321%27_40" class="link"
+	    >Source</a
+	    > <a href="#v:du_is-39-45-39-inj-39-8321-39-_40" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_is-39-45-39-inj-39-8322-39-_46" class="def"
+	    >d_is'45'inj'8322'_46</a
+	    > &#8759; () &#8594; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_is%2745%27inj%278322%27_46" class="link"
+	    >Source</a
+	    > <a href="#v:d_is-39-45-39-inj-39-8322-39-_46" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_is-39-45-39-inj-39-8322-39-_46" class="def"
+	    >du_is'45'inj'8322'_46</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_is%2745%27inj%278322%27_46" class="link"
+	    >Source</a
+	    > <a href="#v:du_is-39-45-39-inj-39-8322-39-_46" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_eitherBind_54" class="def"
+	    >d_eitherBind_54</a
+	    > &#8759; () &#8594; () &#8594; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_eitherBind_54" class="link"
+	    >Source</a
+	    > <a href="#v:d_eitherBind_54" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_eitherBind_54" class="def"
+	    >du_eitherBind_54</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_eitherBind_54" class="link"
+	    >Source</a
+	    > <a href="#v:du_eitherBind_54" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_decIf_68" class="def"
+	    >d_decIf_68</a
+	    > &#8759; () &#8594; () &#8594; <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+	    >T_Dec_20</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_decIf_68" class="link"
+	    >Source</a
+	    > <a href="#v:d_decIf_68" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_decIf_68" class="def"
+	    >du_decIf_68</a
+	    > &#8759; <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+	    >T_Dec_20</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_decIf_68" class="link"
+	    >Source</a
+	    > <a href="#v:du_decIf_68" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_maybeToEither_86" class="def"
+	    >d_maybeToEither_86</a
+	    > &#8759; () &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_maybeToEither_86" class="link"
+	    >Source</a
+	    > <a href="#v:d_maybeToEither_86" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_maybeToEither_86" class="def"
+	    >du_maybeToEither_86</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_maybeToEither_86" class="link"
+	    >Source</a
+	    > <a href="#v:du_maybeToEither_86" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_try_94" class="def"
+	    >d_try_94</a
+	    > &#8759; () &#8594; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_try_94" class="link"
+	    >Source</a
+	    > <a href="#v:d_try_94" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_try_94" class="def"
+	    >du_try_94</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_try_94" class="link"
+	    >Source</a
+	    > <a href="#v:du_try_94" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_eitherToMaybe_104" class="def"
+	    >d_eitherToMaybe_104</a
+	    > &#8759; () &#8594; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_eitherToMaybe_104" class="link"
+	    >Source</a
+	    > <a href="#v:d_eitherToMaybe_104" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_eitherToMaybe_104" class="def"
+	    >du_eitherToMaybe_104</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_eitherToMaybe_104" class="link"
+	    >Source</a
+	    > <a href="#v:du_eitherToMaybe_104" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_natToFin_110" class="def"
+	    >d_natToFin_110</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-Code-Data-Fin-Base.html#t:T_Fin_10" title="MAlonzo.Code.Data.Fin.Base"
+	    >T_Fin_10</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_natToFin_110" class="link"
+	    >Source</a
+	    > <a href="#v:d_natToFin_110" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_cong-39-8323-39-_152" class="def"
+	    >d_cong'8323'_152</a
+	    > &#8759; () &#8594; () &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_cong%278323%27_152" class="link"
+	    >Source</a
+	    > <a href="#v:d_cong-39-8323-39-_152" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_-39-8801-39--39-45-39-subst-39-45-39-removable_174" class="def"
+	    >d_'8801''45'subst'45'removable_174</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; ()) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_%278801%27%2745%27subst%2745%27removable_174" class="link"
+	    >Source</a
+	    > <a href="#v:d_-39-8801-39--39-45-39-subst-39-45-39-removable_174" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-8724-39-_-39-8803-39-__180" class="def"
+	    >d__'8724'_'8803'__180</a
+	    > &#8759; p &#8594; p &#8594; p &#8594; () <a href="src/MAlonzo.Code.Utils.html#d__%278724%27_%278803%27__180" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-8724-39-_-39-8803-39-__180" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T__-39-8724-39-_-39-8803-39-__180" class="def"
+	    >T__'8724'_'8803'__180</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T__%278724%27_%278803%27__180" class="link"
+	    >Source</a
+	    > <a href="#t:T__-39-8724-39-_-39-8803-39-__180" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_start_184" class="def"
+		  >C_start_184</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_bubble_192" class="def"
+		  >C_bubble_192</a
+		  > <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__180" title="MAlonzo.Code.Utils"
+		  >T__'8724'_'8803'__180</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_unique-39-8724-39-_204" class="def"
+	    >d_unique'8724'_204</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__180" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__180</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__180" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__180</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_unique%278724%27_204" class="link"
+	    >Source</a
+	    > <a href="#v:d_unique-39-8724-39-_204" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_-39-43-39-2-39-8724-39-_216" class="def"
+	    >d_'43'2'8724'_216</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__180" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__180</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_%2743%272%278724%27_216" class="link"
+	    >Source</a
+	    > <a href="#v:d_-39-43-39-2-39-8724-39-_216" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_-39-43-39-2-39-8724-39-_216" class="def"
+	    >du_'43'2'8724'_216</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__180" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__180</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_%2743%272%278724%27_216" class="link"
+	    >Source</a
+	    > <a href="#v:du_-39-43-39-2-39-8724-39-_216" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_-39-8724-39-2-39-43-39-_234" class="def"
+	    >d_'8724'2'43'_234</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__180" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__180</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_%278724%272%2743%27_234" class="link"
+	    >Source</a
+	    > <a href="#v:d_-39-8724-39-2-39-43-39-_234" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_alldone_240" class="def"
+	    >d_alldone_240</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-8724-39-_-39-8803-39-__180" title="MAlonzo.Code.Utils"
+	    >T__'8724'_'8803'__180</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_alldone_240" class="link"
+	    >Source</a
+	    > <a href="#v:d_alldone_240" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Monad_246" class="def"
+	    >d_Monad_246</a
+	    > &#8759; p &#8594; () <a href="src/MAlonzo.Code.Utils.html#d_Monad_246" class="link"
+	    >Source</a
+	    > <a href="#v:d_Monad_246" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_Monad_246" class="def"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_Monad_246" class="link"
+	    >Source</a
+	    > <a href="#t:T_Monad_246" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_Monad-39-46-39-constructor_14947" class="def"
+		  >C_Monad'46'constructor_14947</a
+		  > (() &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  >) (() &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_return_262" class="def"
+	    >d_return_262</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_return_262" class="link"
+	    >Source</a
+	    > <a href="#v:d_return_262" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-62-39--39-62-39--39-61-39-__268" class="def"
+	    >d__'62''62''61'__268</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d__%2762%27%2762%27%2761%27__268" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-62-39--39-62-39--39-61-39-__268" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-62-39--39-62-39-__274" class="def"
+	    >d__'62''62'__274</a
+	    > &#8759; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d__%2762%27%2762%27__274" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-62-39--39-62-39-__274" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du__-39-62-39--39-62-39-__274" class="def"
+	    >du__'62''62'__274</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du__%2762%27%2762%27__274" class="link"
+	    >Source</a
+	    > <a href="#v:du__-39-62-39--39-62-39-__274" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_fmap_284" class="def"
+	    >d_fmap_284</a
+	    > &#8759; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_fmap_284" class="link"
+	    >Source</a
+	    > <a href="#v:d_fmap_284" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_fmap_284" class="def"
+	    >du_fmap_284</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_fmap_284" class="link"
+	    >Source</a
+	    > <a href="#v:du_fmap_284" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-62-39--39-62-39-__292" class="def"
+	    >d__'62''62'__292</a
+	    > &#8759; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d__%2762%27%2762%27__292" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-62-39--39-62-39-__292" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du__-39-62-39--39-62-39-__292" class="def"
+	    >du__'62''62'__292</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du__%2762%27%2762%27__292" class="link"
+	    >Source</a
+	    > <a href="#v:du__-39-62-39--39-62-39-__292" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-62-39--39-62-39--39-61-39-__294" class="def"
+	    >d__'62''62''61'__294</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d__%2762%27%2762%27%2761%27__294" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-62-39--39-62-39--39-61-39-__294" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_fmap_296" class="def"
+	    >d_fmap_296</a
+	    > &#8759; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_fmap_296" class="link"
+	    >Source</a
+	    > <a href="#v:d_fmap_296" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_fmap_296" class="def"
+	    >du_fmap_296</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_fmap_296" class="link"
+	    >Source</a
+	    > <a href="#v:du_fmap_296" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_return_298" class="def"
+	    >d_return_298</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_return_298" class="link"
+	    >Source</a
+	    > <a href="#v:d_return_298" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_MaybeMonad_300" class="def"
+	    >d_MaybeMonad_300</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_MaybeMonad_300" class="link"
+	    >Source</a
+	    > <a href="#v:d_MaybeMonad_300" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_sumBind_308" class="def"
+	    >d_sumBind_308</a
+	    > &#8759; () &#8594; () &#8594; () &#8594; <a href="MAlonzo-Code-Data-Sum-Base.html#t:T__-39-8846-39-__30" title="MAlonzo.Code.Data.Sum.Base"
+	    >T__'8846'__30</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Data-Sum-Base.html#t:T__-39-8846-39-__30" title="MAlonzo.Code.Data.Sum.Base"
+	    >T__'8846'__30</a
+	    >) &#8594; <a href="MAlonzo-Code-Data-Sum-Base.html#t:T__-39-8846-39-__30" title="MAlonzo.Code.Data.Sum.Base"
+	    >T__'8846'__30</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_sumBind_308" class="link"
+	    >Source</a
+	    > <a href="#v:d_sumBind_308" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_sumBind_308" class="def"
+	    >du_sumBind_308</a
+	    > &#8759; <a href="MAlonzo-Code-Data-Sum-Base.html#t:T__-39-8846-39-__30" title="MAlonzo.Code.Data.Sum.Base"
+	    >T__'8846'__30</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Data-Sum-Base.html#t:T__-39-8846-39-__30" title="MAlonzo.Code.Data.Sum.Base"
+	    >T__'8846'__30</a
+	    >) &#8594; <a href="MAlonzo-Code-Data-Sum-Base.html#t:T__-39-8846-39-__30" title="MAlonzo.Code.Data.Sum.Base"
+	    >T__'8846'__30</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_sumBind_308" class="link"
+	    >Source</a
+	    > <a href="#v:du_sumBind_308" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_SumMonad_322" class="def"
+	    >d_SumMonad_322</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_SumMonad_322" class="link"
+	    >Source</a
+	    > <a href="#v:d_SumMonad_322" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_SumMonad_322" class="def"
+	    >du_SumMonad_322</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_SumMonad_322" class="link"
+	    >Source</a
+	    > <a href="#v:du_SumMonad_322" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_EitherMonad_328" class="def"
+	    >d_EitherMonad_328</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_EitherMonad_328" class="link"
+	    >Source</a
+	    > <a href="#v:d_EitherMonad_328" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_EitherMonad_328" class="def"
+	    >du_EitherMonad_328</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_EitherMonad_328" class="link"
+	    >Source</a
+	    > <a href="#v:du_EitherMonad_328" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_EitherP_334" class="def"
+	    >d_EitherP_334</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_EitherP_334" class="link"
+	    >Source</a
+	    > <a href="#v:d_EitherP_334" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_EitherP_334" class="def"
+	    >du_EitherP_334</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_EitherP_334" class="link"
+	    >Source</a
+	    > <a href="#v:du_EitherP_334" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_withE_342" class="def"
+	    >d_withE_342</a
+	    > &#8759; () &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_withE_342" class="link"
+	    >Source</a
+	    > <a href="#v:d_withE_342" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_withE_342" class="def"
+	    >du_withE_342</a
+	    > &#8759; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_withE_342" class="link"
+	    >Source</a
+	    > <a href="#v:du_withE_342" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_dec2Either_354" class="def"
+	    >d_dec2Either_354</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+	    >T_Dec_20</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Data-Irrelevant.html#t:T_Irrelevant_20" title="MAlonzo.Code.Data.Irrelevant"
+	    >T_Irrelevant_20</a
+	    >) <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_dec2Either_354" class="link"
+	    >Source</a
+	    > <a href="#v:d_dec2Either_354" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_dec2Either_354" class="def"
+	    >du_dec2Either_354</a
+	    > &#8759; <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+	    >T_Dec_20</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Data-Irrelevant.html#t:T_Irrelevant_20" title="MAlonzo.Code.Data.Irrelevant"
+	    >T_Irrelevant_20</a
+	    >) <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_dec2Either_354" class="link"
+	    >Source</a
+	    > <a href="#v:du_dec2Either_354" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Writer_364" class="def"
+	    >d_Writer_364</a
+	    > &#8759; p &#8594; p &#8594; () <a href="src/MAlonzo.Code.Utils.html#d_Writer_364" class="link"
+	    >Source</a
+	    > <a href="#v:d_Writer_364" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_Writer_364" class="def"
+	    >T_Writer_364</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_Writer_364" class="link"
+	    >Source</a
+	    > <a href="#t:T_Writer_364" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C__-39-44-39-__378" class="def"
+		  >C__'44'__378</a
+		  > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_wrvalue_374" class="def"
+	    >d_wrvalue_374</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Writer_364" title="MAlonzo.Code.Utils"
+	    >T_Writer_364</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_wrvalue_374" class="link"
+	    >Source</a
+	    > <a href="#v:d_wrvalue_374" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_accum_376" class="def"
+	    >d_accum_376</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Writer_364" title="MAlonzo.Code.Utils"
+	    >T_Writer_364</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_accum_376" class="link"
+	    >Source</a
+	    > <a href="#v:d_accum_376" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_WriterMonad_388" class="def"
+	    >d_WriterMonad_388</a
+	    > &#8759; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_WriterMonad_388" class="link"
+	    >Source</a
+	    > <a href="#v:d_WriterMonad_388" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_WriterMonad_388" class="def"
+	    >du_WriterMonad_388</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_WriterMonad_388" class="link"
+	    >Source</a
+	    > <a href="#v:du_WriterMonad_388" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_tell_404" class="def"
+	    >d_tell_404</a
+	    > &#8759; () &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Writer_364" title="MAlonzo.Code.Utils"
+	    >T_Writer_364</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_tell_404" class="link"
+	    >Source</a
+	    > <a href="#v:d_tell_404" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_tell_404" class="def"
+	    >du_tell_404</a
+	    > &#8759; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Writer_364" title="MAlonzo.Code.Utils"
+	    >T_Writer_364</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_tell_404" class="link"
+	    >Source</a
+	    > <a href="#v:du_tell_404" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_RuntimeError_408" class="def"
+	    >d_RuntimeError_408</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Utils.html#d_RuntimeError_408" class="link"
+	    >Source</a
+	    > <a href="#v:d_RuntimeError_408" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_RuntimeError_408" class="def"
+	    >T_RuntimeError_408</a
+	    > = <a href="Raw.html#t:RuntimeError" title="Raw"
+	    >RuntimeError</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_RuntimeError_408" class="link"
+	    >Source</a
+	    > <a href="#t:T_RuntimeError_408" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_gasError_410" class="def"
+	    >C_gasError_410</a
+	    > &#8759; <a href="Raw.html#t:RuntimeError" title="Raw"
+	    >RuntimeError</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_gasError_410" class="link"
+	    >Source</a
+	    > <a href="#v:C_gasError_410" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_userError_412" class="def"
+	    >C_userError_412</a
+	    > &#8759; <a href="Raw.html#t:RuntimeError" title="Raw"
+	    >RuntimeError</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_userError_412" class="link"
+	    >Source</a
+	    > <a href="#v:C_userError_412" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_runtimeTypeError_414" class="def"
+	    >C_runtimeTypeError_414</a
+	    > &#8759; <a href="Raw.html#t:RuntimeError" title="Raw"
+	    >RuntimeError</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_runtimeTypeError_414" class="link"
+	    >Source</a
+	    > <a href="#v:C_runtimeTypeError_414" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_gasError_410" class="def"
+	    >check_gasError_410</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_RuntimeError_408" title="MAlonzo.Code.Utils"
+	    >T_RuntimeError_408</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_gasError_410" class="link"
+	    >Source</a
+	    > <a href="#v:check_gasError_410" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_userError_412" class="def"
+	    >check_userError_412</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_RuntimeError_408" title="MAlonzo.Code.Utils"
+	    >T_RuntimeError_408</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_userError_412" class="link"
+	    >Source</a
+	    > <a href="#v:check_userError_412" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_runtimeTypeError_414" class="def"
+	    >check_runtimeTypeError_414</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_RuntimeError_408" title="MAlonzo.Code.Utils"
+	    >T_RuntimeError_408</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_runtimeTypeError_414" class="link"
+	    >Source</a
+	    > <a href="#v:check_runtimeTypeError_414" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_RuntimeError_408" class="def"
+	    >cover_RuntimeError_408</a
+	    > &#8759; <a href="Raw.html#t:RuntimeError" title="Raw"
+	    >RuntimeError</a
+	    > &#8594; () <a href="src/MAlonzo.Code.Utils.html#cover_RuntimeError_408" class="link"
+	    >Source</a
+	    > <a href="#v:cover_RuntimeError_408" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_ByteString_416" class="def"
+	    >T_ByteString_416</a
+	    > = <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_ByteString_416" class="link"
+	    >Source</a
+	    > <a href="#t:T_ByteString_416" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_ByteString_416" class="def"
+	    >d_ByteString_416</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Utils.html#d_ByteString_416" class="link"
+	    >Source</a
+	    > <a href="#v:d_ByteString_416" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_mkByteString_418" class="def"
+	    >d_mkByteString_418</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Utils.html#d_mkByteString_418" class="link"
+	    >Source</a
+	    > <a href="#v:d_mkByteString_418" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_eqByteString_420" class="def"
+	    >d_eqByteString_420</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_ByteString_416" title="MAlonzo.Code.Utils"
+	    >T_ByteString_416</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_ByteString_416" title="MAlonzo.Code.Utils"
+	    >T_ByteString_416</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_eqByteString_420" class="link"
+	    >Source</a
+	    > <a href="#v:d_eqByteString_420" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-215-39-__426" class="def"
+	    >d__'215'__426</a
+	    > &#8759; p &#8594; p &#8594; () <a href="src/MAlonzo.Code.Utils.html#d__%27215%27__426" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-215-39-__426" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T__-39-215-39-__426" class="def"
+	    >T__'215'__426</a
+	    > a0 a1 = <a href="MAlonzo-Code-Utils.html#t:Pair" title="MAlonzo.Code.Utils"
+	    >Pair</a
+	    > a0 a1 <a href="src/MAlonzo.Code.Utils.html#T__%27215%27__426" class="link"
+	    >Source</a
+	    > <a href="#t:T__-39-215-39-__426" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C__-39-44-39-__440" class="def"
+	    >C__'44'__440</a
+	    > &#8759; a &#8594; b &#8594; (a, b) <a href="src/MAlonzo.Code.Utils.html#C__%2744%27__440" class="link"
+	    >Source</a
+	    > <a href="#v:C__-39-44-39-__440" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check__-39-44-39-__440" class="def"
+	    >check__'44'__440</a
+	    > &#8759; &#8704; xA. &#8704; xB. xA &#8594; xB &#8594; <a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__426" title="MAlonzo.Code.Utils"
+	    >T__'215'__426</a
+	    > xA xB <a href="src/MAlonzo.Code.Utils.html#check__%2744%27__440" class="link"
+	    >Source</a
+	    > <a href="#v:check__-39-44-39-__440" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover__-39-215-39-__426" class="def"
+	    >cover__'215'__426</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:Pair" title="MAlonzo.Code.Utils"
+	    >Pair</a
+	    > a1 a2 &#8594; () <a href="src/MAlonzo.Code.Utils.html#cover__%27215%27__426" class="link"
+	    >Source</a
+	    > <a href="#v:cover__-39-215-39-__426" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_proj-39-8321-39-_436" class="def"
+	    >d_proj'8321'_436</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__426" title="MAlonzo.Code.Utils"
+	    >T__'215'__426</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_proj%278321%27_436" class="link"
+	    >Source</a
+	    > <a href="#v:d_proj-39-8321-39-_436" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_proj-39-8322-39-_438" class="def"
+	    >d_proj'8322'_438</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__426" title="MAlonzo.Code.Utils"
+	    >T__'215'__426</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_proj%278322%27_438" class="link"
+	    >Source</a
+	    > <a href="#v:d_proj-39-8322-39-_438" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_List_444" class="def"
+	    >d_List_444</a
+	    > &#8759; p &#8594; () <a href="src/MAlonzo.Code.Utils.html#d_List_444" class="link"
+	    >Source</a
+	    > <a href="#v:d_List_444" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_List_444" class="def"
+	    >T_List_444</a
+	    > a0 = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+	    >List</a
+	    > a0 <a href="src/MAlonzo.Code.Utils.html#T_List_444" class="link"
+	    >Source</a
+	    > <a href="#t:T_List_444" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_-39-91-39--39-93-39-_448" class="def"
+	    >C_'91''93'_448</a
+	    > &#8759; [a] <a href="src/MAlonzo.Code.Utils.html#C_%2791%27%2793%27_448" class="link"
+	    >Source</a
+	    > <a href="#v:C_-39-91-39--39-93-39-_448" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C__-39-8759-39-__450" class="def"
+	    >C__'8759'__450</a
+	    > &#8759; a &#8594; [a] &#8594; [a] <a href="src/MAlonzo.Code.Utils.html#C__%278759%27__450" class="link"
+	    >Source</a
+	    > <a href="#v:C__-39-8759-39-__450" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_-39-91-39--39-93-39-_448" class="def"
+	    >check_'91''93'_448</a
+	    > &#8759; &#8704; xA. <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > xA <a href="src/MAlonzo.Code.Utils.html#check_%2791%27%2793%27_448" class="link"
+	    >Source</a
+	    > <a href="#v:check_-39-91-39--39-93-39-_448" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check__-39-8759-39-__450" class="def"
+	    >check__'8759'__450</a
+	    > &#8759; &#8704; xA. xA &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > xA &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > xA <a href="src/MAlonzo.Code.Utils.html#check__%278759%27__450" class="link"
+	    >Source</a
+	    > <a href="#v:check__-39-8759-39-__450" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_List_444" class="def"
+	    >cover_List_444</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+	    >List</a
+	    > a1 &#8594; () <a href="src/MAlonzo.Code.Utils.html#cover_List_444" class="link"
+	    >Source</a
+	    > <a href="#v:cover_List_444" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_All_458" class="def"
+	    >d_All_458</a
+	    > &#8759; p &#8594; p &#8594; p &#8594; p &#8594; () <a href="src/MAlonzo.Code.Utils.html#d_All_458" class="link"
+	    >Source</a
+	    > <a href="#v:d_All_458" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_All_458" class="def"
+	    >T_All_458</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_All_458" class="link"
+	    >Source</a
+	    > <a href="#t:T_All_458" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_-39-91-39--39-93-39-_466" class="def"
+		  >C_'91''93'_466</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C__-39-8759-39-__476" class="def"
+		  >C__'8759'__476</a
+		  > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  > <a href="MAlonzo-Code-Utils.html#t:T_All_458" title="MAlonzo.Code.Utils"
+		  >T_All_458</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_length_480" class="def"
+	    >d_length_480</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_length_480" class="link"
+	    >Source</a
+	    > <a href="#v:d_length_480" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_length_480" class="def"
+	    >du_length_480</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_length_480" class="link"
+	    >Source</a
+	    > <a href="#v:du_length_480" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_map_490" class="def"
+	    >d_map_490</a
+	    > &#8759; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_map_490" class="link"
+	    >Source</a
+	    > <a href="#v:d_map_490" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_map_490" class="def"
+	    >du_map_490</a
+	    > &#8759; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_map_490" class="link"
+	    >Source</a
+	    > <a href="#v:du_map_490" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_toList_502" class="def"
+	    >d_toList_502</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Utils.html#d_toList_502" class="link"
+	    >Source</a
+	    > <a href="#v:d_toList_502" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_toList_502" class="def"
+	    >du_toList_502</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] <a href="src/MAlonzo.Code.Utils.html#du_toList_502" class="link"
+	    >Source</a
+	    > <a href="#v:du_toList_502" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_fromList_510" class="def"
+	    >d_fromList_510</a
+	    > &#8759; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_fromList_510" class="link"
+	    >Source</a
+	    > <a href="#v:d_fromList_510" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_fromList_510" class="def"
+	    >du_fromList_510</a
+	    > &#8759; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_fromList_510" class="link"
+	    >Source</a
+	    > <a href="#v:du_fromList_510" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_dropLIST_518" class="def"
+	    >d_dropLIST_518</a
+	    > &#8759; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_dropLIST_518" class="link"
+	    >Source</a
+	    > <a href="#v:d_dropLIST_518" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_dropLIST_518" class="def"
+	    >du_dropLIST_518</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_dropLIST_518" class="link"
+	    >Source</a
+	    > <a href="#v:du_dropLIST_518" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_drop_530" class="def"
+	    >d_drop_530</a
+	    > &#8759; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_drop_530" class="link"
+	    >Source</a
+	    > <a href="#v:d_drop_530" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_drop_530" class="def"
+	    >du_drop_530</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_drop_530" class="link"
+	    >Source</a
+	    > <a href="#v:du_drop_530" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_map-39-45-39-cong_554" class="def"
+	    >d_map'45'cong_554</a
+	    > &#8759; () &#8594; () &#8594; [<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >] &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    >) &#8594; <a href="MAlonzo-Code-Agda-Builtin-Equality.html#t:T__-39-8801-39-__12" title="MAlonzo.Code.Agda.Builtin.Equality"
+	    >T__'8801'__12</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_map%2745%27cong_554" class="link"
+	    >Source</a
+	    > <a href="#v:d_map-39-45-39-cong_554" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_sequence_570" class="def"
+	    >d_sequence_570</a
+	    > &#8759; () &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_sequence_570" class="link"
+	    >Source</a
+	    > <a href="#v:d_sequence_570" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_sequence_570" class="def"
+	    >du_sequence_570</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_sequence_570" class="link"
+	    >Source</a
+	    > <a href="#v:du_sequence_570" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_mapM_588" class="def"
+	    >d_mapM_588</a
+	    > &#8759; () &#8594; () &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_mapM_588" class="link"
+	    >Source</a
+	    > <a href="#v:d_mapM_588" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_mapM_588" class="def"
+	    >du_mapM_588</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Monad_246" title="MAlonzo.Code.Utils"
+	    >T_Monad_246</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Utils.html#du_mapM_588" class="link"
+	    >Source</a
+	    > <a href="#v:du_mapM_588" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Array_592" class="def"
+	    >T_Array_592</a
+	    > a0 = <a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/Data-Vector-Strict.html#t:Vector" title="Data.Vector.Strict"
+	    >Vector</a
+	    > a0 <a href="src/MAlonzo.Code.Utils.html#T_Array_592" class="link"
+	    >Source</a
+	    > <a href="#t:T_Array_592" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Array_592" class="def"
+	    >d_Array_592</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Utils.html#d_Array_592" class="link"
+	    >Source</a
+	    > <a href="#v:d_Array_592" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_HSlengthOfArray_596" class="def"
+	    >d_HSlengthOfArray_596</a
+	    > &#8759; &#8704; xA. () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Array_592" title="MAlonzo.Code.Utils"
+	    >T_Array_592</a
+	    > xA &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_HSlengthOfArray_596" class="link"
+	    >Source</a
+	    > <a href="#v:d_HSlengthOfArray_596" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_HSlistToArray_600" class="def"
+	    >d_HSlistToArray_600</a
+	    > &#8759; &#8704; xA. () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > xA &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Array_592" title="MAlonzo.Code.Utils"
+	    >T_Array_592</a
+	    > xA <a href="src/MAlonzo.Code.Utils.html#d_HSlistToArray_600" class="link"
+	    >Source</a
+	    > <a href="#v:d_HSlistToArray_600" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_HSindexArray_602" class="def"
+	    >d_HSindexArray_602</a
+	    > &#8759; &#8704; xA. () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Array_592" title="MAlonzo.Code.Utils"
+	    >T_Array_592</a
+	    > xA &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; xA <a href="src/MAlonzo.Code.Utils.html#d_HSindexArray_602" class="link"
+	    >Source</a
+	    > <a href="#v:d_HSindexArray_602" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_mkArray_606" class="def"
+	    >d_mkArray_606</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Utils.html#d_mkArray_606" class="link"
+	    >Source</a
+	    > <a href="#v:d_mkArray_606" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_DATA_608" class="def"
+	    >d_DATA_608</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Utils.html#d_DATA_608" class="link"
+	    >Source</a
+	    > <a href="#v:d_DATA_608" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_DATA_608" class="def"
+	    >T_DATA_608</a
+	    > = <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_DATA_608" class="link"
+	    >Source</a
+	    > <a href="#t:T_DATA_608" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_ConstrDATA_610" class="def"
+	    >C_ConstrDATA_610</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; [<a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    >] &#8594; <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_ConstrDATA_610" class="link"
+	    >Source</a
+	    > <a href="#v:C_ConstrDATA_610" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_MapDATA_612" class="def"
+	    >C_MapDATA_612</a
+	    > &#8759; [(<a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    >, <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    >)] &#8594; <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_MapDATA_612" class="link"
+	    >Source</a
+	    > <a href="#v:C_MapDATA_612" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_ListDATA_614" class="def"
+	    >C_ListDATA_614</a
+	    > &#8759; [<a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    >] &#8594; <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_ListDATA_614" class="link"
+	    >Source</a
+	    > <a href="#v:C_ListDATA_614" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_iDATA_616" class="def"
+	    >C_iDATA_616</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_iDATA_616" class="link"
+	    >Source</a
+	    > <a href="#v:C_iDATA_616" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_bDATA_618" class="def"
+	    >C_bDATA_618</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_bDATA_618" class="link"
+	    >Source</a
+	    > <a href="#v:C_bDATA_618" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_ConstrDATA_610" class="def"
+	    >check_ConstrDATA_610</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_ConstrDATA_610" class="link"
+	    >Source</a
+	    > <a href="#v:check_ConstrDATA_610" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_MapDATA_612" class="def"
+	    >check_MapDATA_612</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__426" title="MAlonzo.Code.Utils"
+	    >T__'215'__426</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_MapDATA_612" class="link"
+	    >Source</a
+	    > <a href="#v:check_MapDATA_612" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_ListDATA_614" class="def"
+	    >check_ListDATA_614</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_List_444" title="MAlonzo.Code.Utils"
+	    >T_List_444</a
+	    > <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_ListDATA_614" class="link"
+	    >Source</a
+	    > <a href="#v:check_ListDATA_614" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_iDATA_616" class="def"
+	    >check_iDATA_616</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_iDATA_616" class="link"
+	    >Source</a
+	    > <a href="#v:check_iDATA_616" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_bDATA_618" class="def"
+	    >check_bDATA_618</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_ByteString_416" title="MAlonzo.Code.Utils"
+	    >T_ByteString_416</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_bDATA_618" class="link"
+	    >Source</a
+	    > <a href="#v:check_bDATA_618" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_DATA_608" class="def"
+	    >cover_DATA_608</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+	    >Data</a
+	    > &#8594; () <a href="src/MAlonzo.Code.Utils.html#cover_DATA_608" class="link"
+	    >Source</a
+	    > <a href="#v:cover_DATA_608" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_eqDATA_620" class="def"
+	    >d_eqDATA_620</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_DATA_608" title="MAlonzo.Code.Utils"
+	    >T_DATA_608</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_eqDATA_620" class="link"
+	    >Source</a
+	    > <a href="#v:d_eqDATA_620" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Bls12-39-45-39-381-39-45-39-G1-39-45-39-Element_754" class="def"
+	    >T_Bls12'45'381'45'G1'45'Element_754</a
+	    > = <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G1.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G1"
+	    >Element</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_Bls12%2745%27381%2745%27G1%2745%27Element_754" class="link"
+	    >Source</a
+	    > <a href="#t:T_Bls12-39-45-39-381-39-45-39-G1-39-45-39-Element_754" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Bls12-39-45-39-381-39-45-39-G1-39-45-39-Element_754" class="def"
+	    >d_Bls12'45'381'45'G1'45'Element_754</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Utils.html#d_Bls12%2745%27381%2745%27G1%2745%27Element_754" class="link"
+	    >Source</a
+	    > <a href="#v:d_Bls12-39-45-39-381-39-45-39-G1-39-45-39-Element_754" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_eqBls12-39-45-39-381-39-45-39-G1-39-45-39-Element_756" class="def"
+	    >d_eqBls12'45'381'45'G1'45'Element_756</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Bls12-39-45-39-381-39-45-39-G1-39-45-39-Element_754" title="MAlonzo.Code.Utils"
+	    >T_Bls12'45'381'45'G1'45'Element_754</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Bls12-39-45-39-381-39-45-39-G1-39-45-39-Element_754" title="MAlonzo.Code.Utils"
+	    >T_Bls12'45'381'45'G1'45'Element_754</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_eqBls12%2745%27381%2745%27G1%2745%27Element_756" class="link"
+	    >Source</a
+	    > <a href="#v:d_eqBls12-39-45-39-381-39-45-39-G1-39-45-39-Element_756" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Bls12-39-45-39-381-39-45-39-G2-39-45-39-Element_758" class="def"
+	    >T_Bls12'45'381'45'G2'45'Element_758</a
+	    > = <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-G2.html#t:Element" title="PlutusCore.Crypto.BLS12_381.G2"
+	    >Element</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_Bls12%2745%27381%2745%27G2%2745%27Element_758" class="link"
+	    >Source</a
+	    > <a href="#t:T_Bls12-39-45-39-381-39-45-39-G2-39-45-39-Element_758" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Bls12-39-45-39-381-39-45-39-G2-39-45-39-Element_758" class="def"
+	    >d_Bls12'45'381'45'G2'45'Element_758</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Utils.html#d_Bls12%2745%27381%2745%27G2%2745%27Element_758" class="link"
+	    >Source</a
+	    > <a href="#v:d_Bls12-39-45-39-381-39-45-39-G2-39-45-39-Element_758" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_eqBls12-39-45-39-381-39-45-39-G2-39-45-39-Element_760" class="def"
+	    >d_eqBls12'45'381'45'G2'45'Element_760</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Bls12-39-45-39-381-39-45-39-G2-39-45-39-Element_758" title="MAlonzo.Code.Utils"
+	    >T_Bls12'45'381'45'G2'45'Element_758</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Bls12-39-45-39-381-39-45-39-G2-39-45-39-Element_758" title="MAlonzo.Code.Utils"
+	    >T_Bls12'45'381'45'G2'45'Element_758</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_eqBls12%2745%27381%2745%27G2%2745%27Element_760" class="link"
+	    >Source</a
+	    > <a href="#v:d_eqBls12-39-45-39-381-39-45-39-G2-39-45-39-Element_760" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Bls12-39-45-39-381-39-45-39-MlResult_762" class="def"
+	    >T_Bls12'45'381'45'MlResult_762</a
+	    > = <a href="../plutus-core/PlutusCore-Crypto-BLS12_381-Pairing.html#t:MlResult" title="PlutusCore.Crypto.BLS12_381.Pairing"
+	    >MlResult</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_Bls12%2745%27381%2745%27MlResult_762" class="link"
+	    >Source</a
+	    > <a href="#t:T_Bls12-39-45-39-381-39-45-39-MlResult_762" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Bls12-39-45-39-381-39-45-39-MlResult_762" class="def"
+	    >d_Bls12'45'381'45'MlResult_762</a
+	    > &#8759; a <a href="src/MAlonzo.Code.Utils.html#d_Bls12%2745%27381%2745%27MlResult_762" class="link"
+	    >Source</a
+	    > <a href="#v:d_Bls12-39-45-39-381-39-45-39-MlResult_762" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_eqBls12-39-45-39-381-39-45-39-MlResult_764" class="def"
+	    >d_eqBls12'45'381'45'MlResult_764</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Bls12-39-45-39-381-39-45-39-MlResult_762" title="MAlonzo.Code.Utils"
+	    >T_Bls12'45'381'45'MlResult_762</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Bls12-39-45-39-381-39-45-39-MlResult_762" title="MAlonzo.Code.Utils"
+	    >T_Bls12'45'381'45'MlResult_762</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.Utils.html#d_eqBls12%2745%27381%2745%27MlResult_764" class="link"
+	    >Source</a
+	    > <a href="#v:d_eqBls12-39-45-39-381-39-45-39-MlResult_764" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Kind_766" class="def"
+	    >d_Kind_766</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Utils.html#d_Kind_766" class="link"
+	    >Source</a
+	    > <a href="#v:d_Kind_766" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_Kind_766" class="def"
+	    >T_Kind_766</a
+	    > = <a href="Raw.html#t:KIND" title="Raw"
+	    >KIND</a
+	    > <a href="src/MAlonzo.Code.Utils.html#T_Kind_766" class="link"
+	    >Source</a
+	    > <a href="#t:T_Kind_766" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_-39-42-39-_768" class="def"
+	    >C_'42'_768</a
+	    > &#8759; <a href="Raw.html#t:KIND" title="Raw"
+	    >KIND</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_%2742%27_768" class="link"
+	    >Source</a
+	    > <a href="#v:C_-39-42-39-_768" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_-39-9839-39-_770" class="def"
+	    >C_'9839'_770</a
+	    > &#8759; <a href="Raw.html#t:KIND" title="Raw"
+	    >KIND</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C_%279839%27_770" class="link"
+	    >Source</a
+	    > <a href="#v:C_-39-9839-39-_770" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C__-39-8658-39-__772" class="def"
+	    >C__'8658'__772</a
+	    > &#8759; <a href="Raw.html#t:KIND" title="Raw"
+	    >KIND</a
+	    > &#8594; <a href="Raw.html#t:KIND" title="Raw"
+	    >KIND</a
+	    > &#8594; <a href="Raw.html#t:KIND" title="Raw"
+	    >KIND</a
+	    > <a href="src/MAlonzo.Code.Utils.html#C__%278658%27__772" class="link"
+	    >Source</a
+	    > <a href="#v:C__-39-8658-39-__772" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_-39-42-39-_768" class="def"
+	    >check_'42'_768</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Kind_766" title="MAlonzo.Code.Utils"
+	    >T_Kind_766</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_%2742%27_768" class="link"
+	    >Source</a
+	    > <a href="#v:check_-39-42-39-_768" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_-39-9839-39-_770" class="def"
+	    >check_'9839'_770</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Kind_766" title="MAlonzo.Code.Utils"
+	    >T_Kind_766</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check_%279839%27_770" class="link"
+	    >Source</a
+	    > <a href="#v:check_-39-9839-39-_770" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check__-39-8658-39-__772" class="def"
+	    >check__'8658'__772</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_Kind_766" title="MAlonzo.Code.Utils"
+	    >T_Kind_766</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Kind_766" title="MAlonzo.Code.Utils"
+	    >T_Kind_766</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Kind_766" title="MAlonzo.Code.Utils"
+	    >T_Kind_766</a
+	    > <a href="src/MAlonzo.Code.Utils.html#check__%278658%27__772" class="link"
+	    >Source</a
+	    > <a href="#v:check__-39-8658-39-__772" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_Kind_766" class="def"
+	    >cover_Kind_766</a
+	    > &#8759; <a href="Raw.html#t:KIND" title="Raw"
+	    >KIND</a
+	    > &#8594; () <a href="src/MAlonzo.Code.Utils.html#cover_Kind_766" class="link"
+	    >Source</a
+	    > <a href="#v:cover_Kind_766" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

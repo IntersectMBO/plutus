@@ -1,0 +1,892 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Executable.AstIO</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.63.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Executable.AstIO.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Executable.AstIO</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Reading and writing ASTs with various name types in flat format.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:UplcProgDB"
+	      >UplcProgDB</a
+	      > ann = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:UplcProgNDB"
+	      >UplcProgNDB</a
+	      > ann = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcProgDB"
+	      >PlcProgDB</a
+	      > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:TyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >TyDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcProgNDB"
+	      >PlcProgNDB</a
+	      > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedTyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedTyDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:UplcTermDB"
+	      >UplcTermDB</a
+	      > ann = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:UplcTermNDB"
+	      >UplcTermNDB</a
+	      > ann = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcTermDB"
+	      >PlcTermDB</a
+	      > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:TyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >TyDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcTermNDB"
+	      >PlcTermNDB</a
+	      > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedTyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedTyDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcTypeDB"
+	      >PlcTypeDB</a
+	      > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:TyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >TyDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcTypeNDB"
+	      >PlcTypeNDB</a
+	      > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedTyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedTyDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:serialisePirProgramFlat"
+	      >serialisePirProgramFlat</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > ann &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	      >AstNameType</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:PirProg" title="PlutusCore.Executable.Types"
+	      >PirProg</a
+	      > ann &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:serialisePlcProgramFlat"
+	      >serialisePlcProgramFlat</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > ann &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	      >AstNameType</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:PlcProg" title="PlutusCore.Executable.Types"
+	      >PlcProg</a
+	      > ann &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:serialiseUplcProgramFlat"
+	      >serialiseUplcProgramFlat</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > ann &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	      >AstNameType</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	      >UplcProg</a
+	      > ann &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:loadPirASTfromFlat"
+	      >loadPirASTfromFlat</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > a &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	      >AstNameType</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="PlutusCore-Executable-Types.html#t:PirProg" title="PlutusCore.Executable.Types"
+	      >PirProg</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:loadPlcASTfromFlat"
+	      >loadPlcASTfromFlat</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > a &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	      >AstNameType</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="PlutusCore-Executable-Types.html#t:PlcProg" title="PlutusCore.Executable.Types"
+	      >PlcProg</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:loadUplcASTfromFlat"
+	      >loadUplcASTfromFlat</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > ann &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	      >AstNameType</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	      >UplcProg</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:loadUplcASTfromSerialised"
+	      >loadUplcASTfromSerialised</a
+	      > &#8759; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	      >UplcProg</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:loadUplcASTfromHex"
+	      >loadUplcASTfromHex</a
+	      > &#8759; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	      >UplcProg</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:fromNamedDeBruijnUPLC"
+	      >fromNamedDeBruijnUPLC</a
+	      > &#8759; <a href="PlutusCore-Executable-AstIO.html#t:UplcProgNDB" title="PlutusCore.Executable.AstIO"
+	      >UplcProgNDB</a
+	      > ann &#8594; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	      >UplcProg</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:toDeBruijnTermPLC"
+	      >toDeBruijnTermPLC</a
+	      > &#8759; <a href="PlutusCore-Executable-Types.html#t:PlcTerm" title="PlutusCore.Executable.Types"
+	      >PlcTerm</a
+	      > ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:PlcTermDB" title="PlutusCore.Executable.AstIO"
+	      >PlcTermDB</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:toDeBruijnTermUPLC"
+	      >toDeBruijnTermUPLC</a
+	      > &#8759; <a href="PlutusCore-Executable-Types.html#t:UplcTerm" title="PlutusCore.Executable.Types"
+	      >UplcTerm</a
+	      > ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:UplcTermDB" title="PlutusCore.Executable.AstIO"
+	      >UplcTermDB</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:toDeBruijnUPLC"
+	      >toDeBruijnUPLC</a
+	      > &#8759; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	      >UplcProg</a
+	      > ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:UplcProgDB" title="PlutusCore.Executable.AstIO"
+	      >UplcProgDB</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:toDeBruijnTypePLC"
+	      >toDeBruijnTypePLC</a
+	      > &#8759; PlcType ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:PlcTypeDB" title="PlutusCore.Executable.AstIO"
+	      >PlcTypeDB</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:toNamedDeBruijnUPLC"
+	      >toNamedDeBruijnUPLC</a
+	      > &#8759; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	      >UplcProg</a
+	      > ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:UplcProgNDB" title="PlutusCore.Executable.AstIO"
+	      >UplcProgNDB</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:decodeUplcHex"
+	      >decodeUplcHex</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	      >UplcProg</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:encodeUplcHex"
+	      >encodeUplcHex</a
+	      > &#8759; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	      >UplcProg</a
+	      > ann &#8594; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:UplcProgDB" class="def"
+	    >UplcProgDB</a
+	    > ann = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#UplcProgDB" class="link"
+	    >Source</a
+	    > <a href="#t:UplcProgDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:UplcProgNDB" class="def"
+	    >UplcProgNDB</a
+	    > ann = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#UplcProgNDB" class="link"
+	    >Source</a
+	    > <a href="#t:UplcProgNDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcProgDB" class="def"
+	    >PlcProgDB</a
+	    > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:TyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >TyDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#PlcProgDB" class="link"
+	    >Source</a
+	    > <a href="#t:PlcProgDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcProgNDB" class="def"
+	    >PlcProgNDB</a
+	    > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedTyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedTyDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#PlcProgNDB" class="link"
+	    >Source</a
+	    > <a href="#t:PlcProgNDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:UplcTermDB" class="def"
+	    >UplcTermDB</a
+	    > ann = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#UplcTermDB" class="link"
+	    >Source</a
+	    > <a href="#t:UplcTermDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:UplcTermNDB" class="def"
+	    >UplcTermNDB</a
+	    > ann = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#UplcTermNDB" class="link"
+	    >Source</a
+	    > <a href="#t:UplcTermNDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcTermDB" class="def"
+	    >PlcTermDB</a
+	    > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:TyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >TyDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#PlcTermDB" class="link"
+	    >Source</a
+	    > <a href="#t:PlcTermDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcTermNDB" class="def"
+	    >PlcTermNDB</a
+	    > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedTyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedTyDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#PlcTermNDB" class="link"
+	    >Source</a
+	    > <a href="#t:PlcTermNDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcTypeDB" class="def"
+	    >PlcTypeDB</a
+	    > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:TyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >TyDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#PlcTypeDB" class="link"
+	    >Source</a
+	    > <a href="#t:PlcTypeDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcTypeNDB" class="def"
+	    >PlcTypeNDB</a
+	    > ann = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedTyDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >NamedTyDeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#PlcTypeNDB" class="link"
+	    >Source</a
+	    > <a href="#t:PlcTypeNDB" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:serialisePirProgramFlat" class="def"
+	    >serialisePirProgramFlat</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > ann &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	    >AstNameType</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:PirProg" title="PlutusCore.Executable.Types"
+	    >PirProg</a
+	    > ann &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Executable.AstIO.html#serialisePirProgramFlat" class="link"
+	    >Source</a
+	    > <a href="#v:serialisePirProgramFlat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:serialisePlcProgramFlat" class="def"
+	    >serialisePlcProgramFlat</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > ann &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	    >AstNameType</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:PlcProg" title="PlutusCore.Executable.Types"
+	    >PlcProg</a
+	    > ann &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Executable.AstIO.html#serialisePlcProgramFlat" class="link"
+	    >Source</a
+	    > <a href="#v:serialisePlcProgramFlat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:serialiseUplcProgramFlat" class="def"
+	    >serialiseUplcProgramFlat</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > ann &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	    >AstNameType</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	    >UplcProg</a
+	    > ann &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Executable.AstIO.html#serialiseUplcProgramFlat" class="link"
+	    >Source</a
+	    > <a href="#v:serialiseUplcProgramFlat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:loadPirASTfromFlat" class="def"
+	    >loadPirASTfromFlat</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > a &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	    >AstNameType</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="PlutusCore-Executable-Types.html#t:PirProg" title="PlutusCore.Executable.Types"
+	    >PirProg</a
+	    > a) <a href="src/PlutusCore.Executable.AstIO.html#loadPirASTfromFlat" class="link"
+	    >Source</a
+	    > <a href="#v:loadPirASTfromFlat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:loadPlcASTfromFlat" class="def"
+	    >loadPlcASTfromFlat</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > a &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	    >AstNameType</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="PlutusCore-Executable-Types.html#t:PlcProg" title="PlutusCore.Executable.Types"
+	    >PlcProg</a
+	    > a) <a href="src/PlutusCore.Executable.AstIO.html#loadPlcASTfromFlat" class="link"
+	    >Source</a
+	    > <a href="#v:loadPlcASTfromFlat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Read and deserialise a Flat-encoded PIR/PLC AST</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:loadUplcASTfromFlat" class="def"
+	    >loadUplcASTfromFlat</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > ann &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	    >AstNameType</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	    >UplcProg</a
+	    > ann) <a href="src/PlutusCore.Executable.AstIO.html#loadUplcASTfromFlat" class="link"
+	    >Source</a
+	    > <a href="#v:loadUplcASTfromFlat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Read and deserialise a Flat-encoded UPLC AST</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:loadUplcASTfromSerialised" class="def"
+	    >loadUplcASTfromSerialised</a
+	    > &#8759; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	    >UplcProg</a
+	    > ()) <a href="src/PlutusCore.Executable.AstIO.html#loadUplcASTfromSerialised" class="link"
+	    >Source</a
+	    > <a href="#v:loadUplcASTfromSerialised" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:loadUplcASTfromHex" class="def"
+	    >loadUplcASTfromHex</a
+	    > &#8759; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	    >UplcProg</a
+	    > ()) <a href="src/PlutusCore.Executable.AstIO.html#loadUplcASTfromHex" class="link"
+	    >Source</a
+	    > <a href="#v:loadUplcASTfromHex" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromNamedDeBruijnUPLC" class="def"
+	    >fromNamedDeBruijnUPLC</a
+	    > &#8759; <a href="PlutusCore-Executable-AstIO.html#t:UplcProgNDB" title="PlutusCore.Executable.AstIO"
+	    >UplcProgNDB</a
+	    > ann &#8594; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	    >UplcProg</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#fromNamedDeBruijnUPLC" class="link"
+	    >Source</a
+	    > <a href="#v:fromNamedDeBruijnUPLC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert an untyped program with named de Bruijn indices to one with textual names.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toDeBruijnTermPLC" class="def"
+	    >toDeBruijnTermPLC</a
+	    > &#8759; <a href="PlutusCore-Executable-Types.html#t:PlcTerm" title="PlutusCore.Executable.Types"
+	    >PlcTerm</a
+	    > ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:PlcTermDB" title="PlutusCore.Executable.AstIO"
+	    >PlcTermDB</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#toDeBruijnTermPLC" class="link"
+	    >Source</a
+	    > <a href="#v:toDeBruijnTermPLC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a typed term to one where the <code
+	      >name</code
+	      > type is de Bruijn indices.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toDeBruijnTermUPLC" class="def"
+	    >toDeBruijnTermUPLC</a
+	    > &#8759; <a href="PlutusCore-Executable-Types.html#t:UplcTerm" title="PlutusCore.Executable.Types"
+	    >UplcTerm</a
+	    > ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:UplcTermDB" title="PlutusCore.Executable.AstIO"
+	    >UplcTermDB</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#toDeBruijnTermUPLC" class="link"
+	    >Source</a
+	    > <a href="#v:toDeBruijnTermUPLC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert an untyped term to one where the <code
+	      >name</code
+	      > type is de Bruijn indices.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toDeBruijnUPLC" class="def"
+	    >toDeBruijnUPLC</a
+	    > &#8759; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	    >UplcProg</a
+	    > ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:UplcProgDB" title="PlutusCore.Executable.AstIO"
+	    >UplcProgDB</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#toDeBruijnUPLC" class="link"
+	    >Source</a
+	    > <a href="#v:toDeBruijnUPLC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert an untyped program to one where the <code
+	      >name</code
+	      > type is de Bruijn indices.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toDeBruijnTypePLC" class="def"
+	    >toDeBruijnTypePLC</a
+	    > &#8759; PlcType ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:PlcTypeDB" title="PlutusCore.Executable.AstIO"
+	    >PlcTypeDB</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#toDeBruijnTypePLC" class="link"
+	    >Source</a
+	    > <a href="#v:toDeBruijnTypePLC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert a type to one where the <code
+	      >tyname</code
+	      > type is de Bruijn indices.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toNamedDeBruijnUPLC" class="def"
+	    >toNamedDeBruijnUPLC</a
+	    > &#8759; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	    >UplcProg</a
+	    > ann &#8594; <a href="PlutusCore-Executable-AstIO.html#t:UplcProgNDB" title="PlutusCore.Executable.AstIO"
+	    >UplcProgNDB</a
+	    > ann <a href="src/PlutusCore.Executable.AstIO.html#toNamedDeBruijnUPLC" class="link"
+	    >Source</a
+	    > <a href="#v:toNamedDeBruijnUPLC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert an untyped program to one where the <code
+	      >name</code
+	      > type is textual names
+with de Bruijn indices. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeUplcHex" class="def"
+	    >decodeUplcHex</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	    >UplcProg</a
+	    > () <a href="src/PlutusCore.Executable.AstIO.html#decodeUplcHex" class="link"
+	    >Source</a
+	    > <a href="#v:decodeUplcHex" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encodeUplcHex" class="def"
+	    >encodeUplcHex</a
+	    > &#8759; <a href="PlutusCore-Executable-Types.html#t:UplcProg" title="PlutusCore.Executable.Types"
+	    >UplcProg</a
+	    > ann &#8594; <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusCore.Executable.AstIO.html#encodeUplcHex" class="link"
+	    >Source</a
+	    > <a href="#v:encodeUplcHex" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

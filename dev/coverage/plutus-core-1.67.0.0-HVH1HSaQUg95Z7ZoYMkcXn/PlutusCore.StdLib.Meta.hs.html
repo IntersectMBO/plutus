@@ -1,0 +1,66 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>-- | Functions that generate Plutus Core terms from Haskell values and vice versa.
+<span class="lineno">    4 </span>module PlutusCore.StdLib.Meta
+<span class="lineno">    5 </span>  ( metaIntegerToNat
+<span class="lineno">    6 </span>  , metaEitherToSum
+<span class="lineno">    7 </span>  , metaListToScottList
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import PlutusCore.Core
+<span class="lineno">   11 </span>import PlutusCore.MkPlc
+<span class="lineno">   12 </span>import PlutusCore.Name.Unique
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import PlutusCore.StdLib.Data.Nat as Plc
+<span class="lineno">   15 </span>import PlutusCore.StdLib.Data.ScottList
+<span class="lineno">   16 </span>import PlutusCore.StdLib.Data.Sum
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>-- | Convert an 'Integer' to a @nat@. TODO: convert PLC's @integer@ to @nat@ instead.
+<span class="lineno">   19 </span>metaIntegerToNat :: TermLike term TyName Name uni fun =&gt; Integer -&gt; term ()
+<span class="lineno">   20 </span><span class="decl"><span class="istickedoff">metaIntegerToNat n</span>
+<span class="lineno">   21 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlyfalse">n &lt; 0</span> = <span class="nottickedoff">Prelude.error $ &quot;getBuiltinIntegerToNat: negative argument: &quot; ++ show n</span></span>
+<span class="lineno">   22 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span> = go n</span>
+<span class="lineno">   23 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   24 </span><span class="spaces">    </span><span class="istickedoff">go 0 = zero</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="istickedoff">go m = apply () Plc.succ $ go (m - 1)</span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>-- | Convert a Haskell 'Either' to a PLC @sum@.
+<span class="lineno">   28 </span>metaEitherToSum
+<span class="lineno">   29 </span>  :: TermLike term TyName Name uni fun
+<span class="lineno">   30 </span>  =&gt; Type TyName uni ()
+<span class="lineno">   31 </span>  -&gt; Type TyName uni ()
+<span class="lineno">   32 </span>  -&gt; Either (term ()) (term ())
+<span class="lineno">   33 </span>  -&gt; term ()
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">metaEitherToSum a b (Left x) = apply () (mkIterInstNoAnn left [a, b]) x</span>
+<span class="lineno">   35 </span><span class="spaces"></span><span class="nottickedoff">metaEitherToSum a b (Right y) = apply () (mkIterInstNoAnn right [a, b]) y</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>-- | Convert a Haskell list of 'Term's to a PLC @list@.
+<span class="lineno">   38 </span>metaListToScottList
+<span class="lineno">   39 </span>  :: TermLike term TyName Name uni fun =&gt; Type TyName uni () -&gt; [term ()] -&gt; term ()
+<span class="lineno">   40 </span><span class="decl"><span class="istickedoff">metaListToScottList ty =</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="istickedoff">foldr</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">(\x xs -&gt; mkIterAppNoAnn (tyInst () cons ty) [x, xs])</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff">(tyInst () nil ty)</span></span>
+
+</pre>
+</body>
+</html>
