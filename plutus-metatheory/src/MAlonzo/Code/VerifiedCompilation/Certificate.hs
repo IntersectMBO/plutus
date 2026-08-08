@@ -33,11 +33,11 @@ data T_CertResult_12
   = C_proof_18 AgdaAny |
     C_ce_26 (MAlonzo.Code.Utils.T_Either_6
                MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-               MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
+               MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
             AgdaAny AgdaAny |
     C_abort_32 (MAlonzo.Code.Utils.T_Either_6
                   MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-                  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
+                  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
                AgdaAny AgdaAny
 -- VerifiedCompilation.Certificate.is-proof
 d_is'45'proof_36 ::
@@ -68,7 +68,7 @@ data T_ProofOrCE_50
   = C_proof_56 AgdaAny |
     C_ce_64 (MAlonzo.Code.Utils.T_Either_6
                MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-               MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
+               MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
             AgdaAny AgdaAny
 -- VerifiedCompilation.Certificate.isProof?
 d_isProof'63'_68 ::
@@ -97,7 +97,7 @@ data T_Proof'63'_78
   = C_proof_84 AgdaAny |
     C_abort_90 (MAlonzo.Code.Utils.T_Either_6
                   MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-                  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
+                  MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10)
                AgdaAny AgdaAny
 -- VerifiedCompilation.Certificate._>>=_
 d__'62''62''61'__100 ::
@@ -162,23 +162,55 @@ du_decider_204 v0 v1 v2
          C_proof_56 v4 -> coe C_proof_18 (coe v4)
          C_ce_64 v7 v8 v9 -> coe C_ce_26 v7 v8 v9
          _ -> MAlonzo.RTE.mazUnreachableError)
+-- VerifiedCompilation.Certificate.decider'
+d_decider''_242 ::
+  () ->
+  (AgdaAny -> AgdaAny -> ()) ->
+  MAlonzo.Code.Utils.T_Either_6
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
+  (AgdaAny ->
+   AgdaAny ->
+   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
+  AgdaAny -> AgdaAny -> T_CertResult_12
+d_decider''_242 ~v0 ~v1 v2 v3 v4 v5 = du_decider''_242 v2 v3 v4 v5
+du_decider''_242 ::
+  MAlonzo.Code.Utils.T_Either_6
+    MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
+  (AgdaAny ->
+   AgdaAny ->
+   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
+  AgdaAny -> AgdaAny -> T_CertResult_12
+du_decider''_242 v0 v1 v2 v3
+  = let v4 = coe v1 v2 v3 in
+    coe
+      (case coe v4 of
+         MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v5 v6
+           -> if coe v5
+                then case coe v6 of
+                       MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v7
+                         -> coe C_proof_18 (coe v7)
+                       _ -> MAlonzo.RTE.mazUnreachableError
+                else coe seq (coe v6) (coe C_ce_26 v0 v2 v3)
+         _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.Certificate.decToPCE
-d_decToPCE_246 ::
+d_decToPCE_284 ::
   () ->
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20 ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_50
-d_decToPCE_246 ~v0 ~v1 v2 v3 v4 v5 = du_decToPCE_246 v2 v3 v4 v5
-du_decToPCE_246 ::
+d_decToPCE_284 ~v0 ~v1 v2 v3 v4 v5 = du_decToPCE_284 v2 v3 v4 v5
+du_decToPCE_284 ::
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20 ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_50
-du_decToPCE_246 v0 v1 v2 v3
+du_decToPCE_284 v0 v1 v2 v3
   = case coe v1 of
       MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v4 v5
         -> if coe v4
@@ -189,15 +221,15 @@ du_decToPCE_246 v0 v1 v2 v3
              else coe seq (coe v5) (coe C_ce_64 v0 v2 v3)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Certificate.pceToDec
-d_pceToDec_260 ::
+d_pceToDec_298 ::
   () ->
   T_ProofOrCE_50 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_pceToDec_260 ~v0 v1 = du_pceToDec_260 v1
-du_pceToDec_260 ::
+d_pceToDec_298 ~v0 v1 = du_pceToDec_298 v1
+du_pceToDec_298 ::
   T_ProofOrCE_50 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_pceToDec_260 v0
+du_pceToDec_298 v0
   = case coe v0 of
       C_proof_56 v1
         -> coe
@@ -211,29 +243,29 @@ du_pceToDec_260 v0
              (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Certificate.matchOrCE
-d_matchOrCE_274 ::
+d_matchOrCE_312 ::
   () ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   (AgdaAny -> AgdaAny -> ()) ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (AgdaAny ->
    AgdaAny ->
    MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_50
-d_matchOrCE_274 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
-  = du_matchOrCE_274 v4 v5 v6 v7
-du_matchOrCE_274 ::
+d_matchOrCE_312 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
+  = du_matchOrCE_312 v4 v5 v6 v7
+du_matchOrCE_312 ::
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (AgdaAny ->
    AgdaAny ->
    MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_50
-du_matchOrCE_274 v0 v1 v2 v3
+du_matchOrCE_312 v0 v1 v2 v3
   = let v4 = coe v1 v2 v3 in
     coe
       (case coe v4 of
@@ -246,25 +278,25 @@ du_matchOrCE_274 v0 v1 v2 v3
                 else coe seq (coe v6) (coe C_ce_64 v0 v2 v3)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.Certificate.pcePointwise
-d_pcePointwise_316 ::
+d_pcePointwise_354 ::
   () ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   (AgdaAny -> AgdaAny -> ()) ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (AgdaAny -> AgdaAny -> T_ProofOrCE_50) ->
   [AgdaAny] -> [AgdaAny] -> T_ProofOrCE_50
-d_pcePointwise_316 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
-  = du_pcePointwise_316 v4 v5 v6 v7
-du_pcePointwise_316 ::
+d_pcePointwise_354 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
+  = du_pcePointwise_354 v4 v5 v6 v7
+du_pcePointwise_354 ::
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (AgdaAny -> AgdaAny -> T_ProofOrCE_50) ->
   [AgdaAny] -> [AgdaAny] -> T_ProofOrCE_50
-du_pcePointwise_316 v0 v1 v2 v3
+du_pcePointwise_354 v0 v1 v2 v3
   = case coe v2 of
       []
         -> case coe v3 of
@@ -284,7 +316,7 @@ du_pcePointwise_316 v0 v1 v2 v3
                     (case coe v8 of
                        C_proof_56 v9
                          -> let v10
-                                  = coe du_pcePointwise_316 (coe v0) (coe v1) (coe v5) (coe v7) in
+                                  = coe du_pcePointwise_354 (coe v0) (coe v1) (coe v5) (coe v7) in
                             coe
                               (case coe v10 of
                                  C_proof_56 v11

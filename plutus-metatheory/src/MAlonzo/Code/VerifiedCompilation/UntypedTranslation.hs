@@ -84,7 +84,7 @@ d_translation'63'_160 ::
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -98,7 +98,7 @@ du_translation'63'_160 ::
   Integer ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1897,7 +1897,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v14
                                              -> let v15
                                                       = coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.du_decToPCE_246
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.du_decToPCE_284
                                                           (coe v1)
                                                           (coe
                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
@@ -2924,7 +2924,7 @@ d_decPointwiseTranslation'63'_172 ::
    MAlonzo.Code.Untyped.T__'8866'_14 -> ()) ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -2938,7 +2938,7 @@ du_decPointwiseTranslation'63'_172 ::
   Integer ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   (Integer ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->
    MAlonzo.Code.Untyped.T__'8866'_14 ->

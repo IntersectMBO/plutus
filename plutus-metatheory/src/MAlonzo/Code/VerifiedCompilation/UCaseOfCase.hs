@@ -671,7 +671,7 @@ d_isCoC'63'_264 v0 v1 v2
                                                                                                                                                                                              v43)
                                                                                                                                                                                           (let v44
                                                                                                                                                                                                  = coe
-                                                                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_316
+                                                                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_354
                                                                                                                                                                                                      (coe
                                                                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_48)
                                                                                                                                                                                                      (coe
@@ -688,7 +688,7 @@ d_isCoC'63'_264 v0 v1 v2
                                                                                                                                                                                                 MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v45
                                                                                                                                                                                                   -> let v46
                                                                                                                                                                                                            = coe
-                                                                                                                                                                                                               MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_316
+                                                                                                                                                                                                               MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_354
                                                                                                                                                                                                                (coe
                                                                                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_48)
                                                                                                                                                                                                                (coe
@@ -705,7 +705,7 @@ d_isCoC'63'_264 v0 v1 v2
                                                                                                                                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v47
                                                                                                                                                                                                             -> let v48
                                                                                                                                                                                                                      = coe
-                                                                                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_316
+                                                                                                                                                                                                                         MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_354
                                                                                                                                                                                                                          (coe
                                                                                                                                                                                                                             MAlonzo.Code.VerifiedCompilation.Trace.d_CaseOfCaseT_48)
                                                                                                                                                                                                                          (coe
@@ -869,7 +869,7 @@ d_'46'extendedlambda6_444 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -892,7 +892,7 @@ d_'46'extendedlambda7_524 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
@@ -916,7 +916,7 @@ d_'46'extendedlambda8_608 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
