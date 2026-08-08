@@ -43,6 +43,7 @@ import Data.Stream qualified as Stream
 import Data.Text qualified as Text
 import Data.Text.Encoding (decodeUtf8)
 import PlutusCore
+import PlutusCore.Builtin (typeOfBuiltinFunction)
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Generators.NEAT.Common
@@ -169,6 +170,22 @@ convertTypeBuiltin (TyListG a) =
 convertTypeBuiltin TyStringG = SomeTypeIn DefaultUniString
 convertTypeBuiltin TyDataG = SomeTypeIn DefaultUniData
 
+{-| Convert a real Plutus meta-type to a generated builtin type, when
+'TypeBuiltinG' can express it. Fails ('Nothing') for the BLS12-381
+element/pairing types, 'Array' and 'Value' -- 'TypeBuiltinG' has no
+constructor for any of these -- and for any uni-level type other than a
+fully-applied list of a convertible type. -}
+convertUniToTypeBuiltin :: SomeTypeIn DefaultUni -> Maybe TypeBuiltinG
+convertUniToTypeBuiltin (SomeTypeIn uni) = case uni of
+  DefaultUniInteger -> Just TyIntegerG
+  DefaultUniByteString -> Just TyByteStringG
+  DefaultUniString -> Just TyStringG
+  DefaultUniUnit -> Just TyUnitG
+  DefaultUniBool -> Just TyBoolG
+  DefaultUniData -> Just TyDataG
+  DefaultUniList uniA -> TyListG <$> convertUniToTypeBuiltin (SomeTypeIn uniA)
+  _ -> Nothing
+
 {-| Convert well-kinded generated types to Plutus types.
 
  NOTE: Passes an explicit `TyNameState`, instead of using a State
@@ -214,6 +231,48 @@ convertClosedType
   -> ClosedTypeG
   -> m (Type TyName DefaultUni ())
 convertClosedType tynames = convertType (emptyTyNameState tynames)
+
+{-| Convert a real Plutus type to a generated type, when 'TypeG' can express
+it. This is the reverse of 'convertType', used below to auto-derive
+'defaultFunTypes' from builtins' real types instead of hand-maintaining a
+duplicate table.
+
+Takes a lookup from real type names currently in scope to their de Bruijn
+index, extended with each 'TyForall' encountered; for a closed type this
+starts as @const Nothing@.
+
+Fails ('Nothing') for:
+
+* meta-types 'convertUniToTypeBuiltin' can't express (BLS12-381, 'Array',
+  'Value'),
+* @list@ applied to anything other than a fully-converted 'TypeBuiltinG' --
+  'TyListG' can only hold a fixed element type, so a builtin polymorphic
+  over a list's element type (e.g. 'MkCons', 'HeadList') can never
+  round-trip through 'TypeG',
+* any other shape ('TyLam', 'TyIFix', bare/partially-applied builtin type
+  constructors, pairs) -- none of which real builtin signatures currently
+  need, but 'TypeG' can't represent them regardless. -}
+convertTypeToTypeG
+  :: (TyName -> Maybe n)
+  -> Type TyName DefaultUni ()
+  -> Maybe (TypeG n)
+convertTypeToTypeG look (TyVar _ name) =
+  TyVarG <$> look name
+convertTypeToTypeG look (TyFun _ ty1 ty2) =
+  TyFunG <$> convertTypeToTypeG look ty1 <*> convertTypeToTypeG look ty2
+convertTypeToTypeG look (TyForall _ name k ty) =
+  TyForallG k <$> convertTypeToTypeG look' ty
+  where
+    look' name'
+      | name' == name = Just FZ
+      | otherwise = FS <$> look name'
+convertTypeToTypeG _ (TyBuiltin _ someUni) =
+  TyBuiltinG <$> convertUniToTypeBuiltin someUni
+convertTypeToTypeG look (TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) =
+  case convertTypeToTypeG look argTy of
+    Just (TyBuiltinG argBuiltin) -> Just (TyBuiltinG (TyListG argBuiltin))
+    _ -> Nothing
+convertTypeToTypeG _ _ = Nothing
 
 -- ** Converting terms
 
@@ -378,105 +437,42 @@ instance Check (TypeG n) TermConstantG where
   check (TyBuiltinG TyDataG) (TmDataG _) = true
   check _ _ = false
 
-{-| DEPRECATED: No Need to Update for a new Builtin.
-NEAT tests are useless for builtins, see https://github.com/IntersectMBO/plutus/issues/6075 -}
+{-| The 'BuiltinSemanticsVariant' used to look up real builtin types below.
+Builtin *types* don't vary across semantics variants (only their
+denotations do), so any variant would do here; this just picks the latest
+one. -}
+defaultFunTypesSemanticsVariant :: BuiltinSemanticsVariant DefaultFun
+defaultFunTypesSemanticsVariant = maxBound
+
+{-| Auto-derived from builtins' real types (via 'typeOfBuiltinFunction' and
+'convertTypeToTypeG'), rather than hand-maintained -- see
+https://github.com/IntersectMBO/plutus/issues/6075.
+
+A builtin is silently absent from this map (and so untestable by NEAT) when
+its real type isn't expressible as a 'TypeG', which happens for:
+
+* generic-list operations ('MkCons', 'HeadList', 'TailList', 'NullList',
+  'ChooseList', 'DropList') -- 'TyListG' can only hold a fixed element
+  type, never a variable one,
+* anything polymorphic over a pair ('FstPair', 'SndPair', 'MapData',
+  'UnMapData', 'MkPairData', 'MkNilPairData', 'UnConstrData') -- 'TypeG'
+  has no pair constructor at all,
+* BLS12-381, 'Array', and 'Value' builtins -- 'TypeBuiltinG' has no
+  constructor for any of these meta-types.
+
+As of writing this covers 59 of the 103 real 'DefaultFun' builtins, versus
+36 in the table this replaced, with no loss of coverage. -}
 defaultFunTypes :: Ord tyname => Map.Map (TypeG tyname) [DefaultFun]
 defaultFunTypes =
-  Map.fromList
-    [
-      ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      ,
-        [ AddInteger
-        , SubtractInteger
-        , MultiplyInteger
-        , DivideInteger
-        , QuotientInteger
-        , RemainderInteger
-        , ModInteger
+  Map.fromListWith
+    (++)
+    [ (ty, [fun])
+    | fun <- [minBound .. maxBound :: DefaultFun]
+    , Just ty <-
+        [ convertTypeToTypeG
+            (const Nothing)
+            (typeOfBuiltinFunction defaultFunTypesSemanticsVariant fun)
         ]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))
-      , [LessThanInteger, LessThanEqualsInteger, EqualsInteger]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
-      , [AppendByteString]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
-      , [ConsByteString]
-      )
-    ,
-      ( TyFunG
-          (TyBuiltinG TyIntegerG)
-          (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)))
-      , [SliceByteString]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyIntegerG)
-      , [LengthOfByteString]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      , [IndexByteString]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)
-      , [Sha2_256, Sha3_256, Blake2b_224, Blake2b_256, Keccak_256, Ripemd_160]
-      )
-    ,
-      ( TyFunG
-          (TyBuiltinG TyByteStringG)
-          (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))
-      , [VerifyEd25519Signature]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))
-      , [EqualsByteString, LessThanByteString, LessThanEqualsByteString]
-      )
-    ,
-      ( TyForallG
-          (Type ())
-          (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
-      , [IfThenElse]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyStringG))
-      , [AppendString]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyBoolG))
-      , [EqualsString]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyByteStringG)
-      , [EncodeUtf8]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyStringG)
-      , [DecodeUtf8]
-      )
-    ,
-      ( TyForallG (Type ()) (TyFunG (TyBuiltinG TyStringG) (TyFunG (TyVarG FZ) (TyVarG FZ)))
-      , [Trace]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyDataG)
-      , [IData]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyDataG)
-      , [BData]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyDataG) (TyBuiltinG TyIntegerG)
-      , [UnIData]
-      )
-    ,
-      ( TyFunG (TyBuiltinG TyDataG) (TyBuiltinG TyByteStringG)
-      , [UnBData, SerialiseData]
-      )
     ]
 
 instance Ord tyname => Check (TypeG tyname) DefaultFun where
