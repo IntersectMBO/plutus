@@ -304,7 +304,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature encodeUtf8                      = ∙ [ string ↑ ]⟶ bytestring ↑
     signature decodeUtf8                      = ∙ [ bytestring ↑ ]⟶ string ↑
     signature ifThenElse                      = ∀A [ bool ↑ , A , A ]⟶ A
-    signature chooseUnit                      = ∀A [ A , unit ↑ ]⟶ A
+    signature chooseUnit                      = ∀A [ unit ↑ , A ]⟶ A
     signature trace                           = ∀A [ string ↑ , A ]⟶ A
     signature fstPair                         = ∀b,a [ pair b a ]⟶ b ↑
     signature sndPair                         = ∀b,a [ pair b a ]⟶ a ↑

@@ -1256,12 +1256,15 @@ d_signature_312 v0
         -> coe
              d__'93''10230'__302
              (coe
-                d__'44'__290 (coe d__'91'__280 (coe d_'8704'A_214) (coe du_A_222))
+                d__'44'__290
                 (coe
-                   MAlonzo.Code.Builtin.Signature.C__'8593'_38
+                   d__'91'__280 (coe d_'8704'A_214)
                    (coe
-                      MAlonzo.Code.Builtin.Signature.C_atomic_12
-                      (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aUnit_14))))
+                      MAlonzo.Code.Builtin.Signature.C__'8593'_38
+                      (coe
+                         MAlonzo.Code.Builtin.Signature.C_atomic_12
+                         (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aUnit_14))))
+                (coe du_A_222))
              (coe du_A_222)
       C_trace_64
         -> coe
