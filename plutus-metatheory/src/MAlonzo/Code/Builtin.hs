@@ -49,6 +49,8 @@ import PlutusCore.Crypto.Ed25519
 import PlutusCore.Crypto.Secp256k1
 import PlutusPrelude (reoption)
 import PlutusCore.Builtin (BuiltinResult)
+import Codec.Serialise (serialise)
+import qualified Data.ByteString.Lazy as BSL
 import PlutusCore.Value as Value
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
@@ -2756,9 +2758,10 @@ d_DECODEUTF8_364 ::
     () MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_DECODEUTF8_364 = eitherToMaybe . decodeUtf8'
 -- Builtin.serialiseDATA
-d_serialiseDATA_366
-  = error
-      "MAlonzo Runtime Error: postulate evaluated: Builtin.serialiseDATA"
+d_serialiseDATA_366 ::
+  MAlonzo.Code.Utils.T_DATA_618 ->
+  MAlonzo.Code.Utils.T_ByteString_426
+d_serialiseDATA_366 = BSL.toStrict . serialise
 -- Builtin.insertCOIN
 d_insertCOIN_368 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->

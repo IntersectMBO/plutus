@@ -649,6 +649,10 @@ postulate
 {-# COMPILE GHC ENCODEUTF8 = encodeUtf8 #-}
 {-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' #-}
 
+{-# FOREIGN GHC import Codec.Serialise (serialise) #-}
+{-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
+{-# COMPILE GHC serialiseDATA = BSL.toStrict . serialise #-}
+
 {-# FOREIGN GHC import PlutusCore.Value as Value #-}
 
 {-# COMPILE GHC insertCOIN = \ccy tok x v -> builtinResultToMaybe $ Value.insertCoin ccy tok x v #-}
