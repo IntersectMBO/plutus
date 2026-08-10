@@ -184,7 +184,14 @@ convertUniToTypeBuiltin (SomeTypeIn uni) = case uni of
   DefaultUniBool -> Just TyBoolG
   DefaultUniData -> Just TyDataG
   DefaultUniList uniA -> TyListG <$> convertUniToTypeBuiltin (SomeTypeIn uniA)
-  _ -> Nothing
+  DefaultUniProtoList -> Nothing
+  DefaultUniProtoArray -> Nothing
+  DefaultUniProtoPair -> Nothing
+  DefaultUniApply {} -> Nothing
+  DefaultUniBLS12_381_G1_Element -> Nothing
+  DefaultUniBLS12_381_G2_Element -> Nothing
+  DefaultUniBLS12_381_MlResult -> Nothing
+  DefaultUniValue -> Nothing
 
 {-| Convert well-kinded generated types to Plutus types.
 
