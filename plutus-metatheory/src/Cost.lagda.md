@@ -139,7 +139,7 @@ cekMachineCostFunction mc BApply = fromHExBudget (getCekApplyCost mc)
 cekMachineCostFunction mc BDelay = fromHExBudget (getCekDelayCost mc)
 cekMachineCostFunction mc BForce = fromHExBudget (getCekForceCost mc)
 cekMachineCostFunction mc BBuiltin = fromHExBudget (getCekBuiltinCost mc)
-cekMachineCostFunction mc BConstr = fromHExBudget (getCekConstCost mc)
+cekMachineCostFunction mc BConstr = fromHExBudget (getCekConstrCost mc)
 cekMachineCostFunction mc BCase = fromHExBudget (getCekCaseCost mc)
 
 exBudgetCategoryCost : CostModel → ExBudgetCategory → ExBudget
