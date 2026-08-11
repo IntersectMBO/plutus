@@ -91,6 +91,7 @@ library
     , plutus-ledger-api
     , plutus-ledger-api:plutus-execlib
     , prettyprinter
+    , serialise
     , text
     , transformers
     , vector                            ^>=0.13.2
