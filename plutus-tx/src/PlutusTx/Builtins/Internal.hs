@@ -104,6 +104,17 @@ we can't handle, but also so that GHC doesn't look inside and try and get clever
 In particular, we need to use 'data' rather than 'newtype' even for simple wrappers,
 otherwise GHC gets very keen to optimize through the newtype and e.g. our users
 see 'Addr#' popping up everywhere.
+
+Additionally, 'BuiltinData' has a second, never-constructed constructor
+('BuiltinDataUnreachable').  GHC's unboxing machinery (worker/wrapper, CPR)
+applies only to single-constructor product types; with a single constructor it
+can expose the wrapped 'PLC.Data' in join point type signatures, and the plugin
+then tries to compile 'PLC.Data' as a regular ADT, reaching unsupported
+primitives like Addr# (#7716).  Making the type a sum disables that
+unboxing; a COMPLETE pragma keeps matches on the real constructor exhaustive.
+
+The other opaque wrappers don't need this: all their operations are OPAQUE, so
+GHC never sees a construction or match to unwrap.
 -}
 
 error :: BuiltinUnit -> a
@@ -542,8 +553,16 @@ that you want to be representable on-chain.
 
 For off-chain usage, there are conversion functions 'builtinDataToData' and
 'dataToBuiltinData', but note that these will not work on-chain. -}
-data BuiltinData = BuiltinData ~PLC.Data
+
+-- See Note [Opaque builtin types]
+data BuiltinData
+  = BuiltinData ~PLC.Data
+  | {-| Never use this constructor. It exists only to make 'BuiltinData'
+    a sum type, see Note [Opaque builtin types]. -}
+    BuiltinDataUnreachable
   deriving stock (Data, Generic)
+
+{-# COMPLETE BuiltinData #-}
 
 instance Haskell.Show BuiltinData where
   show (BuiltinData d) = show d

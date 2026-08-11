@@ -273,7 +273,7 @@ module PlutusLedgerApi.Data.V3
 
     -- * Data
   , V2.Data (..)
-  , V2.BuiltinData (..)
+  , V2.BuiltinData (BuiltinData)
   , V2.ToData (..)
   , V2.FromData (..)
   , V2.UnsafeFromData (..)

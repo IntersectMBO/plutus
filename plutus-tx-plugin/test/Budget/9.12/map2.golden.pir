@@ -159,20 +159,19 @@ in
                                   {all dead. dead})
                            , (Nothing {data}) ]
                  in
+                 let
+                   !`$j` : data -> list (pair data data)
+                     = \(v'' : data) ->
+                         mkCons {pair data data} (mkPairData k' v'') (go tl)
+                 in
                  Maybe_match
                    {data}
                    (go nt)
                    {all dead. list (pair data data)}
                    (\(r : data) ->
                       /\dead ->
-                        mkCons
-                          {pair data data}
-                          (mkPairData
-                             k'
-                             (iData (addInteger (unIData v') (unIData r))))
-                          (go tl))
-                   (/\dead ->
-                      mkCons {pair data data} (mkPairData k' v') (go tl))
+                        `$j` (iData (addInteger (unIData v') (unIData r))))
+                   (/\dead -> `$j` v')
                    {all dead. dead})
             , [] ]
   in
