@@ -581,7 +581,7 @@ d_BUILTIN_294 v0
                                                                                                                 MAlonzo.Code.Utils.du_maybeToEither_94
                                                                                                                 (coe
                                                                                                                    MAlonzo.Code.Utils.C_userError_422)
-                                                                                                                (MAlonzo.Code.Builtin.CInteger.d_div_162
+                                                                                                                (MAlonzo.Code.Builtin.CInteger.d_div_102
                                                                                                                    (coe
                                                                                                                       v28)
                                                                                                                    (coe
@@ -757,7 +757,7 @@ d_BUILTIN_294 v0
                                                                                                                 MAlonzo.Code.Utils.du_maybeToEither_94
                                                                                                                 (coe
                                                                                                                    MAlonzo.Code.Utils.C_userError_422)
-                                                                                                                (MAlonzo.Code.Builtin.CInteger.d_rem_110
+                                                                                                                (MAlonzo.Code.Builtin.CInteger.d_rem_90
                                                                                                                    (coe
                                                                                                                       v28)
                                                                                                                    (coe
@@ -845,7 +845,7 @@ d_BUILTIN_294 v0
                                                                                                                 MAlonzo.Code.Utils.du_maybeToEither_94
                                                                                                                 (coe
                                                                                                                    MAlonzo.Code.Utils.C_userError_422)
-                                                                                                                (MAlonzo.Code.Builtin.CInteger.d_mod_168
+                                                                                                                (MAlonzo.Code.Builtin.CInteger.d_mod_108
                                                                                                                    (coe
                                                                                                                       v28)
                                                                                                                    (coe
@@ -1014,7 +1014,7 @@ d_BUILTIN_294 v0
                                                                                                                    (coe
                                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                                                                 (coe
-                                                                                                                   MAlonzo.Code.Builtin.CInteger.d_lessThan_174
+                                                                                                                   MAlonzo.Code.Builtin.CInteger.d_lessThan_114
                                                                                                                    (coe
                                                                                                                       v28)
                                                                                                                    (coe
@@ -1094,7 +1094,7 @@ d_BUILTIN_294 v0
                                                                                                                    (coe
                                                                                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                                                                                 (coe
-                                                                                                                   MAlonzo.Code.Builtin.CInteger.d_lessThanEquals_180
+                                                                                                                   MAlonzo.Code.Builtin.CInteger.d_lessThanEquals_120
                                                                                                                    (coe
                                                                                                                       v28)
                                                                                                                    (coe

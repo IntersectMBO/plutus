@@ -16,6 +16,8 @@ open import Data.Integer
 import Data.Nat as ℕ
 import Data.Sign as S
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
+open import Data.Maybe.Base using (Maybe; just; nothing; map)
+open import Relation.Nullary.Decidable using (yes; no)
 ```
 
 ## Quotient and remainder
@@ -52,4 +54,50 @@ div n d = proj₁ (divMod n d)
 
 mod : (n d : ℤ) .{{_ : NonZero d}} → ℤ
 mod n d = proj₂ (divMod n d)
+```
+
+## Partial denotations
+
+The Plutus Core builtins fail on a zero divisor, so their denotations are the
+`Maybe`-valued forms of the operators above: `nothing` when the divisor is
+zero, otherwise the total function applied under the `NonZero` evidence
+produced by the check. These are the functions the CEK machine executes (via
+`Builtin.CInteger`); `Builtin.Integer.Properties` proves they agree with
+`quot`/`rem`/`div`/`mod` on every non-zero divisor.
+
+```
+quotMaybe : ℤ → ℤ → Maybe ℤ
+quotMaybe n d with d ≟ 0ℤ
+... | yes _   = nothing
+... | no d≢0  = just (quot n d)
+  where instance _ = ≢-nonZero d≢0
+
+remMaybe : ℤ → ℤ → Maybe ℤ
+remMaybe n d with d ≟ 0ℤ
+... | yes _   = nothing
+... | no d≢0  = just (rem n d)
+  where instance _ = ≢-nonZero d≢0
+
+divModMaybe : ℤ → ℤ → Maybe (ℤ × ℤ)
+divModMaybe n d with d ≟ 0ℤ
+... | yes _   = nothing
+... | no d≢0  = just (divMod n d)
+  where instance _ = ≢-nonZero d≢0
+
+divMaybe : ℤ → ℤ → Maybe ℤ
+divMaybe n d = map proj₁ (divModMaybe n d)
+
+modMaybe : ℤ → ℤ → Maybe ℤ
+modMaybe n d = map proj₂ (divModMaybe n d)
+```
+
+The denotations are exported to Haskell under stable, readable names, so that
+the compiled Agda implementation can be property-tested directly against
+Haskell's `quot`/`rem`/`div`/`mod` (see the `test-integer-division` suite).
+
+```
+{-# COMPILE GHC quotMaybe as agdaQuotientInteger #-}
+{-# COMPILE GHC remMaybe as agdaRemainderInteger #-}
+{-# COMPILE GHC divMaybe as agdaDivideInteger #-}
+{-# COMPILE GHC modMaybe as agdaModInteger #-}
 ```

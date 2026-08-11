@@ -38,14 +38,17 @@ The headline results are:
 * `divMod-unique-pos-law` and `divMod-unique-neg-law`, floored division is
   the unique solution of its specification — yielding
   `mod-plus-multiple-law` (periodicity) and finally `mod-additive-law` and
-  `mod-multiplicative-law`, the unrestricted homomorphism laws for `mod`.
+  `mod-multiplicative-law`, the unrestricted homomorphism laws for `mod`;
+* `quotMaybe-correct` and friends, the `Maybe`-valued denotations exported
+  to Haskell provably apply the genuine operators on every non-zero divisor
+  and fail exactly on zero.
 
 Together these prove every property in the Haskell test suites
 `Evaluation.Builtins.Integer.QuotRemProperties` and
-`Evaluation.Builtins.Integer.DivModProperties`, except the division-by-zero
-failure tests: `quot`/`rem`/`div`/`mod` here take a `NonZero` divisor
-instance, so those cases are ruled out by typing, and the builtins' failure
-behavior is part of the CEK formalization instead.
+`Evaluation.Builtins.Integer.DivModProperties`. The division-by-zero failure
+tests correspond to the `*Maybe-zero` lemmas about the partial denotations:
+the total `quot`/`rem`/`div`/`mod` take a `NonZero` divisor instance, so for
+them those cases are ruled out by typing.
 
 Helper lemmas are kept in `private` blocks: they are proof machinery, not part
 of the module's interface, and can be skipped on a first reading.
@@ -73,6 +76,8 @@ open import Algebra.Bundles.Raw using (RawMonoid)
 open import Algebra.Morphism.Structures using (IsMonoidHomomorphism)
 open import Data.Integer.Solver using (module +-*-Solver)
 open import Relation.Nullary.Negation using (contradiction)
+open import Relation.Nullary.Decidable using (yes; no)
+open import Data.Maybe.Base using (just; nothing; map)
 ```
 
 ## Helper lemmas about sign and ◃
@@ -930,4 +935,62 @@ mod-multiplicative-law a a' b = begin
                     ((p :* w) :+ u) :* ((q :* w) :+ v)
                     := (u :* v) :+ (((p :* q :* w) :+ (p :* v) :+ (u :* q)) :* w)) refl
           where open +-*-Solver
+```
+
+## The partial denotations
+
+The `Maybe`-valued denotations exported to Haskell from `Builtin.Integer.Base`
+(and executed by the CEK machine via `Builtin.CInteger`) provably apply the
+genuine operators on every non-zero divisor, and fail exactly on the zero
+divisor. This is what makes the differential property tests in
+`test-integer-division` tests of the real `quot`/`rem`/`div`/`mod`: the
+wrapper layer is machine-checked to be transparent.
+
+```
+quotMaybe-correct
+  : (n d : ℤ) (d≢0 : d ≢ 0ℤ)
+  → quotMaybe n d ≡ just (quot n d {{≢-nonZero d≢0}})
+quotMaybe-correct n d d≢0 with d ≟ 0ℤ
+... | yes d≡0 = contradiction d≡0 d≢0
+... | no _    = refl
+
+remMaybe-correct
+  : (n d : ℤ) (d≢0 : d ≢ 0ℤ)
+  → remMaybe n d ≡ just (rem n d {{≢-nonZero d≢0}})
+remMaybe-correct n d d≢0 with d ≟ 0ℤ
+... | yes d≡0 = contradiction d≡0 d≢0
+... | no _    = refl
+
+divModMaybe-correct
+  : (n d : ℤ) (d≢0 : d ≢ 0ℤ)
+  → divModMaybe n d ≡ just (divMod n d {{≢-nonZero d≢0}})
+divModMaybe-correct n d d≢0 with d ≟ 0ℤ
+... | yes d≡0 = contradiction d≡0 d≢0
+... | no _    = refl
+
+divMaybe-correct
+  : (n d : ℤ) (d≢0 : d ≢ 0ℤ)
+  → divMaybe n d ≡ just (div n d {{≢-nonZero d≢0}})
+divMaybe-correct n d d≢0 = cong (map proj₁) (divModMaybe-correct n d d≢0)
+
+modMaybe-correct
+  : (n d : ℤ) (d≢0 : d ≢ 0ℤ)
+  → modMaybe n d ≡ just (mod n d {{≢-nonZero d≢0}})
+modMaybe-correct n d d≢0 = cong (map proj₂) (divModMaybe-correct n d d≢0)
+```
+
+On the zero divisor, all the denotations fail by computation.
+
+```
+quotMaybe-zero : (n : ℤ) → quotMaybe n 0ℤ ≡ nothing
+quotMaybe-zero n = refl
+
+remMaybe-zero : (n : ℤ) → remMaybe n 0ℤ ≡ nothing
+remMaybe-zero n = refl
+
+divMaybe-zero : (n : ℤ) → divMaybe n 0ℤ ≡ nothing
+divMaybe-zero n = refl
+
+modMaybe-zero : (n : ℤ) → modMaybe n 0ℤ ≡ nothing
+modMaybe-zero n = refl
 ```

@@ -431,6 +431,21 @@ test-suite test-NEAT
     , tasty
     , tasty-hunit
 
+-- Differential property tests of the compiled Agda integer division
+-- operators (exported from Builtin.Integer.Base via COMPILE GHC pragmas)
+-- against Haskell's quot/rem/div/mod.
+test-suite test-integer-division
+  import:         lang, os-support, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/integer-division
+  build-depends:
+    , base
+    , plutus-core:untyped-plutus-core-testlib
+    , plutus-metatheory                        ^>=1.66
+    , tasty
+    , tasty-quickcheck
+
 test-suite test-certifier
   import:         lang, os-support, ghc-version-support
   type:           exitcode-stdio-1.0

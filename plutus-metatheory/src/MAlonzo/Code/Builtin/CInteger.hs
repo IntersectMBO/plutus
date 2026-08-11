@@ -333,99 +333,52 @@ d_quot_84 v0 v1
       C_cInt_64 v2 v3 v4
         -> case coe v1 of
              C_cInt_64 v5 v6 v7
-               -> let v8
-                        = MAlonzo.Code.Data.Integer.Properties.d__'8799'__2800
-                            (coe v5) (coe (0 :: Integer)) in
-                  coe
-                    (case coe v8 of
-                       MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
-                         -> if coe v9
-                              then coe
-                                     seq (coe v10)
-                                     (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
-                              else coe
-                                     seq (coe v10)
-                                     (coe
-                                        MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                                        (coe
-                                           MAlonzo.Code.Builtin.Integer.Base.du_quot_12 (coe v2)
-                                           (coe v5)))
-                       _ -> MAlonzo.RTE.mazUnreachableError)
+               -> coe
+                    MAlonzo.Code.Builtin.Integer.Base.d_quotMaybe_86 (coe v2) (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.CInteger.rem
-d_rem_110 :: T_CInteger_60 -> T_CInteger_60 -> Maybe Integer
-d_rem_110 v0 v1
+d_rem_90 :: T_CInteger_60 -> T_CInteger_60 -> Maybe Integer
+d_rem_90 v0 v1
   = case coe v0 of
       C_cInt_64 v2 v3 v4
         -> case coe v1 of
              C_cInt_64 v5 v6 v7
-               -> let v8
-                        = MAlonzo.Code.Data.Integer.Properties.d__'8799'__2800
-                            (coe v5) (coe (0 :: Integer)) in
-                  coe
-                    (case coe v8 of
-                       MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
-                         -> if coe v9
-                              then coe
-                                     seq (coe v10)
-                                     (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
-                              else coe
-                                     seq (coe v10)
-                                     (coe
-                                        MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                                        (coe
-                                           MAlonzo.Code.Builtin.Integer.Base.du_rem_24 (coe v2)
-                                           (coe v5)))
-                       _ -> MAlonzo.RTE.mazUnreachableError)
+               -> coe
+                    MAlonzo.Code.Builtin.Integer.Base.d_remMaybe_112 (coe v2) (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.CInteger.divMod
-d_divMod_136 ::
+d_divMod_96 ::
   T_CInteger_60 ->
   T_CInteger_60 -> Maybe MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_divMod_136 v0 v1
+d_divMod_96 v0 v1
   = case coe v0 of
       C_cInt_64 v2 v3 v4
         -> case coe v1 of
              C_cInt_64 v5 v6 v7
-               -> let v8
-                        = MAlonzo.Code.Data.Integer.Properties.d__'8799'__2800
-                            (coe v5) (coe (0 :: Integer)) in
-                  coe
-                    (case coe v8 of
-                       MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
-                         -> if coe v9
-                              then coe
-                                     seq (coe v10)
-                                     (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)
-                              else coe
-                                     seq (coe v10)
-                                     (coe
-                                        MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                                        (coe
-                                           MAlonzo.Code.Builtin.Integer.Base.du_divMod_56 (coe v2)
-                                           (coe v5)))
-                       _ -> MAlonzo.RTE.mazUnreachableError)
+               -> coe
+                    MAlonzo.Code.Builtin.Integer.Base.d_divModMaybe_138 (coe v2)
+                    (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.CInteger.div
-d_div_162 :: T_CInteger_60 -> T_CInteger_60 -> Maybe Integer
-d_div_162 v0 v1
+d_div_102 :: T_CInteger_60 -> T_CInteger_60 -> Maybe Integer
+d_div_102 v0 v1
   = coe
       MAlonzo.Code.Data.Maybe.Base.du_map_64
       (\ v2 -> MAlonzo.Code.Agda.Builtin.Sigma.d_fst_28 (coe v2))
-      (d_divMod_136 (coe v0) (coe v1))
+      (d_divMod_96 (coe v0) (coe v1))
 -- Builtin.CInteger.mod
-d_mod_168 :: T_CInteger_60 -> T_CInteger_60 -> Maybe Integer
-d_mod_168 v0 v1
+d_mod_108 :: T_CInteger_60 -> T_CInteger_60 -> Maybe Integer
+d_mod_108 v0 v1
   = coe
       MAlonzo.Code.Data.Maybe.Base.du_map_64
       (\ v2 -> MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30 (coe v2))
-      (d_divMod_136 (coe v0) (coe v1))
+      (d_divMod_96 (coe v0) (coe v1))
 -- Builtin.CInteger.lessThan
-d_lessThan_174 :: T_CInteger_60 -> T_CInteger_60 -> Bool
-d_lessThan_174 v0 v1
+d_lessThan_114 :: T_CInteger_60 -> T_CInteger_60 -> Bool
+d_lessThan_114 v0 v1
   = case coe v0 of
       C_cInt_64 v2 v3 v4
         -> case coe v1 of
@@ -438,8 +391,8 @@ d_lessThan_174 v0 v1
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.CInteger.lessThanEquals
-d_lessThanEquals_180 :: T_CInteger_60 -> T_CInteger_60 -> Bool
-d_lessThanEquals_180 v0 v1
+d_lessThanEquals_120 :: T_CInteger_60 -> T_CInteger_60 -> Bool
+d_lessThanEquals_120 v0 v1
   = case coe v0 of
       C_cInt_64 v2 v3 v4
         -> case coe v1 of

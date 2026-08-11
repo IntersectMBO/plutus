@@ -676,7 +676,7 @@ du_BUILTIN_384 v0 v1
                                                                            MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
                                                                            (coe
                                                                               MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))))
-                                                               (MAlonzo.Code.Builtin.CInteger.d_div_162
+                                                               (MAlonzo.Code.Builtin.CInteger.d_div_102
                                                                   (coe v26) (coe v27)))
                                                             (coe
                                                                (\ v28 ->
@@ -768,7 +768,7 @@ du_BUILTIN_384 v0 v1
                                                                            MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
                                                                            (coe
                                                                               MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))))
-                                                               (MAlonzo.Code.Builtin.CInteger.d_rem_110
+                                                               (MAlonzo.Code.Builtin.CInteger.d_rem_90
                                                                   (coe v26) (coe v27)))
                                                             (coe
                                                                (\ v28 ->
@@ -814,7 +814,7 @@ du_BUILTIN_384 v0 v1
                                                                            MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
                                                                            (coe
                                                                               MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))))
-                                                               (MAlonzo.Code.Builtin.CInteger.d_mod_168
+                                                               (MAlonzo.Code.Builtin.CInteger.d_mod_108
                                                                   (coe v26) (coe v27)))
                                                             (coe
                                                                (\ v28 ->
@@ -880,7 +880,7 @@ du_BUILTIN_384 v0 v1
                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                             (coe
                                                                C_V'45'con_86
-                                                               (MAlonzo.Code.Builtin.CInteger.d_lessThan_174
+                                                               (MAlonzo.Code.Builtin.CInteger.d_lessThan_114
                                                                   (coe v26) (coe v27)))))))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -911,7 +911,7 @@ du_BUILTIN_384 v0 v1
                                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                                             (coe
                                                                C_V'45'con_86
-                                                               (MAlonzo.Code.Builtin.CInteger.d_lessThanEquals_180
+                                                               (MAlonzo.Code.Builtin.CInteger.d_lessThanEquals_120
                                                                   (coe v26) (coe v27)))))))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)

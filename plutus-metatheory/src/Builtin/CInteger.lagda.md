@@ -12,8 +12,8 @@ module Builtin.CInteger where
 ## Imports
 
 ```
-open import Data.Integer.Properties using (_≟_; _<?_; _≤?_)
-open import Relation.Nullary using (Dec; yes; no; isYes)
+open import Data.Integer.Properties using (_<?_; _≤?_)
+open import Relation.Nullary using (isYes)
 open import Data.Integer.Base
 open import Data.Nat.Base as ℕ using (ℕ)
 open import Data.Sign.Base as S using (Sign)
@@ -65,25 +65,13 @@ multiply : CInteger → CInteger → ℤ
 multiply (cInt i _ _) (cInt j _ _) = i * j
 
 quot : CInteger → CInteger → Maybe ℤ
-quot (cInt n _ _) (cInt d _ _) with d ≟ + 0
-... | yes _ = nothing
-... | no d≢0 = just (Bℤ.quot n d)
-  where instance
-    _ = ≢-nonZero d≢0
+quot (cInt n _ _) (cInt d _ _) = Bℤ.quotMaybe n d
 
 rem : CInteger → CInteger → Maybe ℤ
-rem (cInt n _ _) (cInt d _ _) with d ≟ + 0
-... | yes _ = nothing
-... | no d≢0 = just (Bℤ.rem n d)
-  where instance
-    _ = ≢-nonZero d≢0
+rem (cInt n _ _) (cInt d _ _) = Bℤ.remMaybe n d
 
 divMod : CInteger → CInteger → Maybe (ℤ × ℤ)
-divMod (cInt n _ _) (cInt d _ _) with d ≟ + 0
-... | yes _ = nothing
-... | no d≢0 = just (Bℤ.divMod n d)
-  where instance
-    _ = ≢-nonZero d≢0
+divMod (cInt n _ _) (cInt d _ _) = Bℤ.divModMaybe n d
 
 div : CInteger → CInteger → Maybe ℤ
 div n d = map proj₁ (divMod n d)
