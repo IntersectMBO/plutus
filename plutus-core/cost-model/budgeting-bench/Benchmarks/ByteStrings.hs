@@ -18,7 +18,7 @@ integerLength = fromIntegral . BS.length
 
 -- Arguments for off-diagonal pairs when we expect the time to be constant.
 -- Benchmark the function over and 8x8 grid with no two sizes equal.  We can
--- inspect the results visualyl to make sure that the time is (approximately)
+-- inspect the results visually to make sure that the time is (approximately)
 -- constant.
 smallerByteStrings8x8 :: H.Seed -> H.Seed -> ([BS.ByteString], [BS.ByteString])
 smallerByteStrings8x8 seed1 seed2 =
