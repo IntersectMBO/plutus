@@ -63,7 +63,7 @@ d_divModFixup_30 v0 v1 v2
               MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 (coe v0) (coe v1) in
     coe
       (case coe v1 of
-         _ | coe geqInt (coe v1) (coe (0 :: Integer)) ->
+         _ | coe geqInt (coe v1) (coe (1 :: Integer)) ->
              case coe v2 of
                _ | coe ltInt (coe v2) (coe (0 :: Integer)) ->
                    coe
@@ -71,6 +71,7 @@ d_divModFixup_30 v0 v1 v2
                      (coe MAlonzo.Code.Data.Integer.Base.d_pred_312 (coe v0))
                      (coe MAlonzo.Code.Data.Integer.Base.d__'43'__284 (coe v1) (coe v2))
                _ -> coe v3
+         0 -> coe v3
          _ -> case coe v2 of
                 _ | coe geqInt (coe v2) (coe (0 :: Integer)) ->
                     coe

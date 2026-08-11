@@ -38,7 +38,7 @@ The `div` and `mod` functions are based on Haskell's `div` and `mod`, via the sa
 ```
 divModFixup : ℤ → ℤ → ℤ → ℤ × ℤ
 -- r > 0, d < 0
-divModFixup q r@(+ _) d@(-[1+ _ ]) = (pred q , r + d)
+divModFixup q r@(+[1+ _ ]) d@(-[1+ _ ]) = (pred q , r + d)
 -- r < 0, d > 0
 divModFixup q r@(-[1+ _ ]) d@(+ _) = (pred q , r + d)
 -- r = 0 or same sign
