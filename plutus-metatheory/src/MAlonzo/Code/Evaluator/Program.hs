@@ -220,21 +220,21 @@ d_typeCheckPLC_70 v0
 -- Evaluator.Program.checkError
 d_checkError_76 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
-    MAlonzo.Code.Algorithmic.T__'8866'__178
+    MAlonzo.Code.Algorithmic.T__'8866'__184
 d_checkError_76 ~v0 v1 = du_checkError_76 v1
 du_checkError_76 ::
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
-    MAlonzo.Code.Algorithmic.T__'8866'__178
+    MAlonzo.Code.Algorithmic.T__'8866'__184
 du_checkError_76 v0
   = let v1 = coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v0) in
     coe
       (case coe v0 of
-         MAlonzo.Code.Algorithmic.C_error_268
+         MAlonzo.Code.Algorithmic.C_error_274
            -> coe
                 MAlonzo.Code.Utils.C_inj'8321'_12
                 (coe

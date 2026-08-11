@@ -143,9 +143,9 @@ data T_BApp_48
 d_Value_52 a0 = ()
 data T_Value_52
   = C_V'45'ƛ_64 MAlonzo.Code.Algorithmic.T_Ctx_2
-                MAlonzo.Code.Algorithmic.T__'8866'__178 T_Env_26 |
+                MAlonzo.Code.Algorithmic.T__'8866'__184 T_Env_26 |
     C_V'45'Λ_74 MAlonzo.Code.Algorithmic.T_Ctx_2
-                MAlonzo.Code.Algorithmic.T__'8866'__178 T_Env_26 |
+                MAlonzo.Code.Algorithmic.T__'8866'__184 T_Env_26 |
     C_V'45'wrap_82 T_Value_52 | C_V'45'con_86 AgdaAny |
     C_V'45'I'8658'_106 MAlonzo.Code.Builtin.T_Builtin_2 Integer
                        MAlonzo.Code.Utils.T__'8724'_'8803'__188 Integer Integer
@@ -187,21 +187,21 @@ du_lookup_214 v0 v1 v2
 -- Algorithmic.CEK.discharge
 d_discharge_228 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  T_Value_52 -> MAlonzo.Code.Algorithmic.T__'8866'__178
+  T_Value_52 -> MAlonzo.Code.Algorithmic.T__'8866'__184
 d_discharge_228 v0 v1
   = case coe v1 of
       C_V'45'ƛ_64 v2 v5 v6
         -> case coe v0 of
              MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v8 v9
                -> coe
-                    MAlonzo.Code.Algorithmic.C_ƛ_190
+                    MAlonzo.Code.Algorithmic.C_ƛ_196
                     (d_dischargeBody_250 (coe v2) (coe v8) (coe v9) (coe v5) (coe v6))
              _ -> MAlonzo.RTE.mazUnreachableError
       C_V'45'Λ_74 v2 v5 v6
         -> case coe v0 of
              MAlonzo.Code.Type.BetaNormal.C_Π_14 v8 v9
                -> coe
-                    MAlonzo.Code.Algorithmic.C_Λ_202
+                    MAlonzo.Code.Algorithmic.C_Λ_208
                     (d_dischargeBody'8902'_264
                        (coe v2) (coe v8) (coe v9) (coe v5) (coe v6))
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -209,7 +209,7 @@ d_discharge_228 v0 v1
         -> case coe v0 of
              MAlonzo.Code.Type.BetaNormal.C_μ_24 v7 v8 v9
                -> coe
-                    MAlonzo.Code.Algorithmic.C_wrap_220
+                    MAlonzo.Code.Algorithmic.C_wrap_226
                     (d_discharge_228
                        (coe
                           MAlonzo.Code.Type.BetaNBE.d_nf_258
@@ -271,7 +271,7 @@ d_discharge_228 v0 v1
       C_V'45'con_86 v3
         -> case coe v0 of
              MAlonzo.Code.Type.BetaNormal.C_con_22 v5
-               -> coe MAlonzo.Code.Algorithmic.C_con_258 v5 v3
+               -> coe MAlonzo.Code.Algorithmic.C_con_264 v5 v3
              _ -> MAlonzo.RTE.mazUnreachableError
       C_V'45'I'8658'_106 v2 v5 v6 v7 v8 v9 v10 v11
         -> coe du_dischargeB_296 (coe v2) (coe v6) (coe v9) (coe v11)
@@ -281,7 +281,7 @@ d_discharge_228 v0 v1
         -> case coe v0 of
              MAlonzo.Code.Type.BetaNormal.C_SOP_28 v9 v10
                -> coe
-                    MAlonzo.Code.Algorithmic.C_constr_240 v3
+                    MAlonzo.Code.Algorithmic.C_constr_246 v3
                     (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v10) (coe v3))
                     (d_dischargeStack_332
                        (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v10) (coe v3))
@@ -294,13 +294,13 @@ d_env2sub_232 ::
   T_Env_26 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Algorithmic.T__'8715'__16 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178
+  MAlonzo.Code.Algorithmic.T__'8866'__184
 d_env2sub_232 v0 v1 ~v2 v3 = du_env2sub_232 v0 v1 v3
 du_env2sub_232 ::
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   T_Env_26 ->
   MAlonzo.Code.Algorithmic.T__'8715'__16 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178
+  MAlonzo.Code.Algorithmic.T__'8866'__184
 du_env2sub_232 v0 v1 v2
   = case coe v1 of
       C__'8759'__208 v5 v6
@@ -319,8 +319,8 @@ d_dischargeBody_250 ::
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
-  T_Env_26 -> MAlonzo.Code.Algorithmic.T__'8866'__178
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
+  T_Env_26 -> MAlonzo.Code.Algorithmic.T__'8866'__184
 d_dischargeBody_250 v0 v1 v2 v3 v4
   = coe
       MAlonzo.Code.Algorithmic.RenamingSubstitution.d_sub_412
@@ -361,8 +361,8 @@ d_dischargeBody'8902'_264 ::
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   MAlonzo.Code.Utils.T_Kind_782 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
-  T_Env_26 -> MAlonzo.Code.Algorithmic.T__'8866'__178
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
+  T_Env_26 -> MAlonzo.Code.Algorithmic.T__'8866'__184
 d_dischargeBody'8902'_264 v0 v1 v2 v3 v4
   = coe
       MAlonzo.Code.Algorithmic.RenamingSubstitution.d_sub_412
@@ -409,22 +409,22 @@ d_dischargeB_296 ::
   MAlonzo.Code.Utils.T__'8724'_'8803'__188 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Builtin.Signature.T_SigTy_268 ->
-  T_BApp_48 -> MAlonzo.Code.Algorithmic.T__'8866'__178
+  T_BApp_48 -> MAlonzo.Code.Algorithmic.T__'8866'__184
 d_dischargeB_296 v0 ~v1 ~v2 v3 ~v4 ~v5 v6 ~v7 ~v8 v9
   = du_dischargeB_296 v0 v3 v6 v9
 du_dischargeB_296 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__188 ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__188 ->
-  T_BApp_48 -> MAlonzo.Code.Algorithmic.T__'8866'__178
+  T_BApp_48 -> MAlonzo.Code.Algorithmic.T__'8866'__184
 du_dischargeB_296 v0 v1 v2 v3
   = case coe v3 of
-      C_base_144 -> coe MAlonzo.Code.Algorithmic.C_builtin_'47'__264 v0
+      C_base_144 -> coe MAlonzo.Code.Algorithmic.C_builtin_'47'__270 v0
       C__'36'__162 v4 v12 v13
         -> case coe v2 of
              MAlonzo.Code.Utils.C_bubble_200 v17
                -> coe
-                    MAlonzo.Code.Algorithmic.C__'183'__196 v4
+                    MAlonzo.Code.Algorithmic.C__'183'__202 v4
                     (coe du_dischargeB_296 (coe v0) (coe v1) (coe v17) (coe v12))
                     (d_discharge_228 (coe v4) (coe v13))
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -432,7 +432,7 @@ du_dischargeB_296 v0 v1 v2 v3
         -> case coe v1 of
              MAlonzo.Code.Utils.C_bubble_200 v21
                -> coe
-                    MAlonzo.Code.Algorithmic.C__'183''8902'_'47'__212 v4 v5
+                    MAlonzo.Code.Algorithmic.C__'183''8902'_'47'__218 v4 v5
                     (coe du_dischargeB_296 (coe v0) (coe v21) (coe v2) (coe v14)) v15
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -501,15 +501,8 @@ d_mkCInteger_362 v0
                        = coe
                            MAlonzo.Code.Utils.C_inj'8321'_12
                            (coe
-                              MAlonzo.Code.Type.BetaNormal.C_con_22
-                              (coe
-                                 MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                 (coe
-                                    MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                    (coe
-                                       MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                       (coe
-                                          MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))))) in
+                              MAlonzo.Code.Algorithmic.du_con'45'atomic_132
+                              (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)) in
                  coe
                    (case coe v3 of
                       MAlonzo.Code.Agda.Builtin.Bool.C_true_10
@@ -667,15 +660,9 @@ du_BUILTIN_384 v0 v1
                                                             (coe
                                                                MAlonzo.Code.Utils.du_maybeToEither_94
                                                                (coe
-                                                                  MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                  MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                   (coe
-                                                                     MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                     (coe
-                                                                        MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                        (coe
-                                                                           MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                           (coe
-                                                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))))
+                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                (MAlonzo.Code.Builtin.CInteger.d_div_102
                                                                   (coe v26) (coe v27)))
                                                             (coe
@@ -713,15 +700,9 @@ du_BUILTIN_384 v0 v1
                                                             (coe
                                                                MAlonzo.Code.Utils.du_maybeToEither_94
                                                                (coe
-                                                                  MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                  MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                   (coe
-                                                                     MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                     (coe
-                                                                        MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                        (coe
-                                                                           MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                           (coe
-                                                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))))
+                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                (MAlonzo.Code.Builtin.CInteger.d_quot_84
                                                                   (coe v26) (coe v27)))
                                                             (coe
@@ -759,15 +740,9 @@ du_BUILTIN_384 v0 v1
                                                             (coe
                                                                MAlonzo.Code.Utils.du_maybeToEither_94
                                                                (coe
-                                                                  MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                  MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                   (coe
-                                                                     MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                     (coe
-                                                                        MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                        (coe
-                                                                           MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                           (coe
-                                                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))))
+                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                (MAlonzo.Code.Builtin.CInteger.d_rem_90
                                                                   (coe v26) (coe v27)))
                                                             (coe
@@ -805,15 +780,9 @@ du_BUILTIN_384 v0 v1
                                                             (coe
                                                                MAlonzo.Code.Utils.du_maybeToEither_94
                                                                (coe
-                                                                  MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                  MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                   (coe
-                                                                     MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                     (coe
-                                                                        MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                        (coe
-                                                                           MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                           (coe
-                                                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))))
+                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                (MAlonzo.Code.Builtin.CInteger.d_mod_108
                                                                   (coe v26) (coe v27)))
                                                             (coe
@@ -959,15 +928,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1057,30 +1020,18 @@ du_BUILTIN_384 v0 v1
                                                                                  (coe
                                                                                     MAlonzo.Code.Utils.C_inj'8321'_12
                                                                                     (coe
-                                                                                       MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                                       MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                                        (coe
-                                                                                          MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                                          (coe
-                                                                                             MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                                             (coe
-                                                                                                MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                                                (coe
-                                                                                                   MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))))))
+                                                                                          MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))
                                                                    _ -> MAlonzo.RTE.mazUnreachableError))
                                                       else coe
                                                              seq (coe v28)
                                                              (coe
                                                                 MAlonzo.Code.Utils.C_inj'8321'_12
                                                                 (coe
-                                                                   MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                   MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                    (coe
-                                                                      MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                      (coe
-                                                                         MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                         (coe
-                                                                            MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                            (coe
-                                                                               MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))))))
+                                                                      MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1214,15 +1165,9 @@ du_BUILTIN_384 v0 v1
                                                                -> coe
                                                                     MAlonzo.Code.Utils.C_inj'8321'_12
                                                                     (coe
-                                                                       MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                       MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                        (coe
-                                                                          MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                          (coe
-                                                                             MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                             (coe
-                                                                                MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                                (coe
-                                                                                   MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16)))))
+                                                                          MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -1259,15 +1204,9 @@ du_BUILTIN_384 v0 v1
                                                                -> coe
                                                                     MAlonzo.Code.Utils.C_inj'8321'_12
                                                                     (coe
-                                                                       MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                       MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                        (coe
-                                                                          MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                          (coe
-                                                                             MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                             (coe
-                                                                                MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                                (coe
-                                                                                   MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16)))))
+                                                                          MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -1304,15 +1243,9 @@ du_BUILTIN_384 v0 v1
                                                                -> coe
                                                                     MAlonzo.Code.Utils.C_inj'8321'_12
                                                                     (coe
-                                                                       MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                       MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                        (coe
-                                                                          MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                          (coe
-                                                                             MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                             (coe
-                                                                                MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                                (coe
-                                                                                   MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16)))))
+                                                                          MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -1392,15 +1325,9 @@ du_BUILTIN_384 v0 v1
                                    -> coe
                                         MAlonzo.Code.Utils.C_inj'8321'_12
                                         (coe
-                                           MAlonzo.Code.Type.BetaNormal.C_con_22
+                                           MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                            (coe
-                                              MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                              (coe
-                                                 MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                 (coe
-                                                    MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                    (coe
-                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aString_12)))))
+                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aString_12))
                                  _ -> MAlonzo.RTE.mazUnreachableError)
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -1940,15 +1867,9 @@ du_BUILTIN_384 v0 v1
                                   = coe
                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                       (coe
-                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                          (coe
-                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                            (coe
-                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                               (coe
-                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                  (coe
-                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))))) in
+                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
                                  MAlonzo.Code.Utils.C_ConstrDATA_620 v15 v16
@@ -1972,15 +1893,9 @@ du_BUILTIN_384 v0 v1
                                   = coe
                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                       (coe
-                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                          (coe
-                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                            (coe
-                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                               (coe
-                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                  (coe
-                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))))) in
+                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
                                  MAlonzo.Code.Utils.C_MapDATA_622 v15
@@ -1999,15 +1914,9 @@ du_BUILTIN_384 v0 v1
                                   = coe
                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                       (coe
-                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                          (coe
-                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                            (coe
-                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                               (coe
-                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                  (coe
-                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))))) in
+                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
                                  MAlonzo.Code.Utils.C_ListDATA_624 v15
@@ -2026,15 +1935,9 @@ du_BUILTIN_384 v0 v1
                                   = coe
                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                       (coe
-                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                          (coe
-                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                            (coe
-                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                               (coe
-                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                  (coe
-                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))))) in
+                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
                                  MAlonzo.Code.Utils.C_iDATA_626 v15
@@ -2053,15 +1956,9 @@ du_BUILTIN_384 v0 v1
                                   = coe
                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                       (coe
-                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                          (coe
-                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                            (coe
-                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                               (coe
-                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                  (coe
-                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))))) in
+                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
                                  MAlonzo.Code.Utils.C_bDATA_628 v15
@@ -2138,15 +2035,9 @@ du_BUILTIN_384 v0 v1
                                                                              -> coe
                                                                                   MAlonzo.Code.Utils.C_inj'8321'_12
                                                                                   (coe
-                                                                                     MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                                     MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                                      (coe
-                                                                                        MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                                        (coe
-                                                                                           MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                                           (coe
-                                                                                              MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                                              (coe
-                                                                                                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20)))))
+                                                                                        MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20))
                                                                            _ -> MAlonzo.RTE.mazUnreachableError)
                                                                  _ -> MAlonzo.RTE.mazUnreachableError
                                                           _ -> MAlonzo.RTE.mazUnreachableError
@@ -2208,15 +2099,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2247,15 +2132,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2285,15 +2164,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2315,15 +2188,9 @@ du_BUILTIN_384 v0 v1
                                    -> coe
                                         MAlonzo.Code.Utils.C_inj'8321'_12
                                         (coe
-                                           MAlonzo.Code.Type.BetaNormal.C_con_22
+                                           MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                            (coe
-                                              MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                              (coe
-                                                 MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                 (coe
-                                                    MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                    (coe
-                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20)))))
+                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20))
                                  _ -> MAlonzo.RTE.mazUnreachableError)
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -2343,15 +2210,9 @@ du_BUILTIN_384 v0 v1
                                    -> coe
                                         MAlonzo.Code.Utils.C_inj'8321'_12
                                         (coe
-                                           MAlonzo.Code.Type.BetaNormal.C_con_22
+                                           MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                            (coe
-                                              MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                              (coe
-                                                 MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                 (coe
-                                                    MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                    (coe
-                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20)))))
+                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aValue_20))
                                  _ -> MAlonzo.RTE.mazUnreachableError)
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -2504,15 +2365,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2552,15 +2407,9 @@ du_BUILTIN_384 v0 v1
                                    -> coe
                                         MAlonzo.Code.Utils.C_inj'8321'_12
                                         (coe
-                                           MAlonzo.Code.Type.BetaNormal.C_con_22
+                                           MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                            (coe
-                                              MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                              (coe
-                                                 MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                 (coe
-                                                    MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                    (coe
-                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22)))))
+                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22))
                                  _ -> MAlonzo.RTE.mazUnreachableError)
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -2669,15 +2518,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2717,15 +2560,9 @@ du_BUILTIN_384 v0 v1
                                    -> coe
                                         MAlonzo.Code.Utils.C_inj'8321'_12
                                         (coe
-                                           MAlonzo.Code.Type.BetaNormal.C_con_22
+                                           MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                            (coe
-                                              MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                              (coe
-                                                 MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                 (coe
-                                                    MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                    (coe
-                                                       MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24)))))
+                                              MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24))
                                  _ -> MAlonzo.RTE.mazUnreachableError)
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -2870,15 +2707,9 @@ du_BUILTIN_384 v0 v1
                                                                -> coe
                                                                     MAlonzo.Code.Utils.C_inj'8321'_12
                                                                     (coe
-                                                                       MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                       MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                        (coe
-                                                                          MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                          (coe
-                                                                             MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                             (coe
-                                                                                MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                                (coe
-                                                                                   MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10)))))
+                                                                          MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -3007,15 +2838,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3054,15 +2879,9 @@ du_BUILTIN_384 v0 v1
                                                                -> coe
                                                                     MAlonzo.Code.Utils.C_inj'8321'_12
                                                                     (coe
-                                                                       MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                       MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                        (coe
-                                                                          MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                          (coe
-                                                                             MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                             (coe
-                                                                                MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                                (coe
-                                                                                   MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10)))))
+                                                                          MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -3095,15 +2914,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3134,15 +2947,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3173,15 +2980,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3255,15 +3056,9 @@ du_BUILTIN_384 v0 v1
                                                                -> coe
                                                                     MAlonzo.Code.Utils.C_inj'8321'_12
                                                                     (coe
-                                                                       MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                                       MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                                        (coe
-                                                                          MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                                          (coe
-                                                                             MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                                             (coe
-                                                                                MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                                (coe
-                                                                                   MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8)))))
+                                                                          MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -3324,15 +3119,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_22))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3366,15 +3155,9 @@ du_BUILTIN_384 v0 v1
                                                  -> coe
                                                       MAlonzo.Code.Utils.C_inj'8321'_12
                                                       (coe
-                                                         MAlonzo.Code.Type.BetaNormal.C_con_22
+                                                         MAlonzo.Code.Algorithmic.du_con'45'atomic_132
                                                          (coe
-                                                            MAlonzo.Code.Type.BetaNormal.C_ne_20
-                                                            (coe
-                                                               MAlonzo.Code.Type.BetaNormal.C_'94'_12
-                                                               (coe
-                                                                  MAlonzo.Code.Builtin.Constant.Type.C_atomic_8
-                                                                  (coe
-                                                                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24)))))
+                                                            MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_24))
                                                _ -> MAlonzo.RTE.mazUnreachableError)
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3390,19 +3173,19 @@ d_BUILTIN''_1280 ::
   Integer ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__188 ->
   MAlonzo.Code.Builtin.Signature.T_SigTy_268 ->
-  T_BApp_48 -> MAlonzo.Code.Algorithmic.T__'8866'__178
+  T_BApp_48 -> MAlonzo.Code.Algorithmic.T__'8866'__184
 d_BUILTIN''_1280 v0 v1 ~v2 ~v3 ~v4 ~v5 ~v6 v7
   = du_BUILTIN''_1280 v0 v1 v7
 du_BUILTIN''_1280 ::
   MAlonzo.Code.Builtin.T_Builtin_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  T_BApp_48 -> MAlonzo.Code.Algorithmic.T__'8866'__178
+  T_BApp_48 -> MAlonzo.Code.Algorithmic.T__'8866'__184
 du_BUILTIN''_1280 v0 v1 v2
   = let v3 = coe du_BUILTIN_384 (coe v0) (coe v2) in
     coe
       (case coe v3 of
          MAlonzo.Code.Utils.C_inj'8321'_12 v4
-           -> coe MAlonzo.Code.Algorithmic.C_error_268
+           -> coe MAlonzo.Code.Algorithmic.C_error_274
          MAlonzo.Code.Utils.C_inj'8322'_14 v4
            -> coe d_discharge_228 (coe v1) (coe v4)
          _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3449,7 +3232,7 @@ data T_Error_1374 = C_E'45'error_1378
 d_Frame_1384 a0 a1 = ()
 data T_Frame_1384
   = C_'45''183'_1392 MAlonzo.Code.Algorithmic.T_Ctx_2
-                     MAlonzo.Code.Algorithmic.T__'8866'__178 T_Env_26 |
+                     MAlonzo.Code.Algorithmic.T__'8866'__184 T_Env_26 |
     C_'45''183'v_1398 T_Value_52 | C__'183''45'_1404 T_Value_52 |
     C_'45''183''8902'_1412 MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 |
     C_wrap'45'_1420 | C_unwrap'45'_1428 |
@@ -3462,7 +3245,7 @@ data T_Frame_1384
                       MAlonzo.Code.Utils.List.T_IBwd_396
                       MAlonzo.Code.Utils.List.T_IList_302 |
     C_case'45'_1460 MAlonzo.Code.Algorithmic.T_Ctx_2 T_Env_26
-                    MAlonzo.Code.Algorithmic.T_Cases_172
+                    MAlonzo.Code.Algorithmic.T_Cases_178
 -- Algorithmic.CEK.Stack
 d_Stack_1466 a0 a1 = ()
 data T_Stack_1466
@@ -3474,7 +3257,7 @@ d_State_1480 a0 = ()
 data T_State_1480
   = C__'894'_'9659'__1488 MAlonzo.Code.Algorithmic.T_Ctx_2
                           MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 T_Stack_1466
-                          T_Env_26 MAlonzo.Code.Algorithmic.T__'8866'__178 |
+                          T_Env_26 MAlonzo.Code.Algorithmic.T__'8866'__184 |
     C__'9669'__1492 MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
                     T_Stack_1466 T_Value_52 |
     C_'9633'_1494 T_Value_52 |
@@ -3550,11 +3333,11 @@ du_step_1524 v0
   = case coe v0 of
       C__'894'_'9659'__1488 v1 v2 v3 v4 v5
         -> case coe v5 of
-             MAlonzo.Code.Algorithmic.C_'96'_184 v7
+             MAlonzo.Code.Algorithmic.C_'96'_190 v7
                -> coe
                     C__'9669'__1492 (coe v2) (coe v3)
                     (coe du_lookup_214 (coe v1) (coe v7) (coe v4))
-             MAlonzo.Code.Algorithmic.C_ƛ_190 v8
+             MAlonzo.Code.Algorithmic.C_ƛ_196 v8
                -> case coe v2 of
                     MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v10 v11
                       -> coe
@@ -3562,20 +3345,20 @@ du_step_1524 v0
                            (coe MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v10 v11) (coe v3)
                            (coe C_V'45'ƛ_64 v1 v8 v4)
                     _ -> MAlonzo.RTE.mazUnreachableError
-             MAlonzo.Code.Algorithmic.C__'183'__196 v6 v8 v9
+             MAlonzo.Code.Algorithmic.C__'183'__202 v6 v8 v9
                -> coe
                     C__'894'_'9659'__1488 (coe v1)
                     (coe MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v6 v2)
                     (coe C__'44'__1476 v2 v3 (coe C_'45''183'_1392 v1 v9 v4)) (coe v4)
                     (coe v8)
-             MAlonzo.Code.Algorithmic.C_Λ_202 v8
+             MAlonzo.Code.Algorithmic.C_Λ_208 v8
                -> case coe v2 of
                     MAlonzo.Code.Type.BetaNormal.C_Π_14 v10 v11
                       -> coe
                            C__'9669'__1492 (coe MAlonzo.Code.Type.BetaNormal.C_Π_14 v10 v11)
                            (coe v3) (coe C_V'45'Λ_74 v1 v8 v4)
                     _ -> MAlonzo.RTE.mazUnreachableError
-             MAlonzo.Code.Algorithmic.C__'183''8902'_'47'__212 v6 v8 v9 v10
+             MAlonzo.Code.Algorithmic.C__'183''8902'_'47'__218 v6 v8 v9 v10
                -> coe
                     C__'894'_'9659'__1488 (coe v1)
                     (coe MAlonzo.Code.Type.BetaNormal.C_Π_14 v6 v8)
@@ -3586,7 +3369,7 @@ du_step_1524 v0
                           (coe MAlonzo.Code.Utils.C_'42'_784) (coe v6) (coe v8) (coe v10))
                        v3 (coe C_'45''183''8902'_1412 v10))
                     (coe v4) (coe v9)
-             MAlonzo.Code.Algorithmic.C_wrap_220 v9
+             MAlonzo.Code.Algorithmic.C_wrap_226 v9
                -> case coe v2 of
                     MAlonzo.Code.Type.BetaNormal.C_μ_24 v11 v12 v13
                       -> coe
@@ -3651,7 +3434,7 @@ du_step_1524 v0
                               v3 (coe C_wrap'45'_1420))
                            (coe v4) (coe v9)
                     _ -> MAlonzo.RTE.mazUnreachableError
-             MAlonzo.Code.Algorithmic.C_unwrap_230 v6 v8 v9 v10
+             MAlonzo.Code.Algorithmic.C_unwrap_236 v6 v8 v9 v10
                -> coe
                     C__'894'_'9659'__1488 (coe v1)
                     (coe MAlonzo.Code.Type.BetaNormal.C_μ_24 v6 v8 v9)
@@ -3713,7 +3496,7 @@ du_step_1524 v0
                                 (coe MAlonzo.Code.Type.C_'8709'_4) (coe v6) (coe v9))))
                        v3 (coe C_unwrap'45'_1428))
                     (coe v4) (coe v10)
-             MAlonzo.Code.Algorithmic.C_constr_240 v7 v9 v11
+             MAlonzo.Code.Algorithmic.C_constr_246 v7 v9 v11
                -> case coe v2 of
                     MAlonzo.Code.Type.BetaNormal.C_SOP_28 v13 v14
                       -> let v15
@@ -3748,13 +3531,13 @@ du_step_1524 v0
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
-             MAlonzo.Code.Algorithmic.C_case_252 v6 v7 v9 v10
+             MAlonzo.Code.Algorithmic.C_case_258 v6 v7 v9 v10
                -> coe
                     C__'894'_'9659'__1488 (coe v1)
                     (coe MAlonzo.Code.Type.BetaNormal.C_SOP_28 v6 v7)
                     (coe C__'44'__1476 v2 v3 (coe C_case'45'_1460 v1 v4 v10)) (coe v4)
                     (coe v9)
-             MAlonzo.Code.Algorithmic.C_con_258 v6 v8
+             MAlonzo.Code.Algorithmic.C_con_264 v6 v8
                -> coe
                     C__'9669'__1492
                     (coe
@@ -3763,14 +3546,14 @@ du_step_1524 v0
                           (coe MAlonzo.Code.Type.C_'8709'_4)
                           (coe MAlonzo.Code.Utils.C_'9839'_786) (coe v6)))
                     (coe v3) (coe C_V'45'con_86 v8)
-             MAlonzo.Code.Algorithmic.C_builtin_'47'__264 v7
+             MAlonzo.Code.Algorithmic.C_builtin_'47'__270 v7
                -> coe
                     C__'9669'__1492
                     (coe
                        MAlonzo.Code.Algorithmic.Signature.d_btype_30
                        (coe MAlonzo.Code.Type.C_'8709'_4) (coe v7))
                     (coe v3) (coe d_ival_1500 (coe v7))
-             MAlonzo.Code.Algorithmic.C_error_268 -> coe C_'9670'_1496 (coe v2)
+             MAlonzo.Code.Algorithmic.C_error_274 -> coe C_'9670'_1496 (coe v2)
              _ -> MAlonzo.RTE.mazUnreachableError
       C__'9669'__1492 v1 v2 v3
         -> case coe v2 of
@@ -4002,7 +3785,7 @@ du_step_1524 v0
                                     -> coe
                                          C__'894'_'9659'__1488 (coe v8)
                                          (coe
-                                            MAlonzo.Code.Algorithmic.du_mkCaseType_156 v4
+                                            MAlonzo.Code.Algorithmic.du_mkCaseType_162 v4
                                             (coe
                                                MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v16)
                                                (coe v18)))
@@ -4017,7 +3800,7 @@ du_step_1524 v0
                                             (coe v6) (coe v21))
                                          (coe v12)
                                          (coe
-                                            MAlonzo.Code.Algorithmic.du_lookupCase_328 (coe v16)
+                                            MAlonzo.Code.Algorithmic.du_lookupCase_334 (coe v16)
                                             (coe v18) (coe v13))
                                   _ -> MAlonzo.RTE.mazUnreachableError
                            _ -> MAlonzo.RTE.mazUnreachableError
