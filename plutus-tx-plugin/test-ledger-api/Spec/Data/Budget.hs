@@ -30,6 +30,7 @@ tests =
   runTestNested ["test-ledger-api", "Spec", "Data", "Budget"] . pure . testNestedGhc $
     [ goldenPirReadable "gt" compiledGt
     , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
+    , goldenPirReadable "valueOf" compiledValueOf
     , goldenPirReadable "lovelaceValueOf" compiledLovelaceValueOf
     , goldenPirReadable "unsafeLovelaceValueOf" compiledUnsafeLovelaceValueOf
     ]
@@ -49,6 +50,9 @@ compiledMintValueBurned = $$(compile [||MintValue.mintValueBurned||])
 
 compiledCurrencySymbolValueOf :: CompiledCode (Value -> CurrencySymbol -> Integer)
 compiledCurrencySymbolValueOf = $$(compile [||currencySymbolValueOf||])
+
+compiledValueOf :: CompiledCode (Value -> CurrencySymbol -> TokenName -> Integer)
+compiledValueOf = $$(compile [||valueOf||])
 
 compiledLovelaceValueOf :: CompiledCode (Value -> Lovelace)
 compiledLovelaceValueOf = $$(compile [||lovelaceValueOf||])
@@ -198,6 +202,34 @@ testCases =
       ( compiledCurrencySymbolValueOf
           `unsafeApplyCode` liftCodeDef value2
           `unsafeApplyCode` liftCodeDef (toSymbol 6)
+      )
+  , goldenEvalCekCatchBudget
+      "valueOf_hit_first"
+      ( compiledValueOf
+          `unsafeApplyCode` liftCodeDef value1
+          `unsafeApplyCode` liftCodeDef (toSymbol 1)
+          `unsafeApplyCode` liftCodeDef (toToken 100)
+      )
+  , goldenEvalCekCatchBudget
+      "valueOf_hit_middle"
+      ( compiledValueOf
+          `unsafeApplyCode` liftCodeDef value1
+          `unsafeApplyCode` liftCodeDef (toSymbol 3)
+          `unsafeApplyCode` liftCodeDef (toToken 302)
+      )
+  , goldenEvalCekCatchBudget
+      "valueOf_hit_last"
+      ( compiledValueOf
+          `unsafeApplyCode` liftCodeDef value1
+          `unsafeApplyCode` liftCodeDef (toSymbol 5)
+          `unsafeApplyCode` liftCodeDef (toToken 508)
+      )
+  , goldenEvalCekCatchBudget
+      "valueOf_miss"
+      ( compiledValueOf
+          `unsafeApplyCode` liftCodeDef value1
+          `unsafeApplyCode` liftCodeDef (toSymbol 99)
+          `unsafeApplyCode` liftCodeDef (toToken 999)
       )
   , goldenEvalCekCatchBudget
       "mintValueMinted"
