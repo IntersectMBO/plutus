@@ -25,7 +25,7 @@ numberOfTests :: Int
 numberOfTests = 1000
 
 testProp :: Testable prop => TestName -> prop -> TestTree
-testProp s p = testProperty s $ withMaxSuccess numberOfTests p
+testProp s p = testProperty s $ withNumTests numberOfTests p
 
 {-| Haskell's reference semantics for a division builtin: fail on a zero
 divisor, otherwise apply the operator. -}
@@ -57,9 +57,10 @@ tests =
     , agreesWith "modInteger vs mod" agdaModInteger mod
     , testProp "divideInteger and modInteger pair up like divMod" $
         \(BigInteger a) (BigInteger b) ->
-          b /= 0 ==>
-            let (q, r) = a `divMod` b
-             in (agdaDivideInteger a b, agdaModInteger a b) === (Just q, Just r)
+          b
+            /= 0
+            ==> let (q, r) = a `divMod` b
+                 in (agdaDivideInteger a b, agdaModInteger a b) === (Just q, Just r)
     ]
 
 main :: IO ()
