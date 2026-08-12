@@ -3,7 +3,8 @@ title: Builtin.Integer.Base
 layout: page
 ---
 
-This module contains the extra definitions for the ℤ type required for the formalisation of Plutus Core builtins.
+This module contains the extra definitions for the ℤ type required for
+the formalisation of Plutus Core builtins.
 
 ```
 module Builtin.Integer.Base where
@@ -22,7 +23,8 @@ open import Relation.Nullary.Decidable using (yes; no)
 
 ## Quotient and remainder
 
-The `quot` and `rem` functions are based on the Haskell `quot` and `rem` functions, which perform truncated division.
+The `quot` and `rem` functions are based on the Haskell `quot` and `rem` functions,
+which perform truncated division.
 This follows the implementation of Haskell's `integerQuotRem#`. 
 
 ```
@@ -35,7 +37,8 @@ rem n d = sign n ◃ (∣ n ∣ ℕ.% ∣ d ∣)
 
 ## Division and modulus
 
-The `div` and `mod` functions are based on Haskell's `div` and `mod`, via the same fixup as `integerDivMod#`. This implements floored division.
+The `div` and `mod` functions are based on Haskell's `div` and `mod`,
+via the same fixup as `integerDivMod#`. This implements floored division.
 
 ```
 divModFixup : ℤ → ℤ → ℤ → ℤ × ℤ

@@ -78,6 +78,7 @@ open import Data.Integer.Solver using (module +-*-Solver)
 open import Relation.Nullary.Negation using (contradiction)
 open import Relation.Nullary.Decidable using (yes; no)
 open import Data.Maybe.Base using (just; nothing; map)
+open import Data.Unit.Base using (tt)
 ```
 
 ## Helper lemmas about sign and ◃
@@ -90,9 +91,8 @@ library provides most of them (`◃-inverse`, `sign-*`, `+◃n≡+n`, `-◃n≡-
 this section derives the remaining ones.
 
 Multiplying by the same sign twice is the identity, since a sign is its own
-inverse. This is a fact about `Data.Sign` alone (a candidate for upstreaming
-to `Data.Sign.Properties`); the proofs below use it with `s = sign n` and
-`t = sign d` to cancel the divisor's sign.
+inverse. This is a fact about `Data.Sign` alone; the proofs below use it with
+`s = sign n` and `t = sign d` to cancel the divisor's sign.
 
 ```
 private
@@ -243,9 +243,9 @@ rem-zero-law : (b : ℤ) .{{_ : NonZero b}} → rem 0ℤ b ≡ 0ℤ
 rem-zero-law b = cong (S.+ ◃_) (m*n%n≡0 0 ∣ b ∣)
 
 rem-neg-law : (n b : ℤ) .{{_ : NonZero b}} → rem (- n) b ≡ - rem n b
-rem-neg-law +0 b = trans (rem-zero-law b) (cong (-_) (sym (rem-zero-law b)))
+rem-neg-law +0 b       = trans (rem-zero-law b) (cong (-_) (sym (rem-zero-law b)))
 rem-neg-law +[1+ m ] b = sym (neg-◃ (ℕ.suc m ℕ.% ∣ b ∣))
-rem-neg-law -[1+ m ] b =
+rem-neg-law -[1+ m ] b = 
   trans (sym (neg-involutive (S.+ ◃ (ℕ.suc m ℕ.% ∣ b ∣))))
         (cong (-_) (neg-◃ (ℕ.suc m ℕ.% ∣ b ∣)))
 ```
@@ -273,20 +273,24 @@ corner in the mixed-sign cases is harmless because the quotient magnitude
 
 ```
 quot-nonNeg-law
-  : (a b : ℤ) .{{_ : NonNegative a}} .{{_ : NonZero b}} .{{_ : Positive b}} → 0ℤ ≤ quot a b
+  : (a b : ℤ) .{{_ : NonNegative a}} .{{_ : NonZero b}} .{{_ : Positive b}}
+  → 0ℤ ≤ quot a b
 quot-nonNeg-law (+ m) +[1+ n ] = 0≤+◃ (m ℕ./ ℕ.suc n)
 
 quot-nonPos-pos-law
-  : (a b : ℤ) .{{_ : NonPositive a}} .{{_ : NonZero b}} .{{_ : Positive b}} → quot a b ≤ 0ℤ
+  : (a b : ℤ) .{{_ : NonPositive a}} .{{_ : NonZero b}} .{{_ : Positive b}}
+  → quot a b ≤ 0ℤ
 quot-nonPos-pos-law +0       +[1+ n ] = +≤+ ℕ.z≤n
 quot-nonPos-pos-law -[1+ m ] +[1+ n ] = -◃≤0 (ℕ.suc m ℕ./ ℕ.suc n)
 
 quot-nonNeg-neg-law
-  : (a b : ℤ) .{{_ : NonNegative a}} .{{_ : NonZero b}} .{{_ : Negative b}} → quot a b ≤ 0ℤ
+  : (a b : ℤ) .{{_ : NonNegative a}} .{{_ : NonZero b}} .{{_ : Negative b}} →
+  quot a b ≤ 0ℤ
 quot-nonNeg-neg-law (+ m) -[1+ n ] = -◃≤0 (m ℕ./ ℕ.suc n)
 
 quot-nonPos-neg-law
-  : (a b : ℤ) .{{_ : NonPositive a}} .{{_ : NonZero b}} .{{_ : Negative b}} → 0ℤ ≤ quot a b
+  : (a b : ℤ) .{{_ : NonPositive a}} .{{_ : NonZero b}} .{{_ : Negative b}} →
+  0ℤ ≤ quot a b
 quot-nonPos-neg-law +0       -[1+ n ] = +≤+ ℕ.z≤n
 quot-nonPos-neg-law -[1+ m ] -[1+ n ] = 0≤+◃ (ℕ.suc m ℕ./ ℕ.suc n)
 ```
@@ -313,8 +317,15 @@ arguments have the same sign:
 
 The same-sign restriction is essential: for mixed signs the law fails, e.g.
 with `a = 4`, `a' = -2`, `b = 3` the left-hand side is `rem 2 3 = 2` while the
-right-hand side is `rem (1 + -2) 3 = -1`. The non-negative case follows from
-the corresponding law for natural number division (`%-distribˡ-+`).
+right-hand side is `rem (1 + -2) 3 = -1`.
+
+```
+_ : rem ((+ 4) + (- (+ 2))) (+ 3) ≢ rem (rem (+ 4) (+ 3) + rem (- (+ 2)) (+ 3)) (+ 3)
+_ = λ ()
+```
+
+The non-negative case follows from the corresponding law for natural number
+division (`%-distribˡ-+`).
 
 ```
 rem-additive-pos-law
@@ -372,49 +383,6 @@ rem-additive-neg-law +0        +0        b = rem-additive-neg-law′ +0 +0 b
 rem-additive-neg-law +0        -[1+ n ]  b = rem-additive-neg-law′ +0 +[1+ n ] b
 rem-additive-neg-law -[1+ m ]  +0        b = rem-additive-neg-law′ +[1+ m ] +0 b
 rem-additive-neg-law -[1+ m ]  -[1+ n ]  b = rem-additive-neg-law′ +[1+ m ] +[1+ n ] b
-```
-
-## rem as an additive monoid homomorphism
-
-The two additive laws, packaged with the standard library's homomorphism
-vocabulary. The domain must be ℕ rather than sign-restricted ℤ: the standard
-library's morphism types quantify over the whole carrier, and the unrestricted
-law is false for mixed signs (see the counterexample above). The sign is baked
-into the map instead: `λ m → rem (+ m) b` for the non-negative law and
-`λ m → rem (- + m) b` for the non-positive one. The common target is ℤ with
-"add, then take the remainder by `b`" as the operation.
-
-```
-rem-+-rawMonoid : (b : ℤ) .{{_ : NonZero b}} → RawMonoid 0ℓ 0ℓ
-rem-+-rawMonoid b = record
-  { Carrier = ℤ
-  ; _≈_ = _≡_
-  ; _∙_ = λ x y → rem (x + y) b
-  ; ε = 0ℤ
-  }
-
-rem-+-isMonoidHomomorphism-pos
-  : (b : ℤ) .{{_ : NonZero b}}
-  → IsMonoidHomomorphism ℕ.+-0-rawMonoid (rem-+-rawMonoid b) (λ m → rem (+ m) b)
-rem-+-isMonoidHomomorphism-pos b = record
-  { isMagmaHomomorphism = record
-    { isRelHomomorphism = record { cong = cong (λ m → rem (+ m) b) }
-    ; homo = λ m n → rem-additive-pos-law (+ m) (+ n) b
-    }
-  ; ε-homo = rem-zero-law b
-  }
-
-rem-+-isMonoidHomomorphism-neg
-  : (b : ℤ) .{{_ : NonZero b}}
-  → IsMonoidHomomorphism ℕ.+-0-rawMonoid (rem-+-rawMonoid b) (λ m → rem (- + m) b)
-rem-+-isMonoidHomomorphism-neg b = record
-  { isMagmaHomomorphism = record
-    { isRelHomomorphism = record { cong = cong (λ m → rem (- + m) b) }
-    ; homo = λ m n → trans (cong (λ z → rem z b) (neg-distrib-+ (+ m) (+ n)))
-                           (rem-additive-neg-law′ (+ m) (+ n) b)
-    }
-  ; ε-homo = rem-zero-law b
-  }
 ```
 
 ## rem and multiplication
@@ -605,21 +573,21 @@ private
     : (q r d : ℤ) .{{_ : NonZero d}}
     → divModFixup q (- r) (- d)
     ≡ (proj₁ (divModFixup q r d) , - proj₂ (divModFixup q r d))
-  divModFixup-neg q +0        +[1+ n ] = refl
-  divModFixup-neg q +0        -[1+ n ] = refl
-  divModFixup-neg q +[1+ m ]  +[1+ n ] = refl
-  divModFixup-neg q +[1+ m ]  -[1+ n ] = cong (pred q ,_) (⊖-swap (ℕ.suc n) (ℕ.suc m))
+  divModFixup-neg q +0         +[1+ n ] = refl
+  divModFixup-neg q +0         -[1+ n ] = refl
+  divModFixup-neg q +[1+ m ]   +[1+ n ] = refl
+  divModFixup-neg q +[1+ m ]   -[1+ n ] = cong (pred q ,_) (⊖-swap (ℕ.suc n) (ℕ.suc m))
   divModFixup-neg q (-[1+ m ]) +[1+ n ] = cong (pred q ,_) (⊖-swap (ℕ.suc m) (ℕ.suc n))
   divModFixup-neg q (-[1+ m ]) -[1+ n ] = refl
 
 quot-neg-neg-law
   : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}} → quot (- n) (- d) ≡ quot n d
-quot-neg-neg-law +0        +[1+ k ] = refl
-quot-neg-neg-law +0        -[1+ k ] = refl
-quot-neg-neg-law +[1+ m ]  +[1+ k ] = refl
-quot-neg-neg-law +[1+ m ]  -[1+ k ] = refl
-quot-neg-neg-law -[1+ m ]  +[1+ k ] = refl
-quot-neg-neg-law -[1+ m ]  -[1+ k ] = refl
+quot-neg-neg-law +0       +[1+ k ] = refl
+quot-neg-neg-law +0       -[1+ k ] = refl
+quot-neg-neg-law +[1+ m ] +[1+ k ] = refl
+quot-neg-neg-law +[1+ m ] -[1+ k ] = refl
+quot-neg-neg-law -[1+ m ] +[1+ k ] = refl
+quot-neg-neg-law -[1+ m ] -[1+ k ] = refl
 
 rem-neg-neg-law
   : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}} → rem (- n) (- d) ≡ - rem n d
@@ -666,7 +634,7 @@ mod-mult-law k b =
 The result of `mod` lies between zero and the divisor: in `[0, b)` for a
 positive divisor, in `(b, 0]` for a negative one — this is the defining
 range of floored division, in contrast to `rem`, whose sign follows the
-dividend. The proof analyses the remainder cases of the fixup: when no
+dividend. The proof analyzes the remainder cases of the fixup: when no
 fixup happens the bounds come from the sign and size of `rem`; when it does,
 the adjusted remainder `rem + b` lands in range precisely because
 `∣ rem ∣ < ∣ b ∣`.
@@ -727,12 +695,12 @@ possible); the impossible branches are discharged against the sign of
 private
 
   nonNeg⇒nonPos-neg : ∀ {i} → .{{NonNegative i}} → NonPositive (- i)
-  nonNeg⇒nonPos-neg {+0}       = _
-  nonNeg⇒nonPos-neg {+[1+ n ]} = _
+  nonNeg⇒nonPos-neg {+0}       = record { nonPos = tt }
+  nonNeg⇒nonPos-neg {+[1+ n ]} = record { nonPos = tt }
 
   nonPos⇒nonNeg-neg : ∀ {i} → .{{NonPositive i}} → NonNegative (- i)
-  nonPos⇒nonNeg-neg {+0}        = _
-  nonPos⇒nonNeg-neg { -[1+ n ]} = _
+  nonPos⇒nonNeg-neg {+0}        = record { nonNeg = tt }
+  nonPos⇒nonNeg-neg { -[1+ n ]} = record { nonNeg = tt }
 
 div-nonNeg-law
   : (a b : ℤ) .{{_ : NonNegative a}} .{{_ : NonZero b}} .{{_ : Positive b}}
