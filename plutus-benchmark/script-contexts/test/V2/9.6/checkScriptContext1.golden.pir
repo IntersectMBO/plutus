@@ -46,21 +46,17 @@
   let
     !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
       = \(d : data) -> d
-    !casePair : all a b r. pair a b -> (a -> b -> r) -> r
-      = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
     !`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` : data -> bool
       = \(d : data) ->
-          casePair
-            {integer}
-            {list data}
-            {bool}
+          case
+            bool
             (unConstrData d)
-            (\(index : integer) (args : list data) ->
-               case
-                 (list data -> bool)
-                 index
-                 [(\(ds : list data) -> False), (\(ds : list data) -> True)]
-                 args)
+            [ (\(index : integer) (args : list data) ->
+                 case
+                   (list data -> bool)
+                   index
+                   [(\(ds : list data) -> False), (\(ds : list data) -> True)]
+                   args) ]
     data (Extended :: * -> *) a | Extended_match where
       Finite : a -> Extended a
       NegInf : Extended a
@@ -69,20 +65,18 @@
        all a. (\a -> data -> a) a -> data -> Extended a
       = /\a ->
           \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-            casePair
-              {integer}
-              {list data}
-              {Extended a}
+            case
+              (Extended a)
               (unConstrData d)
-              (\(index : integer) (args : list data) ->
-                 case
-                   (list data -> Extended a)
-                   index
-                   [ (\(ds : list data) -> NegInf {a})
-                   , (\(ds : list data) ->
-                        Finite {a} (`$dUnsafeFromData` (headList {data} ds)))
-                   , (\(ds : list data) -> PosInf {a}) ]
-                   args)
+              [ (\(index : integer) (args : list data) ->
+                   case
+                     (list data -> Extended a)
+                     index
+                     [ (\(ds : list data) -> NegInf {a})
+                     , (\(ds : list data) ->
+                          Finite {a} (`$dUnsafeFromData` (headList {data} ds)))
+                     , (\(ds : list data) -> PosInf {a}) ]
+                     args) ]
     !`$fUnsafeFromDataList_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> List a
       = /\a ->
@@ -100,50 +94,46 @@
             \(d : data) -> go (unListData d)
     !`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` : data -> Credential
       = \(d : data) ->
-          casePair
-            {integer}
-            {list data}
-            {Credential}
+          case
+            Credential
             (unConstrData d)
-            (\(index : integer) (args : list data) ->
-               case
-                 (list data -> Credential)
-                 index
-                 [ (\(ds : list data) ->
-                      PubKeyCredential (unBData (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      ScriptCredential (unBData (headList {data} ds))) ]
-                 args)
+            [ (\(index : integer) (args : list data) ->
+                 case
+                   (list data -> Credential)
+                   index
+                   [ (\(ds : list data) ->
+                        PubKeyCredential (unBData (headList {data} ds)))
+                   , (\(ds : list data) ->
+                        ScriptCredential (unBData (headList {data} ds))) ]
+                   args) ]
     !`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData` :
        data -> StakingCredential
       = \(d : data) ->
-          casePair
-            {integer}
-            {list data}
-            {StakingCredential}
+          case
+            StakingCredential
             (unConstrData d)
-            (\(index : integer) (args : list data) ->
-               case
-                 (list data -> StakingCredential)
-                 index
-                 [ (\(ds : list data) ->
-                      StakingHash
-                        (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                           (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      case
-                        StakingCredential
-                        ds
-                        [ (\(ds : data) (ds : list data) ->
-                             case
-                               StakingCredential
-                               ds
-                               [ (\(ds : data) (ds : list data) ->
-                                    StakingPtr
-                                      (unIData ds)
-                                      (unIData ds)
-                                      (unIData (headList {data} ds))) ]) ]) ]
-                 args)
+            [ (\(index : integer) (args : list data) ->
+                 case
+                   (list data -> StakingCredential)
+                   index
+                   [ (\(ds : list data) ->
+                        StakingHash
+                          (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                             (headList {data} ds)))
+                   , (\(ds : list data) ->
+                        case
+                          StakingCredential
+                          ds
+                          [ (\(ds : data) (ds : list data) ->
+                               case
+                                 StakingCredential
+                                 ds
+                                 [ (\(ds : data) (ds : list data) ->
+                                      StakingPtr
+                                        (unIData ds)
+                                        (unIData ds)
+                                        (unIData (headList {data} ds))) ]) ]) ]
+                   args) ]
     data DCert | DCert_match where
       DCertDelegDeRegKey : StakingCredential -> DCert
       DCertDelegDelegate : StakingCredential -> bytestring -> DCert
@@ -155,89 +145,83 @@
     !`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData` :
        data -> DCert
       = \(d : data) ->
-          casePair
-            {integer}
-            {list data}
-            {DCert}
+          case
+            DCert
             (unConstrData d)
-            (\(index : integer)
-              (args : list data) ->
-               case
-                 (list data -> DCert)
-                 index
-                 [ (\(ds : list data) ->
-                      DCertDelegRegKey
-                        (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                           (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      DCertDelegDeRegKey
-                        (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                           (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      case
-                        DCert
-                        ds
-                        [ (\(ds : data)
-                            (ds : list data) ->
-                             DCertDelegDelegate
-                               (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                  ds)
-                               (unBData (headList {data} ds))) ])
-                 , (\(ds : list data) ->
-                      case
-                        DCert
-                        ds
-                        [ (\(ds : data) (ds : list data) ->
-                             DCertPoolRegister
-                               (unBData ds)
-                               (unBData (headList {data} ds))) ])
-                 , (\(ds : list data) ->
-                      case
-                        DCert
-                        ds
-                        [ (\(ds : data) (ds : list data) ->
-                             DCertPoolRetire
-                               (unBData ds)
-                               (unIData (headList {data} ds))) ])
-                 , (\(ds : list data) -> DCertGenesis)
-                 , (\(ds : list data) -> DCertMir) ]
-                 args)
+            [ (\(index : integer)
+                (args : list data) ->
+                 case
+                   (list data -> DCert)
+                   index
+                   [ (\(ds : list data) ->
+                        DCertDelegRegKey
+                          (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                             (headList {data} ds)))
+                   , (\(ds : list data) ->
+                        DCertDelegDeRegKey
+                          (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                             (headList {data} ds)))
+                   , (\(ds : list data) ->
+                        case
+                          DCert
+                          ds
+                          [ (\(ds : data)
+                              (ds : list data) ->
+                               DCertDelegDelegate
+                                 (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                    ds)
+                                 (unBData (headList {data} ds))) ])
+                   , (\(ds : list data) ->
+                        case
+                          DCert
+                          ds
+                          [ (\(ds : data) (ds : list data) ->
+                               DCertPoolRegister
+                                 (unBData ds)
+                                 (unBData (headList {data} ds))) ])
+                   , (\(ds : list data) ->
+                        case
+                          DCert
+                          ds
+                          [ (\(ds : data) (ds : list data) ->
+                               DCertPoolRetire
+                                 (unBData ds)
+                                 (unIData (headList {data} ds))) ])
+                   , (\(ds : list data) -> DCertGenesis)
+                   , (\(ds : list data) -> DCertMir) ]
+                   args) ]
     !`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` : data -> bytestring
       = \(d : data) ->
-          casePair
-            {integer}
-            {list data}
-            {bytestring}
+          case
+            bytestring
             (unConstrData d)
-            (\(index : integer) (args : list data) ->
-               case
-                 (list data -> bytestring)
-                 index
-                 [(\(ds : list data) -> unBData (headList {data} ds))]
-                 args)
+            [ (\(index : integer) (args : list data) ->
+                 case
+                   (list data -> bytestring)
+                   index
+                   [(\(ds : list data) -> unBData (headList {data} ds))]
+                   args) ]
     data TxOutRef | TxOutRef_match where
       TxOutRef : bytestring -> integer -> TxOutRef
     !`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` : data -> TxOutRef
       = \(d : data) ->
-          casePair
-            {integer}
-            {list data}
-            {TxOutRef}
+          case
+            TxOutRef
             (unConstrData d)
-            (\(index : integer) (args : list data) ->
-               case
-                 (list data -> TxOutRef)
-                 index
-                 [ (\(ds : list data) ->
-                      case
-                        TxOutRef
-                        ds
-                        [ (\(ds : data) (ds : list data) ->
-                             TxOutRef
-                               (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
-                                  ds)
-                               (unIData (headList {data} ds))) ]) ]
-                 args)
+            [ (\(index : integer) (args : list data) ->
+                 case
+                   (list data -> TxOutRef)
+                   index
+                   [ (\(ds : list data) ->
+                        case
+                          TxOutRef
+                          ds
+                          [ (\(ds : data) (ds : list data) ->
+                               TxOutRef
+                                 (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                                    ds)
+                                 (unIData (headList {data} ds))) ]) ]
+                   args) ]
     data ScriptPurpose | ScriptPurpose_match where
       Certifying : DCert -> ScriptPurpose
       Minting : bytestring -> ScriptPurpose
@@ -246,47 +230,44 @@
     !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` :
        data -> ScriptPurpose
       = \(d : data) ->
-          casePair
-            {integer}
-            {list data}
-            {ScriptPurpose}
+          case
+            ScriptPurpose
             (unConstrData d)
-            (\(index : integer)
-              (args : list data) ->
-               case
-                 (list data -> ScriptPurpose)
-                 index
-                 [ (\(ds : list data) -> Minting (unBData (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      Spending
-                        (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                           (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      Rewarding
-                        (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                           (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      Certifying
-                        (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
-                           (headList {data} ds))) ]
-                 args)
+            [ (\(index : integer)
+                (args : list data) ->
+                 case
+                   (list data -> ScriptPurpose)
+                   index
+                   [ (\(ds : list data) ->
+                        Minting (unBData (headList {data} ds)))
+                   , (\(ds : list data) ->
+                        Spending
+                          (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                             (headList {data} ds)))
+                   , (\(ds : list data) ->
+                        Rewarding
+                          (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                             (headList {data} ds)))
+                   , (\(ds : list data) ->
+                        Certifying
+                          (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
+                             (headList {data} ds))) ]
+                   args) ]
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
           \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-            casePair
-              {integer}
-              {list data}
-              {Maybe a}
+            case
+              (Maybe a)
               (unConstrData d)
-              (\(index : integer) (args : list data) ->
-                 case
-                   (list data -> Maybe a)
-                   index
-                   [ (\(ds : list data) ->
-                        Just {a} (`$dUnsafeFromData` (headList {data} ds)))
-                   , (\(ds : list data) -> Nothing {a}) ]
-                   args)
+              [ (\(index : integer) (args : list data) ->
+                   case
+                     (list data -> Maybe a)
+                     index
+                     [ (\(ds : list data) ->
+                          Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+                     , (\(ds : list data) -> Nothing {a}) ]
+                     args) ]
     !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
        all k v.
          (\a -> data -> a) k ->
@@ -333,126 +314,120 @@
     !`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` :
        data -> TxOut
       = \(eta : data) ->
-          casePair
-            {integer}
-            {list data}
-            {TxOut}
+          case
+            TxOut
             (unConstrData eta)
-            (\(index : integer)
-              (args : list data) ->
-               case
-                 (list data -> TxOut)
-                 index
-                 [ (\(ds : list data) ->
-                      case
-                        TxOut
-                        ds
-                        [ (\(ds : data)
-                            (ds : list data) ->
-                             case
-                               TxOut
-                               ds
-                               [ (\(ds : data)
-                                   (ds : list data) ->
-                                    case
-                                      TxOut
-                                      ds
-                                      [ (\(ds : data)
-                                          (ds : list data) ->
-                                           TxOut
-                                             (casePair
-                                                {integer}
-                                                {list data}
-                                                {Address}
-                                                (unConstrData ds)
-                                                (\(index : integer)
-                                                  (args : list data) ->
-                                                   case
-                                                     (list data -> Address)
-                                                     index
-                                                     [ (\(ds : list data) ->
-                                                          case
-                                                            Address
-                                                            ds
-                                                            [ (\(ds : data)
-                                                                (ds :
-                                                                   list data) ->
-                                                                 Address
-                                                                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                                      ds)
-                                                                   (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                      {StakingCredential}
-                                                                      `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                                      (headList
-                                                                         {data}
-                                                                         ds))) ]) ]
-                                                     args))
-                                             (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                {bytestring}
-                                                {(\k v -> List (Tuple2 k v))
-                                                   bytestring
-                                                   integer}
-                                                unBData
-                                                `$fUnsafeFromDataValue`
-                                                ds)
-                                             (casePair
-                                                {integer}
-                                                {list data}
-                                                {OutputDatum}
-                                                (unConstrData ds)
-                                                (\(index : integer)
-                                                  (args : list data) ->
-                                                   case
-                                                     (list data -> OutputDatum)
-                                                     index
-                                                     [ (\(ds : list data) ->
-                                                          NoOutputDatum)
-                                                     , (\(ds : list data) ->
-                                                          OutputDatumHash
-                                                            (unBData
-                                                               (headList
-                                                                  {data}
-                                                                  ds)))
-                                                     , (\(ds : list data) ->
-                                                          OutputDatum
-                                                            (headList
-                                                               {data}
-                                                               ds)) ]
-                                                     args))
-                                             (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                {bytestring}
-                                                unBData
-                                                (headList
-                                                   {data}
-                                                   ds))) ]) ]) ]) ]
-                 args)
+            [ (\(index : integer)
+                (args : list data) ->
+                 case
+                   (list data -> TxOut)
+                   index
+                   [ (\(ds : list data) ->
+                        case
+                          TxOut
+                          ds
+                          [ (\(ds : data)
+                              (ds : list data) ->
+                               case
+                                 TxOut
+                                 ds
+                                 [ (\(ds : data)
+                                     (ds : list data) ->
+                                      case
+                                        TxOut
+                                        ds
+                                        [ (\(ds : data)
+                                            (ds : list data) ->
+                                             TxOut
+                                               (case
+                                                  Address
+                                                  (unConstrData ds)
+                                                  [ (\(index : integer)
+                                                      (args : list data) ->
+                                                       case
+                                                         (list data -> Address)
+                                                         index
+                                                         [ (\(ds : list data) ->
+                                                              case
+                                                                Address
+                                                                ds
+                                                                [ (\(ds : data)
+                                                                    (ds :
+                                                                       list
+                                                                         data) ->
+                                                                     Address
+                                                                       (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                          ds)
+                                                                       (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                          {StakingCredential}
+                                                                          `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                          (headList
+                                                                             {data}
+                                                                             ds))) ]) ]
+                                                         args) ])
+                                               (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                  {bytestring}
+                                                  {(\k v -> List (Tuple2 k v))
+                                                     bytestring
+                                                     integer}
+                                                  unBData
+                                                  `$fUnsafeFromDataValue`
+                                                  ds)
+                                               (case
+                                                  OutputDatum
+                                                  (unConstrData ds)
+                                                  [ (\(index : integer)
+                                                      (args : list data) ->
+                                                       case
+                                                         (list data ->
+                                                          OutputDatum)
+                                                         index
+                                                         [ (\(ds : list data) ->
+                                                              NoOutputDatum)
+                                                         , (\(ds : list data) ->
+                                                              OutputDatumHash
+                                                                (unBData
+                                                                   (headList
+                                                                      {data}
+                                                                      ds)))
+                                                         , (\(ds : list data) ->
+                                                              OutputDatum
+                                                                (headList
+                                                                   {data}
+                                                                   ds)) ]
+                                                         args) ])
+                                               (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                  {bytestring}
+                                                  unBData
+                                                  (headList
+                                                     {data}
+                                                     ds))) ]) ]) ]) ]
+                   args) ]
     data TxInInfo | TxInInfo_match where
       TxInInfo : TxOutRef -> TxOut -> TxInInfo
     !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` :
        data -> TxInInfo
       = \(d : data) ->
-          casePair
-            {integer}
-            {list data}
-            {TxInInfo}
+          case
+            TxInInfo
             (unConstrData d)
-            (\(index : integer)
-              (args : list data) ->
-               case
-                 (list data -> TxInInfo)
-                 index
-                 [ (\(ds : list data) ->
-                      case
-                        TxInInfo
-                        ds
-                        [ (\(ds : data)
-                            (ds : list data) ->
-                             TxInInfo
-                               (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                                  ds)
-                               (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
-                                  (headList {data} ds))) ]) ]
-                 args)
+            [ (\(index : integer)
+                (args : list data) ->
+                 case
+                   (list data -> TxInInfo)
+                   index
+                   [ (\(ds : list data) ->
+                        case
+                          TxInInfo
+                          ds
+                          [ (\(ds : data)
+                              (ds : list data) ->
+                               TxInInfo
+                                 (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                    ds)
+                                 (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
+                                    (headList {data} ds))) ]) ]
+                   args) ]
     data Unit | Unit_match where
       Unit : Unit
     data (LowerBound :: * -> *) a | LowerBound_match where
@@ -485,310 +460,295 @@
   in
   \(d : data) ->
     ScriptContext_match
-      (casePair
-         {integer}
-         {list data}
-         {ScriptContext}
+      (case
+         ScriptContext
          (unConstrData d)
-         (\(index : integer)
-           (args : list data) ->
-            case
-              (list data -> ScriptContext)
-              index
-              [ (\(ds : list data) ->
-                   case
-                     ScriptContext
-                     ds
-                     [ (\(ds : data)
-                         (ds : list data) ->
-                          ScriptContext
-                            (casePair
-                               {integer}
-                               {list data}
-                               {TxInfo}
-                               (unConstrData ds)
-                               (\(index : integer)
-                                 (args : list data) ->
-                                  case
-                                    (list data -> TxInfo)
-                                    index
-                                    [ (\(ds : list data) ->
-                                         case
-                                           TxInfo
-                                           ds
-                                           [ (\(ds : data)
-                                               (ds : list data) ->
-                                                case
-                                                  TxInfo
-                                                  ds
-                                                  [ (\(ds : data)
-                                                      (ds : list data) ->
-                                                       case
-                                                         TxInfo
-                                                         ds
-                                                         [ (\(ds : data)
-                                                             (ds : list data) ->
-                                                              case
-                                                                TxInfo
-                                                                ds
-                                                                [ (\(ds : data)
-                                                                    (ds :
-                                                                       list
-                                                                         data) ->
-                                                                     case
-                                                                       TxInfo
-                                                                       ds
-                                                                       [ (\(ds :
-                                                                              data)
-                                                                           (ds :
-                                                                              list
-                                                                                data) ->
-                                                                            case
-                                                                              TxInfo
-                                                                              ds
-                                                                              [ (\(ds :
-                                                                                     data)
-                                                                                  (ds :
-                                                                                     list
-                                                                                       data) ->
-                                                                                   case
-                                                                                     TxInfo
-                                                                                     ds
-                                                                                     [ (\(ds :
-                                                                                            data)
-                                                                                         (ds :
-                                                                                            list
-                                                                                              data) ->
-                                                                                          case
-                                                                                            TxInfo
-                                                                                            ds
-                                                                                            [ (\(ds :
-                                                                                                   data)
-                                                                                                (ds :
-                                                                                                   list
-                                                                                                     data) ->
-                                                                                                 case
-                                                                                                   TxInfo
-                                                                                                   ds
-                                                                                                   [ (\(ds :
-                                                                                                          data)
-                                                                                                       (ds :
-                                                                                                          list
-                                                                                                            data) ->
-                                                                                                        case
-                                                                                                          TxInfo
-                                                                                                          ds
-                                                                                                          [ (\(ds :
-                                                                                                                 data)
-                                                                                                              (ds :
-                                                                                                                 list
-                                                                                                                   data) ->
-                                                                                                               case
-                                                                                                                 TxInfo
-                                                                                                                 ds
-                                                                                                                 [ (\(ds :
-                                                                                                                        data)
-                                                                                                                     (ds :
-                                                                                                                        list
-                                                                                                                          data) ->
-                                                                                                                      TxInfo
-                                                                                                                        (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
-                                                                                                                           {TxInInfo}
-                                                                                                                           `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                                                                                           ds)
-                                                                                                                        (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
-                                                                                                                           {TxInInfo}
-                                                                                                                           `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                                                                                           ds)
-                                                                                                                        (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
-                                                                                                                           {TxOut}
-                                                                                                                           `$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
-                                                                                                                           ds)
-                                                                                                                        (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                                                                                           {bytestring}
-                                                                                                                           {(\k
-                                                                                                                              v ->
-                                                                                                                               List
-                                                                                                                                 (Tuple2
-                                                                                                                                    k
-                                                                                                                                    v))
-                                                                                                                              bytestring
-                                                                                                                              integer}
-                                                                                                                           unBData
-                                                                                                                           `$fUnsafeFromDataValue`
-                                                                                                                           ds)
-                                                                                                                        (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                                                                                           {bytestring}
-                                                                                                                           {(\k
-                                                                                                                              v ->
-                                                                                                                               List
-                                                                                                                                 (Tuple2
-                                                                                                                                    k
-                                                                                                                                    v))
-                                                                                                                              bytestring
-                                                                                                                              integer}
-                                                                                                                           unBData
-                                                                                                                           `$fUnsafeFromDataValue`
-                                                                                                                           ds)
-                                                                                                                        (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
-                                                                                                                           {DCert}
-                                                                                                                           `$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
-                                                                                                                           ds)
-                                                                                                                        (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                                                                                           {StakingCredential}
-                                                                                                                           {integer}
-                                                                                                                           `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                                                                                           unIData
-                                                                                                                           ds)
-                                                                                                                        (casePair
-                                                                                                                           {integer}
-                                                                                                                           {list
-                                                                                                                              data}
-                                                                                                                           {Interval
-                                                                                                                              integer}
-                                                                                                                           (unConstrData
-                                                                                                                              ds)
-                                                                                                                           (\(index :
-                                                                                                                                integer)
-                                                                                                                             (args :
-                                                                                                                                list
-                                                                                                                                  data) ->
-                                                                                                                              case
-                                                                                                                                (list
-                                                                                                                                   data ->
-                                                                                                                                 Interval
-                                                                                                                                   integer)
-                                                                                                                                index
-                                                                                                                                [ (\(ds :
-                                                                                                                                       list
-                                                                                                                                         data) ->
-                                                                                                                                     case
-                                                                                                                                       (Interval
-                                                                                                                                          integer)
-                                                                                                                                       ds
-                                                                                                                                       [ (\(ds :
-                                                                                                                                              data)
-                                                                                                                                           (ds :
-                                                                                                                                              list
-                                                                                                                                                data) ->
-                                                                                                                                            Interval
-                                                                                                                                              {integer}
-                                                                                                                                              (casePair
-                                                                                                                                                 {integer}
-                                                                                                                                                 {list
-                                                                                                                                                    data}
-                                                                                                                                                 {LowerBound
-                                                                                                                                                    integer}
-                                                                                                                                                 (unConstrData
-                                                                                                                                                    ds)
-                                                                                                                                                 (\(index :
-                                                                                                                                                      integer)
-                                                                                                                                                   (args :
-                                                                                                                                                      list
-                                                                                                                                                        data) ->
-                                                                                                                                                    case
-                                                                                                                                                      (list
-                                                                                                                                                         data ->
-                                                                                                                                                       LowerBound
-                                                                                                                                                         integer)
-                                                                                                                                                      index
-                                                                                                                                                      [ (\(ds :
-                                                                                                                                                             list
-                                                                                                                                                               data) ->
-                                                                                                                                                           case
-                                                                                                                                                             (LowerBound
-                                                                                                                                                                integer)
-                                                                                                                                                             ds
-                                                                                                                                                             [ (\(ds :
-                                                                                                                                                                    data)
-                                                                                                                                                                 (ds :
-                                                                                                                                                                    list
-                                                                                                                                                                      data) ->
-                                                                                                                                                                  LowerBound
-                                                                                                                                                                    {integer}
-                                                                                                                                                                    (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
-                                                                                                                                                                       {integer}
-                                                                                                                                                                       unIData
-                                                                                                                                                                       ds)
-                                                                                                                                                                    (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
-                                                                                                                                                                       (headList
-                                                                                                                                                                          {data}
-                                                                                                                                                                          ds))) ]) ]
-                                                                                                                                                      args))
-                                                                                                                                              (let
-                                                                                                                                                !d :
-                                                                                                                                                   data
-                                                                                                                                                  = headList
-                                                                                                                                                      {data}
-                                                                                                                                                      ds
-                                                                                                                                              in
-                                                                                                                                              casePair
-                                                                                                                                                {integer}
-                                                                                                                                                {list
-                                                                                                                                                   data}
-                                                                                                                                                {UpperBound
-                                                                                                                                                   integer}
-                                                                                                                                                (unConstrData
-                                                                                                                                                   d)
-                                                                                                                                                (\(index :
-                                                                                                                                                     integer)
-                                                                                                                                                  (args :
-                                                                                                                                                     list
-                                                                                                                                                       data) ->
-                                                                                                                                                   case
-                                                                                                                                                     (list
-                                                                                                                                                        data ->
-                                                                                                                                                      UpperBound
-                                                                                                                                                        integer)
-                                                                                                                                                     index
-                                                                                                                                                     [ (\(ds :
-                                                                                                                                                            list
-                                                                                                                                                              data) ->
-                                                                                                                                                          case
-                                                                                                                                                            (UpperBound
-                                                                                                                                                               integer)
-                                                                                                                                                            ds
-                                                                                                                                                            [ (\(ds :
-                                                                                                                                                                   data)
-                                                                                                                                                                (ds :
-                                                                                                                                                                   list
-                                                                                                                                                                     data) ->
-                                                                                                                                                                 UpperBound
-                                                                                                                                                                   {integer}
-                                                                                                                                                                   (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
-                                                                                                                                                                      {integer}
-                                                                                                                                                                      unIData
-                                                                                                                                                                      ds)
-                                                                                                                                                                   (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
-                                                                                                                                                                      (headList
-                                                                                                                                                                         {data}
-                                                                                                                                                                         ds))) ]) ]
-                                                                                                                                                     args))) ]) ]
-                                                                                                                                args))
-                                                                                                                        (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
-                                                                                                                           {bytestring}
-                                                                                                                           unBData
-                                                                                                                           ds)
-                                                                                                                        (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                                                                                           {ScriptPurpose}
-                                                                                                                           {data}
-                                                                                                                           `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                                                                                                           `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                                           ds)
-                                                                                                                        (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                                                                                           {bytestring}
-                                                                                                                           {data}
-                                                                                                                           unBData
-                                                                                                                           `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                                           ds)
-                                                                                                                        (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
-                                                                                                                           (headList
-                                                                                                                              {data}
-                                                                                                                              ds))) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]
-                                    args))
-                            (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                               (headList {data} ds))) ]) ]
-              args))
+         [ (\(index : integer)
+             (args : list data) ->
+              case
+                (list data -> ScriptContext)
+                index
+                [ (\(ds : list data) ->
+                     case
+                       ScriptContext
+                       ds
+                       [ (\(ds : data)
+                           (ds : list data) ->
+                            ScriptContext
+                              (case
+                                 TxInfo
+                                 (unConstrData ds)
+                                 [ (\(index : integer)
+                                     (args : list data) ->
+                                      case
+                                        (list data -> TxInfo)
+                                        index
+                                        [ (\(ds : list data) ->
+                                             case
+                                               TxInfo
+                                               ds
+                                               [ (\(ds : data)
+                                                   (ds : list data) ->
+                                                    case
+                                                      TxInfo
+                                                      ds
+                                                      [ (\(ds : data)
+                                                          (ds : list data) ->
+                                                           case
+                                                             TxInfo
+                                                             ds
+                                                             [ (\(ds : data)
+                                                                 (ds :
+                                                                    list
+                                                                      data) ->
+                                                                  case
+                                                                    TxInfo
+                                                                    ds
+                                                                    [ (\(ds :
+                                                                           data)
+                                                                        (ds :
+                                                                           list
+                                                                             data) ->
+                                                                         case
+                                                                           TxInfo
+                                                                           ds
+                                                                           [ (\(ds :
+                                                                                  data)
+                                                                               (ds :
+                                                                                  list
+                                                                                    data) ->
+                                                                                case
+                                                                                  TxInfo
+                                                                                  ds
+                                                                                  [ (\(ds :
+                                                                                         data)
+                                                                                      (ds :
+                                                                                         list
+                                                                                           data) ->
+                                                                                       case
+                                                                                         TxInfo
+                                                                                         ds
+                                                                                         [ (\(ds :
+                                                                                                data)
+                                                                                             (ds :
+                                                                                                list
+                                                                                                  data) ->
+                                                                                              case
+                                                                                                TxInfo
+                                                                                                ds
+                                                                                                [ (\(ds :
+                                                                                                       data)
+                                                                                                    (ds :
+                                                                                                       list
+                                                                                                         data) ->
+                                                                                                     case
+                                                                                                       TxInfo
+                                                                                                       ds
+                                                                                                       [ (\(ds :
+                                                                                                              data)
+                                                                                                           (ds :
+                                                                                                              list
+                                                                                                                data) ->
+                                                                                                            case
+                                                                                                              TxInfo
+                                                                                                              ds
+                                                                                                              [ (\(ds :
+                                                                                                                     data)
+                                                                                                                  (ds :
+                                                                                                                     list
+                                                                                                                       data) ->
+                                                                                                                   case
+                                                                                                                     TxInfo
+                                                                                                                     ds
+                                                                                                                     [ (\(ds :
+                                                                                                                            data)
+                                                                                                                         (ds :
+                                                                                                                            list
+                                                                                                                              data) ->
+                                                                                                                          TxInfo
+                                                                                                                            (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
+                                                                                                                               {TxInInfo}
+                                                                                                                               `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                                                                               ds)
+                                                                                                                            (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
+                                                                                                                               {TxInInfo}
+                                                                                                                               `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                                                                               ds)
+                                                                                                                            (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
+                                                                                                                               {TxOut}
+                                                                                                                               `$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
+                                                                                                                               ds)
+                                                                                                                            (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                               {bytestring}
+                                                                                                                               {(\k
+                                                                                                                                  v ->
+                                                                                                                                   List
+                                                                                                                                     (Tuple2
+                                                                                                                                        k
+                                                                                                                                        v))
+                                                                                                                                  bytestring
+                                                                                                                                  integer}
+                                                                                                                               unBData
+                                                                                                                               `$fUnsafeFromDataValue`
+                                                                                                                               ds)
+                                                                                                                            (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                               {bytestring}
+                                                                                                                               {(\k
+                                                                                                                                  v ->
+                                                                                                                                   List
+                                                                                                                                     (Tuple2
+                                                                                                                                        k
+                                                                                                                                        v))
+                                                                                                                                  bytestring
+                                                                                                                                  integer}
+                                                                                                                               unBData
+                                                                                                                               `$fUnsafeFromDataValue`
+                                                                                                                               ds)
+                                                                                                                            (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
+                                                                                                                               {DCert}
+                                                                                                                               `$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
+                                                                                                                               ds)
+                                                                                                                            (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                               {StakingCredential}
+                                                                                                                               {integer}
+                                                                                                                               `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                                                               unIData
+                                                                                                                               ds)
+                                                                                                                            (case
+                                                                                                                               (Interval
+                                                                                                                                  integer)
+                                                                                                                               (unConstrData
+                                                                                                                                  ds)
+                                                                                                                               [ (\(index :
+                                                                                                                                      integer)
+                                                                                                                                   (args :
+                                                                                                                                      list
+                                                                                                                                        data) ->
+                                                                                                                                    case
+                                                                                                                                      (list
+                                                                                                                                         data ->
+                                                                                                                                       Interval
+                                                                                                                                         integer)
+                                                                                                                                      index
+                                                                                                                                      [ (\(ds :
+                                                                                                                                             list
+                                                                                                                                               data) ->
+                                                                                                                                           case
+                                                                                                                                             (Interval
+                                                                                                                                                integer)
+                                                                                                                                             ds
+                                                                                                                                             [ (\(ds :
+                                                                                                                                                    data)
+                                                                                                                                                 (ds :
+                                                                                                                                                    list
+                                                                                                                                                      data) ->
+                                                                                                                                                  Interval
+                                                                                                                                                    {integer}
+                                                                                                                                                    (case
+                                                                                                                                                       (LowerBound
+                                                                                                                                                          integer)
+                                                                                                                                                       (unConstrData
+                                                                                                                                                          ds)
+                                                                                                                                                       [ (\(index :
+                                                                                                                                                              integer)
+                                                                                                                                                           (args :
+                                                                                                                                                              list
+                                                                                                                                                                data) ->
+                                                                                                                                                            case
+                                                                                                                                                              (list
+                                                                                                                                                                 data ->
+                                                                                                                                                               LowerBound
+                                                                                                                                                                 integer)
+                                                                                                                                                              index
+                                                                                                                                                              [ (\(ds :
+                                                                                                                                                                     list
+                                                                                                                                                                       data) ->
+                                                                                                                                                                   case
+                                                                                                                                                                     (LowerBound
+                                                                                                                                                                        integer)
+                                                                                                                                                                     ds
+                                                                                                                                                                     [ (\(ds :
+                                                                                                                                                                            data)
+                                                                                                                                                                         (ds :
+                                                                                                                                                                            list
+                                                                                                                                                                              data) ->
+                                                                                                                                                                          LowerBound
+                                                                                                                                                                            {integer}
+                                                                                                                                                                            (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                                                                                                                                                               {integer}
+                                                                                                                                                                               unIData
+                                                                                                                                                                               ds)
+                                                                                                                                                                            (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                                                                                                                                                               (headList
+                                                                                                                                                                                  {data}
+                                                                                                                                                                                  ds))) ]) ]
+                                                                                                                                                              args) ])
+                                                                                                                                                    (case
+                                                                                                                                                       (UpperBound
+                                                                                                                                                          integer)
+                                                                                                                                                       (unConstrData
+                                                                                                                                                          (headList
+                                                                                                                                                             {data}
+                                                                                                                                                             ds))
+                                                                                                                                                       [ (\(index :
+                                                                                                                                                              integer)
+                                                                                                                                                           (args :
+                                                                                                                                                              list
+                                                                                                                                                                data) ->
+                                                                                                                                                            case
+                                                                                                                                                              (list
+                                                                                                                                                                 data ->
+                                                                                                                                                               UpperBound
+                                                                                                                                                                 integer)
+                                                                                                                                                              index
+                                                                                                                                                              [ (\(ds :
+                                                                                                                                                                     list
+                                                                                                                                                                       data) ->
+                                                                                                                                                                   case
+                                                                                                                                                                     (UpperBound
+                                                                                                                                                                        integer)
+                                                                                                                                                                     ds
+                                                                                                                                                                     [ (\(ds :
+                                                                                                                                                                            data)
+                                                                                                                                                                         (ds :
+                                                                                                                                                                            list
+                                                                                                                                                                              data) ->
+                                                                                                                                                                          UpperBound
+                                                                                                                                                                            {integer}
+                                                                                                                                                                            (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                                                                                                                                                               {integer}
+                                                                                                                                                                               unIData
+                                                                                                                                                                               ds)
+                                                                                                                                                                            (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                                                                                                                                                               (headList
+                                                                                                                                                                                  {data}
+                                                                                                                                                                                  ds))) ]) ]
+                                                                                                                                                              args) ])) ]) ]
+                                                                                                                                      args) ])
+                                                                                                                            (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
+                                                                                                                               {bytestring}
+                                                                                                                               unBData
+                                                                                                                               ds)
+                                                                                                                            (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                               {ScriptPurpose}
+                                                                                                                               {data}
+                                                                                                                               `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                                                                               `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                               ds)
+                                                                                                                            (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                               {bytestring}
+                                                                                                                               {data}
+                                                                                                                               unBData
+                                                                                                                               `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                               ds)
+                                                                                                                            (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                                                                                                                               (headList
+                                                                                                                                  {data}
+                                                                                                                                  ds))) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]
+                                        args) ])
+                              (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                 (headList {data} ds))) ]) ]
+                args) ])
       {Unit}
       (\(ipv : TxInfo) (ipv : ScriptPurpose) ->
          case

@@ -383,9 +383,6 @@ letrec
           , True ]
 in
 let
-  !`$fToDataMap_$ctoBuiltinData` :
-     all k a. (\k a -> list (pair data data)) k a -> data
-    = /\k a -> \(ds : (\k a -> list (pair data data)) k a) -> mapData ds
   data Unit | Unit_match where
     Unit : Unit
 in
@@ -621,8 +618,10 @@ in
           {(\k a -> list (pair data data)) bytestring integer}
           (\(eta : data) -> unMapData eta)
           (\(eta : data) -> unMapData eta)
-          (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
-          (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
+          (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
+             mapData ds)
+          (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
+             mapData ds)
           l
           r))
     [ (/\dead -> False)

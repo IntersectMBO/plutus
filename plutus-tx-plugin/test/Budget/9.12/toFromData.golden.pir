@@ -7,8 +7,6 @@ let
     Nothing : Maybe a
   data (Tuple :: * -> * -> * -> *) a b c | Tuple_match where
     Tuple3 : a -> b -> c -> Tuple a b c
-  !casePair : all a b r. pair a b -> (a -> b -> r) -> r
-    = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
   !d : data
     = (let
           b = Maybe (Tuple bool integer bool)
@@ -79,88 +77,80 @@ in
   \(`$dUnsafeFromData` : (\a -> data -> a) integer)
    (`$dUnsafeFromData` : (\a -> data -> a) b)
    (d : data) ->
-    casePair
-      {integer}
-      {list data}
-      {Either integer b}
+    case
+      (Either integer b)
       (unConstrData d)
-      (\(index : integer) (args : list data) ->
-         case
-           (list data -> Either integer b)
-           index
-           [ (\(ds : list data) ->
-                Left {integer} {b} (`$dUnsafeFromData` (headList {data} ds)))
-           , (\(ds : list data) ->
-                Right {integer} {b} (`$dUnsafeFromData` (headList {data} ds))) ]
-           args))
+      [ (\(index : integer) (args : list data) ->
+           case
+             (list data -> Either integer b)
+             index
+             [ (\(ds : list data) ->
+                  Left {integer} {b} (`$dUnsafeFromData` (headList {data} ds)))
+             , (\(ds : list data) ->
+                  Right
+                    {integer}
+                    {b}
+                    (`$dUnsafeFromData` (headList {data} ds))) ]
+             args) ])
   unIData
   ((let
        a = Tuple bool integer bool
      in
      \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
-       casePair
-         {integer}
-         {list data}
-         {Maybe a}
+       case
+         (Maybe a)
          (unConstrData d)
-         (\(index : integer) (args : list data) ->
-            case
-              (list data -> Maybe a)
-              index
-              [ (\(ds : list data) ->
-                   Just {a} (`$dUnsafeFromData` (headList {data} ds)))
-              , (\(ds : list data) -> Nothing {a}) ]
-              args))
+         [ (\(index : integer) (args : list data) ->
+              case
+                (list data -> Maybe a)
+                index
+                [ (\(ds : list data) ->
+                     Just {a} (`$dUnsafeFromData` (headList {data} ds)))
+                , (\(ds : list data) -> Nothing {a}) ]
+                args) ])
      (\(d : data) ->
-        casePair
-          {integer}
-          {list data}
-          {Tuple bool integer bool}
+        case
+          (Tuple bool integer bool)
           (unConstrData d)
-          (\(index : integer) (args : list data) ->
-             case
-               (list data -> Tuple bool integer bool)
-               index
-               [ (\(ds : list data) ->
-                    case
-                      (Tuple bool integer bool)
-                      ds
-                      [ (\(ds : data) (ds : list data) ->
-                           case
-                             (Tuple bool integer bool)
-                             ds
-                             [ (\(ds : data) (ds : list data) ->
-                                  Tuple3
-                                    {bool}
-                                    {integer}
-                                    {bool}
-                                    (casePair
-                                       {integer}
-                                       {list data}
-                                       {bool}
-                                       (unConstrData ds)
-                                       (\(index : integer) (args : list data) ->
-                                          case
-                                            (list data -> bool)
-                                            index
-                                            [ (\(ds : list data) -> False)
-                                            , (\(ds : list data) -> True) ]
-                                            args))
-                                    (unIData ds)
-                                    (let
-                                      !d : data = headList {data} ds
-                                    in
-                                    casePair
-                                      {integer}
-                                      {list data}
+          [ (\(index : integer) (args : list data) ->
+               case
+                 (list data -> Tuple bool integer bool)
+                 index
+                 [ (\(ds : list data) ->
+                      case
+                        (Tuple bool integer bool)
+                        ds
+                        [ (\(ds : data) (ds : list data) ->
+                             case
+                               (Tuple bool integer bool)
+                               ds
+                               [ (\(ds : data) (ds : list data) ->
+                                    Tuple3
                                       {bool}
-                                      (unConstrData d)
-                                      (\(index : integer) (args : list data) ->
-                                         case
-                                           (list data -> bool)
-                                           index
-                                           [ (\(ds : list data) -> False)
-                                           , (\(ds : list data) -> True) ]
-                                           args))) ]) ]) ]
-               args)))
+                                      {integer}
+                                      {bool}
+                                      (case
+                                         bool
+                                         (unConstrData ds)
+                                         [ (\(index : integer)
+                                             (args : list data) ->
+                                              case
+                                                (list data -> bool)
+                                                index
+                                                [ (\(ds : list data) -> False)
+                                                , (\(ds : list data) -> True) ]
+                                                args) ])
+                                      (unIData ds)
+                                      (case
+                                         bool
+                                         (unConstrData (headList {data} ds))
+                                         [ (\(index : integer)
+                                             (args : list data) ->
+                                              case
+                                                (list data -> bool)
+                                                index
+                                                [ (\(ds : list data) -> False)
+                                                , (\(ds : list data) -> True) ]
+                                                args) ])) ]) ]) ]
+                 args) ]))
   d

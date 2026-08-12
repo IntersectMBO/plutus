@@ -106,8 +106,6 @@ let
                     , [] ]
           in
           go
-  !null : all a. (\a -> list data) a -> bool
-    = /\a -> \(eta : (\a -> list data) a) -> nullList {data} eta
   data Unit | Unit_match where
     Unit : Unit
 in
@@ -365,8 +363,14 @@ in
                                                                                               f
                                                                                                 x)
                                                                                           {bool}
-                                                                                          (null
-                                                                                             {data})
+                                                                                          (\(eta :
+                                                                                               (\a ->
+                                                                                                  list
+                                                                                                    data)
+                                                                                                 data) ->
+                                                                                             nullList
+                                                                                               {data}
+                                                                                               eta)
                                                                                           (filter
                                                                                              {data}
                                                                                              `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
@@ -499,8 +503,14 @@ in
                                                                                      f
                                                                                        x)
                                                                                  {bool}
-                                                                                 (null
-                                                                                    {data})
+                                                                                 (\(eta :
+                                                                                      (\a ->
+                                                                                         list
+                                                                                           data)
+                                                                                        data) ->
+                                                                                    nullList
+                                                                                      {data}
+                                                                                      eta)
                                                                                  (filter
                                                                                     {data}
                                                                                     `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`

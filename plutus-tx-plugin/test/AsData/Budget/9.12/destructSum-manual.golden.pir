@@ -1,12 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
-  !fail : unit -> data
-    = \(ds : unit) ->
-        let
-          !defaultBody : data = error {data}
-        in
-        Unit_match (error {Unit}) {data} defaultBody
   !`$mInts` :
      all r.
        data ->
@@ -37,6 +29,8 @@ let
                                  (unIData ds)
                                  (unIData ds)
                                  (unIData (headList {data} ds))) ]) ]) ]
+  data Unit | Unit_match where
+    Unit : Unit
 in
 \(d : data) ->
   let
@@ -63,7 +57,11 @@ in
                   (equalsInteger
                      2
                      (case integer tup [(\(l : integer) (r : list data) -> l)]))
-                  [ (/\dead -> fail ())
+                  [ (/\dead ->
+                       let
+                         !defaultBody : data = error {data}
+                       in
+                       Unit_match (error {Unit}) {data} defaultBody)
                   , (/\dead ->
                        let
                          !args : list data
@@ -103,8 +101,16 @@ in
                                                {data}
                                                (iData (addInteger w w))
                                                [])))))
-                              (\(void : unit) -> fail ()))
-                         (\(void : unit) -> fail ())) ]
+                              (\(void : unit) ->
+                                 let
+                                   !defaultBody : data = error {data}
+                                 in
+                                 Unit_match (error {Unit}) {data} defaultBody))
+                         (\(void : unit) ->
+                            let
+                              !defaultBody : data = error {data}
+                            in
+                            Unit_match (error {Unit}) {data} defaultBody)) ]
                   {all dead. dead})
            , (/\dead ->
                 headList
