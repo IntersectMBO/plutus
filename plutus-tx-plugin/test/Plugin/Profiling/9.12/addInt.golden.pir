@@ -7,11 +7,11 @@ let
         in
         trace
           {unit -> integer -> integer}
-          "-> addInt (test/Plugin/Profiling/Spec.hs:115:1-115:6)"
+          "-> addInt (test/Plugin/Profiling/Spec.hs:114:1-114:6)"
           (\(thunk : unit) ->
              trace
                {integer -> integer}
-               "<- addInt (test/Plugin/Profiling/Spec.hs:115:1-115:6)"
+               "<- addInt (test/Plugin/Profiling/Spec.hs:114:1-114:6)"
                (\(y : integer) -> let !y : integer = y in addInteger x y))
           ()
 in

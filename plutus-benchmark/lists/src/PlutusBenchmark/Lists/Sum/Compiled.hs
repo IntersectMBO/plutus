@@ -1,7 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.Lists.Sum.Compiled where
 

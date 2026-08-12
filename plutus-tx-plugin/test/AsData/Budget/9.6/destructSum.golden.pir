@@ -1,12 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
-  !fail : unit -> data
-    = \(ds : unit) ->
-        let
-          !defaultBody : data = error {data}
-        in
-        Unit_match (error {Unit}) {data} defaultBody
   !`$mInts` :
      all r.
        data ->
@@ -17,22 +9,30 @@ let
         \(scrut : data)
          (cont : integer -> integer -> integer -> integer -> r)
          (fail : unit -> r) ->
-          let
-            !l : list data
-              = (let
-                    b = list data
-                  in
-                  \(x : pair integer b) ->
-                    case b x [(\(l : integer) (r : b) -> r)])
-                  (unConstrData scrut)
-            !l : list data = tailList {data} l
-            !l : list data = tailList {data} l
-          in
-          cont
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} (tailList {data} l)))
+          case
+            r
+            ((let
+                 b = list data
+               in
+               \(x : pair integer b) ->
+                 case b x [(\(l : integer) (r : b) -> r)])
+               (unConstrData scrut))
+            [ (\(ds : data) (ds : list data) ->
+                 case
+                   r
+                   ds
+                   [ (\(ds : data) (ds : list data) ->
+                        case
+                          r
+                          ds
+                          [ (\(ds : data) (ds : list data) ->
+                               cont
+                                 (unIData ds)
+                                 (unIData ds)
+                                 (unIData ds)
+                                 (unIData (headList {data} ds))) ]) ]) ]
+  data Unit | Unit_match where
+    Unit : Unit
 in
 \(d : data) ->
   (let
@@ -80,5 +80,13 @@ in
                                            {data}
                                            (iData (addInteger w w))
                                            [])))))
-                          (\(void : unit) -> fail ()))
-                     (\(void : unit) -> fail ())) ]) ])
+                          (\(void : unit) ->
+                             let
+                               !defaultBody : data = error {data}
+                             in
+                             Unit_match (error {Unit}) {data} defaultBody))
+                     (\(void : unit) ->
+                        let
+                          !defaultBody : data = error {data}
+                        in
+                        Unit_match (error {Unit}) {data} defaultBody)) ]) ])

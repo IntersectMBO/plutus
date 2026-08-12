@@ -24,7 +24,7 @@ instance PlutusTx.IsData.Class.UnsafeFromData Plugin.Data.Spec.MyMonoRecord wher
   {-# INLINABLE PlutusTx.IsData.Class.unsafeFromBuiltinData #-}
   PlutusTx.IsData.Class.unsafeFromBuiltinData
     d_0 = let !args_0 = PlutusTx.Builtins.Internal.unsafeDataAsList d_1 in case args_0 of
-      {(PlutusTx.AsData.Internal.wrapUnsafeUncons -> ( (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)
+      {(PlutusTx.AsData.Internal.directUnsafeCaseList -> ( (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)
       , (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)) ))
         = Plugin.Data.Spec.MyMonoRecord arg_0 arg_0
        _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}

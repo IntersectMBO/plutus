@@ -14,8 +14,11 @@ projects=(
 
 tests_plutus_conformance=(
   "cabal run haskell-conformance -- --accept"
+  "cabal run haskell-conformance -- --format=flat --accept"
   "cabal run haskell-steppable-conformance -- --accept"
+  "cabal run haskell-steppable-conformance -- --format=flat --accept"
   "cabal run agda-conformance -- --accept"
+  "cabal run agda-conformance -- --format=flat --accept"
 )
 tests_plutus_tx_plugin=(
   "cabal run plutus-tx-plugin-tests -- --accept"

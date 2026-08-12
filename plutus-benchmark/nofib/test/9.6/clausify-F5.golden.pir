@@ -10,18 +10,24 @@
       Cons : a -> List a -> List a
   in
   let
-    !fail : unit -> Tuple2 (List integer) (List integer)
-      = \(ds : unit) ->
-          let
-            !defaultBody : Tuple2 (List integer) (List integer)
-              = error {Tuple2 (List integer) (List integer)}
-          in
-          Unit_match
-            (error {Unit})
-            {Tuple2 (List integer) (List integer)}
-            defaultBody
-    ~defaultBody : Tuple2 (List integer) (List integer) = fail ()
-    ~defaultBody : Tuple2 (List integer) (List integer) = fail ()
+    ~defaultBody : Tuple2 (List integer) (List integer)
+      = let
+        !defaultBody : Tuple2 (List integer) (List integer)
+          = error {Tuple2 (List integer) (List integer)}
+      in
+      Unit_match
+        (error {Unit})
+        {Tuple2 (List integer) (List integer)}
+        defaultBody
+    ~defaultBody : Tuple2 (List integer) (List integer)
+      = let
+        !defaultBody : Tuple2 (List integer) (List integer)
+          = error {Tuple2 (List integer) (List integer)}
+      in
+      Unit_match
+        (error {Unit})
+        {Tuple2 (List integer) (List integer)}
+        defaultBody
     data Ordering | Ordering_match where
       EQ : Ordering
       GT : Ordering

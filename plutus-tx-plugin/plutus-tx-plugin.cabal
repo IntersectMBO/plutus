@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.66.0.0
+version:         1.67.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -91,11 +91,11 @@ library
     , ghc-boot
     , lens
     , mtl
-    , plutus-core            ^>=1.66
+    , plutus-core            ^>=1.67
     , plutus-core:flat
     , plutus-core:plutus-ir
-    , plutus-metatheory      ^>=1.66
-    , plutus-tx              ^>=1.66
+    , plutus-metatheory      ^>=1.67
+    , plutus-tx              ^>=1.67
     , prettyprinter
     , random
     , regex-tdfa
@@ -113,7 +113,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.66
+    , plutus-tx-plugin      ^>=1.67
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -156,7 +156,6 @@ test-suite plutus-tx-plugin-tests
     IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
     IntegerLiterals.Strict.NegativeLiterals.Spec
     IntegerLiterals.Strict.NoNegativeLiterals.Spec
-    IsData.Budget.BuiltinCasing
     IsData.Budget.Lib
     IsData.Budget.SoP
     IsData.Spec
@@ -211,11 +210,11 @@ test-suite plutus-tx-plugin-tests
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.66
+    , plutus-core                      ^>=1.67
     , plutus-core:flat
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.66
-    , plutus-tx-plugin                 ^>=1.66
+    , plutus-tx                        ^>=1.67
+    , plutus-tx-plugin                 ^>=1.67
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , serialise
@@ -250,8 +249,8 @@ test-suite frontend-plugin-tests
   build-depends:
     , base                             >=4.9   && <5
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.66
-    , plutus-tx-plugin                 ^>=1.66
+    , plutus-tx                        ^>=1.67
+    , plutus-tx-plugin                 ^>=1.67
     , plutus-tx:plutus-tx-testlib
     , tasty
 
@@ -293,12 +292,12 @@ test-suite plutus-ledger-api-plugin-test
     , filepath
     , lens
     , mtl
-    , plutus-core                                  ^>=1.66
+    , plutus-core                                  ^>=1.67
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                            ^>=1.66
+    , plutus-ledger-api                            ^>=1.67
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.66
-    , plutus-tx-plugin                             ^>=1.66
+    , plutus-tx                                    ^>=1.67
+    , plutus-tx-plugin                             ^>=1.67
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , QuickCheck
@@ -317,10 +316,10 @@ test-suite size
   hs-source-dirs:     test/AstSize
   build-depends:
     , base                             >=4.9   && <5.0
-    , plutus-core                      ^>=1.66
+    , plutus-core                      ^>=1.67
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.66
-    , plutus-tx-plugin                 ^>=1.66
+    , plutus-tx                        ^>=1.67
+    , plutus-tx-plugin                 ^>=1.67
     , plutus-tx:plutus-tx-testlib
     , tagged
     , tasty

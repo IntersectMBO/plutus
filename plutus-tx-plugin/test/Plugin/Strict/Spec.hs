@@ -7,7 +7,6 @@
 -- To ensure the traces don't get optimized away in the tests
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:conservative-optimisation #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 
 module Plugin.Strict.Spec (strict) where

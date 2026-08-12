@@ -14,7 +14,7 @@
 module AsData.Budget.Types where
 
 import PlutusTx.AsData qualified as AsData
-import PlutusTx.AsData.Internal (wrapUnsafeDataAsConstr, wrapUnsafeUncons)
+import PlutusTx.AsData.Internal (directUnsafeCaseList, wrapUnsafeDataAsConstr)
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData qualified as PlutusTx
@@ -40,11 +40,11 @@ pattern IntsManual {int1Manual, int2Manual, int3Manual, int4Manual} <-
   IntsManualDataCon
     ( wrapUnsafeDataAsConstr ->
         BI.snd ->
-          wrapUnsafeUncons ->
+          directUnsafeCaseList ->
             ( PlutusTx.unsafeFromBuiltinData -> int1Manual
-              , wrapUnsafeUncons ->
+              , directUnsafeCaseList ->
                   ( PlutusTx.unsafeFromBuiltinData -> int2Manual
-                    , wrapUnsafeUncons ->
+                    , directUnsafeCaseList ->
                         ( PlutusTx.unsafeFromBuiltinData -> int3Manual
                           , BI.head -> PlutusTx.unsafeFromBuiltinData -> int4Manual
                           )
@@ -67,6 +67,31 @@ pattern IntsManual {int1Manual, int2Manual, int3Manual, int4Manual} <-
                 )
             )
         )
+
+-- This is for testing that the CollapseCase pass rewrites consecutive unused
+-- casing on lists into `dropList`.
+AsData.asData
+  [d|
+    data RichInts = RichInts
+      { ri1 :: Integer
+      , ri2 :: Integer
+      , ri3 :: Integer
+      , ri4 :: Integer
+      , ri5 :: Integer
+      , ri6 :: Integer
+      , ri7 :: Integer
+      , ri8 :: Integer
+      , ri9 :: Integer
+      , ri10 :: Integer
+      , ri11 :: Integer
+      , ri12 :: Integer
+      , ri13 :: Integer
+      , ri14 :: Integer
+      , ri15 :: Integer
+      , ri16 :: Integer
+      }
+      deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
 
 AsData.asData
   [d|
@@ -143,6 +168,22 @@ AsData.asData
     data RichSum
       = RichA Integer Integer Integer Integer Integer Integer
       | RichB Integer Integer Integer Integer Integer Integer Integer
-      | RichC Integer Integer Integer Integer Integer Integer Integer Integer
+      | RichC
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
+          Integer
       deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]

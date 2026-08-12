@@ -1366,8 +1366,8 @@ du_BUILTIN_384 v0 v1
                              -> coe
                                   seq (coe v32)
                                   (coe
-                                     seq (coe v11)
-                                     (coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v21)))
+                                     seq (coe v21)
+                                     (coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v11)))
                            _ -> MAlonzo.RTE.mazUnreachableError
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError

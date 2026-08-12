@@ -26,13 +26,12 @@ in
            , (/\dead -> 1) ]
            {all dead. dead})
     , (/\dead ->
-         unIData
-           (headList
-              {data}
-              ((let
-                   b = list data
-                 in
-                 \(x : pair integer b) ->
-                   case b x [(\(l : integer) (r : b) -> r)])
-                 tup))) ]
+         case
+           integer
+           ((let
+                b = list data
+              in
+              \(x : pair integer b) -> case b x [(\(l : integer) (r : b) -> r)])
+              tup)
+           [(\(ds : data) (ds : list data) -> unIData ds)]) ]
     {all dead. dead}

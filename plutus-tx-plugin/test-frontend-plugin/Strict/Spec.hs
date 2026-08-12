@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 
 -- | Verifies that the Strict extension is automatically set by the driver plugin.
 module Strict.Spec where

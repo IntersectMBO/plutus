@@ -26,12 +26,18 @@ let
                  , (\(ds : list data) ->
                       That {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
                  , (\(ds : list data) ->
-                      These
-                        {a}
-                        {b}
-                        (`$dUnsafeFromData` (headList {data} ds))
-                        (`$dUnsafeFromData`
-                           (headList {data} (tailList {data} ds)))) ]
+                      (let
+                          r = These a b
+                        in
+                        \(f : data -> list data -> r) (xs : list data) ->
+                          case r xs [f])
+                        (\(ds : data) (ds : list data) ->
+                           These
+                             {a}
+                             {b}
+                             (`$dUnsafeFromData` ds)
+                             (`$dUnsafeFromData` (headList {data} ds)))
+                        ds) ]
                  args)
 in
 letrec
@@ -377,9 +383,6 @@ letrec
           , True ]
 in
 let
-  !`$fToDataMap_$ctoBuiltinData` :
-     all k a. (\k a -> list (pair data data)) k a -> data
-    = /\k a -> \(ds : (\k a -> list (pair data data)) k a) -> mapData ds
   data Unit | Unit_match where
     Unit : Unit
 in
@@ -615,8 +618,10 @@ in
           {(\k a -> list (pair data data)) bytestring integer}
           (\(eta : data) -> unMapData eta)
           (\(eta : data) -> unMapData eta)
-          (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
-          (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
+          (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
+             mapData ds)
+          (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
+             mapData ds)
           l
           r))
     [ (/\dead -> False)

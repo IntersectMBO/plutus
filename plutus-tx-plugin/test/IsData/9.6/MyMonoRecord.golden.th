@@ -29,7 +29,7 @@ instance PlutusTx.IsData.Class.UnsafeFromData Plugin.Data.Spec.MyMonoRecord wher
       GHC.Base.$ (\index_0 args_0 ->
         PlutusTx.Builtins.Internal.caseInteger index_0
           [ \case
-            {(PlutusTx.AsData.Internal.wrapUnsafeUncons -> ( (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)
+            {(PlutusTx.AsData.Internal.directUnsafeCaseList -> ( (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)
             , (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)) ))
               = Plugin.Data.Spec.MyMonoRecord arg_0 arg_0
              _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError} ]

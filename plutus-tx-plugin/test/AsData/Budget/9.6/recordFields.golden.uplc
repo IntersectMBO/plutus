@@ -1,6 +1,6 @@
 (program
    1.1.0
-   ((\forced forced d ->
+   ((\forced d ->
        (\cse ->
           (\cse ->
              (\cse ->
@@ -26,18 +26,20 @@
                (cse (\ds ds ds ds -> ds) (\void -> error)))
             (cse (\ds ds ds ds -> ds) (\void -> error)))
          (\cont fail ->
-            (\l ->
-               (\l ->
-                  (\l ->
-                     case
-                       (constr 0
-                          [ (unIData (forced l))
-                          , (unIData (forced l))
-                          , (unIData (forced l))
-                          , (unIData (forced (forced l))) ])
-                       [cont])
-                    (forced l))
-                 (forced l))
-              (case (unConstrData d) [(\l r -> r)])))
-      (force tailList)
+            case
+              (case (unConstrData d) [(\l r -> r)])
+              [ (\ds ds ->
+                   case
+                     ds
+                     [ (\ds ds ->
+                          case
+                            ds
+                            [ (\ds ds ->
+                                 case
+                                   (constr 0
+                                      [ (unIData ds)
+                                      , (unIData ds)
+                                      , (unIData ds)
+                                      , (unIData (forced ds)) ])
+                                   [cont]) ]) ]) ]))
       (force headList)))

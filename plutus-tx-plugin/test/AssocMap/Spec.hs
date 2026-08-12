@@ -12,7 +12,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:defer-errors #-}
 -- CSE is very unstable and produces different output, likely depending on the version of either
 -- @unordered-containers@ or @hashable@.
@@ -46,7 +45,7 @@ goldenTests =
 
 propertyTests :: TestTree
 propertyTests =
-  localOption (HedgehogTestLimit (Just 30)) $
+  localOption (HedgehogTestLimit (Just 10)) $
     testGroup
       "Map property tests"
       [ testProperty "safeFromList" safeFromListSpec

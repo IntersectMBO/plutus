@@ -167,7 +167,12 @@ pluginOptions =
               (plcParserOption PLC.version k)
               posPlcTargetVersion
               desc
-              [Implication (== PLC.plcVersion100) posApplyToCase False]
+              [ Implication (== PLC.plcVersion100) posApplyToCase False
+              , Implication
+                  (== PLC.plcVersion100)
+                  posDatatypes
+                  (PIR.DatatypeCompilationOpts PIR.ScottEncoding)
+              ]
           )
     , let k = "typecheck"
           desc = "Perform type checking during compilation."

@@ -14,30 +14,15 @@ wrapUnsafeDataAsConstr :: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList
 wrapUnsafeDataAsConstr = BI.unsafeDataAsConstr
 {-# OPAQUE wrapUnsafeDataAsConstr #-}
 
--- This will no longer be needed post the van Rossem HF, since we will be using
--- `case` to unpack builtin lists.
-wrapTail :: BuiltinList a -> BuiltinList a
-wrapTail = BI.tail
-{-# OPAQUE wrapTail #-}
-
--- Like `unsafeUncons` but uses `wrapTail` instead of the regular `tail`.
---
--- This function can be inlined, because the Plinth compiler does not rely on it being present.
---
--- We don't need a `wrapHead`, because there are no strict dead bindings of the form
--- `let !y = head xs`. The dead bindings are only in the form of `let !ys = tail xs`
--- and `let !y = unsafeFromBuiltinData (head xs)`.
---
--- This will no longer be needed post the van Rossem HF, since we will be using
--- `case` to unpack builtin lists.
-wrapUnsafeUncons :: BuiltinList a -> (a, BuiltinList a)
-wrapUnsafeUncons l = (BI.head l, wrapTail l)
-{-# INLINE wrapUnsafeUncons #-}
-
 -- See Note [Dropping redundant unsafeCaseList calls produced by AsData]
 droppableUnsafeCaseList :: forall a r. (a -> BuiltinList a -> r) -> BuiltinList a -> r
 droppableUnsafeCaseList = BI.unsafeCaseList
 {-# OPAQUE droppableUnsafeCaseList #-}
+
+-- See Note [Use list casing in AsData pattern synonyms]
+directUnsafeCaseList :: BuiltinList a -> (a, BuiltinList a)
+directUnsafeCaseList = BI.unsafeCaseList (,)
+{-# OPAQUE directUnsafeCaseList #-}
 
 {- Note [Compiling AsData Matchers and Their Invocations]
 
@@ -64,16 +49,6 @@ continuation is `\x y z w -> f x` (indicating a data type with 4 fields, of whic
 first is used), marking `x`, `y`, `z` and `w` as safe to inline allows the inliner to
 drop the unused ones.
 
-This eliminates unused field accessors, but there are still the `tailList` dead bindings, which
-are intermediate artifacts in generating the field accessors. This is what `wrapTail` is for.
-`wrapTail` appears in `case` scrutinees, as in `case wrapTail @BuiltinData l of l' -> ...`.
-So the compiler detects such `case` expressions, and mark the binder, `l'`, as
-safe to inline.
-
-`wrapUnsafeUncons` and `wrapTail` will no longer be needed post the van Rossem HF, since
-we will be using `case` to unpack builtin lists. We may no longer need `wrapUnsafeDataAsConstr`
-either, but this needs to be examined and verified.
-
 -}
 
 {- Note [Dropping redundant unsafeCaseList calls produced by AsData]
@@ -91,5 +66,20 @@ However, we know that the `unsafeCaseList` calls generated from AsData are never
 to empty lists, so redundant ones can be dropped safely. To do so, we annotate the
 `case` expressions with `SafeToDrop`, and use a PIR simplifier pass, DeadCase, to drop the
 redundant ones.
+
+-}
+
+{- Note [Use list casing in AsData pattern synonyms]
+
+AsData pattern synonyms cannot directly call `unsafeCaseList` or `droppableUnsafeCaseList`
+because they are CPS-style functions and aren't compatible with view patterns. The
+solution is to introduce an opaque, direct-style `directUnsafeCaseList`, and rewrite it
+to `droppableUnsafeCaseList` in the plugin. Specifically, the plugin turns
+
+case directUnsafeCaseList xs of (hd, tl) -> body
+
+into
+
+droppableUnsafeCaseList (\hd tl -> body) xs
 
 -}

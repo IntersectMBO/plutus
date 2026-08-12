@@ -63,24 +63,32 @@
                                                 (\cse -> case cse [cse])
                                                   error) ])
                                         [`$mInts`])
-                                     (\scrut cont fail ->
-                                        (\l ->
-                                           (\l ->
-                                              (\l ->
-                                                 case
-                                                   (constr 0
-                                                      [ (unIData (forced l))
-                                                      , (unIData (forced l))
-                                                      , (unIData (forced l))
-                                                      , (unIData
-                                                           (forced
-                                                              (forced l))) ])
-                                                   [cont])
-                                                (forced l))
-                                             (forced l))
+                                     (\scrut
+                                       cont
+                                       fail ->
+                                        case
                                           (case
                                              (unConstrData scrut)
-                                             [(\l r -> r)])))
+                                             [(\l r -> r)])
+                                          [ (\ds
+                                              ds ->
+                                               case
+                                                 ds
+                                                 [ (\ds
+                                                     ds ->
+                                                      case
+                                                        ds
+                                                        [ (\ds
+                                                            ds ->
+                                                             case
+                                                               (constr 0
+                                                                  [ (unIData ds)
+                                                                  , (unIData ds)
+                                                                  , (unIData ds)
+                                                                  , (unIData
+                                                                       (forced
+                                                                          ds)) ])
+                                                               [cont]) ]) ]) ]))
                                   (forced (forced args)))
                                (case cse [(\l r -> r)])) ])
                      , (forced (case cse [(\l r -> r)])) ])

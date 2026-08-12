@@ -89,13 +89,24 @@ data Command
 ---------------- Option parsers ----------------
 
 pPirOptimiseOptions :: Parser PirOptimiseOptions
-pPirOptimiseOptions = PirOptimiseOptions <$> input <*> pPirInputFormat <*> output <*> pPirOutputFormat <*> printmode
+pPirOptimiseOptions =
+  (\(inp, ifmt) (outp, ofmt) mode -> PirOptimiseOptions inp ifmt outp ofmt mode)
+    <$> pPirInputWithFormat
+    <*> pPirOutputWithFormat
+    <*> printmode
 
 pPirConvertOptions :: Parser PirConvertOptions
-pPirConvertOptions = PirConvertOptions <$> input <*> pPirInputFormat <*> output <*> pPirOutputFormat <*> printmode
+pPirConvertOptions =
+  (\(inp, ifmt) (outp, ofmt) mode -> PirConvertOptions inp ifmt outp ofmt mode)
+    <$> pPirInputWithFormat
+    <*> pPirOutputWithFormat
+    <*> printmode
 
 pAnalyseOptions :: Parser AnalyseOptions
-pAnalyseOptions = AnalyseOptions <$> input <*> pPirInputFormat <*> output
+pAnalyseOptions =
+  (\(inp, ifmt) outp -> AnalyseOptions inp ifmt outp)
+    <$> pPirInputWithFormat
+    <*> output
 
 {-| Whether to perform optimisations or not.  The default here is True,
 ie *do* optimise; specifying --dont-optimise returns False. -}
@@ -118,12 +129,13 @@ pJustTest =
 
 pCompileOptions :: Parser CompileOptions
 pCompileOptions =
-  CompileOptions
+  ( \lang opt test (inp, ifmt) outp ofmt mode ->
+      CompileOptions lang opt test inp ifmt outp ofmt mode
+  )
     <$> pLanguage
     <*> pOptimise
     <*> pJustTest
-    <*> input
-    <*> pPirInputFormat
+    <*> pPirInputWithFormat
     <*> output
     <*> outputformat
     <*> printmode

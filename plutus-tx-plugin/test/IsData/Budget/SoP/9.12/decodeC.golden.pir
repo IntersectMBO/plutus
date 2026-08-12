@@ -9,32 +9,16 @@ in
     ((let
          b = list data
        in
-       /\r ->
-         \(p : pair integer b) (f : integer -> b -> r) ->
-           f (fstPair {integer} {b} p) (sndPair {integer} {b} p))
+       /\r -> \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
        {ABC}
        (unConstrData d)
        (\(index : integer) (args : list data) ->
-          ifThenElse
-            {all dead. list data -> ABC}
-            (equalsInteger 0 index)
-            (/\dead -> \(ds : list data) -> A (unIData (headList {data} ds)))
-            (/\dead ->
-               ifThenElse
-                 {all dead. list data -> ABC}
-                 (equalsInteger 1 index)
-                 (/\dead ->
-                    \(ds : list data) -> B (unIData (headList {data} ds)))
-                 (/\dead ->
-                    ifThenElse
-                      {all dead. list data -> ABC}
-                      (equalsInteger 2 index)
-                      (/\dead ->
-                         \(ds : list data) -> C (unIData (headList {data} ds)))
-                      (/\dead -> error {list data -> ABC})
-                      {list data -> ABC})
-                 {list data -> ABC})
-            {list data -> ABC}
+          case
+            (list data -> ABC)
+            index
+            [ (\(ds : list data) -> A (unIData (headList {data} ds)))
+            , (\(ds : list data) -> B (unIData (headList {data} ds)))
+            , (\(ds : list data) -> C (unIData (headList {data} ds))) ]
             args))
     {integer}
     (\(x : integer) -> x)

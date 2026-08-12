@@ -31,6 +31,7 @@ module PlutusCore.Value
   , deleteCoin
   , scaleValue
   , lookupCoin
+  , policies
   , valueContains
   , unionValue
   , valueData
@@ -394,6 +395,13 @@ lookupCoin (UnsafeK -> currency) (UnsafeK -> token) (unpack -> outer) =
   case Map.lookup currency outer of
     Nothing -> 0
     Just inner -> unQuantity $ Map.findWithDefault zeroQuantity token inner
+
+{-| \(O(m)\), where \(m\) is the size of the outer map. The currency symbols in
+the `Value`, in ascending order, including the lovelace currency symbol (the
+empty bytestring) if present. -}
+policies :: Value -> [ByteString]
+policies = map unK . Map.keys . unpack
+{-# INLINEABLE policies #-}
 
 {-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second
 `Value`, \(m_{1}\) is the size of the outer map in the first `Value` and \(k_{1}\) is

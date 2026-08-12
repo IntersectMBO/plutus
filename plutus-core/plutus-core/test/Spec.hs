@@ -13,6 +13,7 @@ import PlutusPrelude
 import CBOR.DataStability qualified
 import Check.Spec qualified as Check
 import CostModelInterface.Spec
+import CostModelJSON.Spec (test_costModelJSON)
 import CostModelSafety.Spec
 import Evaluation.Spec (test_evaluation)
 import Flat.Spec qualified as FlatSpec
@@ -262,6 +263,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , test_evaluation
     , test_normalizationCheck
     , test_costModelInterface
+    , test_costModelJSON
     , test_costModelSafety
     , CBOR.DataStability.tests
     , Check.tests

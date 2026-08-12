@@ -6,41 +6,13 @@ let
     = `$fToDataInteger_$ctoBuiltinData`
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
-  !head : all a. list a -> a = headList
+  !droppableUnsafeCaseList : all a r. (a -> list a -> r) -> list a -> r
+    = /\a r -> \(f : a -> list a -> r) (xs : list a) -> case r xs [f]
   !snd : all a b. pair a b -> b
     = /\a b -> \(x : pair a b) -> case b x [(\(l : a) (r : b) -> r)]
-  !tail : all a. list a -> list a = tailList
-  ~wrapTail : all a. list a -> list a = tail
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~wrapUnsafeDataAsConstr : data -> pair integer (list data)
     = unsafeDataAsConstr
-  ~`$mRecordConstructor` :
-     all r a.
-       (\a -> a -> data) a ->
-       (\a -> data -> a) a ->
-       (\a -> data) a ->
-       (a -> integer -> r) ->
-       (unit -> r) ->
-       r
-    = /\r a ->
-        \(`$dToData` : (\a -> a -> data) a)
-         (`$dUnsafeFromData` : (\a -> data -> a) a)
-         (scrut : (\a -> data) a) ->
-          let
-            !nt : data = scrut
-          in
-          \(cont : a -> integer -> r) ->
-            let
-              !cont : a -> integer -> r = cont
-            in
-            \(fail : unit -> r) ->
-              let
-                !l : list data
-                  = snd {integer} {list data} (wrapUnsafeDataAsConstr nt)
-              in
-              cont
-                (`$dUnsafeFromData` (head {data} l))
-                (unsafeDataAsI (head {data} (wrapTail {data} l)))
   ~x : all a. (\a -> a -> data) a -> (\a -> data -> a) a -> (\a -> data) a -> a
     = /\a ->
         \(`$dToData` : (\a -> a -> data) a)
@@ -49,14 +21,15 @@ let
           let
             !nt : data = ds
           in
-          `$mRecordConstructor`
+          droppableUnsafeCaseList
+            {data}
             {a}
-            {a}
-            `$dToData`
-            `$dUnsafeFromData`
-            nt
-            (\(ds : a) (ds : integer) -> ds)
-            (\(void : unit) -> (/\e -> error {e}) {a})
+            (\(ds : data) ->
+               let
+                 ~ds : a = `$dUnsafeFromData` ds
+               in
+               \(ds : list data) -> ds)
+            (snd {integer} {list data} (wrapUnsafeDataAsConstr nt))
 in
 \(r : (\a -> data) integer) ->
   let

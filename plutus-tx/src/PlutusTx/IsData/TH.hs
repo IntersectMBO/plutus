@@ -129,7 +129,7 @@ mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames =
       where
         go [] = [p|_|]
         go [x] = [p|(BI.head -> $x)|]
-        go (x : xs) = [p|(AI.wrapUnsafeUncons -> ($x, $(go xs)))|]
+        go (x : xs) = [p|(AI.directUnsafeCaseList -> ($x, $(go xs)))|]
     pat =
       -- We can safely omit the index match if we know that the type is a product type
       case isProduct of

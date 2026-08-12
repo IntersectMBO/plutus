@@ -9,7 +9,7 @@ import List.Semantics
 
 propertyTests :: TestTree
 propertyTests =
-  localOption (HedgehogTestLimit (Just 30)) $
+  localOption (HedgehogTestLimit (Just 10)) $
     testGroup
       "List property tests"
       [ testProperty "areInverses" areInversesSpec

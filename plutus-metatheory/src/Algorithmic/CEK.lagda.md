@@ -316,7 +316,7 @@ BUILTIN unValueData (base $ V-con d) with unValueDATA d
 ... | just v  = inj₂ (V-con v)
 BUILTIN mkNilData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN mkNilPairData (base $ V-con _) = inj₂ (V-con [])
-BUILTIN chooseUnit (Λ̂ A $ x $ V-con _) = inj₂ x
+BUILTIN chooseUnit (Λ̂ A $ V-con _ $ x) = inj₂ x
 BUILTIN equalsData (base $ V-con d $ V-con d') = inj₂ (V-con (eqDATA d d'))
 BUILTIN mkPairData (base $ V-con x $ V-con y) = inj₂ (V-con (x ,, y))
 BUILTIN constrData (base $ V-con i $ V-con xs) = inj₂ (V-con (ConstrDATA i xs))

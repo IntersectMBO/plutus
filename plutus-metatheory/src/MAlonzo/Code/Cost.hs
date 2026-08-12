@@ -487,7 +487,7 @@ d_cekMachineCostFunction_116 v0 v1
       MAlonzo.Code.Cost.Base.C_BConstr_22
         -> coe
              d_fromHExBudget_64
-             (coe MAlonzo.Code.Cost.Raw.d_getCekConstCost_12 v0)
+             (coe MAlonzo.Code.Cost.Raw.d_getCekConstrCost_24 v0)
       MAlonzo.Code.Cost.Base.C_BCase_24
         -> coe
              d_fromHExBudget_64

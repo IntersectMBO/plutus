@@ -100,6 +100,7 @@ module PlutusTx.Builtins
   , sopListToArray
   , BI.lengthOfArray
   , BI.indexArray
+  , BI.multiIndexArray
 
     -- * Tracing
   , trace
@@ -166,6 +167,7 @@ module PlutusTx.Builtins
   , BI.mkValue
   , BI.unsafeDataAsValue
   , BI.scaleValue
+  , BI.policies
   ) where
 
 import Data.Maybe

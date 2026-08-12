@@ -40,7 +40,7 @@ PlutusTx.IsData.Class.UnsafeFromData (Plugin.Data.Spec.MyPolyData a_0 b_0) where
       GHC.Base.$ (\index_0 args_0 ->
         PlutusTx.Builtins.Internal.caseInteger index_0
           [ \case
-            {(PlutusTx.AsData.Internal.wrapUnsafeUncons -> ( (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)
+            {(PlutusTx.AsData.Internal.directUnsafeCaseList -> ( (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)
             , (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)) ))
               = Plugin.Data.Spec.Poly1 arg_0 arg_0
              _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}

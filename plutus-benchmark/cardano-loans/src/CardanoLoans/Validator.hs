@@ -24,7 +24,6 @@
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-conservative-optimisation #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:no-remove-trace #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:preserve-logging #-}

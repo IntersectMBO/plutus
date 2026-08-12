@@ -688,6 +688,20 @@ indexArray (BuiltinArray v) i
   | otherwise = Haskell.error "array index out of bounds"
 {-# OPAQUE indexArray #-}
 
+{-| Returns the elements at the given indices, in index-list order with duplicates preserved.
+  Fails if any index is not in the range @[0..j)@, where @j@ is the length of the array. -}
+multiIndexArray :: BuiltinArray a -> BuiltinList BuiltinInteger -> BuiltinList a
+multiIndexArray (BuiltinArray v) (BuiltinList is) =
+  case traverse lookupIndex is of
+    Just els -> BuiltinList els
+    Nothing -> Haskell.error "array index out of bounds"
+  where
+    len = toInteger (Vector.length v)
+    lookupIndex i
+      | 0 <= i && i < len = Just (Vector.unsafeIndex v (fromInteger i))
+      | otherwise = Nothing
+{-# OPAQUE multiIndexArray #-}
+
 {-
 BLS12_381
 -}
@@ -1157,6 +1171,10 @@ scaleValue c (BuiltinValue val) =
       traceAll (logs <> pure (display err)) $
         Haskell.error "scaleValue errored."
 {-# OPAQUE scaleValue #-}
+
+policies :: BuiltinValue -> BuiltinList BuiltinByteString
+policies (BuiltinValue v) = BuiltinList (BuiltinByteString <$> Value.policies v)
+{-# OPAQUE policies #-}
 
 caseInteger :: Integer -> [a] -> a
 caseInteger i b

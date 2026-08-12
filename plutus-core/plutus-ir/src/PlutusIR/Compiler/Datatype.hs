@@ -349,7 +349,6 @@ mkPatternFunctorBody
 mkPatternFunctorBody opts ann d = case _dcoStyle opts of
   ScottEncoding -> mkScottTy ann d
   SumsOfProducts -> pure $ mkDatatypeSOPTy ann d
-  BuiltinCasing -> pure $ mkDatatypeSOPTy ann d
 
 {-| Make the real PLC type corresponding to a 'Datatype' with the given pattern functor body.
 
@@ -444,7 +443,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
     pure $ zipWith (VarDecl ann) argNames argTypes
 
   constrBody <- case _dcoStyle opts of
-    style | style == SumsOfProducts || style == BuiltinCasing -> do
+    SumsOfProducts -> do
       -- We have to be a bit careful annotating the type of the constr. It is inside the 'wrap' so it
       -- needs to be one level "unrolled".
 
@@ -520,7 +519,7 @@ mkDestructor opts dty d@(Datatype ann _ tvs _ constrs) = do
   xn <- safeFreshName "x"
 
   destrBody <- case _dcoStyle opts of
-    style | style == SumsOfProducts || style == BuiltinCasing -> do
+    SumsOfProducts -> do
       resultType <- resultTypeName d
       -- Variables for case arguments, and the bodies to be used as the actual cases
       caseVars <- for constrs $ \c -> do

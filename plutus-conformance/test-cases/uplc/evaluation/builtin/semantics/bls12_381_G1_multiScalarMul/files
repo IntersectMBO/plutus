@@ -1,0 +1,95 @@
+multiScalarMul-01.uplc
+-- Multi-scalar multiplication is the same as ordinary scalar multiplication for inputs of size 1.
+Singleton lists + scalarMul
+
+
+multiScalarMul-02a.uplc
+-- Multi-scalar multiplication is itertated multiply-and-add.
+-- msm [n1,n2,n3,n4,n5,n6] [p1,p2,p3,p4,p5,p6] = n1*p1+(n2*p2+(n3*p3+(n4*p4+(n5*p5+n6*p6))))
+fold
+
+multiScalarMul-02b.uplc
+-- Multi-scalar multiplication is itertated multiply-and-add.
+-- msm [n1,n2,n3,n4,n5,n6] [p1,p2,p3,p4,p5,p6] = n1*p1+(n2*p2+(n3*p3+(n4*p4+(n5*p5+n6*p6))))
+-- No infinite points in the input.
+fold
+
+multiScalarMul-03a.uplc
+-- Multi-scalar multiplication is itertated multiply-and-add.
+-- msm [n1,n2,n3,n4,n5,n6] [p1,p2,p3,p4,p5,p6] = ((((n1*p1+n2*p2)+n3*p3)+n4*p4)+n5*p5)+n6*p6
+fold
+
+multiScalarMul-03b.uplc
+-- Multi-scalar multiplication is itertated multiply-and-add.
+-- msm [n1,n2,n3,n4,n5,n6] [p1,p2,p3,p4,p5,p6] = ((((n1*p1+n2*p2)+n3*p3)+n4*p4)+n5*p5)+n6*p6
+-- No infinite points in the input.
+fold
+
+multiScalarMul-04a.uplc
+-- Multi-scalar multiplication is itertated multiply-and-add, invariant under permutation and association.
+-- msm [n1,n2,n3,n4,n5,n6] [p1,p2,p3,p4,p5,p6] = n4*p4+((n3*p3+n1*p1)+(n6*p6+(n2*p2+n5*p5)))
+fold
+
+multiScalarMul-04b.uplc
+-- Multi-scalar multiplication is itertated multiply-and-add, invariant under permutation and association.
+-- msm [n1,n2,n3,n4,n5,n6] [p1,p2,p3,p4,p5,p6] = n4*p4+((n3*p3+n1*p1)+(n6*p6+(n2*p2+n5*p5)))
+-- No infinite points in the input.
+fold
+
+multiScalarMul-05a.uplc
+-- msm (n:ns) (p:ps) = n*p + msm ns ps
+msm + cons
+
+multiScalarMul-05b.uplc
+-- msm (n:ns) (p:ps) = n*p + msm ns ps
+-- No infinite points in the input.
+-- msm + cons
+
+multiScalarMul-06a.uplc
+-- First argument is empty list => result = zero
+Done
+
+multiScalarMul-06b.uplc
+-- First argument is empty list => result = zero
+-- No infinite points in the input.
+Done
+
+multiScalarMul-07.uplc
+-- Second argument is empty list => result = zero
+Done
+
+multiScalarMul-08.uplc
+-- Both arguments are empty lists => result = zero
+Done
+
+
+multiScalarMul-09a.uplc
+-- Extra entries at end of first list are ignored
+Done
+
+multiScalarMul-09b.uplc
+-- Extra entries at end of first list are ignored.
+-- No infinite points in the input.
+Done
+
+multiScalarMul-10a.uplc
+-- Extra entries at end of second list are ignored
+Done
+
+multiScalarMul-10b.uplc
+-- Extra entries at end of second list are ignored
+-- No infinite points in the input.
+Done
+
+multiScalarMul-11.uplc
+-- All entries in second list are the zero point => result is the zero point
+Done
+
+multiScalarMul-12a.uplc
+-- All entries in the first list are zero => result is the zero point.
+Done
+
+multiScalarMul-12b.uplc
+-- All entries in the first list are zero => result is the zero point.
+-- No infinite points in the input.
+Done
