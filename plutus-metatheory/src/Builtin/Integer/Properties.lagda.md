@@ -581,7 +581,8 @@ private
   divModFixup-neg q (-[1+ m ]) -[1+ n ] = refl
 
 quot-neg-neg-law
-  : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}} → quot (- n) (- d) ≡ quot n d
+  : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}}
+  → quot (- n) (- d) ≡ quot n d
 quot-neg-neg-law +0       +[1+ k ] = refl
 quot-neg-neg-law +0       -[1+ k ] = refl
 quot-neg-neg-law +[1+ m ] +[1+ k ] = refl
@@ -590,18 +591,21 @@ quot-neg-neg-law -[1+ m ] +[1+ k ] = refl
 quot-neg-neg-law -[1+ m ] -[1+ k ] = refl
 
 rem-neg-neg-law
-  : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}} → rem (- n) (- d) ≡ - rem n d
+  : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}}
+  → rem (- n) (- d) ≡ - rem n d
 rem-neg-neg-law n +[1+ k ] = rem-neg-law n -[1+ k ]
 rem-neg-neg-law n -[1+ k ] = rem-neg-law n +[1+ k ]
 
 div-neg-neg-law
-  : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}} → div (- n) (- d) ≡ div n d
+  : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}}
+  → div (- n) (- d) ≡ div n d
 div-neg-neg-law n d = trans
   (cong₂ (λ x y → proj₁ (divModFixup x y (- d))) (quot-neg-neg-law n d) (rem-neg-neg-law n d))
   (cong proj₁ (divModFixup-neg (quot n d) (rem n d) d))
 
 mod-neg-neg-law
-  : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}} → mod (- n) (- d) ≡ - mod n d
+  : (n d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}}
+  → mod (- n) (- d) ≡ - mod n d
 mod-neg-neg-law n d = trans
   (cong₂ (λ x y → proj₂ (divModFixup x y (- d))) (quot-neg-neg-law n d) (rem-neg-neg-law n d))
   (cong proj₂ (divModFixup-neg (quot n d) (rem n d) d))
@@ -869,15 +873,21 @@ mod-additive-law a a' b = begin
   mod (mod a b + mod a' b) b
   ∎
   where
+    shuffle : ∀ p u q v w → (p * w + u) + (q * w + v) ≡ (u + v) + (p + q) * w
+    shuffle =
+      solve
+        5
+        (λ p u q v w →
+          ((p :* w) :+ u) :+ ((q :* w) :+ v)
+          := (u :+ v) :+ ((p :+ q) :* w)
+        )
+        refl
+      where open +-*-Solver
     expand : a + a' ≡ (mod a b + mod a' b) + (div a b + div a' b) * b
-    expand = trans (cong₂ _+_ (sym (divMod-law a b)) (sym (divMod-law a' b)))
-                   (shuffle (div a b) (mod a b) (div a' b) (mod a' b) b)
-      where
-        shuffle : ∀ p u q v w → (p * w + u) + (q * w + v) ≡ (u + v) + (p + q) * w
-        shuffle = solve 5 (λ p u q v w →
-                    ((p :* w) :+ u) :+ ((q :* w) :+ v)
-                    := (u :+ v) :+ ((p :+ q) :* w)) refl
-          where open +-*-Solver
+    expand =
+      trans
+      (cong₂ _+_ (sym (divMod-law a b)) (sym (divMod-law a' b)))
+      (shuffle (div a b) (mod a b) (div a' b) (mod a' b) b)
 
 mod-multiplicative-law
   : (a a' b : ℤ) .{{_ : NonZero b}}
@@ -892,16 +902,24 @@ mod-multiplicative-law a a' b = begin
   mod (mod a b * mod a' b) b
   ∎
   where
-    expand : a * a' ≡ (mod a b * mod a' b)
-                      + (div a b * div a' b * b + div a b * mod a' b + mod a b * div a' b) * b
-    expand = trans (cong₂ _*_ (sym (divMod-law a b)) (sym (divMod-law a' b)))
-                   (shuffle (div a b) (mod a b) (div a' b) (mod a' b) b)
+    expand
+      : a * a' ≡ (mod a b * mod a' b) + (div a b * div a' b * b + div a b * mod a' b + mod a b * div a' b) * b
+    expand =
+      trans
+        (cong₂ _*_ (sym (divMod-law a b)) (sym (divMod-law a' b)))
+        (shuffle (div a b) (mod a b) (div a' b) (mod a' b) b)
       where
-        shuffle : ∀ p u q v w
+        shuffle
+          : ∀ p u q v w
           → (p * w + u) * (q * w + v) ≡ (u * v) + (p * q * w + p * v + u * q) * w
-        shuffle = solve 5 (λ p u q v w →
-                    ((p :* w) :+ u) :* ((q :* w) :+ v)
-                    := (u :* v) :+ (((p :* q :* w) :+ (p :* v) :+ (u :* q)) :* w)) refl
+        shuffle = 
+          solve
+            5
+            (λ p u q v w →
+              ((p :* w) :+ u) :* ((q :* w) :+ v)
+              := (u :* v) :+ (((p :* q :* w) :+ (p :* v) :+ (u :* q)) :* w)
+            )
+            refl
           where open +-*-Solver
 ```
 
