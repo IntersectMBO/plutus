@@ -4,6 +4,7 @@ module PlutusIR.AstSize
   , typeAstSize
   , tyVarDeclAstSize
   , termAstSize
+  , termAstSizeErased
   , varDeclAstSize
   ) where
 
@@ -24,3 +25,7 @@ termAstSize term =
     , term ^. termSubtypes . to typeAstSize
     , term ^. termSubterms . to termAstSize
     ]
+
+-- | Count the number of AST nodes in a term, ignoring type and kind nodes.
+termAstSizeErased :: Term tyname name uni fun ann -> AstSize
+termAstSizeErased term = AstSize 1 <> foldMapOf termSubterms termAstSizeErased term

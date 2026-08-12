@@ -61,59 +61,62 @@
   let
     data Unit | Unit_match where
       Unit : Unit
-    !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-      = /\a r ->
-          \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   in
   letrec
     !findInputByOutRef : data -> list data -> data
       = \(ref : data) (inputs : list data) ->
-          caseList'
-            {data}
-            {data}
-            (let
-              !x : Unit = trace {Unit} "Own input not found" Unit
-            in
-            error {data})
-            (\(txIn : data) (txIns : list data) ->
-               case
-                 (all dead. data)
-                 (equalsData
-                    (headList
-                       {data}
-                       (case
-                          (list data)
-                          (unConstrData txIn)
-                          [(\(l : integer) (r : list data) -> r)]))
-                    ref)
-                 [(/\dead -> findInputByOutRef ref txIns), (/\dead -> txIn)]
-                 {all dead. dead})
+          let
+            !z : data
+              = let
+                !x : Unit = trace {Unit} "Own input not found" Unit
+              in
+              error {data}
+          in
+          case
+            data
             inputs
+            [ (\(txIn : data) (txIns : list data) ->
+                 case
+                   (all dead. data)
+                   (equalsData
+                      (headList
+                         {data}
+                         (case
+                            (list data)
+                            (unConstrData txIn)
+                            [(\(l : integer) (r : list data) -> r)]))
+                      ref)
+                   [(/\dead -> findInputByOutRef ref txIns), (/\dead -> txIn)]
+                   {all dead. dead})
+            , z ]
   in
   letrec
     !findOutputByAddress : data -> list data -> data
       = \(addr : data) (outputs : list data) ->
-          caseList'
-            {data}
-            {data}
-            (let
-              !x : Unit = trace {Unit} "Own output not found" Unit
-            in
-            error {data})
-            (\(out : data) (outs : list data) ->
-               case
-                 (all dead. data)
-                 (equalsData
-                    (headList
-                       {data}
-                       (case
-                          (list data)
-                          (unConstrData out)
-                          [(\(l : integer) (r : list data) -> r)]))
-                    addr)
-                 [(/\dead -> findOutputByAddress addr outs), (/\dead -> out)]
-                 {all dead. dead})
+          let
+            !z : data
+              = let
+                !x : Unit = trace {Unit} "Own output not found" Unit
+              in
+              error {data}
+          in
+          case
+            data
             outputs
+            [ (\(out : data) (outs : list data) ->
+                 case
+                   (all dead. data)
+                   (equalsData
+                      (headList
+                         {data}
+                         (case
+                            (list data)
+                            (unConstrData out)
+                            [(\(l : integer) (r : list data) -> r)]))
+                      addr)
+                   [(/\dead -> findOutputByAddress addr outs), (/\dead -> out)]
+                   {all dead. dead})
+            , z ]
   in
   letrec
     !txSignedBy' : list data -> bytestring -> bool
