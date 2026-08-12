@@ -1,1 +1,0 @@
-(program 1.0.0 [ [ (builtin modInteger) (con integer 6) ] (con integer -3) ])

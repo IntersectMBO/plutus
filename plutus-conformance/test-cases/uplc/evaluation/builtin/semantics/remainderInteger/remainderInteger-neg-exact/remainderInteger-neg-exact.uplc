@@ -1,1 +1,0 @@
-(program 1.0.0 [ [ (builtin remainderInteger) (con integer 6) ] (con integer -3) ])
