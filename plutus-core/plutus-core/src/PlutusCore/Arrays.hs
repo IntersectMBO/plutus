@@ -18,12 +18,13 @@ import Data.Vector.Strict qualified as Vector
 Looking up a list of indices means walking that list, and the time to walk a
 list is not determined by its length alone, so execution time stops being
 predictable from the index count beyond some size.  We therefore limit the
-number of indices, and the cost model is fitted over exactly that range.  The
-limit is far above any realistic use: a transaction is limited to 16384 bytes,
-so a serialised list of this many indices would not fit even if the transaction
-carried nothing else.  This limit may be raised once costing can bound the cost
-without it, but note that doing so would need a second variant of the builtin so
-that existing scripts keep their current behaviour.
+number of indices, and the cost model is fitted over exactly that range.
+Keeping the range short also lets a single quadratic follow the measurements
+closely across all of it, so a call is charged near what it costs.  The limit
+is still far above realistic use, which reads tens of elements rather than
+thousands.  It may be raised once costing can bound the cost without it, but
+note that doing so would need a second variant of the builtin so that existing
+scripts keep their current behaviour.
 
 Compare Note [Input length limitation for IntegerToByteString], which limits
 those builtins for the same underlying reason.
@@ -31,7 +32,7 @@ those builtins for the same underlying reason.
 The count is checked during the traversal rather than up front, because taking
 the length first would walk the list twice. -}
 maximumIndexCount :: Int
-maximumIndexCount = 4096
+maximumIndexCount = 1024
 {-# INLINE maximumIndexCount #-}
 
 {-| Look up every index of the given list in the given array.
