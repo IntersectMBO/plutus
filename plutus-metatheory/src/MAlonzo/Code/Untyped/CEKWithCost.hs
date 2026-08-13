@@ -520,7 +520,9 @@ du_stepC_70 v0 v1
                            MAlonzo.Code.Untyped.CEK.C_V'45'con_50 v9 v10
                              -> coe
                                   MAlonzo.Code.Utils.C__'44'__388
-                                  (coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)
+                                  (coe
+                                     MAlonzo.Code.Untyped.CEK.d_caseCon_1230 (coe v6) (coe v4)
+                                     (coe v7) (coe v9) (coe v10) (coe v8))
                                   (coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))
                            MAlonzo.Code.Untyped.CEK.C_V'45'delay_54 v9 v10 v11
                              -> coe
@@ -566,20 +568,20 @@ du_stepC_70 v0 v1
              (coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.CEKWithCost.stepperC-internal
-d_stepperC'45'internal_314 ::
+d_stepperC'45'internal_318 ::
   () ->
   MAlonzo.Code.Cost.Base.T_MachineParameters_46 ->
   Integer ->
   MAlonzo.Code.Untyped.CEK.T_State_218 ->
   MAlonzo.Code.Utils.T_Writer_374
-d_stepperC'45'internal_314 ~v0 v1 v2 v3
-  = du_stepperC'45'internal_314 v1 v2 v3
-du_stepperC'45'internal_314 ::
+d_stepperC'45'internal_318 ~v0 v1 v2 v3
+  = du_stepperC'45'internal_318 v1 v2 v3
+du_stepperC'45'internal_318 ::
   MAlonzo.Code.Cost.Base.T_MachineParameters_46 ->
   Integer ->
   MAlonzo.Code.Untyped.CEK.T_State_218 ->
   MAlonzo.Code.Utils.T_Writer_374
-du_stepperC'45'internal_314 v0 v1 v2
+du_stepperC'45'internal_318 v0 v1 v2
   = case coe v1 of
       0 -> coe
              MAlonzo.Code.Utils.C__'44'__388
@@ -594,7 +596,7 @@ du_stepperC'45'internal_314 v0 v1 v2
                 (coe
                    MAlonzo.Code.Utils.d_wrvalue_384
                    (coe
-                      du_go_328 (coe v0) (coe v3)
+                      du_go_332 (coe v0) (coe v3)
                       (coe
                          MAlonzo.Code.Utils.d_wrvalue_384
                          (coe du_stepC_70 (coe v0) (coe v2)))))
@@ -604,27 +606,27 @@ du_stepperC'45'internal_314 v0 v1 v2
                       (coe du_stepC_70 (coe v0) (coe v2)))
                    (MAlonzo.Code.Utils.d_accum_386
                       (coe
-                         du_go_328 (coe v0) (coe v3)
+                         du_go_332 (coe v0) (coe v3)
                          (coe
                             MAlonzo.Code.Utils.d_wrvalue_384
                             (coe du_stepC_70 (coe v0) (coe v2)))))))
 -- Untyped.CEKWithCost._.go
-d_go_328 ::
+d_go_332 ::
   () ->
   MAlonzo.Code.Cost.Base.T_MachineParameters_46 ->
   Integer ->
   MAlonzo.Code.Untyped.CEK.T_State_218 ->
   MAlonzo.Code.Untyped.CEK.T_State_218 ->
   MAlonzo.Code.Utils.T_Writer_374
-d_go_328 ~v0 v1 v2 ~v3 v4 = du_go_328 v1 v2 v4
-du_go_328 ::
+d_go_332 ~v0 v1 v2 ~v3 v4 = du_go_332 v1 v2 v4
+du_go_332 ::
   MAlonzo.Code.Cost.Base.T_MachineParameters_46 ->
   Integer ->
   MAlonzo.Code.Untyped.CEK.T_State_218 ->
   MAlonzo.Code.Utils.T_Writer_374
-du_go_328 v0 v1 v2
+du_go_332 v0 v1 v2
   = let v3
-          = coe du_stepperC'45'internal_314 (coe v0) (coe v1) (coe v2) in
+          = coe du_stepperC'45'internal_318 (coe v0) (coe v1) (coe v2) in
     coe
       (case coe v2 of
          MAlonzo.Code.Untyped.CEK.C_'9633'_226 v4
@@ -639,19 +641,19 @@ du_go_328 v0 v1 v2
                 (coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))
          _ -> coe v3)
 -- Untyped.CEKWithCost.stepperC
-d_stepperC_338 ::
+d_stepperC_342 ::
   () ->
   MAlonzo.Code.Cost.Base.T_MachineParameters_46 ->
   Integer ->
   MAlonzo.Code.Untyped.CEK.T_State_218 ->
   MAlonzo.Code.Utils.T_Writer_374
-d_stepperC_338 ~v0 v1 v2 v3 = du_stepperC_338 v1 v2 v3
-du_stepperC_338 ::
+d_stepperC_342 ~v0 v1 v2 v3 = du_stepperC_342 v1 v2 v3
+du_stepperC_342 ::
   MAlonzo.Code.Cost.Base.T_MachineParameters_46 ->
   Integer ->
   MAlonzo.Code.Untyped.CEK.T_State_218 ->
   MAlonzo.Code.Utils.T_Writer_374
-du_stepperC_338 v0 v1 v2
+du_stepperC_342 v0 v1 v2
   = coe
       MAlonzo.Code.Utils.du__'62''62'__282
       (coe
@@ -659,19 +661,19 @@ du_stepperC_338 v0 v1 v2
          (coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))
          (coe MAlonzo.Code.Cost.Base.d__'8729'__62 (coe v0)))
       (coe du_spendStartupCost_32 (coe v0))
-      (coe du_stepperC'45'internal_314 (coe v0) (coe v1) (coe v2))
+      (coe du_stepperC'45'internal_318 (coe v0) (coe v1) (coe v2))
 -- Untyped.CEKWithCost.cekStepEquivalence
-d_cekStepEquivalence_346 ::
+d_cekStepEquivalence_350 ::
   () ->
   MAlonzo.Code.Cost.Base.T_MachineParameters_46 ->
   MAlonzo.Code.Untyped.CEK.T_State_218 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_cekStepEquivalence_346 = erased
+d_cekStepEquivalence_350 = erased
 -- Untyped.CEKWithCost.cekStepperEquivalence
-d_cekStepperEquivalence_472 ::
+d_cekStepperEquivalence_476 ::
   () ->
   MAlonzo.Code.Cost.Base.T_MachineParameters_46 ->
   Integer ->
   MAlonzo.Code.Untyped.CEK.T_State_218 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_cekStepperEquivalence_472 = erased
+d_cekStepperEquivalence_476 = erased

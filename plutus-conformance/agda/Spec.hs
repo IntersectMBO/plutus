@@ -158,44 +158,6 @@ agdaEvalUplcProg WithoutCosting =
                   error $ "deBruijnTerm (agdaEvalUplcProg WithoutCosting): " <> show err
                 Right namedTerm -> EvalSuccess $ UPLC.Program () version namedTerm
 
-{-| A list of evaluation tests which are currently expected to fail.  Once a fix
- for a test is pushed, the test will succeed and should be removed from the
- list.  The entries of the list are paths from the root of plutus-conformance to
- the directory containing the test, eg
- "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1" -}
-failingEvaluationTests :: [FilePath]
-failingEvaluationTests =
-  [ -- These "constant casing" tests fail because Agda metatheory does not yet
-    -- implement casing on constant values.
-    -- TODO: remove these tests once casing on constant is added to Agda metatheory.
-    "test-cases/uplc/evaluation/term/constant-case/bool/bool-01"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-02"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-03"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-04"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-05"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-06"
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-07"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-01"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-02"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-03"
-  , "test-cases/uplc/evaluation/term/constant-case/integer/integer-04"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-01"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-02"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-03"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-04"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-05"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-06"
-  , "test-cases/uplc/evaluation/term/constant-case/list/list-07"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-01"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-02"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-03"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-04"
-  , "test-cases/uplc/evaluation/term/constant-case/pair/pair-05"
-  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-01"
-  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-02"
-  , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
-  ]
-
 {-| A list of budget tests which are currently expected to fail.  Once a fix for
  a test is pushed, the test will succeed and should be removed from the list.
  The entries of the list are paths from the root of plutus-conformance to the
@@ -207,39 +169,37 @@ failingEvaluationTests =
  fail too), so this is built on top of that list rather than including copies of
  all of the entries here. -}
 failingBudgetTests :: [FilePath]
-failingBudgetTests = failingEvaluationTests ++ budgetOnlyFailures
-  where
-    -- These fail their budget test only (evaluation succeeds), currently
-    -- because the Agda code doesn't know about the IntegerCostedLiterally
-    -- size measure used by `replicateByte` and `dropList`.
-    budgetOnlyFailures =
-      [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
-      , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
-      , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
-      , "test-cases/uplc/evaluation/builtin/semantics/appendString"
-      , "test-cases/uplc/evaluation/builtin/semantics/encodeUtf8"
-      , "test-cases/uplc/evaluation/builtin/semantics/equalsString/equalsString-02"
-      ]
+failingBudgetTests =
+  -- These fail their budget test only (evaluation succeeds), currently
+  -- because the Agda code doesn't know about the IntegerCostedLiterally
+  -- size measure used by `replicateByte` and `dropList`.
+  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
+  , "test-cases/uplc/evaluation/builtin/semantics/appendString"
+  , "test-cases/uplc/evaluation/builtin/semantics/encodeUtf8"
+  , "test-cases/uplc/evaluation/builtin/semantics/equalsString/equalsString-02"
+  ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()
 main =
   runUplcEvalTests
     (agdaEvalUplcProg WithCosting)
-    (flip elem failingEvaluationTests)
+    (const False) -- no evaluation tests are expected to fail
     (flip elem failingBudgetTests)
