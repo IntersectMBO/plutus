@@ -379,7 +379,7 @@ builtinMemoryModels =
     , -- See Note [Memory model for Value builtins]
       paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 12 21
     , -- The result is a list of length y (the index list) whose elements are shared with
-      -- the array; only the spine is new. The nonzero intercept keeps the charge positive
+      -- the array; only the spine is new. The nonzero intercept keeps the cost nonzero
       -- for the empty index list.
       paramMultiIndexArray = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 4 1
     }
