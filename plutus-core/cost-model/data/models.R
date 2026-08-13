@@ -817,9 +817,13 @@ modelFun <- function(path) {
     listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
     ## Cost depends on the number of indices (y) and not on the array size (x).
-    ## The benchmarks show the time depending quadratically on y: the marginal
-    ## cost of an index rises across the accepted range, and a straight line
-    ## would misprice one end of it or the other.
+    ## The per-index cost rises across the accepted range.  Measured on its
+    ## own, the walk over the index list does this only when the cons cells
+    ## are laid out apart, which the benchmark constructs deliberately (see
+    ## Note [Scattered index lists] in Benchmarks.Arrays); building the
+    ## result costs a length-independent amount per index on top.  A
+    ## quadratic in y follows that rise; a straight line would misprice one
+    ## end of the range or the other.
     multiIndexArrayModel <- {
         fname <- "MultiIndexArray"
         filtered <- data %>%
