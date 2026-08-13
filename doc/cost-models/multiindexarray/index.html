@@ -30,9 +30,9 @@
     <h1>MultiIndexArray Cost Model Visualization</h1>
     <p>
       Interactive visualization of benchmark data and fitted cost model for the <code>MultiIndexArray</code> builtin function.
-      This function looks up a list of indices (needles) in a Plutus array (haystack); the cost depends on the
+      This function looks up a list of indices in a Plutus array; the cost depends on the
       number of indices and not on the array size, so the model surface in the 3D view is flat along the
-      haystack axis. The number of indices is limited, because beyond that limit the execution time is not
+      array-size axis. The number of indices is limited, because beyond that limit the execution time is not
       predictable from the index count alone; the histogram below shows the per-index time distribution.
     </p>
 
@@ -77,9 +77,9 @@
         <div class="control-group">
           <label for="hist-threshold">Histogram: min index count:</label>
           <select id="hist-threshold">
-            <option value="1000">1000</option>
-            <option value="2000" selected>2000</option>
-            <option value="3000">3000</option>
+            <option value="250">250</option>
+            <option value="500" selected>500</option>
+            <option value="750">750</option>
           </select>
         </div>
       </div>
@@ -96,17 +96,17 @@
         <div class="info-section">
           <dl>
             <dt>X-axis:</dt>
-            <dd id="info-x-axis">Haystack size (array length, log scale)</dd>
+            <dd id="info-x-axis">Array size (log scale)</dd>
 
             <dt>Y-axis:</dt>
-            <dd id="info-y-axis">Needles size (length of the index list)</dd>
+            <dd id="info-y-axis">Index count (length of the index list)</dd>
 
             <dt>Z-axis:</dt>
             <dd id="info-z-axis">Time (nanoseconds)</dd>
 
             <dt>Description:</dt>
             <dd id="info-description">Each point is one benchmark. The model surface is flat along the
-              haystack axis and rises along the needles axis.</dd>
+              array-size axis and rises along the index-count axis.</dd>
           </dl>
         </div>
 

@@ -1,13 +1,13 @@
 // MultiIndexArray plot configuration and rendering
 //
 // Benchmark names are MultiIndexArray/<arraySize>/<indexCount>, so
-// args[0] = array size (haystack) and args[1] = index count (needles).  The
+// args[0] = array size and args[1] = index count.  The
 // cost model is quadratic_in_y: it depends on the number of indices and not on
 // the array size.
 //
-// The main view is a 3D scatter (haystack size, needles size, time) with the
-// fitted model drawn as a surface: flat along the haystack axis, rising along
-// the needles axis.  A histogram of net per-index times at large index counts
+// The main view is a 3D scatter (array size, index count, time) with the
+// fitted model drawn as a surface: flat along the array-size axis, rising
+// along the index-count axis.  A histogram of net per-index times at large index counts
 // makes the distribution of the benchmark results (and any multi-modality)
 // directly visible.
 
@@ -36,7 +36,7 @@ let costModel = null;
 let overhead = 0;
 let showModel = true;
 let zAxisMode = 'zero';
-let histThreshold = 2000;
+let histThreshold = 500;
 
 // Generate URL from template and branch
 function generateUrlFromBranch(branch) {
@@ -259,29 +259,29 @@ function updateInfoPanel() {
 }
 
 // The model surface: the fitted cost at each index count (+ overhead), flat
-// along the haystack axis.
+// along the array-size axis.
 function modelPlaneTrace() {
-  const haystacks = [...new Set(benchmarkData.map(d => d.args[0]))].sort((a, b) => a - b);
-  const maxNeedles = Math.max(...benchmarkData.map(d => d.args[1]));
+  const arraySizes = [...new Set(benchmarkData.map(d => d.args[0]))].sort((a, b) => a - b);
+  const maxIndexCount = Math.max(...benchmarkData.map(d => d.args[1]));
   const steps = 30;
-  const needles = Array.from({ length: steps + 1 }, (_, i) => Math.max(1, Math.round(i * maxNeedles / steps)));
+  const indexCounts = Array.from({ length: steps + 1 }, (_, i) => Math.max(1, Math.round(i * maxIndexCount / steps)));
 
   const evaluate = CostModelEvaluators[costModel.modelType];
 
-  // z[i][j] corresponds to (y = needles[i], x = haystacks[j])
-  const z = needles.map(n =>
-    haystacks.map(h => evaluate(costModel.coefficients, [h, n]) / 1000 + overhead));
+  // z[i][j] corresponds to (y = indexCounts[i], x = arraySizes[j])
+  const z = indexCounts.map(n =>
+    arraySizes.map(h => evaluate(costModel.coefficients, [h, n]) / 1000 + overhead));
 
   return {
-    x: haystacks,
-    y: needles,
+    x: arraySizes,
+    y: indexCounts,
     z: z,
     type: 'surface',
     name: 'Model Prediction',
     showscale: false,
     opacity: 0.35,
     colorscale: [[0, '#E53E3E'], [1, '#E53E3E']],
-    hovertemplate: 'needles: %{y}<br>model: %{z:.0f} ns<extra></extra>'
+    hovertemplate: 'indices: %{y}<br>model: %{z:.0f} ns<extra></extra>'
   };
 }
 
@@ -293,7 +293,7 @@ function renderPlot() {
     mode: 'markers',
     type: 'scatter3d',
     name: 'Benchmark Data',
-    hovertemplate: 'haystack: %{x}<br>needles: %{y}<br>time: %{z:.0f} ns<extra></extra>',
+    hovertemplate: 'array: %{x}<br>indices: %{y}<br>time: %{z:.0f} ns<extra></extra>',
     marker: {
       size: 3.5,
       color: '#0033AD',
@@ -328,12 +328,12 @@ function renderPlot() {
     },
     scene: {
       xaxis: {
-        title: 'Haystack Size (array, log)',
+        title: 'Array size (log)',
         type: 'log',
         gridcolor: '#E0E0E0'
       },
       yaxis: {
-        title: 'Needles Size (index count)',
+        title: 'Index count',
         gridcolor: '#E0E0E0'
       },
       zaxis: {
