@@ -473,3 +473,249 @@ function getBranchFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return params.get('branch');
 }
+
+// ============================================================================
+// Shared page plumbing
+// ============================================================================
+// Every builtin page has the same navigation, data-source controls, URL
+// scheme and loading flow; a page supplies only its identity and rendering.
+// Adding a builtin page or switching to a new cost model file is done here,
+// in one place.
+
+const DEFAULT_BRANCH = 'master';
+const URL_TEMPLATE = 'https://raw.githubusercontent.com/IntersectMBO/plutus/{BRANCH}/plutus-core/cost-model/data';
+const GITHUB_DATA_URL = 'https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data';
+
+const BENCH_CSV_FILE = 'benching-conway.csv';
+// Variant E is the PlutusV3 cost model from the vanRossem hard fork (PV 11)
+// onwards (C is the previous V3 era).
+const COST_MODEL_FILE = 'builtinCostModelE.json';
+const COST_MODEL_NOTE = '(PlutusV3 from PV 11 / vanRossem)';
+
+// One entry per builtin page, in navigation order.
+const PAGES = [
+  ['valuedata', 'ValueData'],
+  ['unvaluedata', 'UnValueData'],
+  ['valuecontains', 'ValueContains'],
+  ['lookupcoin', 'LookupCoin'],
+  ['insertcoin', 'InsertCoin'],
+  ['unionvalue', 'UnionValue'],
+  ['scalevalue', 'ScaleValue'],
+  ['listtoarray', 'ListToArray'],
+  ['lengthofarray', 'LengthOfArray'],
+  ['indexarray', 'IndexArray'],
+  ['multiindexarray', 'MultiIndexArray'],
+  ['indexbytestring', 'IndexByteString']
+];
+
+// LocalStorage keys
+const STORAGE_KEYS = {
+  BRANCH: 'plutus-viz-branch',
+  CSV_URL: 'plutus-viz-csv-url',
+  JSON_URL: 'plutus-viz-json-url',
+  DATA_SOURCE_COLLAPSED: 'plutus-viz-data-source-collapsed',
+  PLOT_CONTROLS_COLLAPSED: 'plutus-viz-plot-controls-collapsed'
+};
+
+function generateUrlFromBranch(branch) {
+  return URL_TEMPLATE.replace('{BRANCH}', branch);
+}
+
+function getFileUrls(baseUrl) {
+  return {
+    csv: `${baseUrl}/${BENCH_CSV_FILE}`,
+    json: `${baseUrl}/${COST_MODEL_FILE}`
+  };
+}
+
+// Load settings from localStorage (URL param takes precedence)
+function loadSettings() {
+  const urlBranch = getBranchFromUrl();
+  return {
+    branch: urlBranch || localStorage.getItem(STORAGE_KEYS.BRANCH) || DEFAULT_BRANCH,
+    csvUrl: localStorage.getItem(STORAGE_KEYS.CSV_URL) || '',
+    jsonUrl: localStorage.getItem(STORAGE_KEYS.JSON_URL) || '',
+    collapsed: localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_COLLAPSED) === 'true'
+  };
+}
+
+function saveSettings(branch, csvUrl, jsonUrl) {
+  localStorage.setItem(STORAGE_KEYS.BRANCH, branch);
+  localStorage.setItem(STORAGE_KEYS.CSV_URL, csvUrl);
+  localStorage.setItem(STORAGE_KEYS.JSON_URL, jsonUrl);
+}
+
+// Update URL fields based on branch name
+function updateUrlsFromBranch() {
+  const branchInput = document.getElementById('branch-name');
+  const csvInput = document.getElementById('csv-url');
+  const jsonInput = document.getElementById('json-url');
+
+  const branch = branchInput.value.trim() || DEFAULT_BRANCH;
+  const urls = getFileUrls(generateUrlFromBranch(branch));
+
+  csvInput.value = urls.csv;
+  jsonInput.value = urls.json;
+}
+
+function showError(message) {
+  const container = document.getElementById('plot-container');
+  container.innerHTML = `
+    <div class="error">
+      <h3>Error Loading Data</h3>
+      <p>${message}</p>
+    </div>
+  `;
+}
+
+// Fill <nav> with the standard page list; `active` is the page's slug and
+// `prefix` the relative path to the site root ('..' from a page, '.' from
+// the home page).
+function renderNav(active, prefix = '..') {
+  const nav = document.querySelector('nav');
+  if (!nav) return;
+  const items = [[`${prefix}/index.html`, 'Home', active === null]].concat(
+    PAGES.map(([slug, name]) => [`${prefix}/${slug}/index.html`, name, slug === active]));
+  nav.innerHTML = '<ul>' + items.map(([href, name, isActive]) =>
+    `<li><a href="${href}"${isActive ? ' class="active"' : ''}>${name}</a></li>`).join('') + '</ul>';
+}
+
+function renderFooter() {
+  const footer = document.querySelector('footer');
+  if (!footer) return;
+  footer.innerHTML = '<p>Plutus Cost Model Visualization | ' +
+    '<a href="https://github.com/IntersectMBO/plutus" target="_blank">Plutus Repository</a></p>';
+}
+
+// Fill the info-panel "Data sources" list from the shared file names.
+function renderDataSources() {
+  const el = document.getElementById('info-data-sources');
+  if (!el) return;
+  el.innerHTML = `
+    <dt>Data sources:</dt>
+    <dd><a href="${GITHUB_DATA_URL}/${BENCH_CSV_FILE}" target="_blank">${BENCH_CSV_FILE}</a></dd>
+    <dd><a href="${GITHUB_DATA_URL}/${COST_MODEL_FILE}" target="_blank">${COST_MODEL_FILE}</a>
+      ${COST_MODEL_NOTE}</dd>
+  `;
+}
+
+
+/**
+ * Wire up a builtin page.  The page supplies its identity and two callbacks;
+ * everything else -- navigation, data-source controls, URL handling,
+ * loading -- is shared.
+ *
+ * @param {Object} page
+ * @param {string} page.slug            Directory name, used to highlight the nav
+ * @param {string} page.functionName    Benchmark name (PascalCase, as in the CSV)
+ * @param {string} page.costModelName   Cost model key (camelCase, as in the JSON)
+ * @param {number} page.arity           Number of arguments, for the Nop overhead
+ * @param {Function} page.render        Called with {benchmarkData, costModel,
+ *                                      overhead, modelPredictions} after each load
+ * @param {Function} page.setupControls Called once to wire plot-specific controls
+ */
+function setupCostModelPage(page) {
+  async function loadAndRenderData() {
+    const container = document.getElementById('plot-container');
+    container.innerHTML = '<div class="loading">Loading data and generating plot...</div>';
+
+    try {
+      const csvUrl = document.getElementById('csv-url').value.trim();
+      const jsonUrl = document.getElementById('json-url').value.trim();
+
+      if (!csvUrl || !jsonUrl) {
+        showError('Please provide both CSV and JSON file URLs');
+        return;
+      }
+
+      const { parsedData, costModelJson, overheadMap } = await loadData(csvUrl, jsonUrl);
+
+      const benchmarkData = filterByFunction(parsedData, page.functionName);
+      if (benchmarkData.length === 0) {
+        showError(`No benchmark data found for ${page.functionName}`);
+        return;
+      }
+
+      const costModel = extractCostModel(costModelJson, page.costModelName);
+      const overhead = overheadMap[page.arity] || 0;
+      const modelPredictions =
+        costModel ? generateModelPredictions(benchmarkData, costModel, overhead) : [];
+
+      page.render({ benchmarkData, costModel, overhead, modelPredictions });
+    } catch (error) {
+      console.error('Error loading data:', error);
+      showError(`Failed to load data. Check console for details. Error: ${error.message}`);
+    }
+  }
+
+  async function init() {
+    renderNav(page.slug);
+    renderFooter();
+    renderDataSources();
+
+    const settings = loadSettings();
+
+    // Collapsible sections
+    const dataSourceControls = document.getElementById('data-source-controls');
+    const dataSourceToggle = document.getElementById('data-source-toggle');
+    if (dataSourceControls && dataSourceToggle) {
+      if (settings.collapsed) {
+        dataSourceControls.classList.add('collapsed');
+      }
+      dataSourceToggle.addEventListener('click', () => {
+        const isCollapsed = dataSourceControls.classList.toggle('collapsed');
+        localStorage.setItem(STORAGE_KEYS.DATA_SOURCE_COLLAPSED, isCollapsed);
+      });
+    }
+
+    const plotControls = document.getElementById('plot-controls');
+    const plotControlsToggle = document.getElementById('plot-controls-toggle');
+    if (plotControls && plotControlsToggle) {
+      if (localStorage.getItem(STORAGE_KEYS.PLOT_CONTROLS_COLLAPSED) === 'true') {
+        plotControls.classList.add('collapsed');
+      }
+      plotControlsToggle.addEventListener('click', () => {
+        const isCollapsed = plotControls.classList.toggle('collapsed');
+        localStorage.setItem(STORAGE_KEYS.PLOT_CONTROLS_COLLAPSED, isCollapsed);
+      });
+    }
+
+    // Data-source inputs
+    const branchInput = document.getElementById('branch-name');
+    const csvInput = document.getElementById('csv-url');
+    const jsonInput = document.getElementById('json-url');
+
+    branchInput.value = settings.branch;
+    if (settings.csvUrl && settings.jsonUrl) {
+      csvInput.value = settings.csvUrl;
+      jsonInput.value = settings.jsonUrl;
+    } else {
+      updateUrlsFromBranch();
+    }
+    branchInput.addEventListener('input', updateUrlsFromBranch);
+
+    document.getElementById('reload-data').addEventListener('click', async () => {
+      const branch = branchInput.value.trim() || DEFAULT_BRANCH;
+      saveSettings(branch, csvInput.value.trim(), jsonInput.value.trim());
+      await loadAndRenderData();
+    });
+
+    document.getElementById('copy-link').addEventListener('click', () => {
+      const branch = branchInput.value.trim() || DEFAULT_BRANCH;
+      const url = new URL(window.location.href);
+      url.search = '';
+      url.searchParams.set('branch', branch);
+      navigator.clipboard.writeText(url.toString());
+      const btn = document.getElementById('copy-link');
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = original, 1500);
+    });
+
+    page.setupControls();
+
+    await loadAndRenderData();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+}
