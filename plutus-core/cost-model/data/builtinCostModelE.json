@@ -1343,9 +1343,9 @@
   "multiIndexArray": {
     "cpu": {
       "arguments": {
-        "c0": 298238,
-        "c1": 8885,
-        "c2": 7
+        "c0": 326163,
+        "c1": 12304,
+        "c2": 2
       },
       "type": "quadratic_in_y"
     },

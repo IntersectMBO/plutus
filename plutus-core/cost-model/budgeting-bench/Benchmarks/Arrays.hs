@@ -38,13 +38,12 @@ import System.Random.Stateful
 -- Benchmarks ------------------------------------------------------------------
 
 makeBenchmarks :: StdGen -> IO [Benchmark]
-makeBenchmarks gen = do
-  multiIndexArray <- benchMultiIndexArray gen
-  pure
-    [ benchLengthOfArray gen
-    , benchListToArray gen
-    , benchIndexArray gen
-    , multiIndexArray
+makeBenchmarks gen =
+  sequence
+    [ pure (benchLengthOfArray gen)
+    , pure (benchListToArray gen)
+    , pure (benchIndexArray gen)
+    , benchMultiIndexArray gen
     ]
 
 benchLengthOfArray :: StdGen -> Benchmark
@@ -109,12 +108,12 @@ benchMultiIndexArray gen = do
   pure (createTwoTermBuiltinBenchElementwise MultiIndexArray [tyArrayOfBS] pairs)
   where
     arraySizes :: [Int]
-    arraySizes = [1, 8, 64, 512, 4_096, 32_768, 131_072]
+    arraySizes = [1, 8, 64, 512, 4096, 32_768, 131_072]
 
     -- The top of the range is 'Arrays.maximumIndexCount', so that the model is
     -- fitted over exactly the domain the denotation accepts.
     indexCounts :: [Int]
-    indexCounts = [1, 10, 50, 100, 500, 1_000, 2_000, 3_000, Arrays.maximumIndexCount]
+    indexCounts = [1, 10, 25, 50, 100, 250, 500, 750, Arrays.maximumIndexCount]
 
     inputs :: [(Vector ByteString, [Integer], [Int])]
     inputs = dedupeOnSizes $ runStateGen_ gen \g -> do
@@ -127,13 +126,13 @@ benchMultiIndexArray gen = do
         indexCount <- uniformRM (1, Arrays.maximumIndexCount) g
         vec <- mkArray g 64 arraySize
         withGaps vec <$> mkIndices g arraySize indexCount
-      control <- for [999, 1_001] \indexCount -> do
-        vec <- mkArray g 1_024 4_096
-        withGaps vec <$> mkIndices g 4_096 indexCount
+      control <- for [999, 1001] \indexCount -> do
+        vec <- mkArray g 1024 4096
+        withGaps vec <$> mkIndices g 4096 indexCount
       -- A distinct array size, so these get benchmark names of their own.
       spread <- for spreadCounts \indexCount -> do
-        vec <- mkArray g 64 2_048
-        withBudgetGaps vec <$> mkIndices g 2_048 indexCount
+        vec <- mkArray g 64 2048
+        withBudgetGaps vec <$> mkIndices g 2048 indexCount
       pure (grid <> control <> cloud <> spread)
 
     mkArray :: StatefulGen g m => g -> Int -> Int -> m (Vector ByteString)
@@ -150,7 +149,7 @@ benchMultiIndexArray gen = do
     -- [Scattered index lists]; the top of the range is among them because the
     -- fit takes the slowest observation at each end.
     spreadCounts :: [Int]
-    spreadCounts = [500, 2_000, Arrays.maximumIndexCount]
+    spreadCounts = [250, 500, Arrays.maximumIndexCount]
 
     withGaps vec indices = (vec, indices, gapWidths)
 
@@ -181,8 +180,10 @@ representative point.  These lists are therefore built with the cells some way
 apart, and by varying amounts, so that the model is fitted to the unfavourable
 end.  Most inputs get gaps of about a page; a few, including the largest index
 count, get gaps of the width that a whole transaction's memory budget would
-allow, because that is what sets the slope.  See also Note
-[Index count limitation for multiIndexArray] in PlutusCore.Arrays.
+allow, because that is what sets the slope.  Without this treatment the
+benchmark would measure only the favourable layout, and the model would sit
+below what the walk can cost on inputs a script is free to construct.  See
+also Note [Index count limitation for multiIndexArray] in PlutusCore.Arrays.
 
 Three implementation details are needed for that layout to hold, and removing
 any of them silently returns the benchmark to measuring contiguous lists:
@@ -205,7 +206,7 @@ mkScatteredList gapWidths values = do
       go [] acc _ = pure acc
   go gapWidths [] (reverse values)
   where
-    spacer = bit 2_048 :: Integer
+    spacer = bit 2048 :: Integer
 
 -- Benchmark names are derived from the argument sizes; drop the rare random
 -- point that collides with another point on both sizes.
