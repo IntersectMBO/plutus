@@ -20,14 +20,22 @@ let
     "ghc912".fourmolu = mkFourmolu "ghc912";
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
 
+    "ghc914".cabal = project.projectVariants.ghc914.tool "cabal" "latest";
+    "ghc914".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest"; # cabal-fmt not buildable with ghc914
+    "ghc914".haskell-language-server = project.projectVariants.ghc96.tool "haskell-language-server" "latest"; # HLS does not support ghc914 yet (hie-compat requires base <4.22)
+    "ghc914".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest"; # stylish-haskell not buildable with ghc914 (requires ghc-lib-parser <9.13)
+    "ghc914".fourmolu = mkFourmolu "ghc912"; # Our fourmolu fork has no ghc914-compatible revision yet
+    "ghc914".hlint = project.projectVariants.ghc912.tool "hlint" "latest"; # hlint not buildable with ghc914 (requires ghc-lib-parser 9.12.*)
+
     "ghc96-profiled" = ghc96;
     "ghc912-profiled" = ghc912;
+    "ghc914-profiled" = ghc914;
   };
 
   tools = all-tools.${ghc};
 
   # Pre-commit hooks for the repo. Injects into shell via shellHook.
-  pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
+  pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.stdenv.hostPlatform.system}.run {
     src = ../.;
     hooks = {
       nixpkgs-fmt = {
@@ -80,7 +88,7 @@ let
   };
 
   # Add extra Linux-only packages to the dev shell here.
-  linux-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
+  linux-pkgs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     pkgs.papi
     pkgs.util-linux
   ];
@@ -95,7 +103,7 @@ let
     metatheory.agda-with-stdlib-and-metatheory
 
     r-with-packages
-    inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
+    inputs.nixpkgs-2405.legacyPackages.${pkgs.stdenv.hostPlatform.system}.linkchecker
 
     tools.haskell-language-server
     tools.stylish-haskell
@@ -172,8 +180,10 @@ let
   shell = {
     ghc96 = full-shell;
     ghc912 = full-shell;
+    ghc914 = full-shell;
     ghc96-profiled = full-shell;
     ghc912-profiled = full-shell;
+    ghc914-profiled = full-shell;
   }.${ghc};
 
 in
