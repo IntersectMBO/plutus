@@ -45,6 +45,10 @@ main = do
   -- We use the initial state of gen repeatedly below, but that doesn't matter.
   gen <- System.Random.getStdGen
 
+  -- Bound separately because the array benchmarks allocate their inputs in IO;
+  -- see Note [Scattered index lists] in Benchmarks.Arrays.
+  arrayBenchmarks <- Benchmarks.Arrays.makeBenchmarks gen
+
   criterionMainWith
     Start
     defaultConfig
@@ -55,7 +59,7 @@ main = do
       <> Benchmarks.Data.makeBenchmarks gen
       <> Benchmarks.Integers.makeBenchmarks gen
       <> Benchmarks.Lists.makeBenchmarks gen
-      <> Benchmarks.Arrays.makeBenchmarks gen
+      <> arrayBenchmarks
       <> Benchmarks.Misc.makeBenchmarks gen
       <> Benchmarks.Pairs.makeBenchmarks gen
       <> Benchmarks.Strings.makeBenchmarks gen

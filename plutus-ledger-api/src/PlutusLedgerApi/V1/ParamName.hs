@@ -349,5 +349,11 @@ data ParamName
   | ScaleValue'cpu'arguments'slope
   | ScaleValue'memory'arguments'intercept
   | ScaleValue'memory'arguments'slope
+  | -- Batch 7, not yet deployed
+    MultiIndexArray'cpu'arguments'c0
+  | MultiIndexArray'cpu'arguments'c1
+  | MultiIndexArray'cpu'arguments'c2
+  | MultiIndexArray'memory'arguments'intercept
+  | MultiIndexArray'memory'arguments'slope
   deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
   deriving (IsParamName) via (GenericParamName ParamName)

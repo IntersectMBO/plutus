@@ -1321,5 +1321,22 @@
       },
       "type": "linear_in_y"
     }
+  },
+  "multiIndexArray": {
+    "cpu": {
+      "arguments": {
+        "c0": 326163,
+        "c1": 12304,
+        "c2": 2
+      },
+      "type": "quadratic_in_y"
+    },
+    "memory": {
+      "arguments": {
+        "intercept": 4,
+        "slope": 3
+      },
+      "type": "linear_in_y"
+    }
   }
 }
