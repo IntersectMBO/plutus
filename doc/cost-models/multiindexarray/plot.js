@@ -5,16 +5,35 @@
 // cost model is quadratic_in_y: it depends on the number of indices and not on
 // the array size.
 //
-// The main view is a 3D scatter (array size, index count, time) with the
-// fitted model drawn as a surface: flat along the array-size axis, rising
-// along the index-count axis.  A histogram of net per-index times at large index counts
-// makes the distribution of the benchmark results (and any multi-modality)
-// directly visible.
+// The main view is a 2D scatter of time against index count, with one colour
+// per array size and the fitted model drawn as a line.  The array-size
+// independence the model assumes shows up directly: points of every colour lie
+// on the same curve.  A second panel plots the per-index cost with the model's
+// per-call constant subtracted, which is the view where its rise across the
+// range is visible.  A histogram of the same per-index costs at large index
+// counts makes their distribution (and any multi-modality) directly visible.
 
 // Configuration
 const FUNCTION_NAME = 'MultiIndexArray';  // CSV uses PascalCase
 const COST_MODEL_NAME = 'multiIndexArray';  // JSON uses camelCase
 const ARITY = 2;
+
+// The benchmark's random points use array sizes at every power of two, so
+// colouring by exact size would need a colour per size.  Bucket the sizes
+// instead, one ordered dark-to-warm colour per bucket (upper bounds,
+// inclusive).
+const ARRAY_SIZE_BUCKETS = [
+  { limit: 8, color: '#0D0887' },
+  { limit: 64, color: '#6A00A8' },
+  { limit: 512, color: '#B12A90' },
+  { limit: 4096, color: '#D6556D' },
+  { limit: 32768, color: '#EF7E50' },
+  { limit: Infinity, color: '#FCA636' }
+];
+
+// Below this index count the per-call constant dominates the total, and
+// dividing the small remainder by the count amplifies noise.
+const PER_INDEX_MIN_COUNT = 50;
 
 // Global state
 let benchmarkData = [];
@@ -22,7 +41,7 @@ let modelPredictions = [];
 let costModel = null;
 let overhead = 0;
 let showModel = true;
-let zAxisMode = 'zero';
+let yAxisMode = 'zero';
 let histThreshold = 500;
 
 setupCostModelPage({
@@ -34,6 +53,7 @@ setupCostModelPage({
     ({ benchmarkData, costModel, overhead, modelPredictions } = data);
     updateInfoPanel();
     renderPlot();
+    renderPerIndex();
     renderHistogram();
   },
   setupControls
@@ -78,92 +98,104 @@ function updateInfoPanel() {
   }
 }
 
-// The model surface: the fitted cost at each index count (+ overhead), flat
-// along the array-size axis.
-function modelPlaneTrace() {
-  const arraySizes = [...new Set(benchmarkData.map(d => d.args[0]))].sort((a, b) => a - b);
-  const maxIndexCount = Math.max(...benchmarkData.map(d => d.args[1]));
-  const steps = 30;
-  const indexCounts = Array.from({ length: steps + 1 }, (_, i) => Math.max(1, Math.round(i * maxIndexCount / steps)));
-
+// The model evaluated at index count n, in nanoseconds, overhead included.
+function modelAt(n) {
   const evaluate = CostModelEvaluators[costModel.modelType];
+  return evaluate(costModel.coefficients, [0, n]) / 1000 + overhead;
+}
 
-  // z[i][j] corresponds to (y = indexCounts[i], x = arraySizes[j])
-  const z = indexCounts.map(n =>
-    arraySizes.map(h => evaluate(costModel.coefficients, [h, n]) / 1000 + overhead));
+// The model's per-call constant, in nanoseconds, without overhead.
+function modelConstant() {
+  const evaluate = CostModelEvaluators[costModel.modelType];
+  return evaluate(costModel.coefficients, [0, 0]) / 1000;
+}
 
-  return {
-    x: arraySizes,
-    y: indexCounts,
-    z: z,
-    type: 'surface',
-    name: 'Model Prediction',
-    showscale: false,
-    opacity: 0.35,
-    colorscale: [[0, '#E53E3E'], [1, '#E53E3E']],
-    hovertemplate: 'indices: %{y}<br>model: %{z:.0f} ns<extra></extra>'
-  };
+// One scatter trace per array-size bucket, so the legend doubles as a size key
+// and single buckets can be toggled to check that no colour sits apart from
+// the rest.  The hover still reports the exact array size of each point.
+function perSizeTraces(pointsToXY) {
+  let lower = 1;
+  return ARRAY_SIZE_BUCKETS.flatMap(bucket => {
+    const from = lower;
+    lower = bucket.limit + 1;
+    const inBucket = benchmarkData.filter(d => from <= d.args[0] && d.args[0] <= bucket.limit);
+    const points = inBucket.map(d => {
+      const xy = pointsToXY(d);
+      return xy && { ...xy, size: d.args[0] };
+    }).filter(Boolean);
+    if (points.length === 0) return [];
+    const name = bucket.limit === Infinity
+      ? `array size > ${from - 1}`
+      : from === bucket.limit ? `array size ${from}` : `array size ${from}-${bucket.limit}`;
+    return [{
+      x: points.map(p => p.x),
+      y: points.map(p => p.y),
+      customdata: points.map(p => p.size),
+      mode: 'markers',
+      type: 'scatter',
+      name,
+      hovertemplate: 'array: %{customdata}<br>indices: %{x}<br>%{y:.1f} ns<extra></extra>',
+      marker: {
+        size: 6,
+        color: bucket.color,
+        opacity: 0.75
+      }
+    }];
+  });
+}
+
+// Index counts at which to draw the model line.
+function modelLineCounts() {
+  const maxIndexCount = Math.max(...benchmarkData.map(d => d.args[1]));
+  const steps = 64;
+  return Array.from({ length: steps + 1 }, (_, i) =>
+    Math.max(1, Math.round(i * maxIndexCount / steps)));
 }
 
 function renderPlot() {
-  const benchmarkTrace = {
-    x: benchmarkData.map(d => d.args[0]),
-    y: benchmarkData.map(d => d.args[1]),
-    z: benchmarkData.map(d => d.time),
-    mode: 'markers',
-    type: 'scatter3d',
-    name: 'Benchmark Data',
-    hovertemplate: 'array: %{x}<br>indices: %{y}<br>time: %{z:.0f} ns<extra></extra>',
-    marker: {
-      size: 3.5,
-      color: '#0033AD',
-      opacity: 0.75
-    }
-  };
+  const traces = perSizeTraces(d => ({ x: d.args[1], y: d.time }));
 
-  const traces = [benchmarkTrace];
-
-  if (showModel && costModel && CostModelEvaluators[costModel.modelType]) {
-    traces.push(modelPlaneTrace());
+  const haveEvaluator = costModel && CostModelEvaluators[costModel.modelType];
+  if (showModel && haveEvaluator) {
+    const counts = modelLineCounts();
+    traces.push({
+      x: counts,
+      y: counts.map(modelAt),
+      mode: 'lines',
+      type: 'scatter',
+      name: 'Model',
+      line: { color: '#E53E3E', width: 2 },
+      hovertemplate: 'indices: %{x}<br>model: %{y:.0f} ns<extra></extra>'
+    });
   } else if (showModel && modelPredictions.length > 0) {
     // Fallback for other model shapes: prediction markers at the data points
     traces.push({
-      x: modelPredictions.map(d => d.args[0]),
-      y: modelPredictions.map(d => d.args[1]),
-      z: modelPredictions.map(d => d.predictedTime),
+      x: modelPredictions.map(d => d.args[1]),
+      y: modelPredictions.map(d => d.predictedTime),
       mode: 'markers',
-      type: 'scatter3d',
+      type: 'scatter',
       name: 'Model Predictions',
-      marker: { size: 3.5, color: '#E53E3E', opacity: 0.4, symbol: 'x' }
+      marker: { size: 6, color: '#E53E3E', opacity: 0.4, symbol: 'x' }
     });
   }
 
-  const benchmarkZ = benchmarkTrace.z;
+  const benchmarkTimes = benchmarkData.map(d => d.time);
 
   // Layout configuration
   const layout = {
     title: {
-      text: `${FUNCTION_NAME} - Benchmark vs Model (3D)`,
+      text: `${FUNCTION_NAME} - Benchmark vs Model`,
       font: { size: 20 }
     },
-    scene: {
-      xaxis: {
-        title: 'Array size (log)',
-        type: 'log',
-        gridcolor: '#E0E0E0'
-      },
-      yaxis: {
-        title: 'Index count',
-        gridcolor: '#E0E0E0'
-      },
-      zaxis: {
-        title: 'Time (nanoseconds)',
-        gridcolor: '#E0E0E0'
-      },
-      camera: {
-        eye: { x: 1.7, y: -1.7, z: 0.6 }
-      }
+    xaxis: {
+      title: 'Index count',
+      gridcolor: '#E0E0E0'
     },
+    yaxis: {
+      title: 'Time (nanoseconds)',
+      gridcolor: '#E0E0E0'
+    },
+    hovermode: 'closest',
     showlegend: true,
     legend: {
       x: 0.02,
@@ -172,17 +204,18 @@ function renderPlot() {
       bordercolor: '#BDC3C7',
       borderwidth: 1
     },
+    plot_bgcolor: '#FAFAFA',
     paper_bgcolor: 'rgba(0,0,0,0)'
   };
 
-  // Set Z-axis range based on mode
-  if (zAxisMode === 'zero') {
-    layout.scene.zaxis.range = [0, Math.max(...benchmarkZ) * 1.1];
+  // Set Y-axis range based on mode
+  if (yAxisMode === 'zero') {
+    layout.yaxis.range = [0, Math.max(...benchmarkTimes) * 1.1];
   } else {
-    const minZ = Math.min(...benchmarkZ);
-    const maxZ = Math.max(...benchmarkZ);
-    const padding = (maxZ - minZ) * 0.1;
-    layout.scene.zaxis.range = [minZ - padding, maxZ + padding];
+    const minY = Math.min(...benchmarkTimes);
+    const maxY = Math.max(...benchmarkTimes);
+    const padding = (maxY - minY) * 0.1;
+    layout.yaxis.range = [minY - padding, maxY + padding];
   }
 
   // Config
@@ -198,17 +231,100 @@ function renderPlot() {
   Plotly.newPlot('plot-container', traces, layout, config);
 }
 
+// Per-index cost with the per-call constant subtracted:
+// (t - overhead - c0) / indexCount against the index count.  The model's
+// charge per index is then c1 + c2*y, a straight line, and the rise of the
+// measured per-index cost across the range is visible instead of being
+// swamped by the constant.
+function renderPerIndex() {
+  const container = document.getElementById('perindex-container');
+
+  if (!(costModel && CostModelEvaluators[costModel.modelType])) {
+    container.innerHTML =
+      '<div class="error"><p>Per-index view needs an evaluable cost model</p></div>';
+    return;
+  }
+
+  const c0 = modelConstant();
+  const traces = perSizeTraces(d =>
+    d.args[1] >= PER_INDEX_MIN_COUNT
+      ? { x: d.args[1], y: (d.time - overhead - c0) / d.args[1] }
+      : null);
+
+  if (showModel) {
+    const counts = modelLineCounts().filter(n => n >= PER_INDEX_MIN_COUNT);
+    traces.push({
+      x: counts,
+      y: counts.map(n => (modelAt(n) - overhead - c0) / n),
+      mode: 'lines',
+      type: 'scatter',
+      name: 'Model',
+      line: { color: '#E53E3E', width: 2 },
+      hovertemplate: 'indices: %{x}<br>model: %{y:.2f} ns/index<extra></extra>'
+    });
+  }
+
+  const layout = {
+    title: {
+      text: `Per-index cost across the range (index count ≥ ${PER_INDEX_MIN_COUNT})`,
+      font: { size: 18 }
+    },
+    xaxis: {
+      title: 'Index count',
+      gridcolor: '#E0E0E0'
+    },
+    // Auto-scaled on purpose: the rise across the range is the point of this
+    // panel, and from zero it flattens into invisibility.
+    yaxis: {
+      title: 'Net time per index (nanoseconds)',
+      gridcolor: '#E0E0E0'
+    },
+    hovermode: 'closest',
+    showlegend: true,
+    // Below the axis: anywhere inside the plot area it covers data, because
+    // the auto-scaled panel has points in every corner.
+    legend: {
+      orientation: 'h',
+      x: 0,
+      y: -0.25,
+      yanchor: 'top',
+      bgcolor: 'rgba(255, 255, 255, 0.8)',
+      bordercolor: '#BDC3C7',
+      borderwidth: 1
+    },
+    plot_bgcolor: '#FAFAFA',
+    paper_bgcolor: 'rgba(0,0,0,0)'
+  };
+
+  const config = {
+    responsive: true,
+    displayModeBar: true,
+    displaylogo: false
+  };
+
+  container.innerHTML = '';
+  Plotly.newPlot('perindex-container', traces, layout, config);
+}
+
 function renderHistogram() {
   const container = document.getElementById('hist-container');
 
-  // Net per-index time for large index counts
+  if (!(costModel && CostModelEvaluators[costModel.modelType])) {
+    container.innerHTML =
+      '<div class="error"><p>Histogram needs an evaluable cost model</p></div>';
+    return;
+  }
+
+  // Net per-index time for large index counts, per-call constant subtracted
+  // (the same quantity as the per-index panel above).
   const points = benchmarkData.filter(d => d.args[1] >= histThreshold);
   if (points.length === 0) {
     container.innerHTML = `<div class="error"><p>No benchmarks with index count ≥ ${histThreshold}</p></div>`;
     return;
   }
 
-  const perIndex = points.map(d => (d.time - overhead) / d.args[1]);
+  const c0 = modelConstant();
+  const perIndex = points.map(d => (d.time - overhead - c0) / d.args[1]);
 
   const histTrace = {
     x: perIndex,
@@ -241,14 +357,11 @@ function renderHistogram() {
     annotations: []
   };
 
-  // Mark the model's net time per index (ps -> ns) at the histogram threshold on
-  // the distribution.  The model is not linear in the index count, so this is the
+  // Mark the model's net time per index at the histogram threshold on the
+  // distribution.  The model is not linear in the index count, so this is the
   // average over the indices of one call rather than a single slope.
-  const evaluate = costModel && CostModelEvaluators[costModel.modelType];
-  if (evaluate && histThreshold > 0) {
-    const coeffs = costModel.coefficients;
-    const perIndexNs =
-      (evaluate(coeffs, [0, histThreshold]) - evaluate(coeffs, [0, 0])) / histThreshold / 1000;
+  if (histThreshold > 0) {
+    const perIndexNs = (modelAt(histThreshold) - overhead - c0) / histThreshold;
     layout.shapes.push({
       type: 'line',
       x0: perIndexNs, x1: perIndexNs,
@@ -283,12 +396,13 @@ function setupControls() {
   showModelCheckbox.addEventListener('change', (e) => {
     showModel = e.target.checked;
     renderPlot();
+    renderPerIndex();
   });
 
-  // Z-axis mode selector
-  const zAxisModeSelect = document.getElementById('z-axis-mode');
-  zAxisModeSelect.addEventListener('change', (e) => {
-    zAxisMode = e.target.value;
+  // Y-axis mode selector
+  const yAxisModeSelect = document.getElementById('y-axis-mode');
+  yAxisModeSelect.addEventListener('change', (e) => {
+    yAxisMode = e.target.value;
     renderPlot();
   });
 

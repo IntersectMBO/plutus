@@ -15,9 +15,10 @@
     <p>
       Interactive visualization of benchmark data and fitted cost model for the <code>MultiIndexArray</code> builtin function.
       This function looks up a list of indices in a Plutus array; the cost depends on the
-      number of indices and not on the array size, so the model surface in the 3D view is flat along the
-      array-size axis. The number of indices is limited, because beyond that limit the execution time is not
-      predictable from the index count alone; the histogram below shows the per-index time distribution.
+      number of indices and not on the array size. Points are coloured by array size, so that independence
+      is visible directly: every colour lies on the same curve. The number of indices is limited, because
+      beyond that limit the execution time is not predictable from the index count alone; the panels below
+      show the per-index cost across the range and its distribution.
     </p>
 
     <div class="controls" id="data-source-controls">
@@ -52,8 +53,8 @@
           <label for="show-model">Show model predictions</label>
         </div>
         <div class="control-group">
-          <label for="z-axis-mode">Z-axis range:</label>
-          <select id="z-axis-mode">
+          <label for="y-axis-mode">Y-axis range:</label>
+          <select id="y-axis-mode">
             <option value="zero">Start from 0</option>
             <option value="auto">Auto-scale from min</option>
           </select>
@@ -80,17 +81,14 @@
         <div class="info-section">
           <dl>
             <dt>X-axis:</dt>
-            <dd id="info-x-axis">Array size (log scale)</dd>
+            <dd id="info-x-axis">Index count (length of the index list)</dd>
 
             <dt>Y-axis:</dt>
-            <dd id="info-y-axis">Index count (length of the index list)</dd>
-
-            <dt>Z-axis:</dt>
-            <dd id="info-z-axis">Time (nanoseconds)</dd>
+            <dd id="info-y-axis">Time (nanoseconds)</dd>
 
             <dt>Description:</dt>
-            <dd id="info-description">Each point is one benchmark. The model surface is flat along the
-              array-size axis and rises along the index-count axis.</dd>
+            <dd id="info-description">Each point is one benchmark, coloured by array size. The model
+              depends on the index count alone, so points of every colour follow the same line.</dd>
           </dl>
         </div>
 
@@ -127,11 +125,23 @@
       </div>
     </div>
 
+    <h2>Per-index cost across the range</h2>
+    <p>
+      Net time per index with the model's per-call constant subtracted,
+      <code>(t &minus; overhead &minus; c0) / indexCount</code>. In the total time the constant swamps the
+      per-index cost, so its rise across the range is only visible here; the model's charge per index is
+      <code>c1 + c2 &middot; indexCount</code>, a straight line. Small index counts are omitted: there the
+      constant dominates the total, and dividing the small remainder by the count amplifies noise.
+    </p>
+    <div id="perindex-container">
+      <div class="loading">Loading...</div>
+    </div>
+
     <h2>Per-index time distribution</h2>
     <p>
-      Net time per index, <code>(t &minus; overhead) / indexCount</code>, for benchmarks with at least the
-      selected number of indices. The dashed line marks the fitted model's net time per index at that
-      number of indices.
+      The same per-index times, <code>(t &minus; overhead &minus; c0) / indexCount</code>, as a histogram
+      for benchmarks with at least the selected number of indices. The dashed line marks the fitted
+      model's net time per index at that number of indices.
     </p>
     <div id="hist-container">
       <div class="loading">Loading...</div>
