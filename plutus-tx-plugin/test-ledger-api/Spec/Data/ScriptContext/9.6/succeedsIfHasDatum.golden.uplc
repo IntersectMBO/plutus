@@ -21,6 +21,6 @@
                                          , (\ds -> constr 1 []) ]
                                          args) ])
                                [(\ds -> True), False]) ]) ])
-                [((\x -> error) (forced "PT5" (constr 0 []))), ()])
+                [((\x -> error) (forced "PT5" ())), ()])
              (unConstrData
                 (forced (forced 2 (case (unConstrData d) [(\l r -> r)]))))) ]))

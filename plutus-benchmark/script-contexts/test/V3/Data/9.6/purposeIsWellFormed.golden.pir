@@ -106,8 +106,6 @@ let
                     , [] ]
           in
           go
-  data Unit | Unit_match where
-    Unit : Unit
 in
 \(ds : data) ->
   case
@@ -284,17 +282,12 @@ in
                                                                                                          data) ->
                                                                                                      l) ]))
                                                                                           [ (/\dead ->
-                                                                                               let
-                                                                                                 !defaultBody :
-                                                                                                    bool
-                                                                                                   = error
-                                                                                                       {bool}
-                                                                                               in
-                                                                                               Unit_match
+                                                                                               case
+                                                                                                 bool
                                                                                                  (error
-                                                                                                    {Unit})
-                                                                                                 {bool}
-                                                                                                 defaultBody)
+                                                                                                    {unit})
+                                                                                                 [ (error
+                                                                                                      {bool}) ])
                                                                                           , (/\dead ->
                                                                                                True) ]
                                                                                           {all dead.
@@ -766,11 +759,11 @@ in
                                                        {all dead. dead})
                                                      [ (/\dead ->
                                                           let
-                                                            !x : Unit
+                                                            !x : unit
                                                               = trace
-                                                                  {Unit}
+                                                                  {unit}
                                                                   "PT5"
-                                                                  Unit
+                                                                  ()
                                                           in
                                                           error {unit})
                                                      , (/\dead -> ()) ]

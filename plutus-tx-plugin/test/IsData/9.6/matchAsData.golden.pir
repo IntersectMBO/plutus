@@ -1,13 +1,11 @@
 let
   ~defaultBody : data = (/\e -> error {e}) {data}
-  data Unit | Unit_match where
-    Unit : Unit
   !mkCons : all a. a -> list a -> list a = mkCons
   !mkConstr : integer -> list data -> data = constrData
   !mkNilData : unit -> list data = mkNilData
   !unitval : unit = ()
-  ~`$bFirstC` : Unit -> data
-    = \(arg0_ : Unit) ->
+  ~`$bFirstC` : unit -> data
+    = \(arg0_ : unit) ->
         mkConstr
           0
           (mkCons {data} (mkConstr 0 (mkNilData unitval)) (mkNilData unitval))
@@ -102,6 +100,6 @@ in
          {data}
          {data}
          nt
-         (\(void : unit) -> `$bFirstC` Unit)
+         (\(void : unit) -> `$bFirstC` ())
          (\(void : unit) ->
-            Unit_match ((/\e -> error {e}) {Unit}) {data} defaultBody))
+            case data ((/\e -> error {e}) {unit}) [defaultBody]))

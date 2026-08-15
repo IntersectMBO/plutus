@@ -1,6 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
 in
@@ -19,7 +17,7 @@ let
           {all dead. integer}
           (/\dead ->
              let
-               !x : Unit = trace {Unit} "PT8" Unit
+               !x : unit = trace {unit} "PT8" ()
              in
              Tuple2_match
                {bytestring}
@@ -48,7 +46,7 @@ in
     {all dead. integer}
     (/\dead ->
        let
-         !x : Unit = trace {Unit} "PT8" Unit
+         !x : unit = trace {unit} "PT8" ()
        in
        Tuple2_match
          {bytestring}

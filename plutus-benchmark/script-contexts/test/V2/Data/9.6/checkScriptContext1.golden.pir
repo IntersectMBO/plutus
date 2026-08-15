@@ -6,13 +6,9 @@
             xs
             [(\(ds : data) (eta : list data) -> addInteger 1 (go eta)), 0]
   in
-  let
-    data Unit | Unit_match where
-      Unit : Unit
-  in
   \(d : data) ->
     case
-      Unit
+      unit
       (case
          (list data)
          (unConstrData d)
@@ -20,7 +16,7 @@
       [ (\(ds : data)
           (ds : list data) ->
            case
-             (all dead. Unit)
+             (all dead. unit)
              (equalsInteger
                 0
                 (modInteger
@@ -232,10 +228,10 @@
                    2))
              [ (/\dead ->
                   let
-                    !x : Unit = trace {Unit} "Odd number of outputs" Unit
+                    !x : unit = trace {unit} "Odd number of outputs" ()
                   in
-                  error {Unit})
-             , (/\dead -> Unit) ]
+                  error {unit})
+             , (/\dead -> ()) ]
              {all dead. dead}) ])
   (Constr 0
      [ Constr 0

@@ -31,8 +31,6 @@ let
                                  (unIData ds)
                                  (unIData ds)
                                  (unIData (headList {data} ds))) ]) ]) ]
-  data Unit | Unit_match where
-    Unit : Unit
 in
 \(d : data) ->
   (let
@@ -81,12 +79,6 @@ in
                                            (iData (addInteger w w))
                                            [])))))
                           (\(void : unit) ->
-                             let
-                               !defaultBody : data = error {data}
-                             in
-                             Unit_match (error {Unit}) {data} defaultBody))
+                             case data (error {unit}) [(error {data})]))
                      (\(void : unit) ->
-                        let
-                          !defaultBody : data = error {data}
-                        in
-                        Unit_match (error {Unit}) {data} defaultBody)) ]) ])
+                        case data (error {unit}) [(error {data})])) ]) ])

@@ -115,8 +115,6 @@
                                   True)
                              {all dead. dead}) ]
                       {all dead. dead}))
-    data Unit | Unit_match where
-      Unit : Unit
     data OutputDatum | OutputDatum_match where
       NoOutputDatum : OutputDatum
       OutputDatum : data -> OutputDatum
@@ -178,11 +176,11 @@
                                [ (/\dead ->
                                     let
                                       !x :
-                                         Unit
+                                         unit
                                         = trace
-                                            {Unit}
+                                            {unit}
                                             "There can only be one output to address"
-                                            Unit
+                                            ()
                                     in
                                     error {List TxOut})
                                , (/\dead -> foo ds (Cons {TxOut} x' acc) xs') ]
@@ -1010,37 +1008,37 @@
   let
     ~defaultBody : TxOut
       = let
-        !x : Unit = trace {Unit} "script input error ownInput" Unit
+        !x : unit = trace {unit} "script input error ownInput" ()
       in
       error {TxOut}
     !`$fFromDataBuiltinBLS12_381_G1_Element_$cfromBuiltinData` :
        data -> Maybe bytestring
       = \(d : data) ->
           chooseData
-            {Unit -> Maybe bytestring}
+            {unit -> Maybe bytestring}
             d
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                case
                  (Maybe bytestring)
                  (unConstrData d)
                  [(\(l : integer) (r : list data) -> Nothing {bytestring})])
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                let
                  !ds : list (pair data data) = unMapData d
                in
                Nothing {bytestring})
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                let
                  !ds : list data = unListData d
                in
                Nothing {bytestring})
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                let
                  !ds : integer = unIData d
                in
                Nothing {bytestring})
-            (\(ds : Unit) -> Just {bytestring} (unBData d))
-            Unit
+            (\(ds : unit) -> Just {bytestring} (unBData d))
+            ()
     !`$fFromDataTuple2_$cfromBuiltinData` :
        all a b.
          (\a -> data -> Maybe a) a ->
@@ -1052,9 +1050,9 @@
            (`$dFromData` : (\a -> data -> Maybe a) b)
            (d : data) ->
             chooseData
-              {Unit -> Maybe (Tuple2 a b)}
+              {unit -> Maybe (Tuple2 a b)}
               d
-              (\(ds : Unit) ->
+              (\(ds : unit) ->
                  case
                    (Maybe (Tuple2 a b))
                    (unConstrData d)
@@ -1129,11 +1127,11 @@
                                  (/\dead -> Nothing {Tuple2 a b})
                                  {all dead. dead}) ]
                           {all dead. dead}) ])
-              (\(ds : Unit) -> Nothing {Tuple2 a b})
-              (\(ds : Unit) -> Nothing {Tuple2 a b})
-              (\(ds : Unit) -> Nothing {Tuple2 a b})
-              (\(ds : Unit) -> Nothing {Tuple2 a b})
-              Unit
+              (\(ds : unit) -> Nothing {Tuple2 a b})
+              (\(ds : unit) -> Nothing {Tuple2 a b})
+              (\(ds : unit) -> Nothing {Tuple2 a b})
+              (\(ds : unit) -> Nothing {Tuple2 a b})
+              ()
     ~`$dFromData` : data -> Maybe (Tuple2 bytestring bytestring)
       = `$fFromDataTuple2_$cfromBuiltinData`
           {bytestring}
@@ -1143,30 +1141,30 @@
     !`$fFromDataInteger_$cfromBuiltinData` : data -> Maybe integer
       = \(d : data) ->
           chooseData
-            {Unit -> Maybe integer}
+            {unit -> Maybe integer}
             d
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                case
                  (Maybe integer)
                  (unConstrData d)
                  [(\(l : integer) (r : list data) -> Nothing {integer})])
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                let
                  !ds : list (pair data data) = unMapData d
                in
                Nothing {integer})
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                let
                  !ds : list data = unListData d
                in
                Nothing {integer})
-            (\(ds : Unit) -> Just {integer} (unIData d))
-            (\(ds : Unit) ->
+            (\(ds : unit) -> Just {integer} (unIData d))
+            (\(ds : unit) ->
                let
                  !ds : bytestring = unBData d
                in
                Nothing {integer})
-            Unit
+            ()
   in
   letrec
     !euclid : integer -> integer -> integer
@@ -1205,7 +1203,7 @@
                    {all dead. dead})
             , (/\dead ->
                  let
-                   !x : Unit = trace {Unit} "PT3" Unit
+                   !x : unit = trace {unit} "PT3" ()
                  in
                  error {Rational}) ]
             {all dead. dead}
@@ -1248,18 +1246,15 @@
     data (Solo :: * -> *) a | Solo_match where
       MkSolo : a -> Solo a
     ~defaultBody : Solo data
-      = let
-        !defaultBody : Solo data = error {Solo data}
-      in
-      Unit_match (error {Unit}) {Solo data} defaultBody
+      = case (Solo data) (error {unit}) [(error {Solo data})]
     !`$fFromDataBuiltinData_$cfromBuiltinData` : data -> Maybe data
       = \(d : data) -> Just {data} d
     !`$fFromDataBool_$cfromBuiltinData` : data -> Maybe bool
       = \(d : data) ->
           chooseData
-            {Unit -> Maybe bool}
+            {unit -> Maybe bool}
             d
-            (\(ds : Unit) ->
+            (\(ds : unit) ->
                case
                  (Maybe bool)
                  (unConstrData d)
@@ -1276,11 +1271,11 @@
                                {all dead. dead})
                         , (/\dead -> Just {bool} False) ]
                         {all dead. dead}) ])
-            (\(ds : Unit) -> Nothing {bool})
-            (\(ds : Unit) -> Nothing {bool})
-            (\(ds : Unit) -> Nothing {bool})
-            (\(ds : Unit) -> Nothing {bool})
-            Unit
+            (\(ds : unit) -> Nothing {bool})
+            (\(ds : unit) -> Nothing {bool})
+            (\(ds : unit) -> Nothing {bool})
+            (\(ds : unit) -> Nothing {bool})
+            ()
     !matchData' :
        all r.
          data ->
@@ -1298,18 +1293,18 @@
            (iCase : integer -> r)
            (bCase : bytestring -> r) ->
             chooseData
-              {Unit -> r}
+              {unit -> r}
               d
-              (\(ds : Unit) ->
+              (\(ds : unit) ->
                  case
                    r
                    (unConstrData d)
                    [(\(l : integer) (r : list data) -> constrCase l r)])
-              (\(ds : Unit) -> mapCase (unMapData d))
-              (\(ds : Unit) -> listCase (unListData d))
-              (\(ds : Unit) -> iCase (unIData d))
-              (\(ds : Unit) -> bCase (unBData d))
-              Unit
+              (\(ds : unit) -> mapCase (unMapData d))
+              (\(ds : unit) -> listCase (unListData d))
+              (\(ds : unit) -> iCase (unIData d))
+              (\(ds : unit) -> bCase (unBData d))
+              ()
     data (Extended :: * -> *) a | Extended_match where
       Finite : a -> Extended a
       NegInf : Extended a
@@ -1545,9 +1540,9 @@
       = /\a ->
           \(`$dFromData` : (\a -> data -> Maybe a) a) (d : data) ->
             chooseData
-              {Unit -> Maybe (Maybe a)}
+              {unit -> Maybe (Maybe a)}
               d
-              (\(ds : Unit) ->
+              (\(ds : unit) ->
                  case
                    (Maybe (Maybe a))
                    (unConstrData d)
@@ -1588,11 +1583,11 @@
                                  {all dead. dead})
                           , (/\dead -> Just {Maybe a} (Nothing {a})) ]
                           {all dead. dead}) ])
-              (\(ds : Unit) -> Nothing {Maybe a})
-              (\(ds : Unit) -> Nothing {Maybe a})
-              (\(ds : Unit) -> Nothing {Maybe a})
-              (\(ds : Unit) -> Nothing {Maybe a})
-              Unit
+              (\(ds : unit) -> Nothing {Maybe a})
+              (\(ds : unit) -> Nothing {Maybe a})
+              (\(ds : unit) -> Nothing {Maybe a})
+              (\(ds : unit) -> Nothing {Maybe a})
+              ()
     !`$fFromDataMap_$cfromBuiltinData` :
        all k v.
          (\a -> data -> Maybe a) k ->
@@ -1671,15 +1666,15 @@
             in
             \(d : data) ->
               chooseData
-                {Unit -> Maybe ((\k v -> List (Tuple2 k v)) k v)}
+                {unit -> Maybe ((\k v -> List (Tuple2 k v)) k v)}
                 d
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    case
                      (Maybe ((\k v -> List (Tuple2 k v)) k v))
                      (unConstrData d)
                      [ (\(l : integer) (r : list data) ->
                           Nothing {(\k v -> List (Tuple2 k v)) k v}) ])
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !es : list (pair data data) = unMapData d
                    in
@@ -1691,22 +1686,22 @@
                         /\dead -> Just {(\k v -> List (Tuple2 k v)) k v} a)
                      (/\dead -> Nothing {(\k v -> List (Tuple2 k v)) k v})
                      {all dead. dead})
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !ds : list data = unListData d
                    in
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !ds : integer = unIData d
                    in
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !ds : bytestring = unBData d
                    in
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
-                Unit
+                ()
     !`$fFromDataList_$cfromBuiltinData` :
        all a. (\a -> data -> Maybe a) a -> data -> Maybe (List a)
       = /\a ->
@@ -1742,30 +1737,30 @@
             in
             \(d : data) ->
               chooseData
-                {Unit -> Maybe (List a)}
+                {unit -> Maybe (List a)}
                 d
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    case
                      (Maybe (List a))
                      (unConstrData d)
                      [(\(l : integer) (r : list data) -> Nothing {List a})])
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !ds : list (pair data data) = unMapData d
                    in
                    Nothing {List a})
-                (\(ds : Unit) -> go (unListData d))
-                (\(ds : Unit) ->
+                (\(ds : unit) -> go (unListData d))
+                (\(ds : unit) ->
                    let
                      !ds : integer = unIData d
                    in
                    Nothing {List a})
-                (\(ds : Unit) ->
+                (\(ds : unit) ->
                    let
                      !ds : bytestring = unBData d
                    in
                    Nothing {List a})
-                Unit
+                ()
     data ProtocolVersion | ProtocolVersion_match where
       ProtocolVersion : integer -> integer -> ProtocolVersion
     data GovernanceAction | GovernanceAction_match where
@@ -5488,8 +5483,7 @@
             {all dead. TxOut}
             (/\dead ->
                let
-                 !x : Unit
-                   = trace {Unit} "script input error getScriptInput" Unit
+                 !x : unit = trace {unit} "script input error getScriptInput" ()
                in
                error {TxOut})
             (\(ds : TxInInfo) (tl : List TxInInfo) ->
@@ -8977,9 +8971,9 @@
                                 ds)
                      in
                      chooseData
-                       {Unit -> Maybe LoanRedeemer}
+                       {unit -> Maybe LoanRedeemer}
                        d
-                       (\(ds : Unit) ->
+                       (\(ds : unit) ->
                           case
                             (Maybe LoanRedeemer)
                             (unConstrData d)
@@ -9032,18 +9026,17 @@
                                           {all dead. dead})
                                    , (/\dead -> Just {LoanRedeemer} CloseAsk) ]
                                    {all dead. dead}) ])
-                       (\(ds : Unit) -> Nothing {LoanRedeemer})
-                       (\(ds : Unit) -> Nothing {LoanRedeemer})
-                       (\(ds : Unit) -> Nothing {LoanRedeemer})
-                       (\(ds : Unit) -> Nothing {LoanRedeemer})
-                       Unit)
+                       (\(ds : unit) -> Nothing {LoanRedeemer})
+                       (\(ds : unit) -> Nothing {LoanRedeemer})
+                       (\(ds : unit) -> Nothing {LoanRedeemer})
+                       (\(ds : unit) -> Nothing {LoanRedeemer})
+                       ())
                      {all dead. LoanRedeemer}
                      (\(r : LoanRedeemer) ->
                         /\dead -> trace {LoanRedeemer} "Parsed Redeemer" r)
                      (/\dead ->
                         let
-                          !x : Unit
-                            = trace {Unit} "Failed to parse Redeemer" Unit
+                          !x : unit = trace {unit} "Failed to parse Redeemer" ()
                         in
                         error {LoanRedeemer})
                      {all dead. dead}
@@ -9077,13 +9070,10 @@
                                {all dead. Solo data}
                                (\(ds : data) -> /\dead -> MkSolo {data} ds)
                                (/\dead ->
-                                  let
-                                    !defaultBody : Solo data = error {Solo data}
-                                  in
-                                  Unit_match
-                                    (error {Unit})
-                                    {Solo data}
-                                    defaultBody)
+                                  case
+                                    (Solo data)
+                                    (error {unit})
+                                    [(error {Solo data})])
                                {all dead. dead})
                           (\(default_arg0 : Voter) -> defaultBody))
                        {LoanDatum}
@@ -9091,9 +9081,9 @@
                           Maybe_match
                             {LoanDatum}
                             (chooseData
-                               {Unit -> Maybe LoanDatum}
+                               {unit -> Maybe LoanDatum}
                                ipv
-                               (\(ds : Unit) ->
+                               (\(ds : unit) ->
                                   case
                                     (Maybe LoanDatum)
                                     (unConstrData ipv)
@@ -11009,18 +10999,18 @@
                                               {all dead. dead})
                                            l
                                            r) ])
-                               (\(ds : Unit) -> Nothing {LoanDatum})
-                               (\(ds : Unit) -> Nothing {LoanDatum})
-                               (\(ds : Unit) -> Nothing {LoanDatum})
-                               (\(ds : Unit) -> Nothing {LoanDatum})
-                               Unit)
+                               (\(ds : unit) -> Nothing {LoanDatum})
+                               (\(ds : unit) -> Nothing {LoanDatum})
+                               (\(ds : unit) -> Nothing {LoanDatum})
+                               (\(ds : unit) -> Nothing {LoanDatum})
+                               ())
                             {all dead. LoanDatum}
                             (\(r : LoanDatum) ->
                                /\dead -> trace {LoanDatum} "Parsed Datum" r)
                             (/\dead ->
                                let
-                                 !x : Unit
-                                   = trace {Unit} "Failed to parse Datum" Unit
+                                 !x : unit
+                                   = trace {unit} "Failed to parse Datum" ()
                                in
                                error {LoanDatum})
                             {all dead. dead})
@@ -11305,11 +11295,11 @@
                                              (ipv : integer) ->
                                               let
                                                 !x :
-                                                   Unit
+                                                   unit
                                                   = trace
-                                                      {Unit}
+                                                      {unit}
                                                       "Wrong kind of staking credential."
-                                                      Unit
+                                                      ()
                                               in
                                               error {bool}))
                                       True))
@@ -11516,17 +11506,17 @@
                             (\(t : integer) -> /\dead -> t)
                             (/\dead ->
                                let
-                                 !x : Unit
-                                   = trace {Unit} "Shouldn't be NegInf." Unit
+                                 !x : unit
+                                   = trace {unit} "Shouldn't be NegInf." ()
                                in
                                error {integer})
                             (/\dead ->
                                let
-                                 !x : Unit
+                                 !x : unit
                                    = trace
-                                       {Unit}
+                                       {unit}
                                        "invalid-hereafter not specified"
-                                       Unit
+                                       ()
                                in
                                error {integer})
                             {all dead. dead}
@@ -11580,8 +11570,8 @@
                         {all dead. TxOut}
                         (/\dead ->
                            let
-                             !x : Unit
-                               = trace {Unit} "Missing output to address" Unit
+                             !x : unit
+                               = trace {unit} "Missing output to address" ()
                            in
                            error {TxOut})
                         (\(x : TxOut) (ds : List TxOut) ->
@@ -11594,11 +11584,11 @@
                                (\(ipv : TxOut) (ipv : List TxOut) ->
                                   /\dead ->
                                     let
-                                      !x : Unit
+                                      !x : unit
                                         = trace
-                                            {Unit}
+                                            {unit}
                                             "Missing output to address"
-                                            Unit
+                                            ()
                                     in
                                     error {TxOut})
                                {all dead. dead})
@@ -12765,16 +12755,12 @@
                                 {all dead. dead})
                            (/\dead -> True)
                            {all dead. dead}))))
-             [ (/\dead ->
-                  let
-                    !x : Unit = trace {Unit} "PT5" Unit
-                  in
-                  error {unit})
+             [ (/\dead -> let !x : unit = trace {unit} "PT5" () in error {unit})
              , (/\dead -> ()) ]
              {all dead. dead})
       (/\dead ->
          let
-           !x : Unit = trace {Unit} "Failed to parse ScriptContext" Unit
+           !x : unit = trace {unit} "Failed to parse ScriptContext" ()
          in
          error {unit})
       {all dead. dead})

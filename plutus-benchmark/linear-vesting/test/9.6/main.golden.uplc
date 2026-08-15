@@ -70,8 +70,7 @@
                                                                                                                                                                                  error)
                                                                                                                                                                                 (forced
                                                                                                                                                                                    "Missing beneficiary signature"
-                                                                                                                                                                                   (constr 0
-                                                                                                                                                                                      [  ])))
+                                                                                                                                                                                   ()))
                                                                                                                                                                            , (case
                                                                                                                                                                                 (lessThanEqualsInteger
                                                                                                                                                                                    currentTimeApproximation
@@ -92,8 +91,7 @@
                                                                                                                                                                                                      error)
                                                                                                                                                                                                     (forced
                                                                                                                                                                                                        "Mismatched remaining asset"
-                                                                                                                                                                                                       (constr 0
-                                                                                                                                                                                                          [  ])))
+                                                                                                                                                                                                       ()))
                                                                                                                                                                                                , (case
                                                                                                                                                                                                     (equalsData
                                                                                                                                                                                                        resolvedDatum
@@ -102,8 +100,7 @@
                                                                                                                                                                                                           error)
                                                                                                                                                                                                          (forced
                                                                                                                                                                                                             "Datum Modification Prohibited"
-                                                                                                                                                                                                            (constr 0
-                                                                                                                                                                                                               [  ])))
+                                                                                                                                                                                                            ()))
                                                                                                                                                                                                     , (case
                                                                                                                                                                                                          (equalsInteger
                                                                                                                                                                                                             1
@@ -114,27 +111,23 @@
                                                                                                                                                                                                                error)
                                                                                                                                                                                                               (forced
                                                                                                                                                                                                                  "Double satisfaction"
-                                                                                                                                                                                                                 (constr 0
-                                                                                                                                                                                                                    [  ])))
+                                                                                                                                                                                                                 ()))
                                                                                                                                                                                                          , True ]) ]) ])
                                                                                                                                                                                           , ((\x ->
                                                                                                                                                                                                 error)
                                                                                                                                                                                                (forced
                                                                                                                                                                                                   "Remaining asset is not decreasing"
-                                                                                                                                                                                                  (constr 0
-                                                                                                                                                                                                     [  ]))) ])
+                                                                                                                                                                                                  ())) ])
                                                                                                                                                                                      , ((\x ->
                                                                                                                                                                                            error)
                                                                                                                                                                                           (forced
                                                                                                                                                                                              "Zero remaining assets not allowed"
-                                                                                                                                                                                             (constr 0
-                                                                                                                                                                                                [  ]))) ])
+                                                                                                                                                                                             ())) ])
                                                                                                                                                                                 , ((\x ->
                                                                                                                                                                                       error)
                                                                                                                                                                                      (forced
                                                                                                                                                                                         "Unlock not permitted until firstUnlockPossibleAfter time"
-                                                                                                                                                                                        (constr 0
-                                                                                                                                                                                           [  ]))) ]) ])
+                                                                                                                                                                                        ())) ]) ])
                                                                                                                                                                         (findCurrency
                                                                                                                                                                            (unMapData
                                                                                                                                                                               (forced
@@ -408,8 +401,7 @@
                                                                                                          error)
                                                                                                         (forced
                                                                                                            "Time range not Finite"
-                                                                                                           (constr 0
-                                                                                                              [  ])))
+                                                                                                           ()))
                                                                                                    , (addInteger
                                                                                                         (unIData
                                                                                                            (forced
@@ -467,8 +459,7 @@
                                                                                                    error)
                                                                                                   (forced
                                                                                                      "Missing beneficiary signature"
-                                                                                                     (constr 0
-                                                                                                        [  ])))
+                                                                                                     ()))
                                                                                              , (case
                                                                                                   (lessThanEqualsInteger
                                                                                                      currentTimeApproximation
@@ -478,8 +469,7 @@
                                                                                                         error)
                                                                                                        (forced
                                                                                                           "Unlock not permitted until vestingPeriodEnd time"
-                                                                                                          (constr 0
-                                                                                                             [  ]))) ]) ])
+                                                                                                          ())) ]) ])
                                                                                           (unBData
                                                                                              (forced
                                                                                                 (case
@@ -521,8 +511,7 @@
                                                                                                          error)
                                                                                                         (forced
                                                                                                            "Time range not Finite"
-                                                                                                           (constr 0
-                                                                                                              [  ])))
+                                                                                                           ()))
                                                                                                    , (addInteger
                                                                                                         (unIData
                                                                                                            (forced
@@ -570,8 +559,7 @@
                                                                       error)
                                                                      (forced
                                                                         "Validation failed"
-                                                                        (constr 0
-                                                                           [])))
+                                                                        ()))
                                                                 , (forced
                                                                      "Validation completed"
                                                                      ()) ])
@@ -592,8 +580,7 @@
                                                                          error)
                                                                         (forced
                                                                            "Not spending script"
-                                                                           (constr 0
-                                                                              [  ])))
+                                                                           ()))
                                                                    , ((\mdCon ->
                                                                          (\mdTag ->
                                                                             (\mdFields ->
@@ -606,8 +593,7 @@
                                                                                           error)
                                                                                          (forced
                                                                                             "Missing datum"
-                                                                                            (constr 0
-                                                                                               [  ])))
+                                                                                            ()))
                                                                                     , (mkPairData
                                                                                          ownRef
                                                                                          (forced
@@ -692,9 +678,7 @@
                                         [(findOutputByAddress addr outs), out])
                                  , z ])
                               ((\x -> error)
-                                 (forced
-                                    "Own output not found"
-                                    (constr 0 []))))))
+                                 (forced "Own output not found" ())))))
                    (fix1
                       (\findInputByOutRef ref inputs ->
                          (\z ->
@@ -710,8 +694,7 @@
                                         ref)
                                      [(findInputByOutRef ref txIns), txIn])
                               , z ])
-                           ((\x -> error)
-                              (forced "Own input not found" (constr 0 []))))))
+                           ((\x -> error) (forced "Own input not found" ())))))
                 (fix1
                    (\countInputsAtScript scriptHash inputs ->
                       case

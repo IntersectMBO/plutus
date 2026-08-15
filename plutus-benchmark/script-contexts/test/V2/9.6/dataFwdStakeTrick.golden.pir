@@ -1,17 +1,13 @@
-let
-  data Unit | Unit_match where
-    Unit : Unit
-in
 \(obsScriptCred : data) (ctx : data) ->
   case
-    Unit
+    unit
     (case
        (list data)
        (unConstrData ctx)
        [(\(l : integer) (r : list data) -> r)])
     [ (\(ds : data) (ds : list data) ->
          case
-           Unit
+           unit
            (dropList
               {data}
               6
@@ -36,15 +32,15 @@ in
                         [(\(l : data) (r : data) -> l)]
                 in
                 case
-                  (all dead. Unit)
+                  (all dead. unit)
                   (equalsData obsScriptCred wdrlAtZero)
                   [ (/\dead ->
                        case
-                         (all dead. Unit)
+                         (all dead. unit)
                          (equalsData obsScriptCred wdrlAtOne)
                          [ (/\dead ->
                               case
-                                (all dead. Unit)
+                                (all dead. unit)
                                 ((let
                                      a = pair data data
                                    in
@@ -75,12 +71,12 @@ in
                                    rest)
                                 [ (/\dead ->
                                      let
-                                       !x : Unit = trace {Unit} "not found" Unit
+                                       !x : unit = trace {unit} "not found" ()
                                      in
-                                     error {Unit})
-                                , (/\dead -> Unit) ]
+                                     error {unit})
+                                , (/\dead -> ()) ]
                                 {all dead. dead})
-                         , (/\dead -> Unit) ]
+                         , (/\dead -> ()) ]
                          {all dead. dead})
-                  , (/\dead -> Unit) ]
+                  , (/\dead -> ()) ]
                   {all dead. dead}) ]) ]
