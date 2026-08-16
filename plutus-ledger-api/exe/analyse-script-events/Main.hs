@@ -24,6 +24,7 @@ import PlutusLedgerApi.Test.EvaluationEvent
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
+import PlutusLedgerApi.V4 qualified as V4
 import PlutusTx.AssocMap qualified as M
 import UntypedPlutusCore as UPLC
 
@@ -73,6 +74,16 @@ stringOfPurposeV3 = \case
   V3.VotingScript {} -> "V3 Voting"
   V3.ProposingScript {} -> "V3 Proposing"
 
+stringOfPurposeV4 :: V4.ScriptInfo -> String
+stringOfPurposeV4 = \case
+  V4.MintingScript {} -> "V4 Minting"
+  V4.SpendingScript {} -> "V4 Spending"
+  V4.WithdrawingScript {} -> "V4 Withdrawing"
+  V4.CertifyingScript {} -> "V4 Certifying"
+  V4.VotingScript {} -> "V4 Voting"
+  V4.ProposingScript {} -> "V4 Proposing"
+  V4.GuardingScript {} -> "V4 Guarding"
+
 shapeOfValue :: V1.Value -> String
 shapeOfValue (V1.Value m) =
   let l = M.toList m
@@ -117,6 +128,16 @@ analyseTxInfoV3 i = do
   analyseValue $ V3.mintValueBurned (V3.txInfoMint i)
   analyseOutputs (V3.txInfoOutputs i) V3.txOutValue
 
+analyseTxInfoV4 :: V4.TxInfo -> IO ()
+analyseTxInfoV4 i = do
+  putStr "Fee:     "
+  print $ V4.txInfoFee i
+  putStr "Mint:    "
+  analyseValue $ V4.mintValueMinted (V4.txInfoMint i)
+  putStr "Burn:    "
+  analyseValue $ V4.mintValueBurned (V4.txInfoMint i)
+  analyseOutputs (V4.txInfoOutputs i) V4.txOutValue
+
 analyseScriptContext :: EventAnalyser
 analyseScriptContext _ctx _params ev = case ev of
   PlutusEvent PlutusV1 ScriptEvaluationData {..} _expected ->
@@ -134,6 +155,11 @@ analyseScriptContext _ctx _params ev = case ev of
       [_, _, c] -> analyseCtxV3 c
       [_, c] -> analyseCtxV3 c
       l -> error $ printf "Unexpected number of V3 script arguments: %d" (length l)
+  PlutusEvent PlutusV4 ScriptEvaluationData {..} _expected ->
+    case dataInputs of
+      [_, _, c] -> analyseCtxV4 c
+      [_, c] -> analyseCtxV4 c
+      l -> error $ printf "Unexpected number of V4 script arguments: %d" (length l)
   where
     analyseCtxV1 c =
       case V1.fromData @V1.ScriptContext c of
@@ -176,6 +202,11 @@ analyseScriptContext _ctx _params ev = case ev of
               printV1info p
             Nothing -> putStrLn "* Failed to decode V1 ScriptContext for V3 event: giving up\n"
 
+    analyseCtxV4 c =
+      case V4.fromData @V4.ScriptContext c of
+        Just p -> printV4info p
+        Nothing -> putStrLn "\n* Failed to decode V4 ScriptContext for V4 event: giving up\n"
+
     printV1info p = do
       putStrLn "----------------"
       putStrLn $ stringOfPurposeV1 $ V1.scriptContextPurpose p
@@ -190,6 +221,11 @@ analyseScriptContext _ctx _params ev = case ev of
       putStrLn "----------------"
       putStrLn $ stringOfPurposeV3 $ V3.scriptContextScriptInfo p
       analyseTxInfoV3 $ V3.scriptContextTxInfo p
+
+    printV4info p = do
+      putStrLn "----------------"
+      putStrLn $ stringOfPurposeV4 $ V4.scriptContextScriptInfo p
+      analyseTxInfoV4 $ V4.scriptContextTxInfo p
 
 -- Data object analysis
 
@@ -416,6 +452,25 @@ analyseCosts ctx _ ev =
                   (_, Left _) -> Failed
                   (_, Right cost) -> OK cost
       printCost result dataBudget
+    PlutusEvent PlutusV4 ScriptEvaluationData {..} _ -> do
+      dataInput <-
+        case dataInputs of
+          [input] -> pure input
+          _ -> throwIO $ userError "PlutusV4 script expects exactly one input"
+      let result =
+            case deserialiseScript PlutusV4 dataProtocolVersion dataScript of
+              Left _ -> DeserialisationError
+              Right script -> do
+                case V4.evaluateScriptRestricting
+                  dataProtocolVersion
+                  V4.Quiet
+                  ctx
+                  dataBudget
+                  script
+                  dataInput of
+                  (_, Left _) -> Failed
+                  (_, Right cost) -> OK cost
+      printCost result dataBudget
   where
     printCost :: EvaluationResult -> ExBudget -> IO ()
     printCost result claimedCost =
@@ -463,12 +518,14 @@ analyseOneFile analyse eventFile = do
   case ( mkContext V1.mkEvaluationContext (eventsCostParamsV1 events)
        , mkContext V2.mkEvaluationContext (eventsCostParamsV2 events)
        , mkContext V3.mkEvaluationContext (eventsCostParamsV2 events)
+       , mkContext V4.mkEvaluationContext (eventsCostParamsV2 events)
        ) of
-    (Right ctxV1, Right ctxV2, Right ctxV3) ->
-      mapM_ (runSingleEvent ctxV1 ctxV2 ctxV3) (eventsOf events)
-    (Left err, _, _) -> error $ display err
-    (_, Left err, _) -> error $ display err
-    (_, _, Left err) -> error $ display err
+    (Right ctxV1, Right ctxV2, Right ctxV3, Right ctxV4) ->
+      mapM_ (runSingleEvent ctxV1 ctxV2 ctxV3 ctxV4) (eventsOf events)
+    (Left err, _, _, _) -> error $ display err
+    (_, Left err, _, _) -> error $ display err
+    (_, _, Left err, _) -> error $ display err
+    (_, _, _, Left err) -> error $ display err
   where
     mkContext f = \case
       Nothing -> Right Nothing
@@ -478,9 +535,10 @@ analyseOneFile analyse eventFile = do
       :: Maybe (EvaluationContext, [Int64])
       -> Maybe (EvaluationContext, [Int64])
       -> Maybe (EvaluationContext, [Int64])
+      -> Maybe (EvaluationContext, [Int64])
       -> ScriptEvaluationEvent
       -> IO ()
-    runSingleEvent ctxV1 ctxV2 ctxV3 event =
+    runSingleEvent ctxV1 ctxV2 ctxV3 ctxV4 event =
       case event of
         PlutusEvent PlutusV1 _ _ ->
           case ctxV1 of
@@ -494,6 +552,10 @@ analyseOneFile analyse eventFile = do
           case ctxV3 of
             Just (ctx, params) -> analyse ctx params event
             Nothing -> putStrLn "*** ctxV3 missing ***"
+        PlutusEvent PlutusV4 _ _ ->
+          case ctxV4 of
+            Just (ctx, params) -> analyse ctx params event
+            Nothing -> putStrLn "*** ctxV4 missing ***"
 
 main :: IO ()
 main =

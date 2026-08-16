@@ -48,7 +48,7 @@
                 },
                 "plutusVersion": {
                     "type": "string",
-                    "enum": [ "v1", "v2", "v3" ]
+                    "enum": [ "v1", "v2", "v3", "v4" ]
                 },
                 "license": {
                     "type": "string"

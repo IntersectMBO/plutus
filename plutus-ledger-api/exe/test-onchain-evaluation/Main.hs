@@ -18,6 +18,7 @@ import Control.Monad.Writer.Strict
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (catMaybes)
 import PlutusLedgerApi.V3.EvaluationContext qualified as V3
+import PlutusLedgerApi.V4.EvaluationContext qualified as V4
 import System.Directory.Extra (listFiles)
 import System.Environment (getEnv)
 import System.FilePath (isExtensionOf, takeBaseName)
@@ -31,23 +32,25 @@ testOneFile eventFile = testCase (takeBaseName eventFile) $ do
   case ( mkContext V1.mkEvaluationContext (eventsCostParamsV1 events)
        , mkContext V2.mkEvaluationContext (eventsCostParamsV2 events)
        , mkContext V3.mkEvaluationContext (eventsCostParamsV2 events)
+       , mkContext V4.mkEvaluationContext (eventsCostParamsV2 events)
        ) of
-    (Right ctxV1, Right ctxV2, Right ctxV3) -> do
+    (Right ctxV1, Right ctxV2, Right ctxV3, Right ctxV4) -> do
       errs <-
         fmap catMaybes $
           mapConcurrently
-            (evaluate . runSingleEvent ctxV1 ctxV2 ctxV3)
+            (evaluate . runSingleEvent ctxV1 ctxV2 ctxV3 ctxV4)
             (eventsOf events)
       whenJust (nonEmpty errs) $ assertFailure . renderTestFailures
-    (Left err, _, _) -> assertFailure $ display err
-    (_, Left err, _) -> assertFailure $ display err
-    (_, _, Left err) -> assertFailure $ display err
+    (Left err, _, _, _) -> assertFailure $ display err
+    (_, Left err, _, _) -> assertFailure $ display err
+    (_, _, Left err, _) -> assertFailure $ display err
+    (_, _, _, Left err) -> assertFailure $ display err
   where
     mkContext f = \case
       Nothing -> Right Nothing
       Just costParams -> Just . (,costParams) . fst <$> runWriterT (f costParams)
 
-    runSingleEvent ctxV1 ctxV2 ctxV3 event =
+    runSingleEvent ctxV1 ctxV2 ctxV3 ctxV4 event =
       case event of
         PlutusEvent PlutusV1 _ _ -> case ctxV1 of
           Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
@@ -58,6 +61,9 @@ testOneFile eventFile = testCase (takeBaseName eventFile) $ do
         PlutusEvent PlutusV3 _ _ -> case ctxV3 of
           Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
           Nothing -> Just $ MissingCostParametersFor PlutusV3
+        PlutusEvent PlutusV4 _ _ -> case ctxV4 of
+          Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
+          Nothing -> Just $ MissingCostParametersFor PlutusV4
 
 main :: IO ()
 main = do
