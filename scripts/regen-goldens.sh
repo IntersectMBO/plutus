@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# List of sub‑projects and their tests
-projects=(
-  "plutus-conformance"
-  "plutus-tx-plugin"
-  "plutus-ledger-api"
-  "plutus-benchmark"
-  "cardano-constitution"
-  "plutus-tx"
-  "plutus-core"
-)
+ghc_version=$(ghc --numeric-version)
+
+if [[ "$ghc_version" == 9.12.* ]]; then
+  echo "=== GHC $ghc_version: regenerating plutus-tx-plugin goldens only"
+  projects=(
+    "plutus-tx-plugin"
+  )
+else
+  echo "=== GHC $ghc_version: regenerating all goldens"
+  projects=(
+    "plutus-conformance"
+    "plutus-tx-plugin"
+    "plutus-ledger-api"
+    "plutus-benchmark"
+    "cardano-constitution"
+    "plutus-tx"
+    "plutus-core"
+  )
+fi
 
 tests_plutus_conformance=(
   "cabal run haskell-conformance -- --accept"
