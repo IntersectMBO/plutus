@@ -20,11 +20,8 @@ Then open your browser to:
 
 ### Available Visualizations
 
-- **ValueData** - Converts Value to Data representation (2D plot)
-- **UnValueData** - Converts Data back to Value (2D plot)
-- **ValueContains** - Checks if one Value contains another (3D plot)
-- **LookupCoin** - Looks up a coin in a Value (2D plot)
-- **IndexByteString** - Retrieves a byte at a given index from a ByteString (2D plot)
+One page per builtin, one directory each. The list of pages lives in `PAGES`
+in `shared/utils.js`, which also drives the navigation bar on every page.
 
 ## Project Structure
 
@@ -33,19 +30,14 @@ doc/cost-models/
 ├── index.html              # Landing page with overview
 ├── shared/
 │   ├── styles.css         # Shared CSS styling
-│   └── utils.js           # Shared utilities (CSV parser, cost model evaluator)
+│   └── utils.js           # Everything shared: page list (PAGES), navigation,
+│                          # data-source panel and URL handling, CSV parser,
+│                          # cost model evaluators, page bootstrap
+│                          # (setupCostModelPage)
 ├── valuedata/
-│   ├── index.html         # ValueData visualization page
-│   └── plot.js            # ValueData-specific plot configuration
-├── unvaluedata/
-│   ├── index.html
-│   └── plot.js
-├── valuecontains/
-│   ├── index.html
-│   └── plot.js
-└── lookupcoin/
-    ├── index.html
-    └── plot.js
+│   ├── index.html         # Page markup: heading, controls, info panel
+│   └── plot.js            # Page identity and rendering only
+├── unvaluedata/           # ... and so on, one directory per builtin
 ```
 
 ## Features
@@ -67,55 +59,57 @@ Data is loaded dynamically from the Plutus repository using the browser's `fetch
 
 ### Quick Steps
 
-1. Copy an existing function directory:
+1. Copy the directory of an existing function whose plot has the same shape:
 
    ```bash
    cp -r valuedata/ myfunction/
    ```
 
-2. Edit `myfunction/index.html`:
-   - Update page title and heading
-   - Update navigation links
-   - Update plot information panel labels
+2. Add the page to `PAGES` in `shared/utils.js` (slug and display name).
+   The navigation bar on every page and the landing page pick it up from
+   there; no other page needs editing.
 
-3. Edit `myfunction/plot.js`:
-   - Update `FUNCTION_NAME` constant (must match CSV entry)
-   - Update `ARITY` constant (number of arguments)
-   - Adjust plot type if needed (2D vs 3D)
-   - Update axis labels
+3. Edit `myfunction/plot.js`: the constants at the top (`FUNCTION_NAME` as it
+   appears in the CSV, `COST_MODEL_NAME` as the key in the JSON, `ARITY`), the
+   `slug` in the `setupCostModelPage` call, and the rendering functions.
+   Loading, URL handling and navigation come from `setupCostModelPage`.
 
-4. Test locally:
+4. Edit `myfunction/index.html`: page title, heading, description, and the
+   info panel labels.
+
+5. If the function's cost model type has no entry in `CostModelEvaluators` in
+   `shared/utils.js`, add one there and a matching case in
+   `formatModelFormula`. Take the coefficient names from the JSON file, not
+   from other evaluators; a name mismatch silently evaluates the model as
+   zero.
+
+6. Test locally:
 
    ```bash
    python -m http.server 8000
    # Visit http://localhost:8000/myfunction/
    ```
 
-5. Add to navigation:
-   - Update `index.html` to include your function
-   - Add navigation link to all other function pages
-
-### Configuration Examples
-
-**2D plot with one argument:**
+### Page Skeleton
 
 ```javascript
-const FUNCTION_NAME = 'MyFunction';
-const ARITY = 1;
-
-const benchmarkX = benchmarkData.map(d => d.args[0]);
-const benchmarkY = benchmarkData.map(d => d.time);
-```
-
-**3D plot with two arguments:**
-
-```javascript
-const FUNCTION_NAME = 'MyFunction';
+const FUNCTION_NAME = 'MyFunction';    // CSV uses PascalCase
+const COST_MODEL_NAME = 'myFunction';  // JSON uses camelCase
 const ARITY = 2;
 
-const benchmarkX = benchmarkData.map(d => d.args[0]);
-const benchmarkY = benchmarkData.map(d => d.args[1]);
-const benchmarkZ = benchmarkData.map(d => d.time);
+setupCostModelPage({
+  slug: 'myfunction',
+  functionName: FUNCTION_NAME,
+  costModelName: COST_MODEL_NAME,
+  arity: ARITY,
+  render(data) {
+    // Draw the plots from data.benchmarkData, data.costModel,
+    // data.overhead, data.modelPredictions.
+  },
+  setupControls() {
+    // Wire page-specific controls (checkboxes, selectors).
+  }
+});
 ```
 
 ## Technical Details
@@ -129,15 +123,9 @@ const benchmarkZ = benchmarkData.map(d => d.time);
 
 ### Cost Model Evaluation
 
-JavaScript implementations of cost model evaluators:
-
-- `constant_cost`
-- `linear_in_x`, `linear_in_y`, `linear_in_z`
-- `quadratic_in_x`, `quadratic_in_y`, `quadratic_in_z`
-- `linear_in_xy`, `linear_in_xz`, `linear_in_yz`
-- `addedSizes`, `multipliedSizes`
-- `minSize`, `maxSize`
-- `linear_in_max_yz`
+`CostModelEvaluators` in `shared/utils.js` implements one evaluator per cost
+model type, keyed by the `type` string from the JSON file. The coefficient
+names inside each evaluator must match the JSON's `arguments` keys exactly.
 
 ### Overhead Calculation
 
