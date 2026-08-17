@@ -177,8 +177,12 @@ module PlutusLedgerApi.Data.V4
   , MintValue.mintValueBurned
 
     -- *** Time
-  , V2.POSIXTime (..)
-  , V2.POSIXTimeRange
+  , Time.POSIXTime (..)
+  , Time.POSIXTimeRange
+  , pattern Time.POSIXTimeRange
+  , Time.matchPOSIXTimeRange
+  , Time.fromInclusive
+  , Time.untilExclusive
 
     -- *** Types for representing transactions
   , Address.Address
@@ -233,30 +237,6 @@ module PlutusLedgerApi.Data.V4
   , pattern Tx.OutputDatum
   , pattern Tx.OutputDatumHash
 
-    -- *** Intervals
-  , V2.Interval
-  , pattern V2.Interval
-  , V2.ivFrom
-  , V2.ivTo
-  , V2.Extended
-  , pattern V2.NegInf
-  , pattern V2.PosInf
-  , pattern V2.Finite
-  , V2.Closure
-  , V2.UpperBound
-  , pattern V2.UpperBound
-  , V2.LowerBound
-  , pattern V2.LowerBound
-  , V2.always
-  , V2.from
-  , V2.to
-  , V2.lowerBound
-  , V2.upperBound
-  , V2.strictLowerBound
-  , V2.strictUpperBound
-  , V2.inclusiveLowerBound
-  , V2.inclusiveUpperBound
-
     -- *** Ratio
   , Ratio.Rational
   , Ratio.ratio
@@ -297,5 +277,6 @@ import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Data.MintValue qualified as MintValue
 import PlutusLedgerApi.V4.Data.Address qualified as Address
 import PlutusLedgerApi.V4.Data.Contexts qualified as Contexts
+import PlutusLedgerApi.V4.Data.Time qualified as Time
 import PlutusLedgerApi.V4.Data.Tx qualified as Tx
 import PlutusTx.Ratio qualified as Ratio

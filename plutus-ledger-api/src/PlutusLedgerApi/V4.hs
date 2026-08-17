@@ -84,8 +84,8 @@ module PlutusLedgerApi.V4
   , MintValue.mintValueBurned
 
     -- *** Time
-  , V2.POSIXTime (..)
-  , V2.POSIXTimeRange
+  , Time.POSIXTime (..)
+  , Time.POSIXTimeRange (..)
 
     -- *** Types for representing transactions
   , Address.Address (..)
@@ -101,22 +101,6 @@ module PlutusLedgerApi.V4
   , Tx.TxOutRef (..)
   , Contexts.TxInInfo (..)
   , Tx.OutputDatum (..)
-
-    -- *** Intervals
-  , V2.Interval (..)
-  , V2.Extended (..)
-  , V2.Closure
-  , V2.UpperBound (..)
-  , V2.LowerBound (..)
-  , V2.always
-  , V2.from
-  , V2.to
-  , V2.lowerBound
-  , V2.upperBound
-  , V2.strictLowerBound
-  , V2.strictUpperBound
-  , V2.inclusiveLowerBound
-  , V2.inclusiveUpperBound
 
     -- *** Ratio
   , Ratio.Rational
@@ -158,5 +142,6 @@ import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3.MintValue qualified as MintValue
 import PlutusLedgerApi.V4.Address qualified as Address
 import PlutusLedgerApi.V4.Contexts qualified as Contexts
+import PlutusLedgerApi.V4.Time qualified as Time
 import PlutusLedgerApi.V4.Tx qualified as Tx
 import PlutusTx.Ratio qualified as Ratio
