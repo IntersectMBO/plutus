@@ -29,7 +29,6 @@ let
 
     "ghc96-profiled" = ghc96;
     "ghc912-profiled" = ghc912;
-    "ghc914-profiled" = ghc914;
   };
 
   tools = all-tools.${ghc};
@@ -183,7 +182,6 @@ let
     ghc914 = full-shell;
     ghc96-profiled = full-shell;
     ghc912-profiled = full-shell;
-    ghc914-profiled = full-shell;
   }.${ghc};
 
 in

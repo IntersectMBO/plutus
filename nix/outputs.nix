@@ -121,15 +121,9 @@ let
     ghc914 = mkShell "ghc914";
     ghc96-profiled = mkShell "ghc96-profiled";
     ghc912-profiled = mkShell "ghc912-profiled";
-    ghc914-profiled = mkShell "ghc914-profiled";
     metatheory-jailbreak = metatheory-jailbreak-shell;
   };
 
-  # The dev shells built by CI. All the entries must live in a single attrset:
-  # `//` merges shallowly, so consecutive `{ devShells.* = ...; }` operands
-  # would override one another and only the last one would become a CI job.
-  # The profiled shells are deliberately excluded: they force profiled builds
-  # of the entire dependency closure, which CI does not otherwise build.
   ci-devShells = {
     devShells.ghc96 = devShells.ghc96;
     devShells.ghc912 = devShells.ghc912;
@@ -142,7 +136,6 @@ let
       (windows-hydra-jobs) //
       (packages) //
       { ghc96 = project-variants-hydra-jobs.ghc96; } //
-      { ghc912 = project-variants-hydra-jobs.ghc912; } //
       { ghc914 = project-variants-hydra-jobs.ghc914; } //
       (ci-devShells) //
       { required = hydra-required-job; };
