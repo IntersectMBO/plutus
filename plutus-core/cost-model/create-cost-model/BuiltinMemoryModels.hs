@@ -378,6 +378,9 @@ builtinMemoryModels =
       paramUnionValue = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 24 21
     , -- See Note [Memory model for Value builtins]
       paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 12 21
+    , -- MatchData returns a VConstr spine containing references to captured fields.  The custom
+      -- X measure conservatively bounds both the number of captures and the matching work.
+      paramMatchData = Id $ ModelTwoArgumentsLinearInX $ OneVariableLinearFunction 1 1
     }
   where
     identityFunction = OneVariableLinearFunction 0 1

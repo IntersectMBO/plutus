@@ -153,6 +153,7 @@ builtinCostModelNames =
     , paramInsertCoin = "insertCoinModel"
     , paramUnionValue = "unionValueModel"
     , paramScaleValue = "scaleValueModel"
+    , paramMatchData = "matchDataModel"
     }
 
 {-| Loads the models from R.
@@ -308,6 +309,8 @@ createBuiltinCostModel bmfile rfile = do
   paramInsertCoin <- getParams readCF4 paramInsertCoin
   paramUnionValue <- getParams readCF2 paramUnionValue
   paramScaleValue <- getParams readCF2 paramScaleValue
+  -- Type-directed Data matching
+  paramMatchData <- getParams readCF2 paramMatchData
 
   pure $ BuiltinCostModelBase {..}
 

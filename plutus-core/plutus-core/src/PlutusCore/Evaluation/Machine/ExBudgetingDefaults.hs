@@ -427,6 +427,8 @@ unitCostBuiltinCostModel =
     , paramInsertCoin = unitCostFourArguments
     , paramUnionValue = unitCostTwoArguments
     , paramScaleValue = unitCostTwoArguments
+    , -- Type-directed Data matching
+      paramMatchData = unitCostTwoArguments
     }
 
 unitCekParameters

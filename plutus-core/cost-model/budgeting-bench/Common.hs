@@ -11,6 +11,7 @@ where
 import PlutusCore hiding
   ( Constr
   )
+import PlutusCore.Builtin (ToBuiltinMeaning)
 import PlutusCore.Compiler.Erase
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
@@ -146,12 +147,12 @@ bytestring = mkTyBuiltin @_ @BS.ByteString ()
 -- To make monomorphic terms, make tys equal to [] in the mkApp functions
 
 -- Just make the term (con unit ()), which is about the simplest possible.
-mkUnit :: uni `HasTermLevel` () => PlainTerm uni fun
+mkUnit :: (ToBuiltinMeaning uni fun, uni `HasTermLevel` ()) => PlainTerm uni fun
 mkUnit = eraseTerm $ mkConstant () ()
 
 -- Create a term instantiating a builtin and applying it to one argument
 mkApp1
-  :: (uni `HasTermLevel` a, NFData a)
+  :: (ToBuiltinMeaning uni fun, uni `HasTermLevel` a, NFData a)
   => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun
 mkApp1 !fun !tys (force -> !x) =
   eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x]
@@ -160,7 +161,7 @@ mkApp1 !fun !tys (force -> !x) =
 
 -- Create a term instantiating a builtin and applying it to two arguments
 mkApp2
-  :: (uni `HasTermLevel` a, uni `HasTermLevel` b, NFData a, NFData b)
+  :: (ToBuiltinMeaning uni fun, uni `HasTermLevel` a, uni `HasTermLevel` b, NFData a, NFData b)
   => fun -> [Type tyname uni ()] -> a -> b -> PlainTerm uni fun
 mkApp2 !fun !tys (force -> !x) (force -> !y) =
   eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x, mkConstant () y]
@@ -169,7 +170,8 @@ mkApp2 !fun !tys (force -> !x) (force -> !y) =
 
 -- Create a term instantiating a builtin and applying it to three arguments
 mkApp3
-  :: ( uni `HasTermLevel` a
+  :: ( ToBuiltinMeaning uni fun
+     , uni `HasTermLevel` a
      , uni `HasTermLevel` b
      , uni `HasTermLevel` c
      , NFData a
@@ -184,7 +186,8 @@ mkApp3 !fun !tys (force -> !x) (force -> !y) (force -> !z) =
 
 -- Create a term instantiating a builtin and applying it to four arguments
 mkApp4
-  :: ( uni `HasTermLevel` a
+  :: ( ToBuiltinMeaning uni fun
+     , uni `HasTermLevel` a
      , uni `HasTermLevel` b
      , uni `HasTermLevel` c
      , uni `HasTermLevel` d
@@ -208,7 +211,8 @@ mkApp4 !fun !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) =
 
 -- Create a term instantiating a builtin and applying it to five arguments
 mkApp5
-  :: ( uni `HasTermLevel` a
+  :: ( ToBuiltinMeaning uni fun
+     , uni `HasTermLevel` a
      , uni `HasTermLevel` b
      , uni `HasTermLevel` c
      , uni `HasTermLevel` d
@@ -235,7 +239,8 @@ mkApp5 !fun !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force 
 
 -- Create a term instantiating a builtin and applying it to six arguments
 mkApp6
-  :: ( uni `HasTermLevel` a
+  :: ( ToBuiltinMeaning uni fun
+     , uni `HasTermLevel` a
      , uni `HasTermLevel` b
      , uni `HasTermLevel` c
      , uni `HasTermLevel` d

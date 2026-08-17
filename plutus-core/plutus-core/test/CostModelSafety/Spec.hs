@@ -38,6 +38,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount
   , IntegerCostedLiterally
+  , MatchDataCostedPatterns
   , NumBytesCostedAsNumWords
   , TextCostedByByteLength
   , ValueMaxDepth
@@ -147,6 +148,8 @@ smallConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @CByteString) = SomeConst $ BS.pack []
   | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeConst ("" :: Text)
   | Just HRefl <- eqTypeRep tr (typeRep @TextCostedByByteLength) = SomeConst ("" :: Text)
+  | Just HRefl <- eqTypeRep tr (typeRep @MatchDataCostedPatterns) =
+      SomeConst $ Vector.singleton $ BS.singleton 0
   | Just HRefl <- eqTypeRep tr (typeRep @Data) = SomeConst $ I 0
   | Just HRefl <- eqTypeRep tr (typeRep @DataNodeCount) = SomeConst $ I 0
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G1.Element) =

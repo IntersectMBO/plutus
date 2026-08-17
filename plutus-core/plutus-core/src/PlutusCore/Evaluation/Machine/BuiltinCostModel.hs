@@ -199,6 +199,8 @@ data BuiltinCostModelBase f
   , paramInsertCoin :: f ModelFourArguments
   , paramUnionValue :: f ModelTwoArguments
   , paramScaleValue :: f ModelTwoArguments
+  , -- Type-directed Data matching
+    paramMatchData :: f ModelTwoArguments
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)

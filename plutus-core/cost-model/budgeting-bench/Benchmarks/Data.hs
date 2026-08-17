@@ -7,8 +7,13 @@ import Generators
 
 import PlutusCore hiding (Constr)
 import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (MatchDataCostedPatterns (..))
 
 import Criterion.Main
+import Data.ByteString qualified as BS
+import Data.List (nub)
+import Data.Vector.Strict qualified as Strict
+import Data.Word (Word8)
 import System.Random (StdGen)
 
 {-| Benchmarks for builtins operating on Data.  Recall that Data is defined by
@@ -145,6 +150,72 @@ benchSerialiseData =
   where
     args = dataSampleForEq
 
+---------------- MatchData ----------------
+
+encodeGap :: Int -> [Word8]
+encodeGap gap
+  | gap < 255 = [fromIntegral gap]
+  | otherwise = 255 : encodeGap (gap - 255)
+
+encodePattern :: Int -> [Int] -> BS.ByteString
+encodePattern width captureIndices = BS.pack $ concatMap encodeGap gaps
+  where
+    gaps =
+      zipWith
+        (\next previous -> next - previous - 1)
+        (captureIndices <> [width])
+        (-1 : captureIndices)
+
+spreadCaptures :: Int -> Int -> [Int]
+spreadCaptures _ 0 = []
+spreadCaptures width 1 = [width `div` 2]
+spreadCaptures width count =
+  [ index * (width - 1) `div` (count - 1)
+  | index <- [0 .. count - 1]
+  ]
+
+matchDataWidths :: [Int]
+matchDataWidths = [0, 1, 2, 4, 8, 16, 32, 64, 128, 254, 255, 256, 512, 1024, 2048, 4096]
+
+matchDataCaptureCounts :: Int -> [Int]
+matchDataCaptureCounts width = nub [0, min 1 width, width `div` 4, width `div` 2, width]
+
+matchDataInputs :: [(Strict.Vector BS.ByteString, Data)]
+matchDataInputs = regularInputs <> tableInputs <> payloadInputs
+  where
+    regularInputs =
+      [ ( Strict.singleton $ encodePattern width $ spreadCaptures width captures
+        , Constr 0 $ replicate width $ I 0
+        )
+      | width <- matchDataWidths
+      , captures <- matchDataCaptureCounts width
+      ]
+    tablePattern = encodePattern 64 $ spreadCaptures 64 8
+    tableInputs =
+      [ ( Strict.replicate alternatives tablePattern
+        , Constr (fromIntegral $ alternatives - 1) $ replicate 64 $ I 0
+        )
+      | alternatives <- [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+      ]
+    payloadInputs =
+      [ (Strict.singleton $ encodePattern 1 [0], Constr 0 [payload])
+      | payload <-
+          [ I $ 2 ^ (65536 :: Integer)
+          , B $ BS.replicate (1024 * 1024) 0
+          , iterate (\d -> Constr 0 [d]) (I 0) !! 10000
+          ]
+      ]
+
+-- The benchmark varies width, capture density, pattern-table size, and nested payload size.  The
+-- latter is intentionally independent: MatchData only moves pointers to captured Data fields.
+benchMatchData :: Benchmark
+benchMatchData =
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (MatchDataCostedPatterns, id)
+    MatchData
+    []
+    matchDataInputs
+
 -- FIXME: see if we can find a better sample for this. More generally, how
 -- does the internal structure of a Data object influence serialisation
 -- time?  What causes a Data object to be quick or slow to serialise?
@@ -164,4 +235,5 @@ makeBenchmarks gen =
   , benchUnBData
   , benchEqualsData
   , benchSerialiseData
+  , benchMatchData
   ]

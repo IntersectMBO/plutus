@@ -55,6 +55,7 @@ import PlutusCore.Default.Universe.Cardano
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , IntegerCostedLiterally (..)
+  , MatchDataCostedPatterns (..)
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
@@ -746,6 +747,21 @@ instance
   => ReadKnownIn DefaultUni term TextCostedByByteLength
   where
   readKnown = readKnownCoerce @Text
+  {-# INLINE readKnown #-}
+
+deriving newtype instance
+  KnownTypeAst tyname DefaultUni MatchDataCostedPatterns
+instance
+  KnownBuiltinTypeIn DefaultUni term (Strict.Vector ByteString)
+  => MakeKnownIn DefaultUni term MatchDataCostedPatterns
+  where
+  makeKnown = makeKnownCoerce @(Strict.Vector ByteString)
+  {-# INLINE makeKnown #-}
+instance
+  KnownBuiltinTypeIn DefaultUni term (Strict.Vector ByteString)
+  => ReadKnownIn DefaultUni term MatchDataCostedPatterns
+  where
+  readKnown = readKnownCoerce @(Strict.Vector ByteString)
   {-# INLINE readKnown #-}
 
 deriving newtype instance

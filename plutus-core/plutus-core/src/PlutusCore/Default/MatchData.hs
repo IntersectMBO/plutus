@@ -24,9 +24,9 @@ import PlutusCore.Core
 import PlutusCore.Data (Data)
 import PlutusCore.Data qualified as Data
 import PlutusCore.Default.Universe
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (MatchDataCostedPatterns (..))
 
 import Data.Bits (toIntegralSized)
-import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSU
 import Data.Text (Text)
@@ -83,10 +83,10 @@ matchDataTypeApplication =
 matchData
   :: forall val
    . (HasConstantIn DefaultUni val, HasConstr val ())
-  => Strict.Vector ByteString
+  => MatchDataCostedPatterns
   -> Data
   -> BuiltinResult (OpaqueVConstr val)
-matchData encodedPatterns (Data.Constr tag fields) = do
+matchData (MatchDataCostedPatterns encodedPatterns) (Data.Constr tag fields) = do
   tagIndex <-
     maybe (fail "No matchData constructor corresponds to the Data.Constr tag") pure $
       toIntegralSized tag

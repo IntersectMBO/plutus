@@ -29,6 +29,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ExMemoryUsage
   , IntegerCostedLiterally (..)
+  , MatchDataCostedPatterns
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
@@ -2506,14 +2507,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . unimplementedCostingFun)
   toBuiltinMeaning _semvar MatchData =
     let matchDataDenotation
-          :: Vector ByteString
+          :: MatchDataCostedPatterns
           -> Data
           -> BuiltinResult (OpaqueVConstr val)
         matchDataDenotation = MatchData.matchData
         {-# INLINE matchDataDenotation #-}
      in makeBuiltinMeaning
           matchDataDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+          (runCostingFunTwoArguments . paramMatchData)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 

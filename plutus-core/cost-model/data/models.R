@@ -159,6 +159,7 @@ arity <- function(name) {
         "ValueData" = 1,
         "UnValueData" = 1,
         "ScaleValue" = 2,
+        "MatchData" = 2,
         -1  ## Default for missing values
         )
 }
@@ -871,6 +872,25 @@ modelFun <- function(path) {
     # Y wrapped with `TotalSize` (contained value size)
     scaleValueModel           <- linearInY ("ScaleValue")
 
+    ## X uses MatchDataCostedPatterns: a work measure derived from the hidden compact pattern
+    ## table.  The benchmark varies Data payload shapes independently to confirm that Y has no
+    ## effect on execution time.
+    matchDataModel <- {
+        fname <- "MatchData"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead()
+
+        ## MatchData's custom X measure makes the different kinds of pattern work close to
+        ## linear.  Use the upper edge of the remaining fan for the slope, then raise the
+        ## intercept so that 95% of the measured means are at or below the model.
+        m <- fit.fan(filtered)
+        slope <- m$coefficients["x_mem"]
+        residuals <- filtered$t - slope * filtered$x_mem
+        m$coefficients["(Intercept)"] <- max(0, quantile(residuals, 0.95))
+        mk.result(m, "linear_in_x")
+    }
+
     ##### Models to be returned to Haskell #####
 
     models.for.adjustment <-
@@ -971,7 +991,8 @@ modelFun <- function(path) {
         unValueDataModel                     = unValueDataModel,
         insertCoinModel                      = insertCoinModel,
         unionValueModel                      = unionValueModel,
-        scaleValueModel                      = scaleValueModel
+        scaleValueModel                      = scaleValueModel,
+        matchDataModel                       = matchDataModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

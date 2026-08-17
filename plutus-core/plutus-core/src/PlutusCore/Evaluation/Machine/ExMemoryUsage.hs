@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeApplications #-}
@@ -13,6 +14,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords (..)
   , IntegerCostedLiterally (..)
   , TextCostedByByteLength (..)
+  , MatchDataCostedPatterns (..)
   , ValueTotalSize (..)
   , ValueMaxDepth (..)
   , DataNodeCount (..)
@@ -231,6 +233,55 @@ instance ExMemoryUsage [a] where
 -}
 instance ExMemoryUsage (Vector a) where
   memoryUsage l = singletonRose . fromIntegral $ Vector.length l
+  {-# INLINE memoryUsage #-}
+
+{-| The work measure used by 'MatchData'.  Its hidden argument is an array of compact byte
+programs, so the normal array measure (just the number of elements) omits the selected program's
+work entirely.  A byte contributes its skip count, while each non-255 byte except the last captures
+a field.
+
+The measure includes the total encoded size and a small per-entry cost because calculating the
+measure examines the entire table.  It also includes the maximum program work because array lookup
+selects only one program.  Costing benchmarks show that the first capture has a fixed setup cost
+and that each capture after that costs about as much as skipping 19 input fields. -}
+newtype MatchDataCostedPatterns = MatchDataCostedPatterns
+  { unMatchDataCostedPatterns :: Vector BS.ByteString
+  }
+
+instance ExMemoryUsage MatchDataCostedPatterns where
+  memoryUsage (MatchDataCostedPatterns patterns) = singletonRose measure
+    where
+      captureStartupWeight = 130
+      captureWeight = 19
+      tableEntryWeight = 18
+      patternWork patternBytes =
+        let (!skipWork, !finalGapCount) =
+              BS.foldl'
+                ( \(!work, !count) byte ->
+                    ( work + 1 + fromIntegral byte
+                    , count + if byte == maxBound then 0 else 1
+                    )
+                )
+                (0, 0)
+                patternBytes
+            captureCount = max 0 $ finalGapCount - 1
+         in skipWork
+              + captureWeight * captureCount
+              + if captureCount == 0 then 0 else captureStartupWeight
+      (!totalBytes, !maximumWork) =
+        Vector.foldl'
+          ( \(!bytes, !work) patternBytes ->
+              ( bytes + fromIntegral (BS.length patternBytes)
+              , max work $ patternWork patternBytes
+              )
+          )
+          (0, 0)
+          patterns
+      measure =
+        1
+          + tableEntryWeight * fromIntegral (Vector.length patterns)
+          + totalBytes
+          + maximumWork
   {-# INLINE memoryUsage #-}
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
