@@ -1,8 +1,4 @@
-(let
-    data Unit | Unit_match where
-      Unit : Unit
-  in
-  \(d : data) -> Unit)
+(\(d : data) -> ())
   (Constr 0
      [ Constr 0
          [ List []

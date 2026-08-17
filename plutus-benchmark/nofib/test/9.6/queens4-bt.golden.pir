@@ -124,8 +124,6 @@
       Fc : Algorithm
     !equalsInteger : integer -> integer -> bool
       = \(x : integer) (y : integer) -> equalsInteger x y
-    data Unit | Unit_match where
-      Unit : Unit
   in
   letrec
     !deleteBy : all a. (a -> a -> bool) -> a -> List a -> List a
@@ -280,10 +278,10 @@
                                , (/\dead -> cs) ]
                                {all dead. dead})
                         (/\dead ->
-                           let
-                             !defaultBody : List integer = error {List integer}
-                           in
-                           Unit_match (error {Unit}) {List integer} defaultBody)
+                           case
+                             (List integer)
+                             (error {unit})
+                             [(error {List integer})])
                         {all dead. dead}))
             {all dead. dead}
   in
@@ -591,7 +589,7 @@
                                  {all dead. List (List ConflictSet)}
                                  (/\dead ->
                                     let
-                                      !x : Unit = trace {Unit} "PT9" Unit
+                                      !x : unit = trace {unit} "PT9" ()
                                     in
                                     error {List (List ConflictSet)})
                                  (\(ds : List ConflictSet)
@@ -873,10 +871,10 @@
                       /\dead ->
                         unionBy {integer} equalsInteger cs (collect css))
                    (/\dead ->
-                      let
-                        !defaultBody : List integer = error {List integer}
-                      in
-                      Unit_match (error {Unit}) {List integer} defaultBody)
+                      case
+                        (List integer)
+                        (error {unit})
+                        [(error {List integer})])
                    {all dead. dead})
             {all dead. dead}
   in
@@ -963,7 +961,7 @@
             {all dead. ConflictSet}
             (/\dead ->
                let
-                 !x : Unit = trace {Unit} "PT7" Unit
+                 !x : unit = trace {unit} "PT7" ()
                in
                error {ConflictSet})
             (\(x : ConflictSet) (xs : List ConflictSet) ->
@@ -1035,8 +1033,8 @@
                                             {all dead. List ConflictSet}
                                             (/\dead ->
                                                let
-                                                 !x : Unit
-                                                   = trace {Unit} "PT8" Unit
+                                                 !x : unit
+                                                   = trace {unit} "PT8" ()
                                                in
                                                error {List ConflictSet})
                                             (\(x : List ConflictSet)
@@ -1059,7 +1057,7 @@
                                       [ (/\dead -> go n ds)
                                       , (/\dead ->
                                            let
-                                             !x : Unit = trace {Unit} "PT6" Unit
+                                             !x : unit = trace {unit} "PT6" ()
                                            in
                                            error {ConflictSet}) ]
                                       {all dead. dead}
@@ -1519,11 +1517,11 @@
                                                     {all dead. List ConflictSet}
                                                     (/\dead ->
                                                        let
-                                                         !x : Unit
+                                                         !x : unit
                                                            = trace
-                                                               {Unit}
+                                                               {unit}
                                                                "PT8"
-                                                               Unit
+                                                               ()
                                                        in
                                                        error {List ConflictSet})
                                                     (\(x : List ConflictSet)

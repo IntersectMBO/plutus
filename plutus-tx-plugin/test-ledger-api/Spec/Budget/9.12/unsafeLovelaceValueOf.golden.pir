@@ -1,7 +1,3 @@
-let
-  data Unit | Unit_match where
-    Unit : Unit
-in
 letrec
   data (List :: * -> *) a | List_match where
     Nil : List a
@@ -18,7 +14,7 @@ let
           {all dead. integer}
           (/\dead ->
              let
-               !x : Unit = trace {Unit} "PT8" Unit
+               !x : unit = trace {unit} "PT8" ()
              in
              Tuple_match
                {bytestring}
@@ -47,7 +43,7 @@ in
     {all dead. integer}
     (/\dead ->
        let
-         !x : Unit = trace {Unit} "PT8" Unit
+         !x : unit = trace {unit} "PT8" ()
        in
        Tuple_match
          {bytestring}

@@ -358,8 +358,6 @@
                                            unBData
                                            (headList {data} ds))) ]) ]) ]
                    args) ]
-    data Unit | Unit_match where
-      Unit : Unit
     data ScriptPurpose | ScriptPurpose_match where
       Certifying : DCert -> ScriptPurpose
       Minting : bytestring -> ScriptPurpose
@@ -724,10 +722,10 @@
                                                   (headList {data} ds))) ]
                                         args) ])) ]) ]
                 args) ])
-      {Unit}
+      {unit}
       (\(ipv : TxInfo) (ipv : ScriptPurpose) ->
          case
-           (all dead. Unit)
+           (all dead. unit)
            (equalsInteger
               0
               (modInteger
@@ -762,10 +760,10 @@
                  2))
            [ (/\dead ->
                 let
-                  !x : Unit = trace {Unit} "Odd number of outputs" Unit
+                  !x : unit = trace {unit} "Odd number of outputs" ()
                 in
-                error {Unit})
-           , (/\dead -> Unit) ]
+                error {unit})
+           , (/\dead -> ()) ]
            {all dead. dead}))
   (Constr 0
      [ Constr 0

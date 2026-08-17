@@ -382,21 +382,17 @@ letrec
                       {all dead. dead}))
           , True ]
 in
-let
-  data Unit | Unit_match where
-    Unit : Unit
-in
 letrec
   !rev : all a. list a -> list a -> list a
     = /\a ->
         \(l : list a) (acc : list a) ->
           case
-            (Unit -> list a)
+            (unit -> list a)
             l
-            [ (\(x : a) (xs : list a) (ds : Unit) ->
+            [ (\(x : a) (xs : list a) (ds : unit) ->
                  rev {a} xs (mkCons {a} x acc))
-            , (\(ds : Unit) -> acc) ]
-            Unit
+            , (\(ds : unit) -> acc) ]
+            ()
 in
 let
   !unordEqWith :
@@ -443,7 +439,7 @@ let
               = \(l : list (pair data data))
                  (l : list (pair data data)) ->
                   case
-                    (Unit -> bool)
+                    (unit -> bool)
                     l
                     [ (\(x : pair data data) ->
                          let
@@ -451,13 +447,13 @@ let
                              = case data x [(\(l : data) (r : data) -> r)]
                          in
                          \(xs : list (pair data data))
-                          (ds : Unit) ->
+                          (ds : unit) ->
                            case
-                             (Unit -> bool)
+                             (unit -> bool)
                              l
                              [ (\(x : pair data data)
                                  (xs : list (pair data data))
-                                 (ds : Unit) ->
+                                 (ds : unit) ->
                                   let
                                     !d : data
                                       = case
@@ -473,11 +469,11 @@ let
                                       = \(acc : list (pair data data))
                                          (l : list (pair data data)) ->
                                           case
-                                            (Unit -> bool)
+                                            (unit -> bool)
                                             l
                                             [ (\(x : pair data data)
                                                 (xs : list (pair data data))
-                                                (ds : Unit) ->
+                                                (ds : unit) ->
                                                  let
                                                    !v : data
                                                      = case
@@ -533,8 +529,8 @@ let
                                                    , (/\dead ->
                                                         goRight acc xs) ]
                                                    {all dead. dead})
-                                            , (\(ds : Unit) -> False) ]
-                                            Unit
+                                            , (\(ds : unit) -> False) ]
+                                            ()
                                   in
                                   case
                                     (all dead. bool)
@@ -584,19 +580,19 @@ let
                                            , (/\dead -> goBoth xs xs) ]
                                            {all dead. dead}) ]
                                     {all dead. dead})
-                             , (\(ds : Unit) -> go l) ]
-                             Unit)
-                    , (\(ds : Unit) ->
+                             , (\(ds : unit) -> go l) ]
+                             ())
+                    , (\(ds : unit) ->
                          case
-                           (Unit -> bool)
+                           (unit -> bool)
                            l
                            [ (\(x : pair data data)
                                (xs : list (pair data data))
-                               (ds : Unit) ->
+                               (ds : unit) ->
                                 go l)
-                           , (\(ds : Unit) -> True) ]
-                           Unit) ]
-                    Unit
+                           , (\(ds : unit) -> True) ]
+                           ()) ]
+                    ()
           in
           \(eta : list (pair data data)) (eta : list (pair data data)) ->
             goBoth eta eta

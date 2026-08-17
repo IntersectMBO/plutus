@@ -428,8 +428,6 @@
                                  (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
                                     (headList {data} ds))) ]) ]
                    args) ]
-    data Unit | Unit_match where
-      Unit : Unit
     data (LowerBound :: * -> *) a | LowerBound_match where
       LowerBound : Extended a -> bool -> LowerBound a
     data (UpperBound :: * -> *) a | UpperBound_match where
@@ -749,10 +747,10 @@
                               (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
                                  (headList {data} ds))) ]) ]
                 args) ])
-      {Unit}
+      {unit}
       (\(ipv : TxInfo) (ipv : ScriptPurpose) ->
          case
-           (all dead. Unit)
+           (all dead. unit)
            (equalsInteger
               0
               (modInteger
@@ -792,10 +790,10 @@
                  2))
            [ (/\dead ->
                 let
-                  !x : Unit = trace {Unit} "Odd number of outputs" Unit
+                  !x : unit = trace {unit} "Odd number of outputs" ()
                 in
-                error {Unit})
-           , (/\dead -> Unit) ]
+                error {unit})
+           , (/\dead -> ()) ]
            {all dead. dead}))
   (Constr 0
      [ Constr 0

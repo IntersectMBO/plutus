@@ -1,6 +1,6 @@
 CPU:                93_083_581
 Memory:                504_894
 AST Size:                1_447
-Flat Size:               2_079
+Flat Size:               2_077
 
-(constr 0)
+(con unit ())

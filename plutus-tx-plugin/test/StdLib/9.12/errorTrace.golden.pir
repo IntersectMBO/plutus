@@ -1,6 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
   !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
   !trace : all a. string -> a -> a = trace
   !unitval : unit = ()
@@ -9,7 +7,7 @@ let
         \(str : string) ->
           let
             !str : string = str
-            !x : Unit = trace {Unit} str Unit
+            !x : unit = trace {unit} str ()
           in
           error {a} unitval
 in

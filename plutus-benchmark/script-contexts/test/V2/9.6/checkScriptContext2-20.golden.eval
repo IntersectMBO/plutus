@@ -3,4 +3,4 @@ Memory:                468_420
 AST Size:                  730
 Flat Size:               1_319
 
-(constr 0)
+(con unit ())

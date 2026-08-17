@@ -16,6 +16,7 @@ module PlutusTx.Compiler.Builtins
   , defineBuiltinTypes
   , defineBuiltinTerms
   , defineBoolType
+  , defineUnitType
   , lookupBuiltinTerm
   , lookupBuiltinType
   , errorFunc
@@ -315,6 +316,11 @@ defineBuiltinType
   :: forall uni fun m ann. Compiling uni fun m ann => TH.Name -> PIRType uni -> m ()
 defineBuiltinType name ty = do
   tc <- lookupGhcTyCon name
+  defineBuiltinTyCon tc ty
+
+defineBuiltinTyCon
+  :: forall uni fun m ann. Compiling uni fun m ann => GHC.TyCon -> PIRType uni -> m ()
+defineBuiltinTyCon tc ty = do
   var <- compileTcTyVarFresh tc
   PIR.defineType (LexName $ GHC.getName tc) (PIR.Def var ty) mempty
   -- these are all aliases for now
@@ -323,13 +329,10 @@ defineBuiltinType name ty = do
 defineBoolType :: forall uni fun m ann. CompilingDefault uni fun m ann => m ()
 defineBoolType = do
   datatypeStyle <- asks $ coDatatypeStyle . ccOpts
-
-  defineBuiltinType ''Bool . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
-
-  builtinBoolName <- LexName . GHC.getName <$> lookupGhcTyCon ''Bool
-  boolTyCon <- lookupGhcTyCon ''Bool
-
+  defineBuiltinTyCon GHC.boolTyCon . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Bool
   let
+    builtinBoolName = LexName $ GHC.getName GHC.boolTyCon
+
     -- We can assume there will be no type arguments for `Bool`. (That is unless GHC
     -- changes definintion of `Bool`, of course). Similarly, we can expect we always
     -- get correct number of branches, two.
@@ -349,13 +352,43 @@ defineBoolType = do
           PIR.kase annMayInline resTy scrut branches
 
   PIR.defineManualDatatype
-    (LexName $ GHC.getName boolTyCon)
+    builtinBoolName
     ( PIR.ManualDatatype
         [PIR.mkConstant annAlwaysInline False, PIR.mkConstant annAlwaysInline True]
         caseMatcher
         []
     )
     (Set.fromList [builtinBoolName])
+
+defineUnitType :: forall uni fun m ann. CompilingDefault uni fun m ann => m ()
+defineUnitType = do
+  datatypeStyle <- asks $ coDatatypeStyle . ccOpts
+  defineBuiltinTyCon GHC.unitTyCon . ($> annMayInline) $ PLC.toTypeAst $ Proxy @()
+  let
+    builtinUnitName = LexName $ GHC.getName GHC.unitTyCon
+
+    caseMatcher :: PIR.ManualMatcher uni fun Ann
+    caseMatcher _tyArgs scrut resTy branches =
+      case datatypeStyle of
+        PIR.ScottEncoding ->
+          PIR.mkIterApp
+            ( PIR.tyInst
+                annMayInline
+                (PIR.builtin annMayInline PLC.ChooseUnit)
+                resTy
+            )
+            ((annMayInline,) <$> (scrut : branches))
+        PIR.SumsOfProducts ->
+          PIR.kase annMayInline resTy scrut branches
+
+  PIR.defineManualDatatype
+    builtinUnitName
+    ( PIR.ManualDatatype
+        [PIR.mkConstant annAlwaysInline ()]
+        caseMatcher
+        []
+    )
+    (Set.fromList [builtinUnitName])
 
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: CompilingDefault uni fun m ann => m ()

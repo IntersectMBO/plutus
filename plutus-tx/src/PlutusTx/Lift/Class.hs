@@ -187,6 +187,14 @@ instance uni `PLC.HasTermLevel` Bool => Lift uni Bool where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTypeLevel` () => Typeable uni () where
+  typeRep = typeRepBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTermLevel` () => Lift uni () where
+  lift = liftBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` [] => Typeable uni BuiltinList where
   typeRep _ = typeRepBuiltin (Proxy @[])
 
