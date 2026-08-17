@@ -20,7 +20,7 @@ import Control.Monad.Except
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Error qualified as PLC
-import PlutusPrelude ((&&&), getAnn, setAnn, through)
+import PlutusPrelude (getAnn, setAnn, through, (&&&))
 import Text.Megaparsec hiding (ParseError, State, parse)
 import Text.Megaparsec.Char (char)
 import Text.Megaparsec.Char.Lexer qualified as Lex
@@ -58,8 +58,8 @@ lamTerm sp =
 
 appTerm :: SrcSpan -> Parser PTerm
 appTerm sp =
-  setAnn sp <$>
-    (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
+  setAnn sp
+    <$> (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
 
 delayTerm :: SrcSpan -> Parser PTerm
 delayTerm sp =
@@ -76,10 +76,14 @@ errorTerm sp =
 constrTerm :: SrcSpan -> Parser PTerm
 constrTerm sp = do
   let maxTag = fromIntegral (maxBound :: Word64)
-  tag :: Integer <- lexeme Lex.decimal
+  tag :: Integer <- Lex.decimal
+  when (tag > maxTag) $ do
+    o <- getOffset
+    region (setErrorOffset (o - 1)) $
+      fail "constr tag too large: must be a legal Word64 value"
+  whitespace
   args <- many term
   whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
-  when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
   pure $ UPLC.Constr sp (fromIntegral tag) args
 
 caseTerm :: SrcSpan -> Parser PTerm
