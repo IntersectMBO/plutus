@@ -201,12 +201,13 @@ const CostModelEvaluators = {
     return 0;
   },
 
+  // c00 + c10*x + c01*y + c11*x*y, the coefficient names the JSON uses
+  // (TwoVariableWithInteractionFunction in CostingFun.Core).
   with_interaction_in_x_and_y: (coeffs, args) => {
-    const c0 = coeffs.intercept ?? coeffs.c0 ?? 0;
-    const cx = coeffs.slopex ?? coeffs.c1 ?? 0;
-    const cy = coeffs.slopey ?? coeffs.c2 ?? 0;
-    const cxy = coeffs.slopexy ?? coeffs.c3 ?? 0;
-    return c0 + cx * args[0] + cy * args[1] + cxy * args[0] * args[1];
+    return (coeffs.c00 ?? 0)
+      + (coeffs.c10 ?? 0) * args[0]
+      + (coeffs.c01 ?? 0) * args[1]
+      + (coeffs.c11 ?? 0) * args[0] * args[1];
   },
 
   linear_in_u: (coeffs, args) => {
@@ -391,10 +392,11 @@ function formatModelFormula(modelType, coefficients) {
     }
 
     case 'with_interaction_in_x_and_y': {
-      const cx = coefficients.slopex ?? coefficients.c1 ?? 0;
-      const cy = coefficients.slopey ?? coefficients.c2 ?? 0;
-      const cxy = coefficients.slopexy ?? coefficients.c3 ?? 0;
-      return `${formatCoeff(c0)} + ${formatCoeff(cx)} × (arg1) + ${formatCoeff(cy)} × (arg2) + ${formatCoeff(cxy)} × (arg1×arg2) picoseconds`;
+      const c00 = coefficients.c00 ?? 0;
+      const c10 = coefficients.c10 ?? 0;
+      const c01 = coefficients.c01 ?? 0;
+      const c11 = coefficients.c11 ?? 0;
+      return `${formatCoeff(c00)} + ${formatCoeff(c10)} × (arg1) + ${formatCoeff(c01)} × (arg2) + ${formatCoeff(c11)} × (arg1×arg2) picoseconds`;
     }
 
     case 'linear_in_u':
