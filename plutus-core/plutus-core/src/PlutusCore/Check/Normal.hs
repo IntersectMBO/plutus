@@ -47,6 +47,7 @@ check (Case _ ty arg cs) = normalType ty >> check arg >> traverse_ check cs
 check Var {} = pure ()
 check Constant {} = pure ()
 check Builtin {} = pure ()
+check BuiltinRep {} = pure ()
 
 isNormalType :: HasUniApply uni => Type tyname uni ann -> Bool
 isNormalType = isRight . normalType

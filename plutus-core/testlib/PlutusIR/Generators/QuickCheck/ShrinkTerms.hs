@@ -140,6 +140,8 @@ minimalBuiltin (SomeTypeIn uni) = case toSingKind uni of
     go DefaultUniBLS12_381_G1_Element = BLS12_381.G1.offchain_zero
     go DefaultUniBLS12_381_G2_Element = BLS12_381.G2.offchain_zero
     go DefaultUniBLS12_381_MlResult = BLS12_381.Pairing.identityMlResult
+    go (DefaultUniProtoMatchDataRep `DefaultUniApply` _) =
+      error "BuiltinRep MatchData is uninhabited"
 
 shrinkBind
   :: HasCallStack
@@ -319,6 +321,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) =
         -- TODO: allow non-structural shrinking for some of these.
         Var {} -> []
         Constant {} -> []
+        BuiltinRep {} -> []
         Builtin {} -> []
         TyInst {} -> []
         Error {} -> []
@@ -415,6 +418,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) =
         IWrap {} -> []
         Unwrap {} -> []
         Builtin {} -> []
+        BuiltinRep {} -> []
         Case {} -> []
         TyAbs {} -> []
         PlutusIR.Constr {} -> []

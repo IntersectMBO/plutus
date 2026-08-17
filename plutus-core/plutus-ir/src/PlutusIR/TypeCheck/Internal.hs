@@ -34,7 +34,10 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
 import PlutusCore (toPatFuncKind, tyVarDeclName)
-import PlutusCore.Builtin (BuiltinTypeApplication (btaInferType), annotateCaseBuiltin)
+import PlutusCore.Builtin
+  ( BuiltinRepresentation (..)
+  , annotateCaseBuiltin
+  )
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
 import PlutusCore.MkPlc (mkIterTyFun)
@@ -151,15 +154,24 @@ inferTypeM
 inferTypeM (Constant _ (Some (ValueOf uni _))) =
   -- See Note [Normalization of built-in types].
   normalizeTypeM $ PIR.mkTyBuiltinOf () uni
+inferTypeM (BuiltinRep ann fun constant) = do
+  representation <-
+    mapReaderT (modifyError PLCTypeError) $ lookupBuiltinRepresentationM ann fun
+  case representation of
+    Nothing ->
+      throwError . PLCTypeError $
+        InvalidBuiltinRepresentation ann fun "builtin has no representation type"
+    Just (BuiltinRepresentation inferRepresentationType) ->
+      normalizeTypeM
+        =<< either
+          (throwError . PLCTypeError . InvalidBuiltinRepresentation ann fun)
+          pure
+          (inferRepresentationType constant)
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
 inferTypeM (Builtin ann fun) = do
-  typeApplication <-
-    mapReaderT (modifyError PLCTypeError) $ lookupBuiltinTypeApplicationM ann fun
-  case typeApplication of
-    Nothing -> mapReaderT (modifyError PLCTypeError) $ lookupBuiltinM ann fun
-    Just _ -> throwError . PLCTypeError $ BuiltinMustBeTypeApplied ann fun
+  mapReaderT (modifyError PLCTypeError) $ lookupBuiltinM ann fun
 -- [infer| G !- v : ty]    ty ~> vTy
 -- ---------------------------------
 -- [infer| G !- var v : vTy]
@@ -197,22 +209,8 @@ inferTypeM (Apply ann fun arg) = do
 -- [infer| G !- body : all (n :: nK) vCod]    [check| G !- ty :: tyK]    ty ~> vTy
 -- -------------------------------------------------------------------------------
 -- [infer| G !- body {ty} : NORM ([vTy / n] vCod)]
-inferTypeM (TyInst ann body@(Builtin _ fun) ty) = do
-  typeApplication <-
-    mapReaderT (modifyError PLCTypeError) $ lookupBuiltinTypeApplicationM ann fun
-  case typeApplication of
-    Nothing -> inferTypeInstantiationM ann body ty
-    Just application -> do
-      mapReaderT (modifyError PLCTypeError) $ checkKindM ann ty $ Type ()
-      inferred <-
-        either
-          (throwError . PLCTypeError . InvalidBuiltinTypeApplication ann fun)
-          pure
-          $ btaInferType application (void ty)
-      normalizeTypeM inferred
 inferTypeM (TyInst ann body ty) =
   inferTypeInstantiationM ann body ty
-
 -- [infer| G !- arg :: k]    [check| G !- pat :: (k -> *) -> k -> *]    pat ~> vPat    arg ~> vArg
 -- [check| G !- term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
 -- -----------------------------------------------------------------------------------------------

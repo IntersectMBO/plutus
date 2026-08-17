@@ -162,10 +162,11 @@ instance
   toBuiltinMeaning (PairV _ semvarR) (Right fun) = case toBuiltinMeaning semvarR fun of
     BuiltinMeaning tySch toF denot ->
       BuiltinMeaning tySch toF (denot . snd)
-  toBuiltinTypeApplication (PairV semvarL _) (Left fun) =
-    toBuiltinTypeApplication semvarL fun
-  toBuiltinTypeApplication (PairV _ semvarR) (Right fun) =
-    toBuiltinTypeApplication semvarR fun
+
+  toBuiltinRepresentation (PairV semvarL _) (Left fun) =
+    toBuiltinRepresentation semvarL fun
+  toBuiltinRepresentation (PairV _ semvarR) (Right fun) =
+    toBuiltinRepresentation semvarR fun
 
 instance
   (Default (BuiltinSemanticsVariant fun1), Default (BuiltinSemanticsVariant fun2))

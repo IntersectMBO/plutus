@@ -211,6 +211,7 @@ termMapNames f g = go
       Apply ann t1 t2 -> Apply ann (go t1) (go t2)
       Constant ann c -> Constant ann c
       Builtin ann b -> Builtin ann b
+      BuiltinRep ann b c -> BuiltinRep ann b c
       TyInst ann body ty -> TyInst ann (go body) (typeMapNames f ty)
       Unwrap ann body -> Unwrap ann (go body)
       IWrap ann ty1 ty2 body -> IWrap ann (typeMapNames f ty1) (typeMapNames f ty2) (go body)

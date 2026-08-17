@@ -60,6 +60,12 @@ sopType = withSpan $ \sp -> inParens $ TySOP sp <$> (symbol "sop" *> many tyList
     tyList :: Parser [PType]
     tyList = (inBrackets $ many pType) <* whitespace
 
+builtinRepType :: Parser PType
+builtinRepType = withSpan $ \sp ->
+  inParens $
+    TyApp sp (TyBuiltin sp $ SomeTypeIn DefaultUniProtoMatchDataRep)
+      <$> (symbol "builtinrep" *> symbol "matchData" *> pType)
+
 appType :: Parser PType
 appType = withSpan $ \sp -> inBrackets $ do
   fn <- pType
@@ -86,6 +92,7 @@ pType =
       , appType
       , varType
       , sopType
+      , builtinRepType
       ]
 
 {-| Parser for built-in type applications.  The textual names here should match
@@ -151,6 +158,8 @@ defaultUni =
         , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381_G2_element"
         , someType @_ @BLS12_381.Pairing.MlResult <$ symbol "bls12_381_mlresult"
         , someType @_ @Value <$ symbol "value"
+        , SomeTypeIn (Kinded DefaultUniProtoMatchDataRep)
+            <$ (symbol "builtinrep" *> symbol "matchData")
         ]
   )
     <?> "type name (integer, bytestring, string, unit, bool, list, array, pair,\

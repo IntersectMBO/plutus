@@ -29,6 +29,7 @@ import PlutusCore.Crypto.BLS12_381.G1 (Element)
 import PlutusCore.Crypto.BLS12_381.G2 (Element)
 import PlutusCore.Crypto.BLS12_381.Pairing (MlResult)
 import PlutusCore.Data
+import PlutusCore.Default qualified as PLCDefault
 import PlutusCore.Quote
 import PlutusCore.Value
 import PlutusIR.MkPir
@@ -37,6 +38,7 @@ import PlutusTx.Builtins.HasBuiltin (FromBuiltin, HasFromBuiltin)
 import PlutusTx.Builtins.Internal
   ( BuiltinInteger
   , BuiltinList
+  , BuiltinMatchDataRep
   , BuiltinPair
   , BuiltinUnit
   , BuiltinValue
@@ -230,6 +232,12 @@ instance uni `PLC.HasTypeLevel` Data => Typeable uni BuiltinData where
 instance uni `PLC.HasTypeLevel` Value => Typeable uni BuiltinValue where
   typeRep _ = typeRepBuiltin (Proxy @Value)
 
+instance
+  uni `PLC.HasTypeLevel` PLCDefault.MatchDataBuiltinRep
+  => Typeable uni BuiltinMatchDataRep
+  where
+  typeRep _ = typeRepBuiltin (Proxy @PLCDefault.MatchDataBuiltinRep)
+
 -- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` Data => Lift uni BuiltinData where
   lift = liftBuiltin . fromBuiltin
@@ -237,6 +245,9 @@ instance uni `PLC.HasTermLevel` Data => Lift uni BuiltinData where
 -- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` Value => Lift uni BuiltinValue where
   lift = liftBuiltin . fromBuiltin
+
+instance Lift uni (BuiltinMatchDataRep a) where
+  lift = Haskell.error "BuiltinRep MatchData is uninhabited"
 
 -- See Note [Lift and Typeable instances for builtins]
 instance

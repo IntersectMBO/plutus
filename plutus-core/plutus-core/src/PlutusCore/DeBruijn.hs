@@ -179,6 +179,7 @@ deBruijnTermWithM h = go
       -- boring non-recursive cases
       Constant ann con -> pure $ Constant ann con
       Builtin ann bn -> pure $ Builtin ann bn
+      BuiltinRep ann bn con -> pure $ BuiltinRep ann bn con
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTyWithM
@@ -250,3 +251,4 @@ unDeBruijnTermWithM h = go
       -- boring non-recursive cases
       Constant ann con -> pure $ Constant ann con
       Builtin ann bn -> pure $ Builtin ann bn
+      BuiltinRep ann bn con -> pure $ BuiltinRep ann bn con

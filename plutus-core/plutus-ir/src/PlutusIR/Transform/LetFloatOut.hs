@@ -328,6 +328,7 @@ removeLets marks term = runWriter $ go term
         -- no term inside here, nothing to do
         t@Var {} -> pure t
         t@Constant {} -> pure t
+        t@BuiltinRep {} -> pure t
         t@Builtin {} -> pure t
         t@Error {} -> pure t
 

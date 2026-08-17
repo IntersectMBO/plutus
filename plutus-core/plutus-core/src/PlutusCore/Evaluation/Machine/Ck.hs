@@ -208,6 +208,7 @@ stack |> Builtin _ bn = do
   runtime <- lookupBuiltin bn . ckEnvRuntime <$> ask
   stack <| VBuiltin (Builtin () bn) runtime
 stack |> Constant _ val = stack <| VCon val
+stack |> BuiltinRep _ _ val = stack <| VCon val
 stack |> Constr _ ty i es = case es of
   [] -> stack <| VConstr ty i []
   t : ts -> FrameConstr ty i ts [] : stack |> t

@@ -97,13 +97,13 @@ functions that cannot fail look like this:
 -- ######################
 
 -- | Typechecking information for a 'Builtin'.
-data BuiltinTypeInfo uni
+newtype BuiltinTypeInfo uni
   = OrdinaryBuiltinType (Dupable (Normalized (Type TyName uni ())))
-  | TypeAppliedBuiltin (BuiltinTypeApplication uni)
 
 -- | Typechecking information for each 'Builtin'.
-newtype BuiltinTypes uni fun = BuiltinTypes
+data BuiltinTypes uni fun = BuiltinTypes
   { unBuiltinTypes :: Array fun (BuiltinTypeInfo uni)
+  , builtinRepresentations :: Array fun (Maybe (BuiltinRepresentation uni))
   }
 
 type TyVarKinds = UniqueMap TypeUnique (Named (Kind ()))
@@ -257,24 +257,22 @@ lookupBuiltinM
   :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
   => ann -> fun -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 lookupBuiltinM ann fun = do
-  BuiltinTypes arr <- view $ tceTypeCheckConfig . tccBuiltinTypes
+  BuiltinTypes arr _ <- view $ tceTypeCheckConfig . tccBuiltinTypes
   -- Believe it or not, but 'Data.Array' doesn't seem to expose any way of indexing into an array
   -- safely.
   case preview (ix fun) arr of
     Nothing -> throwError $ UnknownBuiltinFunctionE ann fun
     Just (OrdinaryBuiltinType ty) -> liftDupable ty
-    Just TypeAppliedBuiltin {} -> throwError $ BuiltinMustBeTypeApplied ann fun
 
--- | Look up special handling for a direct type application of a builtin.
-lookupBuiltinTypeApplicationM
+-- | Look up checking metadata for an explicit builtin representation.
+lookupBuiltinRepresentationM
   :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
-  => ann -> fun -> TypeCheckT uni fun cfg m (Maybe (BuiltinTypeApplication uni))
-lookupBuiltinTypeApplicationM ann fun = do
-  BuiltinTypes arr <- view $ tceTypeCheckConfig . tccBuiltinTypes
-  case preview (ix fun) arr of
+  => ann -> fun -> TypeCheckT uni fun cfg m (Maybe (BuiltinRepresentation uni))
+lookupBuiltinRepresentationM ann fun = do
+  BuiltinTypes _ representations <- view $ tceTypeCheckConfig . tccBuiltinTypes
+  case preview (ix fun) representations of
     Nothing -> throwError $ UnknownBuiltinFunctionE ann fun
-    Just OrdinaryBuiltinType {} -> pure Nothing
-    Just (TypeAppliedBuiltin typeApplication) -> pure $ Just typeApplication
+    Just representation -> pure representation
 
 -- | Extend the context of a 'TypeCheckM' computation with a typed variable.
 withVar
@@ -467,14 +465,22 @@ inferTypeM
 inferTypeM (Constant _ (Some (ValueOf uni _))) =
   -- See Note [Normalization of built-in types].
   normalizeTypeM $ mkTyBuiltinOf () uni
+-- [infer| G !- builtinrep bi b : BR_bi(S)]
+inferTypeM (BuiltinRep ann fun constant) = do
+  representation <- lookupBuiltinRepresentationM ann fun
+  case representation of
+    Nothing -> throwError $ InvalidBuiltinRepresentation ann fun "builtin has no representation type"
+    Just (BuiltinRepresentation inferRepresentationType) ->
+      normalizeTypeM
+        =<< either
+          (throwError . InvalidBuiltinRepresentation ann fun)
+          pure
+          (inferRepresentationType constant)
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
 inferTypeM (Builtin ann fun) = do
-  typeApplication <- lookupBuiltinTypeApplicationM ann fun
-  case typeApplication of
-    Nothing -> lookupBuiltinM ann fun
-    Just _ -> throwError $ BuiltinMustBeTypeApplied ann fun
+  lookupBuiltinM ann fun
 -- [infer| G !- v : ty]    ty ~> vTy
 -- ---------------------------------
 -- [infer| G !- var v : vTy]
@@ -512,19 +518,8 @@ inferTypeM (Apply ann fun arg) = do
 -- [infer| G !- body : all (n :: nK) vCod]    [check| G !- ty :: tyK]    ty ~> vTy
 -- -------------------------------------------------------------------------------
 -- [infer| G !- body {ty} : NORM ([vTy / n] vCod)]
-inferTypeM (TyInst ann body@(Builtin _ fun) ty) = do
-  typeApplication <- lookupBuiltinTypeApplicationM ann fun
-  case typeApplication of
-    Nothing -> inferTypeInstantiationM ann body ty
-    Just application -> do
-      checkKindM ann ty $ Type ()
-      inferred <-
-        either (throwError . InvalidBuiltinTypeApplication ann fun) pure $
-          btaInferType application (void ty)
-      normalizeTypeM inferred
 inferTypeM (TyInst ann body ty) =
   inferTypeInstantiationM ann body ty
-
 -- [infer| G !- arg :: k]    [check| G !- pat :: (k -> *) -> k -> *]    pat ~> vPat    arg ~> vArg
 -- [check| G !- term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
 -- -----------------------------------------------------------------------------------------------

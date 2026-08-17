@@ -375,6 +375,7 @@ costIsAcceptable = \case
   Builtin {} -> True
   Var {} -> True
   Constant {} -> True
+  BuiltinRep {} -> True
   Error {} -> True
   -- This will mean that we create closures at each use site instead of
   -- once, but that's a very low cost which we're okay rounding to 0.
@@ -418,6 +419,7 @@ sizeIsAcceptable inlineConstants = \case
   -- Inlining constants is deemed acceptable if the 'inlineConstants'
   -- flag is turned on, see Note [Inlining constants].
   Constant {} -> inlineConstants
+  BuiltinRep {} -> inlineConstants
   Apply {} -> False
   TyInst {} -> False
   Let {} -> False

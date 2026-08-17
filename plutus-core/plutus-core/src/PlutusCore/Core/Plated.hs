@@ -123,6 +123,7 @@ varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
 termConstants :: Traversal' (Term tyname name uni fun ann) (Some (ValueOf uni))
 termConstants f term0 = case term0 of
   Constant ann val -> Constant ann <$> f val
+  BuiltinRep ann bi val -> BuiltinRep ann bi <$> f val
   Var {} -> pure term0
   TyAbs {} -> pure term0
   LamAbs {} -> pure term0
@@ -148,6 +149,7 @@ termTyBinds f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  BuiltinRep {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -164,6 +166,7 @@ termBinds f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  BuiltinRep {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -180,6 +183,7 @@ termVars f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  BuiltinRep {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -197,6 +201,7 @@ termUniques f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  BuiltinRep {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 
@@ -213,6 +218,7 @@ termSubkinds f term0 = case term0 of
   Unwrap {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  BuiltinRep {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
 {-# INLINE termSubkinds #-}
@@ -232,6 +238,7 @@ termSubtypes f term0 = case term0 of
   Var {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  BuiltinRep {} -> pure term0
 {-# INLINE termSubtypes #-}
 
 -- | Get all the transitive child 'Constant's of the given 'Term'.
@@ -257,6 +264,7 @@ termSubterms f term0 = case term0 of
   Var {} -> pure term0
   Constant {} -> pure term0
   Builtin {} -> pure term0
+  BuiltinRep {} -> pure term0
 {-# INLINE termSubterms #-}
 
 -- | Get all the transitive child 'Term's of the given 'Term'.

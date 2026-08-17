@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -105,6 +106,7 @@ isScramblable (PLC.Some (PLC.ValueOf uni0 x0)) = go uni0 x0
     go PLC.DefaultUniBLS12_381_G1_Element _ = False
     go PLC.DefaultUniBLS12_381_G2_Element _ = False
     go PLC.DefaultUniBLS12_381_MlResult _ = False
+    go (PLC.DefaultUniProtoMatchDataRep `PLC.DefaultUniApply` _) value = case value of {}
 
 genScrambledWith :: MonadGen m => m String -> m (String, String)
 genScrambledWith splice = do

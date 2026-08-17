@@ -367,6 +367,8 @@ renameTermM = \case
     Apply x <$> renameTermM fun <*> renameTermM arg
   Constant x con ->
     pure $ Constant x con
+  BuiltinRep x bi con ->
+    pure $ BuiltinRep x bi con
   Builtin x bi ->
     pure $ Builtin x bi
   TyInst x term ty ->

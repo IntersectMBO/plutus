@@ -26,6 +26,7 @@ isStrictIn n = go
       TyAbs {} -> False
       LamAbs {} -> False
       Constant {} -> False
+      BuiltinRep {} -> False
       Builtin {} -> False
       Error {} -> False
 

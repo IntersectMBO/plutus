@@ -129,8 +129,7 @@ data TypeError term uni fun ann
   | FreeTypeVariableE !ann !TyName
   | FreeVariableE !ann !Name
   | UnknownBuiltinFunctionE !ann !fun
-  | BuiltinMustBeTypeApplied !ann !fun
-  | InvalidBuiltinTypeApplication !ann !fun !T.Text
+  | InvalidBuiltinRepresentation !ann !fun !T.Text
   | UnsupportedCaseBuiltin !ann !T.Text
   deriving stock (Show, Eq, Generic, Functor)
   deriving anyclass (NFData)
@@ -305,15 +304,9 @@ instance
     "Free variable at " <+> pretty ann <+> ": " <+> prettyBy config name
   prettyBy _ (UnknownBuiltinFunctionE ann fun) =
     "An unknown built-in function at" <+> pretty ann <> ":" <+> pretty fun
-  prettyBy _ (BuiltinMustBeTypeApplied ann fun) =
-    "Built-in function at"
-      <+> pretty ann
-      <> ":"
-      <+> pretty fun
-      <+> "must be used in a direct type application"
-  prettyBy _ (InvalidBuiltinTypeApplication ann fun err) =
+  prettyBy _ (InvalidBuiltinRepresentation ann fun err) =
     hsep
-      [ "Invalid type application of built-in function at"
+      [ "Invalid representation for built-in function at"
       , pretty ann <> ":"
       , pretty fun
       , hardline

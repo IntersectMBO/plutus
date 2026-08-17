@@ -1,7 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
@@ -17,10 +17,19 @@ import PlutusPrelude
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Compiler.Erase (eraseTerm)
+import PlutusCore.Data qualified as BuiltinData
 import PlutusCore.Default
+import PlutusCore.Default.MatchData (mkMatchDataRepType)
 import PlutusCore.Error
+import PlutusCore.Evaluation.Machine.Ck (evaluateCkNoEmit)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+  ( defaultBuiltinsRuntimeForTesting
+  , defaultCekParametersForTesting
+  )
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.FsTree
+import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Pretty
 
 import PlutusCore.Examples.Builtins
@@ -29,10 +38,13 @@ import PlutusCore.StdLib.Everything (stdLib)
 
 import Control.Monad (unless)
 import Control.Monad.Except
+import Data.ByteString qualified as BS
 import Data.Text qualified as Text
+import Data.Vector.Strict qualified as Strict
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.HUnit
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 kindcheck
   :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
@@ -138,6 +150,110 @@ test_typecheckIllTyped =
           TypeErrorE (NameMismatch {}) -> True
           _ -> False
       ]
+
+matchDataResultType :: Type TyName DefaultUni ()
+matchDataResultType = TySOP () [[dataTy, dataTy]]
+  where
+    dataTy = mkTyBuiltin @_ @BuiltinData.Data ()
+
+matchDataPatterns :: Strict.Vector (Integer, BS.ByteString)
+matchDataPatterns = Strict.singleton (3, BS.pack [0, 1, 0])
+
+matchDataWitness :: Term TyName Name DefaultUni DefaultFun ()
+matchDataWitness = BuiltinRep () MatchData $ someValue matchDataPatterns
+
+matchDataApplication :: Term TyName Name DefaultUni DefaultFun ()
+matchDataApplication = runQuote $ do
+  representation <- freshName "representation"
+  let match =
+        Apply
+          ()
+          (Apply () (TyInst () (Builtin () MatchData) matchDataResultType) $ Var () representation)
+          (mkConstant () $ BuiltinData.Constr 3 [BuiltinData.I 10, BuiltinData.B "skip", BuiltinData.I 20])
+  pure $
+    Apply
+      ()
+      (LamAbs () representation (mkMatchDataRepType () matchDataResultType) match)
+      matchDataWitness
+
+matchDataExpected :: Term TyName Name DefaultUni DefaultFun ()
+matchDataExpected =
+  Constr
+    ()
+    (TySOP () [])
+    0
+    [mkConstant () $ BuiltinData.I 10, mkConstant () $ BuiltinData.I 20]
+
+isInvalidBuiltinRepresentation :: Error DefaultUni DefaultFun () -> Bool
+isInvalidBuiltinRepresentation = \case
+  TypeErrorE (InvalidBuiltinRepresentation {}) -> True
+  _ -> False
+
+test_matchDataRepresentationTyping :: TestTree
+test_matchDataRepresentationTyping =
+  testGroup
+    "MatchData representation typing"
+    [ testCase "witness type is inferred from the pattern" $
+        Right (Normalized $ mkMatchDataRepType () matchDataResultType)
+          @=? runExcept (typecheck def matchDataWitness)
+    , testCase "witness is first-class and MatchData returns its index" $
+        Right (Normalized matchDataResultType)
+          @=? runExcept (typecheck def matchDataApplication)
+    , testCase "typed application evaluates to the indexed SOP" $
+        Right matchDataExpected
+          @=? evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def matchDataApplication
+    , testCase "erasure retains the representation and evaluates through CEK" $
+        Right (eraseTerm matchDataExpected)
+          @=? UPLC.evaluateCekNoEmit defaultCekParametersForTesting (eraseTerm matchDataApplication)
+    , testCase "result index mismatch is rejected" $
+        let wrongResult = TySOP () [[]]
+            term =
+              Apply
+                ()
+                (TyInst () (Builtin () MatchData) wrongResult)
+                matchDataWitness
+         in assertIllTyped def term $ \case
+              TypeErrorE (TypeMismatch {}) -> True
+              _ -> False
+    , testCase "representation is opaque to ordinary case analysis" $
+        assertIllTyped def (Case () matchDataResultType matchDataWitness []) $ \case
+          TypeErrorE (UnsupportedCaseBuiltin {}) -> True
+          _ -> False
+    , testCase "representation term is tied to its builtin" $
+        assertIllTyped
+          def
+          (BuiltinRep () AddInteger $ someValue matchDataPatterns)
+          isInvalidBuiltinRepresentation
+    , testCase "wrong constant type is rejected" $
+        assertIllTyped
+          def
+          (BuiltinRep () MatchData $ someValue (0 :: Integer))
+          isInvalidBuiltinRepresentation
+    , testCase "empty table is rejected" $
+        assertIllTyped
+          def
+          (BuiltinRep () MatchData $ someValue (Strict.empty :: Strict.Vector (Integer, BS.ByteString)))
+          isInvalidBuiltinRepresentation
+    , testCase "unsorted tags are rejected" $
+        let patterns :: Strict.Vector (Integer, BS.ByteString)
+            patterns = Strict.fromList [(1, BS.singleton 0), (0, BS.singleton 0)]
+         in assertIllTyped
+              def
+              (BuiltinRep () MatchData $ someValue patterns)
+              isInvalidBuiltinRepresentation
+    , testCase "empty capture pattern is rejected" $
+        let patterns = Strict.singleton (0 :: Integer, BS.empty)
+         in assertIllTyped
+              def
+              (BuiltinRep () MatchData $ someValue patterns)
+              isInvalidBuiltinRepresentation
+    , testCase "unterminated capture distance is rejected" $
+        let patterns = Strict.singleton (0 :: Integer, BS.singleton 255)
+         in assertIllTyped
+              def
+              (BuiltinRep () MatchData $ someValue patterns)
+              isInvalidBuiltinRepresentation
+    ]
 
 test_typecheckAllFun
   :: forall fun
@@ -293,4 +409,5 @@ test_typecheck =
     , test_dumpTypeRepDefaultFuns
     , test_typecheckAvailable
     , test_typecheckIllTyped
+    , test_matchDataRepresentationTyping
     ]

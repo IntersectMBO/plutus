@@ -143,3 +143,11 @@ instance HasToBuiltin BLS12_381.Pairing.MlResult where
 instance HasFromBuiltin BuiltinBLS12_381_MlResult where
   type FromBuiltin BuiltinBLS12_381_MlResult = BLS12_381.Pairing.MlResult
   fromBuiltin (BuiltinBLS12_381_MlResult a) = a
+
+instance HasToBuiltin a => HasToBuiltin (PLC.MatchDataBuiltinRep a) where
+  type ToBuiltin (PLC.MatchDataBuiltinRep a) = BuiltinMatchDataRep (ToBuiltin a)
+  toBuiltin = Prelude.error "BuiltinRep MatchData is uninhabited"
+
+instance HasFromBuiltin a => HasFromBuiltin (BuiltinMatchDataRep a) where
+  type FromBuiltin (BuiltinMatchDataRep a) = PLC.MatchDataBuiltinRep (FromBuiltin a)
+  fromBuiltin = Prelude.error "BuiltinRep MatchData is uninhabited"

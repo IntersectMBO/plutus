@@ -179,6 +179,10 @@ eqTermM (Constant ann1 con1) (Constant ann2 con2) = do
 eqTermM (Builtin ann1 bi1) (Builtin ann2 bi2) = do
   eqM ann1 ann2
   eqM bi1 bi2
+eqTermM (BuiltinRep ann1 bi1 con1) (BuiltinRep ann2 bi2 con2) = do
+  eqM ann1 ann2
+  eqM bi1 bi2
+  eqM con1 con2
 eqTermM (Constr ann1 ty1 i1 args1) (Constr ann2 ty2 i2 args2) = do
   eqM ann1 ann2
   eqTypeM ty1 ty2
@@ -203,5 +207,6 @@ eqTermM TyInst {} _ = empty
 eqTermM Var {} _ = empty
 eqTermM Constant {} _ = empty
 eqTermM Builtin {} _ = empty
+eqTermM BuiltinRep {} _ = empty
 eqTermM Constr {} _ = empty
 eqTermM Case {} _ = empty

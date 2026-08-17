@@ -1325,8 +1325,8 @@
   "matchData": {
     "cpu": {
       "arguments": {
-        "intercept": 237308,
-        "slope": 1040
+        "intercept": 260843,
+        "slope": 1072
       },
       "type": "linear_in_x"
     },

@@ -49,9 +49,9 @@ lamTerm = withSpan $ \sp ->
 
 appTerm :: Parser PTerm
 appTerm = withSpan $ \sp ->
-    inBrackets $
-      setAnn sp <$>
-        (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
+  inBrackets $
+    setAnn sp
+      <$> (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
 
 conTerm :: Parser PTerm
 conTerm = withSpan $ \sp ->
@@ -61,11 +61,15 @@ builtinTerm :: Parser PTerm
 builtinTerm = withSpan $ \sp ->
   inParens $ Builtin sp <$> (symbol "builtin" *> builtinFunction)
 
+builtinRepTerm :: Parser PTerm
+builtinRepTerm = withSpan $ \sp ->
+  inParens $ BuiltinRep sp <$> (symbol "builtinrep" *> builtinFunction) <*> constant
+
 tyInstTerm :: Parser PTerm
 tyInstTerm = withSpan $ \sp ->
-    inBraces $
-      setAnn sp <$>
-        (mkIterInst <$> term <*> (fmap (getAnn &&& id) <$> many pType))
+  inBraces $
+    setAnn sp
+      <$> (mkIterInst <$> term <*> (fmap (getAnn &&& id) <$> many pType))
 
 unwrapTerm :: Parser PTerm
 unwrapTerm = withSpan $ \sp ->
@@ -110,6 +114,7 @@ term = leadingWhitespace go
           , appTerm
           , conTerm
           , builtinTerm
+          , builtinRepTerm
           , tyInstTerm
           , unwrapTerm
           , iwrapTerm

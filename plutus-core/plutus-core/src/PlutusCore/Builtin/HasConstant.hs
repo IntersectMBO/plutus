@@ -70,6 +70,7 @@ fromValue = fromValueOf knownUni
 
 instance HasConstant (Term TyName Name uni fun ()) where
   asConstant (Constant _ val) = pure val
+  asConstant (BuiltinRep _ _ val) = pure val
   asConstant _ = throwError notAConstant
 
   fromConstant = Constant ()

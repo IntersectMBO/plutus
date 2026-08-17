@@ -12,7 +12,6 @@
 
 module PlutusCore.Builtin.Polymorphism
   ( Opaque (..)
-  , OpaqueVConstr (..)
   , SomeConstant (..)
   , TyNameRep (..)
   , TyVarRep
@@ -153,13 +152,6 @@ newtype Opaque val (rep :: GHC.Type) = Opaque
 -- kind of type errors.
 
 type instance UniOf (Opaque val rep) = UniOf val
-
--- | An evaluator value constructed as a PLC/UPLC 'Constr'.
-newtype OpaqueVConstr val = OpaqueVConstr
-  { unOpaqueVConstr :: val
-  }
-
-type instance UniOf (OpaqueVConstr val) = UniOf val
 
 {-| For unlifting from the 'Constant' constructor when the stored value is of a monomorphic
 built-in type

@@ -79,6 +79,9 @@ instance
   prettyBy = inContextM $ \case
     Constant _ con -> lmap (ConstConfig . _pcrRenderContext) $ prettyM con
     Builtin _ bi -> unitDocM $ pretty bi
+    BuiltinRep _ bi con ->
+      lmap (ConstConfig . _pcrRenderContext) $
+        (\conDoc -> "builtinrep" <+> pretty bi <+> conDoc) <$> prettyM con
     (viewApp -> Just (fun, args)) -> iterInterAppPrettyM fun args
     Apply {} -> error "Panic: 'Apply' is not covered by 'viewApp'"
     TyInst {} -> error "Panic: 'TyInst' is not covered by 'viewApp'"

@@ -240,6 +240,8 @@ termEvaluationOrder binfo vinfo = goTerm
         evalThis (EvalTerm Pure WorkFree t)
       t@Constant {} ->
         evalThis (EvalTerm Pure WorkFree t)
+      t@BuiltinRep {} ->
+        evalThis (EvalTerm Pure WorkFree t)
 
     goBindings :: [Binding tyname name uni fun a] -> EvalOrder tyname name uni fun a
     goBindings [] = mempty

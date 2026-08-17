@@ -112,21 +112,22 @@ lambda arg.
 
 These are builtin-pair, builtin-Bool, and builtin-list `Case` nodes; they do not use `Match`.
 
-The `matchData` implementation uses the direct erased form of a PLC type application. Each field
-in its `TySOP` argument is `Data` to capture or `Unit` to skip. Type inference removes the `Unit`
-positions from the result `TySOP`, so the handler type exposes only captured fields. For example,
-the descriptor for tag 1 below is `[Data, Unit, Unit, Unit]` and its result branch is `[Data]`.
+The PLC builtin has type
+`forall S. BuiltinRep MatchData S -> Data -> S`. Its explicit checked representation is a sorted
+array of `(constructor tag, ByteString gap program)` entries, indexed by the captured result
+`TySOP`. Each byte is the number of payload fields to skip before the next capture. `0xff` skips
+255 fields and continues the same gap, so constructor width is not limited to 255. A final gap
+consumes the suffix and checks exact arity. Entries for tags that cannot be selected at that match
+site are omitted.
 
-Before evaluation the markers are reified to a sorted array of `(constructor tag, ByteString gap
-program)` entries. Each byte is the number of payload fields to skip before the next capture.
-`0xff` skips 255 fields and continues the same gap, so constructor width is not limited to 255. A
-final gap consumes the suffix and checks exact arity. Entries for tags that cannot be selected at
-that match site are omitted. The hidden plan is shown explicitly here only because this benchmark
-constructs UPLC directly:
+The witness erases to an ordinary UPLC constant and the result-type instantiation erases to one
+`force`. This benchmark constructs that erased UPLC directly, so the force and retained
+representation are explicit here:
 
 ```text
 lambda arg.
-  case ((builtin matchData) (con (array (pair integer bytestring)) [(1, #0003)]) arg) of
+  case ((force (builtin matchData))
+          (con (array (pair integer bytestring)) [(1, #0003)]) arg) of
     tag 0 field0 ->
       matchConstr 2 field0 (...)
 ```

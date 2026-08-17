@@ -141,6 +141,8 @@ instance
       sexp "con" (consAnnIf config ann [prettyTypeOf c, pretty c])
     Builtin ann bi ->
       sexp "builtin" (consAnnIf config ann [pretty bi])
+    BuiltinRep ann bi c ->
+      sexp "builtinrep" (consAnnIf config ann [pretty bi, prettyTypeOf c, pretty c])
     TyInst ann t ty ->
       braces'
         ( sep

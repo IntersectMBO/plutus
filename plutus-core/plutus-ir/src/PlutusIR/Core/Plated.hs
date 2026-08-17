@@ -133,6 +133,7 @@ bindingIds f = \case
 termConstants :: Traversal' (Term tyname name uni fun ann) (Some (ValueOf uni))
 termConstants f term0 = case term0 of
   Constant ann val -> Constant ann <$> f val
+  BuiltinRep ann bi val -> BuiltinRep ann bi <$> f val
   Let {} -> pure term0
   Var {} -> pure term0
   TyAbs {} -> pure term0
@@ -159,6 +160,7 @@ termSubkinds f term0 = case term0 of
   Apply {} -> pure term0
   Unwrap {} -> pure term0
   Constant {} -> pure term0
+  BuiltinRep {} -> pure term0
   Builtin {} -> pure term0
   Constr {} -> pure term0
   Case {} -> pure term0
@@ -179,6 +181,7 @@ termSubterms f = \case
   e@Error {} -> pure e
   v@Var {} -> pure v
   c@Constant {} -> pure c
+  r@BuiltinRep {} -> pure r
   b@Builtin {} -> pure b
 {-# INLINE termSubterms #-}
 
@@ -201,6 +204,7 @@ termSubtypes f = \case
   u@Unwrap {} -> pure u
   v@Var {} -> pure v
   c@Constant {} -> pure c
+  r@BuiltinRep {} -> pure r
   b@Builtin {} -> pure b
 {-# INLINE termSubtypes #-}
 
@@ -226,6 +230,7 @@ termUniques f = \case
   LamAbs ann n ty t -> PLC.theUnique f n <&> \n' -> LamAbs ann n' ty t
   a@Apply {} -> pure a
   c@Constant {} -> pure c
+  r@BuiltinRep {} -> pure r
   b@Builtin {} -> pure b
   t@TyInst {} -> pure t
   e@Error {} -> pure e

@@ -107,6 +107,7 @@ renameTermM (Constr ann ty i es) = Constr ann <$> renameTypeM ty <*> pure i <*> 
 renameTermM (Case ann ty arg cs) = Case ann <$> renameTypeM ty <*> renameTermM arg <*> traverse renameTermM cs
 renameTermM con@Constant {} = pure con
 renameTermM bi@Builtin {} = pure bi
+renameTermM rep@BuiltinRep {} = pure rep
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM

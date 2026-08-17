@@ -307,6 +307,7 @@ floatTerm binfo relaxed t0 =
              in
               Case (a, us) ty arg cs
           Constant {} -> noUniq t
+          BuiltinRep {} -> noUniq t
           Builtin {} -> noUniq t
 
         -- Float bindings in the given `Binding` inwards, and calculate the set of

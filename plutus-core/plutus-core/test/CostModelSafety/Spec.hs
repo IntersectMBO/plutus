@@ -31,6 +31,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
 import PlutusCore.Default
+import PlutusCore.Default.MatchData qualified as MatchData
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
@@ -201,11 +202,17 @@ smallTerm
 smallTerm tr0 = go (toTypeAst tr0) tr0
   where
     go
-      :: forall (b :: GHC.Type) fun
+      :: forall (b :: GHC.Type)
        . PLC.Type PLC.TyName DefaultUni ()
       -> TypeRep b
-      -> PLC.Term PLC.TyName PLC.Name DefaultUni fun ()
+      -> PLC.Term PLC.TyName PLC.Name DefaultUni DefaultFun ()
     go sch tr
+      | trMatchDataRep `App` _ `App` _ <- tr
+      , Just HRefl <- eqTypeRep trMatchDataRep (typeRep @MatchData.MatchDataRepValue) =
+          PLC.BuiltinRep
+            ()
+            MatchData
+            (PLC.someValue $ Vector.singleton (0 :: Integer, BS.singleton 0))
       | trOpaque `App` _ `App` trEl <- tr
       , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
           go sch trEl

@@ -2,16 +2,21 @@
 
 module Flat.Spec (tests) where
 
+import Data.ByteString qualified as BS
 import Data.ByteString.Lazy.Char8 qualified as LBS
 import Data.Set qualified as Set
+import Data.Vector.Strict qualified as Strict
 import Data.Word (Word8)
 import PlutusCore
   ( Kind (..)
   , Name (..)
   , Normalized (..)
+  , Term (..)
   , TyName (..)
+  , Type (..)
   , Unique (..)
   , Version (..)
+  , someValue
   )
 import PlutusCore.Annotation (SrcSpan (..), SrcSpans (..))
 import PlutusCore.DeBruijn
@@ -29,6 +34,7 @@ import Test.Tasty
 import Test.Tasty.Golden (goldenVsStringDiff)
 import Test.Tasty.HUnit
 import Universe (SomeTypeIn (..))
+import UntypedPlutusCore ()
 
 flatBytes :: Flat.Flat a => a -> [Word8]
 flatBytes = asBytes . bits
@@ -91,6 +97,22 @@ test_flatRoundtrip =
     , testCase "Kind Type ()" $
         let k = Type () :: Kind ()
          in Flat.unflat (Flat.flat k) @?= Right k
+    , testCase "BuiltinRep MatchData type" $
+        let ty =
+              TyApp
+                ()
+                (TyBuiltin () $ SomeTypeIn DefaultUniProtoMatchDataRep)
+                (TySOP () [[], []])
+                :: Type TyName DefaultUni ()
+         in Flat.unflat (Flat.flat ty) @?= Right ty
+    , testCase "BuiltinRep MatchData witness" $
+        let witness =
+              BuiltinRep
+                ()
+                MatchData
+                (someValue $ Strict.singleton (0 :: Integer, BS.singleton 0))
+                :: Term TyName Name DefaultUni DefaultFun ()
+         in Flat.unflat (Flat.flat witness) @?= Right witness
     ]
 
 {-| Tests for newtype wrappers: verify they encode the same as their

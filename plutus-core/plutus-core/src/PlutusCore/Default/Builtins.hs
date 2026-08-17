@@ -29,7 +29,6 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ExMemoryUsage
   , IntegerCostedLiterally (..)
-  , MatchDataCostedPatterns
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
@@ -2507,9 +2506,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . unimplementedCostingFun)
   toBuiltinMeaning _semvar MatchData =
     let matchDataDenotation
-          :: MatchDataCostedPatterns
+          :: MatchData.MatchDataRepValue
+               val
+               (TyVarRep ('TyNameRep "matchDataResult" 0))
           -> Data
-          -> BuiltinResult (OpaqueVConstr val)
+          -> BuiltinResult
+               (Opaque val (TyVarRep ('TyNameRep "matchDataResult" 0)))
         matchDataDenotation = MatchData.matchData
         {-# INLINE matchDataDenotation #-}
      in makeBuiltinMeaning
@@ -2518,9 +2520,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 
-  toBuiltinTypeApplication _semvar MatchData = Just MatchData.matchDataTypeApplication
-  toBuiltinTypeApplication _semvar _ = Nothing
-  {-# INLINE toBuiltinTypeApplication #-}
+  toBuiltinRepresentation _semvar MatchData = Just MatchData.matchDataRepresentation
+  toBuiltinRepresentation _semvar _ = Nothing
+  {-# INLINE toBuiltinRepresentation #-}
 
 -- \*** IMPORTANT! *** When you're adding a new builtin above you typically won't
 --       be able to add a sensible costing function until the implementation is

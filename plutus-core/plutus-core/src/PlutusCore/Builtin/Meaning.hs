@@ -76,17 +76,12 @@ type HasMeaningIn uni val =
   , HasConstr val ()
   )
 
-{-| Metadata for a builtin whose direct type application has special typechecking and erasure
-behavior.
-
-The first component computes the type exposed to PLC from the raw type argument. The second
-component reifies that same argument as a builtin constant for erasure. Keeping both operations
-together ensures that the typechecker and eraser accept exactly the same type syntax. -}
-data BuiltinTypeApplication uni = BuiltinTypeApplication
-  { btaInferType :: Type TyName uni () -> Either Text (Type TyName uni ())
-  , btaReifyArgument
-      :: forall tyname ann
-       . Type tyname uni ann -> Either Text (SomeNewtype.Some (ValueOf uni))
+{-| Metadata for checking an explicit builtin-specific runtime representation. The checker
+validates the retained constant and returns its result-indexed PLC representation type. -}
+newtype BuiltinRepresentation uni = BuiltinRepresentation
+  { brInferType
+      :: SomeNewtype.Some (ValueOf uni)
+      -> Either Text (Type TyName uni ())
   }
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
@@ -113,12 +108,12 @@ class
     -> fun
     -> BuiltinMeaning val (CostingPart uni fun)
 
-  -- | Describe special handling for a direct type application of a builtin, if any.
-  toBuiltinTypeApplication
+  -- | Describe the checked runtime representations accepted for a builtin, if any.
+  toBuiltinRepresentation
     :: BuiltinSemanticsVariant fun
     -> fun
-    -> Maybe (BuiltinTypeApplication uni)
-  toBuiltinTypeApplication _ _ = Nothing
+    -> Maybe (BuiltinRepresentation uni)
+  toBuiltinRepresentation _ _ = Nothing
 
 -- | Feed the 'TypeScheme' of the given built-in function to the continuation.
 withTypeSchemeOfBuiltinFunction
@@ -148,6 +143,7 @@ typeOfBuiltinFunction semVar fun =
   withTypeSchemeOfBuiltinFunction @(Term TyName Name uni fun ()) semVar fun typeSchemeToType
 
 -- | Return the standalone PLC type of a builtin, if it has one.
+
 {- Note [Builtin semantics variants]
 The purpose of the "builtin semantics variant" feature is to provide multiple,
 different denotations (implementations) for the same builtin(s).  An example use

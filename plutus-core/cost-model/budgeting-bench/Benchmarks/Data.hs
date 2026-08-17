@@ -219,7 +219,9 @@ benchMatchData =
   createTwoTermBuiltinBenchElementwiseWithWrappers
     (MatchDataCostedPatterns, id)
     MatchData
-    []
+    -- These benchmark terms are erased without typechecking. The placeholder result type is
+    -- operationally irrelevant; its sole purpose here is to emit MatchData's required UPLC force.
+    [TySOP () []]
     matchDataInputs
 
 -- FIXME: see if we can find a better sample for this. More generally, how

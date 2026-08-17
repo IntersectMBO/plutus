@@ -225,7 +225,7 @@ matchConstrNode width expectedTag fieldsToMatch scrutinee continuation = do
       encodedPatterns = Strict.singleton (toInteger expectedTag, capturePattern)
       matched =
         builtinApp
-          0
+          1
           PLC.MatchData
           [ mkConstant @(Strict.Vector (Integer, BS.ByteString)) () encodedPatterns
           , UPLC.Var () scrutinee

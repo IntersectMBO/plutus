@@ -66,6 +66,7 @@ Parsable functions are  [ addInteger
                         , listToArray
                         , lookupCoin
                         , mapData
+                        , matchData
                         , mkCons
                         , mkNilData
                         , mkNilPairData

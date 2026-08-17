@@ -96,6 +96,10 @@ builtinTerm :: Parametric
 builtinTerm _tm = withSpan $ \sp ->
   inParens $ PIR.builtin sp <$> (symbol "builtin" *> builtinFunction)
 
+builtinRepTerm :: Parametric
+builtinRepTerm _tm = withSpan $ \sp ->
+  inParens $ PIR.builtinRep sp <$> (symbol "builtinrep" *> builtinFunction) <*> constant
+
 unwrapTerm :: Parametric
 unwrapTerm tm = withSpan $ \sp ->
   inParens $ PIR.unwrap sp <$> (symbol "unwrap" *> tm)
@@ -127,15 +131,15 @@ letTerm = withSpan $ \sp ->
 
 appTerm :: Parametric
 appTerm tm = withSpan $ \sp ->
-    inBrackets $
-      setAnn sp <$>
-        (PIR.mkIterApp <$> tm <*> (fmap (getAnn &&& id) <$> some tm))
+  inBrackets $
+    setAnn sp
+      <$> (PIR.mkIterApp <$> tm <*> (fmap (getAnn &&& id) <$> some tm))
 
 tyInstTerm :: Parametric
 tyInstTerm tm = withSpan $ \sp ->
-    inBraces $
-      setAnn sp <$>
-        (PIR.mkIterInst <$> tm <*> (fmap (getAnn &&& id) <$> some pType))
+  inBraces $
+    setAnn sp
+      <$> (PIR.mkIterInst <$> tm <*> (fmap (getAnn &&& id) <$> some pType))
 
 pTerm :: Parser PTerm
 pTerm = leadingWhitespace go
@@ -150,6 +154,7 @@ pTerm = leadingWhitespace go
               , conTerm go
               , iwrapTerm go
               , builtinTerm go
+              , builtinRepTerm go
               , unwrapTerm go
               , errorTerm go
               , tyInstTerm go

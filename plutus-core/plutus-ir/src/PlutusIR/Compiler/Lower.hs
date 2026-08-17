@@ -25,6 +25,7 @@ lowerTerm = \case
   Apply x t1 t2 -> PLC.Apply x <$> lowerTerm t1 <*> lowerTerm t2
   Constant x c -> pure $ PLC.Constant x c
   Builtin x bi -> pure $ PLC.Builtin x bi
+  BuiltinRep x bi c -> pure $ PLC.BuiltinRep x bi c
   TyInst x t ty -> PLC.TyInst x <$> lowerTerm t <*> pure ty
   Error x ty -> pure $ PLC.Error x ty
   IWrap x tn ty t -> PLC.IWrap x tn ty <$> lowerTerm t

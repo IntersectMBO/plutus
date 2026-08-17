@@ -76,6 +76,7 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
   apply :: ann -> term ann -> term ann -> term ann
   constant :: ann -> Some (ValueOf uni) -> term ann
   builtin :: ann -> fun -> term ann
+  builtinRep :: ann -> fun -> Some (ValueOf uni) -> term ann
   tyInst :: ann -> term ann -> Type tyname uni ann -> term ann
   unwrap :: ann -> term ann -> term ann
   iWrap :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
@@ -88,6 +89,8 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
 
   termLet = mkImmediateLamAbs
   typeLet = mkImmediateTyAbs
+
+  builtinRep ann _ = constant ann
 
 -- TODO: make it @forall {k}@ once we have that.
 -- (see https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0099-explicit-specificity.rst)
@@ -116,6 +119,7 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
   apply = Apply
   constant = Constant
   builtin = Builtin
+  builtinRep = BuiltinRep
   tyInst = TyInst
   unwrap = Unwrap
   iWrap = IWrap
@@ -131,6 +135,7 @@ embedTerm = \case
   Apply a t1 t2 -> apply a (embedTerm t1) (embedTerm t2)
   Constant a c -> constant a c
   Builtin a bi -> builtin a bi
+  BuiltinRep a bi c -> builtinRep a bi c
   TyInst a t ty -> tyInst a (embedTerm t) ty
   Error a ty -> error a ty
   Unwrap a t -> unwrap a (embedTerm t)

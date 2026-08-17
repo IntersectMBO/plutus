@@ -42,6 +42,11 @@ expectParserFailure code = case runQuoteT (parseTerm code) of
   Right _ -> assertFailure $ "Unexpected success when parsing term: " <> T.unpack code
   Left _ -> pure ()
 
+expectTypeParserSuccess :: T.Text -> Assertion
+expectTypeParserSuccess code = case runQuoteT (parseType code) of
+  Right _ -> pure ()
+  Left _ -> assertFailure $ "Unexpected failure when parsing type: " <> T.unpack code
+
 parseValueInvalidCurrency :: Assertion
 parseValueInvalidCurrency = do
   expectParserFailure code
@@ -137,6 +142,12 @@ tests =
     , testCase
         "multi-arg application has per-argument spans on inner nodes"
         multiArgSpans
+    , testCase "parser accepts BuiltinRep witness terms" $
+        expectParserSuccess "(builtinrep matchData integer 1)"
+    , testCase "parser accepts BuiltinRep type notation" $
+        expectTypeParserSuccess "(builtinrep matchData (sop []))"
+    , testCase "parser accepts the core BuiltinRep type encoding" $
+        expectTypeParserSuccess "[(con builtinrep matchData) (sop [])]"
     ]
 
 {-| Test that inner Apply nodes get per-argument spans, not the bracket span.
