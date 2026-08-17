@@ -564,12 +564,15 @@ function updateUrlsFromBranch() {
 
 function showError(message) {
   const container = document.getElementById('plot-container');
+  // The message can contain request URLs built from the user-editable
+  // data-source fields, so it goes in as text, never as HTML.
   container.innerHTML = `
     <div class="error">
       <h3>Error Loading Data</h3>
-      <p>${message}</p>
+      <p></p>
     </div>
   `;
+  container.querySelector('.error p').textContent = message;
 }
 
 // Fill <nav> with the standard page list; `active` is the page's slug and
