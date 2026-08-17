@@ -117,22 +117,24 @@ in its `TySOP` argument is `Data` to capture or `Unit` to skip. Type inference r
 positions from the result `TySOP`, so the handler type exposes only captured fields. For example,
 the descriptor for tag 1 below is `[Data, Unit, Unit, Unit]` and its result branch is `[Data]`.
 
-Before evaluation the markers are reified to one `ByteString` gap program per constructor. Each
-byte is the number of payload fields to skip before the next capture. `0xff` skips 255 fields and
-continues the same gap, so constructor width is not limited to 255. A final gap consumes the
-suffix and checks exact arity. The hidden programs are shown explicitly here only because this
-benchmark constructs UPLC directly:
+Before evaluation the markers are reified to a sorted array of `(constructor tag, ByteString gap
+program)` entries. Each byte is the number of payload fields to skip before the next capture.
+`0xff` skips 255 fields and continues the same gap, so constructor width is not limited to 255. A
+final gap consumes the suffix and checks exact arity. Entries for tags that cannot be selected at
+that match site are omitted. The hidden plan is shown explicitly here only because this benchmark
+constructs UPLC directly:
 
 ```text
 lambda arg.
-  case ((builtin matchData) (con (array bytestring) [#, #0003]) arg) of
-    tag 0 -> error
-    tag 1 field0 ->
+  case ((builtin matchData) (con (array (pair integer bytestring)) [(1, #0003)]) arg) of
+    tag 0 field0 ->
       matchConstr 2 field0 (...)
 ```
 
-The returned constructor index is the original `Data.Constr` tag. Its captures are the selected
-original fields in source-position order, so this handler has one lambda rather than `W` lambdas.
+The builtin binary-searches original `Data.Constr` tags, then returns the matched entry's compact
+local position. The `Case` therefore has one handler per retained plan entry rather than holes up
+to the largest tag. Captures are the selected original fields in source-position order, so this
+handler has one lambda rather than `W` lambdas.
 
 For a gap of one to three ignored fields, the cursor advances with repeated `tailList`; a larger
 gap uses one `dropList`. A selected field is obtained by a list `Case`, which binds its head and
@@ -214,10 +216,9 @@ executable invocation runs exactly one implementation and one selected case:
 4. Time only `whnf runCEK appliedTerm`, with `restrictingEnormous` and no emitter.
 5. Exit before selecting another case, releasing its argument and matcher with the process.
 
-`--validate-case` is a separate untimed preflight for implementations with a completed cost model.
-The prototype `matchData` costing function is deliberately unimplemented, so its exact-result
-check runs in benchmark setup but it makes no protocol-budget claim. Budgets are never Criterion
-measurements or comparison results.
+`--validate-case` is a separate untimed preflight. It checks the result, serialized script size,
+and counting-mode CPU and memory against the protocol limits. Budgets are never Criterion
+measurements; they use the embedded builtin and CEK cost models.
 
 ```sh
 matching-cpu-runtime --validate-case constr_binary_d3_w16_c8
@@ -228,6 +229,6 @@ Invoke those commands once per ID returned by `--list-cases`.
 
 ## Recorded run
 
-See [`RESULTS.md`](RESULTS.md) for the complete four-way, 22-case wall-time comparison measured on
-2026-08-06, plus the existing baseline correctness/protocol-limit preflight. It also records a
-control run of the same traditional UPLC under all three historical CEK evaluators.
+See [`RESULTS.md`](RESULTS.md) for the complete four-way, 22-case wall-time comparison, the
+2026-08-17 sparse-tag rerun, and the execution-budget comparison. It also records a control run of
+the same traditional UPLC under all three historical CEK evaluators.

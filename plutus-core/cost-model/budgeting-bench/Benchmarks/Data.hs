@@ -180,11 +180,11 @@ matchDataWidths = [0, 1, 2, 4, 8, 16, 32, 64, 128, 254, 255, 256, 512, 1024, 204
 matchDataCaptureCounts :: Int -> [Int]
 matchDataCaptureCounts width = nub [0, min 1 width, width `div` 4, width `div` 2, width]
 
-matchDataInputs :: [(Strict.Vector BS.ByteString, Data)]
-matchDataInputs = regularInputs <> tableInputs <> payloadInputs
+matchDataInputs :: [(Strict.Vector (Integer, BS.ByteString), Data)]
+matchDataInputs = regularInputs <> tableInputs <> tagInputs <> payloadInputs
   where
     regularInputs =
-      [ ( Strict.singleton $ encodePattern width $ spreadCaptures width captures
+      [ ( Strict.singleton (0, encodePattern width $ spreadCaptures width captures)
         , Constr 0 $ replicate width $ I 0
         )
       | width <- matchDataWidths
@@ -192,13 +192,18 @@ matchDataInputs = regularInputs <> tableInputs <> payloadInputs
       ]
     tablePattern = encodePattern 64 $ spreadCaptures 64 8
     tableInputs =
-      [ ( Strict.replicate alternatives tablePattern
-        , Constr (fromIntegral $ alternatives - 1) $ replicate 64 $ I 0
+      [ ( Strict.fromList [(tag, tablePattern) | tag <- [0 .. alternatives - 1]]
+        , Constr (alternatives - 1) $ replicate 64 $ I 0
         )
-      | alternatives <- [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+      | alternatives <- [1, 2, 4, 8, 16, 32, 64, 128, 256, 512 :: Integer]
+      ]
+    tagInputs =
+      [ (Strict.singleton (tag, tablePattern), Constr tag $ replicate 64 $ I 0)
+      | bitSize <- [64, 256, 1024, 4096, 16384, 65536 :: Integer]
+      , let tag = 2 ^ bitSize
       ]
     payloadInputs =
-      [ (Strict.singleton $ encodePattern 1 [0], Constr 0 [payload])
+      [ (Strict.singleton (0, encodePattern 1 [0]), Constr 0 [payload])
       | payload <-
           [ I $ 2 ^ (65536 :: Integer)
           , B $ BS.replicate (1024 * 1024) 0
@@ -206,8 +211,9 @@ matchDataInputs = regularInputs <> tableInputs <> payloadInputs
           ]
       ]
 
--- The benchmark varies width, capture density, pattern-table size, and nested payload size.  The
--- latter is intentionally independent: MatchData only moves pointers to captured Data fields.
+-- The benchmark varies width, capture density, pattern-table size, tag size, and nested payload
+-- size.  The latter is intentionally independent: MatchData only moves pointers to captured Data
+-- fields.
 benchMatchData :: Benchmark
 benchMatchData =
   createTwoTermBuiltinBenchElementwiseWithWrappers

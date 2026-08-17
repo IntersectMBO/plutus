@@ -872,9 +872,9 @@ modelFun <- function(path) {
     # Y wrapped with `TotalSize` (contained value size)
     scaleValueModel           <- linearInY ("ScaleValue")
 
-    ## X uses MatchDataCostedPatterns: a work measure derived from the hidden compact pattern
-    ## table.  The benchmark varies Data payload shapes independently to confirm that Y has no
-    ## effect on execution time.
+    ## X uses MatchDataCostedPatterns: a work measure derived from the hidden sparse table of
+    ## constructor tags and compact pattern programs.  The benchmark varies tag sizes and Data
+    ## payload shapes independently; Y has no effect on execution time.
     matchDataModel <- {
         fname <- "MatchData"
         filtered <- data %>%

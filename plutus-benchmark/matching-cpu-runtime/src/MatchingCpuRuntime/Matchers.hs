@@ -222,20 +222,19 @@ matchConstrNode width expectedTag fieldsToMatch scrutinee continuation = do
         | gap < 255 = [fromIntegral gap]
         | otherwise = 255 : encodeGap (gap - 255)
       capturePattern = BS.pack $ concatMap encodeGap captureGaps
-      encodedPatterns =
-        Strict.fromList $ replicate expectedTag BS.empty <> [capturePattern]
+      encodedPatterns = Strict.singleton (toInteger expectedTag, capturePattern)
       matched =
         builtinApp
           0
           PLC.MatchData
-          [ mkConstant @(Strict.Vector BS.ByteString) () encodedPatterns
+          [ mkConstant @(Strict.Vector (Integer, BS.ByteString)) () encodedPatterns
           , UPLC.Var () scrutinee
           ]
   pure $
     UPLC.Case
       ()
       matched
-      (Vector.fromList $ replicate expectedTag (UPLC.Error ()) <> [handler])
+      (Vector.singleton handler)
 
 -- Sketch: matchData; case the resulting VConstr; unIData selected fields.
 

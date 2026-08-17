@@ -53,6 +53,19 @@ Complete means, confidence intervals, and standard deviations are in
 [`results/2026-08-06-criterion-wall-time.csv`](results/2026-08-06-criterion-wall-time.csv),
 and [`results/2026-08-06-matchdata-sparse-criterion-wall-time.csv`](results/2026-08-06-matchdata-sparse-criterion-wall-time.csv).
 
+### Sparse-tag rerun (2026-08-17)
+
+The original gap-program run still encoded an array position and `Case` handler for every tag up
+to the selected constructor. The sparse-tag implementation instead stores only sorted
+`(original tag, gap program)` entries, binary-searches them, and returns the compact entry index.
+This removes unused tags but adds pair decoding and tag lookup. Its geometric-mean CEK wall time
+was `1.138459x` the gap-only implementation across the same 22 cases. It still beat traditional
+matching in all 22 cases, shallow matching in 3, and nested matching in 6; it was fastest in 3.
+These are separate-session host timings, so execution budgets below are the portable comparison.
+
+Complete sparse-tag measurements are in
+[`results/2026-08-17-matchdata-sparse-tags-criterion-wall-time.csv`](results/2026-08-17-matchdata-sparse-tags-criterion-wall-time.csv).
+
 ## Measurement contract
 
 - The baseline implementations use three distinct historical branch bases:
@@ -62,7 +75,8 @@ and [`results/2026-08-06-matchdata-sparse-criterion-wall-time.csv`](results/2026
     `20d7f06ed4dc5f29439b5b0d4b1ab8a62627f3b3`.
   - Traditional: the pre-Match mainline commit
     `b9d726d7cc957fa154c6ba9f01959952887f1246`.
-- Sparse `matchData` uses the revision containing this report.
+- The gap-only and sparse-tag `matchData` measurements use their respective reported revisions;
+  the execution budgets use the sparse-tag revision containing this report.
 - Runner logic, arguments, case order, expected values, and arithmetic were identical. `Main.hs`
   differed only in its explicit `_shallow`, `_nested`, `_traditional`, or `_matchdata` matcher
   references and in validation serialization. Serialization was not part of the timed action.
@@ -72,9 +86,9 @@ and [`results/2026-08-06-matchdata-sparse-criterion-wall-time.csv`](results/2026
 - All 66 emitted baseline terms were inspected structurally. Traditional terms
   share repeated `tailList`, `dropList`, `unConstrData`, `equalsInteger`, and `unIData` builtin
   values, leave single uses direct, and substitute selected decoding expressions into the result
-  continuation without administrative capture lambdas/applications. The sparse `matchData`
-  emitter uses a hidden `(array bytestring)` with one gap program per constructor, cases the
-  returned `VConstr` at the same `Data.Constr` index, and binds only the selected fields.
+  continuation without administrative capture lambdas/applications. The sparse-tag `matchData`
+  emitter uses a hidden `(array (pair integer bytestring))` containing only reachable constructor
+  tags, cases the returned `VConstr` at its compact local index, and binds only selected fields.
 - GHC 9.6.7, Criterion 1.6.5.0, Cabal `-O1`, one GHC capability (`-N1`), process pinned to CPU 0.
 - Host: AMD Ryzen 9 7950X, Linux 7.0.0-27-generic x86_64.
 - Criterion wall-clock time, `-L 2`, 1000 bootstrap resamples, with implementation order rotated
@@ -90,13 +104,36 @@ and [`results/2026-08-06-matchdata-sparse-criterion-wall-time.csv`](results/2026
   `applyTerm`, and exact-result checking happened before timing. Criterion measured only
   `whnf runCEK appliedTerm`.
 
-Execution budgets were not benchmarked. The existing untimed preflight covers the 66 baseline
-implementation/case runs, all of which returned the expected integer and passed the protocol
-limits. Full validation data is in
+## Execution-budget results (2026-08-17)
+
+`MatchData` uses the canonical builtin-cost benchmark and cost-model generator. Its fitted CPU
+model is `237308 + 1040*x`; memory is `1 + x`. The custom first-argument work measure includes
+table entries, encoded gap bytes and work, and constructor-tag word size. The second `Data`
+argument has no model term: independent payloads up to a 1 MiB bytestring and a 10,000-node spine
+did not affect denotation time. Tag sizes from 64 to 65,536 bits were benchmarked separately and
+are covered by the first-argument measure.
+
+The ratios below are `MatchData / baseline`; less than one favors `MatchData`. Geometric means and
+wins cover all 22 cases.
+
+| Baseline | CPU geometric mean | CPU wins | Memory geometric mean | Memory wins |
+|---|---:|---:|---:|---:|
+| Traditional | 0.733898 | 19/22 | 0.429197 | 22/22 |
+| Shallow | 1.269017 | 3/22 | 0.505240 | 20/22 |
+| Nested | 1.083986 | 6/22 | 0.916367 | 12/22 |
+
+On the 20 cases that also fit the old dense-tag `MatchData` script-size limit, sparse tags improve
+the CPU geometric mean against traditional matching from `0.832404` to `0.739246`, and memory from
+`0.485248` to `0.441636`. The full binary cases now fit as well: the non-alternative D=8 tree is
+4,484 bytes, 131,892,496 CPU, and 236,581 memory, versus traditional matching at 8,879 bytes,
+193,778,602 CPU, and 736,289 memory. The D=64 spine is 1,094 bytes, 35,885,260 CPU, and 62,310
+memory.
+
+All 22 sparse-tag cases returned the expected integer and passed script-size, CPU, and memory
+limits. Full current data is in
+[`results/2026-08-17-matchdata-sparse-tags-validation.csv`](results/2026-08-17-matchdata-sparse-tags-validation.csv);
+the 66 historical baseline rows are in
 [`results/2026-08-06-preflight-validation.csv`](results/2026-08-06-preflight-validation.csv).
-`matchData` has `unimplementedCostingFun`, so its counting-mode budgets are deliberately enormous
-and no protocol-limit claim is made. Every `matchData` case still returned its exact expected
-integer during the untimed setup immediately before Criterion measurement.
 
 ## Evaluator-version control
 

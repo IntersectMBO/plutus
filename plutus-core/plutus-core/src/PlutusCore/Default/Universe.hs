@@ -752,16 +752,16 @@ instance
 deriving newtype instance
   KnownTypeAst tyname DefaultUni MatchDataCostedPatterns
 instance
-  KnownBuiltinTypeIn DefaultUni term (Strict.Vector ByteString)
+  KnownBuiltinTypeIn DefaultUni term (Strict.Vector (Integer, ByteString))
   => MakeKnownIn DefaultUni term MatchDataCostedPatterns
   where
-  makeKnown = makeKnownCoerce @(Strict.Vector ByteString)
+  makeKnown = makeKnownCoerce @(Strict.Vector (Integer, ByteString))
   {-# INLINE makeKnown #-}
 instance
-  KnownBuiltinTypeIn DefaultUni term (Strict.Vector ByteString)
+  KnownBuiltinTypeIn DefaultUni term (Strict.Vector (Integer, ByteString))
   => ReadKnownIn DefaultUni term MatchDataCostedPatterns
   where
-  readKnown = readKnownCoerce @(Strict.Vector ByteString)
+  readKnown = readKnownCoerce @(Strict.Vector (Integer, ByteString))
   {-# INLINE readKnown #-}
 
 deriving newtype instance

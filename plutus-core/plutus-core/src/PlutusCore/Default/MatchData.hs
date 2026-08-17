@@ -11,9 +11,10 @@
 
 The pattern table is represented statically by a closed 'TySOP'. Alternative @n@ describes the
 fields of @Data.Constr n@: 'Data' marks a captured field and 'Unit' marks a skipped field. Before
-erasure the table is reified to an array of distances between captures. At runtime the builtin
-returns a constructor with the same index and only the captured 'Data' fields. A @255@ byte
-continues the same distance, and the final distance checks the exact constructor arity. -}
+erasure the table is reified to a sorted array of constructor tags paired with distances between
+captures. At runtime the builtin returns a constructor whose local index is the position of the
+matched entry and whose fields are only the captured 'Data' values. A @255@ byte continues the
+same distance, and the final distance checks the exact constructor arity. -}
 module PlutusCore.Default.MatchData
   ( matchData
   , matchDataTypeApplication
@@ -26,7 +27,6 @@ import PlutusCore.Data qualified as Data
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (MatchDataCostedPatterns (..))
 
-import Data.Bits (toIntegralSized)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSU
 import Data.Text (Text)
@@ -76,8 +76,25 @@ matchDataTypeApplication =
                       (-1 : captureIndices)
                in BS.pack $ concatMap encodeGap gaps
         pure . someValue . Strict.fromList $
-          fmap encodePattern captureMasks
+          zipWith (\tag mask -> (tag, encodePattern mask)) [0 :: Integer ..] captureMasks
     }
+
+lookupPattern
+  :: Integer
+  -> Strict.Vector (Integer, BS.ByteString)
+  -> Maybe (Int, BS.ByteString)
+lookupPattern target patterns = go 0 $ Strict.length patterns
+  where
+    go !lower !upper
+      | lower >= upper = Nothing
+      | otherwise =
+          let middle = lower + (upper - lower) `div` 2
+              (candidateTag, patternBytes) = Strict.unsafeIndex patterns middle
+           in case compare target candidateTag of
+                LT -> go lower middle
+                EQ -> Just (middle, patternBytes)
+                GT -> go (middle + 1) upper
+{-# INLINE lookupPattern #-}
 
 -- | Match a 'Data.Constr' tag to the same SOP branch and capture its fields directly.
 matchData
@@ -87,12 +104,9 @@ matchData
   -> Data
   -> BuiltinResult (OpaqueVConstr val)
 matchData (MatchDataCostedPatterns encodedPatterns) (Data.Constr tag fields) = do
-  tagIndex <-
+  (localIndex, capturePattern) <-
     maybe (fail "No matchData constructor corresponds to the Data.Constr tag") pure $
-      toIntegralSized tag
-  capturePattern <-
-    maybe (fail "No matchData constructor corresponds to the Data.Constr tag") pure $
-      encodedPatterns Strict.!? tagIndex
+      lookupPattern tag encodedPatterns
   let patternSize = BS.length capturePattern
       go :: Int -> [Data] -> Maybe [val]
       go !offset remainingFields
@@ -126,6 +140,6 @@ matchData (MatchDataCostedPatterns encodedPatterns) (Data.Constr tag fields) = d
       pure
       $ go 0 fields
   pure . OpaqueVConstr $
-    fromConstr () (fromIntegral tagIndex) captures
+    fromConstr () (fromIntegral localIndex) captures
 matchData _ _ = fail "matchData only supports Data.Constr"
 {-# INLINE matchData #-}
