@@ -21,11 +21,11 @@ let
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
 
     "ghc914".cabal = project.projectVariants.ghc914.tool "cabal" "latest";
-    "ghc914".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest"; # cabal-fmt not buildable with ghc914
-    "ghc914".haskell-language-server = project.projectVariants.ghc96.tool "haskell-language-server" "latest"; # HLS does not support ghc914 yet (hie-compat requires base <4.22)
-    "ghc914".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest"; # stylish-haskell not buildable with ghc914 (requires ghc-lib-parser <9.13)
-    "ghc914".fourmolu = mkFourmolu "ghc912"; # Our fourmolu fork has no ghc914-compatible revision yet
-    "ghc914".hlint = project.projectVariants.ghc912.tool "hlint" "latest"; # hlint not buildable with ghc914 (requires ghc-lib-parser 9.12.*)
+    "ghc914".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest";
+    "ghc914".haskell-language-server = project.projectVariants.ghc96.tool "haskell-language-server" "latest";
+    "ghc914".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest";
+    "ghc914".fourmolu = mkFourmolu "ghc912";
+    "ghc914".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
 
     "ghc96-profiled" = ghc96;
     "ghc912-profiled" = ghc912;
