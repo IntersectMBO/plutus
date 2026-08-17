@@ -557,5 +557,5 @@ main =
         -- , $(genTest 1 "unValueData")
         $(genTest 2 "scaleValue") Everywhere
       , -- Type-directed Data matching
-        $(genTest 2 "matchData") Everywhere
+        $(genTest 2 "matchDataConstr") Everywhere
       ]

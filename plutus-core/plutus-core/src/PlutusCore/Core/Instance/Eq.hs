@@ -126,6 +126,10 @@ eqTypeM (TySOP ann1 tyls1) (TySOP ann2 tyls2) = do
       Just tys -> for_ tys $ \(ty1, ty2) -> eqTypeM ty1 ty2
       Nothing -> empty
     Nothing -> empty
+eqTypeM (TyBuiltinRep ann1 rep1 result1) (TyBuiltinRep ann2 rep2 result2) = do
+  eqM ann1 ann2
+  eqM rep1 rep2
+  eqTypeM result1 result2
 eqTypeM TyVar {} _ = empty
 eqTypeM TyLam {} _ = empty
 eqTypeM TyForall {} _ = empty
@@ -134,6 +138,7 @@ eqTypeM TyApp {} _ = empty
 eqTypeM TyFun {} _ = empty
 eqTypeM TyBuiltin {} _ = empty
 eqTypeM TySOP {} _ = empty
+eqTypeM TyBuiltinRep {} _ = empty
 
 -- See Note [Modulo alpha].
 -- See Note [Scope tracking]

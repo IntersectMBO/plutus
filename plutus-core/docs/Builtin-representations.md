@@ -4,13 +4,13 @@ Some polymorphic builtins need runtime information that determines the layout of
 That information must be an explicit term: deriving it from a type during erasure makes erasure
 builtin-aware and is not ordinary representation passing.
 
-`MatchData` uses the following type scheme:
+`MatchDataConstr` uses the following type scheme:
 
 ```text
-MatchData : forall S. BuiltinRep MatchData S -> Data -> S
+MatchDataConstr : forall S. BuiltinRep MatchDataConstr S -> Data -> S
 ```
 
-`BuiltinRep MatchData S` is an abstract builtin type family. Its values are checked runtime
+`BuiltinRep MatchDataConstr S` is an abstract builtin type family. Its values are checked runtime
 directives indexed by the type produced when the directive is interpreted. It follows the
 representation-passing discipline of lambda-R: the type index is erased, while the runtime
 representation is an ordinary explicitly passed term. Unlike lambda-R's singleton-like `R(S)`,
@@ -20,10 +20,10 @@ format descriptions are therefore closer structural analogies.
 
 ## Static rules
 
-Write `BR_M(S)` for `BuiltinRep MatchData S`, `Decode(b) = P` for decoding a representation
+Write `BR_M(S)` for `BuiltinRep MatchDataConstr S`, `Decode(b) = P` for decoding a representation
 constant, and `Capt(P)` for the SOP type of the fields captured by `P`.
 
-Formation is ordinary application of an abstract builtin type constructor:
+Formation uses PLC's nominal, builtin-specific representation type former:
 
 ```text
 Gamma |- S : Type
@@ -36,28 +36,35 @@ The only typed introduction form is a builtin-specific checked witness:
 ```text
 b is a constant    Decode(b) = P    ValidPattern(P)
 ----------------------------------------------------
-Gamma |- builtinrep MatchData b : BR_M(Capt(P))
+Gamma |- builtinrep MatchDataConstr b : BR_M(Capt(P))
 ```
 
-The checker obtains this rule from the representation metadata associated with `MatchData`. The
+The checker obtains this rule from the representation metadata associated with `MatchDataConstr`. The
 metadata validates the constant and synthesizes its complete indexed type. Ordinary application
 then requires that type to equal the instantiated argument type `BR_M(S)`. Other builtins cannot
 claim the witness, and PLC has no eliminator for the abstract family.
 
-The implementation represents `BR_M` as an uninhabited constructor in the builtin type universe.
-This is important: encoding it as an empty SOP or recursive structural type would expose ordinary
-`case` or `unwrap` operations and break progress for the special runtime witness.
+The implementation represents `BR_M(S)` directly as `TyBuiltinRep "matchDataConstr" S`. It is not a
+member of `DefaultUni`: the universe continues to contain only types of ordinary constants. This
+is important because encoding the family as an empty SOP or recursive structural type would expose
+ordinary `case` or `unwrap` operations and break progress for the special runtime witness.
+
+The retained constant is a canonical ByteString encoding a sorted non-empty table of constructor
+tags and capture patterns. A capture pattern contains one byte per constructor field: zero skips
+the field and one captures it. Its byte length therefore checks the exact constructor arity. The
+checker and runtime share one decoder and reject any other selector value. There is no in-band
+version byte: an incompatible format change requires a new builtin or language version.
 
 ## Erasure
 
 ```text
 |BR_M(S)|                     = erased
-|builtinrep MatchData b|      = constant b
-|MatchData @S|                = force MatchData
+|builtinrep MatchDataConstr b|      = constant b
+|MatchDataConstr @S|                = force MatchDataConstr
 ```
 
 Erasure is syntax directed. It neither inspects `S` nor manufactures `b`; the checked witness is
-the sole source of retained runtime information. Consequently the old MatchData-specific type
+the sole source of retained runtime information. Consequently the old MatchDataConstr-specific type
 application reification path is unnecessary.
 
 ## Semantic obligation
@@ -77,10 +84,10 @@ Witness typing establishes `Valid_M`. Soundness then needs one localized builtin
 ```text
 Valid_M(b, S)    d in [[Data]]
 -----------------------------------------------
-matchDataRuntime b d is in [[S]], or PLC errors
+matchDataConstrRuntime b d is in [[S]], or PLC errors
 ```
 
-For MatchData this requires agreement between witness validation and runtime decoding, and that a
+For MatchDataConstr this requires agreement between witness validation and runtime decoding, and that a
 successful match constructs precisely the SOP branch and captured fields described by `Capt(P)`.
 The existing PLC type-safety and erasure arguments otherwise remain ordinary.
 
@@ -88,11 +95,23 @@ This guarantee is about checked PLC. Raw UPLC has no static witness validation a
 arbitrary constant, so the runtime implementation must remain total apart from the permitted PLC
 error result and its cost model must cover rejected inputs as well as successful matches.
 
+At the erased boundary there is no `BuiltinRep` type:
+
+```text
+PLC:   MatchDataConstr : forall S. BuiltinRep MatchDataConstr S -> Data -> S
+UPLC:  force matchDataConstr #encoded-patterns data
+```
+
+The Haskell type-scheme wrapper for the first argument unlifts an ordinary ByteString, and its
+execution-memory measure is exactly the standard ByteString measure. No representation-specific
+builtin-universe or costing-wrapper type survives into UPLC.
+
 ## Serialization
 
-The abstract family uses a new, append-only builtin-universe tag and the witness uses a previously
-unused PLC term tag. Existing PLC type and term tags retain their encodings; in particular, adding
-the family does not repurpose or widen the existing SOP type encoding.
+The abstract family uses PLC type tag 8 and the witness uses PLC term tag 12. Since the previous
+three-bit PLC type-tag space was full, typed PLC/PIR Flat encoding now uses four-bit type tags.
+This changes typed serialization, but does not change UPLC serialization or the bytes submitted as
+Cardano scripts: `TyBuiltinRep` is erased and the witness becomes an ordinary ByteString constant.
 
 ## References
 

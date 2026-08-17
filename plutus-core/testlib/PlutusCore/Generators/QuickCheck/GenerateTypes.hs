@@ -86,6 +86,7 @@ genType k = do
             , [(5, genLam k1 k2) | KindArrow _ k1 k2 <- [k]]
             , [(5, genApp)]
             , [(3, genSOP) | k == Type ()]
+            , [(2, genBuiltinRep) | k == Type ()]
             ]
   debug <- asks geDebug
   when debug $ do
@@ -144,6 +145,10 @@ genType k = do
           chooseInt (0, min (7 - iSum) $ n `div` (2 * iSum))
       withAstSize (n `div` sum jsProd) $
         TySOP () <$> traverse (\j -> replicateM j . genType $ Type ()) jsProd
+
+    genBuiltinRep =
+      TyBuiltinRep () (BuiltinRepName "matchDataConstr")
+        <$> onAstSize (subtract 1) (genType $ Type ())
 
 -- | Generate a closed type at a given kind
 genClosedType :: Kind () -> Gen (Type TyName DefaultUni ())

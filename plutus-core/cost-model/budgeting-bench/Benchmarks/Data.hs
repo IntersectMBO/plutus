@@ -7,13 +7,16 @@ import Generators
 
 import PlutusCore hiding (Constr)
 import PlutusCore.Data
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (MatchDataCostedPatterns (..))
+import PlutusCore.Default.MatchDataConstr
+  ( MatchDataConstrPattern
+  , encodeMatchDataConstrTable
+  , mkMatchDataConstrPattern
+  )
 
 import Criterion.Main
 import Data.ByteString qualified as BS
 import Data.List (nub)
 import Data.Vector.Strict qualified as Strict
-import Data.Word (Word8)
 import System.Random (StdGen)
 
 {-| Benchmarks for builtins operating on Data.  Recall that Data is defined by
@@ -150,21 +153,14 @@ benchSerialiseData =
   where
     args = dataSampleForEq
 
----------------- MatchData ----------------
+---------------- MatchDataConstr ----------------
 
-encodeGap :: Int -> [Word8]
-encodeGap gap
-  | gap < 255 = [fromIntegral gap]
-  | otherwise = 255 : encodeGap (gap - 255)
+encodePattern :: Int -> [Int] -> MatchDataConstrPattern
+encodePattern width captureIndices =
+  either (error . show) id $ mkMatchDataConstrPattern width captureIndices
 
-encodePattern :: Int -> [Int] -> BS.ByteString
-encodePattern width captureIndices = BS.pack $ concatMap encodeGap gaps
-  where
-    gaps =
-      zipWith
-        (\next previous -> next - previous - 1)
-        (captureIndices <> [width])
-        (-1 : captureIndices)
+encodeTable :: Strict.Vector (Integer, MatchDataConstrPattern) -> BS.ByteString
+encodeTable = either (error . show) id . encodeMatchDataConstrTable
 
 spreadCaptures :: Int -> Int -> [Int]
 spreadCaptures _ 0 = []
@@ -174,36 +170,36 @@ spreadCaptures width count =
   | index <- [0 .. count - 1]
   ]
 
-matchDataWidths :: [Int]
-matchDataWidths = [0, 1, 2, 4, 8, 16, 32, 64, 128, 254, 255, 256, 512, 1024, 2048, 4096]
+matchDataConstrWidths :: [Int]
+matchDataConstrWidths = [0, 1, 2, 4, 8, 16, 32, 64, 128, 254, 255, 256, 512, 1024, 2048, 4096]
 
-matchDataCaptureCounts :: Int -> [Int]
-matchDataCaptureCounts width = nub [0, min 1 width, width `div` 4, width `div` 2, width]
+matchDataConstrCaptureCounts :: Int -> [Int]
+matchDataConstrCaptureCounts width = nub [0, min 1 width, width `div` 4, width `div` 2, width]
 
-matchDataInputs :: [(Strict.Vector (Integer, BS.ByteString), Data)]
-matchDataInputs = regularInputs <> tableInputs <> tagInputs <> payloadInputs
+matchDataConstrInputs :: [(BS.ByteString, Data)]
+matchDataConstrInputs = regularInputs <> tableInputs <> tagInputs <> payloadInputs
   where
     regularInputs =
-      [ ( Strict.singleton (0, encodePattern width $ spreadCaptures width captures)
+      [ ( encodeTable $ Strict.singleton (0, encodePattern width $ spreadCaptures width captures)
         , Constr 0 $ replicate width $ I 0
         )
-      | width <- matchDataWidths
-      , captures <- matchDataCaptureCounts width
+      | width <- matchDataConstrWidths
+      , captures <- matchDataConstrCaptureCounts width
       ]
     tablePattern = encodePattern 64 $ spreadCaptures 64 8
     tableInputs =
-      [ ( Strict.fromList [(tag, tablePattern) | tag <- [0 .. alternatives - 1]]
+      [ ( encodeTable $ Strict.fromList [(tag, tablePattern) | tag <- [0 .. alternatives - 1]]
         , Constr (alternatives - 1) $ replicate 64 $ I 0
         )
       | alternatives <- [1, 2, 4, 8, 16, 32, 64, 128, 256, 512 :: Integer]
       ]
     tagInputs =
-      [ (Strict.singleton (tag, tablePattern), Constr tag $ replicate 64 $ I 0)
-      | bitSize <- [64, 256, 1024, 4096, 16384, 65536 :: Integer]
+      [ (encodeTable $ Strict.singleton (tag, tablePattern), Constr tag $ replicate 64 $ I 0)
+      | bitSize <- [7, 14, 21, 28, 35, 42, 49, 56, 63 :: Integer]
       , let tag = 2 ^ bitSize
       ]
     payloadInputs =
-      [ (Strict.singleton (0, encodePattern 1 [0]), Constr 0 [payload])
+      [ (encodeTable $ Strict.singleton (0, encodePattern 1 [0]), Constr 0 [payload])
       | payload <-
           [ I $ 2 ^ (65536 :: Integer)
           , B $ BS.replicate (1024 * 1024) 0
@@ -212,17 +208,17 @@ matchDataInputs = regularInputs <> tableInputs <> tagInputs <> payloadInputs
       ]
 
 -- The benchmark varies width, capture density, pattern-table size, tag size, and nested payload
--- size.  The latter is intentionally independent: MatchData only moves pointers to captured Data
+-- size.  The latter is intentionally independent: MatchDataConstr only moves pointers to captured Data
 -- fields.
-benchMatchData :: Benchmark
-benchMatchData =
+benchMatchDataConstr :: Benchmark
+benchMatchDataConstr =
   createTwoTermBuiltinBenchElementwiseWithWrappers
-    (MatchDataCostedPatterns, id)
-    MatchData
+    (id, id)
+    MatchDataConstr
     -- These benchmark terms are erased without typechecking. The placeholder result type is
-    -- operationally irrelevant; its sole purpose here is to emit MatchData's required UPLC force.
+    -- operationally irrelevant; its sole purpose here is to emit MatchDataConstr's required UPLC force.
     [TySOP () []]
-    matchDataInputs
+    matchDataConstrInputs
 
 -- FIXME: see if we can find a better sample for this. More generally, how
 -- does the internal structure of a Data object influence serialisation
@@ -243,5 +239,5 @@ makeBenchmarks gen =
   , benchUnBData
   , benchEqualsData
   , benchSerialiseData
-  , benchMatchData
+  , benchMatchDataConstr
   ]

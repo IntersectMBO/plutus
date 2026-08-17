@@ -140,8 +140,6 @@ minimalBuiltin (SomeTypeIn uni) = case toSingKind uni of
     go DefaultUniBLS12_381_G1_Element = BLS12_381.G1.offchain_zero
     go DefaultUniBLS12_381_G2_Element = BLS12_381.G2.offchain_zero
     go DefaultUniBLS12_381_MlResult = BLS12_381.Pairing.identityMlResult
-    go (DefaultUniProtoMatchDataRep `DefaultUniApply` _) =
-      error "BuiltinRep MatchData is uninhabited"
 
 shrinkBind
   :: HasCallStack

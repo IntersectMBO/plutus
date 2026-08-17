@@ -49,6 +49,7 @@ module PlutusCore
   , programMapNames
   , UniOf
   , Type (..)
+  , BuiltinRepName (..)
   , typeSubtypes
   , typeMapNames
   , Kind (..)

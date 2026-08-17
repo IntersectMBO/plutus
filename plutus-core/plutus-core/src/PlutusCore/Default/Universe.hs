@@ -11,8 +11,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE EmptyCase #-}
-{-# LANGUAGE EmptyDataDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -37,7 +35,6 @@
 -- | The universe used by default and its instances.
 module PlutusCore.Default.Universe
   ( DefaultUni (..)
-  , MatchDataBuiltinRep
   , pattern DefaultUniList
   , pattern DefaultUniArray
   , pattern DefaultUniPair
@@ -57,30 +54,24 @@ import PlutusCore.Data (Data)
 import PlutusCore.Default.Universe.Cardano
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
-  , ExMemoryUsage (..)
   , IntegerCostedLiterally (..)
-  , MatchDataCostedPatterns (..)
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
   , ValueTotalSize (..)
   )
-import PlutusCore.Flat (Flat (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 import PlutusCore.Value (Value)
 
-import Control.DeepSeq (NFData (..))
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
-import Data.Hashable (Hashable (..))
 import Data.Int
   ( Int16
   , Int32
   , Int64
   , Int8
   )
-import Data.Kind qualified as GHC
 import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -95,27 +86,6 @@ import Text.PrettyBy.Fixity
   , juxtPrettyM
   )
 import Universe as Export
-
--- | Uninhabited Haskell marker for the abstract @BuiltinRep MatchData@ PLC type family.
-data MatchDataBuiltinRep (result :: GHC.Type)
-  deriving stock (Eq, Show)
-
-instance NFData (MatchDataBuiltinRep result) where
-  rnf value = case value of {}
-
-instance Flat (MatchDataBuiltinRep result) where
-  encode value = case value of {}
-  decode = fail "BuiltinRep MatchData has no literal constants"
-  size value = case value of {}
-
-instance ExMemoryUsage (MatchDataBuiltinRep result) where
-  memoryUsage value = case value of {}
-
-instance Hashable (MatchDataBuiltinRep result) where
-  hashWithSalt _ value = case value of {}
-
-instance PrettyBy config (MatchDataBuiltinRep result) where
-  prettyBy _ value = case value of {}
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -168,7 +138,6 @@ data DefaultUni a where
   DefaultUniBLS12_381_G2_Element :: DefaultUni (Esc BLS12_381.G2.Element)
   DefaultUniBLS12_381_MlResult :: DefaultUni (Esc BLS12_381.Pairing.MlResult)
   DefaultUniValue :: DefaultUni (Esc Value)
-  DefaultUniProtoMatchDataRep :: DefaultUni (Esc MatchDataBuiltinRep)
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
@@ -232,10 +201,6 @@ instance AllBuiltinArgs DefaultUni (GEqL DefaultUni) a => GEqL DefaultUni a wher
     pure Refl
   geqL DefaultUniValue a2 = do
     DefaultUniValue <- pure a2
-    pure Refl
-  geqL (DefaultUniProtoMatchDataRep `DefaultUniApply` a1) matchDataRepA2 = do
-    DefaultUniProtoMatchDataRep `DefaultUniApply` a2 <- pure matchDataRepA2
-    Refl <- geqL (LoopBreaker a1) (LoopBreaker a2)
     pure Refl
   {-# INLINE geqL #-}
 
@@ -302,9 +267,6 @@ instance GEq DefaultUni where
       goStep DefaultUniValue a2 = do
         DefaultUniValue <- pure a2
         pure Refl
-      goStep DefaultUniProtoMatchDataRep a2 = do
-        DefaultUniProtoMatchDataRep <- pure a2
-        pure Refl
       {-# INLINE goStep #-}
 
       goRec = goStep
@@ -329,7 +291,6 @@ instance ToKind DefaultUni where
   toSingKind DefaultUniBLS12_381_G2_Element = knownKind
   toSingKind DefaultUniBLS12_381_MlResult = knownKind
   toSingKind DefaultUniValue = knownKind
-  toSingKind DefaultUniProtoMatchDataRep = knownKind
 
 instance HasUniApply DefaultUni where
   uniApply = DefaultUniApply
@@ -356,7 +317,6 @@ instance PrettyBy RenderContext (DefaultUni a) where
     DefaultUniBLS12_381_G2_Element -> "bls12_381_G2_element"
     DefaultUniBLS12_381_MlResult -> "bls12_381_mlresult"
     DefaultUniValue -> "value"
-    DefaultUniProtoMatchDataRep -> "builtinrep matchData"
 
 instance PrettyBy RenderContext (SomeTypeIn DefaultUni) where
   prettyBy config (SomeTypeIn uni) = prettyBy config uni
@@ -406,8 +366,6 @@ instance DefaultUni `Contains` BLS12_381.G2.Element where
   knownUni = DefaultUniBLS12_381_G2_Element
 instance DefaultUni `Contains` BLS12_381.Pairing.MlResult where
   knownUni = DefaultUniBLS12_381_MlResult
-instance DefaultUni `Contains` MatchDataBuiltinRep where
-  knownUni = DefaultUniProtoMatchDataRep
 
 instance
   KnownBuiltinTypeAst tyname DefaultUni Integer
@@ -448,9 +406,6 @@ instance
 instance
   KnownBuiltinTypeAst tyname DefaultUni Value
   => KnownTypeAst tyname DefaultUni Value
-instance
-  KnownBuiltinTypeAst tyname DefaultUni (MatchDataBuiltinRep a)
-  => KnownTypeAst tyname DefaultUni (MatchDataBuiltinRep a)
 
 instance
   KnownBuiltinTypeIn DefaultUni term Integer
@@ -491,9 +446,6 @@ instance
 instance
   KnownBuiltinTypeIn DefaultUni term Value
   => ReadKnownIn DefaultUni term Value
-instance
-  KnownBuiltinTypeIn DefaultUni term (MatchDataBuiltinRep a)
-  => ReadKnownIn DefaultUni term (MatchDataBuiltinRep a)
 
 instance
   KnownBuiltinTypeIn DefaultUni term Integer
@@ -534,9 +486,6 @@ instance
 instance
   KnownBuiltinTypeIn DefaultUni term Value
   => MakeKnownIn DefaultUni term Value
-instance
-  KnownBuiltinTypeIn DefaultUni term (MatchDataBuiltinRep a)
-  => MakeKnownIn DefaultUni term (MatchDataBuiltinRep a)
 
 -- If this tells you an instance is missing, add it right above, following the pattern.
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
@@ -800,21 +749,6 @@ instance
   {-# INLINE readKnown #-}
 
 deriving newtype instance
-  KnownTypeAst tyname DefaultUni MatchDataCostedPatterns
-instance
-  KnownBuiltinTypeIn DefaultUni term (Strict.Vector (Integer, ByteString))
-  => MakeKnownIn DefaultUni term MatchDataCostedPatterns
-  where
-  makeKnown = makeKnownCoerce @(Strict.Vector (Integer, ByteString))
-  {-# INLINE makeKnown #-}
-instance
-  KnownBuiltinTypeIn DefaultUni term (Strict.Vector (Integer, ByteString))
-  => ReadKnownIn DefaultUni term MatchDataCostedPatterns
-  where
-  readKnown = readKnownCoerce @(Strict.Vector (Integer, ByteString))
-  {-# INLINE readKnown #-}
-
-deriving newtype instance
   KnownTypeAst tyname DefaultUni ValueTotalSize
 instance
   KnownBuiltinTypeIn DefaultUni term Value
@@ -1036,7 +970,6 @@ instance Closed DefaultUni where
       , constr `Permits` BLS12_381.G1.Element
       , constr `Permits` BLS12_381.G2.Element
       , constr `Permits` BLS12_381.Pairing.MlResult
-      , constr `Permits` MatchDataBuiltinRep
       )
 
   -- See Note [Stable encoding of tags].
@@ -1055,7 +988,6 @@ instance Closed DefaultUni where
   encodeUni DefaultUniBLS12_381_MlResult = [11]
   encodeUni DefaultUniProtoArray = [12]
   encodeUni DefaultUniValue = [13]
-  encodeUni DefaultUniProtoMatchDataRep = [14]
 
   -- See Note [Decoding universes].
   -- See Note [Stable encoding of tags].
@@ -1080,7 +1012,6 @@ instance Closed DefaultUni where
       11 -> k DefaultUniBLS12_381_MlResult
       12 -> k DefaultUniProtoArray
       13 -> k DefaultUniValue
-      14 -> k DefaultUniProtoMatchDataRep
       _ -> empty
 
   bring
@@ -1105,5 +1036,3 @@ instance Closed DefaultUni where
   bring _ DefaultUniBLS12_381_G2_Element r = r
   bring _ DefaultUniBLS12_381_MlResult r = r
   bring _ DefaultUniValue r = r
-  bring p (DefaultUniProtoMatchDataRep `DefaultUniApply` uniA) r =
-    bring p uniA r

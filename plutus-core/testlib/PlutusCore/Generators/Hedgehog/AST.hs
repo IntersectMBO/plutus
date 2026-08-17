@@ -147,8 +147,9 @@ genType = simpleRecursive nonRecursive recursive
     forallGen = TyForall () <$> genTyName <*> genKind <*> genType
     applyGen = TyApp () <$> genType <*> genType
     sopGen = TySOP () <$> (Gen.list (Range.linear 0 10) (Gen.list (Range.linear 0 10) genType))
+    builtinRepGen = TyBuiltinRep () (BuiltinRepName "matchDataConstr") <$> genType
     tyBuiltinGen = TyBuiltin () <$> genSomeTypeIn
-    recursive = [funGen, applyGen, sopGen]
+    recursive = [funGen, applyGen, sopGen, builtinRepGen]
     nonRecursive = [varGen, lamGen, forallGen, tyBuiltinGen]
 
 genTerm :: forall fun. (Bounded fun, Enum fun) => AstGen (Term TyName Name DefaultUni fun ())

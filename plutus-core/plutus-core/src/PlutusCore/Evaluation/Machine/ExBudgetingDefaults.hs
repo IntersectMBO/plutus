@@ -428,7 +428,7 @@ unitCostBuiltinCostModel =
     , paramUnionValue = unitCostTwoArguments
     , paramScaleValue = unitCostTwoArguments
     , -- Type-directed Data matching
-      paramMatchData = unitCostTwoArguments
+      paramMatchDataConstr = unitCostTwoArguments
     }
 
 unitCekParameters

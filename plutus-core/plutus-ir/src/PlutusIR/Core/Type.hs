@@ -16,6 +16,7 @@ module PlutusIR.Core.Type
   , tyVarDeclNameString
   , Kind (..)
   , Type (..)
+  , BuiltinRepName (..)
   , Datatype (..)
   , datatypeNameString
   , Recursivity (..)
@@ -30,7 +31,7 @@ module PlutusIR.Core.Type
   , progTerm
   ) where
 
-import PlutusCore (Kind, Name, TyName, Type (..), Version (..))
+import PlutusCore (BuiltinRepName (..), Kind, Name, TyName, Type (..), Version (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (HasConstant (..), HasConstr (..), notAConstant)
 import PlutusCore.Core (UniOf)

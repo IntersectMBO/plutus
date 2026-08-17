@@ -809,9 +809,9 @@ defineBuiltinTerms = do
           PLC.UnValueData -> defineBuiltinInl 'Builtins.unsafeDataAsValue
           PLC.ScaleValue -> defineBuiltinInl 'Builtins.scaleValue
           PLC.Policies -> defineBuiltinInl 'Builtins.policies
-          -- MatchData is introduced by the PLC type-directed pattern compiler, not by a
+          -- MatchDataConstr is introduced by the PLC type-directed pattern compiler, not by a
           -- PlutusTx-facing Haskell binding.
-          PLC.MatchData -> pure ()
+          PLC.MatchDataConstr -> pure ()
 
 defineBuiltinTypes :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTypes = do

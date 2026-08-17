@@ -20,7 +20,13 @@ import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data qualified as BuiltinData
 import PlutusCore.Default
-import PlutusCore.Default.MatchData (mkMatchDataRepType)
+import PlutusCore.Default.MatchDataConstr
+  ( MatchDataConstrPattern (..)
+  , decodeMatchDataConstrTable
+  , encodeMatchDataConstrTable
+  , mkMatchDataConstrPattern
+  , mkMatchDataConstrRepType
+  )
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.Ck (evaluateCkNoEmit)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -151,33 +157,35 @@ test_typecheckIllTyped =
           _ -> False
       ]
 
-matchDataResultType :: Type TyName DefaultUni ()
-matchDataResultType = TySOP () [[dataTy, dataTy]]
+matchDataConstrResultType :: Type TyName DefaultUni ()
+matchDataConstrResultType = TySOP () [[dataTy, dataTy]]
   where
     dataTy = mkTyBuiltin @_ @BuiltinData.Data ()
 
-matchDataPatterns :: Strict.Vector (Integer, BS.ByteString)
-matchDataPatterns = Strict.singleton (3, BS.pack [0, 1, 0])
+matchDataConstrPatterns :: BS.ByteString
+matchDataConstrPatterns =
+  either (error . show) id . encodeMatchDataConstrTable . Strict.singleton $
+    (3, either (error . show) id $ mkMatchDataConstrPattern 3 [0, 2])
 
-matchDataWitness :: Term TyName Name DefaultUni DefaultFun ()
-matchDataWitness = BuiltinRep () MatchData $ someValue matchDataPatterns
+matchDataConstrWitness :: Term TyName Name DefaultUni DefaultFun ()
+matchDataConstrWitness = BuiltinRep () MatchDataConstr $ someValue matchDataConstrPatterns
 
-matchDataApplication :: Term TyName Name DefaultUni DefaultFun ()
-matchDataApplication = runQuote $ do
+matchDataConstrApplication :: Term TyName Name DefaultUni DefaultFun ()
+matchDataConstrApplication = runQuote $ do
   representation <- freshName "representation"
   let match =
         Apply
           ()
-          (Apply () (TyInst () (Builtin () MatchData) matchDataResultType) $ Var () representation)
+          (Apply () (TyInst () (Builtin () MatchDataConstr) matchDataConstrResultType) $ Var () representation)
           (mkConstant () $ BuiltinData.Constr 3 [BuiltinData.I 10, BuiltinData.B "skip", BuiltinData.I 20])
   pure $
     Apply
       ()
-      (LamAbs () representation (mkMatchDataRepType () matchDataResultType) match)
-      matchDataWitness
+      (LamAbs () representation (mkMatchDataConstrRepType () matchDataConstrResultType) match)
+      matchDataConstrWitness
 
-matchDataExpected :: Term TyName Name DefaultUni DefaultFun ()
-matchDataExpected =
+matchDataConstrExpected :: Term TyName Name DefaultUni DefaultFun ()
+matchDataConstrExpected =
   Constr
     ()
     (TySOP () [])
@@ -189,69 +197,92 @@ isInvalidBuiltinRepresentation = \case
   TypeErrorE (InvalidBuiltinRepresentation {}) -> True
   _ -> False
 
-test_matchDataRepresentationTyping :: TestTree
-test_matchDataRepresentationTyping =
+test_matchDataConstrRepresentationTyping :: TestTree
+test_matchDataConstrRepresentationTyping =
   testGroup
-    "MatchData representation typing"
-    [ testCase "witness type is inferred from the pattern" $
-        Right (Normalized $ mkMatchDataRepType () matchDataResultType)
-          @=? runExcept (typecheck def matchDataWitness)
-    , testCase "witness is first-class and MatchData returns its index" $
-        Right (Normalized matchDataResultType)
-          @=? runExcept (typecheck def matchDataApplication)
+    "MatchDataConstr representation typing"
+    [ testCase "field selectors have the expected encoding" $
+        let pattern = either (error . show) id $ mkMatchDataConstrPattern 16 [0, 5, 10, 15]
+            encoded =
+              either (error . show) id . encodeMatchDataConstrTable $
+                Strict.singleton (3, pattern)
+         in BS.pack [1, 3, 16, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+              @=? encoded
+    , testCase "wide field selectors roundtrip" $
+        let pattern0 = either (error . show) id $ mkMatchDataConstrPattern 0 []
+            pattern1000 = either (error . show) id $ mkMatchDataConstrPattern 1000 [997]
+            patterns = Strict.fromList [(0, pattern0), (3, pattern1000)]
+            encoded = either (error . show) id $ encodeMatchDataConstrTable patterns
+         in do
+              1000 @=? BS.length (matchDataConstrPatternSelectors pattern1000)
+              1 @=? BS.index (matchDataConstrPatternSelectors pattern1000) 997
+              0 @=? BS.index (matchDataConstrPatternSelectors pattern1000) 996
+              0 @=? BS.index (matchDataConstrPatternSelectors pattern1000) 998
+              Right patterns @=? decodeMatchDataConstrTable encoded
+    , testCase "witness type is inferred from the pattern" $
+        Right (Normalized $ mkMatchDataConstrRepType () matchDataConstrResultType)
+          @=? runExcept (typecheck def matchDataConstrWitness)
+    , testCase "witness is first-class and MatchDataConstr returns its index" $
+        Right (Normalized matchDataConstrResultType)
+          @=? runExcept (typecheck def matchDataConstrApplication)
     , testCase "typed application evaluates to the indexed SOP" $
-        Right matchDataExpected
-          @=? evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def matchDataApplication
+        Right matchDataConstrExpected
+          @=? evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def matchDataConstrApplication
     , testCase "erasure retains the representation and evaluates through CEK" $
-        Right (eraseTerm matchDataExpected)
-          @=? UPLC.evaluateCekNoEmit defaultCekParametersForTesting (eraseTerm matchDataApplication)
+        Right (eraseTerm matchDataConstrExpected)
+          @=? UPLC.evaluateCekNoEmit defaultCekParametersForTesting (eraseTerm matchDataConstrApplication)
     , testCase "result index mismatch is rejected" $
         let wrongResult = TySOP () [[]]
             term =
               Apply
                 ()
-                (TyInst () (Builtin () MatchData) wrongResult)
-                matchDataWitness
+                (TyInst () (Builtin () MatchDataConstr) wrongResult)
+                matchDataConstrWitness
          in assertIllTyped def term $ \case
               TypeErrorE (TypeMismatch {}) -> True
               _ -> False
     , testCase "representation is opaque to ordinary case analysis" $
-        assertIllTyped def (Case () matchDataResultType matchDataWitness []) $ \case
+        assertIllTyped def (Case () matchDataConstrResultType matchDataConstrWitness []) $ \case
           TypeErrorE (UnsupportedCaseBuiltin {}) -> True
           _ -> False
     , testCase "representation term is tied to its builtin" $
         assertIllTyped
           def
-          (BuiltinRep () AddInteger $ someValue matchDataPatterns)
+          (BuiltinRep () AddInteger $ someValue matchDataConstrPatterns)
           isInvalidBuiltinRepresentation
     , testCase "wrong constant type is rejected" $
         assertIllTyped
           def
-          (BuiltinRep () MatchData $ someValue (0 :: Integer))
+          (BuiltinRep () MatchDataConstr $ someValue (0 :: Integer))
           isInvalidBuiltinRepresentation
     , testCase "empty table is rejected" $
         assertIllTyped
           def
-          (BuiltinRep () MatchData $ someValue (Strict.empty :: Strict.Vector (Integer, BS.ByteString)))
+          (BuiltinRep () MatchDataConstr $ someValue $ BS.pack [0])
           isInvalidBuiltinRepresentation
     , testCase "unsorted tags are rejected" $
-        let patterns :: Strict.Vector (Integer, BS.ByteString)
-            patterns = Strict.fromList [(1, BS.singleton 0), (0, BS.singleton 0)]
+        let patterns = BS.pack [2, 2, 1, 0, 0, 1, 0]
          in assertIllTyped
               def
-              (BuiltinRep () MatchData $ someValue patterns)
+              (BuiltinRep () MatchDataConstr $ someValue patterns)
               isInvalidBuiltinRepresentation
-    , testCase "empty capture pattern is rejected" $
-        let patterns = Strict.singleton (0 :: Integer, BS.empty)
+    , testCase "truncated capture pattern is rejected" $
+        let patterns = BS.pack [1, 0, 2, 0]
          in assertIllTyped
               def
-              (BuiltinRep () MatchData $ someValue patterns)
+              (BuiltinRep () MatchDataConstr $ someValue patterns)
               isInvalidBuiltinRepresentation
-    , testCase "unterminated capture distance is rejected" $
-        let patterns = Strict.singleton (0 :: Integer, BS.singleton 255)
+    , testCase "non-canonical field selector is rejected" $
+        let patterns = BS.pack [1, 0, 1, 2]
          in assertIllTyped
               def
-              (BuiltinRep () MatchData $ someValue patterns)
+              (BuiltinRep () MatchDataConstr $ someValue patterns)
+              isInvalidBuiltinRepresentation
+    , testCase "non-canonical varint is rejected" $
+        let patterns = BS.pack [129, 0, 0, 1, 0]
+         in assertIllTyped
+              def
+              (BuiltinRep () MatchDataConstr $ someValue patterns)
               isInvalidBuiltinRepresentation
     ]
 
@@ -409,5 +440,5 @@ test_typecheck =
     , test_dumpTypeRepDefaultFuns
     , test_typecheckAvailable
     , test_typecheckIllTyped
-    , test_matchDataRepresentationTyping
+    , test_matchDataConstrRepresentationTyping
     ]

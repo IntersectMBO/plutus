@@ -5,10 +5,10 @@ module Flat.Spec (tests) where
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy.Char8 qualified as LBS
 import Data.Set qualified as Set
-import Data.Vector.Strict qualified as Strict
 import Data.Word (Word8)
 import PlutusCore
-  ( Kind (..)
+  ( BuiltinRepName (..)
+  , Kind (..)
   , Name (..)
   , Normalized (..)
   , Term (..)
@@ -97,20 +97,20 @@ test_flatRoundtrip =
     , testCase "Kind Type ()" $
         let k = Type () :: Kind ()
          in Flat.unflat (Flat.flat k) @?= Right k
-    , testCase "BuiltinRep MatchData type" $
+    , testCase "BuiltinRep MatchDataConstr type" $
         let ty =
-              TyApp
+              TyBuiltinRep
                 ()
-                (TyBuiltin () $ SomeTypeIn DefaultUniProtoMatchDataRep)
+                (BuiltinRepName "matchDataConstr")
                 (TySOP () [[], []])
                 :: Type TyName DefaultUni ()
          in Flat.unflat (Flat.flat ty) @?= Right ty
-    , testCase "BuiltinRep MatchData witness" $
+    , testCase "BuiltinRep MatchDataConstr witness" $
         let witness =
               BuiltinRep
                 ()
-                MatchData
-                (someValue $ Strict.singleton (0 :: Integer, BS.singleton 0))
+                MatchDataConstr
+                (someValue $ BS.pack [1, 0, 1, 0])
                 :: Term TyName Name DefaultUni DefaultFun ()
          in Flat.unflat (Flat.flat witness) @?= Right witness
     ]

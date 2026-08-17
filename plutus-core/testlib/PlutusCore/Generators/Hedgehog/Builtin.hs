@@ -19,7 +19,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
 import PlutusCore.Default
-import PlutusCore.Default.MatchData (MatchDataRepValue)
+import PlutusCore.Default.MatchDataConstr (MatchDataConstrRepValue)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount
   , IntegerCostedLiterally
@@ -150,8 +150,8 @@ genConstant tr
   | trLastArg `App` _ `App` trY <- tr
   , Just HRefl <- eqTypeRep trLastArg (typeRep @LastArg) =
       genConstant trY
-  | trMatchDataRepValue `App` _ `App` _ <- tr
-  , Just HRefl <- eqTypeRep trMatchDataRepValue (typeRep @MatchDataRepValue) =
+  | trMatchDataConstrRepValue `App` _ `App` _ <- tr
+  , Just HRefl <- eqTypeRep trMatchDataConstrRepValue (typeRep @MatchDataConstrRepValue) =
       genArbitraryBuiltin @(Vector (Integer, BS.ByteString))
   | trTyVarRep `App` _ <- tr
   , Just HRefl <- eqTypeRep trTyVarRep (typeRep @(TyVarRep @GHC.Type)) =

@@ -20,7 +20,7 @@ import PlutusPrelude
 
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
-import PlutusCore.Default.MatchData qualified as MatchData
+import PlutusCore.Default.MatchDataConstr qualified as MatchDataConstr
 import PlutusCore.Default.Universe
 import PlutusCore.Default.Universe.Cardano
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -222,7 +222,7 @@ data DefaultFun
   | -- Batch 7
     MultiIndexArray
   | Policies
-  | MatchData
+  | MatchDataConstr
   deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
   deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2504,23 +2504,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           policiesDenotation
           (runCostingFunOneArgument . unimplementedCostingFun)
-  toBuiltinMeaning _semvar MatchData =
-    let matchDataDenotation
-          :: MatchData.MatchDataRepValue
+  toBuiltinMeaning _semvar MatchDataConstr =
+    let matchDataConstrDenotation
+          :: MatchDataConstr.MatchDataConstrRepValue
                val
-               (TyVarRep ('TyNameRep "matchDataResult" 0))
+               (TyVarRep ('TyNameRep "matchDataConstrResult" 0))
           -> Data
           -> BuiltinResult
-               (Opaque val (TyVarRep ('TyNameRep "matchDataResult" 0)))
-        matchDataDenotation = MatchData.matchData
-        {-# INLINE matchDataDenotation #-}
+               (Opaque val (TyVarRep ('TyNameRep "matchDataConstrResult" 0)))
+        matchDataConstrDenotation = MatchDataConstr.matchDataConstr
+        {-# INLINE matchDataConstrDenotation #-}
      in makeBuiltinMeaning
-          matchDataDenotation
-          (runCostingFunTwoArguments . paramMatchData)
+          matchDataConstrDenotation
+          (runCostingFunTwoArguments . paramMatchDataConstr)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 
-  toBuiltinRepresentation _semvar MatchData = Just MatchData.matchDataRepresentation
+  toBuiltinRepresentation _semvar MatchDataConstr = Just MatchDataConstr.matchDataConstrRepresentation
   toBuiltinRepresentation _semvar _ = Nothing
   {-# INLINE toBuiltinRepresentation #-}
 
@@ -2666,7 +2666,7 @@ instance Flat DefaultFun where
       ScaleValue -> 100
       MultiIndexArray -> 101
       Policies -> 102
-      MatchData -> 103
+      MatchDataConstr -> 103
 
   decode = go =<< decodeBuiltin
     where
@@ -2773,7 +2773,7 @@ instance Flat DefaultFun where
       go 100 = pure ScaleValue
       go 101 = pure MultiIndexArray
       go 102 = pure Policies
-      go 103 = pure MatchData
+      go 103 = pure MatchDataConstr
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth

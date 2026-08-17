@@ -1,11 +1,11 @@
-# Nested, shallow, traditional, and `matchData` matching: CEK wall time
+# Nested, shallow, traditional, and `matchDataConstr` matching: CEK wall time
 
 This compares four implementations of the same 22 `Data.Constr` matches:
 
 - one recursive nested `Match` pattern;
 - continuation-nested shallow `Match` terms; and
 - traditional `UnConstrData`, `Case`, and list builtins, with no `Match` AST; and
-- the type-directed `matchData` builtin returning a `VConstr` directly to `Case`.
+- the type-directed `matchDataConstr` builtin returning a `VConstr` directly to `Case`.
 
 `Data.List` traverses fields like `Data.Constr`, so the suite does not duplicate every topology for
 both discriminators. This is not cost-model calibration: Criterion reports only CEK wall time.
@@ -27,7 +27,7 @@ positions, captures, and recursion. There is no generated Cartesian suite or run
   positions, including repeated tree branches.
 - Every structural pattern requires exactly `W` fields.
 - Nested and shallow matching use a plain wildcard for every unselected integer field;
-  traditional matching skips it without calling `UnIData`; and `matchData` omits it from the
+  traditional matching skips it without calling `UnIData`; and `matchDataConstr` omits it from the
   returned constructor captures.
 - One capture is returned directly. `C > 1` uses exactly `C - 1` `addInteger` operations; no
   matcher evaluates `addInteger 0 x`.
@@ -113,12 +113,12 @@ lambda arg.
 These are builtin-pair, builtin-Bool, and builtin-list `Case` nodes; they do not use `Match`.
 
 The PLC builtin has type
-`forall S. BuiltinRep MatchData S -> Data -> S`. Its explicit checked representation is a sorted
-array of `(constructor tag, ByteString gap program)` entries, indexed by the captured result
-`TySOP`. Each byte is the number of payload fields to skip before the next capture. `0xff` skips
-255 fields and continues the same gap, so constructor width is not limited to 255. A final gap
-consumes the suffix and checks exact arity. Entries for tags that cannot be selected at that match
-site are omitted.
+`forall S. BuiltinRep MatchDataConstr S -> Data -> S`. Its explicit checked representation is a
+canonical `ByteString`, indexed by the captured result `TySOP`. The bytes encode the entry count
+followed by sorted `(constructor tag, pattern byte length, field selectors)` entries; structural
+numbers use canonical unsigned LEB128 and there is no in-band version tag. Every constructor field
+has one selector byte: zero skips it and one captures it. The selector count checks exact arity.
+Entries for tags that cannot be selected at that match site are omitted.
 
 The witness erases to an ordinary UPLC constant and the result-type instantiation erases to one
 `force`. This benchmark constructs that erased UPLC directly, so the force and retained
@@ -126,8 +126,8 @@ representation are explicit here:
 
 ```text
 lambda arg.
-  case ((force (builtin matchData))
-          (con (array (pair integer bytestring)) [(1, #0003)]) arg) of
+  case ((force (builtin matchDataConstr))
+          (con bytestring #01010401000000) arg) of
     tag 0 field0 ->
       matchConstr 2 field0 (...)
 ```
@@ -163,7 +163,7 @@ traditional: case shared prefix; chooseData terminal {B -> unBData; I -> unIData
 ```
 
 Nested matching retries a complete recursive pattern. Shallow matching, traditional matching,
-and `matchData` share the structural prefix and use `ChooseData` only for the scalar alternative.
+and `matchDataConstr` share the structural prefix and use `ChooseData` only for the scalar alternative.
 All four return the same integer and perform identical explicit arithmetic.
 
 ## Explicit cases
@@ -205,7 +205,7 @@ reuse the spine, root-fork, or full-tree prefix.
 
 ## Measurement and memory isolation
 
-The required `*_arg :: Term` and `*_nested`, `*_shallow`, `*_traditional`, or `*_matchdata`
+The required `*_arg :: Term` and `*_nested`, `*_shallow`, `*_traditional`, or `*_matchdataconstr`
 matcher definitions are CAFs. A forced CAF cannot be reclaimed within its process, so each
 executable invocation runs exactly one implementation and one selected case:
 

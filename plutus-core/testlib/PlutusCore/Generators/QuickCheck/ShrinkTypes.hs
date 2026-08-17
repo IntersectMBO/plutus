@@ -126,6 +126,7 @@ fixKind ctx ty k
       TyIFix {} -> error "Internal error: unreachable clause."
       TyForall {} -> error "Internal error: unreachable clause."
       TySOP {} -> error "Internal error: unreachable clause."
+      TyBuiltinRep {} -> error "Internal error: unreachable clause."
   where
     origK = unsafeInferKind ctx ty
 
@@ -282,6 +283,9 @@ shrinkKindAndType ctx (k0, ty) =
                   , -- Shrink either the entire sum or a product within it or a type within a product.
                     TySOP () <$> shrinkList (shrinkList $ shrinkType ctx) tyls
                   ]
+            TyBuiltinRep _ rep result ->
+              map (Type (),) $
+                result : (TyBuiltinRep () rep <$> shrinkType ctx result)
 
 -- | Shrink a type in a context assuming that it is of kind *.
 shrinkType

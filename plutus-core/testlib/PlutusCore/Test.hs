@@ -167,7 +167,6 @@ isSerialisable (Some (ValueOf uni0 x0)) = go uni0 x0
     go TPLC.DefaultUniBLS12_381_G1_Element _ = False
     go TPLC.DefaultUniBLS12_381_G2_Element _ = False
     go TPLC.DefaultUniBLS12_381_MlResult _ = False
-    go (TPLC.DefaultUniProtoMatchDataRep `TPLC.DefaultUniApply` _) value = case value of {}
 
 {-| Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
 from the process should be caught. -}

@@ -19,7 +19,6 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
-import PlutusCore.Default (MatchDataBuiltinRep)
 import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0, multiSplit1, multiSplit1In)
 import PlutusCore.Generators.QuickCheck.Utils (uniqueVectorOf)
@@ -55,9 +54,6 @@ class ArbitraryBuiltin a where
 
 instance ArbitraryBuiltin ()
 instance ArbitraryBuiltin Bool
-instance ArbitraryBuiltin (MatchDataBuiltinRep a) where
-  arbitraryBuiltin = error "BuiltinRep MatchData is uninhabited"
-  shrinkBuiltin value = case value of {}
 
 {- Note [QuickCheck and integral types]
 The 'Arbitrary' instances for 'Integer' and 'Int' only generate small integers:

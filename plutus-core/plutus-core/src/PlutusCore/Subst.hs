@@ -192,6 +192,7 @@ typeMapNames f = go
       TyLam ann tn k ty -> TyLam ann (f tn) k (go ty)
       TyApp ann ty1 ty2 -> TyApp ann (go ty1) (go ty2)
       TySOP ann tyls -> TySOP ann ((fmap . fmap) go tyls)
+      TyBuiltinRep ann rep result -> TyBuiltinRep ann rep (go result)
 
 -- termMapNames requires two function arguments: one (called f) to modify type names
 -- and another (called g) to modify variable names.

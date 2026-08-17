@@ -168,8 +168,6 @@ constantOf expectParens uni =
     DefaultUniBLS12_381_G2_Element -> conBLS12_381_G2_Element
     DefaultUniBLS12_381_MlResult ->
       fail "Constants of type bls12_381_mlresult are not supported"
-    DefaultUniProtoMatchDataRep `DefaultUniApply` _ ->
-      fail "Constants of type BuiltinRep MatchData are not supported"
 
 {-| Parser for values.  This fails if the value isn't in canonical form, ie if
 there are any zero or out-of-bounds quantities or if any currency or token IDs

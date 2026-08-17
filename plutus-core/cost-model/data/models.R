@@ -159,7 +159,7 @@ arity <- function(name) {
         "ValueData" = 1,
         "UnValueData" = 1,
         "ScaleValue" = 2,
-        "MatchData" = 2,
+        "MatchDataConstr" = 2,
         -1  ## Default for missing values
         )
 }
@@ -872,18 +872,16 @@ modelFun <- function(path) {
     # Y wrapped with `TotalSize` (contained value size)
     scaleValueModel           <- linearInY ("ScaleValue")
 
-    ## X uses MatchDataCostedPatterns: a work measure derived from the hidden sparse table of
-    ## constructor tags and compact pattern programs.  The benchmark varies tag sizes and Data
-    ## payload shapes independently; Y has no effect on execution time.
-    matchDataModel <- {
-        fname <- "MatchData"
+    ## X is the ordinary ByteString word measure of the canonical pattern table.  Every constructor
+    ## field has one selector byte, so payload traversal is bounded linearly by X.  The benchmark
+    ## independently varies table size, capture density, tag size, and Data payload shape; Y has no
+    ## effect on time.
+    matchDataConstrModel <- {
+        fname <- "MatchDataConstr"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead()
 
-        ## MatchData's custom X measure makes the different kinds of pattern work close to
-        ## linear.  Use the upper edge of the remaining fan for the slope, then raise the
-        ## intercept so that 95% of the measured means are at or below the model.
         m <- fit.fan(filtered)
         slope <- m$coefficients["x_mem"]
         residuals <- filtered$t - slope * filtered$x_mem
@@ -992,7 +990,7 @@ modelFun <- function(path) {
         insertCoinModel                      = insertCoinModel,
         unionValueModel                      = unionValueModel,
         scaleValueModel                      = scaleValueModel,
-        matchDataModel                       = matchDataModel
+        matchDataConstrModel                       = matchDataConstrModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

@@ -1,2 +1,0 @@
-all matchDataResult.
-  builtinrep matchData matchDataResult -> data -> matchDataResult

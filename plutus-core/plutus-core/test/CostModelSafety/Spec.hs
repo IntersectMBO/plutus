@@ -31,7 +31,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
 import PlutusCore.Default
-import PlutusCore.Default.MatchData qualified as MatchData
+import PlutusCore.Default.MatchDataConstr qualified as MatchDataConstr
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
@@ -39,7 +39,6 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount
   , IntegerCostedLiterally
-  , MatchDataCostedPatterns
   , NumBytesCostedAsNumWords
   , TextCostedByByteLength
   , ValueMaxDepth
@@ -149,8 +148,6 @@ smallConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @CByteString) = SomeConst $ BS.pack []
   | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeConst ("" :: Text)
   | Just HRefl <- eqTypeRep tr (typeRep @TextCostedByByteLength) = SomeConst ("" :: Text)
-  | Just HRefl <- eqTypeRep tr (typeRep @MatchDataCostedPatterns) =
-      SomeConst $ Vector.singleton (0 :: Integer, BS.singleton 0)
   | Just HRefl <- eqTypeRep tr (typeRep @Data) = SomeConst $ I 0
   | Just HRefl <- eqTypeRep tr (typeRep @DataNodeCount) = SomeConst $ I 0
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G1.Element) =
@@ -207,12 +204,17 @@ smallTerm tr0 = go (toTypeAst tr0) tr0
       -> TypeRep b
       -> PLC.Term PLC.TyName PLC.Name DefaultUni DefaultFun ()
     go sch tr
-      | trMatchDataRep `App` _ `App` _ <- tr
-      , Just HRefl <- eqTypeRep trMatchDataRep (typeRep @MatchData.MatchDataRepValue) =
+      | trMatchDataConstrRep `App` _ `App` _ <- tr
+      , Just HRefl <- eqTypeRep trMatchDataConstrRep (typeRep @MatchDataConstr.MatchDataConstrRepValue) =
           PLC.BuiltinRep
             ()
-            MatchData
-            (PLC.someValue $ Vector.singleton (0 :: Integer, BS.singleton 0))
+            MatchDataConstr
+            ( PLC.someValue . either (error . show) id . MatchDataConstr.encodeMatchDataConstrTable $
+                Vector.singleton
+                  ( 0 :: Integer
+                  , either (error . show) id $ MatchDataConstr.mkMatchDataConstrPattern 0 []
+                  )
+            )
       | trOpaque `App` _ `App` trEl <- tr
       , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
           go sch trEl

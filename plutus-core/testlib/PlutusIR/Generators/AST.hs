@@ -96,7 +96,8 @@ genType = simpleRecursive nonRecursive recursive
     forallGen = TyForall () <$> genTyName <*> genKind <*> genType
     applyGen = TyApp () <$> genType <*> genType
     sopGen = TySOP () <$> (Gen.list (Range.linear 0 10) (Gen.list (Range.linear 0 10) genType))
-    recursive = [funGen, applyGen, sopGen]
+    builtinRepGen = TyBuiltinRep () (BuiltinRepName "matchDataConstr") <$> genType
+    recursive = [funGen, applyGen, sopGen, builtinRepGen]
     nonRecursive = [varGen, lamGen, forallGen]
 
 genTerm :: PLC.AstGen (Term TyName Name PLC.DefaultUni PLC.DefaultFun ())

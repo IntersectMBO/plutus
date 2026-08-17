@@ -51,6 +51,8 @@ instance tyname ~ TyName => EstablishScoping (Type tyname uni) where
   establishScoping (TyBuiltin _ someUni) = pure $ TyBuiltin NotAName someUni
   establishScoping (TySOP _ tyls) =
     TySOP NotAName <$> (traverse . traverse) establishScoping tyls
+  establishScoping (TyBuiltinRep _ rep result) =
+    TyBuiltinRep NotAName rep <$> establishScoping result
 
 firstBound :: Term tyname name uni fun ann -> [name]
 firstBound (Apply _ (LamAbs _ name _ body) _) = name : firstBound body
@@ -108,6 +110,7 @@ instance tyname ~ TyName => CollectScopeInfo (Type tyname uni) where
   collectScopeInfo (TyVar ann name) = handleSname ann name
   collectScopeInfo (TyBuiltin _ _) = mempty
   collectScopeInfo (TySOP _ tyls) = (foldMap . foldMap) collectScopeInfo tyls
+  collectScopeInfo (TyBuiltinRep _ _ result) = collectScopeInfo result
 
 instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name uni fun) where
   collectScopeInfo (LamAbs ann name ty body) =

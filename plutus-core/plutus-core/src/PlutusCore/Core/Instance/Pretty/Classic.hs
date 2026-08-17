@@ -99,6 +99,8 @@ instance
       sexp "sop" (consAnnIf config ann (fmap prettyTyl tyls))
       where
         prettyTyl tyl = brackets (sep (fmap (prettyBy config) tyl))
+    TyBuiltinRep ann (BuiltinRepName name) result ->
+      sexp "builtinrep" (consAnnIf config ann [pretty name, prettyBy config result])
 
 instance
   ( PrettyClassicBy configName tyname

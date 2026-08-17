@@ -21,6 +21,7 @@ module PlutusCore.Core.Type
   , toPatFuncKind
   , fromPatFuncKind
   , argsFunKind
+  , BuiltinRepName (..)
   , Type (..)
   , splitFunTyParts
   , funTyArgs
@@ -66,6 +67,7 @@ import Control.Lens
 import Data.Hashable
 import Data.Kind qualified as GHC
 import Data.List.NonEmpty qualified as NE
+import Data.Text (Text)
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift
 import Universe
@@ -75,6 +77,18 @@ data Kind ann
   | KindArrow ann (Kind ann) (Kind ann)
   deriving stock (Eq, Show, Functor, Generic, Lift)
   deriving anyclass (NFData, Hashable)
+
+{-| The nominal identity of a builtin-specific runtime representation family.
+
+Representation families live in PLC's type language rather than in the builtin universe:
+their indices are ordinary PLC types, but their runtime witnesses erase to constants from the
+universe.  The name prevents witnesses belonging to different builtins from sharing a type. -}
+newtype BuiltinRepName = BuiltinRepName {unBuiltinRepName :: Text}
+  deriving stock (Eq, Ord, Show, Generic, Lift)
+  deriving anyclass (NFData, Hashable)
+
+instance Pretty BuiltinRepName where
+  pretty = pretty . unBuiltinRepName
 
 {-| The kind of a pattern functor (the first 'Type' argument of 'TyIFix') at a given kind (of the
 second 'Type' argument of 'TyIFix'):
@@ -112,6 +126,8 @@ data Type tyname uni ann
     TyApp ann (Type tyname uni ann) (Type tyname uni ann)
   | -- | Sum-of-products type
     TySOP ann [[Type tyname uni ann]]
+  | -- | Builtin-specific runtime representation, indexed by the result type it authorizes.
+    TyBuiltinRep ann BuiltinRepName (Type tyname uni ann)
   deriving stock (Show, Functor, Generic)
   deriving anyclass (NFData)
 
@@ -275,6 +291,7 @@ instance HasAnn (Type tyname uni) where
   getAnn (TyLam ann _ _ _) = ann
   getAnn (TyApp ann _ _) = ann
   getAnn (TySOP ann _) = ann
+  getAnn (TyBuiltinRep ann _ _) = ann
   modifyAnn f (TyVar ann x) = TyVar (f ann) x
   modifyAnn f (TyFun ann a b) = TyFun (f ann) a b
   modifyAnn f (TyIFix ann a b) = TyIFix (f ann) a b
@@ -283,6 +300,7 @@ instance HasAnn (Type tyname uni) where
   modifyAnn f (TyLam ann tn k t) = TyLam (f ann) tn k t
   modifyAnn f (TyApp ann a b) = TyApp (f ann) a b
   modifyAnn f (TySOP ann tss) = TySOP (f ann) tss
+  modifyAnn f (TyBuiltinRep ann rep result) = TyBuiltinRep (f ann) rep result
 
 instance HasAnn (Term tyname name uni fun) where
   getAnn (Var ann _) = ann

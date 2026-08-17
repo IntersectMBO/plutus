@@ -1,0 +1,4 @@
+all matchDataConstrResult.
+  builtinrep matchDataConstr matchDataConstrResult ->
+  data ->
+  matchDataConstrResult

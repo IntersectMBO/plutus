@@ -200,7 +200,7 @@ data BuiltinCostModelBase f
   , paramUnionValue :: f ModelTwoArguments
   , paramScaleValue :: f ModelTwoArguments
   , -- Type-directed Data matching
-    paramMatchData :: f ModelTwoArguments
+    paramMatchDataConstr :: f ModelTwoArguments
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)

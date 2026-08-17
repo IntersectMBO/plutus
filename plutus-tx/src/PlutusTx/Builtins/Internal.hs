@@ -107,8 +107,8 @@ otherwise GHC gets very keen to optimize through the newtype and e.g. our users
 see 'Addr#' popping up everywhere.
 -}
 
--- | Plutus Tx counterpart of the uninhabited @BuiltinRep MatchData@ type constructor.
-data BuiltinMatchDataRep a
+-- | Plutus Tx counterpart of the uninhabited @BuiltinRep MatchDataConstr@ type constructor.
+data BuiltinMatchDataConstrRep a
 
 error :: BuiltinUnit -> a
 error = Haskell.error "PlutusTx.Builtins.Internal.error"

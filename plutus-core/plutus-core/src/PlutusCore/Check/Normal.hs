@@ -59,6 +59,7 @@ normalType (TyFun _ i o) = normalType i >> normalType o
 normalType (TyForall _ _ _ ty) = normalType ty
 normalType (TyIFix _ pat arg) = normalType pat >> normalType arg
 normalType (TySOP _ tyls) = traverse_ (traverse_ normalType) tyls
+normalType (TyBuiltinRep _ _ result) = normalType result
 normalType (TyLam _ _ _ ty) = normalType ty
 normalType ty = neutralType ty
 

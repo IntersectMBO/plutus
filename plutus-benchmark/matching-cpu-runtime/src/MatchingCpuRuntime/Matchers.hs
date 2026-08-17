@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
--- | Explicit MatchData-based Data.Constr matchers for the CPU runtime comparison.
+-- | Explicit MatchDataConstr-based Data.Constr matchers for the CPU runtime comparison.
 module MatchingCpuRuntime.Matchers where
 
 import Control.Monad (unless)
@@ -15,11 +15,12 @@ import Data.Vector.Strict qualified as Strict
 import PlutusBenchmark.Common (Term)
 import PlutusCore (freshName, runQuote)
 import PlutusCore qualified as PLC
+import PlutusCore.Default.MatchDataConstr (encodeMatchDataConstrTable, mkMatchDataConstrPattern)
 import PlutusCore.MkPlc (mkConstant)
 import UntypedPlutusCore qualified as UPLC
 
 matching_implementation :: String
-matching_implementation = "matchdata"
+matching_implementation = "matchdataconstr"
 
 type NamedTerm = UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ()
 
@@ -33,8 +34,8 @@ debruijnTermUnsafe =
     . runExcept @UPLC.FreeVariableError
     . UPLC.deBruijnTerm
 
-matchDataMatcher :: (UPLC.Name -> PLC.Quote NamedTerm) -> Term
-matchDataMatcher makeBody =
+matchDataConstrMatcher :: (UPLC.Name -> PLC.Quote NamedTerm) -> Term
+matchDataConstrMatcher makeBody =
   debruijnTermUnsafe $ runQuote $ do
     argumentName <- freshName "argument"
     body <- makeBody argumentName
@@ -188,7 +189,7 @@ withCapturedValues captureValues makeBody = do
   captureNames <- traverse (const $ freshName "capture") captureValues
   makeBody (zip captureValues captureNames) (sumCapturedIntegers captureNames)
 
--- | MatchData returns only selected fields to the branch handler.
+-- | MatchDataConstr returns only selected fields to the branch handler.
 matchConstrNode
   :: Int
   -> Int
@@ -213,21 +214,16 @@ matchConstrNode width expectedTag fieldsToMatch scrutinee continuation = do
       (pure continuation)
       (zip orderedFields fieldNames)
   let handler = foldr (UPLC.LamAbs ()) fieldsBody fieldNames
-      captureGaps =
-        zipWith
-          (\next previous -> next - previous - 1)
-          (selectedIndices <> [width])
-          (-1 : selectedIndices)
-      encodeGap gap
-        | gap < 255 = [fromIntegral gap]
-        | otherwise = 255 : encodeGap (gap - 255)
-      capturePattern = BS.pack $ concatMap encodeGap captureGaps
-      encodedPatterns = Strict.singleton (toInteger expectedTag, capturePattern)
+      capturePattern =
+        either (error . show) id $ mkMatchDataConstrPattern width selectedIndices
+      encodedPatterns =
+        either (error . show) id . encodeMatchDataConstrTable $
+          Strict.singleton (toInteger expectedTag, capturePattern)
       matched =
         builtinApp
           1
-          PLC.MatchData
-          [ mkConstant @(Strict.Vector (Integer, BS.ByteString)) () encodedPatterns
+          PLC.MatchDataConstr
+          [ mkConstant @BS.ByteString () encodedPatterns
           , UPLC.Var () scrutinee
           ]
   pure $
@@ -236,36 +232,36 @@ matchConstrNode width expectedTag fieldsToMatch scrutinee continuation = do
       matched
       (Vector.singleton handler)
 
--- Sketch: matchData; case the resulting VConstr; unIData selected fields.
+-- Sketch: matchDataConstr; case the resulting VConstr; unIData selected fields.
 
 -- Match: Constr 1 [@d1]; d1 ~ I @ => 1.
-match_benchmark_constr_flat_d1_w1_c1_matchdata :: Term
-match_benchmark_constr_flat_d1_w1_c1_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_flat_d1_w1_c1_matchdataconstr :: Term
+match_benchmark_constr_flat_d1_w1_c1_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [1] :: [Int]
     withCapturedValues captureValues $ \capturePairs result ->
       matchConstrNode 1 1 (capturedFieldsAtNode 1 1 capturePairs) argumentName result
 
 -- Match: Constr 1 [@d1, _, ..., @d6, _, ..., @d11, _, ..., @d16]; d* ~ I @ => 34.
-match_benchmark_constr_flat_d1_w16_c4_matchdata :: Term
-match_benchmark_constr_flat_d1_w16_c4_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_flat_d1_w16_c4_matchdataconstr :: Term
+match_benchmark_constr_flat_d1_w16_c4_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [1, 6, 11, 16] :: [Int]
     withCapturedValues captureValues $ \capturePairs result ->
       matchConstrNode 16 1 (capturedFieldsAtNode 16 1 capturePairs) argumentName result
 
 -- Match: Constr 1 [_, ..., @d997, _, _, _]; d997 ~ I @ => 997.
-match_benchmark_constr_flat_d1_w1000_c1_matchdata :: Term
-match_benchmark_constr_flat_d1_w1000_c1_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_flat_d1_w1000_c1_matchdataconstr :: Term
+match_benchmark_constr_flat_d1_w1000_c1_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [997] :: [Int]
     withCapturedValues captureValues $ \capturePairs result ->
       matchConstrNode 1000 1 (capturedFieldsAtNode 1000 1 capturePairs) argumentName result
 
 -- Match: Constr 1 [...] with @d at f[6,60,117,...,976,999]; d* ~ I @ => 8452.
-match_benchmark_constr_flat_d1_w1000_c16_matchdata :: Term
-match_benchmark_constr_flat_d1_w1000_c16_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_flat_d1_w1000_c16_matchdataconstr :: Term
+match_benchmark_constr_flat_d1_w1000_c16_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues =
           [ 7
           , 61
@@ -290,9 +286,9 @@ match_benchmark_constr_flat_d1_w1000_c16_matchdata =
 
 -- Match: Constr 1 [@c2,...]; c2 ~ Constr 2 [@c3,...];
 --        c3 ~ Constr 3 [@c4,...]; c4 ~ Constr 4 [...]; d[2,15,...,51,62] ~ I @ => 266.
-match_benchmark_constr_spine_front_d4_w16_c8_matchdata :: Term
-match_benchmark_constr_spine_front_d4_w16_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_spine_front_d4_w16_c8_matchdataconstr :: Term
+match_benchmark_constr_spine_front_d4_w16_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [2, 15, 21, 28, 40, 47, 51, 62] :: [Int]
         childPositions = [0, 0, 0] :: [Int]
     withCapturedValues captureValues $ \capturePairs result -> do
@@ -313,9 +309,9 @@ match_benchmark_constr_spine_front_d4_w16_c8_matchdata =
 
 -- Match: Constr 1 [...,@c2,...]; c2 ~ Constr 2 [...,@c3,...];
 --        c3 ~ Constr 3 [...,@c4,...]; c4 ~ Constr 4 [...]; d[2,15,...,51,62] ~ I @ => 266.
-match_benchmark_constr_spine_middle_d4_w16_c8_matchdata :: Term
-match_benchmark_constr_spine_middle_d4_w16_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_spine_middle_d4_w16_c8_matchdataconstr :: Term
+match_benchmark_constr_spine_middle_d4_w16_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [2, 15, 21, 28, 40, 47, 51, 62] :: [Int]
         childPositions = [8, 8, 8] :: [Int]
     withCapturedValues captureValues $ \capturePairs result -> do
@@ -336,9 +332,9 @@ match_benchmark_constr_spine_middle_d4_w16_c8_matchdata =
 
 -- Match: Constr 1 [...,@c2]; c2 ~ Constr 2 [...,@c3];
 --        c3 ~ Constr 3 [...,@c4]; c4 ~ Constr 4 [...]; d[2,15,...,51,62] ~ I @ => 266.
-match_benchmark_constr_spine_last_d4_w16_c8_matchdata :: Term
-match_benchmark_constr_spine_last_d4_w16_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_spine_last_d4_w16_c8_matchdataconstr :: Term
+match_benchmark_constr_spine_last_d4_w16_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [2, 15, 21, 28, 40, 47, 51, 62] :: [Int]
         childPositions = [15, 15, 15] :: [Int]
     withCapturedValues captureValues $ \capturePairs result -> do
@@ -359,9 +355,9 @@ match_benchmark_constr_spine_last_d4_w16_c8_matchdata =
 
 -- Match: Constr 1 [...,@c2,...]; c2 ~ Constr 2 [...,@c3,...];
 --        c3 ~ Constr 3 [...,@c4,...]; c4 ~ Constr 4 [...]; d[2,15,...,51,62] ~ I @ => 266.
-match_benchmark_constr_spine_irregular_d4_w16_c8_matchdata :: Term
-match_benchmark_constr_spine_irregular_d4_w16_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_spine_irregular_d4_w16_c8_matchdataconstr :: Term
+match_benchmark_constr_spine_irregular_d4_w16_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [2, 15, 21, 28, 40, 47, 51, 62] :: [Int]
         childPositions = [3, 12, 5] :: [Int]
     withCapturedValues captureValues $ \capturePairs result -> do
@@ -382,9 +378,9 @@ match_benchmark_constr_spine_irregular_d4_w16_c8_matchdata =
 
 -- Match: Constr 1 [@c2,...]; c2 ~ Constr 2 [...,@c3,...]; ...;
 --        c7 ~ Constr 7 [...,@c8,...]; c8 ~ Constr 8 [...]; d[4,12,...,52,61] ~ I @ => 257.
-match_benchmark_constr_spine_irregular_d8_w8_c8_matchdata :: Term
-match_benchmark_constr_spine_irregular_d8_w8_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_spine_irregular_d8_w8_c8_matchdataconstr :: Term
+match_benchmark_constr_spine_irregular_d8_w8_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [4, 12, 20, 28, 36, 44, 52, 61] :: [Int]
         childPositions = [0, 4, 7, 2, 6, 1, 5] :: [Int]
     withCapturedValues captureValues $ \capturePairs result -> do
@@ -405,9 +401,9 @@ match_benchmark_constr_spine_irregular_d8_w8_c8_matchdata =
 
 -- Match: Constr n [@next,_/@d]; next ~ Constr (n+1) [...] (n=1..63);
 --        Constr 64 [_,@d]; d ~ I @ at n=[1,10,19,28,37,46,55,64] => 520.
-match_benchmark_constr_spine_front_d64_w2_c8_matchdata :: Term
-match_benchmark_constr_spine_front_d64_w2_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_spine_front_d64_w2_c8_matchdataconstr :: Term
+match_benchmark_constr_spine_front_d64_w2_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [2, 20, 38, 56, 74, 92, 110, 128] :: [Int]
         childPositions = replicate 63 0
     withCapturedValues captureValues $ \capturePairs result -> do
@@ -428,9 +424,9 @@ match_benchmark_constr_spine_front_d64_w2_c8_matchdata =
 
 -- Match: Constr n [@next,_/@d] / Constr n [_/@d,@next] (n=1..99);
 --        Constr 100 [@d,_]; d ~ I @ at n=[1,12,23,...,89,100] => 1005.
-match_benchmark_constr_spine_zigzag_d100_w2_c10_matchdata :: Term
-match_benchmark_constr_spine_zigzag_d100_w2_c10_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_spine_zigzag_d100_w2_c10_matchdataconstr :: Term
+match_benchmark_constr_spine_zigzag_d100_w2_c10_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [2, 23, 46, 67, 90, 111, 134, 155, 178, 199] :: [Int]
         childPositions = [if odd nodeId then 0 else 1 | nodeId <- [1 :: Int .. 99]]
     withCapturedValues captureValues $ \capturePairs result -> do
@@ -451,9 +447,9 @@ match_benchmark_constr_spine_zigzag_d100_w2_c10_matchdata =
 
 -- Match: Constr 1 [@c2,...]; c2 ~ Constr 2 [...,@c3,...]; ...;
 --        child f=[0,50,99,20,80,10,60,30,90]; d(f16/f82) ~ I @ => 10000.
-match_benchmark_constr_spine_stress_d10_w100_c20_matchdata :: Term
-match_benchmark_constr_spine_stress_d10_w100_c20_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_spine_stress_d10_w100_c20_matchdataconstr :: Term
+match_benchmark_constr_spine_stress_d10_w100_c20_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues =
           [ 17
           , 83
@@ -496,9 +492,9 @@ match_benchmark_constr_spine_stress_d10_w100_c20_matchdata =
 
 -- Match: Constr 1 [@c2,...,@c5]; c2 ~ Constr 2 [@c3,...,@c4];
 --        c5 ~ Constr 5 [@c6,...,@c7]; c3/c4/c6/c7 ~ Constr [...]; d* ~ I @ => 504.
-match_benchmark_constr_binary_d3_w16_c8_matchdata :: Term
-match_benchmark_constr_binary_d3_w16_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_binary_d3_w16_c8_matchdataconstr :: Term
+match_benchmark_constr_binary_d3_w16_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [7, 21, 40, 59, 72, 88, 105, 112] :: [Int]
         children nodeId = case nodeId of
           1 -> [(0, 2), (15, 5)]
@@ -521,9 +517,9 @@ match_benchmark_constr_binary_d3_w16_c8_matchdata =
 -- Match: Constr 1 [@c2,...,@c6,...,@c10]; c2 ~ Constr 2 [@c3,...,@c4,...,@c5];
 --        c6 ~ Constr 6 [@c7,...,@c8,...,@c9]; c10 ~ Constr 10 [@c11,...,@c12,...,@c13];
 --        d[4,18,...,94,104] ~ I @ => 556.
-match_benchmark_constr_ternary_d3_w8_c10_matchdata :: Term
-match_benchmark_constr_ternary_d3_w8_c10_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_ternary_d3_w8_c10_matchdataconstr :: Term
+match_benchmark_constr_ternary_d3_w8_c10_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [4, 18, 30, 40, 52, 61, 71, 82, 94, 104] :: [Int]
         children nodeId = case nodeId of
           1 -> [(0, 2), (4, 6), (7, 10)]
@@ -548,9 +544,9 @@ match_benchmark_constr_ternary_d3_w8_c10_matchdata =
 --        c2 ~ Constr 2 [@c3,@d10,@c4,_,_,@c5,_,@c6];
 --        c7/c12 ~ Constr [@leaf,_,@leaf,@d,_,@leaf,_,@leaf];
 --        c17 ~ Constr 17 [@c18,@d130,@c19,_,_,@c20,_,@c21]; d* ~ I @ => 1485.
-match_benchmark_constr_quaternary_d3_w8_c17_matchdata :: Term
-match_benchmark_constr_quaternary_d3_w8_c17_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_quaternary_d3_w8_c17_matchdataconstr :: Term
+match_benchmark_constr_quaternary_d3_w8_c17_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues =
           [ 2
           , 10
@@ -593,9 +589,9 @@ match_benchmark_constr_quaternary_d3_w8_c17_matchdata =
 
 -- Match: Constr 1 [@d1,_,@c2,...,@c7,_]; c2 ~ Constr 2 [@c3,...]; ...;
 --        c7 ~ Constr 7 [...,@c8,...]; c8 ~ Constr 8 [_,@c9,...]; d* ~ I @ => 389.
-match_benchmark_constr_rootfork2_d6_w12_c8_matchdata :: Term
-match_benchmark_constr_rootfork2_d6_w12_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_rootfork2_d6_w12_c8_matchdataconstr :: Term
+match_benchmark_constr_rootfork2_d6_w12_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [1, 14, 27, 40, 54, 71, 74, 108] :: [Int]
         children nodeId = case nodeId of
           1 -> [(2, 2), (10, 7)]
@@ -621,9 +617,9 @@ match_benchmark_constr_rootfork2_d6_w12_c8_matchdata =
 
 -- Match: Constr 1 [@c2,...,@c6,...,@c9]; c2 ~ Constr 2 [...,@c3,...] ~ ...;
 --        c6 ~ Constr 6 [...,@c7,...] ~ ...; c9 ~ Constr 9 [...,@c10,...]; d* ~ I @ => 469.
-match_benchmark_constr_rootfork3_d5_w10_c9_matchdata :: Term
-match_benchmark_constr_rootfork3_d5_w10_c9_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_rootfork3_d5_w10_c9_matchdataconstr :: Term
+match_benchmark_constr_rootfork3_d5_w10_c9_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [5, 11, 27, 50, 52, 68, 74, 83, 99] :: [Int]
         children nodeId = case nodeId of
           1 -> [(0, 2), (5, 6), (9, 9)]
@@ -649,9 +645,9 @@ match_benchmark_constr_rootfork3_d5_w10_c9_matchdata =
 
 -- Match: Constr 1 [@c2,_,@c5,...,@c7,_,@c8]; c2 ~ Constr 2 [...,@c3,...] ~ ...;
 --        c5 ~ Constr 5 [_,@c6,...]; c6/c7/c8 ~ Constr [...]; d* ~ I @ => 261.
-match_benchmark_constr_rootfork4_d4_w8_c8_matchdata :: Term
-match_benchmark_constr_rootfork4_d4_w8_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_rootfork4_d4_w8_c8_matchdataconstr :: Term
+match_benchmark_constr_rootfork4_d4_w8_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [4, 9, 21, 32, 35, 47, 51, 62] :: [Int]
         children nodeId = case nodeId of
           1 -> [(0, 2), (2, 5), (5, 7), (7, 8)]
@@ -675,9 +671,9 @@ match_benchmark_constr_rootfork4_d4_w8_c8_matchdata =
 -- Match: Constr 1 [@c2,_,_,_,_,_,_,@c129];
 --        c2 ~ Constr 2 [_,_,@c3,_,_,@c66,_,_]; ...;
 --        leaf tags [8,15,...,244,251] bind f3; d* ~ I @ => 33024.
-match_benchmark_constr_binary_stress_d8_w8_c32_matchdata :: Term
-match_benchmark_constr_binary_stress_d8_w8_c32_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_binary_stress_d8_w8_c32_matchdataconstr :: Term
+match_benchmark_constr_binary_stress_d8_w8_c32_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues =
           [ 60
           , 116
@@ -745,9 +741,9 @@ match_benchmark_constr_binary_stress_d8_w8_c32_matchdata =
 
 -- Match: Constr 1 [@c2,_,_,_,_,_,_,@d] ~ ... ~ Constr 16 [...];
 --        d ~ {B @ | I @}; captured integers => 544.
-match_benchmark_constr_alt_spine_d16_w8_c8_matchdata :: Term
-match_benchmark_constr_alt_spine_d16_w8_c8_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_alt_spine_d16_w8_c8_matchdataconstr :: Term
+match_benchmark_constr_alt_spine_d16_w8_c8_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [8, 28, 44, 60, 76, 92, 108, 128] :: [Int]
         childPositions = [0, 7, 2, 5, 0, 7, 2, 5, 0, 7, 2, 5, 0, 7, 2] :: [Int]
     withCapturedValues captureValues $ \capturePairs result -> do
@@ -772,9 +768,9 @@ match_benchmark_constr_alt_spine_d16_w8_c8_matchdata =
 
 -- Match: Constr 1 [@c2,...,@c6,...,@c9] ~ ... ~ Constr 9 [...,@c10,...,@d];
 --        d ~ {B @ | I @}; captured integers => 469.
-match_benchmark_constr_alt_rootfork3_d5_w10_c9_matchdata :: Term
-match_benchmark_constr_alt_rootfork3_d5_w10_c9_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_alt_rootfork3_d5_w10_c9_matchdataconstr :: Term
+match_benchmark_constr_alt_rootfork3_d5_w10_c9_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues = [11, 14, 27, 50, 52, 68, 74, 83, 90] :: [Int]
         children nodeId = case nodeId of
           1 -> [(0, 2), (5, 6), (9, 9)]
@@ -805,9 +801,9 @@ match_benchmark_constr_alt_rootfork3_d5_w10_c9_matchdata =
 
 -- Match: Constr 1 [@c2,_,_,_,_,_,_,@c129] ~ ... ~ Constr 129 [...,@d];
 --        d ~ {B @ | I @}; captured integers => 33024.
-match_benchmark_constr_alt_binary_d8_w8_c32_matchdata :: Term
-match_benchmark_constr_alt_binary_d8_w8_c32_matchdata =
-  matchDataMatcher $ \argumentName -> do
+match_benchmark_constr_alt_binary_d8_w8_c32_matchdataconstr :: Term
+match_benchmark_constr_alt_binary_d8_w8_c32_matchdataconstr =
+  matchDataConstrMatcher $ \argumentName -> do
     let captureValues =
           [ 60
           , 116

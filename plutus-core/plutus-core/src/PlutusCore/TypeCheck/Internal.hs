@@ -408,6 +408,13 @@ inferKindM (TySOP ann tyls) = do
   for_ tyls $ \tyl -> for_ tyl $ \ty -> checkKindM ann ty (Type ())
   pure $ Type ()
 
+-- [check| G !- result :: *]
+-- -----------------------------------------
+-- [infer| G !- builtinrep name result :: *]
+inferKindM (TyBuiltinRep ann _ result) = do
+  checkKindM ann result $ Type ()
+  pure $ Type ()
+
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
   :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, HasKindCheckConfig cfg)

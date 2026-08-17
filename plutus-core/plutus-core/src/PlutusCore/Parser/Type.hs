@@ -63,8 +63,8 @@ sopType = withSpan $ \sp -> inParens $ TySOP sp <$> (symbol "sop" *> many tyList
 builtinRepType :: Parser PType
 builtinRepType = withSpan $ \sp ->
   inParens $
-    TyApp sp (TyBuiltin sp $ SomeTypeIn DefaultUniProtoMatchDataRep)
-      <$> (symbol "builtinrep" *> symbol "matchData" *> pType)
+    TyBuiltinRep sp (BuiltinRepName "matchDataConstr")
+      <$> (symbol "builtinrep" *> symbol "matchDataConstr" *> pType)
 
 appType :: Parser PType
 appType = withSpan $ \sp -> inBrackets $ do
@@ -158,8 +158,6 @@ defaultUni =
         , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381_G2_element"
         , someType @_ @BLS12_381.Pairing.MlResult <$ symbol "bls12_381_mlresult"
         , someType @_ @Value <$ symbol "value"
-        , SomeTypeIn (Kinded DefaultUniProtoMatchDataRep)
-            <$ (symbol "builtinrep" *> symbol "matchData")
         ]
   )
     <?> "type name (integer, bytestring, string, unit, bool, list, array, pair,\

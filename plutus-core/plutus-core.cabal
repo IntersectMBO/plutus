@@ -134,7 +134,8 @@ library
     PlutusCore.DeBruijn.Internal
     PlutusCore.Default
     PlutusCore.Default.Builtins
-    PlutusCore.Default.MatchData
+    PlutusCore.Default.MatchDataConstr
+    PlutusCore.Default.MatchDataConstr.Encoding
     PlutusCore.Error
     PlutusCore.Evaluation.Error
     PlutusCore.Evaluation.ErrorWithCause

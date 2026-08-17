@@ -9,6 +9,7 @@ module PlutusIR
   , termSubtypes
   , termBindings
   , Type (..)
+  , BuiltinRepName (..)
   , typeSubtypes
   , Datatype (..)
   , datatypeNameString

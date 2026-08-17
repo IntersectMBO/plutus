@@ -143,11 +143,9 @@ tests =
         "multi-arg application has per-argument spans on inner nodes"
         multiArgSpans
     , testCase "parser accepts BuiltinRep witness terms" $
-        expectParserSuccess "(builtinrep matchData integer 1)"
+        expectParserSuccess "(builtinrep matchDataConstr bytestring #01000100)"
     , testCase "parser accepts BuiltinRep type notation" $
-        expectTypeParserSuccess "(builtinrep matchData (sop []))"
-    , testCase "parser accepts the core BuiltinRep type encoding" $
-        expectTypeParserSuccess "[(con builtinrep matchData) (sop [])]"
+        expectTypeParserSuccess "(builtinrep matchDataConstr (sop []))"
     ]
 
 {-| Test that inner Apply nodes get per-argument spans, not the bracket span.

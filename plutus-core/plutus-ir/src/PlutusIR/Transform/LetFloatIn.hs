@@ -364,6 +364,9 @@ floatTerm binfo relaxed t0 =
             let tyls' = (fmap . fmap) goType tyls
                 us = (foldMap . foldMap) typeUniqs tyls'
              in TySOP (a, us) tyls'
+          TyBuiltinRep a rep resultTy0 ->
+            let resultTy = goType resultTy0
+             in TyBuiltinRep (a, typeUniqs resultTy) rep resultTy
 
         -- Calculate the set of `Unique`s of used variables in a `VarDecl`.
         -- The type of the declared variable may use type variables.

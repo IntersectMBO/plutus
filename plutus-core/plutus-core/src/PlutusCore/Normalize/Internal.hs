@@ -215,6 +215,8 @@ normalizeTypeM (TyBuiltin ann (SomeTypeIn uni)) =
 normalizeTypeM (TySOP ann tyls) = do
   tyls' <- (traverse . traverse) (fmap unNormalized . normalizeTypeM) tyls
   pure $ Normalized $ TySOP ann tyls'
+normalizeTypeM (TyBuiltinRep ann rep result) =
+  Normalized . TyBuiltinRep ann rep . unNormalized <$> normalizeTypeM result
 
 {- Note [Normalizing substitution]
 @substituteNormalizeM@ is only ever used as normalizing substitution that receives two already

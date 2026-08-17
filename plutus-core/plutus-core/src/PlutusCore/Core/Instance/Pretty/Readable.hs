@@ -142,6 +142,8 @@ instance
     (viewTyLam -> Just (args, body)) -> iterLamAbsPrettyM args body
     TyLam {} -> error "Panic: 'TyLam' is not covered by 'viewTyLam'"
     TySOP _ tls -> iterAppDocM $ \_ prettyArg -> "sop" :| fmap prettyArg tls
+    TyBuiltinRep _ (BuiltinRepName name) result ->
+      iterAppDocM $ \_ prettyArg -> "builtinrep" :| [pretty name, prettyArg result]
 
 instance
   ( PrettyReadableBy configName tyname

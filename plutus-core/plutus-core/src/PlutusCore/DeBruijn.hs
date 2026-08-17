@@ -143,6 +143,7 @@ deBruijnTyWithM h = go
       TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
       TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
       TySOP ann tyls -> TySOP ann <$> (traverse . traverse) go tyls
+      TyBuiltinRep ann rep result -> TyBuiltinRep ann rep <$> go result
       -- boring non-recursive cases
       TyBuiltin ann someUni -> pure $ TyBuiltin ann someUni
 
@@ -210,6 +211,7 @@ unDeBruijnTyWithM h = go
       TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
       TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
       TySOP ann tyls -> TySOP ann <$> (traverse . traverse) go tyls
+      TyBuiltinRep ann rep result -> TyBuiltinRep ann rep <$> go result
       -- boring non-recursive cases
       TyBuiltin ann someUni -> pure $ TyBuiltin ann someUni
 

@@ -86,6 +86,7 @@ renameTypeM (TyApp ann fun arg) = TyApp ann <$> renameTypeM fun <*> renameTypeM 
 renameTypeM (TyFun ann dom cod) = TyFun ann <$> renameTypeM dom <*> renameTypeM cod
 renameTypeM (TyVar ann name) = TyVar ann <$> renameNameM name
 renameTypeM (TySOP ann tyls) = TySOP ann <$> (traverse . traverse) renameTypeM tyls
+renameTypeM (TyBuiltinRep ann rep result) = TyBuiltinRep ann rep <$> renameTypeM result
 renameTypeM ty@TyBuiltin {} = pure ty
 
 -- | Rename a 'Term' in the 'RenameM' monad.

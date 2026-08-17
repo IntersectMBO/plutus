@@ -189,4 +189,7 @@ unifyType ctx flex a0 b0 =
               Nothing -> unificationFailure prod1 prod2
               -- SOPs unify componentwise.
               Just prod12 -> traverse_ (uncurry goType) prod12
+    goType (TyBuiltinRep _ rep1 result1) (TyBuiltinRep _ rep2 result2) = do
+      when (rep1 /= rep2) $ unificationFailure rep1 rep2
+      goType result1 result2
     goType a b = unificationFailure a b

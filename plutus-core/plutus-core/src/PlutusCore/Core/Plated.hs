@@ -59,6 +59,7 @@ typeTyBinds f ty0 = case ty0 of
   TyBuiltin {} -> pure ty0
   TyVar {} -> pure ty0
   TySOP {} -> pure ty0
+  TyBuiltinRep {} -> pure ty0
 
 -- | Get all the direct child 'tyname a's of the given 'Type' from 'TyVar's.
 typeTyVars :: Traversal' (Type tyname uni ann) tyname
@@ -71,6 +72,7 @@ typeTyVars f ty0 = case ty0 of
   TyFun {} -> pure ty0
   TyBuiltin {} -> pure ty0
   TySOP {} -> pure ty0
+  TyBuiltinRep {} -> pure ty0
 
 -- | Get all the direct child 'Unique's of the given 'Type' from binders 'TyVar's.
 typeUniques :: HasUniques (Type tyname uni ann) => Traversal' (Type tyname uni ann) Unique
@@ -83,6 +85,7 @@ typeUniques f ty0 = case ty0 of
   TyFun {} -> pure ty0
   TyBuiltin {} -> pure ty0
   TySOP {} -> pure ty0
+  TyBuiltinRep {} -> pure ty0
 
 -- | Get all the direct child 'Kind's of the given 'Type'.
 typeSubkinds :: Traversal' (Type tyname uni ann) (Kind ann)
@@ -95,6 +98,7 @@ typeSubkinds f ty0 = case ty0 of
   TyBuiltin {} -> pure ty0
   TyVar {} -> pure ty0
   TySOP {} -> pure ty0
+  TyBuiltinRep {} -> pure ty0
 {-# INLINE typeSubkinds #-}
 
 -- | Get all the direct child 'Type's of the given 'Type'.
@@ -106,6 +110,7 @@ typeSubtypes f ty0 = case ty0 of
   TyLam ann tn k ty -> TyLam ann tn k <$> f ty
   TyApp ann ty1 ty2 -> TyApp ann <$> f ty1 <*> f ty2
   TySOP ann tyls -> TySOP ann <$> (traverse . traverse) f tyls
+  TyBuiltinRep ann rep result -> TyBuiltinRep ann rep <$> f result
   TyBuiltin {} -> pure ty0
   TyVar {} -> pure ty0
 {-# INLINE typeSubtypes #-}

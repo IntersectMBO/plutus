@@ -1,0 +1,1 @@
+forall matchDataConstrResult. MatchDataConstrRepValue Val (TyVarRep * ('TyNameRep * "matchDataConstrResult" 0)) -> Data -> BuiltinResult (Opaque Val (TyVarRep * ('TyNameRep * "matchDataConstrResult" 0)))

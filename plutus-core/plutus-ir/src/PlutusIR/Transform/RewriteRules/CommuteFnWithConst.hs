@@ -157,4 +157,4 @@ isCommutative = \case
   ScaleValue -> False
   MultiIndexArray -> False
   Policies -> False
-  MatchData -> False
+  MatchDataConstr -> False
