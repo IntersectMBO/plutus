@@ -67,7 +67,7 @@ Data is loaded dynamically from the Plutus repository using the browser's `fetch
 
 2. Add the page to `PAGES` in `shared/utils.js` (slug and display name).
    The navigation bar on every page and the landing page pick it up from
-   there; no other page needs editing.
+   there, so the pages that already exist stay untouched.
 
 3. Edit `myfunction/plot.js`: the constants at the top (`FUNCTION_NAME` as it
    appears in the CSV, `COST_MODEL_NAME` as the key in the JSON, `ARITY`), the
