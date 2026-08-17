@@ -66,6 +66,10 @@ import PlutusCore.Value (Value)
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
+#if MIN_VERSION_some(1,1,0)
+import Data.EqP (EqP (..))
+import Data.GADT.Compare (defaultEq)
+#endif
 import Data.Int
   ( Int16
   , Int32
@@ -203,6 +207,16 @@ instance AllBuiltinArgs DefaultUni (GEqL DefaultUni) a => GEqL DefaultUni a wher
     DefaultUniValue <- pure a2
     pure Refl
   {-# INLINE geqL #-}
+
+#if MIN_VERSION_some(1,1,0)
+-- Since some-1.1, 'EqP' is a superclass of 'GEq', and 'EqP' itself has a
+-- @forall a. Eq (f a)@ superclass.
+instance Eq (DefaultUni a) where
+  (==) = defaultEq
+
+instance EqP DefaultUni where
+  eqp = defaultEq
+#endif
 
 instance GEq DefaultUni where
   -- We define 'geq' manually instead of using 'deriveGEq', because the latter creates a single
