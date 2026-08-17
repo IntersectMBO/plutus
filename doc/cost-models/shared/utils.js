@@ -443,12 +443,14 @@ async function loadData(csvUrl, jsonUrl) {
       fetch(jsonUrl)
     ]);
 
+    // Include status and URL: a stale saved branch (deleted after its PR
+    // merges) is the routine failure here, and the URL is what reveals it.
     if (!csvResponse.ok) {
-      throw new Error(`Failed to load CSV: ${csvResponse.statusText}`);
+      throw new Error(`CSV request returned HTTP ${csvResponse.status} for ${csvUrl}`);
     }
 
     if (!jsonResponse.ok) {
-      throw new Error(`Failed to load JSON: ${jsonResponse.statusText}`);
+      throw new Error(`JSON request returned HTTP ${jsonResponse.status} for ${jsonUrl}`);
     }
 
     const csvText = await csvResponse.text();
