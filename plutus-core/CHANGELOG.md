@@ -1,4 +1,15 @@
 
+<a id='changelog-1.68.0.0'></a>
+# 1.68.0.0 — 2026-08-18
+
+## Changed
+
+- Replaced the placeholder costing of `multiIndexArray` ([CIP-0156](https://cips.cardano.org/cip/CIP-0156)) with a benchmarked cost model: CPU quadratic in the number of indices, memory linear in the length of the result. `multiIndexArray` now fails if given more than 1024 indices, because beyond some size its execution time is not predictable from the index count alone.
+
+- When the PIR inliner calculates the size of a term, it now excludes type and kind nodes.
+  This should approximate the serialized size better, and it also makes the inlining
+  behavior more consistent.
+
 <a id='changelog-1.67.0.0'></a>
 # 1.67.0.0 — 2026-08-06
 

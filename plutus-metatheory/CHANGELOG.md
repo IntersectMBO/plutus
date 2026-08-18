@@ -1,4 +1,14 @@
 
+<a id='changelog-1.68.0.0'></a>
+# 1.68.0.0 — 2026-08-18
+
+## Fixed
+
+- Fixed the Agda metatheory's `cekMachineCostFunction` calling `getCekConstCost` instead of `getCekConstrCost` for the `Constr` case, a copy-paste bug that would silently mis-cost `Constr`-containing terms once a cost-model update sets the two parameters apart.
+
+- Fixed `chooseUnit`'s signature and typed CEK semantics having their arguments reversed (`forall a. a -> unit -> a` instead of the correct `forall a. unit -> a -> a`).
+- Fixed `serialiseData` being an unbound postulate that crashed at runtime with "postulate evaluated" whenever actually called.
+
 <a id='changelog-1.67.0.0'></a>
 # 1.67.0.0 — 2026-08-06
 
