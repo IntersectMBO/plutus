@@ -134,7 +134,7 @@ module PlutusLedgerApi.Data.V4
   , pattern Contexts.TopTxInfo
   , Contexts.topTxInfoSubTransactions
   , Contexts.topTxInfoDatums
-  , Contexts.topTxInfoStartingBalanceIntervals
+  , Contexts.topTxInfoStartingAccountBalanceIntervals
   , Contexts.topTxInfoSimplified
   , Contexts.TopTxInfoSimplified
   , pattern Contexts.TopTxInfoSimplified
@@ -149,6 +149,7 @@ module PlutusLedgerApi.Data.V4
   , Contexts.ttisDirectDeposits
   , Contexts.ttisValidRange
   , Contexts.ttisGuards
+  , Contexts.ttisRequiredTopLevelGuards
   , Contexts.ttisScriptPurposes
   , Contexts.ttisData
   , Contexts.ttisVotes
@@ -239,7 +240,6 @@ module PlutusLedgerApi.Data.V4
   , Contexts.txInfoInputs
   , Contexts.txInfoReferenceInputs
   , Contexts.txInfoOutputs
-  , Contexts.txInfoFee
   , Contexts.txInfoMint
   , Contexts.txInfoTxCerts
   , Contexts.txInfoWithdrawals
