@@ -39,6 +39,7 @@ import Evaluation.Builtins.SignatureVerification
 
 import PlutusCore hiding (Constr)
 import PlutusCore qualified as PLC
+import PlutusCore.Arrays qualified as Arrays (maximumIndexCount)
 import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
@@ -480,6 +481,33 @@ test_BuiltinArray =
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
+    , testCase "multiIndexArray-at-index-limit" do
+        -- Exactly 'maximumIndexCount' indices are accepted: the limit is an inclusive
+        -- maximum.  The array is a singleton so that this varies the number of indices
+        -- and nothing else.
+        let atLimit = Arrays.maximumIndexCount
+            indices = mkConstant @[Integer] @DefaultUni () (replicate atLimit 0)
+            arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [42])
+            expected = mkConstant @[Integer] @DefaultUni () (replicate atLimit 42)
+            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
+        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
+          @?= Right (EvaluationSuccess expected)
+    , testCase "multiIndexArray-over-index-limit-fails" do
+        -- One index past the limit fails even though every index is in bounds, so the
+        -- count is the only thing under test.
+        -- See Note [Index count limitation for multiIndexArray].
+        let overLimit = Arrays.maximumIndexCount + 1
+            indices = mkConstant @[Integer] @DefaultUni () (replicate overLimit 0)
+            arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [42])
+            term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
+        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
+          @?= Right EvaluationFailure
+    , testCase "multiIndexArray-index-limit-value" $
+        -- The two cases above are written against 'maximumIndexCount', so they keep
+        -- testing the boundary wherever it sits.  This one pins the value itself:
+        -- CIP-0156 specifies it and the cost model is fitted over exactly this range,
+        -- so moving it changes on-chain behaviour.
+        Arrays.maximumIndexCount @?= 1024
     ]
 
 test_BuiltinPair :: TestTree
