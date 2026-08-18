@@ -79,6 +79,7 @@ import PlutusLedgerApi.V3.Contexts
 import PlutusLedgerApi.V3.MintValue qualified as V3
 import PlutusLedgerApi.V3.Tx qualified as V3
 import PlutusLedgerApi.V4.Address (AccountId (..), Address (..))
+import PlutusLedgerApi.V4.Time (POSIXTimeRange)
 import PlutusLedgerApi.V4.Tx (TxOut (..))
 import PlutusTx (makeIsDataSchemaIndexed)
 import PlutusTx qualified
@@ -199,7 +200,7 @@ data TxInfo = TxInfo
   , txInfoWithdrawals :: Map AccountId V2.Lovelace
   , txInfoDirectDeposits :: Map AccountId V2.Lovelace
   , txInfoAccountBalanceIntervals :: AccountBalanceIntervals
-  , txInfoValidRange :: V2.POSIXTimeRange
+  , txInfoValidRange :: POSIXTimeRange
   , txInfoGuards :: [V2.Credential]
   , txInfoRequiredTopLevelGuards :: Map V2.Credential (Haskell.Maybe V2.Datum)
   , txInfoRedeemers :: Map ScriptPurpose V2.Redeemer
@@ -247,7 +248,7 @@ data TopTxInfoSimplified = TopTxInfoSimplified
   , ttisTxCerts :: [TxCert]
   , ttisWithdrawals :: Map AccountId V2.Lovelace
   , ttisDirectDeposits :: Map AccountId V2.Lovelace
-  , ttisValidRange :: V2.POSIXTimeRange
+  , ttisValidRange :: POSIXTimeRange
   , ttisGuards :: Map V2.Credential ()
   , ttisScriptPurposes :: Map ScriptPurpose ()
   , ttisData :: Map V2.DatumHash V2.Datum

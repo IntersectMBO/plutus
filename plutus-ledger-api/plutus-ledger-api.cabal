@@ -103,9 +103,11 @@ library
     PlutusLedgerApi.V4.Contexts
     PlutusLedgerApi.V4.Data.Address
     PlutusLedgerApi.V4.Data.Contexts
+    PlutusLedgerApi.V4.Data.Time
     PlutusLedgerApi.V4.Data.Tx
     PlutusLedgerApi.V4.EvaluationContext
     PlutusLedgerApi.V4.ParamName
+    PlutusLedgerApi.V4.Time
     PlutusLedgerApi.V4.Tx
 
   other-modules:

@@ -29,7 +29,17 @@ import Control.Monad.Except (MonadError)
 import Data.Text (Text)
 import Data.Word (Word64)
 
-import Text.Megaparsec (MonadParsec (notFollowedBy), anySingle, choice, many, some, try)
+import Text.Megaparsec
+  ( MonadParsec (notFollowedBy)
+  , anySingle
+  , choice
+  , getOffset
+  , many
+  , region
+  , setErrorOffset
+  , some
+  , try
+  )
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
 -- | A parsable PLC term.
@@ -49,9 +59,9 @@ lamTerm = withSpan $ \sp ->
 
 appTerm :: Parser PTerm
 appTerm = withSpan $ \sp ->
-    inBrackets $
-      setAnn sp <$>
-        (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
+  inBrackets $
+    setAnn sp
+      <$> (mkIterApp <$> term <*> (fmap (getAnn &&& id) <$> some term))
 
 conTerm :: Parser PTerm
 conTerm = withSpan $ \sp ->
@@ -63,9 +73,9 @@ builtinTerm = withSpan $ \sp ->
 
 tyInstTerm :: Parser PTerm
 tyInstTerm = withSpan $ \sp ->
-    inBraces $
-      setAnn sp <$>
-        (mkIterInst <$> term <*> (fmap (getAnn &&& id) <$> many pType))
+  inBraces $
+    setAnn sp
+      <$> (mkIterInst <$> term <*> (fmap (getAnn &&& id) <$> many pType))
 
 unwrapTerm :: Parser PTerm
 unwrapTerm = withSpan $ \sp ->
@@ -84,10 +94,14 @@ constrTerm = withSpan $ \sp ->
   inParens $ do
     let maxTag = fromIntegral (maxBound :: Word64)
     ty <- symbol "constr" *> pType
-    tag :: Integer <- lexeme Lex.decimal
+    tag :: Integer <- Lex.decimal
+    when (tag > maxTag) $ do
+      o <- getOffset
+      region (setErrorOffset (o - 1)) $
+        fail "constr tag too large: must be a legal Word64 value"
+    whitespace
     args <- many term
     whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
-    when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
     pure $ Constr sp ty (fromIntegral tag) args
 
 caseTerm :: Parser PTerm
