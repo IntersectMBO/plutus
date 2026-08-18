@@ -83,10 +83,7 @@ deriving stock instance
 deriving stock instance
   ( Eq (Term tyname name uni fun ann)
   , Eq (Type tyname uni ann)
-  , GEq uni
-  , Closed uni
   , uni `Everywhere` Eq
-  , Eq fun
   , Eq ann
   )
   => Eq (NormCheckError tyname name uni fun ann)
@@ -156,15 +153,15 @@ data Error uni fun ann
   deriving stock (Generic, Functor)
 
 deriving stock instance
-  (Eq fun, Eq ann, Closed uni, Everywhere uni Eq, GEq uni, Eq ParserError)
+  (Eq fun, Eq ann, Closed uni, Everywhere uni Eq, GEq uni)
   => Eq (Error uni fun ann)
 
 deriving anyclass instance
-  (NFData fun, NFData ann, Closed uni, Everywhere uni NFData, NFData ParserError)
+  (NFData fun, NFData ann, Closed uni, Everywhere uni NFData)
   => NFData (Error uni fun ann)
 
 deriving stock instance
-  (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError)
+  (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni)
   => Show (Error uni fun ann)
 
 instance Pretty SourcePos where

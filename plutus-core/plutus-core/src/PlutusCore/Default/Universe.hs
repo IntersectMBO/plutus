@@ -68,7 +68,6 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
 #if MIN_VERSION_some(1,1,0)
 import Data.EqP (EqP (..))
-import Data.GADT.Compare (defaultEq)
 #endif
 import Data.Int
   ( Int16
