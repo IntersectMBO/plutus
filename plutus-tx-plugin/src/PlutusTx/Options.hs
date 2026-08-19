@@ -10,12 +10,14 @@
 
 module PlutusTx.Options where
 
+import PlutusCore.Default qualified as PLC
 import PlutusCore.Error as PLC
 import PlutusCore.Parser as PLC
 import PlutusCore.Quote as PLC
 import PlutusCore.Version qualified as PLC
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Types qualified as PIR
+import PlutusPrelude (def)
 import PlutusTx.Compiler.Types
 import UntypedPlutusCore qualified as UPLC
 
@@ -24,6 +26,7 @@ import Control.Lens
 import Data.Bifunctor (first)
 import Data.Coerce (coerce)
 import Data.Either.Validation
+import Data.Maybe (fromMaybe)
 #if __GLASGOW_HASKELL__ >= 912
 import Data.Foldable (toList)
 #else
@@ -43,6 +46,7 @@ import Type.Reflection
 
 data PluginOptions = PluginOptions
   { _posPlcTargetVersion :: PLC.Version
+  , _posBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant PLC.DefaultFun
   , _posDoTypecheck :: Bool
   , _posDeferErrors :: Bool
   , _posConservativeOpts :: Bool
@@ -173,6 +177,17 @@ pluginOptions =
                   posDatatypes
                   (PIR.DatatypeCompilationOpts PIR.ScottEncoding)
               ]
+          )
+    , let k = "builtin-semantics-variant"
+          desc =
+            "The builtin semantics variant the compiler should target."
+       in ( k
+          , PluginOption
+              typeRep
+              (builtinSemanticsVariantOption k)
+              posBuiltinSemanticsVariant
+              desc
+              []
           )
     , let k = "typecheck"
           desc = "Perform type checking during compilation."
@@ -379,6 +394,34 @@ optionalStringOption _k = \case
   Nothing -> Success $ const (Just "")
   Just v -> Success $ const (Just (Text.unpack v))
 
+semvarTable :: [(OptionValue, PLC.BuiltinSemanticsVariant PLC.DefaultFun)]
+semvarTable =
+  [ (vname v, v)
+  | v <- [minBound .. maxBound]
+  ]
+  where
+    vname =
+      fromMaybe (error "semvarTable")
+        . Text.stripPrefix "DefaultFunSemanticsVariant"
+        . Text.pack
+        . show
+
+builtinSemanticsVariantOption
+  :: OptionKey
+  -> Maybe OptionValue
+  -> Validation
+       ParseError
+       ( PLC.BuiltinSemanticsVariant PLC.DefaultFun
+         -> PLC.BuiltinSemanticsVariant PLC.DefaultFun
+       )
+builtinSemanticsVariantOption k = \case
+  Just v -> case lookup v semvarTable of
+    Just variant -> Success $ const variant
+    Nothing ->
+      Failure . CannotParseValue k v $
+        "expected one of: " <> Text.intercalate ", " (fst <$> semvarTable)
+  Nothing -> Failure $ MissingValue k
+
 plcParserOption :: PLC.Parser a -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
 plcParserOption p k = \case
   Just t -> case PLC.runQuoteT $ PLC.parse p "none" t of
@@ -410,6 +453,7 @@ defaultPluginOptions :: PluginOptions
 defaultPluginOptions =
   PluginOptions
     { _posPlcTargetVersion = PLC.plcVersion110
+    , _posBuiltinSemanticsVariant = def
     , _posDoTypecheck = True
     , _posDeferErrors = False
     , _posConservativeOpts = False

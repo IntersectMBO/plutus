@@ -22,6 +22,7 @@ import PlutusCore.Pretty as PLC
 import PlutusCore.Quote
 import PlutusCore.Version qualified as PLC
 import PlutusIR qualified as PIR
+import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -647,7 +648,8 @@ compileMarkedExpr _locStr codeTy origE = do
           , ccBlackholed = mempty
           , ccCurDef = Nothing
           , ccModBreaks = modBreaks
-          , ccBuiltinsInfo = def
+          , ccBuiltinsInfo =
+              def & set PIR.biSemanticsVariant (_posBuiltinSemanticsVariant opts)
           , ccBuiltinCostModel = def
           , ccDebugTraceOn = _posDumpCompilationTrace opts
           , ccRewriteRules = makeRewriteRules opts
@@ -739,6 +741,7 @@ runCompiler packageName moduleName opts expr = do
           | otherwise -> MayInline
 
   rewriteRules <- asks ccRewriteRules
+  builtinsInfo <- asks ccBuiltinsInfo
 
   -- Compilation configuration
   -- pir's tc-config is based on plc tcconfig
@@ -792,12 +795,14 @@ runCompiler packageName moduleName opts expr = do
             (opts ^. posCaseOfCaseConservative)
           & set (PIR.ccOpts . PIR.coPreserveLogging) (opts ^. posPreserveLogging)
           & set (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle) datatypeStyle
-          -- TODO: ensure the same as the one used in the plugin
-          & set PIR.ccBuiltinsInfo def
+          & set PIR.ccBuiltinsInfo builtinsInfo
           & set PIR.ccBuiltinCostModel def
           & set PIR.ccRewriteRules rewriteRules
       plcOpts =
-        PLC.defaultCompilationOpts
+        (PLC.defaultCompilationOpts :: PLC.CompilationOpts PLC.Name fun (PIR.Provenance Ann))
+          & set
+            PLC.coBuiltinSemanticsVariant
+            (opts ^. posBuiltinSemanticsVariant)
           & set
             (PLC.coOptimizeOpts . UPLC.ooMaxSimplifierIterations)
             (opts ^. posMaxSimplifierIterationsUPlc)
