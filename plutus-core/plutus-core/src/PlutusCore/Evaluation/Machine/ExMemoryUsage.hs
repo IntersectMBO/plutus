@@ -391,6 +391,7 @@ instance ExMemoryUsage Data where
         List l -> CostRose 0 $ sizeData <$> l
         I n -> memoryUsage n
         B b -> memoryUsage b
+        V v -> memoryUsage v
 
 {-| A wrapper for 'Data' whose 'ExMemoryUsage' counts nodes via lazy traversal.
 Used by UnValueData builtin: measures INPUT Data node count.  The actual memory
@@ -407,6 +408,7 @@ instance ExMemoryUsage DataNodeCount where
           List ds -> go <$> ds
           I _ -> []
           B _ -> []
+          V _ -> []
       {-# INLINE go #-}
   {-# INLINE memoryUsage #-}
 

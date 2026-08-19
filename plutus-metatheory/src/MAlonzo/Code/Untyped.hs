@@ -49,7 +49,7 @@ data T__'8866'_14
     C_builtin_44 MAlonzo.Code.Builtin.T_Builtin_2 | C_error_46
 -- Untyped.uglyDATA
 d_uglyDATA_76 ::
-  MAlonzo.Code.Utils.T_DATA_618 ->
+  MAlonzo.Code.Utils.T_DATA_624 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_uglyDATA_76 ~v0 = du_uglyDATA_76
 du_uglyDATA_76 :: MAlonzo.Code.Agda.Builtin.String.T_String_6
@@ -541,7 +541,7 @@ d_decUTm_298 v0 v1
                 MAlonzo.Code.RawU.C_UBuiltin_222 v4
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
-                       (coe MAlonzo.Code.Builtin.d_decBuiltin_460 (coe v3) (coe v4))
+                       (coe MAlonzo.Code.Builtin.d_decBuiltin_456 (coe v3) (coe v4))
                 _ -> coe v2
          MAlonzo.Code.RawU.C_UDelay_224 v3
            -> case coe v1 of

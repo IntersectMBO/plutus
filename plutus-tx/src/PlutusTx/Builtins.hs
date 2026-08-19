@@ -505,9 +505,9 @@ sopListToArray :: (HasToOpaque a arep, MkNil arep) => [a] -> BI.BuiltinArray are
 sopListToArray l = BI.listToArray (toOpaque l)
 {-# INLINEABLE sopListToArray #-}
 
-{-| Given five values for the five different constructors of 'BuiltinData', selects
+{-| Given six values for the six different constructors of 'BuiltinData', selects
 one depending on which corresponds to the actual constructor of the given value. -}
-chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a
+chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a -> a
 chooseData = BI.chooseData
 {-# INLINEABLE chooseData #-}
 
@@ -578,9 +578,10 @@ matchData'
   -> (BI.BuiltinList BuiltinData -> r)
   -> (Integer -> r)
   -> (BuiltinByteString -> r)
+  -> (BI.BuiltinValue -> r)
   -> r
 -- See Note [Making arguments non-strict in case and match functions]
-matchData' d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
+matchData' d ~constrCase ~mapCase ~listCase ~iCase ~bCase ~vCase =
   chooseData
     d
     (\_ -> BI.casePair (BI.unsafeDataAsConstr d) (\l r -> constrCase l r))
@@ -588,10 +589,11 @@ matchData' d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
     (\_ -> listCase (BI.unsafeDataAsList d))
     (\_ -> iCase (unsafeDataAsI d))
     (\_ -> bCase (unsafeDataAsB d))
+    (\_ -> vCase (BI.unsafeDataAsValue d))
     ()
 {-# INLINEABLE matchData' #-}
 
-{-| Given a 'BuiltinData' value and matching functions for the five constructors,
+{-| Given a 'BuiltinData' value and matching functions for the six constructors,
 applies the appropriate matcher to the arguments of the constructor and returns the result. -}
 matchData
   :: BuiltinData
@@ -600,9 +602,10 @@ matchData
   -> ([BuiltinData] -> r)
   -> (Integer -> r)
   -> (BuiltinByteString -> r)
+  -> (BI.BuiltinValue -> r)
   -> r
 -- See Note [Making arguments non-strict in case and match functions]
-matchData d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
+matchData d ~constrCase ~mapCase ~listCase ~iCase ~bCase ~vCase =
   matchData'
     d
     (\i ds -> constrCase i (fromOpaque ds))
@@ -610,6 +613,7 @@ matchData d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
     (\ds -> listCase (fromOpaque ds))
     iCase
     bCase
+    vCase
 {-# INLINEABLE matchData #-}
 
 -- G1 --

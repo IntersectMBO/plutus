@@ -203,6 +203,7 @@ library
     PlutusCore.TypeCheck.Internal
     PlutusCore.Unroll
     PlutusCore.Value
+    PlutusCore.Value.Internal
     PlutusCore.Version
     PlutusPrelude
     Prettyprinter.Custom

@@ -58,10 +58,10 @@ test_builtinsDon'tThrow =
                 (display fun)
                 (fromString $ display fun)
                 ( mapTestLimitAtLeast 99 (`div` 50) $
-                    prop_builtinEvaluation runtimes fun gen f
+                    prop_builtinEvaluation runtimes fun (gen semvar) f
                 )
   where
-    gen bn = Gen.choice [genArgsWellTyped def bn, genArgsArbitrary def bn]
+    gen semvar bn = Gen.choice [genArgsWellTyped semvar bn, genArgsArbitrary semvar bn]
     f bn args = \case
       Left e -> do
         annotate "Builtin function evaluation failed"

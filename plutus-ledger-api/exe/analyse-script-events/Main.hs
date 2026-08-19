@@ -297,6 +297,8 @@ getDataInfo d =
              in foldr go (foldr go i' a) b
             where
               i' = i & numMnodes +~ 1 & maxMlen %~ max (ilen l)
+          -- FIXME (value in data): handle Values here.
+          Data.V _ -> i
       getDepth = \case
         I _ -> 1
         B _ -> 1
@@ -305,6 +307,7 @@ getDataInfo d =
         Map l ->
           let (a, b) = unzip l
            in 1 + max (depthList a) (depthList b)
+        Data.V _ -> 1
       depthList = foldl (\n a -> max n (getDepth a)) 0
       totalNodes = sum $ info ^.. (numInodes <> numBnodes <> numLnodes <> numCnodes <> numMnodes)
    in info & memUsage .~ memU d & numNodes .~ totalNodes & depth .~ getDepth d

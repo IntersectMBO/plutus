@@ -22,6 +22,7 @@ instance PlutusTx.IsData.Class.FromData Plugin.Data.Spec.MyMonoRecord where
       constrFun_0
       (GHC.Internal.Base.const GHC.Internal.Maybe.Nothing)
       (GHC.Internal.Base.const GHC.Internal.Maybe.Nothing)
+      (GHC.Internal.Base.const GHC.Internal.Maybe.Nothing)
 instance PlutusTx.IsData.Class.UnsafeFromData Plugin.Data.Spec.MyMonoRecord where
   {-# INLINABLE PlutusTx.IsData.Class.unsafeFromBuiltinData #-}
   PlutusTx.IsData.Class.unsafeFromBuiltinData

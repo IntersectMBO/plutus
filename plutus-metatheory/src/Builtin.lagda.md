@@ -316,7 +316,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature lengthOfArray                   = ∀a [ array a ]⟶ integer ↑
     signature listToArray                     = ∀a [ list a ]⟶ array a
     signature indexArray                      = ∀a [ array a , integer ↑ ]⟶ a ↑
-    signature chooseData                      = ∀A [ pdata ↑ , A , A , A , A , A ]⟶ A
+    signature chooseData                      = ∀A [ pdata ↑ , A , A , A , A , A , A ]⟶ A
     signature constrData                      = ∙ [ integer ↑ , list pdata ]⟶ pdata ↑
     signature mapData                         = ∙ [ list (bpair pdata pdata) ]⟶ pdata ↑
     signature listData                        = ∙ [ list pdata ]⟶ pdata ↑
@@ -529,8 +529,6 @@ postulate
   unionVALUE                  : Value → Value → Maybe Value
   valueCONTAINS               : Value → Value → Maybe Bool
   scaleVALUE                  : Int → Value → Maybe Value
-  valueDATA                   : Value → Maybe DATA
-  unValueDATA                 : DATA → Maybe Value
   BLS12-381-G1-add            : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-neg            : Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-scalarMul      : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
@@ -654,8 +652,6 @@ postulate
 {-# COMPILE GHC unionVALUE = \v1 v2 -> builtinResultToMaybe $ Value.unionValue v1 v2 #-}
 {-# COMPILE GHC valueCONTAINS = \v1 v2 -> builtinResultToMaybe $ Value.valueContains v1 v2 #-}
 {-# COMPILE GHC scaleVALUE = \n v -> builtinResultToMaybe $ Value.scaleValue n v #-}
-{-# COMPILE GHC valueDATA = \v -> builtinResultToMaybe $ Value.valueData v #-}
-{-# COMPILE GHC unValueDATA = \d -> builtinResultToMaybe $ Value.unValueData d #-}
 
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G1 qualified as G1 #-}
 {-# COMPILE GHC BLS12-381-G1-add = G1.add #-}
@@ -748,7 +744,7 @@ enumBuiltin-injective b1 b2 b1≡b2 = primTrustMe
 decBuiltin : DecidableEquality Builtin
 decBuiltin b1 b2 with (enumBuiltin b1) Data.Nat.≟ (enumBuiltin b2)
 ... | yes p = yes (enumBuiltin-injective b1 b2 p)
-... | no np = no λ x → np (cong enumBuiltin x) 
+... | no np = no λ x → np (cong enumBuiltin x)
 
 ```
 

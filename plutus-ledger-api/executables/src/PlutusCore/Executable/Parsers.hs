@@ -592,6 +592,7 @@ builtinSemanticsVariantTable =
   , ("C", DefaultFunSemanticsVariantC)
   , ("D", DefaultFunSemanticsVariantD)
   , ("E", DefaultFunSemanticsVariantE)
+  , ("F", DefaultFunSemanticsVariantF)
   ]
 
 builtinSemanticsVariantReader :: String -> Maybe (BuiltinSemanticsVariant DefaultFun)

@@ -44,7 +44,7 @@ import Data.Text qualified as Text
 import Data.Text.Encoding (decodeUtf8)
 import PlutusCore
 import PlutusCore.Builtin (typeOfBuiltinFunction)
-import PlutusCore.Data
+import PlutusCore.Data as Data
 import PlutusCore.Default
 import PlutusCore.Generators.NEAT.Common
 import Text.Printf
@@ -118,7 +118,16 @@ data TermConstantG
   | TmDataG Data
   deriving stock (Show, Eq)
 
-deriveEnumerable ''Data
+-- FIXME (value in data): implement Enumerable Value
+instance Enumerable Data where
+  enumerate =
+    datatype
+      [ c2 Data.Constr
+      , c1 Map
+      , c1 List
+      , c1 I
+      , c1 B
+      ]
 
 deriveEnumerable ''TermConstantG
 

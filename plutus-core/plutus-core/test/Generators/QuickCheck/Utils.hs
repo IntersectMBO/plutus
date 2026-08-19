@@ -8,9 +8,9 @@ import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Utils
 
+import Test.Cardano.Base.QuickCheck qualified as BaseQC
 import Test.Tasty
 import Test.Tasty.QuickCheck
-import qualified Test.Cardano.Base.QuickCheck as BaseQC
 
 {-| Test that both 'multiSplit1' and 'multiSplit0' produce a list such that 'concat'ing it gives
 back the input. -}
@@ -42,6 +42,7 @@ countIandBs = go 0
     go acc (List ds) = foldl' go acc ds
     go acc (I _) = acc + 1
     go acc (B _) = acc + 1
+    go acc (V _) = acc
 
 {-| Test the number of 'I' and 'B' nodes in a 'Data' generated from a @spine :: [()]@ equals the
 length of the spine. Ensures that the 'Data' generator is not exponential in 'B' and 'I' nodes

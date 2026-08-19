@@ -5,4 +5,5 @@ data ->
    (list data -> r) ->
    (integer -> r) ->
    (bytestring -> r) ->
+   (value -> r) ->
    r)

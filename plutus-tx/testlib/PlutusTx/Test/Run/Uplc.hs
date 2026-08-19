@@ -15,6 +15,7 @@ import Data.Either.Extras (fromRightM)
 import Data.Text (Text)
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusCore qualified as PLC
+import PlutusCore.Default (BuiltinSemanticsVariant)
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Test (ToUPlc (..))
@@ -63,18 +64,19 @@ runPlcCekTrace value = do
 
 runPlcCekBudget
   :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
-  => a
+  => BuiltinSemanticsVariant PLC.DefaultFun
+  -> a
   -> ExceptT
        SomeException
        IO
        (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun (), PLC.ExBudget)
-runPlcCekBudget val = do
+runPlcCekBudget semvar val = do
   term <- toUPlc val
   fromRightM (throwError . SomeException) $ do
     let
       (evalRes, UPLC.CountingSt budget) =
         UPLC.runCekNoEmit
-          PLC.defaultCekParametersForTesting
+          (PLC.defaultCekParametersForVariant semvar)
           UPLC.counting
           (term ^. UPLC.progTerm)
     (,budget) <$> evalRes

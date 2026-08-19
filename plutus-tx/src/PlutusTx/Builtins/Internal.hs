@@ -572,13 +572,14 @@ dataToBuiltinData = BuiltinData
 {-# OPAQUE dataToBuiltinData #-}
 
 -- | Branches out depending on the structure of given data and never fails.
-chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a
-chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
+chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a -> a
+chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase vCase = case d of
   PLC.Constr {} -> constrCase
   PLC.Map {} -> mapCase
   PLC.List {} -> listCase
   PLC.I {} -> iCase
   PLC.B {} -> bCase
+  PLC.V {} -> vCase
 {-# OPAQUE chooseData #-}
 
 -- | Creates 'Constr' data value with the given index and elements; never fails.
@@ -1145,22 +1146,15 @@ valueContains (BuiltinValue v1) (BuiltinValue v2) =
 {-# OPAQUE valueContains #-}
 
 mkValue :: BuiltinValue -> BuiltinData
-mkValue (BuiltinValue v) =
-  case Value.valueData v of
-    BuiltinSuccess d -> BuiltinData d
-    BuiltinSuccessWithLogs logs d -> traceAll logs (BuiltinData d)
-    BuiltinFailure logs err ->
-      traceAll (logs <> pure (display err)) $ Haskell.error "mkValue failed."
+mkValue (BuiltinValue v) = BuiltinData (PLC.V v)
 {-# OPAQUE mkValue #-}
 
 unsafeDataAsValue :: BuiltinData -> BuiltinValue
-unsafeDataAsValue (BuiltinData d) =
-  case Value.unValueData d of
-    BuiltinSuccess v -> BuiltinValue v
-    BuiltinSuccessWithLogs logs v -> traceAll logs (BuiltinValue v)
-    BuiltinFailure logs err ->
-      traceAll (logs <> pure (display err)) $
-        Haskell.error "Data to Value conversion errored."
+unsafeDataAsValue (BuiltinData d) = case d of
+  PLC.V v -> BuiltinValue v
+  _ ->
+    Haskell.error
+      "unsafeDataAsValue: expected the V constructor but got a different one"
 {-# OPAQUE unsafeDataAsValue #-}
 
 scaleValue :: Integer -> BuiltinValue -> BuiltinValue

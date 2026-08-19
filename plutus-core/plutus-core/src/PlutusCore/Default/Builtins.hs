@@ -1082,6 +1082,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     | DefaultFunSemanticsVariantC
     | DefaultFunSemanticsVariantD
     | DefaultFunSemanticsVariantE
+    | DefaultFunSemanticsVariantF
     deriving stock (Eq, Ord, Enum, Bounded, Show, Generic)
     deriving anyclass (NFData, NoThunks)
 
@@ -1302,6 +1303,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantC -> consByteStringMeaning_V2
           DefaultFunSemanticsVariantD -> consByteStringMeaning_V1
           DefaultFunSemanticsVariantE -> consByteStringMeaning_V2
+          DefaultFunSemanticsVariantF -> consByteStringMeaning_V2
   toBuiltinMeaning semvar SliceByteString
     | ensurable semvar =
         let sliceByteStringD :: Int -> Int -> CByteString -> BS.ByteString
@@ -1528,6 +1530,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantC -> appendStringMeaning_V1
           DefaultFunSemanticsVariantD -> appendStringMeaning_V2
           DefaultFunSemanticsVariantE -> appendStringMeaning_V2
+          DefaultFunSemanticsVariantF -> appendStringMeaning_V2
   -- See Note [Builtin semantics variants]
   toBuiltinMeaning semvar EqualsString =
     let costingFun
@@ -1555,6 +1558,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantC -> equalsStringMeaning_V1
           DefaultFunSemanticsVariantD -> equalsStringMeaning_V2
           DefaultFunSemanticsVariantE -> equalsStringMeaning_V2
+          DefaultFunSemanticsVariantF -> equalsStringMeaning_V2
   -- See Note [Builtin semantics variants]
   toBuiltinMeaning semvar EncodeUtf8 =
     let costingFun
@@ -1581,6 +1585,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantC -> encodeUtf8Meaning_V1
           DefaultFunSemanticsVariantD -> encodeUtf8Meaning_V2
           DefaultFunSemanticsVariantE -> encodeUtf8Meaning_V2
+          DefaultFunSemanticsVariantF -> encodeUtf8Meaning_V2
   toBuiltinMeaning semvar DecodeUtf8
     | ensurable semvar =
         let decodeUtf8D :: CByteString -> BuiltinResult Text
@@ -1725,19 +1730,59 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           nullListDenotation
           (runCostingFunOneArgument . paramNullList)
   -- Data
-  toBuiltinMeaning _semvar ChooseData =
-    let chooseDataDenotation :: Data -> a -> a -> a -> a -> a -> a
-        chooseDataDenotation d xConstr xMap xList xI xB =
-          case d of
-            Constr {} -> xConstr
-            Map {} -> xMap
-            List {} -> xList
-            I {} -> xI
-            B {} -> xB
-        {-# INLINE chooseDataDenotation #-}
-     in makeBuiltinMeaning
-          chooseDataDenotation
-          (runCostingFunSixArguments . paramChooseData)
+  toBuiltinMeaning semvar ChooseData =
+    let
+      costingFun
+        :: ( ExMemoryUsage a1
+           , ExMemoryUsage a2
+           , ExMemoryUsage a3
+           , ExMemoryUsage a4
+           , ExMemoryUsage a5
+           , ExMemoryUsage a6
+           )
+        => BuiltinCostModel -> a1 -> a2 -> a3 -> a4 -> a5 -> a6 -> ExBudgetStream
+      costingFun = runCostingFunSixArguments . paramChooseData
+      {-# INLINE costingFun #-}
+      chooseDataMeaning_V1 :: BuiltinMeaning val BuiltinCostModel
+      chooseDataMeaning_V1 =
+        let chooseDataDenotation :: Data -> a -> a -> a -> a -> a -> BuiltinResult a
+            chooseDataDenotation d xConstr xMap xList xI xB =
+              case d of
+                Constr {} -> pure xConstr
+                Map {} -> pure xMap
+                List {} -> pure xList
+                I {} -> pure xI
+                B {} -> pure xB
+                V {} -> fail "The V constructor is not supported in this semantics variant"
+            {-# INLINE chooseDataDenotation #-}
+         in makeBuiltinMeaning
+              chooseDataDenotation
+              costingFun
+      chooseDataMeaning_V2 :: BuiltinMeaning val BuiltinCostModel
+      chooseDataMeaning_V2 =
+        let chooseDataDenotation :: Data -> a -> a -> a -> a -> a -> a -> a
+            chooseDataDenotation d xConstr xMap xList xI xB xV =
+              case d of
+                Constr {} -> xConstr
+                Map {} -> xMap
+                List {} -> xList
+                I {} -> xI
+                B {} -> xB
+                V {} -> xV
+            {-# INLINE chooseDataDenotation #-}
+         in makeBuiltinMeaning
+              chooseDataDenotation
+              -- FIXME (value in data): simply ignoring the last argument for now.
+              -- We should probably make a proper `runCostingFunSixArguments`.
+              ((((((const .) .) .) .) .) . costingFun)
+     in
+      case semvar of
+        DefaultFunSemanticsVariantA -> chooseDataMeaning_V1
+        DefaultFunSemanticsVariantB -> chooseDataMeaning_V1
+        DefaultFunSemanticsVariantC -> chooseDataMeaning_V1
+        DefaultFunSemanticsVariantD -> chooseDataMeaning_V1
+        DefaultFunSemanticsVariantE -> chooseDataMeaning_V1
+        DefaultFunSemanticsVariantF -> chooseDataMeaning_V2
   toBuiltinMeaning semvar ConstrData
     | ensurable semvar =
         let constrDataD :: Word64 -> [Data] -> Data
@@ -2454,20 +2499,57 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           valueContainsDenotation
           (runCostingFunTwoArguments . paramValueContains)
-  toBuiltinMeaning _semvar ValueData =
-    let valueDataDenotation :: ValueTotalSize -> BuiltinResult Data
-        valueDataDenotation (ValueTotalSize v) = Value.valueData v
-        {-# INLINE valueDataDenotation #-}
-     in makeBuiltinMeaning
-          valueDataDenotation
-          (runCostingFunOneArgument . paramValueData)
-  toBuiltinMeaning _semvar UnValueData =
-    let unValueDataDenotation :: DataNodeCount -> BuiltinResult Value
-        unValueDataDenotation (DataNodeCount d) = Value.unValueData d
-        {-# INLINE unValueDataDenotation #-}
-     in makeBuiltinMeaning
-          unValueDataDenotation
-          (runCostingFunOneArgument . paramUnValueData)
+  toBuiltinMeaning semvar ValueData =
+    let
+      valueDataMeaning_V1 =
+        let valueDataDenotation :: ValueTotalSize -> BuiltinResult Data
+            valueDataDenotation (ValueTotalSize v) = Value.valueData v
+            {-# INLINE valueDataDenotation #-}
+         in makeBuiltinMeaning
+              valueDataDenotation
+              (runCostingFunOneArgument . paramValueData)
+      valueDataMeaning_V2 =
+        let valueDataDenotation :: Value -> Data
+            valueDataDenotation = V
+            {-# INLINE valueDataDenotation #-}
+         in makeBuiltinMeaning
+              valueDataDenotation
+              (runCostingFunOneArgument . paramValueData)
+     in
+      case semvar of
+        DefaultFunSemanticsVariantA -> valueDataMeaning_V1
+        DefaultFunSemanticsVariantB -> valueDataMeaning_V1
+        DefaultFunSemanticsVariantC -> valueDataMeaning_V1
+        DefaultFunSemanticsVariantD -> valueDataMeaning_V1
+        DefaultFunSemanticsVariantE -> valueDataMeaning_V1
+        DefaultFunSemanticsVariantF -> valueDataMeaning_V2
+  toBuiltinMeaning semvar UnValueData =
+    let
+      unValueDataMeaning_V1 =
+        let unValueDataDenotation :: DataNodeCount -> BuiltinResult Value
+            unValueDataDenotation (DataNodeCount d) = Value.unValueData d
+            {-# INLINE unValueDataDenotation #-}
+         in makeBuiltinMeaning
+              unValueDataDenotation
+              (runCostingFunOneArgument . paramUnValueData)
+      unValueDataMeaning_V2 =
+        let unValueDataDenotation :: DataNodeCount -> BuiltinResult Value
+            unValueDataDenotation (DataNodeCount d) =
+              case d of
+                V v -> pure v
+                _ -> fail "Expected the V constructor but got a different one"
+            {-# INLINE unValueDataDenotation #-}
+         in makeBuiltinMeaning
+              unValueDataDenotation
+              (runCostingFunOneArgument . paramUnValueData)
+     in
+      case semvar of
+        DefaultFunSemanticsVariantA -> unValueDataMeaning_V1
+        DefaultFunSemanticsVariantB -> unValueDataMeaning_V1
+        DefaultFunSemanticsVariantC -> unValueDataMeaning_V1
+        DefaultFunSemanticsVariantD -> unValueDataMeaning_V1
+        DefaultFunSemanticsVariantE -> unValueDataMeaning_V1
+        DefaultFunSemanticsVariantF -> unValueDataMeaning_V2
   toBuiltinMeaning _semvar ScaleValue =
     let scaleValueDenotation :: Integer -> ValueTotalSize -> BuiltinResult Value
         scaleValueDenotation scalar (ValueTotalSize v) = Value.scaleValue scalar v
@@ -2756,9 +2838,12 @@ instance Flat DefaultFun where
 
 ensurable :: BuiltinSemanticsVariant DefaultFun -> Bool
 ensurable = \case
+  DefaultFunSemanticsVariantA -> False
+  DefaultFunSemanticsVariantB -> False
+  DefaultFunSemanticsVariantC -> False
   DefaultFunSemanticsVariantD -> True
   DefaultFunSemanticsVariantE -> True
-  _ -> False
+  DefaultFunSemanticsVariantF -> True
 {-# INLINE ensurable #-}
 
 {- Note [Legacy pattern matching on built-in types]

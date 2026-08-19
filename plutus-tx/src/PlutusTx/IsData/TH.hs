@@ -194,6 +194,7 @@ fromDataClause indexedCons = do
                 (const Nothing)
                 (const Nothing)
                 (const Nothing)
+                (const Nothing)
           |]
   TH.clause [TH.varP dName] (TH.normalB body) []
 
@@ -224,6 +225,7 @@ fromDataListClause
                   (const $ const Nothing)
                   (const Nothing)
                   constrFun
+                  (const Nothing)
                   (const Nothing)
                   (const Nothing)
             |]

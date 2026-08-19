@@ -17,6 +17,7 @@ import PlutusCore.Default
 import PlutusCore.MkPlc
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
+import PlutusCore.Value (Value)
 
 import PlutusCore.StdLib.Data.Integer
 import PlutusCore.StdLib.Data.Pair
@@ -45,6 +46,7 @@ dataTy = mkTyBuiltin @_ @Data ()
 >               (\(u : unit) -> fList (unListB d))
 >               (\(u : unit) -> fI (unIB d))
 >               (\(u : unit) -> fB (unBB d))
+>               (\(u : unit) -> fValue (unValueB d))
 >               unitval -}
 matchData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
 matchData = runQuote $ do
@@ -54,11 +56,13 @@ matchData = runQuote $ do
   fList <- freshName "fList"
   fI <- freshName "fI"
   fB <- freshName "fB"
+  fV <- freshName "fV"
   d <- freshName "d"
   u <- freshName "u"
   let listData = mkTyBuiltin @_ @[Data] ()
       listPairData = mkTyBuiltin @_ @[(Data, Data)] ()
       bytestring = mkTyBuiltin @_ @ByteString ()
+      value = mkTyBuiltin @_ @Value ()
   return
     . lamAbs () d dataTy
     . tyAbs () r (Type ())
@@ -67,6 +71,7 @@ matchData = runQuote $ do
     . lamAbs () fList (TyFun () listData $ TyVar () r)
     . lamAbs () fI (TyFun () integer $ TyVar () r)
     . lamAbs () fB (TyFun () bytestring $ TyVar () r)
+    . lamAbs () fV (TyFun () value $ TyVar () r)
     $ mkIterAppNoAnn
       (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
       [ var () d
@@ -91,6 +96,10 @@ matchData = runQuote $ do
       , lamAbs () u unit
           . apply () (var () fB)
           . apply () (builtin () UnBData)
+          $ var () d
+      , lamAbs () u unit
+          . apply () (var () fV)
+          . apply () (builtin () UnValueData)
           $ var () d
       , unitval
       ]

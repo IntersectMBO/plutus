@@ -3,5 +3,6 @@
 (list data -> data) ->
 (integer -> data) ->
 (bytestring -> data) ->
+(value -> data) ->
 data ->
 data

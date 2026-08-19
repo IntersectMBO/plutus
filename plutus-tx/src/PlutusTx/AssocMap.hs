@@ -123,6 +123,7 @@ instance (FromData k, FromData v) => FromData (Map k v) where
       (const Nothing)
       (const Nothing)
       (const Nothing)
+      (const Nothing)
     where
       {-# INLINE traverseFromBuiltin #-}
       traverseFromBuiltin

@@ -16,7 +16,7 @@ module PlutusCore.FlatInstances
 
 import Codec.Extras.FlatViaSerialise
 import PlutusCore.Core
-import PlutusCore.Data (Data)
+import PlutusCore.Data (Data, DataWithValues (..))
 import PlutusCore.DeBruijn
 import PlutusCore.Name.Unique
 
@@ -123,7 +123,7 @@ encodeConstant = safeEncodeBits constantWidth
 decodeConstant :: Get Word8
 decodeConstant = dBEBits8 constantWidth
 
-deriving via FlatViaSerialise Data instance Flat Data
+deriving via FlatViaSerialise DataWithValues instance Flat Data
 
 decodeKindedUniFlat :: Closed uni => Get (SomeTypeIn (Kinded uni))
 decodeKindedUniFlat =

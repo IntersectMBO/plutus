@@ -34,6 +34,7 @@ import PlutusTx.Traversable qualified as Tx
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Quote qualified as PLC
+import PlutusCore.Value qualified as PLCValue
 import UntypedPlutusCore qualified as PLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as PLC
 
@@ -270,19 +271,34 @@ test_EqValue =
       , test_EqCurrencyList "Long" currencyLongListOptions
       ]
 
+toBuiltinValue :: Value -> BI.BuiltinValue
+toBuiltinValue value =
+  case PLCValue.unValueData (BI.builtinDataToData (Tx.toBuiltinData value)) of
+    PLC.BuiltinSuccess v -> BI.BuiltinValue v
+    PLC.BuiltinSuccessWithLogs _ v -> BI.BuiltinValue v
+    PLC.BuiltinFailure _ err -> Haskell.error ("toBuiltinValue: " Haskell.++ Haskell.show err)
+
+builtinValueToLists :: PLCValue.Value -> [(CurrencySymbol, [(TokenName, Integer)])]
+builtinValueToLists v =
+  [ ( currencySymbol (PLCValue.unK c)
+    , [(tokenName (PLCValue.unK t), PLCValue.unQuantity q) | (t, q) <- tokens]
+    )
+  | (c, tokens) <- PLCValue.toList v
+  ]
+
 -- | Compiled non-builtin 'valueOf', evaluated on CEK by the property test.
 compiledValueOf :: CompiledCode (Value -> CurrencySymbol -> TokenName -> Integer)
 compiledValueOf = plinthc valueOf
 
-{-| Compiled builtin lookup: @\\bd cs tn -> lookupCoin cs tn (unsafeDataAsValue bd)@.
+{-| Compiled builtin lookup: @\\v cs tn -> lookupCoin cs tn v@.
 Used as the independent oracle in the differential property test for 'valueOf'. -}
 compiledBuiltinLookup
-  :: CompiledCode (BI.BuiltinData -> BI.BuiltinByteString -> BI.BuiltinByteString -> Integer)
+  :: CompiledCode (BI.BuiltinValue -> BI.BuiltinByteString -> BI.BuiltinByteString -> Integer)
 compiledBuiltinLookup =
-  plinthc (\bd c t -> B.lookupCoin c t (B.unsafeDataAsValue bd))
+  plinthc (\v c t -> B.lookupCoin c t v)
 
-{-| Check that the non-builtin 'valueOf' agrees with the builtin lookup path
-('unsafeDataAsValue' + 'lookupCoin') when both are evaluated on the CEK machine. -}
+{-| Check that the non-builtin 'valueOf' agrees with the builtin 'lookupCoin' when both are
+evaluated on the CEK machine. -}
 test_valueOf :: TestTree
 test_valueOf =
   testProperty "non-builtin valueOf matches builtin lookupCoin on CEK" \rawValue ->
@@ -315,7 +331,7 @@ test_valueOf =
                 evalResult
                   . evaluateCompiledCode
                   $ compiledBuiltinLookup
-                  `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+                  `unsafeApplyCode` liftCodeDef (toBuiltinValue value)
                   `unsafeApplyCode` liftCodeDef (unCurrencySymbol cs)
                   `unsafeApplyCode` liftCodeDef (unTokenName tn)
            in nonBuiltin === builtin
@@ -328,17 +344,12 @@ compiledUnionWith = plinthc \bd1 bd2 ->
 
 {-| Independent oracle: the builtin union path. Shares no source with 'compiledUnionWith', so a
 bug in one cannot hide behind the same bug in the other. -}
-compiledBuiltinUnion :: CompiledCode (BI.BuiltinData -> BI.BuiltinData -> BI.BuiltinData)
-compiledBuiltinUnion = plinthc \bd1 bd2 ->
-  B.mkValue (B.unionValue (B.unsafeDataAsValue bd1) (B.unsafeDataAsValue bd2))
+compiledBuiltinUnion :: CompiledCode (BI.BuiltinValue -> BI.BuiltinValue -> BI.BuiltinValue)
+compiledBuiltinUnion = plinthc \v1 v2 -> B.unionValue v1 v2
 
--- | Evaluate a compiled union on CEK and decode its result.
-runUnionCode
-  :: CompiledCode (BI.BuiltinData -> BI.BuiltinData -> BI.BuiltinData)
-  -> Value
-  -> Value
-  -> Value
-runUnionCode code value1 value2 =
+-- | Evaluate the compiled non-builtin union on CEK and decode its result.
+runUnionCode :: Value -> Value -> Value
+runUnionCode value1 value2 =
   Tx.unsafeFromBuiltinData
     . BI.dataToBuiltinData
     . either Haskell.throw id
@@ -346,9 +357,25 @@ runUnionCode code value1 value2 =
     >>= PLC.readKnownSelf
   where
     prog =
-      code
+      compiledUnionWith
         `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value1)
         `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value2)
+    (errOrRes, _cost) =
+      PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
+        . PLC.runQuote
+        . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
+        . PLC._progTerm
+        $ getPlc prog
+
+-- | Evaluate the compiled builtin union on CEK and decode its result.
+runBuiltinUnionCode :: Value -> Value -> PLCValue.Value
+runBuiltinUnionCode value1 value2 =
+  either Haskell.throw id $ errOrRes >>= PLC.readKnownSelf
+  where
+    prog =
+      compiledBuiltinUnion
+        `unsafeApplyCode` liftCodeDef (toBuiltinValue value1)
+        `unsafeApplyCode` liftCodeDef (toBuiltinValue value2)
     (errOrRes, _cost) =
       PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
         . PLC.runQuote
@@ -364,11 +391,12 @@ test_unionWith =
         v2 = normalise rawValue2
         -- Compare semantically: key order and zero-sum entries differ between the paths but
         -- carry no meaning, so canonicalise before '==='.
-        canon code = normaliseLists . valueToLists $ runUnionCode code v1 v2
-     in canon compiledUnionWith === canon compiledBuiltinUnion
+        nonBuiltin = normaliseLists . valueToLists $ runUnionCode v1 v2
+        builtin = normaliseLists . builtinValueToLists $ runBuiltinUnionCode v1 v2
+     in nonBuiltin === builtin
 
-{-| Restrict an arbitrary 'Value' to the well-formed domain 'unsafeDataAsValue' accepts: the
-builtin errors on unsorted keys, zero quantities, or empty token maps. -}
+{-| Restrict an arbitrary 'Value' to the well-formed domain 'toBuiltinValue' accepts: the
+conversion errors on unsorted keys, zero quantities, or empty token maps. -}
 normaliseLists
   :: [(CurrencySymbol, [(TokenName, Integer)])] -> [(CurrencySymbol, [(TokenName, Integer)])]
 normaliseLists =
@@ -379,9 +407,9 @@ normaliseLists =
 normalise :: Value -> Value
 normalise = listsToValue . normaliseLists . valueToLists
 
--- | Compiled builtin path: @\\bd -> policies (unsafeDataAsValue bd)@.
-compiledPolicies :: CompiledCode (BI.BuiltinData -> BI.BuiltinList BI.BuiltinByteString)
-compiledPolicies = plinthc (\bd -> B.policies (B.unsafeDataAsValue bd))
+-- Compiled builtin path: @\\v -> policies v@.
+compiledPolicies :: CompiledCode (BI.BuiltinValue -> BI.BuiltinList BI.BuiltinByteString)
+compiledPolicies = plinthc (\v -> B.policies v)
 
 -- | The builtin @policies@ must return the Value's currency symbols in ascending order.
 test_policies :: TestTree
@@ -394,7 +422,7 @@ test_policies =
     runPoliciesCode :: Value -> [BS.ByteString]
     runPoliciesCode value = either Haskell.throw id $ errOrRes >>= PLC.readKnownSelf
       where
-        prog = compiledPolicies `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+        prog = compiledPolicies `unsafeApplyCode` liftCodeDef (toBuiltinValue value)
         (errOrRes, _cost) =
           PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
             . PLC.runQuote

@@ -257,7 +257,16 @@ deconstructData3 = plinthc (\(d :: Builtins.BuiltinData) -> (Builtins.unsafeData
 matchData1 :: CompiledCode (Builtins.BuiltinData -> Maybe Integer)
 matchData1 =
   plinthc
-    ( \(d :: Builtins.BuiltinData) -> (Builtins.matchData d (\_ _ -> Nothing) (const Nothing) (const Nothing) (Just) (const Nothing))
+    ( \(d :: Builtins.BuiltinData) ->
+        ( Builtins.matchData
+            d
+            (\_ _ -> Nothing)
+            (const Nothing)
+            (const Nothing)
+            (Just)
+            (const Nothing)
+            (const Nothing)
+        )
     )
 
 writeBitsIntegerToByteString :: CompiledCode (P.BuiltinByteString)

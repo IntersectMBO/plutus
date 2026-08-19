@@ -26,6 +26,7 @@ module PlutusTx.Test.Golden
   , goldenEvalCek
   , goldenEvalCekCatch
   , goldenEvalCekCatchBudget
+  , goldenEvalCekCatchBudgetForVariant
   , goldenEvalCekLog
 
     -- * Combined testing
@@ -42,11 +43,13 @@ import Prelude
 import Control.Lens (Field1 (_1), view)
 import Control.Monad.Except (runExceptT)
 import Data.Char (isAlphaNum, isDigit)
+import Data.Default (def)
 import Data.List qualified as List
 import Data.SatInt (fromSatInt)
 import Data.Text (Text)
 import Language.Haskell.TH qualified as TH
 import PlutusCore qualified as PLC
+import PlutusCore.Default (BuiltinSemanticsVariant)
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Flat (Flat)
@@ -225,10 +228,11 @@ goldenEvalCekCatch name value =
     either (pretty . show) prettyPlcClassicSimple
       <$> runExceptT (runPlcCek value)
 
-goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
-goldenEvalCekCatchBudget name compiledCode =
+goldenEvalCekCatchBudgetForVariant
+  :: BuiltinSemanticsVariant PLC.DefaultFun -> TestName -> CompiledCode a -> TestNested
+goldenEvalCekCatchBudgetForVariant semvar name compiledCode =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ do
-    (termRes, budget) <- runPlcCekBudget compiledCode
+    (termRes, budget) <- runPlcCekBudget semvar compiledCode
     let contents =
           vsep
             [ prettyBudget budget
@@ -237,6 +241,9 @@ goldenEvalCekCatchBudget name compiledCode =
             , prettyPlcClassicSimple termRes
             ]
     pure (render @Text contents)
+
+goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
+goldenEvalCekCatchBudget = goldenEvalCekCatchBudgetForVariant def
 
 goldenEvalCekLog
   :: ToUPlc a PLC.DefaultUni PLC.DefaultFun

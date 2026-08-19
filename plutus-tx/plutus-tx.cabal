@@ -190,6 +190,7 @@ library plutus-tx-testlib
   build-depends:
     , base                             >=4.9   && <5
     , bytestring
+    , data-default
     , hedgehog
     , lens
     , mtl
