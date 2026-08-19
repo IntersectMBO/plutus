@@ -18,12 +18,14 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
 import qualified MAlonzo.RTE
 import qualified Data.Text
 import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.Nat
 import qualified MAlonzo.Code.Agda.Builtin.Sigma
 import qualified MAlonzo.Code.Builtin.Integer.Base
 import qualified MAlonzo.Code.Data.Integer.Base
 import qualified MAlonzo.Code.Data.Integer.Properties
 import qualified MAlonzo.Code.Data.Maybe.Base
 import qualified MAlonzo.Code.Data.Maybe.Effectful
+import qualified MAlonzo.Code.Data.Nat.Base
 import qualified MAlonzo.Code.Effect.Applicative
 import qualified MAlonzo.Code.Effect.Functor
 import qualified MAlonzo.Code.Effect.Monad
@@ -278,7 +280,11 @@ d_minBound_56
       MAlonzo.Code.Data.Integer.Base.d_'45'__260
       (coe
          MAlonzo.Code.Data.Integer.Base.d__'94'__322 (coe (2 :: Integer))
-         (coe (262143 :: Integer)))
+         (coe
+            MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22
+            (MAlonzo.Code.Data.Nat.Base.d__'94'__276
+               (coe (2 :: Integer)) (coe (18 :: Integer)))
+            (1 :: Integer)))
 -- Builtin.CInteger.maxBound
 d_maxBound_58 :: Integer
 d_maxBound_58
@@ -286,7 +292,11 @@ d_maxBound_58
       MAlonzo.Code.Data.Integer.Base.d__'45'__302
       (coe
          MAlonzo.Code.Data.Integer.Base.d__'94'__322 (coe (2 :: Integer))
-         (coe (262143 :: Integer)))
+         (coe
+            MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22
+            (MAlonzo.Code.Data.Nat.Base.d__'94'__276
+               (coe (2 :: Integer)) (coe (18 :: Integer)))
+            (1 :: Integer)))
       (coe (1 :: Integer))
 -- Builtin.CInteger.CInteger
 d_CInteger_60 = ()
@@ -334,7 +344,7 @@ d_quot_84 v0 v1
         -> case coe v1 of
              C_cInt_64 v5 v6 v7
                -> coe
-                    MAlonzo.Code.Builtin.Integer.Base.d_quotMaybe_86 (coe v2) (coe v5)
+                    MAlonzo.Code.Builtin.Integer.Base.d_quotMaybe_94 (coe v2) (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.CInteger.rem
@@ -345,7 +355,7 @@ d_rem_90 v0 v1
         -> case coe v1 of
              C_cInt_64 v5 v6 v7
                -> coe
-                    MAlonzo.Code.Builtin.Integer.Base.d_remMaybe_112 (coe v2) (coe v5)
+                    MAlonzo.Code.Builtin.Integer.Base.d_remMaybe_120 (coe v2) (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.CInteger.divMod
@@ -358,7 +368,7 @@ d_divMod_96 v0 v1
         -> case coe v1 of
              C_cInt_64 v5 v6 v7
                -> coe
-                    MAlonzo.Code.Builtin.Integer.Base.d_divModMaybe_138 (coe v2)
+                    MAlonzo.Code.Builtin.Integer.Base.d_divModMaybe_146 (coe v2)
                     (coe v5)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError

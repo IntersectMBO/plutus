@@ -41,7 +41,7 @@ The `div` and `mod` functions are based on Haskell's `div` and `mod`,
 via the same fixup as `integerDivMod#`. This implements floored division.
 
 ```
-divModFixup : ℤ → ℤ → ℤ → ℤ × ℤ
+divModFixup : (q r d : ℤ) → .{{_ : NonZero d}} → ℤ × ℤ
 -- r > 0, d < 0
 divModFixup q r@(+[1+ _ ]) d@(-[1+ _ ]) = (pred q , r + d)
 -- r < 0, d > 0

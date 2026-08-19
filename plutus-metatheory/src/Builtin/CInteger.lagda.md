@@ -15,7 +15,7 @@ module Builtin.CInteger where
 open import Data.Integer.Properties using (_<?_; _≤?_)
 open import Relation.Nullary using (isYes)
 open import Data.Integer.Base
-open import Data.Nat.Base as ℕ using (ℕ)
+open import Data.Nat.Base as ℕ using (ℕ;_∸_)
 open import Data.Sign.Base as S using (Sign)
 open import Data.Product.Base using (_×_; _,_; proj₁; proj₂)
 open import Data.Maybe using (Maybe; just; nothing; map)
@@ -40,9 +40,9 @@ The inputs to `equalsInteger` are of the unrestricted `ℤ` type. The `expModInt
 
 ```
 minBound : ℤ
-minBound = - ((+ 2) ^ 262143)
+minBound = - ((+ 2) ^ (2 ℕ.^ 18 ∸ 1))
 maxBound : ℤ
-maxBound = ((+ 2) ^ 262143) - (+ 1)
+maxBound = ((+ 2) ^ (2 ℕ.^ 18 ∸ 1)) - (+ 1)
 
 data CInteger : Set where
   cInt
