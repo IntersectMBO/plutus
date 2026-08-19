@@ -544,6 +544,7 @@ main =
         $(genTest 1 "lengthOfArray")
       , $(genTest 1 "listToArray")
       , $(genTest 2 "indexArray") Everywhere
+      , $(genTest 2 "multiIndexArray") Everywhere
       , -- BLS MSM
         $(genTest 2 "bls12_381_G1_multiScalarMul") Everywhere
       , $(genTest 2 "bls12_381_G2_multiScalarMul") Everywhere
@@ -556,6 +557,5 @@ main =
       , -- FIXME: the test for unValueData fails. This may be because of a rounding error in the top coefficient.
         -- , $(genTest 1 "unValueData")
         $(genTest 2 "scaleValue") Everywhere
-      , -- Arrays (batch 7)
-        $(genTest 2 "multiIndexArray") Everywhere
+      , $(genTest 1 "assetCount")
       ]

@@ -21,7 +21,16 @@ import Data.Map.Strict qualified as Map
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore
-  ( DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData)
+  ( DefaultFun
+      ( AssetCount
+      , InsertCoin
+      , LookupCoin
+      , ScaleValue
+      , UnValueData
+      , UnionValue
+      , ValueContains
+      , ValueData
+      )
   )
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 
@@ -57,6 +66,7 @@ makeBenchmarks gen =
   , insertCoinBenchmark gen
   , unionValueBenchmark gen
   , scaleValueBenchmark gen
+  , assetCountBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -367,6 +377,18 @@ scaleValueArgs gen = replicateM 200 $ do
       amt = mkQuantity 2
       value = buildValue policyIds [tokenName] amt
   pure (scalar, value)
+
+----------------------------------------------------------------------------------------------------
+-- AssetCount --------------------------------------------------------------------------------------
+
+-- | `assetCount` reads a field `Value` already maintains, so the cost is constant.
+assetCountBenchmark :: StdGen -> Benchmark
+assetCountBenchmark gen =
+  createOneTermBuiltinBenchWithWrapper
+    ValueTotalSize
+    AssetCount
+    []
+    (generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
