@@ -3,6 +3,10 @@ letrec
     Nil : List a
     Cons : a -> List a -> List a
 in
+let
+  data Unit | Unit_match where
+    Unit : Unit
+in
 letrec
   !go : integer -> List data -> data
     = \(ds : integer) (ds : List data) ->
@@ -10,7 +14,7 @@ letrec
           {data}
           ds
           {all dead. data}
-          (/\dead -> let !x : unit = trace {unit} "PT7" () in error {data})
+          (/\dead -> let !x : Unit = trace {Unit} "PT7" Unit in error {data})
           (\(x : data) (xs : List data) ->
              /\dead ->
                case

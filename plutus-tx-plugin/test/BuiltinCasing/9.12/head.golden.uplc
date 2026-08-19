@@ -1,1 +1,1 @@
-(program 1.1.0 (\xs -> case xs [(\x xs ds -> x), (\ds -> error)] ()))
+(program 1.1.0 (\xs -> case xs [(\x xs ds -> x), (\ds -> error)] (constr 0 [])))

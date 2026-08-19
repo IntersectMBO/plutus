@@ -1,14 +1,16 @@
 let
+  data Unit | Unit_match where
+    Unit : Unit
   !mkCons : all a. a -> list a -> list a = mkCons
   !mkConstr : integer -> list data -> data = constrData
   !mkNilData : unit -> list data = mkNilData
   !unitval : unit = ()
-  ~`$bFirstC` : unit -> data
-    = \(arg0_ : unit) ->
+  ~`$bFirstC` : Unit -> data
+    = \(arg0_ : Unit) ->
         mkConstr
           0
           (mkCons {data} (mkConstr 0 (mkNilData unitval)) (mkNilData unitval))
-  ~fail : unit -> data = \(ds : unit) -> `$bFirstC` ()
+  ~fail : unit -> data = \(ds : unit) -> `$bFirstC` Unit
   !mkI : integer -> data = iData
   ~`$bSecondC` : integer -> data
     = \(arg0_ : integer) ->

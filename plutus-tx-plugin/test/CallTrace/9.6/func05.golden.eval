@@ -6,4 +6,4 @@ Trace:
 -> func (test/CallTrace/Spec.hs:83:1-83:4)
 -> $cmyClassFunc (test/CallTrace/Spec.hs:106:3-106:13)
 -> functionFromOtherModule (test/CallTrace/Spec.hs:100:1-100:23)
--> errorWhenTrue (test/CallTrace/OtherModule.hs:10:1-10:13)
+-> errorWhenTrue

@@ -558,7 +558,7 @@ mkDestructor di cname cons = do
 
       (,)
         <$> [|
-          caseData $(TH.varE dName) $branches
+          AI.wrapCaseData $(TH.varE dName) $branches
           |]
         <*> pure kNames
 

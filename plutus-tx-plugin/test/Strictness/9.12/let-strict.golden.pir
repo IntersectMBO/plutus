@@ -1,3 +1,7 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+in
 \(m : integer) ->
   case
     (all dead. integer)

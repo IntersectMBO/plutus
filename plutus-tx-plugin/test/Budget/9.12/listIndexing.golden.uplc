@@ -6,7 +6,7 @@
             (\s ds ds ->
                case
                  ds
-                 [ ((\x -> error) (forced "PT7" ()))
+                 [ ((\x -> error) (forced "PT7" (constr 0 [])))
                  , (\x xs ->
                       case
                         (equalsInteger 0 ds)

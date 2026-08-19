@@ -1,7 +1,9 @@
 let
   ~defaultBody : integer = (/\e -> error {e}) {integer}
+  data Unit | Unit_match where
+    Unit : Unit
   ~defaultBody : integer
-    = case integer ((/\e -> error {e}) {unit}) [defaultBody]
+    = Unit_match ((/\e -> error {e}) {Unit}) {integer} defaultBody
   data MyMonoData | MyMonoData_match where
     Mono : integer -> integer -> MyMonoData
     Mono : integer -> MyMonoData
