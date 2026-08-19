@@ -534,7 +534,9 @@ private
     q * d + r
     ∎
 
-divModFixup-law : (q r d : ℤ) → proj₁ (divModFixup q r d) * d + proj₂ (divModFixup q r d) ≡ q * d + r
+divModFixup-law
+  : (q r d : ℤ) .{{_ : NonZero d}}
+  → proj₁ (divModFixup q r d) * d + proj₂ (divModFixup q r d) ≡ q * d + r
 divModFixup-law q +0         d          = refl
 divModFixup-law q +[1+ _ ]   (+ _)      = refl
 divModFixup-law q +[1+ _ ]   (-[1+ _ ]) = predFixup q _ _
@@ -570,7 +572,7 @@ counterpart.
 private
 
   divModFixup-neg
-    : (q r d : ℤ) .{{_ : NonZero d}}
+    : (q r d : ℤ) .{{_ : NonZero d}} .{{_ : NonZero (- d)}}
     → divModFixup q (- r) (- d)
     ≡ (proj₁ (divModFixup q r d) , - proj₂ (divModFixup q r d))
   divModFixup-neg q +0         +[1+ n ] = refl
