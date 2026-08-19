@@ -534,15 +534,15 @@ d_emb_240 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
   MAlonzo.Code.Declarative.T__'8866'__110
 d_emb_240 v0 v1 v2 v3
   = case coe v3 of
-      MAlonzo.Code.Algorithmic.C_'96'_184 v5
+      MAlonzo.Code.Algorithmic.C_'96'_190 v5
         -> coe
              MAlonzo.Code.Declarative.C_'96'_114
              (coe du_embVar_22 (coe v0) (coe v1) (coe v5))
-      MAlonzo.Code.Algorithmic.C_ƛ_190 v6
+      MAlonzo.Code.Algorithmic.C_ƛ_196 v6
         -> case coe v2 of
              MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v8 v9
                -> coe
@@ -551,7 +551,7 @@ d_emb_240 v0 v1 v2 v3
                        (coe v0) (coe MAlonzo.Code.Algorithmic.C__'44'__12 v1 v8) (coe v9)
                        (coe v6))
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.Algorithmic.C__'183'__196 v4 v6 v7
+      MAlonzo.Code.Algorithmic.C__'183'__202 v4 v6 v7
         -> coe
              MAlonzo.Code.Declarative.C__'183'__118
              (MAlonzo.Code.Type.BetaNormal.d_embNf_128
@@ -560,7 +560,7 @@ d_emb_240 v0 v1 v2 v3
                 (coe v0) (coe v1)
                 (coe MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v4 v2) (coe v6))
              (d_emb_240 (coe v0) (coe v1) (coe v4) (coe v7))
-      MAlonzo.Code.Algorithmic.C_Λ_202 v6
+      MAlonzo.Code.Algorithmic.C_Λ_208 v6
         -> case coe v2 of
              MAlonzo.Code.Type.BetaNormal.C_Π_14 v8 v9
                -> coe
@@ -570,7 +570,7 @@ d_emb_240 v0 v1 v2 v3
                        (coe MAlonzo.Code.Algorithmic.C__'44''8902'__8 v1) (coe v9)
                        (coe v6))
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.Algorithmic.C__'183''8902'_'47'__212 v4 v6 v7 v8
+      MAlonzo.Code.Algorithmic.C__'183''8902'_'47'__218 v4 v6 v7 v8
         -> coe
              MAlonzo.Code.Declarative.C_conv_156
              (MAlonzo.Code.Type.RenamingSubstitution.d__'91'_'93'_432
@@ -595,7 +595,7 @@ d_emb_240 v0 v1 v2 v3
                 (coe
                    MAlonzo.Code.Type.BetaNormal.d_embNf_128 (coe v0) (coe v4)
                    (coe v8)))
-      MAlonzo.Code.Algorithmic.C_wrap_220 v7
+      MAlonzo.Code.Algorithmic.C_wrap_226 v7
         -> case coe v2 of
              MAlonzo.Code.Type.BetaNormal.C_μ_24 v9 v10 v11
                -> coe
@@ -715,7 +715,7 @@ d_emb_240 v0 v1 v2 v3
                                    (coe v0) (coe v9) (coe v11))))
                           (coe v7)))
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.Algorithmic.C_unwrap_230 v4 v6 v7 v8
+      MAlonzo.Code.Algorithmic.C_unwrap_236 v4 v6 v7 v8
         -> coe
              MAlonzo.Code.Declarative.C_conv_156
              (coe
@@ -771,7 +771,7 @@ d_emb_240 v0 v1 v2 v3
                 (d_emb_240
                    (coe v0) (coe v1)
                    (coe MAlonzo.Code.Type.BetaNormal.C_μ_24 v4 v6 v7) (coe v8)))
-      MAlonzo.Code.Algorithmic.C_constr_240 v5 v7 v9
+      MAlonzo.Code.Algorithmic.C_constr_246 v5 v7 v9
         -> case coe v2 of
              MAlonzo.Code.Type.BetaNormal.C_SOP_28 v11 v12
                -> coe
@@ -784,7 +784,7 @@ d_emb_240 v0 v1 v2 v3
                        (coe MAlonzo.Code.Data.Vec.Base.du_lookup_82 (coe v12) (coe v5))
                        (coe v9))
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.Algorithmic.C_case_252 v4 v5 v7 v8
+      MAlonzo.Code.Algorithmic.C_case_258 v4 v5 v7 v8
         -> coe
              MAlonzo.Code.Declarative.C_case_154 v4
              (coe
@@ -795,20 +795,20 @@ d_emb_240 v0 v1 v2 v3
                 (coe v7))
              (coe
                 du_emb'45'Cases_282 (coe v0) (coe v1) (coe v2) (coe v5) (coe v8))
-      MAlonzo.Code.Algorithmic.C_con_258 v4 v6
+      MAlonzo.Code.Algorithmic.C_con_264 v4 v6
         -> coe
              MAlonzo.Code.Declarative.C_con_162
              (MAlonzo.Code.Type.BetaNormal.d_embNf_128
                 (coe MAlonzo.Code.Type.C_'8709'_4)
                 (coe MAlonzo.Code.Utils.C_'9839'_786) (coe v4))
              v6 (d_subNf'8709''45'sub'8709''45'lem_210 (coe v0) (coe v4))
-      MAlonzo.Code.Algorithmic.C_builtin_'47'__264 v5
+      MAlonzo.Code.Algorithmic.C_builtin_'47'__270 v5
         -> coe
              MAlonzo.Code.Declarative.C_conv_156
              (MAlonzo.Code.Declarative.d_btype_42 (coe v0) (coe v5))
              (d_btype'45'lem'8801'β_224 (coe v0) (coe v5))
              (coe MAlonzo.Code.Declarative.C_builtin_166 (coe v5))
-      MAlonzo.Code.Algorithmic.C_error_268
+      MAlonzo.Code.Algorithmic.C_error_274
         -> coe MAlonzo.Code.Declarative.C_error_170
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Algorithmic.Soundness.emb-ConstrArgs
@@ -844,7 +844,7 @@ d_emb'45'Cases_282 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   Integer ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
-  MAlonzo.Code.Algorithmic.T_Cases_172 ->
+  MAlonzo.Code.Algorithmic.T_Cases_178 ->
   MAlonzo.Code.Declarative.T_Cases_104
 d_emb'45'Cases_282 v0 v1 v2 ~v3 v4 v5
   = du_emb'45'Cases_282 v0 v1 v2 v4 v5
@@ -853,20 +853,20 @@ du_emb'45'Cases_282 ::
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
-  MAlonzo.Code.Algorithmic.T_Cases_172 ->
+  MAlonzo.Code.Algorithmic.T_Cases_178 ->
   MAlonzo.Code.Declarative.T_Cases_104
 du_emb'45'Cases_282 v0 v1 v2 v3 v4
   = case coe v4 of
-      MAlonzo.Code.Algorithmic.C_'91''93'_278
+      MAlonzo.Code.Algorithmic.C_'91''93'_284
         -> coe MAlonzo.Code.Declarative.C_'91''93'_180
-      MAlonzo.Code.Algorithmic.C__'8759'__290 v8 v9
+      MAlonzo.Code.Algorithmic.C__'8759'__296 v8 v9
         -> case coe v3 of
              MAlonzo.Code.Data.Vec.Base.C__'8759'__38 v11 v12
                -> coe
                     MAlonzo.Code.Declarative.C__'8759'__192
                     (d_emb_240
                        (coe v0) (coe v1)
-                       (coe MAlonzo.Code.Algorithmic.du_mkCaseType_156 v2 v11) (coe v8))
+                       (coe MAlonzo.Code.Algorithmic.du_mkCaseType_162 v2 v11) (coe v8))
                     (coe
                        du_emb'45'Cases_282 (coe v0) (coe v1) (coe v2) (coe v12) (coe v9))
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -876,7 +876,7 @@ d_soundnessT_354 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
   MAlonzo.Code.Declarative.T__'8866'__110
 d_soundnessT_354 v0 v1 v2
   = coe d_emb_240 (coe v0) (coe v1) (coe v2)

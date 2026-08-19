@@ -36,7 +36,7 @@ prop_div_mod_compatible (biginteger -> a) (NonZero (biginteger -> b)) =
   let t = addInteger (multiplyInteger b (divideInteger a b)) (modInteger a b)
    in evalOkEq t a
 
--- (k*b) `div` b = b and (k*b) `mod` b = 0 for all k
+-- (k*b) `div` b = k and (k*b) `mod` b = 0 for all k
 prop_div_mod_multiple :: BigInteger -> NonZero BigInteger -> Property
 prop_div_mod_multiple (biginteger -> k) (NonZero (biginteger -> b)) =
   let t1 = divideInteger (multiplyInteger k b) b

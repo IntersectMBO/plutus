@@ -31,8 +31,8 @@ d_lem'45''183''8902'_28 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
@@ -56,8 +56,8 @@ d_lem'45'unwrap_54 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__184 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->

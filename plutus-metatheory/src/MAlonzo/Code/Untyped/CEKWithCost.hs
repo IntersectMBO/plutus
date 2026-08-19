@@ -334,7 +334,7 @@ du_stepC_70 v0 v1
                        MAlonzo.Code.Utils.C__'44'__388
                        (coe
                           MAlonzo.Code.Untyped.CEK.C__'9669'__224 (coe v3)
-                          (coe MAlonzo.Code.Untyped.CEK.d_ival_1104 (coe v6)))
+                          (coe MAlonzo.Code.Untyped.CEK.d_ival_1164 (coe v6)))
                        (coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))
              MAlonzo.Code.Untyped.C_error_46
                -> coe
@@ -412,7 +412,7 @@ du_stepC_70 v0 v1
                                             (coe
                                                MAlonzo.Code.Utils.du_either_22
                                                (coe
-                                                  MAlonzo.Code.Untyped.CEK.d_BUILTIN_278 v7
+                                                  MAlonzo.Code.Untyped.CEK.d_BUILTIN_294 v7
                                                   (coe MAlonzo.Code.Untyped.CEK.C_app_106 v13 v3))
                                                (coe
                                                   (\ v14 ->
@@ -535,12 +535,12 @@ du_stepC_70 v0 v1
                                      (coe
                                         MAlonzo.Code.Untyped.CEK.C__'894'_'9659'__222 (coe v6)
                                         (coe
-                                           MAlonzo.Code.Untyped.CEK.d_pushValueFrames_1108 (coe v4)
+                                           MAlonzo.Code.Untyped.CEK.d_pushValueFrames_1168 (coe v4)
                                            (coe v10))
                                         (coe v7))
                                      (coe MAlonzo.Code.Untyped.CEK.C_'9670'_228)
                                      (coe
-                                        MAlonzo.Code.Untyped.CEK.du_lookup'63'_1120 (coe v9)
+                                        MAlonzo.Code.Untyped.CEK.du_lookup'63'_1180 (coe v9)
                                         (coe v8)))
                                   (coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0))
                            MAlonzo.Code.Untyped.CEK.C_V'45'I'8658'_74 v9 v10 v11 v12 v13 v14 v15
