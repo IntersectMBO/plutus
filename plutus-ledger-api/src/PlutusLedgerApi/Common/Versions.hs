@@ -97,6 +97,8 @@ data PlutusLedgerLanguage
     PlutusV2
   | -- | introduced in Chang HF
     PlutusV3
+  | -- | introduced in Dijkstra HF
+    PlutusV4
   deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
   deriving anyclass (NFData, NoThunks, Serialise)
 
@@ -109,6 +111,7 @@ ledgerLanguageIntroducedIn = \case
   PlutusV1 -> alonzoPV
   PlutusV2 -> vasilPV
   PlutusV3 -> changPV
+  PlutusV4 -> dijkstraPV
 
 {-| Which Plutus language versions are available in the given
 'MajorProtocolVersion'?  See Note [New builtins/language versions and protocol
@@ -338,6 +341,14 @@ builtinsIntroducedIn =
         , (vanRossemPV, Set.fromList batch6)
         , (futurePV, Set.fromList batch7)
         ]
+    PlutusV4 ->
+      Map.fromList
+        [
+          ( dijkstraPV
+          , Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6)
+          )
+        , (futurePV, Set.fromList batch7)
+        ]
 
 {-| Return a set containing the builtins which are available in a given LL in a
 given PV.  All builtins are available in all LLs from `vanRossemPV` onwards. -}
@@ -364,6 +375,10 @@ plcVersionsIntroducedIn =
     PlutusV3 ->
       Map.fromList
         [ (changPV, Set.fromList [plcVersion100, plcVersion110])
+        ]
+    PlutusV4 ->
+      Map.fromList
+        [ (dijkstraPV, Set.fromList [plcVersion100, plcVersion110])
         ]
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'

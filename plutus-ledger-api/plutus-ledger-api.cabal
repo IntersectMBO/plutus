@@ -105,6 +105,8 @@ library
     PlutusLedgerApi.V4.Data.Contexts
     PlutusLedgerApi.V4.Data.Time
     PlutusLedgerApi.V4.Data.Tx
+    PlutusLedgerApi.V4.EvaluationContext
+    PlutusLedgerApi.V4.ParamName
     PlutusLedgerApi.V4.Time
     PlutusLedgerApi.V4.Tx
 
@@ -192,6 +194,8 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.V3.Data.MintValue
     PlutusLedgerApi.Test.V3.EvaluationContext
     PlutusLedgerApi.Test.V3.MintValue
+    PlutusLedgerApi.Test.V4.Data.EvaluationContext
+    PlutusLedgerApi.Test.V4.EvaluationContext
 
   build-depends:
     , barbies

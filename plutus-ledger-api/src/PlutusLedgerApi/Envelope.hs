@@ -71,6 +71,7 @@ compiledCodeEnvelopeForVersion lang desc code =
         PlutusV1 -> "PlutusScriptV1"
         PlutusV2 -> "PlutusScriptV2"
         PlutusV3 -> "PlutusScriptV3"
+        PlutusV4 -> "PlutusScriptV4"
 
     hex = decodeUtf8 (Base16.encode (BS.fromShort (serialiseCompiledCode code)))
 

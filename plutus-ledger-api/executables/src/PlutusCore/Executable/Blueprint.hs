@@ -64,6 +64,7 @@ readPlutusVersion = \case
   "v1" -> PlutusV1
   "v2" -> PlutusV2
   "v3" -> PlutusV3
+  "v4" -> PlutusV4
   other -> error $ "Unknown plutusVersion in blueprint: " <> T.unpack other
 
 getPlutusVersion :: Value -> PlutusLedgerLanguage

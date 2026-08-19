@@ -11,7 +11,9 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.Data.V1 qualified as V1
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.Data.V3 qualified as V3
+import PlutusLedgerApi.Data.V4 qualified as V4
 import PlutusLedgerApi.Test.V3.Data.EvaluationContext qualified as V3
+import PlutusLedgerApi.Test.V4.Data.EvaluationContext qualified as V4
 
 import Control.Monad.Except (runExcept)
 import Control.Monad.Writer.Strict (WriterT (runWriterT))
@@ -42,6 +44,7 @@ tests =
         337 @=? length v1_ParamNames
         337 @=? length v2_ParamNames
         355 @=? length v3_ParamNames
+        355 @=? length v4_ParamNames
     , embed $ testCase "tripping paramname" do
         for_ v1_ParamNames \p ->
           assertBool "tripping v1 cm params failed" $
@@ -51,6 +54,9 @@ tests =
             Just p == readParamName (showParamName p)
         for_ v3_ParamNames \p ->
           assertBool "tripping v3 cm params failed" $
+            Just p == readParamName (showParamName p)
+        for_ v4_ParamNames \p ->
+          assertBool "tripping v4 cm params failed" $
             Just p == readParamName (showParamName p)
     , -- \*** FIXME (https://github.com/IntersectMBO/plutus-private/issues/1612) !!! *** :
       -- The introduction of the new bitwise builtins has
@@ -81,6 +87,21 @@ tests =
           $ runWriterT
           $ V3.mkEvaluationContext
           $ costValuesForTesting ++ [1] -- dummy param value appended
+    , embed $ testCase "context length (v4)" do
+        let costValuesForTesting = fmap snd V4.costModelParamsForTesting
+        assertBool "wrong number of arguments in V4.mkEvaluationContext" $
+          isRight $
+            runExcept $
+              runWriterT $
+                V4.mkEvaluationContext costValuesForTesting
+        assertBool "larger number of params did not warn"
+          $ hasWarnMoreParams
+            (length v4_ParamNames)
+            (1 + length v4_ParamNames)
+          $ runExcept
+          $ runWriterT
+          $ V4.mkEvaluationContext
+          $ costValuesForTesting ++ [1] -- dummy param value appended
     , embed $ testCase "cost model parameters" do
         -- From PV11, the v1 and v2 parameter names are identical; before PV11
         -- the v1 parameter names were a subset of the v2 ones.
@@ -95,6 +116,8 @@ tests =
         assertBool "v2 params and v3 params are comparable" $
           not (v2_ParamNames `paramSubset` v3_ParamNames)
             && not (v3_ParamNames `paramSubset` v2_ParamNames)
+        assertBool "v3 params is not equal to v4 params" $
+          v3_ParamNames `paramEqual` v4_ParamNames
     , -- Fail if new cost model parameters names aren't appended to the end
       nestedGoldenVsTextPredM
         "costModelParamNames"
@@ -120,3 +143,4 @@ tests =
     v1_ParamNames = enumerate @V1.ParamName
     v2_ParamNames = enumerate @V2.ParamName
     v3_ParamNames = enumerate @V3.ParamName
+    v4_ParamNames = enumerate @V4.ParamName

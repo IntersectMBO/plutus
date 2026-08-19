@@ -12,6 +12,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
   , changPV
   , plominPV
   , vanRossemPV
+  , dijkstraPV
   , newestPV
   , knownPVs
   , futurePV
@@ -85,6 +86,10 @@ plominPV = MajorProtocolVersion 10
 vanRossemPV :: MajorProtocolVersion
 vanRossemPV = MajorProtocolVersion 11
 
+-- | The Dijkstra HF will introduce the Dijkstra era and Plutus V4.
+dijkstraPV :: MajorProtocolVersion
+dijkstraPV = MajorProtocolVersion 12
+
 {-| The set of protocol versions that are "known", i.e. that have been released
 and have actual differences associated with them.  This is currently only
 used for testing, so efficiency is not parmount and a list is fine. -}
@@ -99,6 +104,7 @@ knownPVs =
   , changPV
   , plominPV
   , vanRossemPV
+  , dijkstraPV
   ]
 
 -- We're sometimes in an intermediate state where we've added new builtins but
@@ -106,7 +112,7 @@ knownPVs =
 -- decide what PVs the test should include.  UPDATE THIS when we're expecting to
 -- release new builtins in a forthcoming PV.
 newestPV :: MajorProtocolVersion
-newestPV = vanRossemPV
+newestPV = dijkstraPV
 
 {-| This is a placeholder for when we don't yet know what protocol version will
   be used for something. It's a very high protocol version that should never
@@ -127,7 +133,8 @@ Here's a table specifying the mapping in full:
 ll
 1       A           B          D
 2       A           B          D
-3       C           C          E
+3       -           C          E
+4       -           -          E? (TBD)
 
 I.e. for example
 

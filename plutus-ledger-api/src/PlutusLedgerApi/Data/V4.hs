@@ -2,8 +2,44 @@
 
 -- | The data-backed type interface to Plutus V4 for the ledger.
 module PlutusLedgerApi.Data.V4
-  ( -- * Accounts
-    Contexts.AccountId (..)
+  ( -- * Scripts
+    Common.SerialisedScript
+  , Common.ScriptForEvaluation
+  , Common.serialisedScript
+  , Common.deserialisedScript
+  , Common.serialiseCompiledCode
+  , Common.serialiseUPLC
+  , V4SOP.deserialiseScript
+  , Common.uncheckedDeserialiseUPLC
+
+    -- * Running scripts
+  , V4SOP.evaluateScriptRestricting
+  , V4SOP.evaluateScriptCounting
+
+    -- ** Protocol version
+  , Common.MajorProtocolVersion (..)
+
+    -- ** Verbose mode and log output
+  , Common.VerboseMode (..)
+  , Common.LogOutput
+
+    -- * Costing-related types
+  , Common.ExBudget (..)
+  , V2.ExCPU (..)
+  , V2.ExMemory (..)
+  , V2.SatInt (V2.unSatInt)
+  , V2.fromSatInt
+
+    -- ** Cost model
+  , EvaluationContext.EvaluationContext
+  , EvaluationContext.mkEvaluationContext
+  , ParamName.ParamName (..)
+  , EvaluationContext.CostModelApplyError (..)
+  , EvaluationContext.CostModelParams
+  , EvaluationContext.assertWellFormedCostModelParams
+
+    -- * Accounts
+  , Contexts.AccountId (..)
   , Contexts.AccountBalanceInterval
   , pattern Contexts.AccountBalanceLowerBound
   , pattern Contexts.AccountBalanceUpperBound
@@ -98,7 +134,7 @@ module PlutusLedgerApi.Data.V4
   , pattern Contexts.TopTxInfo
   , Contexts.topTxInfoSubTransactions
   , Contexts.topTxInfoDatums
-  , Contexts.topTxInfoStartingBalanceIntervals
+  , Contexts.topTxInfoStartingAccountBalanceIntervals
   , Contexts.topTxInfoSimplified
   , Contexts.TopTxInfoSimplified
   , pattern Contexts.TopTxInfoSimplified
@@ -113,6 +149,7 @@ module PlutusLedgerApi.Data.V4
   , Contexts.ttisDirectDeposits
   , Contexts.ttisValidRange
   , Contexts.ttisGuards
+  , Contexts.ttisRequiredTopLevelGuards
   , Contexts.ttisScriptPurposes
   , Contexts.ttisData
   , Contexts.ttisVotes
@@ -203,7 +240,6 @@ module PlutusLedgerApi.Data.V4
   , Contexts.txInfoInputs
   , Contexts.txInfoReferenceInputs
   , Contexts.txInfoOutputs
-  , Contexts.txInfoFee
   , Contexts.txInfoMint
   , Contexts.txInfoTxCerts
   , Contexts.txInfoWithdrawals
@@ -270,13 +306,21 @@ module PlutusLedgerApi.Data.V4
   , V2.unsafeFromData
   , V2.dataToBuiltinData
   , V2.builtinDataToData
+
+    -- * Errors
+  , Common.MonadError
+  , V2.EvaluationError (..)
+  , V2.ScriptDecodeError (..)
   ) where
 
 import PlutusLedgerApi.Common qualified as Common
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Data.MintValue qualified as MintValue
+import PlutusLedgerApi.V4 qualified as V4SOP
 import PlutusLedgerApi.V4.Data.Address qualified as Address
 import PlutusLedgerApi.V4.Data.Contexts qualified as Contexts
 import PlutusLedgerApi.V4.Data.Time qualified as Time
 import PlutusLedgerApi.V4.Data.Tx qualified as Tx
+import PlutusLedgerApi.V4.EvaluationContext qualified as EvaluationContext
+import PlutusLedgerApi.V4.ParamName qualified as ParamName
 import PlutusTx.Ratio qualified as Ratio
