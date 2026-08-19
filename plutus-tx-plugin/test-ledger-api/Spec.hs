@@ -31,6 +31,8 @@ tests =
     , Spec.Data.Value.test_unionWith
     , Spec.Data.Value.test_policies
     , Spec.Data.Value.test_policiesUplc
+    , Spec.Data.Value.test_assetCount
+    , Spec.Data.Value.test_assetCountUplc
     , Spec.Data.MintValue.V3.tests
     , Spec.Envelope.tests
     , Spec.ReturnUnit.V1.tests

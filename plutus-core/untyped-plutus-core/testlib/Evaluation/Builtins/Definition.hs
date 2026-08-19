@@ -2220,14 +2220,50 @@ test_Policies =
       typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting $
         apply () (builtin () Policies) (mkConstant @Value () v)
     expectedPolicies = Right . EvaluationSuccess . mkConstant @[ByteString] ()
-    unsafeMkValue :: [(ByteString, ByteString, Integer)] -> Value
-    unsafeMkValue = go Value.empty
-      where
-        go acc [] = acc
-        go acc ((c, t, q) : rest) =
-          case Value.insertCoin c t q acc of
-            BuiltinSuccess v -> go v rest
-            _ -> error "unsafeMkValue: insertCoin failed"
+
+-- | Build a `Value` from @(currency, token, quantity)@ triples
+unsafeMkValue :: [(ByteString, ByteString, Integer)] -> Value
+unsafeMkValue = go Value.empty
+  where
+    go acc [] = acc
+    go acc ((c, t, q) : rest) =
+      case Value.insertCoin c t q acc of
+        BuiltinSuccess v -> go v rest
+        _ -> error "unsafeMkValue: insertCoin failed"
+
+-- | Tests for the `assetCount` builtin (CIP-0168).
+test_AssetCount :: TestTree
+test_AssetCount =
+  testGroup
+    "AssetCount"
+    [ testCase "empty Value" do
+        evalAssetCount Value.empty @?= expectedCount 0
+    , testCase "single asset" do
+        evalAssetCount (unsafeMkValue [("currency", "token", 42)]) @?= expectedCount 1
+    , testCase "counts (currency, token) pairs, not policies" do
+        let v =
+              unsafeMkValue
+                [ ("bbb", "t1", 1)
+                , ("", "", 2000000)
+                , ("aaa", "t1", 2)
+                , ("bbb", "t2", 3)
+                ]
+        evalAssetCount v @?= expectedCount 4
+    , testCase "quantities summing to zero drop the entry" do
+        -- 'Value' normalises zero quantities away, so the asset stops being counted.
+        evalAssetCount (unsafeMkValue [("c", "t", 5), ("c", "t", 0)]) @?= expectedCount 0
+    , testCase "many small-quantity single-token policies" do
+        let currencies =
+              [ pack [fromIntegral (i `div` 256), fromIntegral (i `mod` 256)]
+              | i <- [0 .. 999 :: Int]
+              ]
+        evalAssetCount (unsafeMkValue [(c, "t", 1) | c <- currencies]) @?= expectedCount 1000
+    ]
+  where
+    evalAssetCount v =
+      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting $
+        apply () (builtin () AssetCount) (mkConstant @Value () v)
+    expectedCount = Right . EvaluationSuccess . mkConstant @Integer ()
 
 test_definition :: TestTree
 test_definition =
@@ -2275,4 +2311,5 @@ test_definition =
     , test_Bitwise_CIP0123
     , test_Case
     , test_Policies
+    , test_AssetCount
     ]

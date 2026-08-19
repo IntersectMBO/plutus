@@ -7,6 +7,7 @@ Parsable functions are  [ addInteger
                         , andByteString
                         , appendByteString
                         , appendString
+                        , assetCount
                         , bData
                         , blake2b_224
                         , blake2b_256
