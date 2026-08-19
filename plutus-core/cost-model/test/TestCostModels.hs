@@ -558,4 +558,6 @@ main =
         $(genTest 2 "scaleValue") Everywhere
       , -- Arrays (batch 7)
         $(genTest 2 "multiIndexArray") Everywhere
+      , -- Values (batch 7)
+        $(genTest 1 "policies")
       ]

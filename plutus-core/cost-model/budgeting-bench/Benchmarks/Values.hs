@@ -21,7 +21,16 @@ import Data.Map.Strict qualified as Map
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore
-  ( DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData)
+  ( DefaultFun
+      ( InsertCoin
+      , LookupCoin
+      , Policies
+      , ScaleValue
+      , UnValueData
+      , UnionValue
+      , ValueContains
+      , ValueData
+      )
   )
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 
@@ -57,6 +66,7 @@ makeBenchmarks gen =
   , insertCoinBenchmark gen
   , unionValueBenchmark gen
   , scaleValueBenchmark gen
+  , policiesBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -367,6 +377,49 @@ scaleValueArgs gen = replicateM 200 $ do
       amt = mkQuantity 2
       value = buildValue policyIds [tokenName] amt
   pure (scalar, value)
+
+----------------------------------------------------------------------------------------------------
+-- Policies ----------------------------------------------------------------------------------------
+
+{- Note [Benchmarking policies on the one-token-per-policy diagonal]
+`policies` is \(O(m)\) in the size of the outer map, but the argument is costed by
+`ValueTotalSize` (the `ExMemoryUsage Value` instance the denotation uses), which measures
+the total number of `(policy, token)` pairs. Those two agree only when every policy holds
+exactly one token, so the generator fixes that shape: the resulting fit is keyed on a size
+measure that equals the number of policies.
+
+This is deliberately the worst case per unit of the size measure. For any other shape the
+total size exceeds the number of policies, so the real cost is lower than the fitted model
+predicts and the model over-charges. Benchmarking off the diagonal instead would fit a
+shallower slope and under-charge the one-token-per-policy case, which is the failure
+direction that matters.
+
+`nf` rather than `whnf`, for the same reason as `valueData`: the result is a lazy list and
+`whnf` would stop at the first cons cell.
+-}
+policiesBenchmark :: StdGen -> Benchmark
+policiesBenchmark gen =
+  createOneTermBuiltinBenchWithWrapper_NF
+    ValueTotalSize
+    Policies
+    []
+    (runBenchGen gen policiesArgs)
+
+{-| Maximum number of policies for `policies` benchmarking, matching the bound used for
+`valueData` so the generated `Value`s stay in the same size regime as the other
+single-argument `Value` benchmarks. -}
+maxPoliciesEntries :: Int
+maxPoliciesEntries = Value.valueDataMaxSize
+
+{-| Generate `Value`s holding one token per policy, so that total size equals the number of
+policies. See Note [Benchmarking policies on the one-token-per-policy diagonal]. -}
+policiesArgs :: StatefulGen g m => g -> m [Value]
+policiesArgs gen =
+  (Value.empty :) <$> replicateM 100 do
+    numPolicyIds <- uniformRM (1, maxPoliciesEntries) gen
+    policyIds <- replicateM numPolicyIds (generateKey gen)
+    tokenName <- generateKey gen
+    pure $ buildValue policyIds [tokenName] (mkQuantity 1)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------

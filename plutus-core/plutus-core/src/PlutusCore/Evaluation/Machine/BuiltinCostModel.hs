@@ -199,6 +199,7 @@ data BuiltinCostModelBase f
   , paramScaleValue :: f ModelTwoArguments
   , -- Batch 7
     paramMultiIndexArray :: f ModelTwoArguments
+  , paramPolicies :: f ModelOneArgument
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)

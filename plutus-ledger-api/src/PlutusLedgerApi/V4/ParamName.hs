@@ -368,5 +368,9 @@ data ParamName
   | MultiIndexArray'cpu'arguments'c2
   | MultiIndexArray'memory'arguments'intercept
   | MultiIndexArray'memory'arguments'slope
+  | Policies'cpu'arguments'intercept
+  | Policies'cpu'arguments'slope
+  | Policies'memory'arguments'intercept
+  | Policies'memory'arguments'slope
   deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
   deriving (IsParamName) via (GenericParamName ParamName)
