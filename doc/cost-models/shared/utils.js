@@ -505,6 +505,7 @@ const PAGES = [
   ['insertcoin', 'InsertCoin'],
   ['unionvalue', 'UnionValue'],
   ['scalevalue', 'ScaleValue'],
+  ['assetcount', 'AssetCount'],
   ['listtoarray', 'ListToArray'],
   ['lengthofarray', 'LengthOfArray'],
   ['indexarray', 'IndexArray'],
