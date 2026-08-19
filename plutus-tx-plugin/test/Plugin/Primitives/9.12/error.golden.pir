@@ -1,6 +1,7 @@
 let
   !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
   !unitval : unit = ()
-  ~error : all a. unit -> a = /\a -> \(x : unit) -> error {a} unitval
+  Unit = all a. a -> a
+  ~error : all a. Unit -> a = /\a -> \(x : Unit) -> error {a} unitval
 in
 error {integer}

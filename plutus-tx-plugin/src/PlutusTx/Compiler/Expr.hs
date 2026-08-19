@@ -616,15 +616,18 @@ hoistExpr
   -> GHC.CoreExpr
   -> m (PIRTerm uni fun)
 hoistExpr var t = do
-  wrapUnsafeDataAsConstrName <-
-    lookupGhcName 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
+  asDataNames <-
+    traverse
+      lookupGhcName
+      ['PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr, 'PlutusTx.AsData.Internal.wrapCaseData]
+
   let name = GHC.getName var
       lexName = LexName name
 
       -- See Note [Compiling AsData Matchers and Their Invocations]
       isAsDataMatcher =
         any
-          ((== wrapUnsafeDataAsConstrName) . GHC.getName @GHC.Var)
+          ((`elem` asDataNames) . GHC.getName @GHC.Var)
           (universeBi t)
       -- If the original ID has an "always inline" pragma, then
       -- propagate that to PIR so that the PIR inliner will deal

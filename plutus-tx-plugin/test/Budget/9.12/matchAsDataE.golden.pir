@@ -1,4 +1,6 @@
 (let
+    data Unit | Unit_match where
+      Unit : Unit
     data (Tuple :: * -> * -> *) a b | Tuple_match where
       Tuple2 : a -> b -> Tuple a b
   in
@@ -41,7 +43,10 @@
                        (all dead. integer)
                        (equalsInteger 1 ds)
                        [ (/\dead ->
-                            case integer (error {unit}) [(error {integer})])
+                            let
+                              !defaultBody : integer = error {integer}
+                            in
+                            Unit_match (error {Unit}) {integer} defaultBody)
                        , (/\dead -> 1) ]
                        {all dead. dead}))
            , (/\dead -> unIData (headList {data} ds)) ]

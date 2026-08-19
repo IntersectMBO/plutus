@@ -4,5 +4,5 @@ Caused by: error
 
 Trace:
 -> func (test/CallTrace/Spec.hs:83:1-83:4)
--> $fMyClassInOtherModuleInteger_$cmyClassFuncInOtherModule (test/CallTrace/OtherModule.hs:24:3-24:26)
--> errorWhenTrue (test/CallTrace/OtherModule.hs:10:1-10:13)
+-> $fMyClassInOtherModuleInteger_$cmyClassFuncInOtherModule
+-> errorWhenTrue
