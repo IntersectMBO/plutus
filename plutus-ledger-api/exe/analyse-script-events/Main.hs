@@ -130,8 +130,6 @@ analyseTxInfoV3 i = do
 
 analyseTxInfoV4 :: V4.TxInfo -> IO ()
 analyseTxInfoV4 i = do
-  putStr "Fee:     "
-  print $ V4.txInfoFee i
   putStr "Mint:    "
   analyseValue $ V4.mintValueMinted (V4.txInfoMint i)
   putStr "Burn:    "
