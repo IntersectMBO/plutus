@@ -377,33 +377,24 @@ in
          \(d : (\k a -> list (pair data data)) integer a) -> go d)
        unIData
        (\(d : data) ->
-          (let
-              b = list data
-            in
-            /\r ->
-              \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
-            {These integer integer}
-            (unConstrData d)
-            (\(index : integer) (args : list data) ->
-               case
-                 (list data -> These integer integer)
-                 index
-                 [ (\(ds : list data) ->
-                      This {integer} {integer} (unIData (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      That {integer} {integer} (unIData (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      (let
-                          r = These integer integer
-                        in
-                        \(f : data -> list data -> r) (xs : list data) ->
-                          case r xs [f])
-                        (\(ds : data) (ds : list data) ->
-                           These
-                             {integer}
-                             {integer}
-                             (unIData ds)
-                             (unIData (headList {data} ds)))
-                        ds) ]
-                 args))
+          case
+            (These integer integer)
+            d
+            [ (\(ds : list data) ->
+                 This {integer} {integer} (unIData (headList {data} ds)))
+            , (\(ds : list data) ->
+                 That {integer} {integer} (unIData (headList {data} ds)))
+            , (\(ds : list data) ->
+                 (let
+                     r = These integer integer
+                   in
+                   \(f : data -> list data -> r) (xs : list data) ->
+                     case r xs [f])
+                   (\(ds : data) (ds : list data) ->
+                      These
+                        {integer}
+                        {integer}
+                        (unIData ds)
+                        (unIData (headList {data} ds)))
+                   ds) ])
        nt)

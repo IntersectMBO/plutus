@@ -237,6 +237,7 @@ builtinNames =
   , 'Builtins.indexArray
   , 'Builtins.multiIndexArray
   , ''Builtins.BuiltinData
+  , 'Builtins.caseData
   , 'Builtins.chooseData
   , 'Builtins.equalsData
   , 'Builtins.serialiseData

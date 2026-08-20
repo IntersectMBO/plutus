@@ -6,25 +6,17 @@ let
 in
 \(d : data) ->
   Mixed_match
-    ((let
-         b = list data
-       in
-       /\r -> \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
-       {Mixed}
-       (unConstrData d)
-       (\(index : integer) (args : list data) ->
-          case
-            (list data -> Mixed)
-            index
-            [ (\(ds : list data) -> MNone)
-            , (\(ds : list data) -> MOne (unIData (headList {data} ds)))
-            , (\(ds : list data) ->
-                 case
-                   Mixed
-                   ds
-                   [ (\(ds : data) (ds : list data) ->
-                        MTwo (unIData ds) (unIData (headList {data} ds))) ]) ]
-            args))
+    (case
+       Mixed
+       d
+       [ (\(ds : list data) -> MNone)
+       , (\(ds : list data) -> MOne (unIData (headList {data} ds)))
+       , (\(ds : list data) ->
+            case
+              Mixed
+              ds
+              [ (\(ds : data) (ds : list data) ->
+                   MTwo (unIData ds) (unIData (headList {data} ds))) ]) ])
     {integer}
     0
     (\(x : integer) -> x)

@@ -51,6 +51,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
+import PlutusCore.Data qualified as Data
 import PlutusCore.Default.Universe.Cardano
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
@@ -900,6 +901,10 @@ instance AnnotateCaseBuiltin DefaultUni where
         _ -> Left "Casing on bool requires exactly one branch or two branches"
     TyBuiltin _ (SomeTypeIn DefaultUniInteger) ->
       Right $ map (,[]) branches
+    dataTy@(TyBuiltin ann (SomeTypeIn DefaultUniData)) ->
+      let listDataTy =
+            TyApp ann (TyBuiltin ann $ SomeTypeIn DefaultUniProtoList) dataTy
+       in Right $ map (,[listDataTy]) branches
     listTy@(TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) ->
       case branches of
         [cons] -> Right [(cons, [argTy, listTy])]
@@ -926,6 +931,14 @@ instance CaseBuiltin DefaultUni where
     DefaultUniInteger
       | 0 <= x && x < toInteger len -> HeadOnly $ branches Vector.! fromInteger x
       | otherwise -> HeadError $ outOfBoundsErr someVal branches
+    DefaultUniData -> case x of
+      Data.Constr tag fields
+        | 0 <= tag && tag < toInteger len ->
+            headSpine
+              (branches Vector.! fromInteger tag)
+              [someValueOf (DefaultUniList DefaultUniData) fields]
+        | otherwise -> HeadError $ outOfBoundsErr someVal branches
+      _ -> HeadError "Casing on data only supports Data.Constr values"
     DefaultUniList ty
       | len == 1 ->
           case x of

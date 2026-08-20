@@ -6,20 +6,12 @@ let
 in
 \(d : data) ->
   ABC_match
-    ((let
-         b = list data
-       in
-       /\r -> \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
-       {ABC}
-       (unConstrData d)
-       (\(index : integer) (args : list data) ->
-          case
-            (list data -> ABC)
-            index
-            [ (\(ds : list data) -> A (unIData (headList {data} ds)))
-            , (\(ds : list data) -> B (unIData (headList {data} ds)))
-            , (\(ds : list data) -> C (unIData (headList {data} ds))) ]
-            args))
+    (case
+       ABC
+       d
+       [ (\(ds : list data) -> A (unIData (headList {data} ds)))
+       , (\(ds : list data) -> B (unIData (headList {data} ds)))
+       , (\(ds : list data) -> C (unIData (headList {data} ds))) ])
     {integer}
     (\(x : integer) -> x)
     (\(x : integer) -> addInteger 100 x)
