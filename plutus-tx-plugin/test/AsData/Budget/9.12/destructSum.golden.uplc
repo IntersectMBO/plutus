@@ -9,55 +9,48 @@
               case
                 args
                 [ (\hd tl ->
-                     (\ds ->
-                        (\`$mInts` ->
-                           case
-                             (constr 0
-                                [ hd
-                                , (\x y z w ->
-                                     case
-                                       (constr 0
-                                          [ ds
-                                          , (\x y z w ->
-                                               constrData
-                                                 0
+                     (\`$mInts` ->
+                        case
+                          (constr 0
+                             [ hd
+                             , (\x y z w ->
+                                  case
+                                    (constr 0
+                                       [ (forced tl)
+                                       , (\x y z w ->
+                                            constrData
+                                              0
+                                              (forced
+                                                 (iData (addInteger x x))
                                                  (forced
-                                                    (iData (addInteger x x))
+                                                    (iData (addInteger y y))
                                                     (forced
-                                                       (iData (addInteger y y))
+                                                       (iData (addInteger z z))
                                                        (forced
                                                           (iData
-                                                             (addInteger z z))
-                                                          (forced
-                                                             (iData
-                                                                (addInteger
-                                                                   w
-                                                                   w))
-                                                             [])))))
-                                          , (\void ->
-                                               (\cse -> case cse [cse])
-                                                 error) ])
-                                       [`$mInts`])
-                                , (\void -> (\cse -> case cse [cse]) error) ])
-                             [`$mInts`])
-                          (\scrut cont fail ->
-                             case
-                               (case (unConstrData scrut) [(\l r -> r)])
-                               [ (\ds ds ->
-                                    case
-                                      ds
-                                      [ (\ds ds ->
-                                           case
-                                             ds
-                                             [ (\ds ds ->
-                                                  case
-                                                    (constr 0
-                                                       [ (unIData ds)
-                                                       , (unIData ds)
-                                                       , (unIData ds)
-                                                       , (unIData
-                                                            (forced ds)) ])
-                                                    [cont]) ]) ]) ]))
-                       (forced tl)) ]) ])
+                                                             (addInteger w w))
+                                                          [])))))
+                                       , (\void ->
+                                            (\cse -> case cse [cse]) error) ])
+                                    [`$mInts`])
+                             , (\void -> (\cse -> case cse [cse]) error) ])
+                          [`$mInts`])
+                       (\scrut cont fail ->
+                          case
+                            (case (unConstrData scrut) [(\l r -> r)])
+                            [ (\ds ds ->
+                                 case
+                                   ds
+                                   [ (\ds ds ->
+                                        case
+                                          ds
+                                          [ (\ds ds ->
+                                               case
+                                                 (constr 0
+                                                    [ (unIData ds)
+                                                    , (unIData ds)
+                                                    , (unIData ds)
+                                                    , (unIData (forced ds)) ])
+                                                 [cont]) ]) ]) ])) ]) ])
       (force mkCons)
       (force headList)))

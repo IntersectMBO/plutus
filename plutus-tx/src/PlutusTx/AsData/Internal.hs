@@ -16,6 +16,7 @@ wrapUnsafeDataAsConstr = BI.unsafeDataAsConstr
 
 wrapCaseData :: BuiltinData -> [BuiltinList BuiltinData -> a] -> a
 wrapCaseData = BI.caseData
+{-# OPAQUE wrapCaseData #-}
 
 -- See Note [Dropping redundant unsafeCaseList calls produced by AsData]
 droppableUnsafeCaseList :: forall a r. (a -> BuiltinList a -> r) -> BuiltinList a -> r

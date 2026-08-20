@@ -20,8 +20,6 @@
               [ (\(ds : list data) ->
                    Just {a} (`$dUnsafeFromData` (headList {data} ds)))
               , (\(ds : list data) -> Nothing {a}) ]
-    data Unit | Unit_match where
-      Unit : Unit
   in
   \(d : data) ->
     case

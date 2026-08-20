@@ -140,12 +140,6 @@
                           (unIData (headList {data} ds))) ])
             , (\(ds : list data) -> DCertGenesis)
             , (\(ds : list data) -> DCertMir) ]
-    !`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` : data -> bool
-      = \(d : data) ->
-          case
-            bool
-            d
-            [(\(ds : list data) -> False), (\(ds : list data) -> True)]
     data (Extended :: * -> *) a | Extended_match where
       Finite : a -> Extended a
       NegInf : Extended a
@@ -298,8 +292,6 @@
                                     {bytestring}
                                     unBData
                                     (headList {data} ds))) ]) ]) ]
-    data Unit | Unit_match where
-      Unit : Unit
     data ScriptPurpose | ScriptPurpose_match where
       Certifying : DCert -> ScriptPurpose
       Minting : bytestring -> ScriptPurpose
@@ -519,10 +511,19 @@
                                                                                                                                      {integer}
                                                                                                                                      unIData
                                                                                                                                      ds)
-                                                                                                                                  (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                                                                                                                  (case
+                                                                                                                                     bool
                                                                                                                                      (headList
                                                                                                                                         {data}
-                                                                                                                                        ds))) ]) ])
+                                                                                                                                        ds)
+                                                                                                                                     [ (\(ds :
+                                                                                                                                            list
+                                                                                                                                              data) ->
+                                                                                                                                          False)
+                                                                                                                                     , (\(ds :
+                                                                                                                                            list
+                                                                                                                                              data) ->
+                                                                                                                                          True) ])) ]) ])
                                                                                                                  (case
                                                                                                                     (UpperBound
                                                                                                                        integer)
@@ -547,10 +548,19 @@
                                                                                                                                      {integer}
                                                                                                                                      unIData
                                                                                                                                      ds)
-                                                                                                                                  (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                                                                                                                  (case
+                                                                                                                                     bool
                                                                                                                                      (headList
                                                                                                                                         {data}
-                                                                                                                                        ds))) ]) ])) ]) ])
+                                                                                                                                        ds)
+                                                                                                                                     [ (\(ds :
+                                                                                                                                            list
+                                                                                                                                              data) ->
+                                                                                                                                          False)
+                                                                                                                                     , (\(ds :
+                                                                                                                                            list
+                                                                                                                                              data) ->
+                                                                                                                                          True) ])) ]) ])) ]) ])
                                                                                                 (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                                                                                                    {bytestring}
                                                                                                    unBData
@@ -588,7 +598,7 @@
                                Certifying
                                  (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
                                     (headList {data} ds))) ])) ]) ])
-      {Unit}
+      {unit}
       (\(ipv : TxInfo) (ipv : ScriptPurpose) ->
          case
            (all dead. unit)

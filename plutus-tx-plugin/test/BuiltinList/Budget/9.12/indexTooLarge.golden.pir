@@ -1,22 +1,18 @@
-let
-  data Unit | Unit_match where
-    Unit : Unit
-in
 \(xs : list integer) ->
   let
     !l : list integer = dropList {integer} 10 xs
   in
   (let
-      r = Unit -> Unit -> integer
+      r = unit -> unit -> integer
     in
     \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
       case r xs [f, z])
-    (\(_ann : Unit) ->
+    (\(_ann : unit) ->
        let
-         !x : Unit = trace {Unit} "PT22" Unit
+         !x : unit = trace {unit} "PT22" ()
        in
-       error {Unit -> integer})
-    (\(x : integer) (xs : list integer) (ds : Unit) (_ann : Unit) -> x)
+       error {unit -> integer})
+    (\(x : integer) (xs : list integer) (ds : unit) (_ann : unit) -> x)
     l
-    Unit
-    Unit
+    ()
+    ()

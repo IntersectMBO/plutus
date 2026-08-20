@@ -1,197 +1,30 @@
 (program
    1.1.0
-   ((\forced
-      d ->
+   ((\forced forced d ->
        case
          d
-         [ (\args ->
+         [ (\args -> case args [(\hd tl -> case tl [(\hd tl -> unIData hd)])])
+         , (\args ->
               case
-                args
+                (forced 2 args)
+                [ (\hd tl ->
+                     addInteger
+                       (unIData hd)
+                       (unIData (forced (forced 3 tl)))) ])
+         , (\args ->
+              case
+                (forced 3 args)
                 [ (\hd tl ->
                      case
-                       tl
+                       (forced 4 tl)
                        [ (\hd tl ->
                             case
-                              tl
+                              (forced 4 tl)
                               [ (\hd tl ->
-                                   case
-                                     tl
-                                     [ (\hd tl ->
-                                          case
-                                            tl
-                                            [ (\hd tl ->
-                                                 (\ds ->
-                                                    (\b ->
-                                                       (\ds ->
-                                                          (\ds ->
-                                                             (\ds ->
-                                                                (\ds -> b)
-                                                                  (unIData
-                                                                     (forced
-                                                                        tl)))
-                                                               (unIData hd))
-                                                            (unIData hd))
-                                                         (unIData hd))
-                                                      (unIData hd))
-                                                   (unIData hd)) ]) ]) ]) ]) ])
-         , (\args ->
-              case
-                args
-                [ (\hd
-                    tl ->
-                     case
-                       tl
-                       [ (\hd
-                           tl ->
-                            case
-                              tl
-                              [ (\hd
-                                  tl ->
-                                   case
-                                     tl
-                                     [ (\hd
-                                         tl ->
-                                          case
-                                            tl
-                                            [ (\hd
-                                                tl ->
-                                                 case
-                                                   tl
-                                                   [ (\hd
-                                                       tl ->
-                                                        (\ds ->
-                                                           (\ds ->
-                                                              (\c ->
-                                                                 (\ds ->
-                                                                    (\ds ->
-                                                                       (\ds ->
-                                                                          addInteger
-                                                                            c
-                                                                            (unIData
-                                                                               (forced
-                                                                                  tl)))
-                                                                         (unIData
-                                                                            hd))
-                                                                      (unIData
-                                                                         hd))
-                                                                   (unIData hd))
-                                                                (unIData hd))
-                                                             (unIData hd))
-                                                          (unIData
-                                                             hd)) ]) ]) ]) ]) ]) ])
-         , (\args ->
-              case
-                args
-                [ (\hd
-                    tl ->
-                     case
-                       tl
-                       [ (\hd
-                           tl ->
-                            case
-                              tl
-                              [ (\hd
-                                  tl ->
-                                   case
-                                     tl
-                                     [ (\hd
-                                         tl ->
-                                          case
-                                            tl
-                                            [ (\hd
-                                                tl ->
-                                                 case
-                                                   tl
-                                                   [ (\hd
-                                                       tl ->
-                                                        case
-                                                          tl
-                                                          [ (\hd
-                                                              tl ->
-                                                               case
-                                                                 tl
-                                                                 [ (\hd
-                                                                     tl ->
-                                                                      case
-                                                                        tl
-                                                                        [ (\hd
-                                                                            tl ->
-                                                                             case
-                                                                               tl
-                                                                               [ (\hd
-                                                                                   tl ->
-                                                                                    case
-                                                                                      tl
-                                                                                      [ (\hd
-                                                                                          tl ->
-                                                                                           case
-                                                                                             tl
-                                                                                             [ (\hd
-                                                                                                 tl ->
-                                                                                                  case
-                                                                                                    tl
-                                                                                                    [ (\hd
-                                                                                                        tl ->
-                                                                                                         case
-                                                                                                           tl
-                                                                                                           [ (\hd
-                                                                                                               tl ->
-                                                                                                                case
-                                                                                                                  tl
-                                                                                                                  [ (\hd
-                                                                                                                      tl ->
-                                                                                                                       (\ds ->
-                                                                                                                          (\ds ->
-                                                                                                                             (\ds ->
-                                                                                                                                (\d ->
-                                                                                                                                   (\ds ->
-                                                                                                                                      (\ds ->
-                                                                                                                                         (\ds ->
-                                                                                                                                            (\ds ->
-                                                                                                                                               (\i ->
-                                                                                                                                                  (\ds ->
-                                                                                                                                                     (\ds ->
-                                                                                                                                                        (\ds ->
-                                                                                                                                                           (\ds ->
-                                                                                                                                                              (\n ->
-                                                                                                                                                                 (\ds ->
-                                                                                                                                                                    (\ds ->
-                                                                                                                                                                       addInteger
-                                                                                                                                                                         d
-                                                                                                                                                                         (addInteger
-                                                                                                                                                                            i
-                                                                                                                                                                            n))
-                                                                                                                                                                      (unIData
-                                                                                                                                                                         (forced
-                                                                                                                                                                            tl)))
-                                                                                                                                                                   (unIData
-                                                                                                                                                                      hd))
-                                                                                                                                                                (unIData
-                                                                                                                                                                   hd))
-                                                                                                                                                             (unIData
-                                                                                                                                                                hd))
-                                                                                                                                                          (unIData
-                                                                                                                                                             hd))
-                                                                                                                                                       (unIData
-                                                                                                                                                          hd))
-                                                                                                                                                    (unIData
-                                                                                                                                                       hd))
-                                                                                                                                                 (unIData
-                                                                                                                                                    hd))
-                                                                                                                                              (unIData
-                                                                                                                                                 hd))
-                                                                                                                                           (unIData
-                                                                                                                                              hd))
-                                                                                                                                        (unIData
-                                                                                                                                           hd))
-                                                                                                                                     (unIData
-                                                                                                                                        hd))
-                                                                                                                                  (unIData
-                                                                                                                                     hd))
-                                                                                                                               (unIData
-                                                                                                                                  hd))
-                                                                                                                            (unIData
-                                                                                                                               hd))
-                                                                                                                         (unIData
-                                                                                                                            hd)) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ])
-      (force headList)))
+                                   addInteger
+                                     (unIData hd)
+                                     (addInteger
+                                        (unIData hd)
+                                        (unIData hd))) ]) ]) ]) ])
+      (force headList)
+      (force dropList)))
