@@ -71,6 +71,7 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
 import PlutusCore qualified as PLC
+import PlutusCore.Data (Data)
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.StdLib.Data.Function qualified
 import PlutusCore.Subst qualified as PLC
@@ -940,6 +941,7 @@ compileExpr mloc e = do
   unsupportedName <- lookupGhcName 'PlutusTx.Plugin.Utils.unsupported
 
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
+  caseDataName <- lookupGhcName 'Builtins.caseData
 
   let
     compileMkNil
@@ -980,6 +982,80 @@ compileExpr mloc e = do
             pure $ PLC.constant annMayInline $ PLC.Some $ PLC.ValueOf (PLC.DefaultUniList ty') []
           Nothing -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
 
+    compileIntegerCase resultTy scrutinee branches =
+      case coDatatypeStyle opts of
+        PIR.SumsOfProducts ->
+          pure $ PIR.kase annAlwaysInline resultTy scrutinee branches
+        PIR.ScottEncoding -> do
+          dead <- safeFreshTyName "dead"
+          let thunkTy = PLC.TyForall annMayInline dead (PLC.Type annMayInline) resultTy
+              thunk = PIR.TyAbs annMayInline dead (PLC.Type annMayInline)
+              unthunk term = PIR.TyInst annMayInline term resultTy
+              -- Uses the (all dead. resultTy) / (/\dead -> branch) encoding to avoid
+              -- evaluating non-matching branches.
+              mkChain _ [] = PIR.Error annMayInline resultTy
+              mkChain idx (branch : laterBranches) =
+                unthunk $
+                  PIR.mkIterApp
+                    (PIR.tyInst annMayInline (PIR.builtin annMayInline PLC.IfThenElse) thunkTy)
+                    [
+                      ( annMayInline
+                      , PIR.mkIterApp
+                          (PIR.builtin annMayInline PLC.EqualsInteger)
+                          [ (annMayInline, PIR.mkConstant @Integer annMayInline idx)
+                          , (annMayInline, scrutinee)
+                          ]
+                      )
+                    , (annMayInline, thunk branch)
+                    , (annMayInline, thunk (mkChain (idx + 1) laterBranches))
+                    ]
+          pure $ mkChain (0 :: Integer) branches
+
+    compileDataCase resultTy scrutinee branches =
+      case coDatatypeStyle opts of
+        PIR.SumsOfProducts ->
+          pure $ PIR.kase annAlwaysInline resultTy scrutinee branches
+        PIR.ScottEncoding -> do
+          pairName <- safeFreshName "dataConstr"
+          let integerTy = PLC.mkTyBuiltin @_ @Integer annMayInline
+              dataTy = PLC.mkTyBuiltin @_ @Data annMayInline
+              listDataTy =
+                PLC.TyApp annMayInline (PLC.mkTyBuiltin @_ @[] annMayInline) dataTy
+              pairTy =
+                PLC.TyApp
+                  annMayInline
+                  ( PLC.TyApp
+                      annMayInline
+                      (PLC.mkTyBuiltin @_ @(,) annMayInline)
+                      integerTy
+                  )
+                  listDataTy
+              pairVar = PIR.var annMayInline pairName
+              atPair builtinName =
+                PIR.apply
+                  annMayInline
+                  ( PIR.tyInst
+                      annMayInline
+                      (PIR.tyInst annMayInline (PIR.builtin annMayInline builtinName) integerTy)
+                      listDataTy
+                  )
+                  pairVar
+              index = atPair PLC.FstPair
+              fields = atPair PLC.SndPair
+              branchTy = PLC.TyFun annMayInline listDataTy resultTy
+          selectedBranch <- compileIntegerCase branchTy index branches
+          pure $
+            PIR.mkLet
+              annMayInline
+              PIR.NonRec
+              [ PIR.TermBind
+                  annMayInline
+                  PIR.Strict
+                  (PIR.VarDecl annMayInline pairName pairTy)
+                  (PIR.apply annMayInline (PIR.builtin annMayInline PLC.UnConstrData) scrutinee)
+              ]
+              (PIR.apply annMayInline selectedBranch fields)
+
   case extractUnsupported unsupportedName e of
     Just (msg, sp) -> traceCompilationL 2 (traceExprMsg (Just sp) GHC.$$ GHC.ppr e) (Just sp) $ do
       throwPlain . UnsupportedError $ T.pack msg
@@ -999,42 +1075,17 @@ compileExpr mloc e = do
       case e of
         -- caseInteger: dispatch on an integer index to select a branch.
         GHC.App (GHC.App (GHC.App (GHC.Var var) (GHC.Type resTy)) scrut) li
-          -- default: compile to native UPLC case on the integer.
-          | GHC.getName var == caseIntegerName && coDatatypeStyle opts == PIR.SumsOfProducts -> do
-              resTy' <- compileTypeNorm resTy
-              scrut' <- compileExpr Nothing scrut
-              branches <- compileHaskellList li
-              pure $ PIR.kase annAlwaysInline resTy' scrut' branches
-          -- when Scott encoding is used, compile to a lazy equalsInteger/ifThenElse chain.
           | GHC.getName var == caseIntegerName -> do
               resTy' <- compileTypeNorm resTy
               scrut' <- compileExpr Nothing scrut
               branches <- compileHaskellList li
-              dead <- safeFreshTyName "dead"
-              let thunkTy = PLC.TyForall annMayInline dead (PLC.Type annMayInline) resTy'
-                  thunk = PIR.TyAbs annMayInline dead (PLC.Type annMayInline)
-                  unthunk t = PIR.TyInst annMayInline t resTy'
-                  -- Uses the (all dead. resTy) / (/\dead -> branch) encoding to avoid
-                  -- evaluating non-matching branches.
-                  -- e.g. ifThenElse {all dead. resTy} (equalsInteger scrut 0)
-                  --        (/\dead -> b0) (/\dead -> ifThenElse ...) {resTy}
-                  mkChain _ [] = PIR.Error annMayInline resTy'
-                  mkChain idx (b : bs) =
-                    unthunk $
-                      PIR.mkIterApp
-                        (PIR.tyInst annMayInline (PIR.builtin annMayInline PLC.IfThenElse) thunkTy)
-                        [
-                          ( annMayInline
-                          , PIR.mkIterApp
-                              (PIR.builtin annMayInline PLC.EqualsInteger)
-                              [ (annMayInline, PIR.mkConstant @Integer annMayInline idx)
-                              , (annMayInline, scrut')
-                              ]
-                          )
-                        , (annMayInline, thunk b)
-                        , (annMayInline, thunk (mkChain (idx + 1) bs))
-                        ]
-              pure $ mkChain (0 :: Integer) branches
+              compileIntegerCase resTy' scrut' branches
+          -- caseData: dispatch on a Data.Constr index and pass its fields to the selected branch.
+          | GHC.getName var == caseDataName -> do
+              resTy' <- compileTypeNorm resTy
+              scrut' <- compileExpr Nothing scrut
+              branches <- compileHaskellList li
+              compileDataCase resTy' scrut' branches
         {- Note [Lazy boolean operators]
           (||) and (&&) have a special treatment: we want them lazy in the second argument,
           as this is the behavior in Haskell and other PLs.

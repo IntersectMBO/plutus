@@ -1,6 +1,6 @@
-CPU:                 3_906_893
-Memory:                 17_344
+CPU:                 3_850_305
+Memory:                 17_112
 AST Size:                  146
-Flat Size:                 171
+Flat Size:                 170
 
 (con data (Constr 0 [I 20, I 40, I 60, I 80]))
