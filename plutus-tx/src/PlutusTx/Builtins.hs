@@ -50,6 +50,7 @@ module PlutusTx.Builtins
 
     -- * Data
   , BuiltinData
+  , BI.caseData
   , chooseData
   , matchData
   , matchData'
