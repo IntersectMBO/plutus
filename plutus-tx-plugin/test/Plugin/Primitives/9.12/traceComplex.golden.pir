@@ -1,8 +1,6 @@
 let
   !trace : all a. string -> a -> a = trace
   ~trace : all a. string -> a -> a = trace
-  data Unit | Unit_match where
-    Unit : Unit
   !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
   !unitval : unit = ()
   ~traceError : all a. string -> a
@@ -10,7 +8,7 @@ let
         \(str : string) ->
           let
             !str : string = str
-            !x : Unit = trace {Unit} str Unit
+            !x : unit = trace {unit} str ()
           in
           error {a} unitval
 in
@@ -19,7 +17,7 @@ in
     !ds : bool = ds
   in
   case
-    (all dead. Unit)
+    (all dead. unit)
     ds
-    [(/\dead -> traceError {Unit} "no"), (/\dead -> trace {Unit} "yes" Unit)]
+    [(/\dead -> traceError {unit} "no"), (/\dead -> trace {unit} "yes" ())]
     {all dead. dead}

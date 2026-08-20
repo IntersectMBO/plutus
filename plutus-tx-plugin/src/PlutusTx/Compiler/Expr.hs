@@ -945,6 +945,7 @@ compileExpr mloc e = do
 
   caseIntegerName <- lookupGhcName 'Builtins.caseInteger
   caseDataName <- lookupGhcName 'Builtins.caseData
+  wrapCaseDataName <- lookupGhcName 'PlutusTx.AsData.Internal.wrapCaseData
 
   let
     compileMkNil
@@ -1084,7 +1085,7 @@ compileExpr mloc e = do
               branches <- compileHaskellList li
               compileIntegerCase resTy' scrut' branches
           -- caseData: dispatch on a Data.Constr index and pass its fields to the selected branch.
-          | GHC.getName var == caseDataName -> do
+          | GHC.getName var == caseDataName || GHC.getName var == wrapCaseDataName -> do
               resTy' <- compileTypeNorm resTy
               scrut' <- compileExpr Nothing scrut
               branches <- compileHaskellList li

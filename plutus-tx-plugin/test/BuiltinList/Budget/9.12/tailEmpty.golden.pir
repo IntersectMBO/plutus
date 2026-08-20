@@ -1,18 +1,14 @@
-let
-  data Unit | Unit_match where
-    Unit : Unit
-in
 \(ds : list integer) ->
   (let
-      r = Unit -> list integer
+      r = unit -> list integer
     in
     \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
       case r xs [f, z])
-    (\(ds : Unit) ->
+    (\(ds : unit) ->
        let
-         !x : Unit = trace {Unit} "PT25" Unit
+         !x : unit = trace {unit} "PT25" ()
        in
        error {list integer})
-    (\(x : integer) (xs : list integer) (ds : Unit) -> xs)
+    (\(x : integer) (xs : list integer) (ds : unit) -> xs)
     []
-    Unit
+    ()

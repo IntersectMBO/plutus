@@ -12,6 +12,6 @@
                            case
                              xs
                              [(\ds ds -> force (s s (delay (\x -> x))) xs), x])
-                      , (\ds -> (\x -> error) (forced "PT25" (constr 0 []))) ]
-                      (constr 0 [])))))
+                      , (\ds -> (\x -> error) (forced "PT25" ())) ]
+                      ()))))
       (force trace)))

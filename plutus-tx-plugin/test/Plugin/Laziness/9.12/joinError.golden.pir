@@ -1,9 +1,7 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
   !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
   !unitval : unit = ()
-  ~joinError : bool -> bool -> Unit
+  ~joinError : bool -> bool -> unit
     = \(x : bool) ->
         let
           !x : bool = x
@@ -13,14 +11,14 @@ let
             !y : bool = y
           in
           case
-            (all dead. Unit)
+            (all dead. unit)
             x
-            [ (/\dead -> Unit)
+            [ (/\dead -> ())
             , (/\dead ->
                  case
-                   (all dead. Unit)
+                   (all dead. unit)
                    y
-                   [(/\dead -> Unit), (/\dead -> error {Unit} unitval)]
+                   [(/\dead -> ()), (/\dead -> error {unit} unitval)]
                    {all dead. dead}) ]
             {all dead. dead}
 in

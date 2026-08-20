@@ -1,6 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
   !lessThanInteger : integer -> integer -> bool

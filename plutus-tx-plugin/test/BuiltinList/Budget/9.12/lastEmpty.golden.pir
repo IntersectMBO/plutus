@@ -1,21 +1,17 @@
-let
-  data Unit | Unit_match where
-    Unit : Unit
-in
 letrec
   !last : all a. list a -> a
     = /\a ->
         \(eta : list a) ->
           case
-            (Unit -> a)
+            (unit -> a)
             eta
-            [ (\(x : a) (xs : list a) (ds : Unit) ->
+            [ (\(x : a) (xs : list a) (ds : unit) ->
                  case a xs [(\(ds : a) (ds : list a) -> last {a} xs), x])
-            , (\(ds : Unit) ->
+            , (\(ds : unit) ->
                  let
-                   !x : Unit = trace {Unit} "PT25" Unit
+                   !x : unit = trace {unit} "PT25" ()
                  in
                  error {a}) ]
-            Unit
+            ()
 in
 \(ds : list integer) -> last {integer} []

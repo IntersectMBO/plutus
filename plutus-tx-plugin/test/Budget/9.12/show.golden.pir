@@ -340,16 +340,6 @@ let
         `$fShowInteger_$cshow`
   data (Tuple :: * -> * -> * -> * -> * -> *) a b c d e | Tuple_match where
     Tuple5 : a -> b -> c -> d -> e -> Tuple a b c d e
-  !showsPrec : all a. Show a -> integer -> a -> List string -> List string
-    = /\a ->
-        \(v : Show a) ->
-          Show_match
-            {a}
-            v
-            {integer -> a -> List string -> List string}
-            (\(v : integer -> a -> List string -> List string)
-              (v : a -> string) ->
-               v)
   !a : integer
     = trace {integer} (`$fShowInteger_$cshow` -1234567890) -1234567890
   !b : integer = trace {integer} "This is an example" a
@@ -376,7 +366,14 @@ let
         concatBuiltinStrings
           ((let
                !showElem : integer -> List string -> List string
-                 = showsPrec {integer} `$fShowInteger` 0
+                 = Show_match
+                     {integer}
+                     `$fShowInteger`
+                     {integer -> integer -> List string -> List string}
+                     (\(v : integer -> integer -> List string -> List string)
+                       (v : integer -> string) ->
+                        v)
+                     0
              in
              letrec
                !go : List integer -> List string -> List string
@@ -416,41 +413,76 @@ multiplyInteger
         (Cons
            {string}
            "("
-           (showsPrec
+           (Show_match
               {integer}
               `$fShowInteger`
+              {integer -> integer -> List string -> List string}
+              (\(v : integer -> integer -> List string -> List string)
+                (v : integer -> string) ->
+                 v)
               0
               a
               (Cons
                  {string}
                  ","
-                 (showsPrec
+                 (Show_match
                     {integer}
                     `$fShowInteger`
+                    {integer -> integer -> List string -> List string}
+                    (\(v : integer -> integer -> List string -> List string)
+                      (v : integer -> string) ->
+                       v)
                     0
                     b
                     (Cons
                        {string}
                        ","
-                       (showsPrec
+                       (Show_match
                           {integer}
                           `$fShowInteger`
+                          {integer -> integer -> List string -> List string}
+                          (\(v :
+                               integer -> integer -> List string -> List string)
+                            (v : integer -> string) ->
+                             v)
                           0
                           c
                           (Cons
                              {string}
                              ","
-                             (showsPrec
+                             (Show_match
                                 {integer}
                                 `$fShowInteger`
+                                {integer ->
+                                 integer ->
+                                 List string ->
+                                 List string}
+                                (\(v :
+                                     integer ->
+                                     integer ->
+                                     List string ->
+                                     List string)
+                                  (v : integer -> string) ->
+                                   v)
                                 0
                                 d
                                 (Cons
                                    {string}
                                    ","
-                                   (showsPrec
+                                   (Show_match
                                       {integer}
                                       `$fShowInteger`
+                                      {integer ->
+                                       integer ->
+                                       List string ->
+                                       List string}
+                                      (\(v :
+                                           integer ->
+                                           integer ->
+                                           List string ->
+                                           List string)
+                                        (v : integer -> string) ->
+                                         v)
                                       0
                                       e
                                       (Cons

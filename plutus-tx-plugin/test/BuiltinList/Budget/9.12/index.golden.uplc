@@ -3,9 +3,8 @@
    ((\forced forced xs ->
        case
          (forced 5 xs)
-         [ (\x xs ds _ann -> x)
-         , (\_ann -> (\x -> error) (forced "PT22" (constr 0 []))) ]
-         (constr 0 [])
-         (constr 0 []))
+         [(\x xs ds _ann -> x), (\_ann -> (\x -> error) (forced "PT22" ()))]
+         ()
+         ())
       (force trace)
       (force dropList)))
