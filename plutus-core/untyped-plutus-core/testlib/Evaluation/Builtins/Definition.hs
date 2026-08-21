@@ -26,10 +26,16 @@ import Evaluation.Builtins.Common
   , typecheckReadKnownCek
   )
 import Evaluation.Builtins.Conversion qualified as Conversion
-import Evaluation.Builtins.Integer.DivModProperties (test_integer_div_mod_properties)
-import Evaluation.Builtins.Integer.ExpModIntegerProperties (test_integer_exp_mod_properties)
+import Evaluation.Builtins.Integer.DivModProperties
+  ( test_integer_div_mod_properties
+  )
+import Evaluation.Builtins.Integer.ExpModIntegerProperties
+  ( test_integer_exp_mod_properties
+  )
 import Evaluation.Builtins.Integer.OrderProperties (test_integer_order_properties)
-import Evaluation.Builtins.Integer.QuotRemProperties (test_integer_quot_rem_properties)
+import Evaluation.Builtins.Integer.QuotRemProperties
+  ( test_integer_quot_rem_properties
+  )
 import Evaluation.Builtins.Integer.RingProperties (test_integer_ring_properties)
 import Evaluation.Builtins.SignatureVerification
   ( ecdsaSecp256k1Prop
@@ -37,7 +43,9 @@ import Evaluation.Builtins.SignatureVerification
   , schnorrSecp256k1Prop
   )
 
-import PlutusCore hiding (Constr)
+import PlutusCore hiding
+  ( Constr
+  )
 import PlutusCore qualified as PLC
 import PlutusCore.Arrays qualified as Arrays (maximumIndexCount)
 import PlutusCore.Builtin
@@ -50,7 +58,9 @@ import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.Generators.QuickCheck.Builtin
-import PlutusCore.MkPlc hiding (error)
+import PlutusCore.MkPlc hiding
+  ( error
+  )
 import PlutusCore.Pretty
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.StdLib.Data.Data
@@ -67,9 +77,15 @@ import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Control.Exception (evaluate, try)
+import Control.Exception
+  ( evaluate
+  , try
+  )
 import Data.Bifunctor (bimap)
-import Data.ByteString (ByteString, pack)
+import Data.ByteString
+  ( ByteString
+  , pack
+  )
 import Data.ByteString.Base16 qualified as Base16
 import Data.DList qualified as DList
 import Data.List (find)
@@ -80,13 +96,28 @@ import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
-import Hedgehog (forAll, property, withTests, (===))
+import Hedgehog
+  ( forAll
+  , property
+  , withTests
+  , (===)
+  )
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@=?), (@?=))
+import Test.Tasty
+  ( TestTree
+  , testGroup
+  )
+import Test.Tasty.HUnit
+  ( Assertion
+  , assertBool
+  , assertFailure
+  , testCase
+  , (@=?)
+  , (@?=)
+  )
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.QuickCheck qualified as QC
 
@@ -146,7 +177,7 @@ itself. -}
 test_Factorial :: TestTree
 test_Factorial =
   testCase "Factorial" $ do
-    let ten = mkConstant @Integer @DefaultUni () 10
+    let ten = mkConstant @Integer () 10
         lhs =
           typecheckEvaluateCek def defaultBuiltinCostModelExt $
             apply () (builtin () $ Right Factorial) ten
@@ -165,7 +196,7 @@ test_Const =
     b <- forAll Gen.bool
     let tC = mkConstant () c
         tB = mkConstant () b
-        text = toTypeAst @_ @_ @DefaultUni @Text Proxy
+        text = toTypeAst @_ @_ @_ @Text Proxy
         runConst con = mkIterAppNoAnn (mkIterInstNoAnn con [text, bool]) [tC, tB]
         lhs =
           typecheckReadKnownCek def defaultBuiltinCostModelExt $
@@ -193,9 +224,9 @@ See https://github.com/IntersectMBO/plutus/issues/1882 -}
 test_Id :: TestTree
 test_Id =
   testCase "Id" $ do
-    let zer = mkConstant @Integer @DefaultUni @DefaultFunExt () 0
-        oneT = mkConstant @Integer @DefaultUni () 1
-        oneU = mkConstant @Integer @DefaultUni () 1
+    let zer = mkConstant @Integer @_ @DefaultFunExt () 0
+        oneT = mkConstant @Integer () 1
+        oneU = mkConstant @Integer () 1
         -- > id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
         term =
           mkIterAppNoAnn
@@ -219,9 +250,9 @@ signature. -}
 test_IdFInteger :: TestTree
 test_IdFInteger =
   testCase "IdFInteger" $ do
-    let one = mkConstant @Integer @DefaultUni () 1
-        ten = mkConstant @Integer @DefaultUni () 10
-        res = mkConstant @Integer @DefaultUni () 55
+    let one = mkConstant @Integer () 1
+        ten = mkConstant @Integer () 10
+        res = mkConstant @Integer () 55
         -- > sum (idFInteger {list} (enumFromTo 1 10))
         term =
           apply () (mapFun Left Scott.sum)
@@ -233,14 +264,14 @@ test_IdFInteger =
 test_IdList :: TestTree
 test_IdList =
   testCase "IdList" $ do
-    let tyAct = typeOfBuiltinFunction @DefaultUni def IdList
+    let tyAct = typeOfBuiltinFunction def IdList
         tyExp =
           let a = TyName . Name "a" $ Unique 0
               listA = TyApp () Scott.listTy (TyVar () a)
            in TyForall () a (Type ()) $ TyFun () listA listA
-        one = mkConstant @Integer @DefaultUni () 1
-        ten = mkConstant @Integer @DefaultUni () 10
-        res = mkConstant @Integer @DefaultUni () 55
+        one = mkConstant @Integer () 1
+        ten = mkConstant @Integer () 10
+        res = mkConstant @Integer () 55
         -- > sum (idList {integer} (enumFromTo 1 10))
         term =
           apply () (mapFun Left Scott.sum)
@@ -278,7 +309,7 @@ argument when it's a function, for another example).
 test_IdRank2 :: TestTree
 test_IdRank2 =
   testCase "IdRank2" $ do
-    let res = mkConstant @Integer @DefaultUni () 0
+    let res = mkConstant @Integer () 0
         -- > sum (idRank2 {list} nil {integer})
         term =
           apply () (mapFun Left Scott.sum)
@@ -291,7 +322,7 @@ test_IdRank2 =
 test_ScottToMetaUnit :: TestTree
 test_ScottToMetaUnit =
   testCase "ScottToMetaUnit" $ do
-    let res = EvaluationSuccess $ mkConstant @() @DefaultUni () ()
+    let res = EvaluationSuccess $ mkConstant @() () ()
         applyTerm = apply () (builtin () ScottToMetaUnit)
     -- @scottToMetaUnit Scott.unitval@ is well-typed and runs successfully.
     typecheckEvaluateCekNoEmit def () (applyTerm Scott.unitval) @?= Right res
@@ -310,7 +341,7 @@ test_FailingSucc =
   testCase "FailingSucc" $ do
     let term =
           apply () (builtin () $ Right FailingSucc) $
-            mkConstant @Integer @DefaultUni @DefaultFunExt () 0
+            mkConstant @Integer @_ @DefaultFunExt () 0
     typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
       -- Here we rely on 'typecheckAnd' lazily running the action after type checking the
       -- term.
@@ -326,7 +357,7 @@ test_ExpensiveSucc =
   testCase "ExpensiveSucc" $ do
     let term =
           apply () (builtin () $ Right ExpensiveSucc) $
-            mkConstant @Integer @DefaultUni @DefaultFunExt () 0
+            mkConstant @Integer @_ @DefaultFunExt () 0
     typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
       traverse (try . evaluate) $
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term
@@ -340,8 +371,8 @@ test_FailingPlus =
     let term =
           mkIterAppNoAnn
             (builtin () $ Right FailingPlus)
-            [ mkConstant @Integer @DefaultUni @DefaultFunExt () 0
-            , mkConstant @Integer @DefaultUni () 1
+            [ mkConstant @Integer @_ @DefaultFunExt () 0
+            , mkConstant @Integer () 1
             ]
     typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
       -- Here we rely on 'typecheckAnd' lazily running the action after type checking the
@@ -359,8 +390,8 @@ test_ExpensivePlus =
     let term =
           mkIterAppNoAnn
             (builtin () $ Right ExpensivePlus)
-            [ mkConstant @Integer @DefaultUni @DefaultFunExt () 0
-            , mkConstant @Integer @DefaultUni () 1
+            [ mkConstant @Integer @_ @DefaultFunExt () 0
+            , mkConstant @Integer () 1
             ]
     typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
       traverse (try . evaluate) $
@@ -374,7 +405,7 @@ test_BuiltinList =
     enumerate <&> \optMatch ->
       testCase (show optMatch) $ do
         let xs = [1 .. 10]
-            res = mkConstant @Integer @DefaultUni () $ foldr (-) 0 xs
+            res = mkConstant @Integer () $ foldr (-) 0 xs
             term =
               mkIterAppNoAnn
                 (mkIterInstNoAnn (Builtin.foldrList optMatch) [integer, integer])
@@ -412,72 +443,72 @@ test_BuiltinArray =
   testGroup
     "BuiltinArray"
     [ testCase "listToArray" do
-        let listOfInts = mkConstant @[Integer] @DefaultUni () [1 .. 10]
-        let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1 .. 10])
+        let listOfInts = mkConstant @[Integer] () [1 .. 10]
+        let arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [1 .. 10])
         let term = apply () (tyInst () (builtin () ListToArray) integer) listOfInts
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess arrayOfInts)
     , testCase "lengthOfArray" do
-        let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1 .. 10])
-        let expectedLength = mkConstant @Integer @DefaultUni () 10
+        let arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [1 .. 10])
+        let expectedLength = mkConstant @Integer () 10
             term = apply () (tyInst () (builtin () LengthOfArray) integer) arrayOfInts
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess expectedLength)
     , testCase "indexArray" do
-        let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1 .. 10])
-        let index = mkConstant @Integer @DefaultUni () 5
-            expectedValue = mkConstant @Integer @DefaultUni () 6
+        let arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [1 .. 10])
+        let index = mkConstant @Integer () 5
+            expectedValue = mkConstant @Integer () 6
             term = mkIterAppNoAnn (tyInst () (builtin () IndexArray) integer) [arrayOfInts, index]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess expectedValue)
     , testCase "multiIndexArray" do
         -- Order preserved and duplicate indices return the same element.
-        let indices = mkConstant @[Integer] @DefaultUni () [2, 0, 0, 1]
-            arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
-            expected = mkConstant @[Integer] @DefaultUni () [30, 10, 10, 20]
+        let indices = mkConstant @[Integer] () [2, 0, 0, 1]
+            arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [10, 20, 30])
+            expected = mkConstant @[Integer] () [30, 10, 10, 20]
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess expected)
     , testCase "multiIndexArray-bool-elements" do
         -- Polymorphic in the element type.
-        let indices = mkConstant @[Integer] @DefaultUni () [1, 0]
-            arrayOfBools = mkConstant @(Vector Bool) @DefaultUni () (Vector.fromList [False, True])
-            expected = mkConstant @[Bool] @DefaultUni () [True, False]
+        let indices = mkConstant @[Integer] () [1, 0]
+            arrayOfBools = mkConstant @(Vector Bool) () (Vector.fromList [False, True])
+            expected = mkConstant @[Bool] () [True, False]
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) bool) [arrayOfBools, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess expected)
     , testCase "multiIndexArray-empty-indices" do
-        let indices = mkConstant @[Integer] @DefaultUni () []
-            arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
-            expected = mkConstant @[Integer] @DefaultUni () []
+        let indices = mkConstant @[Integer] () []
+            arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [10, 20, 30])
+            expected = mkConstant @[Integer] () []
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess expected)
     , testCase "multiIndexArray-index-equals-length-fails" do
         -- An index equal to the length is out of bounds; the whole call fails.
-        let indices = mkConstant @[Integer] @DefaultUni () [0, 3]
-            arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
+        let indices = mkConstant @[Integer] () [0, 3]
+            arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [10, 20, 30])
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
     , testCase "multiIndexArray-negative-index-fails" do
         -- Negative indices are out of bounds, not wrap-around.
-        let indices = mkConstant @[Integer] @DefaultUni () [-1]
-            arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
+        let indices = mkConstant @[Integer] () [-1]
+            arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [10, 20, 30])
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
     , testCase "multiIndexArray-empty-array-fails" do
-        let indices = mkConstant @[Integer] @DefaultUni () [0]
-            emptyArray = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [])
+        let indices = mkConstant @[Integer] () [0]
+            emptyArray = mkConstant @(Vector Integer) () (Vector.fromList [])
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [emptyArray, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
     , testCase "multiIndexArray-huge-index-fails" do
         -- The bounds check is in the 'Integer' domain, so an index exceeding
         -- 'maxBound :: Int' is out of bounds rather than wrapping on conversion.
-        let indices = mkConstant @[Integer] @DefaultUni () [2 ^ (64 :: Integer)]
-            arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [10, 20, 30])
+        let indices = mkConstant @[Integer] () [2 ^ (64 :: Integer)]
+            arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [10, 20, 30])
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
@@ -486,9 +517,9 @@ test_BuiltinArray =
         -- maximum.  The array is a singleton so that this varies the number of indices
         -- and nothing else.
         let atLimit = Arrays.maximumIndexCount
-            indices = mkConstant @[Integer] @DefaultUni () (replicate atLimit 0)
-            arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [42])
-            expected = mkConstant @[Integer] @DefaultUni () (replicate atLimit 42)
+            indices = mkConstant @[Integer] () (replicate atLimit 0)
+            arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [42])
+            expected = mkConstant @[Integer] () (replicate atLimit 42)
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right (EvaluationSuccess expected)
@@ -497,8 +528,8 @@ test_BuiltinArray =
         -- count is the only thing under test.
         -- See Note [Index count limitation for multiIndexArray].
         let overLimit = Arrays.maximumIndexCount + 1
-            indices = mkConstant @[Integer] @DefaultUni () (replicate overLimit 0)
-            arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [42])
+            indices = mkConstant @[Integer] () (replicate overLimit 0)
+            arrayOfInts = mkConstant @(Vector Integer) () (Vector.fromList [42])
             term = mkIterAppNoAnn (tyInst () (builtin () MultiIndexArray) integer) [arrayOfInts, indices]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
           @?= Right EvaluationFailure
@@ -513,7 +544,7 @@ test_BuiltinArray =
 test_BuiltinPair :: TestTree
 test_BuiltinPair =
   testCase "BuiltinPair" $ do
-    let arg = mkConstant @(Integer, Bool) @DefaultUni () (1, False)
+    let arg = mkConstant @(Integer, Bool) () (1, False)
         inst efun = mkIterInstNoAnn (builtin () efun) [integer, bool]
         swapped = apply () (inst $ Right Swap) arg
         fsted = apply () (inst $ Left FstPair) arg
@@ -535,7 +566,7 @@ test_SwapEls =
       testCase (show optMatch) $ do
         let xs = zip [1 .. 10] $ cycle [False, True]
             res =
-              mkConstant @Integer @DefaultUni () $
+              mkConstant @Integer () $
                 foldr (\p r -> r + (if snd p then -1 else 1) * fst p) 0 xs
             el = mkTyBuiltin @_ @(Integer, Bool) ()
             instProj p = mkIterInstNoAnn (builtin () p) [integer, bool]
