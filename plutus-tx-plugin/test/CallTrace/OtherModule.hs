@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings -fplugin Plinth.Plugin -fplugin-opt Plinth.Plugin:preserve-source-locations #-}
 
 module CallTrace.OtherModule where
 
