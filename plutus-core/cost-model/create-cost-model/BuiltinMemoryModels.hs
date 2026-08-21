@@ -384,9 +384,7 @@ builtinMemoryModels =
       paramMultiIndexArray = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 4 3
     , -- `policies` returns the outer map's keys. The bytestrings are shared with the
       -- `Value`, so only the list spine is new, at three words per cons cell (as for
-      -- `multiIndexArray`). The size measure is the total number of (policy, token) pairs,
-      -- which is at least the number of policies, so this over-charges values holding more
-      -- than one token per policy rather than under-charging any of them.
+      -- `multiIndexArray`). The size measure is the number of policies (`ValueOuterSize`).
       paramPolicies = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 3
     }
   where

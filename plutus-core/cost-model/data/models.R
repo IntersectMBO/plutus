@@ -852,11 +852,8 @@ modelFun <- function(path) {
     }
 
     ## `policies` copies the outer map's keys into a list, so the cost is linear in the
-    ## number of policies.  The size measure is the total number of (policy, token) pairs,
-    ## which equals the number of policies only when each policy holds a single token; the
-    ## benchmark generates that shape, so the slope below is the per-policy cost.  Values
-    ## carrying more tokens per policy have a larger size for the same work, so they are
-    ## over-charged rather than under-charged.
+    ## number of policies, which is exactly what the size measure (`ValueOuterSize`)
+    ## reports: the slope below is the per-policy cost.
     ##
     ## Least squares is a poor fit here, for the opposite reason to multiIndexArray above.
     ## The measured cost per policy *falls* across the range (15.2ns per policy below 5000

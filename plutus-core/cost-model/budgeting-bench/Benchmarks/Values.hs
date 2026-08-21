@@ -37,6 +37,7 @@ import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, Builti
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ValueMaxDepth (..)
+  , ValueOuterSize (..)
   , ValueTotalSize (..)
   )
 import PlutusCore.Value
@@ -381,18 +382,11 @@ scaleValueArgs gen = replicateM 200 $ do
 ----------------------------------------------------------------------------------------------------
 -- Policies ----------------------------------------------------------------------------------------
 
-{- Note [Benchmarking policies on the one-token-per-policy diagonal]
-`policies` is \(O(m)\) in the size of the outer map, but the argument is costed by
-`ValueTotalSize` (the `ExMemoryUsage Value` instance the denotation uses), which measures
-the total number of `(policy, token)` pairs. Those two agree only when every policy holds
-exactly one token, so the generator fixes that shape: the resulting fit is keyed on a size
-measure that equals the number of policies.
-
-This is deliberately the worst case per unit of the size measure. For any other shape the
-total size exceeds the number of policies, so the real cost is lower than the fitted model
-predicts and the model over-charges. Benchmarking off the diagonal instead would fit a
-shallower slope and under-charge the one-token-per-policy case, which is the failure
-direction that matters.
+{- Note [Benchmarking policies]
+`policies` is \(O(m)\) in the size of the outer map, which is exactly what
+`ValueOuterSize` (the measure the denotation uses) reports, so the fit applies to any
+shape of `Value`. The generator uses one token per policy; the inner maps are never
+traversed, so their size does not matter.
 
 `nf` rather than `whnf`, for the same reason as `valueData`: the result is a lazy list and
 `whnf` would stop at the first cons cell.
@@ -400,7 +394,7 @@ direction that matters.
 policiesBenchmark :: StdGen -> Benchmark
 policiesBenchmark gen =
   createOneTermBuiltinBenchWithWrapper_NF
-    ValueTotalSize
+    ValueOuterSize
     Policies
     []
     (runBenchGen gen policiesArgs)
@@ -411,8 +405,8 @@ single-argument `Value` benchmarks. -}
 maxPoliciesEntries :: Int
 maxPoliciesEntries = Value.valueDataMaxSize
 
-{-| Generate `Value`s holding one token per policy, so that total size equals the number of
-policies. See Note [Benchmarking policies on the one-token-per-policy diagonal]. -}
+{-| Generate `Value`s holding one token per policy.
+See Note [Benchmarking policies]. -}
 policiesArgs :: StatefulGen g m => g -> m [Value]
 policiesArgs gen =
   (Value.empty :) <$> replicateM 100 do
