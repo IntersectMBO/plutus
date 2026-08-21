@@ -714,6 +714,23 @@ lookup?-deterministic : {A : Set} {x₁ x₂ : A} → (n : ℕ) → (xs : List A
 lookup?-deterministic n xs p₁ p₂ with trans (sym p₁) p₂
 ... | refl = refl
 
+-- Casing on a constant of a builtin type, mirroring the Haskell
+-- 'CaseBuiltin DefaultUni' instance: the number of branches must match the
+-- type exactly (except for integer, which selects among any number of
+-- branches), and list/pair components are passed to the selected branch as
+-- already-evaluated constants. Any other combination fails.
+caseCon : ∀{Γ} → Stack Frame → Env Γ → (ty : TyTag) → ⟦ ty ⟧tag → List (Γ ⊢) → State
+caseCon s ρ unit tt (t ∷ []) = s ; ρ ▻ t
+caseCon s ρ bool false (t ∷ []) = s ; ρ ▻ t
+caseCon s ρ bool false (t ∷ _ ∷ []) = s ; ρ ▻ t
+caseCon s ρ bool true (_ ∷ t ∷ []) = s ; ρ ▻ t
+caseCon s ρ integer (ℤ.pos n) ts = maybe (s ; ρ ▻_) ◆ (lookup? n ts)
+caseCon s ρ (list ty) (x ∷ xs) (t ∷ []) = pushValueFrames s ((ε , V-con ty x) , V-con (list ty) xs) ; ρ ▻ t
+caseCon s ρ (list ty) (x ∷ xs) (t ∷ _ ∷ []) = pushValueFrames s ((ε , V-con ty x) , V-con (list ty) xs) ; ρ ▻ t
+caseCon s ρ (list ty) [] (_ ∷ t ∷ []) = s ; ρ ▻ t
+caseCon s ρ (pair ty₁ ty₂) (x , y) (t ∷ []) = pushValueFrames s ((ε , V-con ty₁ x) , V-con ty₂ y) ; ρ ▻ t
+caseCon s ρ _ _ _ = ◆
+
 step : State → State
 step (s ; ρ ▻ ` x)               = s ◅ lookup ρ x
 step (s ; ρ ▻ ƛ t)               = s ◅ V-ƛ ρ t
@@ -745,7 +762,7 @@ step ((s , constr- i vs ρ []) ◅ v)         = s ◅ V-constr i (vs , v)
 step ((s , constr- i vs ρ (t ∷ ts)) ◅ v)   = (s , constr- i (vs , v) ρ ts); ρ ▻ t
 step ((s , case- ρ ts) ◅ V-constr i vs)    = maybe (pushValueFrames s vs ; ρ ▻_) ◆ (lookup? i ts)
 step ((s , case- ρ ts) ◅ V-ƛ _ _)          = ◆ -- case of lambda
-step ((s , case- ρ ts) ◅ V-con _ _)        = ◆ -- case of constant
+step ((s , case- ρ ts) ◅ V-con ty v)       = caseCon s ρ ty v ts
 step ((s , case- ρ ts) ◅ V-delay _ _)      = ◆ -- case of delay
 step ((s , case- ρ ts) ◅ V-I⇒ _ _)         = ◆ -- case of builtin value
 step ((s , case- ρ ts) ◅ V-IΠ _ _)         = ◆ -- case of delayed builtin
