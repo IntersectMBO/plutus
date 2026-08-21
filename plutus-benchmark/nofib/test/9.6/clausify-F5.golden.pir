@@ -1,6 +1,4 @@
 (let
-    data Unit | Unit_match where
-      Unit : Unit
     data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
       Tuple2 : a -> b -> Tuple2 a b
   in
@@ -11,23 +9,15 @@
   in
   let
     ~defaultBody : Tuple2 (List integer) (List integer)
-      = let
-        !defaultBody : Tuple2 (List integer) (List integer)
-          = error {Tuple2 (List integer) (List integer)}
-      in
-      Unit_match
-        (error {Unit})
-        {Tuple2 (List integer) (List integer)}
-        defaultBody
+      = case
+          (Tuple2 (List integer) (List integer))
+          (error {unit})
+          [(error {Tuple2 (List integer) (List integer)})]
     ~defaultBody : Tuple2 (List integer) (List integer)
-      = let
-        !defaultBody : Tuple2 (List integer) (List integer)
-          = error {Tuple2 (List integer) (List integer)}
-      in
-      Unit_match
-        (error {Unit})
-        {Tuple2 (List integer) (List integer)}
-        defaultBody
+      = case
+          (Tuple2 (List integer) (List integer))
+          (error {unit})
+          [(error {Tuple2 (List integer) (List integer)})]
     data Ordering | Ordering_match where
       EQ : Ordering
       GT : Ordering

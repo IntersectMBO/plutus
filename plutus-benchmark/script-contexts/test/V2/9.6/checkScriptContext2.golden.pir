@@ -416,8 +416,6 @@
                                  (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
                                     (headList {data} ds))) ]) ]
                    args) ]
-    data Unit | Unit_match where
-      Unit : Unit
     data (LowerBound :: * -> *) a | LowerBound_match where
       LowerBound : Extended a -> bool -> LowerBound a
     data (UpperBound :: * -> *) a | UpperBound_match where
@@ -740,7 +738,7 @@
                                     (headList {data} ds))) ]) ]
                    args) ]
     in
-    Unit)
+    ())
   (Constr 0
      [ Constr 0
          [ List []

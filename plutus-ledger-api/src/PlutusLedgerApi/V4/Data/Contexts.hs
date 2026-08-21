@@ -113,7 +113,6 @@ module PlutusLedgerApi.V4.Data.Contexts
   , txInfoInputs
   , txInfoReferenceInputs
   , txInfoOutputs
-  , txInfoFee
   , txInfoMint
   , txInfoTxCerts
   , txInfoWithdrawals
@@ -142,6 +141,7 @@ module PlutusLedgerApi.V4.Data.Contexts
   , ttisDirectDeposits
   , ttisValidRange
   , ttisGuards
+  , ttisRequiredTopLevelGuards
   , ttisScriptPurposes
   , ttisData
   , ttisVotes
@@ -153,7 +153,7 @@ module PlutusLedgerApi.V4.Data.Contexts
   , matchTopTxInfo
   , topTxInfoSubTransactions
   , topTxInfoDatums
-  , topTxInfoStartingBalanceIntervals
+  , topTxInfoStartingAccountBalanceIntervals
   , topTxInfoSimplified
   , ScriptInfo
   , matchScriptInfo
@@ -251,6 +251,7 @@ import PlutusLedgerApi.V3.Data.Contexts
 import PlutusLedgerApi.V3.Data.MintValue qualified as V3
 import PlutusLedgerApi.V3.Data.Tx qualified as V3
 import PlutusLedgerApi.V4.Data.Address (AccountId (..), pattern Address)
+import PlutusLedgerApi.V4.Data.Time (POSIXTimeRange)
 import PlutusLedgerApi.V4.Data.Tx (TxOut, txOutAddress, txOutValue, pattern TxOut)
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
@@ -355,13 +356,12 @@ PlutusTx.asData
       , txInfoInputs :: List TxInInfo
       , txInfoReferenceInputs :: List TxInInfo
       , txInfoOutputs :: List TxOut
-      , txInfoFee :: V2.Lovelace
       , txInfoMint :: V3.MintValue
       , txInfoTxCerts :: List TxCert
-      , txInfoWithdrawals :: Map AccountId V2.Lovelace
-      , txInfoDirectDeposits :: Map AccountId V2.Lovelace
+      , txInfoWithdrawals :: Map V2.Credential V2.Lovelace
+      , txInfoDirectDeposits :: Map V2.Credential V2.Lovelace
       , txInfoAccountBalanceIntervals :: AccountBalanceIntervals
-      , txInfoValidRange :: V2.POSIXTimeRange
+      , txInfoValidRange :: POSIXTimeRange
       , txInfoGuards :: List V2.Credential
       , txInfoRequiredTopLevelGuards :: Map V2.Credential (Haskell.Maybe V2.Datum)
       , txInfoRedeemers :: Map ScriptPurpose V2.Redeemer
@@ -381,22 +381,50 @@ PlutusTx.asData
   [d|
     data TopTxInfoSimplified = TopTxInfoSimplified
       { ttisIds :: List V3.TxId
-      , ttisInputs :: List TxInInfo
-      , ttisReferenceInputs :: List TxInInfo
-      , ttisOutputs :: List TxOut
-      , ttisMints :: V3.MintValue
-      , ttisBurns :: V3.MintValue
-      , ttisTxCerts :: List TxCert
-      , ttisWithdrawals :: Map AccountId V2.Lovelace
-      , ttisDirectDeposits :: Map AccountId V2.Lovelace
-      , ttisValidRange :: V2.POSIXTimeRange
-      , ttisGuards :: Map V2.Credential ()
-      , ttisScriptPurposes :: Map ScriptPurpose ()
-      , ttisData :: Map V2.DatumHash V2.Datum
-      , ttisVotes :: Map Voter (Map GovernanceActionId Vote)
-      , ttisProposalProcedures :: List ProposalProcedure
-      , ttisCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
-      , ttisTreasuryDonations :: V2.Lovelace
+      , -- \^ List of all `TxId`s fro the whole transaction, including the top-level transaction,
+        -- which is always going to be the last one in the list.
+        ttisInputs :: List TxInInfo
+      , -- \^ Concatenated list of all `txInfoInputs`'
+        ttisReferenceInputs :: List TxInInfo
+      , -- \^ Concatenated list of all `txInfoReferenceInputs`'
+        ttisOutputs :: List TxOut
+      , -- \^ Concatenated list of all `txInfoOutputs`'
+        ttisMints :: V3.MintValue
+      , -- \^ `MintValue`s from all `txInfoMint` with positive amounts
+        ttisBurns :: V3.MintValue
+      , -- \^ `MintValue`s from all `txInfoMint` with negative amounts
+        ttisTxCerts :: List TxCert
+      , -- \^ Concatenated list of all `ttisTxCerts`'. Note, that unlike individual lists in each
+        -- `txInfoTxCerts`, this one can contain duplicates.
+        ttisWithdrawals :: Map V2.Credential V2.Lovelace
+      , -- \^ Union of all `txInfoWithdrawals` with a sum on the range for duplicate credentials
+        ttisDirectDeposits :: Map V2.Credential V2.Lovelace
+      , -- \^ Union of all `txInfoWithdrawals` with a sum on the range for duplicate credentials
+        ttisValidRange :: POSIXTimeRange
+      , -- \^ Intersection of all validity intervals from within the whole transaction
+        ttisGuards :: List V2.Credential
+      , -- \^ Concatenated list of all `txInfoGuards`'
+        ttisRequiredTopLevelGuards :: List V2.Credential
+      , -- \^ Deduplicated set of required top level guards. It is impossible to keep the range of
+        -- the Map due to potential presence of duplicates in the domain between different
+        -- sub-transactions, therefore the range is eliminated.
+        ttisScriptPurposes :: List ScriptPurpose
+      , -- \^ Union of all of the `Redeemer`s. Note that it is not possible to preserve actual
+        -- `Redeemer`s upon `union` operation due to potential duplicates in the domain. Therefore it
+        -- is collapsed to a Set of `ScriptPurpose`s only with duplicates removed.
+        ttisData :: Map V2.DatumHash V2.Datum
+      , -- \^ Union of all `txInfoData`. Duplicates are simply removed, since domain and range are
+        -- a one-to-one mapping.
+        ttisVotes :: Map Voter (Map GovernanceActionId Vote)
+      , -- \^ Union of all of the votes. Note that a vote in a sub-sequent sub-transaction or a top
+        -- level transaction can replace a vote from a prior sub-transaction.
+        ttisProposalProcedures :: List ProposalProcedure
+      , -- \^ Concatenated list of all `ProposalPrecedure`s.
+        ttisCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
+      , -- \^ Value of the treasury, which will be present if any of sub-transactions or top level
+        -- transaction included such value
+        ttisTreasuryDonations :: V2.Lovelace
+        -- \^ Sum of all `txInfoTreasuryDonation`s
       }
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
@@ -409,9 +437,19 @@ PlutusTx.asData
   [d|
     data TopTxInfo = TopTxInfo
       { topTxInfoSubTransactions :: List TxInfo
-      , topTxInfoDatums :: Map Haskell.Integer V2.Datum
-      , topTxInfoStartingBalanceIntervals :: AccountBalanceIntervals
-      , topTxInfoSimplified :: TopTxInfoSimplified
+      , -- \^ List of `TxInfo`s for all sub-transactions. Not that `TxInfo` for the top level
+        -- transaction itslef is not present in this list.
+        topTxInfoDatums :: Map V3.TxId V2.Datum
+      , -- \^ Datums supplied in `requiredTopLevelGuards` for that script. Plutus scripts require
+        -- a datum to be supplied when listed `requiredTopLevelGuards`. That `Map` will be empty if
+        -- none of the transactions within the whole transaction require Plutus scripts to be
+        -- present in `Guards`
+        topTxInfoStartingAccountBalanceIntervals :: AccountBalanceIntervals
+      , -- \^ This is a field that allows top level transaction to specify the balance intervals
+        -- before the whole transaction is applied
+        topTxInfoSimplified :: TopTxInfoSimplified
+        -- \^ Aggregated view on the whole transaction, namely information about sub-transactions
+        -- and the top level transaction all concatenated together with loss of some information
       }
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
@@ -426,10 +464,22 @@ PlutusTx.asData
       = MintingScript V2.CurrencySymbol
       | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum)
       | WithdrawingScript AccountId
-      | CertifyingScript Haskell.Integer TxCert
+      | CertifyingScript
+          Haskell.Integer
+          -- \^ 0-based index of the given `TxCert` in `txInfoTxCerts`
+          TxCert
       | VotingScript Voter
-      | ProposingScript Haskell.Integer ProposalProcedure
-      | GuardingScript Haskell.Integer (Haskell.Maybe TopTxInfo)
+      | ProposingScript
+          Haskell.Integer
+          -- \^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
+          ProposalProcedure
+      | GuardingScript
+          Haskell.Integer
+          (Haskell.Maybe TopTxInfo)
+      -- \^ Whenever a `Guard` is executed at the top transaction level it will include extra
+      -- information about potential sub-transactions. In other words for sub-transactions
+      -- this is guaranteed to be `Nothing`, while for top level transactions this is
+      -- guaranteed to be `Just`
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow ScriptInfo)
@@ -441,9 +491,14 @@ PlutusTx.asData
   [d|
     data ScriptContext = ScriptContext
       { scriptContextTxInfo :: TxInfo
-      , scriptContextRedeemer :: V2.Redeemer
-      , scriptContextScriptInfo :: ScriptInfo
-      , scriptContextScriptHash :: V2.ScriptHash
+      , -- \^ Information about the transaction the currently-executing script is included in
+        scriptContextRedeemer :: V2.Redeemer
+      , -- \^ Redeemer for the currently-executing script
+        scriptContextScriptInfo :: ScriptInfo
+      , -- \^ the purpose of the currently-executing script, along with information associated
+        -- with the purpose
+        scriptContextScriptHash :: V2.ScriptHash
+        -- \^ Hash of the script that is being executed
       }
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
@@ -564,7 +619,6 @@ instance Pretty TxInfo where
       , "Inputs:" <+> pretty txInfoInputs
       , "Reference inputs:" <+> pretty txInfoReferenceInputs
       , "Outputs:" <+> pretty txInfoOutputs
-      , "Fee:" <+> pretty txInfoFee
       , "Value minted:" <+> pretty txInfoMint
       , "TxCerts:" <+> pretty txInfoTxCerts
       , "Withdrawals:" <+> pretty txInfoWithdrawals

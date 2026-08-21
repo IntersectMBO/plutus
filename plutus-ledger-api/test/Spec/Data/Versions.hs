@@ -16,6 +16,7 @@ import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Data.V1 qualified as V1
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.Data.V3 qualified as V3
+import PlutusLedgerApi.Data.V4 qualified as V4
 
 import Data.ByteString.Short qualified as BSS
 import Data.Either
@@ -53,6 +54,7 @@ showPV (MajorProtocolVersion pv) =
     9 -> "Chang (PV9)"
     10 -> "Plomin (PV10)"
     11 -> "van Rossem (PV11)"
+    12 -> "Dijkstra (PV12)"
     _ -> "<unknown> (PV" ++ show pv ++ ")"
 
 -- Some scripts for use in the version tests.
@@ -99,6 +101,7 @@ testLedgerLanguages =
     [ testProperty "PlutusV1 not before but after" $ prop_notBeforeButAfter V1.deserialiseScript alonzoPV
     , testProperty "PlutusV2 not before but after" $ prop_notBeforeButAfter V2.deserialiseScript vasilPV
     , testProperty "PlutusV3 not before but after" $ prop_notBeforeButAfter V3.deserialiseScript changPV
+    , testProperty "PlutusV4 not before but after" $ prop_notBeforeButAfter V4.deserialiseScript dijkstraPV
     , testProperty "protocol-versions can add but not remove ledger languages" $
         \pvA pvB -> pvA < pvB ==> ledgerLanguagesAvailableIn pvA `Set.isSubsetOf` ledgerLanguagesAvailableIn pvB
     ]
@@ -141,9 +144,10 @@ testLanguageVersions =
                   ++ fmap (expectGood prog ll) expectedGood
      in [ testGroup
             "v1.1.0 availability"
-            [ testOkFrom PlutusV1 newestPV v110script
-            , testOkFrom PlutusV2 newestPV v110script
+            [ testOkFrom PlutusV1 vanRossemPV v110script
+            , testOkFrom PlutusV2 vanRossemPV v110script
             , testOkFrom PlutusV3 changPV v110script
+            , testOkFrom PlutusV4 dijkstraPV v110script
             ]
         , -- Check that case and constr are not allowed in 1.1.0 in any LL/PV combination
           testCase "case is not available in v1.0.0 ever" $
@@ -255,7 +259,8 @@ testPermittedBuiltins =
                 , mkTest valentinePV builtins1
                 , mkTest changPV builtins1
                 , mkTest plominPV builtins1
-                , mkTest newestPV (allBuiltins \\ builtins7)
+                , mkTest vanRossemPV (allBuiltins \\ builtins7)
+                , mkTest dijkstraPV (allBuiltins \\ builtins7)
                 ]
         , let mkTest = testBuiltins PlutusV2 V2.deserialiseScript
            in testGroup
@@ -268,7 +273,8 @@ testPermittedBuiltins =
                 , mkTest valentinePV $ builtins1 ++ builtins2 ++ builtins3
                 , mkTest changPV $ builtins1 ++ builtins2 ++ builtins3
                 , mkTest plominPV $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4b
-                , mkTest newestPV (allBuiltins \\ builtins7)
+                , mkTest vanRossemPV (allBuiltins \\ builtins7)
+                , mkTest dijkstraPV (allBuiltins \\ builtins7)
                 ]
         , let mkTest = testBuiltins PlutusV3 V3.deserialiseScript
            in testGroup
@@ -281,7 +287,22 @@ testPermittedBuiltins =
                 , mkTest valentinePV []
                 , mkTest changPV $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b
                 , mkTest plominPV $ builtins1 ++ builtins2 ++ builtins3 ++ builtins4a ++ builtins4b ++ builtins5
-                , mkTest newestPV (allBuiltins \\ builtins7)
+                , mkTest vanRossemPV (allBuiltins \\ builtins7)
+                , mkTest dijkstraPV (allBuiltins \\ builtins7)
+                ]
+        , let mkTest = testBuiltins PlutusV4 V4.deserialiseScript
+           in testGroup
+                "PlutusV4"
+                [ mkTest shelleyPV []
+                , mkTest allegraPV []
+                , mkTest maryPV []
+                , mkTest alonzoPV []
+                , mkTest vasilPV []
+                , mkTest valentinePV []
+                , mkTest changPV []
+                , mkTest plominPV []
+                , mkTest vanRossemPV []
+                , mkTest dijkstraPV (allBuiltins \\ builtins7)
                 ]
         ]
 
@@ -458,6 +479,10 @@ testRmdr =
           fromLeft (Prelude.error "Expected Reft, got Right") $
             V3.deserialiseScript changPV $
               errorScript <> "remdr3"
+        assertEqual "remdr4" (RemainderError "remdr4") $
+          fromLeft (Prelude.error "Expected Reft, got Right") $
+            V4.deserialiseScript dijkstraPV $
+              errorScript <> "remdr4"
     , testProperty "remdr1gen" $ \remdr -> isRight $ V1.deserialiseScript valentinePV $ errorScript <> BSS.pack remdr
     , testProperty "remdr2gen" $ \remdr -> isRight $ V2.deserialiseScript valentinePV $ errorScript <> BSS.pack remdr
     , testProperty "remdr1genc" $ \remdr -> isRight $ V1.deserialiseScript changPV $ errorScript <> BSS.pack remdr

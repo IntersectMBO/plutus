@@ -109,10 +109,14 @@ constrTerm tm = withSpan $ \sp ->
   inParens $ do
     let maxTag = fromIntegral (maxBound :: Word64)
     ty <- symbol "constr" *> pType
-    tag :: Integer <- lexeme Lex.decimal
-    args <- many tm
     whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
-    when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
+    tag :: Integer <- Lex.decimal
+    when (tag > maxTag) $ do
+      o <- getOffset
+      region (setErrorOffset (o - 1)) $
+        fail "constr tag too large: must be a legal Word64 value"
+    whitespace
+    args <- many tm
     pure $ PIR.constr sp ty (fromIntegral tag) args
 
 caseTerm :: Parametric
@@ -127,15 +131,15 @@ letTerm = withSpan $ \sp ->
 
 appTerm :: Parametric
 appTerm tm = withSpan $ \sp ->
-    inBrackets $
-      setAnn sp <$>
-        (PIR.mkIterApp <$> tm <*> (fmap (getAnn &&& id) <$> some tm))
+  inBrackets $
+    setAnn sp
+      <$> (PIR.mkIterApp <$> tm <*> (fmap (getAnn &&& id) <$> some tm))
 
 tyInstTerm :: Parametric
 tyInstTerm tm = withSpan $ \sp ->
-    inBraces $
-      setAnn sp <$>
-        (PIR.mkIterInst <$> tm <*> (fmap (getAnn &&& id) <$> some pType))
+  inBraces $
+    setAnn sp
+      <$> (PIR.mkIterInst <$> tm <*> (fmap (getAnn &&& id) <$> some pType))
 
 pTerm :: Parser PTerm
 pTerm = leadingWhitespace go

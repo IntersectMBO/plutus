@@ -346,8 +346,6 @@
                                            unBData
                                            (headList {data} ds))) ]) ]) ]
                    args) ]
-    data Unit | Unit_match where
-      Unit : Unit
     data ScriptPurpose | ScriptPurpose_match where
       Certifying : DCert -> ScriptPurpose
       Minting : bytestring -> ScriptPurpose
@@ -716,7 +714,7 @@
                                            args) ])) ]) ]
                    args) ]
     in
-    Unit)
+    ())
   (Constr 0
      [ Constr 0
          [ List []

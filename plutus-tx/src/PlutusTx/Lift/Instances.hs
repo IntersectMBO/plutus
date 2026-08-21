@@ -25,7 +25,6 @@ import PlutusTx.Maybe (Maybe (..))
 makeLift ''Maybe
 makeLift ''Either
 makeLift ''[]
-makeLift ''()
 
 -- include a few tuple instances for convenience
 makeLift ''(,)

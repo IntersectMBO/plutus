@@ -29,7 +29,7 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf-id;subNf-cong;extsNf;subNf∅)
-open import Algorithmic as A using (Ctx;_⊢_;_∋_;conv⊢;builtin_/_;⟦_⟧;[];_∷_;ConstrArgs;Cases;lookupCase;bwdMkCaseType;lemma-bwdfwdfunction')
+open import Algorithmic as A using (Ctx;_⊢_;_∋_;conv⊢;builtin_/_;⟦_⟧;[];_∷_;ConstrArgs;Cases;lookupCase;bwdMkCaseType;lemma-bwdfwdfunction';con-atomic)
 open import Algorithmic.Signature using (btype;_[_]SigTy)
 open Ctx
 open _⊢_
@@ -48,6 +48,9 @@ open Sig
 open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π
     using (sig2type;⊢♯2TyNe♯;SigTy;sig2SigTy;saturatedSigTy;convSigTy)
 open SigTy
+
+import Builtin.CInteger as CInt
+open CInt using (CInteger; cInt)
 ```
 
 ````
@@ -186,6 +189,11 @@ discharge (V-con c)  = con c refl
 discharge (V-I⇒ b bt) = dischargeB bt
 discharge (V-IΠ b bt) = dischargeB bt
 discharge (V-constr i Tss s refl) = constr i Tss refl (dischargeStack s)
+
+mkCInteger : ℤ → Either (∅ ⊢Nf⋆ *) CInteger
+mkCInteger i with CInt.minBound ≤? i | i ≤? CInt.maxBound
+mkCInteger i | yes p | yes q = return (cInt i p q)
+mkCInteger i | _ | _ = inj₁ (con-atomic aInteger)
 ```
 
 ## Builtin Semantics
@@ -194,28 +202,48 @@ If a builtin returns a value, then this function produces a `Value`, otherwise i
 a type that could be used in constructing the error term.
 ```
 BUILTIN : ∀ b {A} → {Ab : saturatedSigTy (signature b) A} → BApp b A Ab → Either (∅ ⊢Nf⋆ *) (Value A)
-BUILTIN addInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i + i'))
-BUILTIN subtractInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i - i'))
-BUILTIN multiplyInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i ** i'))
-BUILTIN divideInteger (base $ V-con i $ V-con i') = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con (ne (^ (atomic aInteger)))))
-  (inj₂ (V-con (div i i')))
-BUILTIN quotientInteger (base $ V-con i $ V-con i') = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con (ne (^ (atomic aInteger)))))
-  (inj₂ (V-con (quot i i')))
-BUILTIN remainderInteger (base $ V-con i $ V-con i') = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con (ne (^ (atomic aInteger)))))
-  (inj₂ (V-con (rem i i')))
-BUILTIN modInteger (base $ V-con i $ V-con i') = decIf
-  (i' ≟ ℤ.pos 0)
-   (inj₁ (con (ne (^ (atomic aInteger)))))
-  (inj₂ (V-con (mod i i')))
-BUILTIN lessThanInteger (base $ V-con i $ V-con i') = decIf (i <? i') (inj₂ (V-con true)) (inj₂ (V-con false))
-BUILTIN lessThanEqualsInteger (base $ V-con i $ V-con i') = decIf (i ≤? i') (inj₂ (V-con true)) (inj₂ (V-con false))
-BUILTIN equalsInteger (base $ V-con i $ V-con i') = decIf (i ≟ i') (inj₂ (V-con true)) (inj₂ (V-con false))
+BUILTIN addInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.add i₁ i₂))
+BUILTIN subtractInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.subtract i₁ i₂))
+BUILTIN multiplyInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.multiply i₁ i₂))
+BUILTIN divideInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  i₁/i₂ ← maybeToEither (con-atomic aInteger) (CInt.div i₁ i₂)
+  return (V-con i₁/i₂)
+BUILTIN quotientInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  i₁/i₂ ← maybeToEither (con-atomic aInteger) (CInt.quot i₁ i₂)
+  return (V-con i₁/i₂)
+BUILTIN remainderInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  i₁%i₂ ← maybeToEither (con-atomic aInteger) (CInt.rem i₁ i₂)
+  return (V-con i₁%i₂)
+BUILTIN modInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  i₁%i₂ ← maybeToEither (con-atomic aInteger) (CInt.mod i₁ i₂)
+  return (V-con i₁%i₂)
+BUILTIN lessThanInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.lessThan i₁ i₂))
+BUILTIN lessThanEqualsInteger (base $ V-con i $ V-con i') = do
+  i₁ ← mkCInteger i
+  i₂ ← mkCInteger i'
+  return (V-con (CInt.lessThanEquals i₁ i₂))
+BUILTIN equalsInteger (base $ V-con i $ V-con i') =
+  decIf (i ≟ i') (inj₂ (V-con true)) (inj₂ (V-con false))
 BUILTIN appendByteString (base $ V-con b $ V-con b') = inj₂ (V-con (concat b b'))
 BUILTIN lessThanByteString (base $ V-con b $ V-con b') = inj₂ (V-con (B< b b'))
 BUILTIN lessThanEqualsByteString (base $ V-con b $ V-con b') = inj₂ (V-con (B<= b b'))
@@ -227,16 +255,16 @@ BUILTIN keccak-256 (base $ V-con b) = inj₂ (V-con (KECCAK-256 b))
 BUILTIN ripemd-160 (base $ V-con b) = inj₂ (V-con (RIPEMD-160 b))
 BUILTIN verifyEd25519Signature (base $ V-con k $ V-con d $ V-con c) with (verifyEd25519Sig k d c)
 ... | just b = inj₂ (V-con b)
-... | nothing = inj₁ (con (ne (^ (atomic aBool))))
+... | nothing = inj₁ (con-atomic aBool)
 BUILTIN verifyEcdsaSecp256k1Signature (base $ V-con k $ V-con d $ V-con c) with (verifyEcdsaSecp256k1Sig k d c)
 ... | just b = inj₂ (V-con b)
-... | nothing = inj₁ (con (ne (^ (atomic aBool))))
+... | nothing = inj₁ (con-atomic aBool)
 BUILTIN verifySchnorrSecp256k1Signature (base $ V-con k $ V-con d $ V-con c) with (verifySchnorrSecp256k1Sig k d c)
 ... | just b = inj₂ (V-con b)
-... | nothing = inj₁ (con (ne (^ (atomic aBool))))
+... | nothing = inj₁ (con-atomic aBool)
 BUILTIN encodeUtf8 (base $ V-con s) = inj₂ (V-con (ENCODEUTF8 s))
 BUILTIN decodeUtf8 (base $ V-con b) with DECODEUTF8 b
-... | nothing = inj₁ (con (ne (^ (atomic aString))))
+... | nothing = inj₁ (con-atomic aString)
 ... | just s  = inj₂ (V-con s)
 BUILTIN equalsByteString (base $ V-con b $ V-con b') = inj₂ (V-con (equals b b'))
 BUILTIN ifThenElse (Λ̂ A $ V-con false $ vt $ vf) = inj₂ vf
@@ -247,44 +275,44 @@ BUILTIN iData (base $ V-con i) = inj₂ (V-con (iDATA i))
 BUILTIN bData (base $ V-con b) = inj₂ (V-con (bDATA b))
 BUILTIN consByteString (base $ V-con i $ V-con b) with cons i b
 ... | just b' = inj₂ (V-con b')
-... | nothing = inj₁ (con (ne (^ (atomic aBytestring))))
+... | nothing = inj₁ (con-atomic aBytestring)
 BUILTIN sliceByteString (base $ V-con st $ V-con n $ V-con b) = inj₂ (V-con (slice st n b))
 BUILTIN lengthOfByteString (base $ V-con b) = inj₂ (V-con (lengthBS b))
 BUILTIN indexByteString (base $ V-con b $ V-con i) with Data.Integer.ℤ.pos 0 ≤? i
-... | no  _ = inj₁ (con (ne (^ (atomic aInteger))))
+... | no  _ = inj₁ (con-atomic aInteger)
 ... | yes _ with i <? lengthBS b
-... | no _  = inj₁ (con (ne (^ (atomic aInteger))))
+... | no _  = inj₁ (con-atomic aInteger)
 ... | yes _ = inj₂ (V-con (index b i))
 BUILTIN equalsString (base $ V-con s $ V-con s') = inj₂ (V-con (primStringEquality s s'))
 BUILTIN unIData (base $ V-con (iDATA i)) = inj₂ (V-con i)
-BUILTIN unIData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
+BUILTIN unIData (base $ V-con _) = inj₁ (con-atomic aData)
 BUILTIN unBData (base $ V-con (bDATA b)) = inj₂ (V-con b)
-BUILTIN unBData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
+BUILTIN unBData (base $ V-con _) = inj₁ (con-atomic aData)
 BUILTIN unConstrData (base $ V-con (ConstrDATA i xs)) = inj₂ (V-con (i ,, xs))
-BUILTIN unConstrData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
+BUILTIN unConstrData (base $ V-con _) = inj₁ (con-atomic aData)
 BUILTIN unMapData (base $ V-con (MapDATA x)) = inj₂ (V-con x)
-BUILTIN unMapData (base $ V-con _) =  inj₁ (con (ne (^ (atomic aData))))
+BUILTIN unMapData (base $ V-con _) =  inj₁ (con-atomic aData)
 BUILTIN unListData (base $ V-con (ListDATA x)) = inj₂ (V-con x)
-BUILTIN unListData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
+BUILTIN unListData (base $ V-con _) = inj₁ (con-atomic aData)
 BUILTIN serialiseData (base $ V-con d) = inj₂ (V-con (serialiseDATA d))
 BUILTIN insertCoin (base $ V-con ccy $ V-con tok $ V-con x $ V-con v) with insertCOIN ccy tok x v
 ... | just v' = inj₂ (V-con v')
-... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+... | nothing = inj₁ (con-atomic aValue)
 BUILTIN lookupCoin (base $ V-con ccy $ V-con tok $ V-con v)  = inj₂ (V-con (lookupCOIN ccy tok v))
 BUILTIN unionValue (base $ V-con v1 $ V-con v2) with unionVALUE v1 v2
 ... | just v' = inj₂ (V-con v')
-... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+... | nothing = inj₁ (con-atomic aValue)
 BUILTIN valueContains (base $ V-con v1 $ V-con v2) with valueCONTAINS v1 v2
 ... | just b = inj₂ (V-con b)
-... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+... | nothing = inj₁ (con-atomic aValue)
 BUILTIN scaleValue (base $ V-con n $ V-con v) with scaleVALUE n v
 ... | just v' = inj₂ (V-con v')
-... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+... | nothing = inj₁ (con-atomic aValue)
 BUILTIN valueData (base $ V-con v) with valueDATA v
 ... | just d = inj₂ (V-con d)
-... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+... | nothing = inj₁ (con-atomic aValue)
 BUILTIN unValueData (base $ V-con d) with unValueDATA d
-... | nothing = inj₁ (con (ne (^ (atomic aValue))))
+... | nothing = inj₁ (con-atomic aValue)
 ... | just v  = inj₂ (V-con v)
 BUILTIN mkNilData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN mkNilPairData (base $ V-con _) = inj₂ (V-con [])
@@ -324,22 +352,22 @@ BUILTIN bls12-381-G1-neg (base $ V-con e) = inj₂ (V-con (BLS12-381-G1-neg e))
 BUILTIN bls12-381-G1-scalarMul (base $ V-con i $ V-con e) = inj₂ (V-con (BLS12-381-G1-scalarMul i e))
 BUILTIN bls12-381-G1-equal (base $ V-con e $ V-con e') = inj₂ (V-con (BLS12-381-G1-equal e e'))
 BUILTIN bls12-381-G1-hashToGroup (base $ V-con msg $ V-con dst) with BLS12-381-G1-hashToGroup msg dst
-... | nothing = inj₁ (con (ne (^ (atomic aBls12-381-g1-element))))
+... | nothing = inj₁ (con-atomic aBls12-381-g1-element)
 ... | just p  = inj₂ (V-con p)
 BUILTIN bls12-381-G1-compress (base $ V-con e) = inj₂ (V-con (BLS12-381-G1-compress e))
 BUILTIN bls12-381-G1-uncompress (base $ V-con b) with BLS12-381-G1-uncompress b
-... | nothing = inj₁ (con (ne (^ (atomic aBls12-381-g1-element))))
+... | nothing = inj₁ (con-atomic aBls12-381-g1-element)
 ... | just e  = inj₂ (V-con e)
 BUILTIN bls12-381-G2-add (base $ V-con e $ V-con e') = inj₂ (V-con (BLS12-381-G2-add e e'))
 BUILTIN bls12-381-G2-neg (base $ V-con e) = inj₂ (V-con (BLS12-381-G2-neg e))
 BUILTIN bls12-381-G2-scalarMul (base $ V-con i $ V-con e) = inj₂ (V-con (BLS12-381-G2-scalarMul i e))
 BUILTIN bls12-381-G2-equal (base $ V-con e $ V-con e') = inj₂ (V-con (BLS12-381-G2-equal e e'))
 BUILTIN bls12-381-G2-hashToGroup (base $ V-con msg $ V-con dst) with BLS12-381-G2-hashToGroup msg dst
-... | nothing = inj₁ (con (ne (^ (atomic aBls12-381-g2-element))))
+... | nothing = inj₁ (con-atomic aBls12-381-g2-element)
 ... | just p  = inj₂ (V-con p)
 BUILTIN bls12-381-G2-compress (base $ V-con e) = inj₂ (V-con (BLS12-381-G2-compress e))
 BUILTIN bls12-381-G2-uncompress (base $ V-con b) with BLS12-381-G2-uncompress b
-... | nothing = inj₁ (con (ne (^ (atomic aBls12-381-g2-element))))
+... | nothing = inj₁ (con-atomic aBls12-381-g2-element)
 ... | just e  = inj₂ (V-con e)
 BUILTIN bls12-381-millerLoop (base $ V-con e1 $ V-con e2) = inj₂ (V-con (BLS12-381-millerLoop e1 e2))
 BUILTIN bls12-381-mulMlResult (base $ V-con r $ V-con r') = inj₂ (V-con (BLS12-381-mulMlResult r r'))
@@ -347,38 +375,38 @@ BUILTIN bls12-381-finalVerify (base $ V-con r $ V-con r') = inj₂ (V-con (BLS12
 BUILTIN byteStringToInteger (base $ V-con e $ V-con s) = inj₂ (V-con (BStoI e s))
 BUILTIN integerToByteString (base $ V-con e $ V-con w $ V-con n) with ItoBS e w n
 ... | just s = inj₂ (V-con s)
-... | nothing = inj₁ (con (ne (^ (atomic aBytestring))))
+... | nothing = inj₁ (con-atomic aBytestring)
 BUILTIN andByteString (base  $ V-con b $ V-con s $ V-con s') = inj₂ (V-con (andBYTESTRING b s s'))
 BUILTIN orByteString  (base  $ V-con b $ V-con s $ V-con s') = inj₂ (V-con (orBYTESTRING b s s'))
 BUILTIN xorByteString (base  $ V-con b $ V-con s $ V-con s') = inj₂ (V-con (xorBYTESTRING b s s'))
 BUILTIN complementByteString (base $ V-con s) = inj₂ (V-con (complementBYTESTRING s))
 BUILTIN readBit (base $ V-con s $ V-con i) with readBIT s i
 ... | just r = inj₂ (V-con r)
-... | nothing  = inj₁ (con (ne (^ (atomic aBool))))
+... | nothing  = inj₁ (con-atomic aBool)
 BUILTIN writeBits (base $ V-con s $ V-con ps $ V-con u) with writeBITS s (toList ps) u
 ... | just r = inj₂ (V-con r)
-... | nothing  = inj₁ (con (ne (^ (atomic aBytestring))))
+... | nothing  = inj₁ (con-atomic aBytestring)
 BUILTIN replicateByte (base  $ V-con l $ V-con w) with replicateBYTE l w
 ... | just r = inj₂ (V-con r)
-... | nothing  = inj₁ (con (ne (^ (atomic aBytestring))))
+... | nothing  = inj₁ (con-atomic aBytestring)
 BUILTIN shiftByteString (base $ V-con s $ V-con i) with shiftBYTESTRING s i
 ... | just r = inj₂ (V-con r)
-... | nothing = inj₁ (con (ne (^ (atomic aBytestring))))
+... | nothing = inj₁ (con-atomic aBytestring)
 BUILTIN rotateByteString (base $ V-con s $ V-con i) with rotateBYTESTRING s i
 ... | just r = inj₂ (V-con r)
-... | nothing = inj₁ (con (ne (^ (atomic aBytestring))))
+... | nothing = inj₁ (con-atomic aBytestring)
 BUILTIN countSetBits (base $ V-con  s) = inj₂ (V-con (countSetBITS s))
 BUILTIN findFirstSetBit (base $ V-con s) = inj₂ (V-con (findFirstSetBIT s))
 BUILTIN expModInteger (base  $ V-con b $ V-con e $ V-con m) with expModINTEGER b e m
 ... | just r = inj₂ (V-con r)
-... | nothing  = inj₁ (con (ne (^ (atomic aInteger))))
+... | nothing  = inj₁ (con-atomic aInteger)
 BUILTIN dropList (Λ̂ A $ V-con n $ V-con l) = inj₂ (V-con (dropLIST n l))
 BUILTIN bls12-381-G1-multiScalarMul (base $ V-con is $ V-con es) with BLS12-381-G1-multiScalarMul (toList is) (toList es)
 ... | just r = inj₂ (V-con r)
-... | nothing = inj₁ (con (ne (^ (atomic aBls12-381-g1-element))))
+... | nothing = inj₁ (con-atomic aBls12-381-g1-element)
 BUILTIN bls12-381-G2-multiScalarMul (base $ V-con is $ V-con es) with BLS12-381-G2-multiScalarMul (toList is) (toList es)
 ... | just r = inj₂ (V-con r)
-... | nothing = inj₁ (con (ne (^ (atomic aBls12-381-g2-element))))
+... | nothing = inj₁ (con-atomic aBls12-381-g2-element)
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}

@@ -2,8 +2,6 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  data Unit | Unit_match where
-    Unit : Unit
 in
 \(d : data) ->
   case
@@ -60,6 +58,6 @@ in
                     (/\dead -> False)
                     {all dead. dead}) ]) ]
       {all dead. dead})
-    [ (/\dead -> let !x : Unit = trace {Unit} "PT5" Unit in error {unit})
+    [ (/\dead -> let !x : unit = trace {unit} "PT5" () in error {unit})
     , (/\dead -> ()) ]
     {all dead. dead}

@@ -1,4 +1,4 @@
--- | The interface to Plutus V3 for the ledger.
+-- | The type interface to Plutus V3 for the ledger.
 module PlutusLedgerApi.V3
   ( -- * Scripts
     Common.SerialisedScript

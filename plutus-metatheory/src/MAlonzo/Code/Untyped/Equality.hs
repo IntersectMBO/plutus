@@ -955,17 +955,17 @@ d_decEq'45''8866'_56 v0 v1 v2
                             (\ v5 ->
                                coe
                                  MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
-                                 (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v3)))
+                                 (coe MAlonzo.Code.Builtin.d_enumBuiltin_446 (coe v3)))
                             (coe
                                MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                                (coe
-                                  eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v3))
-                                  (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v4)))
+                                  eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_446 (coe v3))
+                                  (coe MAlonzo.Code.Builtin.d_enumBuiltin_446 (coe v4)))
                                (coe
                                   MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
                                   (coe
-                                     eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v3))
-                                     (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v4))))) in
+                                     eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_446 (coe v3))
+                                     (coe MAlonzo.Code.Builtin.d_enumBuiltin_446 (coe v4))))) in
                   coe
                     (case coe v5 of
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v6 v7
@@ -1270,7 +1270,7 @@ du_DecEq'45'List_160 v0
 -- Untyped.Equality.DecEq-Builtin
 d_DecEq'45'Builtin_164 :: T_DecEq_6
 d_DecEq'45'Builtin_164
-  = coe C_constructor_14 (coe MAlonzo.Code.Builtin.d_decBuiltin_468)
+  = coe C_constructor_14 (coe MAlonzo.Code.Builtin.d_decBuiltin_460)
 -- Untyped.Equality.DecEq-ℕ
 d_DecEq'45'ℕ_166 :: T_DecEq_6
 d_DecEq'45'ℕ_166

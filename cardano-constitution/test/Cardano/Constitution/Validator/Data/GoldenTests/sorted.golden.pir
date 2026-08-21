@@ -176,10 +176,6 @@ program
       ParamRational :
         (\v -> List (Tuple2 PredKey (List v))) Rational -> ParamValue
   in
-  let
-    data Unit | Unit_match where
-      Unit : Unit
-  in
   letrec
     !validateParamValue : ParamValue -> data -> bool
       = \(eta : ParamValue) (eta : data) ->
@@ -366,16 +362,16 @@ program
                      !bl' : list data = tailList {data} bl
                    in
                    (let
-                       a = Unit -> Rational
+                       a = unit -> Rational
                      in
                      \(b : bool) (x : a) (y : a) -> case a b [y, x])
                      (nullList {data} (tailList {data} bl'))
-                     (\(ds : Unit) ->
+                     (\(ds : unit) ->
                         unsafeRatio
                           (unIData (headList {data} bl))
                           (unIData (headList {data} bl')))
-                     (\(ds : Unit) -> error {Rational})
-                     Unit))
+                     (\(ds : unit) -> error {Rational})
+                     ()))
             {all dead. dead}
     !validateParamValues : List ParamValue -> list data -> bool
       = \(ds : List ParamValue) ->

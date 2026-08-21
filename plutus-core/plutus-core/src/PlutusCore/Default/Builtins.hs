@@ -18,6 +18,7 @@ module PlutusCore.Default.Builtins where
 
 import PlutusPrelude
 
+import PlutusCore.Arrays qualified as Arrays
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
@@ -221,6 +222,7 @@ data DefaultFun
   | -- Batch 7
     MultiIndexArray
   | Policies
+  | AssetCount
   deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
   deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2484,23 +2486,26 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         multiIndexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) indices =
           case uni of
             DefaultUniArray uniA ->
-              let len = toInteger (Vector.length vec)
-                  lookupIndex i
-                    | 0 <= i && i < len = pure $ Vector.unsafeIndex vec $ fromInteger i
-                    | otherwise = fail "Array index out of bounds"
-               in fromValueOf (DefaultUniList uniA) <$> traverse lookupIndex indices
+              fromValueOf (DefaultUniList uniA) <$> Arrays.multiIndexArray vec indices
             _ ->
               throwError $ structuralUnliftingError "Expected an array but got something else"
         {-# INLINE multiIndexArrayDenotation #-}
      in makeBuiltinMeaning
           multiIndexArrayDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+          (runCostingFunTwoArguments . paramMultiIndexArray)
   toBuiltinMeaning _semvar Policies =
     let policiesDenotation :: Value -> [ByteString]
         policiesDenotation = Value.policies
         {-# INLINE policiesDenotation #-}
      in makeBuiltinMeaning
           policiesDenotation
+          (runCostingFunOneArgument . unimplementedCostingFun)
+  toBuiltinMeaning _semvar AssetCount =
+    let assetCountDenotation :: Value -> Integer
+        assetCountDenotation = toInteger . Value.totalSize
+        {-# INLINE assetCountDenotation #-}
+     in makeBuiltinMeaning
+          assetCountDenotation
           (runCostingFunOneArgument . unimplementedCostingFun)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
@@ -2647,6 +2652,7 @@ instance Flat DefaultFun where
       ScaleValue -> 100
       MultiIndexArray -> 101
       Policies -> 102
+      AssetCount -> 103
 
   decode = go =<< decodeBuiltin
     where
@@ -2753,6 +2759,7 @@ instance Flat DefaultFun where
       go 100 = pure ScaleValue
       go 101 = pure MultiIndexArray
       go 102 = pure Policies
+      go 103 = pure AssetCount
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth

@@ -506,10 +506,6 @@ whose semantics are provided by a Haskell function.
 postulate
   lengthBS                    : ByteString → Int
   index                       : ByteString → Int → Int
-  div                         : Int → Int → Int
-  quot                        : Int → Int → Int
-  rem                         : Int → Int → Int
-  mod                         : Int → Int → Int
 
   TRACE                       : {a : Set} → String → a → a
 
@@ -604,12 +600,10 @@ postulate
 -- no binding needed for addition
 -- no binding needed for subtract
 -- no binding needed for multiply
-
-{-# COMPILE GHC div  = div  #-}
-{-# COMPILE GHC quot = quot #-}
-{-# COMPILE GHC rem  = rem  #-}
-{-# COMPILE GHC mod  = mod  #-}
-
+-- no binding needed for divide
+-- no binding needed for quotient
+-- no binding needed for remainder
+-- no binding needed for mod
 -- no binding needed for lessthan
 -- no binding needed for lessthaneq
 -- no binding needed for equals

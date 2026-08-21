@@ -24,8 +24,8 @@
                                                     [ ((\x -> error)
                                                          (forced
                                                             "not found"
-                                                            (constr 0 [])))
-                                                    , (constr 0 []) ])
+                                                            ()))
+                                                    , () ])
                                                  (\s xs ->
                                                     case
                                                       xs
@@ -39,8 +39,8 @@
                                                                         l) ]))
                                                              [(s s xs), True])
                                                       , False ]))
-                                            , (constr 0 []) ])
-                                       , (constr 0 []) ])
+                                            , () ])
+                                       , () ])
                                     (case (forced rest) [(\l r -> l)]))
                                  (forced ds))
                               (case (forced ds) [(\l r -> l)]))

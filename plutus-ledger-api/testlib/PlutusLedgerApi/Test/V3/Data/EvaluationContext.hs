@@ -31,7 +31,7 @@ costModelParamsForTesting =
 -- | The PlutusV3 "cost model" is constructed by the v4 "cost model", by clearing v4 introductions.
 mCostModel :: MCostModel
 mCostModel =
-  -- nothing to clear because v4 does not exist (yet).
+  -- nothing to clear yet because V4 currently has the same builtin as V3.
   toMCostModel defaultCekCostModelForTesting & builtinCostModel %~ clearBuiltinCostModel'
 
 {-| Assign to `mempty` those CEK constructs that @PlutusV3@ introduces (indirectly by introducing

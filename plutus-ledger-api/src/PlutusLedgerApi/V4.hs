@@ -1,7 +1,43 @@
--- | The type interface to Plutus V4 for the ledger.
+-- | The interface to Plutus V4 for the ledger.
 module PlutusLedgerApi.V4
-  ( -- * Accounts
-    Contexts.AccountId (..)
+  ( -- * Scripts
+    Common.SerialisedScript
+  , Common.ScriptForEvaluation
+  , Common.serialisedScript
+  , Common.deserialisedScript
+  , Common.serialiseCompiledCode
+  , Common.serialiseUPLC
+  , deserialiseScript
+  , Common.uncheckedDeserialiseUPLC
+
+    -- * Running scripts
+  , evaluateScriptRestricting
+  , evaluateScriptCounting
+
+    -- ** Protocol version
+  , Common.MajorProtocolVersion (..)
+
+    -- ** Verbose mode and log output
+  , Common.VerboseMode (..)
+  , Common.LogOutput
+
+    -- * Costing-related types
+  , Common.ExBudget (..)
+  , V2.ExCPU (..)
+  , V2.ExMemory (..)
+  , V2.SatInt (V2.unSatInt)
+  , V2.fromSatInt
+
+    -- ** Cost model
+  , EvaluationContext.EvaluationContext
+  , EvaluationContext.mkEvaluationContext
+  , ParamName.ParamName (..)
+  , EvaluationContext.CostModelApplyError (..)
+  , EvaluationContext.CostModelParams
+  , EvaluationContext.assertWellFormedCostModelParams
+
+    -- * Accounts
+  , Contexts.AccountId (..)
   , Contexts.AccountBalanceInterval (..)
   , Contexts.AccountBalanceIntervals (..)
 
@@ -84,8 +120,8 @@ module PlutusLedgerApi.V4
   , MintValue.mintValueBurned
 
     -- *** Time
-  , V2.POSIXTime (..)
-  , V2.POSIXTimeRange
+  , Time.POSIXTime (..)
+  , Time.POSIXTimeRange (..)
 
     -- *** Types for representing transactions
   , Address.Address (..)
@@ -101,22 +137,6 @@ module PlutusLedgerApi.V4
   , Tx.TxOutRef (..)
   , Contexts.TxInInfo (..)
   , Tx.OutputDatum (..)
-
-    -- *** Intervals
-  , V2.Interval (..)
-  , V2.Extended (..)
-  , V2.Closure
-  , V2.UpperBound (..)
-  , V2.LowerBound (..)
-  , V2.always
-  , V2.from
-  , V2.to
-  , V2.lowerBound
-  , V2.upperBound
-  , V2.strictLowerBound
-  , V2.strictUpperBound
-  , V2.inclusiveLowerBound
-  , V2.inclusiveUpperBound
 
     -- *** Ratio
   , Ratio.Rational
@@ -151,6 +171,11 @@ module PlutusLedgerApi.V4
   , V2.unsafeFromData
   , V2.dataToBuiltinData
   , V2.builtinDataToData
+
+    -- * Errors
+  , Common.MonadError
+  , V2.EvaluationError (..)
+  , V2.ScriptDecodeError (..)
   ) where
 
 import PlutusLedgerApi.Common qualified as Common
@@ -158,5 +183,68 @@ import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3.MintValue qualified as MintValue
 import PlutusLedgerApi.V4.Address qualified as Address
 import PlutusLedgerApi.V4.Contexts qualified as Contexts
+import PlutusLedgerApi.V4.EvaluationContext qualified as EvaluationContext
+import PlutusLedgerApi.V4.ParamName qualified as ParamName
+import PlutusLedgerApi.V4.Time qualified as Time
 import PlutusLedgerApi.V4.Tx qualified as Tx
 import PlutusTx.Ratio qualified as Ratio
+
+{-| An alias to the Plutus ledger language this module exposes at runtime.
+ MAYBE: Use CPP '__FILE__' + some TH to automate this. -}
+thisLedgerLanguage :: Common.PlutusLedgerLanguage
+thisLedgerLanguage = Common.PlutusV4
+
+{-| The deserialization from a serialised script into a `ScriptForEvaluation`,
+ready to be evaluated on-chain.
+Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error). -}
+deserialiseScript
+  :: forall m
+   . Common.MonadError Common.ScriptDecodeError m
+  => Common.MajorProtocolVersion
+  -- ^ which major protocol version the script was submitted in.
+  -> Common.SerialisedScript
+  -- ^ the script to deserialise.
+  -> m Common.ScriptForEvaluation
+deserialiseScript = Common.deserialiseScript thisLedgerLanguage
+
+{-| Evaluates a script, returning the minimum budget that the script would need
+to evaluate successfully. This will take as long as the script takes, if you need to
+limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
+also returns the used budget. -}
+evaluateScriptCounting
+  :: Common.MajorProtocolVersion
+  -- ^ Which protocol version to run the operation in
+  -> Common.VerboseMode
+  -- ^ Whether to produce log output
+  -> EvaluationContext.EvaluationContext
+  -- ^ Includes the cost model to use for tallying up the execution costs
+  -> Common.ScriptForEvaluation
+  -- ^ The script to evaluate
+  -> Common.Data
+  -- ^ The @ScriptContext@ argument to the script
+  -> (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
+evaluateScriptCounting mpv verbose ec s arg =
+  Common.evaluateScriptCounting thisLedgerLanguage mpv verbose ec s [arg]
+
+{-| Evaluates a script, with a cost model and a budget that restricts how many
+resources it can use according to the cost model. Also returns the budget that
+was actually used.
+
+Can be used to calculate budgets for scripts, but even in this case you must give
+a limit to guard against scripts that run for a long time or loop. -}
+evaluateScriptRestricting
+  :: Common.MajorProtocolVersion
+  -- ^ Which protocol version to run the operation in
+  -> Common.VerboseMode
+  -- ^ Whether to produce log output
+  -> EvaluationContext.EvaluationContext
+  -- ^ Includes the cost model to use for tallying up the execution costs
+  -> Common.ExBudget
+  -- ^ The resource budget which must not be exceeded during evaluation
+  -> Common.ScriptForEvaluation
+  -- ^ The script to evaluate
+  -> Common.Data
+  -- ^ The @ScriptContext@ argument to the script
+  -> (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
+evaluateScriptRestricting mpv verbose ec budget s arg =
+  Common.evaluateScriptRestricting thisLedgerLanguage mpv verbose ec budget s [arg]

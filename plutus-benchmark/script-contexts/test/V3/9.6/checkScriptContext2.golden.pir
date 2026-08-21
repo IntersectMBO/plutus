@@ -184,10 +184,6 @@
             [(/\dead -> euclid y (modInteger x y)), (/\dead -> x)]
             {all dead. dead}
   in
-  let
-    data Unit | Unit_match where
-      Unit : Unit
-  in
   letrec
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
@@ -212,7 +208,7 @@
                    {all dead. dead})
             , (/\dead ->
                  let
-                   !x : Unit = trace {Unit} "PT3" Unit
+                   !x : unit = trace {unit} "PT3" ()
                  in
                  error {Rational}) ]
             {all dead. dead}
@@ -1489,7 +1485,7 @@
                                                   args) ])) ]) ]) ]
                    args) ]
     in
-    Unit)
+    ())
   (Constr 0
      [ Constr 0
          [ List []

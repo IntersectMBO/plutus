@@ -4,6 +4,7 @@ module Array.Spec (arrayTests) where
 
 import Control.Exception (ErrorCall)
 import Data.Either (isLeft)
+import PlutusCore.Arrays (maximumIndexCount)
 import PlutusCore.Test (pureTry)
 import PlutusTx.Builtins.Internal qualified as BI
 
@@ -13,7 +14,8 @@ import Prelude
 
 -- The Haskell implementation of the builtin must fail exactly where the on-chain
 -- builtin fails: any index outside @[0..length)@, including one exceeding
--- @maxBound :: Int@, is an error rather than a wrap-around lookup.
+-- @maxBound :: Int@, is an error rather than a wrap-around lookup, and so is an index
+-- list longer than 'maximumIndexCount'.
 arrayTests :: TestTree
 arrayTests =
   testGroup
@@ -30,6 +32,9 @@ arrayTests =
                   x : _ -> x
                   [] -> 0
               )
+        , testCase "more indices than maximumIndexCount fails" $
+            throwsErrorCall
+              (BI.multiIndexArray arr (BI.BuiltinList (replicate (maximumIndexCount + 1) 0)))
         ]
     ]
   where

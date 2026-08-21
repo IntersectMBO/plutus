@@ -441,8 +441,6 @@ let
       TxInfo
   data ScriptContext | ScriptContext_match where
     ScriptContext : TxInfo -> ScriptPurpose -> ScriptContext
-  data Unit | Unit_match where
-    Unit : Unit
 in
 \(obsScriptCred : data)
  (ctx : data) ->
@@ -735,12 +733,12 @@ in
                             (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
                                (headList {data} ds))) ]) ]
               args) ])
-    {Unit}
+    {unit}
     (\(ds : TxInfo)
       (ds : ScriptPurpose) ->
        TxInfo_match
          ds
-         {Unit}
+         {unit}
          (\(ds : List TxInInfo)
            (ds : List TxInInfo)
            (ds : List TxOut)
@@ -756,11 +754,11 @@ in
            (ds : (\k v -> List (Tuple2 k v)) StakingCredential integer) ->
             let
               !`$j` :
-                 StakingCredential -> integer -> Unit
+                 StakingCredential -> integer -> unit
                 = \(a : StakingCredential) ->
                     let
                       !`$j` :
-                         StakingCredential -> integer -> Unit
+                         StakingCredential -> integer -> unit
                         = \(a : StakingCredential)
                            (ds : integer) ->
                             let
@@ -771,20 +769,20 @@ in
                             in
                             letrec
                               !go :
-                                 List (Tuple2 StakingCredential integer) -> Unit
+                                 List (Tuple2 StakingCredential integer) -> unit
                                 = \(ds :
                                       List
                                         (Tuple2 StakingCredential integer)) ->
                                     List_match
                                       {Tuple2 StakingCredential integer}
                                       ds
-                                      {all dead. Unit}
+                                      {all dead. unit}
                                       (/\dead ->
                                          let
-                                           !x : Unit
-                                             = trace {Unit} "not found" Unit
+                                           !x : unit
+                                             = trace {unit} "not found" ()
                                          in
-                                         error {Unit})
+                                         error {unit})
                                       (\(ds : Tuple2 StakingCredential integer)
                                         (xs' :
                                            List
@@ -796,11 +794,11 @@ in
                                              {StakingCredential}
                                              {integer}
                                              ds
-                                             {Unit}
+                                             {unit}
                                              (\(c' : StakingCredential)
                                                (i : integer) ->
                                                 case
-                                                  (all dead. Unit)
+                                                  (all dead. unit)
                                                   (StakingCredential_match
                                                      c'
                                                      {bool}
@@ -880,52 +878,52 @@ in
                                                                {all dead.
                                                                   dead})))
                                                   [ (/\dead -> go xs')
-                                                  , (/\dead -> Unit) ]
+                                                  , (/\dead -> ()) ]
                                                   {all dead. dead}))
                                       {all dead. dead}
                             in
                             let
-                              ~`$j` : Unit = go ds
-                              ~`$j` : Unit
+                              ~`$j` : unit = go ds
+                              ~`$j` : unit
                                 = StakingCredential_match
                                     obsScriptCred'
-                                    {Unit}
+                                    {unit}
                                     (\(l1l : Credential) ->
                                        StakingCredential_match
                                          a
-                                         {Unit}
+                                         {unit}
                                          (\(r1r : Credential) ->
                                             Credential_match
                                               l1l
-                                              {Unit}
+                                              {unit}
                                               (\(l1l : bytestring) ->
                                                  Credential_match
                                                    r1r
-                                                   {Unit}
+                                                   {unit}
                                                    (\(r1r : bytestring) ->
                                                       case
-                                                        (all dead. Unit)
+                                                        (all dead. unit)
                                                         (equalsByteString
                                                            l1l
                                                            r1r)
                                                         [ (/\dead -> `$j`)
-                                                        , (/\dead -> Unit) ]
+                                                        , (/\dead -> ()) ]
                                                         {all dead. dead})
                                                    (\(ipv : bytestring) ->
                                                       `$j`))
                                               (\(l1l : bytestring) ->
                                                  Credential_match
                                                    r1r
-                                                   {Unit}
+                                                   {unit}
                                                    (\(ipv : bytestring) -> `$j`)
                                                    (\(r1r : bytestring) ->
                                                       case
-                                                        (all dead. Unit)
+                                                        (all dead. unit)
                                                         (equalsByteString
                                                            l1l
                                                            r1r)
                                                         [ (/\dead -> `$j`)
-                                                        , (/\dead -> Unit) ]
+                                                        , (/\dead -> ()) ]
                                                         {all dead. dead})))
                                          (\(ipv : integer)
                                            (ipv : integer)
@@ -936,13 +934,13 @@ in
                                       (l3l : integer) ->
                                        StakingCredential_match
                                          a
-                                         {Unit}
+                                         {unit}
                                          (\(ipv : Credential) -> `$j`)
                                          (\(r1r : integer)
                                            (r2r : integer)
                                            (r3r : integer) ->
                                             case
-                                              (all dead. Unit)
+                                              (all dead. unit)
                                               (case
                                                  (all dead. bool)
                                                  (equalsInteger l1l r1r)
@@ -958,44 +956,43 @@ in
                                                                r3r) ]
                                                         {all dead. dead}) ]
                                                  {all dead. dead})
-                                              [ (/\dead -> `$j`)
-                                              , (/\dead -> Unit) ]
+                                              [(/\dead -> `$j`), (/\dead -> ())]
                                               {all dead. dead}))
                             in
                             StakingCredential_match
                               obsScriptCred'
-                              {Unit}
+                              {unit}
                               (\(l1l : Credential) ->
                                  StakingCredential_match
                                    a
-                                   {Unit}
+                                   {unit}
                                    (\(r1r : Credential) ->
                                       Credential_match
                                         l1l
-                                        {Unit}
+                                        {unit}
                                         (\(l1l : bytestring) ->
                                            Credential_match
                                              r1r
-                                             {Unit}
+                                             {unit}
                                              (\(r1r : bytestring) ->
                                                 case
-                                                  (all dead. Unit)
+                                                  (all dead. unit)
                                                   (equalsByteString l1l r1r)
                                                   [ (/\dead -> `$j`)
-                                                  , (/\dead -> Unit) ]
+                                                  , (/\dead -> ()) ]
                                                   {all dead. dead})
                                              (\(ipv : bytestring) -> `$j`))
                                         (\(l1l : bytestring) ->
                                            Credential_match
                                              r1r
-                                             {Unit}
+                                             {unit}
                                              (\(ipv : bytestring) -> `$j`)
                                              (\(r1r : bytestring) ->
                                                 case
-                                                  (all dead. Unit)
+                                                  (all dead. unit)
                                                   (equalsByteString l1l r1r)
                                                   [ (/\dead -> `$j`)
-                                                  , (/\dead -> Unit) ]
+                                                  , (/\dead -> ()) ]
                                                   {all dead. dead})))
                                    (\(ipv : integer)
                                      (ipv : integer)
@@ -1006,13 +1003,13 @@ in
                                 (l3l : integer) ->
                                  StakingCredential_match
                                    a
-                                   {Unit}
+                                   {unit}
                                    (\(ipv : Credential) -> `$j`)
                                    (\(r1r : integer)
                                      (r2r : integer)
                                      (r3r : integer) ->
                                       case
-                                        (all dead. Unit)
+                                        (all dead. unit)
                                         (case
                                            (all dead. bool)
                                            (equalsInteger l1l r1r)
@@ -1026,23 +1023,23 @@ in
                                                        equalsInteger l3l r3r) ]
                                                   {all dead. dead}) ]
                                            {all dead. dead})
-                                        [(/\dead -> `$j`), (/\dead -> Unit)]
+                                        [(/\dead -> `$j`), (/\dead -> ())]
                                         {all dead. dead}))
-                      !`$j` : List (Tuple2 StakingCredential integer) -> Unit
+                      !`$j` : List (Tuple2 StakingCredential integer) -> unit
                         = \(rest : List (Tuple2 StakingCredential integer)) ->
                             List_match
                               {Tuple2 StakingCredential integer}
                               rest
-                              {all dead. Unit}
+                              {all dead. unit}
                               (/\dead ->
                                  let
-                                   !x : Unit = trace {Unit} "PT8" Unit
+                                   !x : unit = trace {unit} "PT8" ()
                                  in
                                  Tuple2_match
                                    {StakingCredential}
                                    {integer}
                                    (error {Tuple2 StakingCredential integer})
-                                   {Unit}
+                                   {unit}
                                    (\(a : StakingCredential) (ds : integer) ->
                                       `$j` a ds))
                               (\(x : Tuple2 StakingCredential integer)
@@ -1053,7 +1050,7 @@ in
                                      {StakingCredential}
                                      {integer}
                                      x
-                                     {Unit}
+                                     {unit}
                                      (\(a : StakingCredential) (ds : integer) ->
                                         `$j` a ds))
                               {all dead. dead}
@@ -1062,11 +1059,11 @@ in
                       List_match
                         {Tuple2 StakingCredential integer}
                         ds
-                        {all dead. Unit}
+                        {all dead. unit}
                         (/\dead ->
                            `$j`
                              (let
-                               !x : Unit = trace {Unit} "PT9" Unit
+                               !x : unit = trace {unit} "PT9" ()
                              in
                              error {List (Tuple2 StakingCredential integer)}))
                         (\(ds : Tuple2 StakingCredential integer)
@@ -1082,16 +1079,16 @@ in
               List_match
                 {Tuple2 StakingCredential integer}
                 ds
-                {all dead. Unit}
+                {all dead. unit}
                 (/\dead ->
                    let
-                     !x : Unit = trace {Unit} "PT8" Unit
+                     !x : unit = trace {unit} "PT8" ()
                    in
                    Tuple2_match
                      {StakingCredential}
                      {integer}
                      (error {Tuple2 StakingCredential integer})
-                     {Unit}
+                     {unit}
                      (\(a : StakingCredential) (ds : integer) -> `$j` a ds))
                 (\(x : Tuple2 StakingCredential integer)
                   (ds : List (Tuple2 StakingCredential integer)) ->
@@ -1100,6 +1097,6 @@ in
                        {StakingCredential}
                        {integer}
                        x
-                       {Unit}
+                       {unit}
                        (\(a : StakingCredential) (ds : integer) -> `$j` a ds))
                 {all dead. dead}))

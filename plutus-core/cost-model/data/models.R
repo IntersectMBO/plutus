@@ -159,6 +159,7 @@ arity <- function(name) {
         "ValueData" = 1,
         "UnValueData" = 1,
         "ScaleValue" = 2,
+        "MultiIndexArray" = 2,
         -1  ## Default for missing values
         )
 }
@@ -815,6 +816,39 @@ modelFun <- function(path) {
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
     listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
+    ## Cost depends on the number of indices (y) and not on the array size (x).
+    ## The per-index cost rises across the accepted range.  Measured on its
+    ## own, the walk over the index list does this only when the cons cells
+    ## are laid out apart, which the benchmark constructs deliberately (see
+    ## Note [Scattered index lists] in Benchmarks.Arrays); building the
+    ## result costs a length-independent amount per index on top.  A
+    ## quadratic in y follows that rise; a straight line would misprice one
+    ## end of the range or the other.
+    multiIndexArrayModel <- {
+        fname <- "MultiIndexArray"
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.overhead ()
+        m <- lm (t ~ I(y_mem) + I(y_mem^2), filtered)
+        ## The fit can pass below the data at the smallest index count, where
+        ## the fixed cost of a call is all there is.  Lift the intercept until a
+        ## single lookup is charged what it was measured at, which also keeps it
+        ## from undercutting indexArray.  Compare fit.fan, which anchors its
+        ## intercept on the same observations.
+        lo <- min (filtered$y_mem)
+        shortfall <- max (filtered$t[filtered$y_mem == lo]) -
+            predict (m, data.frame (y_mem = lo))
+        if (shortfall > 0) {
+            m$coefficients[["(Intercept)"]] <-
+                m$coefficients[["(Intercept)"]] + shortfall
+        }
+        ## The squared coefficient is a few picoseconds, so the rounding to whole
+        ## picoseconds that the ledger requires changes the charge at the top of
+        ## the range by several percent.  Round here as well, so that this model
+        ## and the one the ledger reads are the same function.
+        m$coefficients <- ceiling (m$coefficients * 1e6) / 1e6
+        mk.result (m, "quadratic_in_y")
+    }
 
     ## Values
 
@@ -971,7 +1005,8 @@ modelFun <- function(path) {
         unValueDataModel                     = unValueDataModel,
         insertCoinModel                      = insertCoinModel,
         unionValueModel                      = unionValueModel,
-        scaleValueModel                      = scaleValueModel
+        scaleValueModel                      = scaleValueModel,
+        multiIndexArrayModel                 = multiIndexArrayModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

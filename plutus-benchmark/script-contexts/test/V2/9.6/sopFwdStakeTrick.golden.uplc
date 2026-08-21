@@ -501,7 +501,7 @@
                                       ds
                                       [ ((\x ->
                                             case error [(\a ds -> `$j` a ds)])
-                                           (forced "PT8" (constr 0 [])))
+                                           (forced "PT8" ()))
                                       , (\x ds ->
                                            case x [(\a ds -> `$j` a ds)]) ])
                                    (\a
@@ -511,9 +511,7 @@
                                            ds
                                            [ (`$j`
                                                 ((\x -> error)
-                                                   (forced
-                                                      "PT9"
-                                                      (constr 0 []))))
+                                                   (forced "PT9" ())))
                                            , (\ds as -> `$j` as) ])
                                         (\rest ->
                                            (\`$j` ->
@@ -523,9 +521,7 @@
                                                       case
                                                         error
                                                         [(\a ds -> `$j` a ds)])
-                                                     (forced
-                                                        "PT8"
-                                                        (constr 0 [])))
+                                                     (forced "PT8" ()))
                                                 , (\x ds ->
                                                      case
                                                        x
@@ -554,8 +550,7 @@
                                                                                           r1r)
                                                                                        [ (force
                                                                                             `$j`)
-                                                                                       , (constr 0
-                                                                                            [  ]) ])
+                                                                                       , () ])
                                                                                 , (\ipv ->
                                                                                      force
                                                                                        `$j`) ])
@@ -572,8 +567,7 @@
                                                                                           r1r)
                                                                                        [ (force
                                                                                             `$j`)
-                                                                                       , (constr 0
-                                                                                            [  ]) ]) ]) ])
+                                                                                       , () ]) ]) ])
                                                                   , (\ipv
                                                                       ipv
                                                                       ipv ->
@@ -606,8 +600,7 @@
                                                                                       r3r) ]) ])
                                                                          [ (force
                                                                               `$j`)
-                                                                         , (constr 0
-                                                                              [  ]) ]) ]) ])
+                                                                         , () ]) ]) ])
                                                         (delay
                                                            (case
                                                               obsScriptCred'
@@ -627,8 +620,7 @@
                                                                                              r1r)
                                                                                           [ (go
                                                                                                ds)
-                                                                                          , (constr 0
-                                                                                               [  ]) ])
+                                                                                          , () ])
                                                                                    , (\ipv ->
                                                                                         go
                                                                                           ds) ])
@@ -645,8 +637,7 @@
                                                                                              r1r)
                                                                                           [ (go
                                                                                                ds)
-                                                                                          , (constr 0
-                                                                                               [  ]) ]) ]) ])
+                                                                                          , () ]) ]) ])
                                                                      , (\ipv
                                                                          ipv
                                                                          ipv ->
@@ -678,8 +669,7 @@
                                                                                          r3r) ]) ])
                                                                             [ (go
                                                                                  ds)
-                                                                            , (constr 0
-                                                                                 [  ]) ]) ]) ])))
+                                                                            , () ]) ]) ])))
                                                      ((\s ->
                                                          s s)
                                                         (\s
@@ -689,8 +679,7 @@
                                                              [ ((\x -> error)
                                                                   (forced
                                                                      "not found"
-                                                                     (constr 0
-                                                                        [])))
+                                                                     ()))
                                                              , (\ds
                                                                  xs' ->
                                                                   case
@@ -754,8 +743,7 @@
                                                                            [ (s
                                                                                 s
                                                                                 xs')
-                                                                           , (constr 0
-                                                                                [  ]) ]) ]) ])))
+                                                                           , () ]) ]) ])))
                                                   (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
                                                      obsScriptCred))))) ]) ])
                   (\d ->

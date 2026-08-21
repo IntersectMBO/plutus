@@ -18,6 +18,7 @@ import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Data.V1 qualified as V1
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.Data.V3 qualified as V3
+import PlutusLedgerApi.Data.V4 qualified as V4
 import PlutusLedgerApi.Test.V1.Data.EvaluationContext qualified as V1
 import PlutusPrelude
 import UntypedPlutusCore as UPLC
@@ -94,6 +95,7 @@ lengthParamNamesV :: PlutusLedgerLanguage -> Int
 lengthParamNamesV PlutusV1 = length $ enumerate @V1.ParamName
 lengthParamNamesV PlutusV2 = length $ enumerate @V2.ParamName
 lengthParamNamesV PlutusV3 = length $ enumerate @V3.ParamName
+lengthParamNamesV PlutusV4 = length $ enumerate @V4.ParamName
 
 mkEvaluationContextV :: PlutusLedgerLanguage -> IO EvaluationContext
 mkEvaluationContextV ll =
@@ -102,6 +104,7 @@ mkEvaluationContextV ll =
       PlutusV1 -> V1.mkEvaluationContext
       PlutusV2 -> V2.mkEvaluationContext
       PlutusV3 -> V3.mkEvaluationContext
+      PlutusV4 -> V4.mkEvaluationContext
 
 -- | Ensure that 'toMachineParameters' never throws for all language and protocol versions.
 evaluationContextCacheIsComplete :: TestTree

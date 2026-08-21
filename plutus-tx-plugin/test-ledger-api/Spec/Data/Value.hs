@@ -407,3 +407,34 @@ test_policiesUplc =
   runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
     . pure
     $ testNestedGhc [goldenUPlcReadable "policies" compiledPolicies]
+
+-- | Compiled builtin path: @\\bd -> assetCount (unsafeDataAsValue bd)@.
+compiledAssetCount :: CompiledCode (BI.BuiltinData -> Integer)
+compiledAssetCount = plinthc (\bd -> B.assetCount (B.unsafeDataAsValue bd))
+
+{-| The builtin @assetCount@ must equal the number of distinct (currency, token) pairs,
+which is what flattening the `Value` yields. -}
+test_assetCount :: TestTree
+test_assetCount =
+  testProperty "builtin assetCount matches the Value's flattened length on CEK" \(normalise -> val) ->
+    let expected =
+          Haskell.fromIntegral (Haskell.length (Haskell.concatMap snd (valueToLists val)))
+     in runAssetCountCode val === expected
+  where
+    -- \| Evaluate the compiled builtin @assetCount@ on CEK and decode the resulting integer.
+    runAssetCountCode :: Value -> Integer
+    runAssetCountCode value = either Haskell.throw id $ errOrRes >>= PLC.readKnownSelf
+      where
+        prog = compiledAssetCount `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+        (errOrRes, _cost) =
+          PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
+            . PLC.runQuote
+            . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
+            . PLC._progTerm
+            $ getPlc prog
+
+test_assetCountUplc :: TestTree
+test_assetCountUplc =
+  runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
+    . pure
+    $ testNestedGhc [goldenUPlcReadable "assetCount" compiledAssetCount]
