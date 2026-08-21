@@ -196,10 +196,15 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/equalsString/equalsString-02"
   ]
 
+{-| A list of evaluation tests which are currently expected to fail.  Once a fix
+for a test is pushed, the test will succeed and should be removed from the list. -}
+failingEvaluationTests :: [FilePath]
+failingEvaluationTests = []
+
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()
 main =
   runUplcEvalTests
     (agdaEvalUplcProg WithCosting)
-    (const False) -- no evaluation tests are expected to fail
+    (flip elem failingEvaluationTests)
     (flip elem failingBudgetTests)
