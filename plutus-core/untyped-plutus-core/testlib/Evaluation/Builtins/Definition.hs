@@ -26,16 +26,10 @@ import Evaluation.Builtins.Common
   , typecheckReadKnownCek
   )
 import Evaluation.Builtins.Conversion qualified as Conversion
-import Evaluation.Builtins.Integer.DivModProperties
-  ( test_integer_div_mod_properties
-  )
-import Evaluation.Builtins.Integer.ExpModIntegerProperties
-  ( test_integer_exp_mod_properties
-  )
+import Evaluation.Builtins.Integer.DivModProperties (test_integer_div_mod_properties)
+import Evaluation.Builtins.Integer.ExpModIntegerProperties (test_integer_exp_mod_properties)
 import Evaluation.Builtins.Integer.OrderProperties (test_integer_order_properties)
-import Evaluation.Builtins.Integer.QuotRemProperties
-  ( test_integer_quot_rem_properties
-  )
+import Evaluation.Builtins.Integer.QuotRemProperties (test_integer_quot_rem_properties)
 import Evaluation.Builtins.Integer.RingProperties (test_integer_ring_properties)
 import Evaluation.Builtins.SignatureVerification
   ( ecdsaSecp256k1Prop
@@ -43,9 +37,7 @@ import Evaluation.Builtins.SignatureVerification
   , schnorrSecp256k1Prop
   )
 
-import PlutusCore hiding
-  ( Constr
-  )
+import PlutusCore hiding (Constr)
 import PlutusCore qualified as PLC
 import PlutusCore.Arrays qualified as Arrays (maximumIndexCount)
 import PlutusCore.Builtin
@@ -58,9 +50,7 @@ import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.Generators.QuickCheck.Builtin
-import PlutusCore.MkPlc hiding
-  ( error
-  )
+import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Pretty
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.StdLib.Data.Data
@@ -77,15 +67,9 @@ import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Control.Exception
-  ( evaluate
-  , try
-  )
+import Control.Exception (evaluate, try)
 import Data.Bifunctor (bimap)
-import Data.ByteString
-  ( ByteString
-  , pack
-  )
+import Data.ByteString (ByteString, pack)
 import Data.ByteString.Base16 qualified as Base16
 import Data.DList qualified as DList
 import Data.List (find)
@@ -96,28 +80,13 @@ import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
-import Hedgehog
-  ( forAll
-  , property
-  , withTests
-  , (===)
-  )
+import Hedgehog (forAll, property, withTests, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
 import Test.Cardano.Base.QuickCheck qualified as BaseQC
-import Test.Tasty
-  ( TestTree
-  , testGroup
-  )
-import Test.Tasty.HUnit
-  ( Assertion
-  , assertBool
-  , assertFailure
-  , testCase
-  , (@=?)
-  , (@?=)
-  )
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@=?), (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.QuickCheck qualified as QC
 
