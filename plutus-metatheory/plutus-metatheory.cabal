@@ -443,7 +443,7 @@ test-suite test-integer-division
   build-depends:
     , base
     , plutus-core:untyped-plutus-core-testlib
-    , plutus-metatheory                        ^>=1.67
+    , plutus-metatheory                        ^>=1.68
     , tasty
     , tasty-quickcheck
 
