@@ -2502,7 +2502,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . unimplementedCostingFun)
   toBuiltinMeaning _semvar AssetCount =
     let assetCountDenotation :: Value -> Integer
-        assetCountDenotation = fromIntegral . Value.totalSize
+        assetCountDenotation = toInteger . Value.totalSize
         {-# INLINE assetCountDenotation #-}
      in makeBuiltinMeaning
           assetCountDenotation

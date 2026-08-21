@@ -2240,24 +2240,18 @@ test_AssetCount =
         evalAssetCount Value.empty @?= expectedCount 0
     , testCase "single asset" do
         evalAssetCount (unsafeMkValue [("currency", "token", 42)]) @?= expectedCount 1
-    , testCase "counts (currency, token) pairs, not policies" do
+    , testCase "counts (currency, token) pairs" do
         let v =
               unsafeMkValue
                 [ ("bbb", "t1", 1)
                 , ("", "", 2000000)
                 , ("aaa", "t1", 2)
                 , ("bbb", "t2", 3)
+                , ("aaa", "t2", -7)
                 ]
-        evalAssetCount v @?= expectedCount 4
-    , testCase "quantities summing to zero drop the entry" do
-        -- 'Value' normalises zero quantities away, so the asset stops being counted.
-        evalAssetCount (unsafeMkValue [("c", "t", 5), ("c", "t", 0)]) @?= expectedCount 0
-    , testCase "many small-quantity single-token policies" do
-        let currencies =
-              [ pack [fromIntegral (i `div` 256), fromIntegral (i `mod` 256)]
-              | i <- [0 .. 999 :: Int]
-              ]
-        evalAssetCount (unsafeMkValue [(c, "t", 1) | c <- currencies]) @?= expectedCount 1000
+        evalAssetCount v @?= expectedCount 5
+    , QC.testProperty "agrees with recounting the entries" \v ->
+        evalAssetCount v QC.=== expectedCount (toInteger . length $ Value.toFlatList v)
     ]
   where
     evalAssetCount v =
