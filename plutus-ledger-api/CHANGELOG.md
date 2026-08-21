@@ -1,4 +1,11 @@
 
+<a id='changelog-1.68.1.0'></a>
+# 1.68.1.0 — 2026-08-21
+
+## Added
+
+- Plutus V4 and `dijkstraPV`.
+
 <a id='changelog-1.67.0.0'></a>
 # 1.67.0.0 — 2026-08-06
 

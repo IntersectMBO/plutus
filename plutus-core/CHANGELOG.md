@@ -1,4 +1,11 @@
 
+<a id='changelog-1.68.1.0'></a>
+# 1.68.1.0 — 2026-08-21
+
+## Added
+
+- The `assetCount` builtin ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)): returns the number of distinct `(currency symbol, token name)` pairs in a `Value`. Expected to be enabled at PV12.
+
 <a id='changelog-1.68.0.0'></a>
 # 1.68.0.0 — 2026-08-18
 

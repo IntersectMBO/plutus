@@ -1,4 +1,15 @@
 
+<a id='changelog-1.68.1.0'></a>
+# 1.68.1.0 — 2026-08-21
+
+## Added
+
+- `PlutusV4` has been added to `PlutusTx.Blueprint.PlutusVersion.PlutusVersion`. It is
+  serialised as `"v4"` in CIP-57 blueprints, and scripts tagged with it are hashed with
+  the language tag `0x4`.
+
+- `PlutusTx.Builtins.assetCount`, exposing the `assetCount` builtin ([CIP-0168](https://cips.cardano.org/cip/CIP-0168)). Expected to be enabled at PV12.
+
 <a id='changelog-1.67.0.0'></a>
 # 1.67.0.0 — 2026-08-06
 
