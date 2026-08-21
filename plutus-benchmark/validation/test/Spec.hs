@@ -9,6 +9,7 @@ import PlutusBenchmark.NaturalSort
 import PlutusBenchmark.Validation.Common
 
 import PlutusCore.Annotation qualified as PLC
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantE))
 import PlutusTx.Code qualified as Tx
 import PlutusTx.Test qualified as Tx
 import UntypedPlutusCore qualified as UPLC
@@ -36,7 +37,8 @@ mkCase path name = do
     Left err -> error $ show err
     Right parsed' ->
       pure $
-        Tx.goldenEvalCekCatchBudget
+        Tx.goldenEvalCekCatchBudgetForVariant
+          DefaultFunSemanticsVariantE
           name
           (Tx.DeserializedCode parsed' Nothing mempty)
 

@@ -1,1 +1,22 @@
-(program 1.0.0 (lam y-0 (con string "two")))
+(program
+  1.0.0
+  [
+    [
+      [
+        [
+          [
+            [
+              (force (builtin chooseData))
+              (con data (Map [(I 0, B #00), (B #0f, I 1)]))
+            ]
+            (lam x-0 (con integer 1))
+          ]
+          (lam y-1 (con string "two"))
+        ]
+        (lam z3-2 z3-2)
+      ]
+      (lam u-3 (con data (I 4)))
+    ]
+    (lam v-4 (con data (B #05)))
+  ]
+)

@@ -36,11 +36,11 @@ import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import Raw
 import qualified Data.ByteString as BS
 import qualified Data.Vector.Strict as Strict
+import qualified PlutusCore.Value as V
 import PlutusCore.Data as D
 import qualified PlutusCore.Crypto.BLS12_381.G1 as G1
 import qualified PlutusCore.Crypto.BLS12_381.G2 as G2
 import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing
-import qualified PlutusCore.Value as V
 type Pair a b = (a , b)
 -- Utils.Either
 d_Either_6 a0 a1 = ()
@@ -674,92 +674,96 @@ d_HSindexArray_612
 -- Utils.mkArray
 d_mkArray_616
   = error "MAlonzo Runtime Error: postulate evaluated: Utils.mkArray"
+-- Utils.Value
+type T_Value_618 = V.Value
+d_Value_618
+  = error "MAlonzo Runtime Error: postulate evaluated: Utils.Value"
+-- Utils.eqValue
+d_eqValue_620 :: T_Value_618 -> T_Value_618 -> Bool
+d_eqValue_620 = (==)
+-- Utils.valueFromList
+d_valueFromList_622
+  = error
+      "MAlonzo Runtime Error: postulate evaluated: Utils.valueFromList"
 -- Utils.DATA
-d_DATA_618 = ()
-type T_DATA_618 = Data
-pattern C_ConstrDATA_620 a0 a1 = D.Constr a0 a1
-pattern C_MapDATA_622 a0 = D.Map a0
-pattern C_ListDATA_624 a0 = D.List a0
-pattern C_iDATA_626 a0 = D.I a0
-pattern C_bDATA_628 a0 = D.B a0
-check_ConstrDATA_620 ::
-  Integer -> T_List_454 T_DATA_618 -> T_DATA_618
-check_ConstrDATA_620 = D.Constr
-check_MapDATA_622 ::
-  T_List_454 (T__'215'__436 T_DATA_618 T_DATA_618) -> T_DATA_618
-check_MapDATA_622 = D.Map
-check_ListDATA_624 :: T_List_454 T_DATA_618 -> T_DATA_618
-check_ListDATA_624 = D.List
-check_iDATA_626 :: Integer -> T_DATA_618
-check_iDATA_626 = D.I
-check_bDATA_628 :: T_ByteString_426 -> T_DATA_618
-check_bDATA_628 = D.B
-cover_DATA_618 :: Data -> ()
-cover_DATA_618 x
+d_DATA_624 = ()
+type T_DATA_624 = Data
+pattern C_ConstrDATA_626 a0 a1 = D.Constr a0 a1
+pattern C_MapDATA_628 a0 = D.Map a0
+pattern C_ListDATA_630 a0 = D.List a0
+pattern C_iDATA_632 a0 = D.I a0
+pattern C_bDATA_634 a0 = D.B a0
+pattern C_VDATA_636 a0 = D.V a0
+check_ConstrDATA_626 ::
+  Integer -> T_List_454 T_DATA_624 -> T_DATA_624
+check_ConstrDATA_626 = D.Constr
+check_MapDATA_628 ::
+  T_List_454 (T__'215'__436 T_DATA_624 T_DATA_624) -> T_DATA_624
+check_MapDATA_628 = D.Map
+check_ListDATA_630 :: T_List_454 T_DATA_624 -> T_DATA_624
+check_ListDATA_630 = D.List
+check_iDATA_632 :: Integer -> T_DATA_624
+check_iDATA_632 = D.I
+check_bDATA_634 :: T_ByteString_426 -> T_DATA_624
+check_bDATA_634 = D.B
+check_VDATA_636 :: T_Value_618 -> T_DATA_624
+check_VDATA_636 = D.V
+cover_DATA_624 :: Data -> ()
+cover_DATA_624 x
   = case x of
       D.Constr _ _ -> ()
       D.Map _ -> ()
       D.List _ -> ()
       D.I _ -> ()
       D.B _ -> ()
+      D.V _ -> ()
 -- Utils.eqDATA
-d_eqDATA_630 :: T_DATA_618 -> T_DATA_618 -> Bool
-d_eqDATA_630 = (==)
+d_eqDATA_638 :: T_DATA_624 -> T_DATA_624 -> Bool
+d_eqDATA_638 = (==)
 -- Utils.Bls12-381-G1-Element
-type T_Bls12'45'381'45'G1'45'Element_764 = G1.Element
-d_Bls12'45'381'45'G1'45'Element_764
+type T_Bls12'45'381'45'G1'45'Element_820 = G1.Element
+d_Bls12'45'381'45'G1'45'Element_820
   = error
       "MAlonzo Runtime Error: postulate evaluated: Utils.Bls12-381-G1-Element"
 -- Utils.eqBls12-381-G1-Element
-d_eqBls12'45'381'45'G1'45'Element_766 ::
-  T_Bls12'45'381'45'G1'45'Element_764 ->
-  T_Bls12'45'381'45'G1'45'Element_764 -> Bool
-d_eqBls12'45'381'45'G1'45'Element_766 = (==)
+d_eqBls12'45'381'45'G1'45'Element_822 ::
+  T_Bls12'45'381'45'G1'45'Element_820 ->
+  T_Bls12'45'381'45'G1'45'Element_820 -> Bool
+d_eqBls12'45'381'45'G1'45'Element_822 = (==)
 -- Utils.Bls12-381-G2-Element
-type T_Bls12'45'381'45'G2'45'Element_768 = G2.Element
-d_Bls12'45'381'45'G2'45'Element_768
+type T_Bls12'45'381'45'G2'45'Element_824 = G2.Element
+d_Bls12'45'381'45'G2'45'Element_824
   = error
       "MAlonzo Runtime Error: postulate evaluated: Utils.Bls12-381-G2-Element"
 -- Utils.eqBls12-381-G2-Element
-d_eqBls12'45'381'45'G2'45'Element_770 ::
-  T_Bls12'45'381'45'G2'45'Element_768 ->
-  T_Bls12'45'381'45'G2'45'Element_768 -> Bool
-d_eqBls12'45'381'45'G2'45'Element_770 = (==)
+d_eqBls12'45'381'45'G2'45'Element_826 ::
+  T_Bls12'45'381'45'G2'45'Element_824 ->
+  T_Bls12'45'381'45'G2'45'Element_824 -> Bool
+d_eqBls12'45'381'45'G2'45'Element_826 = (==)
 -- Utils.Bls12-381-MlResult
-type T_Bls12'45'381'45'MlResult_772 = Pairing.MlResult
-d_Bls12'45'381'45'MlResult_772
+type T_Bls12'45'381'45'MlResult_828 = Pairing.MlResult
+d_Bls12'45'381'45'MlResult_828
   = error
       "MAlonzo Runtime Error: postulate evaluated: Utils.Bls12-381-MlResult"
 -- Utils.eqBls12-381-MlResult
-d_eqBls12'45'381'45'MlResult_774 ::
-  T_Bls12'45'381'45'MlResult_772 ->
-  T_Bls12'45'381'45'MlResult_772 -> Bool
-d_eqBls12'45'381'45'MlResult_774 = (==)
--- Utils.Value
-type T_Value_776 = V.Value
-d_Value_776
-  = error "MAlonzo Runtime Error: postulate evaluated: Utils.Value"
--- Utils.eqValue
-d_eqValue_778 :: T_Value_776 -> T_Value_776 -> Bool
-d_eqValue_778 = (==)
--- Utils.valueFromList
-d_valueFromList_780
-  = error
-      "MAlonzo Runtime Error: postulate evaluated: Utils.valueFromList"
+d_eqBls12'45'381'45'MlResult_830 ::
+  T_Bls12'45'381'45'MlResult_828 ->
+  T_Bls12'45'381'45'MlResult_828 -> Bool
+d_eqBls12'45'381'45'MlResult_830 = (==)
 -- Utils.Kind
-d_Kind_782 = ()
-type T_Kind_782 = KIND
-pattern C_'42'_784 = Star
-pattern C_'9839'_786 = Sharp
-pattern C__'8658'__788 a0 a1 = Arrow a0 a1
-check_'42'_784 :: T_Kind_782
-check_'42'_784 = Star
-check_'9839'_786 :: T_Kind_782
-check_'9839'_786 = Sharp
-check__'8658'__788 :: T_Kind_782 -> T_Kind_782 -> T_Kind_782
-check__'8658'__788 = Arrow
-cover_Kind_782 :: KIND -> ()
-cover_Kind_782 x
+d_Kind_832 = ()
+type T_Kind_832 = KIND
+pattern C_'42'_834 = Star
+pattern C_'9839'_836 = Sharp
+pattern C__'8658'__838 a0 a1 = Arrow a0 a1
+check_'42'_834 :: T_Kind_832
+check_'42'_834 = Star
+check_'9839'_836 :: T_Kind_832
+check_'9839'_836 = Sharp
+check__'8658'__838 :: T_Kind_832 -> T_Kind_832 -> T_Kind_832
+check__'8658'__838 = Arrow
+cover_Kind_832 :: KIND -> ()
+cover_Kind_832 x
   = case x of
       Star -> ()
       Sharp -> ()

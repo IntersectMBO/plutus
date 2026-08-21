@@ -137,29 +137,63 @@ test_typecheckIllTyped =
           _ -> False
       ]
 
+funGoldenName
+  :: ( Show fun
+     , Eq fun
+     , Show (BuiltinSemanticsVariant fun)
+     , Ord (BuiltinSemanticsVariant fun)
+     , Bounded (BuiltinSemanticsVariant fun)
+     )
+  => [(fun, [BuiltinSemanticsVariant fun])]
+  -> BuiltinSemanticsVariant fun
+  -> fun
+  -> String
+funGoldenName semVarChanges semVar fun =
+  show fun
+    ++ case lookup fun semVarChanges of
+      Nothing -> ""
+      Just semVars -> ('_' :) . show $
+        case lookupLastLessThanOrEqualTo semVar semVars of
+          Nothing -> minBound
+          Just semVarLatest -> semVarLatest
+
 test_typecheckAllFun
   :: forall fun
-   . (ToBuiltinMeaning DefaultUni fun, Show fun, Show (BuiltinSemanticsVariant fun))
+   . ( ToBuiltinMeaning DefaultUni fun
+     , Show fun
+     , Show (BuiltinSemanticsVariant fun)
+     , Ord (BuiltinSemanticsVariant fun)
+     , Bounded (BuiltinSemanticsVariant fun)
+     )
   => String
+  -> [(fun, [BuiltinSemanticsVariant fun])]
   -> BuiltinSemanticsVariant fun
   -> TestNested
-test_typecheckAllFun name semVar =
+test_typecheckAllFun name semVarChanges semVar =
   testNestedNamed name (show semVar)
     . map testFun
     $ enumerate @fun
   where
     testFun fun =
-      nestedGoldenVsErrorOrThing (show fun) . kindcheck $ typeOfBuiltinFunction semVar fun
+      nestedGoldenVsErrorOrThing (funGoldenName semVarChanges semVar fun) . kindcheck $
+        typeOfBuiltinFunction semVar fun
 
 test_typecheckDefaultFuns :: TestTree
 test_typecheckDefaultFuns =
   -- This checks that for each set of builtins the Plutus type of every builtin is the same
-  -- regardless of versioning.
+  -- regardless of versioning, unless the type of the builtin deliberately changed in some
+  -- semantics variant, in which case the builtin must have an entry in the list of changes.
   testGroup "builtins" . pure $
     runTestNested ["plutus-core", "test", "TypeSynthesis", "Golden"] $
       concat
-        [ map (test_typecheckAllFun @DefaultFun "DefaultFun") enumerate
-        , map (test_typecheckAllFun @ExtensionFun "ExtensionFun") enumerate
+        [ let semVarChanges =
+                [
+                  ( ChooseData
+                  , [DefaultFunSemanticsVariantF]
+                  )
+                ]
+           in map (test_typecheckAllFun @DefaultFun "DefaultFun" semVarChanges) enumerate
+        , map (test_typecheckAllFun @ExtensionFun "ExtensionFun" []) enumerate
         ]
 
 {-| A value type to use in instantiated built-in signatures. We could use 'Term' or 'CekValue',
@@ -224,16 +258,8 @@ test_dumpTypeRepAllFun nameSet semVarChanges semVar =
     $ enumerate @fun
   where
     testFun fun =
-      withTypeSchemeOfBuiltinFunction @Val semVar fun $ \sch -> do
-        let name =
-              show fun
-                ++ case lookup fun semVarChanges of
-                  Nothing -> ""
-                  Just semVars -> ('_' :) . show $
-                    case lookupLastLessThanOrEqualTo semVar semVars of
-                      Nothing -> minBound
-                      Just semVarLatest -> semVarLatest
-        nestedGoldenVsText name ".sig" . Text.pack $ show sch
+      withTypeSchemeOfBuiltinFunction @Val semVar fun $ \sch ->
+        nestedGoldenVsText (funGoldenName semVarChanges semVar fun) ".sig" . Text.pack $ show sch
 
 test_dumpTypeRepDefaultFuns :: TestTree
 test_dumpTypeRepDefaultFuns =
@@ -245,6 +271,10 @@ test_dumpTypeRepDefaultFuns =
                 [
                   ( AppendString
                   , [DefaultFunSemanticsVariantD]
+                  )
+                ,
+                  ( ChooseData
+                  , [DefaultFunSemanticsVariantF]
                   )
                 ,
                   ( ConsByteString
@@ -266,8 +296,14 @@ test_dumpTypeRepDefaultFuns =
                   ( EqualsString
                   , [DefaultFunSemanticsVariantD]
                   )
+                ,
+                  ( ValueData
+                  , [DefaultFunSemanticsVariantF]
+                  )
                 ]
-           in [test_dumpTypeRepAllFun @DefaultFun "DefaultFun" semVarChanges DefaultFunSemanticsVariantE]
+           in map
+                (test_dumpTypeRepAllFun @DefaultFun "DefaultFun" semVarChanges)
+                [DefaultFunSemanticsVariantE, DefaultFunSemanticsVariantF]
         , let semVarChanges =
                 -- Keep the inner lists sorted.
                 [

@@ -12,6 +12,7 @@ import PlutusCore.Default
 import PlutusCore.MkPlc
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
+import PlutusCore.Value (Value)
 
 import PlutusCore.StdLib.Data.Data
 import PlutusCore.StdLib.Data.Function
@@ -42,6 +43,7 @@ keeping the actual test trivial.
 >      (fList : list r -> r)
 >      (fI : integer -> r)
 >      (fB : bytestring -> r) ->
+>      (fV : value -> r) ->)
 >          fix {data} {r} \(rec : data -> r) (d : data) ->
 >              matchData
 >                  d
@@ -51,7 +53,8 @@ keeping the actual test trivial.
 >                      fMap (omapList {pair data data} (obothPair {data} rec) es))
 >                  (\(ds : list data) -> fList (omapList {data} rec ds))
 >                  fI
->                  fB -}
+>                  fB
+>                  fV -}
 ofoldrData :: MatchOption -> Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
 ofoldrData optMatch = runQuote $ do
   let r = dataTy
@@ -60,6 +63,7 @@ ofoldrData optMatch = runQuote $ do
   fList <- freshName "fList"
   fI <- freshName "fI"
   fB <- freshName "fB"
+  fV <- freshName "fV"
   rec <- freshName "rec"
   d <- freshName "d"
   i <- freshName "i"
@@ -75,6 +79,7 @@ ofoldrData optMatch = runQuote $ do
     . lamAbs () fList (TyFun () listR r)
     . lamAbs () fI (TyFun () integer r)
     . lamAbs () fB (TyFun () (mkTyBuiltin @_ @ByteString ()) r)
+    . lamAbs () fV (TyFun () (mkTyBuiltin @_ @Value ()) r)
     . apply () (mkIterInstNoAnn fix [dataTy, r])
     . lamAbs () rec (TyFun () dataTy r)
     . lamAbs () d dataTy
@@ -105,6 +110,7 @@ ofoldrData optMatch = runQuote $ do
             ]
       , var () fI
       , var () fB
+      , var () fV
       ]
 
 -- | Just a random 'Data' object.

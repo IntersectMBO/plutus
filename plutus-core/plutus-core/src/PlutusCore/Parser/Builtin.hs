@@ -123,7 +123,11 @@ conDataNoParens =
     , symbol "Map" *> (Map <$> conList knownUni)
     , symbol "List" *> (List <$> conList knownUni)
     , symbol "I" *> (I <$> conInteger)
-    , symbol "B" *> (B <$> conBS)
+    , symbol "B"
+        *> (B <$> conBS)
+    , symbol
+        "V"
+        *> (V <$> conValue)
     ]
 
 conData :: ExpectParens -> Parser Data

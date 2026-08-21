@@ -377,16 +377,14 @@ BUILTIN scaleValue (app (app base (V-con integer n)) (V-con value v))
 ... | just v' = inj₂ (V-con value v')
 ... | nothing = inj₁ userError
 BUILTIN scaleValue _ = inj₁ userError
-BUILTIN valueData (app base (V-con value v))
-  with valueDATA v
-... | just d = inj₂ (V-con pdata d)
-... | nothing = inj₁ userError
-BUILTIN valueData _ = inj₁ userError
-BUILTIN unValueData (app base (V-con pdata d))
-  with unValueDATA d
-... | (just v) = inj₂ (V-con value v)
-... | nothing  = inj₁ userError
-BUILTIN unValueData _ = inj₁ userError
+BUILTIN valueData = λ
+  { (app base (V-con value v)) -> inj₂ (V-con pdata (VDATA v))
+  ; _ -> inj₁ userError
+  }
+BUILTIN unValueData = λ
+  { (app base (V-con pdata (VDATA v))) -> inj₂ (V-con value v)
+  ; _ -> inj₁ userError
+  }
 BUILTIN chooseUnit = λ
   { (app (app (app⋆ base) (V-con unit tt)) v) -> inj₂ v
   ; _ -> inj₁ userError
@@ -441,11 +439,12 @@ BUILTIN indexArray = λ
     ; _ -> inj₁ userError
   }
 BUILTIN chooseData = λ
-  { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) v) _) _) _) _) → inj₂ v
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) _) v) _) _) _) → inj₂ v
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) _) _) v) _) _) → inj₂ v
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) _) _) _) v) _) → inj₂ v
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) _) _) _) _) v) → inj₂ v
+  { (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) v) _) _) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) _) v) _) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) _) _) v) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) _) _) _) v) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) _) _) _) _) v) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (VDATA x₁))) _) _) _) _) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
 BUILTIN constrData = λ

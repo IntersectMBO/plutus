@@ -6,7 +6,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
-module PlutusCore.Data (Data (..)) where
+module PlutusCore.Data
+  ( Data (..)
+  , DataWithValues (..)
+  , containsValue
+  , encodeData
+  , decodeData
+  , decodeDataAcceptingValues
+  ) where
 
 import Codec.CBOR.Decoding (Decoder)
 import Codec.CBOR.Decoding qualified as CBOR
@@ -30,6 +37,7 @@ import Prettyprinter
 import Prelude
 
 import PlutusCore.Bitwise (integerToBytesBE)
+import PlutusCore.Value.Internal (Value)
 
 -- Attempting to make this strict made code slower by 2%,
 -- see https://github.com/IntersectMBO/plutus/pull/4622
@@ -45,6 +53,7 @@ data Data
   | List [Data]
   | I Integer
   | B BS.ByteString
+  | V Value
   deriving stock (Show, Read, Eq, Ord, Generic, Data.Data.Data)
   deriving anyclass (Hashable, NFData, NoThunks)
 
@@ -58,6 +67,7 @@ instance Pretty Data where
     B b ->
       -- Base64 encode the ByteString since it may contain arbitrary bytes
       pretty (Text.decodeLatin1 (Base64.encode b))
+    V v -> pretty v
 
 {- Note [Encoding via Term]
 We want to write a custom encoder/decoder for Data (i.e. not use the Generic version), but actually
@@ -65,10 +75,32 @@ doing this is a pain. So instead we go via the CBOR 'Term' representation, which
 more structured representation, which is a lot easier.
 -}
 
+-- This instance intentionally does NOT roundtrip:
+-- `encode` allows the V constructor, but `decode` rejects
+-- V's tag.
 instance Serialise Data where
   -- See Note [Encoding via Term]
   encode = encodeData
+
+  -- This decoder rejects the 'V' constructor, which should be used before Dijkstra.
+  -- From Dijkstra, `decodeDataAcceptingValues` should be used.
   decode = decodeData
+
+newtype DataWithValues = DataWithValues {unDataWithValues :: Data}
+
+instance Serialise DataWithValues where
+  encode = encodeData . unDataWithValues
+  decode = DataWithValues <$> decodeDataAcceptingValues
+
+containsValue :: Data -> Bool
+containsValue = \case
+  V _ -> True
+  Constr _ ds -> any containsValue ds
+  Map ps -> any (\(k, v) -> containsValue k || containsValue v) ps
+  List ds -> any containsValue ds
+  I _ -> False
+  B _ -> False
+{-# INLINEABLE containsValue #-}
 
 {- Note [CBOR alternative tags]
 We've proposed to add additional tags to the CBOR standard to cover (essentially) sum types.
@@ -95,6 +127,9 @@ to not produce something too big.
 
 But this is quite inconvenient, so see Note [Evading the 64-byte limit] for how we get around this.
 -}
+
+valueTag :: Word64
+valueTag = 1401
 
 {- Note [Evading the 64-byte limit]
 Implementing Note [The 64-byte limit] naively would be quite annoying:
@@ -164,6 +199,7 @@ encodeData = \case
   List ds -> encode ds
   I i -> encodeInteger i
   B b -> encodeBs b
+  V v -> CBOR.encodeTag64 valueTag <> encode v
 
 -- Logic for choosing encoding borrowed from Codec.CBOR.Write
 -- | Given an integer, create a 'CBOR.Term' that encodes it, following our size restrictions.
@@ -205,29 +241,82 @@ So we have to be careful to handle both cases when decoding. When encoding we mo
 the indefinite kinds, but see Note [Evading the 64-byte limit] for some cases where we do.
 -}
 
--- | Turn a CBOR Term into Data if possible.
+data ValueSupport = ValuesForbidden | ValuesAllowed
+
+-- Rejects values
 decodeData :: Decoder s Data
-decodeData =
-  CBOR.peekTokenType >>= \case
-    -- These integers are at most 64 *bits*, so certainly less than 64 *bytes*
-    CBOR.TypeUInt -> I <$> CBOR.decodeInteger
-    CBOR.TypeUInt64 -> I <$> CBOR.decodeInteger
-    CBOR.TypeNInt -> I <$> CBOR.decodeInteger
-    CBOR.TypeNInt64 -> I <$> CBOR.decodeInteger
-    -- See Note [The 64-byte limit]
-    CBOR.TypeInteger -> I <$> decodeBoundedBigInteger
-    -- See Note [The 64-byte limit]
-    CBOR.TypeBytes -> B <$> decodeBoundedBytes
-    CBOR.TypeBytesIndef -> B . BSL.toStrict <$> decodeBoundedBytesIndef
-    CBOR.TypeListLen -> decodeList
-    CBOR.TypeListLen64 -> decodeList
-    CBOR.TypeListLenIndef -> decodeList
-    CBOR.TypeMapLen -> decodeMap
-    CBOR.TypeMapLen64 -> decodeMap
-    CBOR.TypeMapLenIndef -> decodeMap
-    CBOR.TypeTag -> decodeConstr
-    CBOR.TypeTag64 -> decodeConstr
-    t -> fail ("Unrecognized value of type " ++ show t)
+decodeData = decodeDataWith ValuesForbidden
+
+-- Accepts values
+decodeDataAcceptingValues :: Decoder s Data
+decodeDataAcceptingValues = decodeDataWith ValuesAllowed
+
+decodeDataWith :: forall s. ValueSupport -> Decoder s Data
+decodeDataWith vs = go
+  where
+    go :: Decoder s Data
+    go =
+      CBOR.peekTokenType >>= \case
+        -- These integers are at most 64 *bits*, so certainly less than 64 *bytes*
+        CBOR.TypeUInt -> I <$> CBOR.decodeInteger
+        CBOR.TypeUInt64 -> I <$> CBOR.decodeInteger
+        CBOR.TypeNInt -> I <$> CBOR.decodeInteger
+        CBOR.TypeNInt64 -> I <$> CBOR.decodeInteger
+        -- See Note [The 64-byte limit]
+        CBOR.TypeInteger -> I <$> decodeBoundedBigInteger
+        -- See Note [The 64-byte limit]
+        CBOR.TypeBytes -> B <$> decodeBoundedBytes
+        CBOR.TypeBytesIndef -> B . BSL.toStrict <$> decodeBoundedBytesIndef
+        CBOR.TypeListLen -> decodeList
+        CBOR.TypeListLen64 -> decodeList
+        CBOR.TypeListLenIndef -> decodeList
+        CBOR.TypeMapLen -> decodeMap
+        CBOR.TypeMapLen64 -> decodeMap
+        CBOR.TypeMapLenIndef -> decodeMap
+        CBOR.TypeTag -> decodeTagged
+        CBOR.TypeTag64 -> decodeTagged
+        t -> fail ("Unrecognized value of type " ++ show t)
+
+    decodeList :: Decoder s Data
+    decodeList = List <$> decodeListOf go
+
+    decodeMap :: Decoder s Data
+    decodeMap =
+      CBOR.decodeMapLenOrIndef >>= \case
+        Nothing -> Map <$> decodeSequenceLenIndef (flip (:)) [] reverse decodePair
+        Just n -> Map <$> decodeSequenceLenN (flip (:)) [] reverse n decodePair
+      where
+        decodePair = (,) <$> go <*> go
+
+    -- See Note [CBOR alternative tags] for the encoding scheme of 'Constr'
+    decodeTagged :: Decoder s Data
+    decodeTagged =
+      CBOR.decodeTag64 >>= \case
+        102 -> decodeConstrExtended
+        t
+          | 121 <= t && t < 128 ->
+              Constr (fromIntegral t - 121) <$> decodeListOf go
+        t
+          | 1280 <= t && t < 1401 ->
+              Constr ((fromIntegral t - 1280) + 7) <$> decodeListOf go
+        t
+          | t == valueTag ->
+              case vs of
+                ValuesAllowed -> V <$> decode
+                ValuesForbidden ->
+                  fail "The encoding of the V constructor of Data is not accepted here"
+        t -> fail ("Unrecognized tag " ++ show t)
+      where
+        decodeConstrExtended = do
+          len <- CBOR.decodeListLenOrIndef
+          i <- CBOR.decodeWord64
+          args <- decodeListOf go
+          case len of
+            Nothing -> do
+              done <- CBOR.decodeBreakOr
+              unless done $ fail "Expected exactly two elements"
+            Just n -> unless (n == 2) $ fail "Expected exactly two elements"
+          pure $ Constr (fromIntegral i) args
 
 decodeBoundedBigInteger :: Decoder s Integer
 decodeBoundedBigInteger = do
@@ -265,43 +354,8 @@ decodeBoundedBytes = do
   unless (BS.length b <= 64) $ fail "ByteString exceeds 64 bytes"
   pure b
 
-decodeList :: Decoder s Data
-decodeList = List <$> decodeListOf decodeData
-
 decodeListOf :: Decoder s x -> Decoder s [x]
 decodeListOf decoder =
   CBOR.decodeListLenOrIndef >>= \case
     Nothing -> decodeSequenceLenIndef (flip (:)) [] reverse decoder
     Just n -> decodeSequenceLenN (flip (:)) [] reverse n decoder
-
-decodeMap :: Decoder s Data
-decodeMap =
-  CBOR.decodeMapLenOrIndef >>= \case
-    Nothing -> Map <$> decodeSequenceLenIndef (flip (:)) [] reverse decodePair
-    Just n -> Map <$> decodeSequenceLenN (flip (:)) [] reverse n decodePair
-  where
-    decodePair = (,) <$> decodeData <*> decodeData
-
--- See Note [CBOR alternative tags] for the encoding scheme.
-decodeConstr :: Decoder s Data
-decodeConstr =
-  CBOR.decodeTag64 >>= \case
-    102 -> decodeConstrExtended
-    t
-      | 121 <= t && t < 128 ->
-          Constr (fromIntegral t - 121) <$> decodeListOf decodeData
-    t
-      | 1280 <= t && t < 1401 ->
-          Constr ((fromIntegral t - 1280) + 7) <$> decodeListOf decodeData
-    t -> fail ("Unrecognized tag " ++ show t)
-  where
-    decodeConstrExtended = do
-      len <- CBOR.decodeListLenOrIndef
-      i <- CBOR.decodeWord64
-      args <- decodeListOf decodeData
-      case len of
-        Nothing -> do
-          done <- CBOR.decodeBreakOr
-          unless done $ fail "Expected exactly two elements"
-        Just n -> unless (n == 2) $ fail "Expected exactly two elements"
-      pure $ Constr (fromIntegral i) args

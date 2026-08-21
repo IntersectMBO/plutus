@@ -1038,6 +1038,11 @@
                in
                Nothing {bytestring})
             (\(ds : unit) -> Just {bytestring} (unBData d))
+            (\(ds : unit) ->
+               let
+                 !ds : value = unValueData d
+               in
+               Nothing {bytestring})
             ()
     !`$fFromDataTuple2_$cfromBuiltinData` :
        all a b.
@@ -1131,6 +1136,7 @@
               (\(ds : unit) -> Nothing {Tuple2 a b})
               (\(ds : unit) -> Nothing {Tuple2 a b})
               (\(ds : unit) -> Nothing {Tuple2 a b})
+              (\(ds : unit) -> Nothing {Tuple2 a b})
               ()
     ~`$dFromData` : data -> Maybe (Tuple2 bytestring bytestring)
       = `$fFromDataTuple2_$cfromBuiltinData`
@@ -1162,6 +1168,11 @@
             (\(ds : unit) ->
                let
                  !ds : bytestring = unBData d
+               in
+               Nothing {integer})
+            (\(ds : unit) ->
+               let
+                 !ds : value = unValueData d
                in
                Nothing {integer})
             ()
@@ -1275,6 +1286,7 @@
             (\(ds : unit) -> Nothing {bool})
             (\(ds : unit) -> Nothing {bool})
             (\(ds : unit) -> Nothing {bool})
+            (\(ds : unit) -> Nothing {bool})
             ()
     !matchData' :
        all r.
@@ -1284,6 +1296,7 @@
          (list data -> r) ->
          (integer -> r) ->
          (bytestring -> r) ->
+         (value -> r) ->
          r
       = /\r ->
           \(d : data)
@@ -1291,7 +1304,8 @@
            (mapCase : list (pair data data) -> r)
            (listCase : list data -> r)
            (iCase : integer -> r)
-           (bCase : bytestring -> r) ->
+           (bCase : bytestring -> r)
+           (vCase : value -> r) ->
             chooseData
               {unit -> r}
               d
@@ -1304,6 +1318,7 @@
               (\(ds : unit) -> listCase (unListData d))
               (\(ds : unit) -> iCase (unIData d))
               (\(ds : unit) -> bCase (unBData d))
+              (\(ds : unit) -> vCase (unValueData d))
               ()
     data (Extended :: * -> *) a | Extended_match where
       Finite : a -> Extended a
@@ -1377,6 +1392,7 @@
               (\(ds : list data) -> Nothing {Extended a})
               (\(ds : integer) -> Nothing {Extended a})
               (\(ds : bytestring) -> Nothing {Extended a})
+              (\(ds : value) -> Nothing {Extended a})
     data GovernanceActionId | GovernanceActionId_match where
       GovernanceActionId : bytestring -> integer -> GovernanceActionId
     !`$fFromDataGovernanceAction_$cfromBuiltinData` :
@@ -1459,6 +1475,7 @@
             (\(ds : list data) -> Nothing {GovernanceActionId})
             (\(ds : integer) -> Nothing {GovernanceActionId})
             (\(ds : bytestring) -> Nothing {GovernanceActionId})
+            (\(ds : value) -> Nothing {GovernanceActionId})
     !`$fFromDataCredential_$cfromBuiltinData` :
        data -> Maybe Credential
       = \(d : data) ->
@@ -1535,6 +1552,7 @@
             (\(ds : list data) -> Nothing {Credential})
             (\(ds : integer) -> Nothing {Credential})
             (\(ds : bytestring) -> Nothing {Credential})
+            (\(ds : value) -> Nothing {Credential})
     !`$fFromDataMaybe_$cfromBuiltinData` :
        all a. (\a -> data -> Maybe a) a -> data -> Maybe (Maybe a)
       = /\a ->
@@ -1583,6 +1601,7 @@
                                  {all dead. dead})
                           , (/\dead -> Just {Maybe a} (Nothing {a})) ]
                           {all dead. dead}) ])
+              (\(ds : unit) -> Nothing {Maybe a})
               (\(ds : unit) -> Nothing {Maybe a})
               (\(ds : unit) -> Nothing {Maybe a})
               (\(ds : unit) -> Nothing {Maybe a})
@@ -1701,6 +1720,11 @@
                      !ds : bytestring = unBData d
                    in
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
+                (\(ds : unit) ->
+                   let
+                     !ds : value = unValueData d
+                   in
+                   Nothing {(\k v -> List (Tuple2 k v)) k v})
                 ()
     !`$fFromDataList_$cfromBuiltinData` :
        all a. (\a -> data -> Maybe a) a -> data -> Maybe (List a)
@@ -1758,6 +1782,11 @@
                 (\(ds : unit) ->
                    let
                      !ds : bytestring = unBData d
+                   in
+                   Nothing {List a})
+                (\(ds : unit) ->
+                   let
+                     !ds : value = unValueData d
                    in
                    Nothing {List a})
                 ()
@@ -2113,6 +2142,11 @@
                                                                                                                                  bytestring})
                                                                                                                          (\(ds :
                                                                                                                               bytestring) ->
+                                                                                                                            Nothing
+                                                                                                                              {Maybe
+                                                                                                                                 bytestring})
+                                                                                                                         (\(ds :
+                                                                                                                              value) ->
                                                                                                                             Nothing
                                                                                                                               {Maybe
                                                                                                                                  bytestring}))
@@ -3024,6 +3058,10 @@
                                                                                                                          (\(ds :
                                                                                                                               bytestring) ->
                                                                                                                             Nothing
+                                                                                                                              {ProtocolVersion})
+                                                                                                                         (\(ds :
+                                                                                                                              value) ->
+                                                                                                                            Nothing
                                                                                                                               {ProtocolVersion}))
                                                                                                                       {all dead.
                                                                                                                          Maybe
@@ -3280,6 +3318,10 @@
                                                                         (\(ds :
                                                                              bytestring) ->
                                                                            Nothing
+                                                                             {GovernanceAction})
+                                                                        (\(ds :
+                                                                             value) ->
+                                                                           Nothing
                                                                              {GovernanceAction}))
                                                                      {all dead.
                                                                         Maybe
@@ -3318,6 +3360,7 @@
             (\(ds : list data) -> Nothing {ProposalProcedure})
             (\(ds : integer) -> Nothing {ProposalProcedure})
             (\(ds : bytestring) -> Nothing {ProposalProcedure})
+            (\(ds : value) -> Nothing {ProposalProcedure})
     data DRep | DRep_match where
       DRep : Credential -> DRep
       DRepAlwaysAbstain : DRep
@@ -3376,6 +3419,7 @@
             (\(ds : list data) -> Nothing {DRep})
             (\(ds : integer) -> Nothing {DRep})
             (\(ds : bytestring) -> Nothing {DRep})
+            (\(ds : value) -> Nothing {DRep})
     data Delegatee | Delegatee_match where
       DelegStake : bytestring -> Delegatee
       DelegStakeVote : bytestring -> DRep -> Delegatee
@@ -3523,6 +3567,7 @@
             (\(ds : list data) -> Nothing {Delegatee})
             (\(ds : integer) -> Nothing {Delegatee})
             (\(ds : bytestring) -> Nothing {Delegatee})
+            (\(ds : value) -> Nothing {Delegatee})
     data TxCert | TxCert_match where
       TxCertAuthHotCommittee : Credential -> Credential -> TxCert
       TxCertDelegStaking : Credential -> Delegatee -> TxCert
@@ -4308,6 +4353,7 @@
             (\(ds : list data) -> Nothing {TxCert})
             (\(ds : integer) -> Nothing {TxCert})
             (\(ds : bytestring) -> Nothing {TxCert})
+            (\(ds : value) -> Nothing {TxCert})
     data Voter | Voter_match where
       CommitteeVoter : Credential -> Voter
       DRepVoter : Credential -> Voter
@@ -4415,6 +4461,7 @@
             (\(ds : list data) -> Nothing {Voter})
             (\(ds : integer) -> Nothing {Voter})
             (\(ds : bytestring) -> Nothing {Voter})
+            (\(ds : value) -> Nothing {Voter})
     !`$fFromDataTxOutRef_$cfromBuiltinData` :
        data -> Maybe TxOutRef
       = \(d : data) ->
@@ -4489,6 +4536,7 @@
             (\(ds : list data) -> Nothing {TxOutRef})
             (\(ds : integer) -> Nothing {TxOutRef})
             (\(ds : bytestring) -> Nothing {TxOutRef})
+            (\(ds : value) -> Nothing {TxOutRef})
     !`$fFromDataTxOut_$cfromBuiltinData` :
        data -> Maybe TxOut
       = \(d : data) ->
@@ -4912,6 +4960,10 @@
                                                                                      (\(ds :
                                                                                           bytestring) ->
                                                                                         Nothing
+                                                                                          {StakingCredential})
+                                                                                     (\(ds :
+                                                                                          value) ->
+                                                                                        Nothing
                                                                                           {StakingCredential}))
                                                                                 ds)
                                                                              {all dead.
@@ -4948,8 +5000,8 @@
                                           Nothing {Address})
                                        (\(ds : list data) -> Nothing {Address})
                                        (\(ds : integer) -> Nothing {Address})
-                                       (\(ds : bytestring) ->
-                                          Nothing {Address}))
+                                       (\(ds : bytestring) -> Nothing {Address})
+                                       (\(ds : value) -> Nothing {Address}))
                                     {all dead. Maybe TxOut}
                                     (\(arg : Address) ->
                                        /\dead ->
@@ -5218,6 +5270,10 @@
                                                                              (\(ds :
                                                                                   bytestring) ->
                                                                                 Nothing
+                                                                                  {OutputDatum})
+                                                                             (\(ds :
+                                                                                  value) ->
+                                                                                Nothing
                                                                                   {OutputDatum}))
                                                                           {all dead.
                                                                              Maybe
@@ -5301,6 +5357,7 @@
             (\(ds : list data) -> Nothing {TxOut})
             (\(ds : integer) -> Nothing {TxOut})
             (\(ds : bytestring) -> Nothing {TxOut})
+            (\(ds : value) -> Nothing {TxOut})
     !`$fFromDataScriptContext_$cfromBuiltinData` :
        data -> Maybe TxInInfo
       = \(d : data) ->
@@ -5374,6 +5431,7 @@
             (\(ds : list data) -> Nothing {TxInInfo})
             (\(ds : integer) -> Nothing {TxInInfo})
             (\(ds : bytestring) -> Nothing {TxInInfo})
+            (\(ds : value) -> Nothing {TxInInfo})
   in
   letrec
     !`$fAdditiveGroupValue_go` :
@@ -6542,6 +6600,11 @@
                                                                                                                                                                                                                                        bytestring) ->
                                                                                                                                                                                                                                      Nothing
                                                                                                                                                                                                                                        {LowerBound
+                                                                                                                                                                                                                                          integer})
+                                                                                                                                                                                                                                  (\(ds :
+                                                                                                                                                                                                                                       value) ->
+                                                                                                                                                                                                                                     Nothing
+                                                                                                                                                                                                                                       {LowerBound
                                                                                                                                                                                                                                           integer}))
                                                                                                                                                                                                                                {all dead.
                                                                                                                                                                                                                                   Maybe
@@ -6761,6 +6824,11 @@
                                                                                                                                                                                                                                                      bytestring) ->
                                                                                                                                                                                                                                                    Nothing
                                                                                                                                                                                                                                                      {UpperBound
+                                                                                                                                                                                                                                                        integer})
+                                                                                                                                                                                                                                                (\(ds :
+                                                                                                                                                                                                                                                     value) ->
+                                                                                                                                                                                                                                                   Nothing
+                                                                                                                                                                                                                                                     {UpperBound
                                                                                                                                                                                                                                                         integer}))
                                                                                                                                                                                                                                              {all dead.
                                                                                                                                                                                                                                                 Maybe
@@ -6824,6 +6892,11 @@
                                                                                                                                                                                                                integer})
                                                                                                                                                                                                        (\(ds :
                                                                                                                                                                                                             bytestring) ->
+                                                                                                                                                                                                          Nothing
+                                                                                                                                                                                                            {Interval
+                                                                                                                                                                                                               integer})
+                                                                                                                                                                                                       (\(ds :
+                                                                                                                                                                                                            value) ->
                                                                                                                                                                                                           Nothing
                                                                                                                                                                                                             {Interval
                                                                                                                                                                                                                integer}))
@@ -7534,6 +7607,10 @@
                                                                                                                                                                                                                                                   (\(ds :
                                                                                                                                                                                                                                                        bytestring) ->
                                                                                                                                                                                                                                                      Nothing
+                                                                                                                                                                                                                                                       {ScriptPurpose})
+                                                                                                                                                                                                                                                  (\(ds :
+                                                                                                                                                                                                                                                       value) ->
+                                                                                                                                                                                                                                                     Nothing
                                                                                                                                                                                                                                                        {ScriptPurpose}))
                                                                                                                                                                                                                                              `$fFromDataBuiltinData_$cfromBuiltinData`
                                                                                                                                                                                                                                              ds)
@@ -7854,6 +7931,10 @@
                                                                                                                                                                                                                                                                                                                    {Vote})
                                                                                                                                                                                                                                                                                                               (\(ds :
                                                                                                                                                                                                                                                                                                                    bytestring) ->
+                                                                                                                                                                                                                                                                                                                 Nothing
+                                                                                                                                                                                                                                                                                                                   {Vote})
+                                                                                                                                                                                                                                                                                                              (\(ds :
+                                                                                                                                                                                                                                                                                                                   value) ->
                                                                                                                                                                                                                                                                                                                  Nothing
                                                                                                                                                                                                                                                                                                                    {Vote})))
                                                                                                                                                                                                                                                                                                       ds)
@@ -8230,7 +8311,8 @@
                                           Nothing {TxInfo})
                                        (\(ds : list data) -> Nothing {TxInfo})
                                        (\(ds : integer) -> Nothing {TxInfo})
-                                       (\(ds : bytestring) -> Nothing {TxInfo}))
+                                       (\(ds : bytestring) -> Nothing {TxInfo})
+                                       (\(ds : value) -> Nothing {TxInfo}))
                                     {all dead. Maybe ScriptContext}
                                     (\(arg : TxInfo) ->
                                        /\dead ->
@@ -8918,6 +9000,10 @@
                                                                  (\(ds :
                                                                       bytestring) ->
                                                                     Nothing
+                                                                      {ScriptInfo})
+                                                                 (\(ds :
+                                                                      value) ->
+                                                                    Nothing
                                                                       {ScriptInfo}))
                                                               {all dead.
                                                                  Maybe
@@ -8949,7 +9035,8 @@
             (\(ds : list (pair data data)) -> Nothing {ScriptContext})
             (\(ds : list data) -> Nothing {ScriptContext})
             (\(ds : integer) -> Nothing {ScriptContext})
-            (\(ds : bytestring) -> Nothing {ScriptContext})))
+            (\(ds : bytestring) -> Nothing {ScriptContext})
+            (\(ds : value) -> Nothing {ScriptContext})))
       {all dead. unit}
       (\(ctx : ScriptContext) ->
          /\dead ->
@@ -9026,6 +9113,7 @@
                                           {all dead. dead})
                                    , (/\dead -> Just {LoanRedeemer} CloseAsk) ]
                                    {all dead. dead}) ])
+                       (\(ds : unit) -> Nothing {LoanRedeemer})
                        (\(ds : unit) -> Nothing {LoanRedeemer})
                        (\(ds : unit) -> Nothing {LoanRedeemer})
                        (\(ds : unit) -> Nothing {LoanRedeemer})
@@ -10999,6 +11087,7 @@
                                               {all dead. dead})
                                            l
                                            r) ])
+                               (\(ds : unit) -> Nothing {LoanDatum})
                                (\(ds : unit) -> Nothing {LoanDatum})
                                (\(ds : unit) -> Nothing {LoanDatum})
                                (\(ds : unit) -> Nothing {LoanDatum})

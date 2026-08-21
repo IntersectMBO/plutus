@@ -1,7 +1,7 @@
 let
   !casePair : all a b r. pair a b -> (a -> b -> r) -> r
     = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
-  !chooseData : all a. data -> a -> a -> a -> a -> a -> a = chooseData
+  !chooseData : all a. data -> a -> a -> a -> a -> a -> a -> a = chooseData
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
@@ -10,6 +10,7 @@ let
   !unsafeDataAsI : data -> integer = unIData
   !unsafeDataAsList : data -> list data = unListData
   !unsafeDataAsMap : data -> list (pair data data) = unMapData
+  !unsafeDataAsValue : data -> value = unValueData
   ~`$fFromDataInteger_$cfromBuiltinData` : data -> Maybe integer
     = \(d : data) ->
         let
@@ -39,6 +40,11 @@ let
           (\(ds : unit) ->
              let
                !ds : bytestring = unsafeDataAsB d
+             in
+             Nothing {integer})
+          (\(ds : unit) ->
+             let
+               !ds : value = unsafeDataAsValue d
              in
              Nothing {integer})
           ()
@@ -158,6 +164,7 @@ let
                                (/\dead -> Nothing {Tuple a b})
                                {all dead. dead}) ]
                         {all dead. dead}))
+            (\(ds : unit) -> Nothing {Tuple a b})
             (\(ds : unit) -> Nothing {Tuple a b})
             (\(ds : unit) -> Nothing {Tuple a b})
             (\(ds : unit) -> Nothing {Tuple a b})

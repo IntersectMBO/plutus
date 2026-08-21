@@ -88,6 +88,8 @@ copyData =
     List l -> List (map copyData l)
     I n -> I $ copyInteger n
     B b -> B $ copyByteString b
+    -- FIXME (value in data): copy v
+    V v -> V v
 {-# OPAQUE copyData #-}
 
 pairWith :: (a -> b) -> [a] -> [(a, b)]
@@ -262,6 +264,48 @@ mkApp6 fun tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force ->
       ]
   where
     instantiated = mkIterInstNoAnn (builtin () fun) tys
+
+-- Create a term instantiating a builtin and applying it to seven arguments
+mkApp7
+  :: ( uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , uni `HasTermLevel` c
+     , uni `HasTermLevel` d
+     , uni `HasTermLevel` e
+     , uni `HasTermLevel` f
+     , uni `HasTermLevel` g
+     , NFData a
+     , NFData b
+     , NFData c
+     , NFData d
+     , NFData e
+     , NFData f
+     , NFData g
+     )
+  => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f -> g -> PlainTerm uni fun
+mkApp7
+  fun
+  tys
+  (force -> !x)
+  (force -> !y)
+  (force -> !z)
+  (force -> !t)
+  (force -> !u)
+  (force -> !v)
+  (force -> !w) =
+    eraseTerm $
+      mkIterAppNoAnn
+        instantiated
+        [ mkConstant () x
+        , mkConstant () y
+        , mkConstant () z
+        , mkConstant () t
+        , mkConstant () u
+        , mkConstant () v
+        , mkConstant () w
+        ]
+    where
+      instantiated = mkIterInstNoAnn (builtin () fun) tys
 
 ---------------- Creating benchmarks ----------------
 

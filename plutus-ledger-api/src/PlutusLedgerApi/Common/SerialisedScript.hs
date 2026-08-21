@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -23,6 +24,7 @@ module PlutusLedgerApi.Common.SerialisedScript
   ) where
 
 import PlutusCore
+import PlutusCore.Data (containsValue)
 import PlutusCore.Default (defaultUniSize)
 import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
@@ -199,19 +201,29 @@ scriptCBORDecoder
 scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
   let availableBuiltins = builtinsAvailableIn ll pv
+      valuesInDataAvailable = ll >= PlutusV4
       maxBounds = maxBoundsByPV pv
       maxBoundHeader = mbHeader maxBounds
       maxBoundConstr = mbConstr maxBounds
       flatDecoder = UPLC.decodeProgram checkConstant checkBuiltin checkConstr
 
-      checkConstant (Some (ValueOf uni _))
-        | defaultUniSize uni <= maxBoundHeader = Nothing
-        | otherwise =
+      checkConstant (Some (ValueOf uni x))
+        | defaultUniSize uni > maxBoundHeader =
             Just $
               "Constant of type "
                 ++ show (pretty uni)
                 ++ " is not available in protocol version "
                 ++ show (pretty pv)
+        | otherwise = case uni of
+            DefaultUniData
+              | not valuesInDataAvailable
+              , containsValue x ->
+                  Just $
+                    "The V constructor of data is not available in language "
+                      ++ show (pretty ll)
+                      ++ " at protocol version "
+                      ++ show (pretty pv)
+            _ -> Nothing
       -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
       checkBuiltin f
         | f `Set.member` availableBuiltins = Nothing

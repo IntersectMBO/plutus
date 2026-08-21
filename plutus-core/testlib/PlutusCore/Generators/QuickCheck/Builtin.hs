@@ -185,7 +185,9 @@ genConstrTag =
 
 {-| Generate a 'Data' object using a @spine :: [()]@ as a hint. It's helpful to make the spine a
 list of units rather than a 'Word' or something, because we have useful functions for arbitrary
-list splitting. -}
+list splitting.
+
+FIXME (value in data): allow it to generate Values. -}
 genDataFromSpine :: [()] -> Gen Data
 genDataFromSpine [] =
   oneof
@@ -266,6 +268,7 @@ instance ArbitraryBuiltin Data where
         ]
   shrinkBuiltin (B b) = pureIfNull (I 0) . map B $ shrinkBuiltin b
   shrinkBuiltin (I i) = map I $ shrinkBuiltin i
+  shrinkBuiltin (V v) = pureIfNull (I 0) . map V $ shrinkBuiltin v
 
 instance Arbitrary Data where
   arbitrary = arbitraryBuiltin

@@ -36,9 +36,9 @@ isB = \case B {} -> True; _ -> False
 
 ---------------- ChooseData ----------------
 
--- Choose one of five alternatives depending on which constructor you've got.
--- We can't explore a significant fraction of a six-dimensional parameter space;
--- fortunately 'chooseData' is parametric in its last five arguments so we can
+-- Choose one of six alternatives depending on which constructor you've got.
+-- We can't explore a significant fraction of a seven-dimensional parameter space;
+-- fortunately 'chooseData' is parametric in its last six arguments so we can
 -- just give it integers for those.
 benchChooseData :: Benchmark
 benchChooseData = bgroup (show name) [mkBM d | d <- take 100 dataSample]
@@ -46,7 +46,7 @@ benchChooseData = bgroup (show name) [mkBM d | d <- take 100 dataSample]
     name = ChooseData
     mkBM d =
       benchDefault (showMemoryUsage d) $
-        mkApp6
+        mkApp7
           name
           [integer]
           d
@@ -55,6 +55,7 @@ benchChooseData = bgroup (show name) [mkBM d | d <- take 100 dataSample]
           (333 :: Integer)
           (444 :: Integer)
           (555 :: Integer)
+          (666 :: Integer)
 
 ---------------- Construction ----------------
 

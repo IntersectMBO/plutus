@@ -308,12 +308,9 @@ BUILTIN valueContains (base $ V-con v1 $ V-con v2) with valueCONTAINS v1 v2
 BUILTIN scaleValue (base $ V-con n $ V-con v) with scaleVALUE n v
 ... | just v' = inj₂ (V-con v')
 ... | nothing = inj₁ (con-atomic aValue)
-BUILTIN valueData (base $ V-con v) with valueDATA v
-... | just d = inj₂ (V-con d)
-... | nothing = inj₁ (con-atomic aValue)
-BUILTIN unValueData (base $ V-con d) with unValueDATA d
-... | nothing = inj₁ (con-atomic aValue)
-... | just v  = inj₂ (V-con v)
+BUILTIN valueData (base $ V-con v) = inj₂ (V-con (VDATA v))
+BUILTIN unValueData (base $ V-con (VDATA v)) = inj₂ (V-con v)
+BUILTIN unValueData (base $ V-con _) = inj₁ (con-atomic aValue)
 BUILTIN mkNilData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN mkNilPairData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN chooseUnit (Λ̂ A $ V-con _ $ x) = inj₂ x
@@ -342,11 +339,12 @@ BUILTIN indexArray {A = A'} (Λ̂ A $ V-con as $ V-con i) with Data.Integer.ℤ.
 ... | yes _ with i <? Utils.HSlengthOfArray as
 ... | no _  = inj₁ (con A)
 ... | yes _ = inj₂ (V-con (Utils.HSindexArray as i))
-BUILTIN chooseData (Λ̂ A $ V-con (ConstrDATA _ _) $ c $ _ $ _ $ _ $ _) = inj₂ c
-BUILTIN chooseData (Λ̂ A $ V-con (MapDATA _)      $ _ $ m $ _ $ _ $ _) = inj₂ m
-BUILTIN chooseData (Λ̂ A $ V-con (ListDATA _)     $ _ $ _ $ l $ _ $ _) = inj₂ l
-BUILTIN chooseData (Λ̂ A $ V-con (iDATA _)        $ _ $ _ $ _ $ i $ _) = inj₂ i
-BUILTIN chooseData (Λ̂ A $ V-con (bDATA _)        $ _ $ _ $ _ $ _ $ b) = inj₂ b
+BUILTIN chooseData (Λ̂ A $ V-con (ConstrDATA _ _) $ c $ _ $ _ $ _ $ _ $ _) = inj₂ c
+BUILTIN chooseData (Λ̂ A $ V-con (MapDATA _)      $ _ $ m $ _ $ _ $ _ $ _) = inj₂ m
+BUILTIN chooseData (Λ̂ A $ V-con (ListDATA _)     $ _ $ _ $ l $ _ $ _ $ _) = inj₂ l
+BUILTIN chooseData (Λ̂ A $ V-con (iDATA _)        $ _ $ _ $ _ $ i $ _ $ _) = inj₂ i
+BUILTIN chooseData (Λ̂ A $ V-con (bDATA _)        $ _ $ _ $ _ $ _ $ b $ _) = inj₂ b
+BUILTIN chooseData (Λ̂ A $ V-con (VDATA _)        $ _ $ _ $ _ $ _ $ _ $ v) = inj₂ v
 BUILTIN bls12-381-G1-add (base $ V-con e $ V-con e') = inj₂ (V-con (BLS12-381-G1-add e e'))
 BUILTIN bls12-381-G1-neg (base $ V-con e) = inj₂ (V-con (BLS12-381-G1-neg e))
 BUILTIN bls12-381-G1-scalarMul (base $ V-con i $ V-con e) = inj₂ (V-con (BLS12-381-G1-scalarMul i e))

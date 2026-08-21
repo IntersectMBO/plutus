@@ -106,6 +106,7 @@ matchDataList l nilCase consCase =
     (\_ -> error ())
     (\_ -> error ())
     (\_ -> error ())
+    (\_ -> error ())
   where
     handleConstr tag values =
       if tag == 0

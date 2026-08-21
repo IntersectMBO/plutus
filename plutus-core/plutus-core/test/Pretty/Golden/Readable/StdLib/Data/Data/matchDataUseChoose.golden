@@ -4,7 +4,8 @@
      (fMap : list (pair data data) -> r)
      (fList : list data -> r)
      (fI : integer -> r)
-     (fB : bytestring -> r) ->
+     (fB : bytestring -> r)
+     (fV : value -> r) ->
       chooseData
         {unit -> r}
         d
@@ -21,4 +22,5 @@
         (\(u : unit) -> fList (unListData d))
         (\(u : unit) -> fI (unIData d))
         (\(u : unit) -> fB (unBData d))
+        (\(u : unit) -> fV (unValueData d))
         ()

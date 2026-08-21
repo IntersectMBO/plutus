@@ -114,6 +114,7 @@ instance FromData (List a) where
       (Just . List)
       (\_ -> Nothing)
       (\_ -> Nothing)
+      (\_ -> Nothing)
 
 instance UnsafeFromData (List a) where
   {-# INLINEABLE unsafeFromBuiltinData #-}

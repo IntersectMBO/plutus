@@ -149,6 +149,8 @@ instance AgdaUnparse Data where
     parens ("iDATA" <+> agdaUnparse i)
   agdaUnparse (Data.B b) =
     parens ("bDATA" <+> agdaUnparse b)
+  agdaUnparse (Data.V v) =
+    parens ("VDATA" <+> parens (agdaUnparse v))
 
 instance (AgdaUnparse k, AgdaUnparse v) => AgdaUnparse (Map.Map k v) where
   agdaUnparse = agdaUnparse . Map.toList
