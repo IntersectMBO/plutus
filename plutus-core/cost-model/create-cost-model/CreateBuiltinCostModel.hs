@@ -154,6 +154,7 @@ builtinCostModelNames =
     , paramUnionValue = "unionValueModel"
     , paramScaleValue = "scaleValueModel"
     , paramMultiIndexArray = "multiIndexArrayModel"
+    , paramPolicies = "policiesModel"
     }
 
 {-| Loads the models from R.
@@ -310,6 +311,7 @@ createBuiltinCostModel bmfile rfile = do
   paramUnionValue <- getParams readCF2 paramUnionValue
   paramScaleValue <- getParams readCF2 paramScaleValue
   paramMultiIndexArray <- getParams readCF2 paramMultiIndexArray
+  paramPolicies <- getParams readCF1 paramPolicies
 
   pure $ BuiltinCostModelBase {..}
 

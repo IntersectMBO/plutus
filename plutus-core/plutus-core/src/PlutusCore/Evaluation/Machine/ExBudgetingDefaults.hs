@@ -429,6 +429,7 @@ unitCostBuiltinCostModel =
     , paramScaleValue = unitCostTwoArguments
     , -- Batch 7
       paramMultiIndexArray = unitCostTwoArguments
+    , paramPolicies = unitCostOneArgument
     }
 
 unitCekParameters

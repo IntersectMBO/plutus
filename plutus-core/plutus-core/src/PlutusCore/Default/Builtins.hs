@@ -2499,7 +2499,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         {-# INLINE policiesDenotation #-}
      in makeBuiltinMeaning
           policiesDenotation
-          (runCostingFunOneArgument . unimplementedCostingFun)
+          (runCostingFunOneArgument . paramPolicies)
   toBuiltinMeaning _semvar AssetCount =
     let assetCountDenotation :: Value -> Integer
         assetCountDenotation = toInteger . Value.totalSize
