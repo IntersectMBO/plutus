@@ -1,0 +1,2106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoImplicitPrelude #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-specialise #-}</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.V4.Data.Time</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#POSIXTimeRange"
+	><span class="hs-identifier"
+	  >POSIXTimeRange</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#POSIXTimeRange"
+	><span class="hs-identifier"
+	  >POSIXTimeRange</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#matchPOSIXTimeRange"
+	><span class="hs-identifier"
+	  >matchPOSIXTimeRange</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#fromInclusive"
+	><span class="hs-identifier"
+	  >fromInclusive</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#untilExclusive"
+	><span class="hs-identifier"
+	  >untilExclusive</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Data.Time</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.AsData.html"
+	><span class="hs-identifier"
+	  >PlutusTx.AsData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#ConstructorSchema"
+	><span class="hs-identifier"
+	  >ConstructorSchema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#Schema"
+	><span class="hs-identifier"
+	  >Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	><span class="hs-identifier"
+	  >HasBlueprintSchema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	><span class="hs-identifier"
+	  >schema</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Internal.html#HasSchemaDefinition"
+	><span class="hs-identifier"
+	  >HasSchemaDefinition</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#Unrolled"
+	><span class="hs-identifier"
+	  >Unrolled</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Id.html#definitionIdFromType"
+	><span class="hs-identifier"
+	  >definitionIdFromType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Derive.html#definitionRef"
+	><span class="hs-identifier"
+	  >definitionRef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.TF.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition.TF</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.TF.html#Nub"
+	><span class="hs-identifier"
+	  >Nub</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema.Annotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfo"
+	><span class="hs-identifier"
+	  >SchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Lift.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Lift.TH.html#makeLift"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier"
+	  >pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Symbols.Ascii.html#comma"
+	><span class="hs-identifier"
+	  >comma</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator"
+	  >(&lt;+&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="POSIXTimeRange"
+      ><span id="local-6989586621682005040"
+	><span id="POSIXTimeRange"
+	  ><span id="matchPOSIXTimeRange"
+	    ><span id="fromInclusive"
+	      ><span id="untilExclusive"
+		><span id="POSIXTimeRange_6989586621679881637"
+		  ><span id="local-6989586621682005298"
+		    ><span id="local-6989586621682005302"
+		      ><span id="local-6989586621682005306"
+			><span id="local-6989586621682005312"
+			  ><span id="local-6989586621682005316"
+			    ><span id="local-6989586621682005319"
+			      ><span id="local-6989586621682005321"
+				><span id="local-6989586621682005323"
+				  ><span id="local-6989586621682005328"
+				    ><span id="local-6989586621682005333"
+				      ><span id="local-6989586621682005338"
+					><span id="%24mPOSIXTimeRange"
+					  ><span id="%24bPOSIXTimeRange"
+					    ><span class="hs-identifier"
+					      >PlutusTx.asData</span
+					      ><span
+					      >
+</span
+					      ><span id="line-49"
+					      ></span
+					      ><span
+					      >  </span
+					      ><span class="hs-special"
+					      >[d|</span
+					      ><span
+					      >
+</span
+					      ><span id="line-50"
+					      ></span
+					      ><span
+					      >    </span
+					      ><span class="hs-keyword"
+					      >data</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >POSIXTimeRange</span
+					      ><span
+					      > </span
+					      ><span class="hs-glyph"
+					      >=</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >POSIXTimeRange</span
+					      ><span
+					      >
+</span
+					      ><span id="line-51"
+					      ></span
+					      ><span
+					      >      </span
+					      ><span class="hs-special"
+					      >{</span
+					      ><span
+					      > </span
+					      ><span class="hs-comment"
+					      >-- 'Nothing' means negative infinity.</span
+					      ><span
+					      >
+</span
+					      ><span id="line-52"
+					      ></span
+					      ><span
+					      >        </span
+					      ><span class="hs-identifier"
+					      >fromInclusive</span
+					      ><span
+					      > </span
+					      ><span class="hs-glyph"
+					      >::</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >Haskell.Maybe</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >POSIXTime</span
+					      ><span
+					      >
+</span
+					      ><span id="line-53"
+					      ></span
+					      ><span
+					      >      </span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span
+					      > </span
+					      ><span class="hs-comment"
+					      >-- 'Nothing' means positive infinity.</span
+					      ><span
+					      >
+</span
+					      ><span id="line-54"
+					      ></span
+					      ><span
+					      >        </span
+					      ><span class="hs-identifier"
+					      >untilExclusive</span
+					      ><span
+					      > </span
+					      ><span class="hs-glyph"
+					      >::</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >Haskell.Maybe</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >POSIXTime</span
+					      ><span
+					      >
+</span
+					      ><span id="line-55"
+					      ></span
+					      ><span
+					      >      </span
+					      ><span class="hs-special"
+					      >}</span
+					      ><span
+					      >
+</span
+					      ><span id="line-56"
+					      ></span
+					      ><span
+					      >      </span
+					      ><span class="hs-keyword"
+					      >deriving</span
+					      ><span
+					      > </span
+					      ><span class="hs-keyword"
+					      >stock</span
+					      ><span
+					      > </span
+					      ><span class="hs-special"
+					      >(</span
+					      ><span class="hs-identifier"
+					      >Haskell.Eq</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >Haskell.Show</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >Generic</span
+					      ><span class="hs-special"
+					      >)</span
+					      ><span
+					      >
+</span
+					      ><span id="line-57"
+					      ></span
+					      ><span
+					      >      </span
+					      ><span class="hs-keyword"
+					      >deriving</span
+					      ><span
+					      > </span
+					      ><span class="hs-keyword"
+					      >newtype</span
+					      ><span
+					      > </span
+					      ><span class="hs-special"
+					      >(</span
+					      ><span class="hs-identifier"
+					      >PlutusTx.FromData</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >PlutusTx.UnsafeFromData</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span
+					      > </span
+					      ><span class="hs-identifier"
+					      >PlutusTx.ToData</span
+					      ><span class="hs-special"
+					      >)</span
+					      ><span
+					      >
+</span
+					      ><span id="line-58"
+					      ></span
+					      ><span
+					      >      </span
+					      ><span class="hs-keyword"
+					      >deriving</span
+					      ><span
+					      > </span
+					      ><span class="hs-keyword"
+					      >anyclass</span
+					      ><span
+					      > </span
+					      ><span class="hs-special"
+					      >(</span
+					      ><span class="hs-identifier"
+					      >NFData</span
+					      ><span class="hs-special"
+					      >)</span
+					      ><span
+					      >
+</span
+					      ><span id="line-59"
+					      ></span
+					      ><span
+					      >    </span
+					      ><span class="hs-special"
+					      >|]</span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier hs-type"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#POSIXTimeRange"
+	><span class="hs-identifier hs-type"
+	  >POSIXTimeRange</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span id="Unroll"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#Unroll"
+	  ><span class="hs-identifier hs-var"
+	    >Unroll</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#POSIXTimeRange"
+	><span class="hs-identifier hs-type"
+	  >POSIXTimeRange</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.TF.html#Nub"
+	><span class="hs-identifier hs-type"
+	  >Nub</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#POSIXTimeRange"
+	><span class="hs-identifier hs-type"
+	  >POSIXTimeRange</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#Unrolled"
+	><span class="hs-identifier hs-type"
+	  >Unrolled</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier hs-type"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682005392"
+      ><span class="annot"
+	><span class="annottext"
+	  >definitionId :: DefinitionId
+</span
+	  ><a href="#local-6989586621682005392"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >definitionId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Typeable t =&gt; DefinitionId
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Id.html#definitionIdFromType"
+	><span class="hs-identifier hs-var"
+	  >definitionIdFromType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#POSIXTimeRange"
+	><span class="hs-identifier hs-type"
+	  >POSIXTimeRange</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682005091"
+      ><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Internal.html#HasSchemaDefinition"
+	  ><span class="hs-identifier hs-type"
+	    >HasSchemaDefinition</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	  ><span class="hs-identifier hs-type"
+	    >Haskell.Maybe</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	  ><span class="hs-identifier hs-type"
+	    >POSIXTime</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682005091"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-69"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V4.Data.Time.html#POSIXTimeRange"
+	  ><span class="hs-identifier hs-type"
+	    >POSIXTimeRange</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682005091"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	><span class="hs-pragma hs-type"
+	  >schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682005408"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+-&gt; ConstructorSchema referencedTypes -&gt; Schema referencedTypes
+forall (referencedTypes :: [*]).
+SchemaInfo
+-&gt; ConstructorSchema referencedTypes -&gt; Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#SchemaConstructor"
+	><span class="hs-identifier hs-var"
+	  >SchemaConstructor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;POSIXTimeRange&quot;</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+-&gt; [Schema referencedTypes] -&gt; ConstructorSchema referencedTypes
+forall (referencedTypes :: [*]).
+Natural
+-&gt; [Schema referencedTypes] -&gt; ConstructorSchema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#MkConstructorSchema"
+	><span class="hs-identifier hs-var"
+	  >MkConstructorSchema</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t (ts :: [*]). HasBlueprintDefinition t =&gt; Schema ts
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Derive.html#definitionRef"
+	><span class="hs-identifier hs-var"
+	  >definitionRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier hs-type"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682005091"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t (ts :: [*]). HasBlueprintDefinition t =&gt; Schema ts
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Derive.html#definitionRef"
+	><span class="hs-identifier hs-var"
+	  >definitionRef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Data.Time.html#POSIXTime"
+	><span class="hs-identifier hs-type"
+	  >POSIXTime</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682005091"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682005414"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V4.Data.Time.html#POSIXTimeRange"
+	  ><span class="hs-identifier hs-type"
+	    >POSIXTimeRange</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682005426"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. POSIXTimeRange -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Data.Time.html#POSIXTimeRange"
+	><span class="hs-identifier hs-type"
+	  >POSIXTimeRange</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682005427"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe POSIXTime
+</span
+	  ><a href="#local-6989586621682005427"
+	  ><span class="hs-identifier hs-var"
+	    >lo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682005428"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe POSIXTime
+</span
+	  ><a href="#local-6989586621682005428"
+	  ><span class="hs-identifier hs-var"
+	    >hi</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><a href="#local-6989586621682005429"
+	><span class="hs-identifier hs-var"
+	  >prettyFrom</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall ann. Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Symbols.Ascii.html#comma"
+	><span class="hs-identifier hs-var"
+	  >comma</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><a href="#local-6989586621682005430"
+	><span class="hs-identifier hs-var"
+	  >prettyUntil</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621682005429"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyFrom :: Doc ann
+</span
+	  ><a href="#local-6989586621682005429"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prettyFrom</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe POSIXTime
+</span
+	><a href="#local-6989586621682005427"
+	><span class="hs-identifier hs-var"
+	  >lo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe POSIXTime
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Haskell.Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;(-Inf&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682005431"
+      ><span class="annot"
+	><span class="annottext"
+	  >POSIXTime
+</span
+	  ><a href="#local-6989586621682005431"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;[&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>POSIXTime -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. POSIXTime -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>POSIXTime
+</span
+	><a href="#local-6989586621682005431"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621682005430"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyUntil :: Doc ann
+</span
+	  ><a href="#local-6989586621682005430"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prettyUntil</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe POSIXTime
+</span
+	><a href="#local-6989586621682005428"
+	><span class="hs-identifier hs-var"
+	  >hi</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe POSIXTime
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Haskell.Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;+Inf)&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Haskell.Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682005432"
+      ><span class="annot"
+	><span class="annottext"
+	  >POSIXTime
+</span
+	  ><a href="#local-6989586621682005432"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>POSIXTime -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. POSIXTime -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>POSIXTime
+</span
+	><a href="#local-6989586621682005432"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;)&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span id="local-6989586621682005434"
+      ><span class="hs-identifier"
+	>deriveEq</span
+	><span
+	> </span
+	><span class="hs-special"
+	>''</span
+	><span class="hs-identifier"
+	>POSIXTimeRange</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621682005443"
+      ><span id="local-6989586621682005445"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >POSIXTimeRange</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

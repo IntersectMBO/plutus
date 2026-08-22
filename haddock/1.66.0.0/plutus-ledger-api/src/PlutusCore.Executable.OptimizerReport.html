@@ -1,0 +1,5324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-comment"
+      >-- Produce an optimization report.</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Executable.OptimizerReport</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#ReportEntry"
+	><span class="hs-identifier"
+	  >ReportEntry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#OptimizerReport"
+	><span class="hs-identifier"
+	  >OptimizerReport</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#buildReport"
+	><span class="hs-identifier"
+	  >buildReport</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#printReport"
+	><span class="hs-identifier"
+	  >printReport</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemory.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExMemory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	><span class="hs-identifier"
+	  >ExCPU</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	><span class="hs-identifier"
+	  >ExMemory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Transform.Certify.Trace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html#Optimization"
+	><span class="hs-identifier"
+	  >Optimization</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html#stage"
+	><span class="hs-identifier"
+	  >stage</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html#OptimizerTrace"
+	><span class="hs-identifier"
+	  >OptimizerTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html#optimizerTrace"
+	><span class="hs-identifier"
+	  >optimizerTrace</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html#allASTs"
+	><span class="hs-identifier"
+	  >allASTs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html"
+	><span class="hs-identifier"
+	  >Data.Foldable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html"
+	><span class="hs-identifier"
+	  >Data.Maybe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Data.SatInt.html"
+	><span class="hs-identifier"
+	  >Data.SatInt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/System.IO.html"
+	><span class="hs-identifier"
+	  >System.IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.Handle.Types.html#Handle"
+	><span class="hs-identifier"
+	  >Handle</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.Handle.Text.html#hPutStrLn"
+	><span class="hs-identifier"
+	  >hPutStrLn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Text.Printf.html"
+	><span class="hs-identifier"
+	  >Text.Printf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Text.Printf.html#printf"
+	><span class="hs-identifier"
+	  >printf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ReportEntry"
+      ><span class="annot"
+	><a href="PlutusCore.Executable.OptimizerReport.html#ReportEntry"
+	  ><span class="hs-identifier hs-var"
+	    >ReportEntry</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ReportEntry"
+      ><span class="annot"
+	><a href="PlutusCore.Executable.OptimizerReport.html#ReportEntry"
+	  ><span class="hs-identifier hs-var"
+	    >ReportEntry</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="rePassName"
+      ><span class="annot"
+	><span class="annottext"
+	  >ReportEntry -&gt; Maybe String
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#rePassName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >rePassName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ `Nothing` for the first entry, `Just` for all other entries.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="reAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >ReportEntry -&gt; Integer
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#reAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >reAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="reCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >ReportEntry -&gt; Maybe (Either String ExBudget)
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#reCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >reCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ `Nothing` means evaluation wasn't requested.  `Left` means evaluation failed.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="OptimizerReport"
+      ><span class="annot"
+	><a href="PlutusCore.Executable.OptimizerReport.html#OptimizerReport"
+	  ><span class="hs-identifier hs-var"
+	    >OptimizerReport</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#ReportEntry"
+	><span class="hs-identifier hs-type"
+	  >ReportEntry</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-comment"
+      >-- FIXME: we need a lot of `reverse` here because `OptimizerTrace` contains the passes</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-comment"
+      >-- in reverse order.</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="local-6989586621679257943"
+      ><span id="local-6989586621679257944"
+	><span id="local-6989586621679257945"
+	  ><span id="local-6989586621679257947"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Executable.OptimizerReport.html#buildReport"
+		><span class="hs-identifier hs-type"
+		  >buildReport</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-39"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html#OptimizerTrace"
+		><span class="hs-identifier hs-type"
+		  >OptimizerTrace</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >UPLC.Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679257943"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679257944"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679257945"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-40"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+		><span class="hs-identifier hs-type"
+		  >Maybe</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679257947"
+		><span class="hs-identifier hs-type"
+		  >err</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+		><span class="hs-identifier hs-type"
+		  >ExBudget</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      >
+</span
+	      ><span id="line-41"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Executable.OptimizerReport.html#OptimizerReport"
+		><span class="hs-identifier hs-type"
+		  >OptimizerReport</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="buildReport"
+      ><span class="annot"
+	><span class="annottext"
+	  >buildReport :: forall (uni :: * -&gt; *) fun a err.
+OptimizerTrace Name uni fun a
+-&gt; [(Maybe err, ExBudget)] -&gt; OptimizerReport
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#buildReport"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >buildReport</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258094"
+      ><span class="annot"
+	><span class="annottext"
+	  >OptimizerTrace Name uni fun a
+</span
+	  ><a href="#local-6989586621679258094"
+	  ><span class="hs-identifier hs-var"
+	    >trace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Maybe err, ExBudget)] -&gt; [(Maybe err, ExBudget)]
+forall a. [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#reverse"
+	><span class="hs-identifier hs-var"
+	  >reverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679258096"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(Maybe err, ExBudget)]
+</span
+	  ><a href="#local-6989586621679258096"
+	  ><span class="hs-identifier hs-var"
+	    >costs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe String
+ -&gt; Integer -&gt; Maybe (Either String ExBudget) -&gt; ReportEntry)
+-&gt; [Maybe String]
+-&gt; [Integer]
+-&gt; [Maybe (Either String ExBudget)]
+-&gt; OptimizerReport
+forall a b c d. (a -&gt; b -&gt; c -&gt; d) -&gt; [a] -&gt; [b] -&gt; [c] -&gt; [d]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#zipWith3"
+	><span class="hs-identifier hs-var"
+	  >zipWith3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe String
+-&gt; Integer -&gt; Maybe (Either String ExBudget) -&gt; ReportEntry
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#ReportEntry"
+	><span class="hs-identifier hs-var"
+	  >ReportEntry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Maybe String]
+</span
+	><a href="#local-6989586621679258098"
+	><span class="hs-identifier hs-var"
+	  >passNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Integer]
+</span
+	><a href="#local-6989586621679258099"
+	><span class="hs-identifier hs-var"
+	  >sizes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Maybe (Either String ExBudget)]
+</span
+	><a href="#local-6989586621679258100"
+	><span class="hs-identifier hs-var"
+	  >mCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679258101"
+      ><span class="annot"
+	><span class="annottext"
+	  >asts :: [Term Name uni fun a]
+</span
+	  ><a href="#local-6989586621679258101"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >asts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term Name uni fun a] -&gt; [Term Name uni fun a]
+forall a. [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#reverse"
+	><span class="hs-identifier hs-var"
+	  >reverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>OptimizerTrace Name uni fun a -&gt; [Term Name uni fun a]
+forall name (uni :: * -&gt; *) fun a.
+OptimizerTrace name uni fun a -&gt; [Term name uni fun a]
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html#allASTs"
+	><span class="hs-identifier hs-var"
+	  >allASTs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OptimizerTrace Name uni fun a
+</span
+	><a href="#local-6989586621679258094"
+	><span class="hs-identifier hs-var"
+	  >trace</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679258098"
+      ><span class="annot"
+	><span class="annottext"
+	  >passNames :: [Maybe String]
+</span
+	  ><a href="#local-6989586621679258098"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >passNames</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe String
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe String -&gt; [Maybe String] -&gt; [Maybe String]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; Maybe String)
+-&gt; (Optimization Name uni fun a -&gt; String)
+-&gt; Optimization Name uni fun a
+-&gt; Maybe String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UncertifiedOptStage -&gt; String)
+-&gt; (CertifiedOptStage -&gt; String)
+-&gt; Either UncertifiedOptStage CertifiedOptStage
+-&gt; String
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#either"
+	><span class="hs-identifier hs-var"
+	  >either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UncertifiedOptStage -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CertifiedOptStage -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either UncertifiedOptStage CertifiedOptStage -&gt; String)
+-&gt; (Optimization Name uni fun a
+    -&gt; Either UncertifiedOptStage CertifiedOptStage)
+-&gt; Optimization Name uni fun a
+-&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Optimization Name uni fun a
+-&gt; Either UncertifiedOptStage CertifiedOptStage
+forall name (uni :: * -&gt; *) fun a.
+Optimization name uni fun a
+-&gt; Either UncertifiedOptStage CertifiedOptStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html#stage"
+	><span class="hs-identifier hs-var"
+	  >stage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Optimization Name uni fun a -&gt; Maybe String)
+-&gt; [Optimization Name uni fun a] -&gt; [Maybe String]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Optimization Name uni fun a] -&gt; [Optimization Name uni fun a]
+forall a. [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#reverse"
+	><span class="hs-identifier hs-var"
+	  >reverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>OptimizerTrace Name uni fun a -&gt; [Optimization Name uni fun a]
+forall name (uni :: * -&gt; *) fun a.
+OptimizerTrace name uni fun a -&gt; [Optimization name uni fun a]
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Certify.Trace.html#optimizerTrace"
+	><span class="hs-identifier hs-var"
+	  >optimizerTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OptimizerTrace Name uni fun a
+</span
+	><a href="#local-6989586621679258094"
+	><span class="hs-identifier hs-var"
+	  >trace</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679258099"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizes :: [Integer]
+</span
+	  ><a href="#local-6989586621679258099"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AstSize -&gt; Integer
+</span
+	><a href="../../plutus-core/src/PlutusCore.AstSize.html#unAstSize"
+	><span class="hs-identifier hs-var"
+	  >UPLC.unAstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AstSize -&gt; Integer)
+-&gt; (Term Name uni fun a -&gt; AstSize)
+-&gt; Term Name uni fun a
+-&gt; Integer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name uni fun a -&gt; AstSize
+forall name (uni :: * -&gt; *) fun ann.
+Term name uni fun ann -&gt; AstSize
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.AstSize.html#termAstSize"
+	><span class="hs-identifier hs-var"
+	  >UPLC.termAstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term Name uni fun a -&gt; Integer)
+-&gt; [Term Name uni fun a] -&gt; [Integer]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term Name uni fun a]
+</span
+	><a href="#local-6989586621679258101"
+	><span class="hs-identifier hs-var"
+	  >asts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679258100"
+      ><span class="annot"
+	><span class="annottext"
+	  >mCosts :: [Maybe (Either String ExBudget)]
+</span
+	  ><a href="#local-6989586621679258100"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Maybe err, ExBudget)]
+</span
+	><a href="#local-6989586621679258096"
+	><span class="hs-identifier hs-var"
+	  >costs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Either String ExBudget) -&gt; [Maybe (Either String ExBudget)]
+forall a. a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#repeat"
+	><span class="hs-identifier hs-var"
+	  >repeat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Either String ExBudget)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- evaluation wasn't requested</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679258116"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(Maybe err, ExBudget)]
+</span
+	  ><a href="#local-6989586621679258116"
+	  ><span class="hs-identifier hs-var"
+	    >cs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either String ExBudget -&gt; Maybe (Either String ExBudget)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either String ExBudget -&gt; Maybe (Either String ExBudget))
+-&gt; ((Maybe err, ExBudget) -&gt; Either String ExBudget)
+-&gt; (Maybe err, ExBudget)
+-&gt; Maybe (Either String ExBudget)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe err, ExBudget) -&gt; Either String ExBudget
+forall {a} {b}. (Maybe a, b) -&gt; Either String b
+</span
+	><a href="#local-6989586621679258117"
+	><span class="hs-identifier hs-var"
+	  >classifyCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Maybe err, ExBudget) -&gt; Maybe (Either String ExBudget))
+-&gt; [(Maybe err, ExBudget)] -&gt; [Maybe (Either String ExBudget)]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Maybe err, ExBudget)]
+</span
+	><a href="#local-6989586621679258116"
+	><span class="hs-identifier hs-var"
+	  >cs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679258117"
+      ><span class="annot"
+	><span class="annottext"
+	  >classifyCost :: (Maybe a, b) -&gt; Either String b
+</span
+	  ><a href="#local-6989586621679258117"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >classifyCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Either String b
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&lt;failed&gt;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679258117"
+	><span class="hs-identifier hs-var"
+	  >classifyCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679258118"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679258118"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; Either String b
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679258118"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#printReport"
+	><span class="hs-identifier hs-type"
+	  >printReport</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.Handle.Types.html#Handle"
+	><span class="hs-identifier hs-type"
+	  >Handle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#OptimizerReport"
+	><span class="hs-identifier hs-type"
+	  >OptimizerReport</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	><span class="hs-identifier hs-type"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="printReport"
+      ><span class="annot"
+	><span class="annottext"
+	  >printReport :: Handle -&gt; OptimizerReport -&gt; IO ()
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#printReport"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >printReport</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258119"
+      ><span class="annot"
+	><span class="annottext"
+	  >Handle
+</span
+	  ><a href="#local-6989586621679258119"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258120"
+      ><span class="annot"
+	><span class="annottext"
+	  >OptimizerReport
+</span
+	  ><a href="#local-6989586621679258120"
+	  ><span class="hs-identifier hs-var"
+	    >entries</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679258122"
+      ><span class="annot"
+	><span class="annottext"
+	  >withCosts :: Bool
+</span
+	  ><a href="#local-6989586621679258122"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReportEntry -&gt; Bool) -&gt; OptimizerReport -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#any"
+	><span class="hs-identifier hs-var"
+	  >any</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Either String ExBudget) -&gt; Bool
+forall a. Maybe a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#isJust"
+	><span class="hs-identifier hs-var"
+	  >isJust</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe (Either String ExBudget) -&gt; Bool)
+-&gt; (ReportEntry -&gt; Maybe (Either String ExBudget))
+-&gt; ReportEntry
+-&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry -&gt; Maybe (Either String ExBudget)
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#reCost"
+	><span class="hs-identifier hs-var"
+	  >reCost</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OptimizerReport
+</span
+	><a href="#local-6989586621679258120"
+	><span class="hs-identifier hs-var"
+	  >entries</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679258125"
+      ><span class="annot"
+	><span class="annottext"
+	  >put :: String -&gt; IO ()
+</span
+	  ><a href="#local-6989586621679258125"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >put</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Handle -&gt; String -&gt; IO ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.Handle.Text.html#hPutStrLn"
+	><span class="hs-identifier hs-var"
+	  >hPutStrLn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Handle
+</span
+	><a href="#local-6989586621679258119"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; IO ()
+</span
+	><a href="#local-6989586621679258125"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;=== UPLC optimization report ===&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; IO ()
+</span
+	><a href="#local-6989586621679258125"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; String
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#header"
+	><span class="hs-identifier hs-var"
+	  >header</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679258122"
+	><span class="hs-identifier hs-var"
+	  >withCosts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; IO ()
+</span
+	><a href="#local-6989586621679258125"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Char -&gt; String
+forall a. Int -&gt; a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#replicate"
+	><span class="hs-identifier hs-var"
+	  >replicate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#length"
+	><span class="hs-identifier hs-var"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; String
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#header"
+	><span class="hs-identifier hs-var"
+	  >header</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679258122"
+	><span class="hs-identifier hs-var"
+	  >withCosts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'-'</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; IO ()) -&gt; [String] -&gt; IO ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#traverse_"
+	><span class="hs-identifier hs-var"
+	  >traverse_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; IO ()
+</span
+	><a href="#local-6989586621679258125"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([String] -&gt; IO ()) -&gt; [String] -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe ReportEntry -&gt; ReportEntry -&gt; String)
+-&gt; [Maybe ReportEntry] -&gt; OptimizerReport -&gt; [String]
+forall a b c. (a -&gt; b -&gt; c) -&gt; [a] -&gt; [b] -&gt; [c]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#zipWith"
+	><span class="hs-identifier hs-var"
+	  >zipWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Maybe ReportEntry -&gt; ReportEntry -&gt; String
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#formatEntry"
+	><span class="hs-identifier hs-var"
+	  >formatEntry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679258122"
+	><span class="hs-identifier hs-var"
+	  >withCosts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ReportEntry
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ReportEntry -&gt; [Maybe ReportEntry] -&gt; [Maybe ReportEntry]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry -&gt; Maybe ReportEntry
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ReportEntry -&gt; Maybe ReportEntry)
+-&gt; OptimizerReport -&gt; [Maybe ReportEntry]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OptimizerReport
+</span
+	><a href="#local-6989586621679258120"
+	><span class="hs-identifier hs-var"
+	  >entries</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OptimizerReport
+</span
+	><a href="#local-6989586621679258120"
+	><span class="hs-identifier hs-var"
+	  >entries</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; IO ()
+</span
+	><a href="#local-6989586621679258125"
+	><span class="hs-identifier hs-var"
+	  >put</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-comment"
+      >-- Column widths.</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#passColW"
+	><span class="hs-identifier hs-type"
+	  >passColW</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#sizeColW"
+	><span class="hs-identifier hs-type"
+	  >sizeColW</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#cpuColW"
+	><span class="hs-identifier hs-type"
+	  >cpuColW</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#memColW"
+	><span class="hs-identifier hs-type"
+	  >memColW</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span id="passColW"
+      ><span class="annot"
+	><span class="annottext"
+	  >passColW :: Int
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#passColW"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >passColW</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>20</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="sizeColW"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeColW :: Int
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#sizeColW"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeColW</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>8</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="cpuColW"
+      ><span class="annot"
+	><span class="annottext"
+	  >cpuColW :: Int
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#cpuColW"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cpuColW</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>15</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span id="memColW"
+      ><span class="annot"
+	><span class="annottext"
+	  >memColW :: Int
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#memColW"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >memColW</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>15</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#header"
+	><span class="hs-identifier hs-type"
+	  >header</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="header"
+      ><span class="annot"
+	><span class="annottext"
+	  >header :: Bool -&gt; String
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#header"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >header</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Int -&gt; String -&gt; Int -&gt; String -&gt; Int -&gt; String -&gt; String
+forall r. PrintfType r =&gt; String -&gt; r
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Text.Printf.html#printf"
+	><span class="hs-identifier hs-var"
+	  >printf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;%-*s %*s %*s&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#passColW"
+	><span class="hs-identifier hs-var"
+	  >passColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Pass&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#sizeColW"
+	><span class="hs-identifier hs-var"
+	  >sizeColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Size&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#sizeColW"
+	><span class="hs-identifier hs-var"
+	  >sizeColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&#916;Size&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#header"
+	><span class="hs-identifier hs-var"
+	  >header</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Int
+-&gt; String
+-&gt; Int
+-&gt; String
+-&gt; Int
+-&gt; String
+-&gt; Int
+-&gt; String
+-&gt; Int
+-&gt; String
+-&gt; Int
+-&gt; String
+-&gt; Int
+-&gt; String
+-&gt; String
+forall r. PrintfType r =&gt; String -&gt; r
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Text.Printf.html#printf"
+	><span class="hs-identifier hs-var"
+	  >printf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;%-*s %*s %*s %*s %*s %*s %*s&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#passColW"
+	><span class="hs-identifier hs-var"
+	  >passColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Pass&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#sizeColW"
+	><span class="hs-identifier hs-var"
+	  >sizeColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Size&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#sizeColW"
+	><span class="hs-identifier hs-var"
+	  >sizeColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&#916;Size&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#cpuColW"
+	><span class="hs-identifier hs-var"
+	  >cpuColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;CPU&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#cpuColW"
+	><span class="hs-identifier hs-var"
+	  >cpuColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&#916;CPU&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#memColW"
+	><span class="hs-identifier hs-var"
+	  >memColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Mem&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#memColW"
+	><span class="hs-identifier hs-var"
+	  >memColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&#916;Mem&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#formatEntry"
+	><span class="hs-identifier hs-type"
+	  >formatEntry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#ReportEntry"
+	><span class="hs-identifier hs-type"
+	  >ReportEntry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#ReportEntry"
+	><span class="hs-identifier hs-type"
+	  >ReportEntry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span id="formatEntry"
+      ><span class="annot"
+	><span class="annottext"
+	  >formatEntry :: Bool -&gt; Maybe ReportEntry -&gt; ReportEntry -&gt; String
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#formatEntry"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >formatEntry</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258136"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679258136"
+	  ><span class="hs-identifier hs-var"
+	    >withCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258137"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe ReportEntry
+</span
+	  ><a href="#local-6989586621679258137"
+	  ><span class="hs-identifier hs-var"
+	    >mPrev</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258138"
+      ><span class="annot"
+	><span class="annottext"
+	  >ReportEntry
+</span
+	  ><a href="#local-6989586621679258138"
+	  ><span class="hs-identifier hs-var"
+	    >cur</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679258139"
+      ><span class="annot"
+	><span class="annottext"
+	  >name :: String
+</span
+	  ><a href="#local-6989586621679258139"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Maybe String -&gt; String
+forall a. a -&gt; Maybe a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#fromMaybe"
+	><span class="hs-identifier hs-var"
+	  >fromMaybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&lt;initial&gt;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry -&gt; Maybe String
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#rePassName"
+	><span class="hs-identifier hs-var"
+	  >rePassName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry
+</span
+	><a href="#local-6989586621679258138"
+	><span class="hs-identifier hs-var"
+	  >cur</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679258141"
+      ><span class="annot"
+	><span class="annottext"
+	  >sz :: Integer
+</span
+	  ><a href="#local-6989586621679258141"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sz</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry -&gt; Integer
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#reAstSize"
+	><span class="hs-identifier hs-var"
+	  >reAstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry
+</span
+	><a href="#local-6989586621679258138"
+	><span class="hs-identifier hs-var"
+	  >cur</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679258149"
+      ><span class="annot"
+	><span class="annottext"
+	  >dSz :: String
+</span
+	  ><a href="#local-6989586621679258149"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dSz</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ReportEntry
+</span
+	><a href="#local-6989586621679258137"
+	><span class="hs-identifier hs-var"
+	  >mPrev</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258150"
+      ><span class="annot"
+	><span class="annottext"
+	  >ReportEntry
+</span
+	  ><a href="#local-6989586621679258150"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; String
+forall a. (Ord a, Num a, Show a) =&gt; a -&gt; String
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#showSigned"
+	><span class="hs-identifier hs-var"
+	  >showSigned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679258141"
+	><span class="hs-identifier hs-var"
+	  >sz</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry -&gt; Integer
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#reAstSize"
+	><span class="hs-identifier hs-var"
+	  >reAstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry
+</span
+	><a href="#local-6989586621679258150"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ReportEntry
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679258158"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeBlock :: String
+</span
+	  ><a href="#local-6989586621679258158"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeBlock</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Int -&gt; String -&gt; Int -&gt; Integer -&gt; Int -&gt; String -&gt; String
+forall r. PrintfType r =&gt; String -&gt; r
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Text.Printf.html#printf"
+	><span class="hs-identifier hs-var"
+	  >printf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;%-*s %*d %*s&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#passColW"
+	><span class="hs-identifier hs-var"
+	  >passColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679258139"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#sizeColW"
+	><span class="hs-identifier hs-var"
+	  >sizeColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679258141"
+	><span class="hs-identifier hs-var"
+	  >sz</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#sizeColW"
+	><span class="hs-identifier hs-var"
+	  >sizeColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679258149"
+	><span class="hs-identifier hs-var"
+	  >dSz</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679258136"
+	><span class="hs-identifier hs-var"
+	  >withCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679258158"
+	><span class="hs-identifier hs-var"
+	  >sizeBlock</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot; &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ReportEntry -&gt; ReportEntry -&gt; String
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#costBlock"
+	><span class="hs-identifier hs-var"
+	  >costBlock</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ReportEntry
+</span
+	><a href="#local-6989586621679258137"
+	><span class="hs-identifier hs-var"
+	  >mPrev</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry
+</span
+	><a href="#local-6989586621679258138"
+	><span class="hs-identifier hs-var"
+	  >cur</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679258158"
+	><span class="hs-identifier hs-var"
+	  >sizeBlock</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#costBlock"
+	><span class="hs-identifier hs-type"
+	  >costBlock</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#ReportEntry"
+	><span class="hs-identifier hs-type"
+	  >ReportEntry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Executable.OptimizerReport.html#ReportEntry"
+	><span class="hs-identifier hs-type"
+	  >ReportEntry</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span id="costBlock"
+      ><span class="annot"
+	><span class="annottext"
+	  >costBlock :: Maybe ReportEntry -&gt; ReportEntry -&gt; String
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#costBlock"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >costBlock</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258160"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe ReportEntry
+</span
+	  ><a href="#local-6989586621679258160"
+	  ><span class="hs-identifier hs-var"
+	    >mPrev</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258161"
+      ><span class="annot"
+	><span class="annottext"
+	  >ReportEntry
+</span
+	  ><a href="#local-6989586621679258161"
+	  ><span class="hs-identifier hs-var"
+	    >cur</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry -&gt; Maybe (Either String ExBudget)
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#reCost"
+	><span class="hs-identifier hs-var"
+	  >reCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry
+</span
+	><a href="#local-6989586621679258161"
+	><span class="hs-identifier hs-var"
+	  >cur</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Either String ExBudget)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String -&gt; String -&gt; String
+forall {t} {t} {t} {t} {t}.
+(PrintfArg t, PrintfArg t, PrintfArg t, PrintfArg t,
+ PrintfType t) =&gt;
+t -&gt; t -&gt; t -&gt; t -&gt; t
+</span
+	><a href="#local-6989586621679258162"
+	><span class="hs-identifier hs-var"
+	  >spread</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;-&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;-&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258163"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679258163"
+	  ><span class="hs-identifier hs-var"
+	    >tag</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String -&gt; String -&gt; String
+forall {t} {t} {t} {t} {t}.
+(PrintfArg t, PrintfArg t, PrintfArg t, PrintfArg t,
+ PrintfType t) =&gt;
+t -&gt; t -&gt; t -&gt; t -&gt; t
+</span
+	><a href="#local-6989586621679258162"
+	><span class="hs-identifier hs-var"
+	  >spread</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679258163"
+	><span class="hs-identifier hs-var"
+	  >tag</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	><span class="hs-identifier hs-type"
+	  >ExCPU</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258166"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621679258166"
+	  ><span class="hs-identifier hs-var"
+	    >cpu</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	><span class="hs-identifier hs-type"
+	  >ExMemory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258168"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621679258168"
+	  ><span class="hs-identifier hs-var"
+	    >mem</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679258171"
+      ><span class="annot"
+	><span class="annottext"
+	  >mPrevB :: Maybe ExBudget
+</span
+	  ><a href="#local-6989586621679258171"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mPrevB</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ReportEntry
+</span
+	><a href="#local-6989586621679258160"
+	><span class="hs-identifier hs-var"
+	  >mPrev</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ReportEntry
+-&gt; (ReportEntry -&gt; Maybe ExBudget) -&gt; Maybe ExBudget
+forall a b. Maybe a -&gt; (a -&gt; Maybe b) -&gt; Maybe b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679258172"
+      ><span class="annot"
+	><span class="annottext"
+	  >ReportEntry
+</span
+	  ><a href="#local-6989586621679258172"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry -&gt; Maybe (Either String ExBudget)
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#reCost"
+	><span class="hs-identifier hs-var"
+	  >reCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ReportEntry
+</span
+	><a href="#local-6989586621679258172"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258173"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExBudget
+</span
+	  ><a href="#local-6989586621679258173"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; Maybe ExBudget
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget
+</span
+	><a href="#local-6989586621679258173"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Either String ExBudget)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ExBudget
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679258188"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679258188"
+	  ><span class="hs-identifier hs-var"
+	    >dCpu</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679258189"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679258189"
+	  ><span class="hs-identifier hs-var"
+	    >dMem</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ExBudget
+</span
+	><a href="#local-6989586621679258171"
+	><span class="hs-identifier hs-var"
+	  >mPrevB</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemory.html#ExCPU"
+	><span class="hs-identifier hs-type"
+	  >ExCPU</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258190"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621679258190"
+	  ><span class="hs-identifier hs-var"
+	    >pc</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemory.html#ExMemory"
+	><span class="hs-identifier hs-type"
+	  >ExMemory</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258191"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingInteger
+</span
+	  ><a href="#local-6989586621679258191"
+	  ><span class="hs-identifier hs-var"
+	    >pm</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; String
+forall a. (Ord a, Num a, Show a) =&gt; a -&gt; String
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#showSigned"
+	><span class="hs-identifier hs-var"
+	  >showSigned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+forall a. Num a =&gt; CostingInteger -&gt; a
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#fromSatInt"
+	><span class="hs-identifier hs-var"
+	  >fromSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621679258166"
+	><span class="hs-identifier hs-var"
+	  >cpu</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+forall a. Num a =&gt; CostingInteger -&gt; a
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#fromSatInt"
+	><span class="hs-identifier hs-var"
+	  >fromSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621679258190"
+	><span class="hs-identifier hs-var"
+	  >pc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; String
+forall a. (Ord a, Num a, Show a) =&gt; a -&gt; String
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#showSigned"
+	><span class="hs-identifier hs-var"
+	  >showSigned</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+forall a. Num a =&gt; CostingInteger -&gt; a
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#fromSatInt"
+	><span class="hs-identifier hs-var"
+	  >fromSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621679258168"
+	><span class="hs-identifier hs-var"
+	  >mem</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+forall a. Num a =&gt; CostingInteger -&gt; a
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#fromSatInt"
+	><span class="hs-identifier hs-var"
+	  >fromSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621679258191"
+	><span class="hs-identifier hs-var"
+	  >pm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ExBudget
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Int
+-&gt; Int
+-&gt; Int
+-&gt; String
+-&gt; Int
+-&gt; Int
+-&gt; Int
+-&gt; String
+-&gt; String
+forall r. PrintfType r =&gt; String -&gt; r
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Text.Printf.html#printf"
+	><span class="hs-identifier hs-var"
+	  >printf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;%*d %*s %*d %*s&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#cpuColW"
+	><span class="hs-identifier hs-var"
+	  >cpuColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+forall a. Num a =&gt; CostingInteger -&gt; a
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#fromSatInt"
+	><span class="hs-identifier hs-var"
+	  >fromSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621679258166"
+	><span class="hs-identifier hs-var"
+	  >cpu</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#cpuColW"
+	><span class="hs-identifier hs-var"
+	  >cpuColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679258188"
+	><span class="hs-identifier hs-var"
+	  >dCpu</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#memColW"
+	><span class="hs-identifier hs-var"
+	  >memColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger -&gt; Int
+forall a. Num a =&gt; CostingInteger -&gt; a
+</span
+	><a href="../../plutus-core/src/Data.SatInt.html#fromSatInt"
+	><span class="hs-identifier hs-var"
+	  >fromSatInt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingInteger
+</span
+	><a href="#local-6989586621679258168"
+	><span class="hs-identifier hs-var"
+	  >mem</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#memColW"
+	><span class="hs-identifier hs-var"
+	  >memColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679258189"
+	><span class="hs-identifier hs-var"
+	  >dMem</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679258162"
+      ><span class="annot"
+	><span class="annottext"
+	  >spread :: t -&gt; t -&gt; t -&gt; t -&gt; t
+</span
+	  ><a href="#local-6989586621679258162"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >spread</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258207"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679258207"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258208"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679258208"
+	  ><span class="hs-identifier hs-var"
+	    >dC</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258209"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679258209"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258210"
+      ><span class="annot"
+	><span class="annottext"
+	  >t
+</span
+	  ><a href="#local-6989586621679258210"
+	  ><span class="hs-identifier hs-var"
+	    >dM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Int -&gt; t -&gt; Int -&gt; t -&gt; Int -&gt; t -&gt; Int -&gt; t -&gt; t
+forall r. PrintfType r =&gt; String -&gt; r
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Text.Printf.html#printf"
+	><span class="hs-identifier hs-var"
+	  >printf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;%*s %*s %*s %*s&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#cpuColW"
+	><span class="hs-identifier hs-var"
+	  >cpuColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679258207"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#cpuColW"
+	><span class="hs-identifier hs-var"
+	  >cpuColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679258208"
+	><span class="hs-identifier hs-var"
+	  >dC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#memColW"
+	><span class="hs-identifier hs-var"
+	  >memColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679258209"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="PlutusCore.Executable.OptimizerReport.html#memColW"
+	><span class="hs-identifier hs-var"
+	  >memColW</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t
+</span
+	><a href="#local-6989586621679258210"
+	><span class="hs-identifier hs-var"
+	  >dM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span id="local-6989586621679258014"
+      ><span class="annot"
+	><a href="PlutusCore.Executable.OptimizerReport.html#showSigned"
+	  ><span class="hs-identifier hs-type"
+	    >showSigned</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+	  ><span class="hs-identifier hs-type"
+	    >Ord</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679258014"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#Num"
+	  ><span class="hs-identifier hs-type"
+	    >Num</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679258014"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	  ><span class="hs-identifier hs-type"
+	    >Show</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679258014"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679258014"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	  ><span class="hs-identifier hs-type"
+	    >String</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span id="showSigned"
+      ><span class="annot"
+	><span class="annottext"
+	  >showSigned :: forall a. (Ord a, Num a, Show a) =&gt; a -&gt; String
+</span
+	  ><a href="PlutusCore.Executable.OptimizerReport.html#showSigned"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >showSigned</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679258218"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679258218"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679258218"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char
+</span
+	><span class="hs-char"
+	>'+'</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679258218"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679258218"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

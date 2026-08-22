@@ -1,0 +1,202 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Algebra.Consequences.Base where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Agda.Primitive
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Data.Sum.Base
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Relation.Binary.Consequences
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>-- Algebra.Consequences.Base._._.Congruent₂
+<span class="lineno">   25 </span>d_Congruent'8322'_24 ::
+<span class="lineno">   26 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   27 </span>  () -&gt;
+<span class="lineno">   28 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   29 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   30 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">d_Congruent'8322'_24 = erased</span></span>
+<span class="lineno">   32 </span>-- Algebra.Consequences.Base._._.LeftCongruent
+<span class="lineno">   33 </span>d_LeftCongruent_30 ::
+<span class="lineno">   34 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   35 </span>  () -&gt;
+<span class="lineno">   36 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   37 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   38 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">   39 </span><span class="decl"><span class="nottickedoff">d_LeftCongruent_30 = erased</span></span>
+<span class="lineno">   40 </span>-- Algebra.Consequences.Base._._.RightCongruent
+<span class="lineno">   41 </span>d_RightCongruent_32 ::
+<span class="lineno">   42 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   43 </span>  () -&gt;
+<span class="lineno">   44 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   45 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   46 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">d_RightCongruent_32 = erased</span></span>
+<span class="lineno">   48 </span>-- Algebra.Consequences.Base._.Congruence.∙-congˡ
+<span class="lineno">   49 </span>d_'8729''45'cong'737'_42 ::
+<span class="lineno">   50 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   51 </span>  () -&gt;
+<span class="lineno">   52 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   53 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   54 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   55 </span>  (AgdaAny -&gt;
+<span class="lineno">   56 </span>   AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   57 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   58 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">d_'8729''45'cong'737'_42 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6 v7 v8 v9</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8729''45'cong'737'_42 v5 v6 v7 v8 v9</span></span>
+<span class="lineno">   61 </span>du_'8729''45'cong'737'_42 ::
+<span class="lineno">   62 </span>  (AgdaAny -&gt;
+<span class="lineno">   63 </span>   AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   64 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   65 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   66 </span><span class="decl"><span class="nottickedoff">du_'8729''45'cong'737'_42 v0 v1 v2 v3 v4</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   68 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Consequences.du_mono'8322''8658'mono'737'_342</span>
+<span class="lineno">   69 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v5 -&gt; coe v1 v2)) (coe (\ v5 v6 -&gt; coe v0 v2 v2)) (coe v2)</span>
+<span class="lineno">   70 </span><span class="spaces">      </span><span class="nottickedoff">(coe v3) (coe v4)</span></span>
+<span class="lineno">   71 </span>-- Algebra.Consequences.Base._.Congruence.∙-congʳ
+<span class="lineno">   72 </span>d_'8729''45'cong'691'_46 ::
+<span class="lineno">   73 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   74 </span>  () -&gt;
+<span class="lineno">   75 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   76 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   77 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   78 </span>  (AgdaAny -&gt;
+<span class="lineno">   79 </span>   AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   80 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   81 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">d_'8729''45'cong'691'_46 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6 v7 v8 v9</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8729''45'cong'691'_46 v5 v6 v7 v8 v9</span></span>
+<span class="lineno">   84 </span>du_'8729''45'cong'691'_46 ::
+<span class="lineno">   85 </span>  (AgdaAny -&gt;
+<span class="lineno">   86 </span>   AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   87 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   88 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">du_'8729''45'cong'691'_46 v0 v1 v2 v3 v4</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Consequences.du_mono'8322''8658'mono'691'_352</span>
+<span class="lineno">   92 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v5 -&gt; coe v1 v2))</span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v5 v6 v7 v8 -&gt; coe v0 v5 v6 v2 v2)) (coe v2) (coe v3)</span>
+<span class="lineno">   94 </span><span class="spaces">      </span><span class="nottickedoff">(coe v4)</span></span>
+<span class="lineno">   95 </span>-- Algebra.Consequences.Base._._.Idempotent
+<span class="lineno">   96 </span>d_Idempotent_68 ::
+<span class="lineno">   97 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   98 </span>  () -&gt;
+<span class="lineno">   99 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  100 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  101 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">  102 </span><span class="decl"><span class="nottickedoff">d_Idempotent_68 = erased</span></span>
+<span class="lineno">  103 </span>-- Algebra.Consequences.Base._._.Selective
+<span class="lineno">  104 </span>d_Selective_76 ::
+<span class="lineno">  105 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  106 </span>  () -&gt;
+<span class="lineno">  107 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  108 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  109 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">  110 </span><span class="decl"><span class="nottickedoff">d_Selective_76 = erased</span></span>
+<span class="lineno">  111 </span>-- Algebra.Consequences.Base._._.sel⇒idem
+<span class="lineno">  112 </span>d_sel'8658'idem_80 ::
+<span class="lineno">  113 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  114 </span>  () -&gt;
+<span class="lineno">  115 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  116 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  117 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  118 </span>  (AgdaAny -&gt; AgdaAny -&gt; MAlonzo.Code.Data.Sum.Base.T__'8846'__30) -&gt;
+<span class="lineno">  119 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  120 </span><span class="decl"><span class="nottickedoff">d_sel'8658'idem_80 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="nottickedoff">= du_sel'8658'idem_80 v5 v6</span></span>
+<span class="lineno">  122 </span>du_sel'8658'idem_80 ::
+<span class="lineno">  123 </span>  (AgdaAny -&gt; AgdaAny -&gt; MAlonzo.Code.Data.Sum.Base.T__'8846'__30) -&gt;
+<span class="lineno">  124 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  125 </span><span class="decl"><span class="nottickedoff">du_sel'8658'idem_80 v0 v1</span>
+<span class="lineno">  126 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Data.Sum.Base.du_reduce_76 (coe v0 v1 v1)</span></span>
+<span class="lineno">  127 </span>-- Algebra.Consequences.Base._._.Involutive
+<span class="lineno">  128 </span>d_Involutive_106 ::
+<span class="lineno">  129 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  130 </span>  () -&gt;
+<span class="lineno">  131 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  132 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  133 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; (AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">  134 </span><span class="decl"><span class="nottickedoff">d_Involutive_106 = erased</span></span>
+<span class="lineno">  135 </span>-- Algebra.Consequences.Base._._.SelfInverse
+<span class="lineno">  136 </span>d_SelfInverse_114 ::
+<span class="lineno">  137 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  138 </span>  () -&gt;
+<span class="lineno">  139 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  140 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  141 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; (AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">  142 </span><span class="decl"><span class="nottickedoff">d_SelfInverse_114 = erased</span></span>
+<span class="lineno">  143 </span>-- Algebra.Consequences.Base._._.reflexive∧selfInverse⇒involutive
+<span class="lineno">  144 </span>d_reflexive'8743'selfInverse'8658'involutive_116 ::
+<span class="lineno">  145 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  146 </span>  () -&gt;
+<span class="lineno">  147 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  148 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  149 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  150 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  151 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  152 </span><span class="decl"><span class="nottickedoff">d_reflexive'8743'selfInverse'8658'involutive_116 ~v0 ~v1 ~v2 v3 ~v4</span>
+<span class="lineno">  153 </span><span class="spaces">                                                 </span><span class="nottickedoff">v5 v6 v7</span>
+<span class="lineno">  154 </span><span class="spaces">  </span><span class="nottickedoff">= du_reflexive'8743'selfInverse'8658'involutive_116 v3 v5 v6 v7</span></span>
+<span class="lineno">  155 </span>du_reflexive'8743'selfInverse'8658'involutive_116 ::
+<span class="lineno">  156 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  157 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  158 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  159 </span><span class="decl"><span class="nottickedoff">du_reflexive'8743'selfInverse'8658'involutive_116 v0 v1 v2 v3</span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="nottickedoff">= coe v2 v3 (coe v0 v3) (coe v1 (coe v0 v3))</span></span>
+<span class="lineno">  161 </span>-- Algebra.Consequences.Base.reflexive+selfInverse⇒involutive
+<span class="lineno">  162 </span>d_reflexive'43'selfInverse'8658'involutive_122 ::
+<span class="lineno">  163 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  164 </span>  () -&gt;
+<span class="lineno">  165 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  166 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  167 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  168 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  169 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  170 </span><span class="decl"><span class="nottickedoff">d_reflexive'43'selfInverse'8658'involutive_122 ~v0 ~v1</span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="nottickedoff">= du_reflexive'43'selfInverse'8658'involutive_122</span></span>
+<span class="lineno">  172 </span>du_reflexive'43'selfInverse'8658'involutive_122 ::
+<span class="lineno">  173 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  174 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  175 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  176 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  177 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  178 </span><span class="decl"><span class="nottickedoff">du_reflexive'43'selfInverse'8658'involutive_122 v0 v1 v2 v3 v4 v5</span>
+<span class="lineno">  179 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_reflexive'8743'selfInverse'8658'involutive_116 v1 v3 v4 v5</span></span>
+
+</pre>
+</body>
+</html>

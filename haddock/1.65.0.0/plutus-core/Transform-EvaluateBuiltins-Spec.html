@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Transform.EvaluateBuiltins.Spec</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.65.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Transform.EvaluateBuiltins.Spec.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Transform.EvaluateBuiltins.Spec</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_evaluateBuiltins" class="def"
+	    >test_evaluateBuiltins</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Transform.EvaluateBuiltins.Spec.html#test_evaluateBuiltins" class="link"
+	    >Source</a
+	    > <a href="#v:test_evaluateBuiltins" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenVsEvaluated" class="def"
+	    >goldenVsEvaluated</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.4/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Transform.EvaluateBuiltins.Spec.html#goldenVsEvaluated" class="link"
+	    >Source</a
+	    > <a href="#v:goldenVsEvaluated" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runEvaluateBuiltins" class="def"
+	    >runEvaluateBuiltins</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#runEvaluateBuiltins" class="link"
+	    >Source</a
+	    > <a href="#v:runEvaluateBuiltins" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addIntegerTerm" class="def"
+	    >addIntegerTerm</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#addIntegerTerm" class="link"
+	    >Source</a
+	    > <a href="#v:addIntegerTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ifThenElseTerm" class="def"
+	    >ifThenElseTerm</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#ifThenElseTerm" class="link"
+	    >Source</a
+	    > <a href="#v:ifThenElseTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:traceTerm" class="def"
+	    >traceTerm</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#traceTerm" class="link"
+	    >Source</a
+	    > <a href="#v:traceTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:failingBuiltinTerm" class="def"
+	    >failingBuiltinTerm</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#failingBuiltinTerm" class="link"
+	    >Source</a
+	    > <a href="#v:failingBuiltinTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:nonConstantArgTerm" class="def"
+	    >nonConstantArgTerm</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#nonConstantArgTerm" class="link"
+	    >Source</a
+	    > <a href="#v:nonConstantArgTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:overApplicationTerm" class="def"
+	    >overApplicationTerm</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#overApplicationTerm" class="link"
+	    >Source</a
+	    > <a href="#v:overApplicationTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:underApplicationTerm" class="def"
+	    >underApplicationTerm</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#underApplicationTerm" class="link"
+	    >Source</a
+	    > <a href="#v:underApplicationTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uncompressBlsG2Term" class="def"
+	    >uncompressBlsG2Term</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#uncompressBlsG2Term" class="link"
+	    >Source</a
+	    > <a href="#v:uncompressBlsG2Term" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uncompressAndEqualBlsTerm" class="def"
+	    >uncompressAndEqualBlsTerm</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.EvaluateBuiltins.Spec.html#uncompressAndEqualBlsTerm" class="link"
+	    >Source</a
+	    > <a href="#v:uncompressAndEqualBlsTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:decodeHex" class="def"
+	    >decodeHex</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/Transform.EvaluateBuiltins.Spec.html#decodeHex" class="link"
+	    >Source</a
+	    > <a href="#v:decodeHex" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

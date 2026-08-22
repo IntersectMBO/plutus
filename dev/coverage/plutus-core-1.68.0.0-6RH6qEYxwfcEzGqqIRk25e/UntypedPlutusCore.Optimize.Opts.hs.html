@@ -1,0 +1,92 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module UntypedPlutusCore.Optimize.Opts
+<span class="lineno">    4 </span>  ( OptimizeOpts (..)
+<span class="lineno">    5 </span>  , ooApplyToCase
+<span class="lineno">    6 </span>  , ooHoistPolyBuiltins
+<span class="lineno">    7 </span>  , ooMaxSimplifierIterations
+<span class="lineno">    8 </span>  , ooMaxCseIterations
+<span class="lineno">    9 </span>  , ooCseWhichSubterms
+<span class="lineno">   10 </span>  , ooInlineHints
+<span class="lineno">   11 </span>  , ooConservativeOpts
+<span class="lineno">   12 </span>  , ooInlineConstants
+<span class="lineno">   13 </span>  , ooInlineUnconditionalGrowth
+<span class="lineno">   14 </span>  , ooInlineCallsiteGrowth
+<span class="lineno">   15 </span>  , ooPreserveLogging
+<span class="lineno">   16 </span>  , ooCertifiedOptsOnly
+<span class="lineno">   17 </span>  , defaultOptimizeOpts
+<span class="lineno">   18 </span>  , CseWhichSubterms (..)
+<span class="lineno">   19 </span>  ) where
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Control.Lens.TH (makeLenses)
+<span class="lineno">   22 </span>import Data.Default.Class
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>import PlutusCore.Annotation (InlineHints (..))
+<span class="lineno">   25 </span>import PlutusCore.AstSize
+<span class="lineno">   26 </span>import PlutusCore.Pretty
+<span class="lineno">   27 </span>import Prettyprinter (viaShow)
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>-- | Which subterms should be considered as candidates for CSE?
+<span class="lineno">   30 </span>data CseWhichSubterms = AllSubterms | ExcludeWorkFree
+<span class="lineno">   31 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Read</span></span></span></span></span></span></span></span>)
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>instance <span class="decl"><span class="nottickedoff">Pretty CseWhichSubterms</span></span> where
+<span class="lineno">   34 </span>  <span class="decl"><span class="nottickedoff">pretty = viaShow</span></span>
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>data OptimizeOpts name a = OptimizeOpts
+<span class="lineno">   37 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooMaxSimplifierIterations</span></span></span> :: Int
+<span class="lineno">   38 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooMaxCseIterations</span></span></span> :: Int
+<span class="lineno">   39 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooCseWhichSubterms</span></span></span> :: CseWhichSubterms
+<span class="lineno">   40 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooConservativeOpts</span></span></span> :: Bool
+<span class="lineno">   41 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooInlineHints</span></span></span> :: InlineHints name a
+<span class="lineno">   42 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooInlineConstants</span></span></span> :: Bool
+<span class="lineno">   43 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooInlineUnconditionalGrowth</span></span></span> :: AstSize
+<span class="lineno">   44 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooInlineCallsiteGrowth</span></span></span> :: AstSize
+<span class="lineno">   45 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooPreserveLogging</span></span></span> :: Bool
+<span class="lineno">   46 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooApplyToCase</span></span></span> :: Bool
+<span class="lineno">   47 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooHoistPolyBuiltins</span></span></span> :: Bool
+<span class="lineno">   48 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">_ooCertifiedOptsOnly</span></span></span> :: Bool
+<span class="lineno">   49 </span>  }
+<span class="lineno">   50 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>$<span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff">(makeLenses ''OptimizeOpts)</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>defaultOptimizeOpts :: OptimizeOpts name a
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff">defaultOptimizeOpts =</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">OptimizeOpts</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="istickedoff">{ _ooMaxSimplifierIterations = 12</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="istickedoff">, _ooMaxCseIterations = 4</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">, _ooCseWhichSubterms = ExcludeWorkFree</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">, _ooConservativeOpts = False</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">, _ooInlineHints = def</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff">, _ooInlineConstants = True</span>
+<span class="lineno">   63 </span><span class="spaces">    </span><span class="istickedoff">, _ooInlineUnconditionalGrowth = 1</span>
+<span class="lineno">   64 </span><span class="spaces">    </span><span class="istickedoff">, _ooInlineCallsiteGrowth = 5</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="istickedoff">, _ooPreserveLogging = True</span>
+<span class="lineno">   66 </span><span class="spaces">    </span><span class="istickedoff">, _ooApplyToCase = True</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">, _ooHoistPolyBuiltins = True</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">, _ooCertifiedOptsOnly = False</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">}</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ImplicitPrelude #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.TH</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.TH.html#makeLensesWithL"
+	><span class="hs-identifier"
+	  >makeLensesWithL</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>L</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Lib.Internal.html#DecsQ"
+	><span class="hs-identifier"
+	  >DecsQ</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Name"
+	><span class="hs-identifier"
+	  >Name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Uses 'makeLensesWith' to automatically create lens fields, but adds the 'L'
+suffix to each lens field name. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.TH.html#makeLensesWithL"
+	><span class="hs-identifier hs-type"
+	  >makeLensesWithL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Lib.Internal.html#DecsQ"
+	><span class="hs-identifier hs-type"
+	  >DecsQ</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span id="makeLensesWithL"
+      ><span class="annot"
+	><span class="annottext"
+	  >makeLensesWithL :: Name -&gt; DecsQ
+</span
+	  ><a href="PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.TH.html#makeLensesWithL"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >makeLensesWithL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LensRules -&gt; Name -&gt; DecsQ
+</span
+	><span class="hs-identifier hs-var"
+	>L.makeLensesWith</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>LensRules
+</span
+	><span class="hs-identifier hs-var"
+	>L.defaultFieldRules</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LensRules -&gt; (LensRules -&gt; LensRules) -&gt; LensRules
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >L.&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FieldNamer -&gt; Identity FieldNamer)
+-&gt; LensRules -&gt; Identity LensRules
+Lens' LensRules FieldNamer
+</span
+	><span class="hs-identifier hs-var"
+	>L.lensField</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((FieldNamer -&gt; Identity FieldNamer)
+ -&gt; LensRules -&gt; Identity LensRules)
+-&gt; FieldNamer -&gt; LensRules -&gt; LensRules
+forall s t a b. ASetter s t a b -&gt; b -&gt; s -&gt; t
+</span
+	><span class="hs-operator hs-var"
+	>L..~</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; [String]) -&gt; FieldNamer
+</span
+	><span class="hs-identifier hs-var"
+	>L.mappingNamer</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679261250"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679261250"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679261250"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;L&quot;</span
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

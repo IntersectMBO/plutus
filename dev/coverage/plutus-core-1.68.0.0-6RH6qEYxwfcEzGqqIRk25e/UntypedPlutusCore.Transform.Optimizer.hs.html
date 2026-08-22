@@ -1,0 +1,113 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module UntypedPlutusCore.Transform.Optimizer
+<span class="lineno">    4 </span>  ( OptimizerT (..)
+<span class="lineno">    5 </span>  , Trace.OptStage
+<span class="lineno">    6 </span>  , pattern Trace.FloatDelayStage
+<span class="lineno">    7 </span>  , pattern Trace.ForceDelayStage
+<span class="lineno">    8 </span>  , pattern Trace.ForceCaseDelayStage
+<span class="lineno">    9 </span>  , pattern Trace.CaseReduceStage
+<span class="lineno">   10 </span>  , pattern Trace.InlineStage
+<span class="lineno">   11 </span>  , pattern Trace.CseStage
+<span class="lineno">   12 </span>  , pattern Trace.ApplyToCaseStage
+<span class="lineno">   13 </span>  , pattern Trace.CaseOfCaseStage
+<span class="lineno">   14 </span>  , pattern Trace.LetFloatOutStage
+<span class="lineno">   15 </span>  , pattern Trace.ConstantFoldingStage
+<span class="lineno">   16 </span>  , pattern Trace.PolyBuiltinStage
+<span class="lineno">   17 </span>  , Trace.OptimizerTrace (..)
+<span class="lineno">   18 </span>  , Trace.Optimization (..)
+<span class="lineno">   19 </span>  , runOptimizerT
+<span class="lineno">   20 </span>  , evalOptimizerT
+<span class="lineno">   21 </span>  , execOptimizerT
+<span class="lineno">   22 </span>  , Optimizer
+<span class="lineno">   23 </span>  , runOptimizer
+<span class="lineno">   24 </span>  , evalOptimizer
+<span class="lineno">   25 </span>  , execOptimizer
+<span class="lineno">   26 </span>  , Trace.initOptimizerTrace
+<span class="lineno">   27 </span>  , recordOptimization
+<span class="lineno">   28 </span>  , recordOptimizationWithHints
+<span class="lineno">   29 </span>  ) where
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>import Control.Monad.State (MonadTrans, StateT)
+<span class="lineno">   32 </span>import Control.Monad.State qualified as State
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>import Control.Monad.Identity (Identity, runIdentity)
+<span class="lineno">   35 </span>import PlutusCore.Quote (MonadQuote)
+<span class="lineno">   36 </span>import UntypedPlutusCore.Core.Type (Term)
+<span class="lineno">   37 </span>import UntypedPlutusCore.Transform.Certify.Hints qualified as Hints
+<span class="lineno">   38 </span>import UntypedPlutusCore.Transform.Certify.Trace qualified as Trace
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>newtype OptimizerT name uni fun ann m a
+<span class="lineno">   41 </span>  = OptimizerT
+<span class="lineno">   42 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">getOptimizerT</span></span></span> :: StateT (Trace.OptimizerTrace name uni fun ann) m a
+<span class="lineno">   43 </span>  }
+<span class="lineno">   44 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Functor</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Applicative</span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Monad</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff">MonadTrans</span></span>)
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>instance <span class="decl"><span class="istickedoff">MonadQuote m =&gt; MonadQuote (OptimizerT name uni fun ann m)</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>runOptimizerT
+<span class="lineno">   49 </span>  :: OptimizerT name uni fun ann m a
+<span class="lineno">   50 </span>  -&gt; m (a, Trace.OptimizerTrace name uni fun ann)
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">runOptimizerT = flip State.runStateT Trace.initOptimizerTrace . getOptimizerT</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>evalOptimizerT
+<span class="lineno">   54 </span>  :: Monad m =&gt; OptimizerT name uni fun ann m a -&gt; m a
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff">evalOptimizerT = flip State.evalStateT <span class="nottickedoff">Trace.initOptimizerTrace</span> . getOptimizerT</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>execOptimizerT
+<span class="lineno">   58 </span>  :: Monad m =&gt; OptimizerT name uni fun ann m a -&gt; m (Trace.OptimizerTrace name uni fun ann)
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">execOptimizerT = flip State.execStateT Trace.initOptimizerTrace . getOptimizerT</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>type Optimizer name uni fun ann = OptimizerT name uni fun ann Identity
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>runOptimizer :: Optimizer name uni fun ann a -&gt; (a, Trace.OptimizerTrace name uni fun ann)
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">runOptimizer = runIdentity . runOptimizerT</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>evalOptimizer :: Optimizer name uni fun ann a -&gt; a
+<span class="lineno">   67 </span><span class="decl"><span class="istickedoff">evalOptimizer = runIdentity . evalOptimizerT</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>execOptimizer :: Optimizer name uni fun ann a -&gt; Trace.OptimizerTrace name uni fun ann
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">execOptimizer = runIdentity . execOptimizerT</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>recordOptimization
+<span class="lineno">   73 </span>  :: Monad m
+<span class="lineno">   74 </span>  =&gt; Term name uni fun a
+<span class="lineno">   75 </span>  -&gt; Trace.OptStage
+<span class="lineno">   76 </span>  -&gt; Term name uni fun a
+<span class="lineno">   77 </span>  -&gt; OptimizerT name uni fun a m ()
+<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">recordOptimization = recordOptimizationWithHints Hints.NoHints</span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>recordOptimizationWithHints
+<span class="lineno">   81 </span>  :: Monad m
+<span class="lineno">   82 </span>  =&gt; Hints.Hints
+<span class="lineno">   83 </span>  -&gt; Term name uni fun a
+<span class="lineno">   84 </span>  -&gt; Trace.OptStage
+<span class="lineno">   85 </span>  -&gt; Term name uni fun a
+<span class="lineno">   86 </span>  -&gt; OptimizerT name uni fun a m ()
+<span class="lineno">   87 </span><span class="decl"><span class="istickedoff">recordOptimizationWithHints hints before stage after =</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="istickedoff">let optimization = Trace.Optimization before stage hints after</span>
+<span class="lineno">   89 </span><span class="spaces">   </span><span class="istickedoff">in OptimizerT . State.modify' $ \st -&gt;</span>
+<span class="lineno">   90 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">st</span> {Trace.optimizerTrace = optimization : Trace.optimizerTrace st}</span></span>
+
+</pre>
+</body>
+</html>

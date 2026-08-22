@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusConformance.CekEvaluator</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-conformance-1.0.0.0: Conformance Test Suite for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusConformance.CekEvaluator.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusConformance.CekEvaluator</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >A <code
+	    ><a href="PlutusConformance-Common.html#t:UplcEvaluator" title="PlutusConformance.Common"
+	      >UplcEvaluator</a
+	      ></code
+	    > shared between the regular and steppable CEK machines.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:mkCekEvaluator"
+	      >mkCekEvaluator</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineParameters</a
+	      > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()) &#8594; <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:ExBudgetMode" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >ExBudgetMode</a
+	      > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:CountingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+	      >CountingSt</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > () &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekEvaluationException</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >) (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()), <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:CountingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+	      >CountingSt</a
+	      >)) &#8594; <a href="PlutusConformance-Common.html#t:UplcEvaluator" title="PlutusConformance.Common"
+	      >UplcEvaluator</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkCekEvaluator" class="def"
+	    >mkCekEvaluator</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineParameters</a
+	    > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) &#8594; <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:ExBudgetMode" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >ExBudgetMode</a
+	    > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:CountingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+	    >CountingSt</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekEvaluationException</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >) (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()), <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:CountingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+	    >CountingSt</a
+	    >)) &#8594; <a href="PlutusConformance-Common.html#t:UplcEvaluator" title="PlutusConformance.Common"
+	    >UplcEvaluator</a
+	    > <a href="src/PlutusConformance.CekEvaluator.html#mkCekEvaluator" class="link"
+	    >Source</a
+	    > <a href="#v:mkCekEvaluator" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Build a <code
+	      ><a href="PlutusConformance-Common.html#t:UplcEvaluator" title="PlutusConformance.Common"
+		>UplcEvaluator</a
+		></code
+	      > around a CEK-machine &quot;run&quot; function shaped like
+<code
+	      ><a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html#v:runCekNoEmit" title="UntypedPlutusCore.Evaluation.Machine.Cek"
+		>runCekNoEmit</a
+		></code
+	      >.  Both the regular CEK
+machine and the steppable one
+(<code
+	      ><a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-SteppableCek.html#v:runCekNoEmit" title="UntypedPlutusCore.Evaluation.Machine.SteppableCek"
+		>runCekNoEmit</a
+		></code
+	      >) have exactly
+this type (the latter's haddock says it &quot;provides the same interface to the
+original CEK machine&quot;) so this is shared between the `haskell-conformance` and
+`haskell-steppable-conformance` test suites rather than being duplicated. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,100 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    2 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module PlutusCore.Crypto.BLS12_381.Pairing
+<span class="lineno">    6 </span>  ( MlResult (..)
+<span class="lineno">    7 </span>  , millerLoop
+<span class="lineno">    8 </span>  , mulMlResult
+<span class="lineno">    9 </span>  , finalVerify
+<span class="lineno">   10 </span>  , mlResultMemSizeBytes
+<span class="lineno">   11 </span>  , identityMlResult
+<span class="lineno">   12 </span>  ) where
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
+<span class="lineno">   15 </span>import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
+<span class="lineno">   18 </span>import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
+<span class="lineno">   19 </span>import PlutusCore.Pretty.PrettyConst (ConstConfig)
+<span class="lineno">   20 </span>import Text.PrettyBy (PrettyBy, prettyBy)
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Control.DeepSeq (NFData, rnf)
+<span class="lineno">   23 </span>import Data.Coerce (coerce)
+<span class="lineno">   24 </span>import Data.Hashable
+<span class="lineno">   25 </span>import PlutusCore.Flat
+<span class="lineno">   26 </span>import Prettyprinter
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>{-| This type represents the result of computing a pairing using the Miller
+<span class="lineno">   29 </span>   loop.  Values of this type are ephemeral, only created during script
+<span class="lineno">   30 </span>   execution.  We do not provide any means of serialising, deserialising,
+<span class="lineno">   31 </span>   printing, or parsing MlResult values. -}
+<span class="lineno">   32 </span>newtype MlResult = MlResult {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">unMlResult</span></span></span> :: BlstBindings.PT}
+<span class="lineno">   33 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show MlResult</span></span></span></span> where
+<span class="lineno">   36 </span>  <span class="decl"><span class="nottickedoff">show _ = &quot;&lt;opaque&gt;&quot;</span></span>
+<span class="lineno">   37 </span>instance <span class="decl"><span class="nottickedoff">Pretty MlResult</span></span> where
+<span class="lineno">   38 </span>  <span class="decl"><span class="nottickedoff">pretty = pretty . show</span></span>
+<span class="lineno">   39 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy ConstConfig MlResult</span></span> where
+<span class="lineno">   40 </span>  <span class="decl"><span class="nottickedoff">prettyBy _ = pretty</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>-- We need a Flat instance to get everything to build properly; however we'll
+<span class="lineno">   43 </span>-- never want MlResult values in serialised scripts, so the decoding and
+<span class="lineno">   44 </span>-- encoding functions just raise errors.
+<span class="lineno">   45 </span>instance Flat MlResult where
+<span class="lineno">   46 </span>  -- This might happen on the chain, so `fail` rather than `error`.
+<span class="lineno">   47 </span>  <span class="decl"><span class="nottickedoff">decode = fail &quot;Flat decoding is not supported for objects of type bls12_381_mlresult&quot;</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>  -- This will be a Haskell runtime error, but encoding doesn't happen on chain,
+<span class="lineno">   50 </span>  -- so it's not too bad.
+<span class="lineno">   51 </span>  <span class="decl"><span class="nottickedoff">encode = error &quot;Flat encoding is not supported for objects of type bls12_381_mlresult&quot;</span></span>
+<span class="lineno">   52 </span>  <span class="decl"><span class="nottickedoff">size _ = id</span></span>
+<span class="lineno">   53 </span>instance NFData MlResult where
+<span class="lineno">   54 </span>  <span class="decl"><span class="nottickedoff">rnf _ = ()</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>instance <span class="decl"><span class="nottickedoff">Hashable MlResult</span></span> where
+<span class="lineno">   57 </span>  <span class="decl"><span class="istickedoff">hashWithSalt salt _MlResult = salt</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>millerLoop :: G1.Element -&gt; G2.Element -&gt; MlResult
+<span class="lineno">   60 </span><span class="decl"><span class="istickedoff">millerLoop = coerce BlstBindings.millerLoop</span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>mulMlResult :: MlResult -&gt; MlResult -&gt; MlResult
+<span class="lineno">   63 </span><span class="decl"><span class="istickedoff">mulMlResult = coerce BlstBindings.ptMult</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>finalVerify :: MlResult -&gt; MlResult -&gt; Bool
+<span class="lineno">   66 </span><span class="decl"><span class="istickedoff">finalVerify = coerce BlstBindings.ptFinalVerify</span></span>
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>-- Not exposed as builtins
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>-- | Memory usage of an MlResult point (576 bytes)
+<span class="lineno">   71 </span>mlResultMemSizeBytes :: Int
+<span class="lineno">   72 </span><span class="decl"><span class="istickedoff">mlResultMemSizeBytes = BlstBindings.Internal.sizePT</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>{-| For some of the tests we need a small element of the MlResult type.  We can
+<span class="lineno">   75 </span>get the identity element by pairing the zero elements of G1 and G2. -}
+<span class="lineno">   76 </span>identityMlResult :: MlResult
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">identityMlResult = millerLoop G1.offchain_zero G2.offchain_zero</span></span>
+
+</pre>
+</body>
+</html>

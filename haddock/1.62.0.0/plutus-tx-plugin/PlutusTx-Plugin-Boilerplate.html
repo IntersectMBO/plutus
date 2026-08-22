@@ -1,0 +1,321 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Plugin.Boilerplate</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.62.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Plugin.Boilerplate.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Plugin.Boilerplate</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Insert necessary or recommended GHC flags and extensions via a driver plugin.
+See <a href="https://plutus.cardano.intersectmbo.org/docs/using-plinth/extensions-flags-pragmas"
+	    >https://plutus.cardano.intersectmbo.org/docs/using-plinth/extensions-flags-pragmas</a
+	    > </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:optNoStrict"
+	      >optNoStrict</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	      >CommandLineOption</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:boilerplateOpts"
+	      >boilerplateOpts</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	      >CommandLineOption</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:removeBoilerplateOpts"
+	      >removeBoilerplateOpts</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	      >CommandLineOption</a
+	      >] &#8594; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	      >CommandLineOption</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:addFlagsAndExts"
+	      >addFlagsAndExts</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	      >CommandLineOption</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Env-Types.html#t:HscEnv" title="GHC.Driver.Env.Types"
+	      >HscEnv</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Env-Types.html#t:HscEnv" title="GHC.Driver.Env.Types"
+	      >HscEnv</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addInlineables"
+	      >addInlineables</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	      >TcGblEnv</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcM" title="GHC.Tc.Types"
+	      >TcM</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	      >TcGblEnv</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addInlineableABE"
+	      >addInlineableABE</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Binds.html#t:ABExport" title="GHC.Hs.Binds"
+	      >ABExport</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Binds.html#t:ABExport" title="GHC.Hs.Binds"
+	      >ABExport</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addInlineable"
+	      >addInlineable</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Binds.html#t:LHsBindLR" title="Language.Haskell.Syntax.Binds"
+	      >LHsBindLR</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Binds.html#t:LHsBindLR" title="Language.Haskell.Syntax.Binds"
+	      >LHsBindLR</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	      >GhcTc</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:needsInlineable"
+	      >needsInlineable</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	      >Id</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:inlineable"
+	      >inlineable</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Basic.html#t:InlinePragma" title="GHC.Types.Basic"
+	      >InlinePragma</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:optNoStrict" class="def"
+	    >optNoStrict</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	    >CommandLineOption</a
+	    > <a href="src/PlutusTx.Plugin.Boilerplate.html#optNoStrict" class="link"
+	    >Source</a
+	    > <a href="#v:optNoStrict" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unfortunately, it seems like the <code
+	      >Strict</code
+	      > extension set by the driver plugin cannot be
+unset via <code
+	      >LANGUAGE NoStrict</code
+	      >. So we add a plugin flag to allow users to do so. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:boilerplateOpts" class="def"
+	    >boilerplateOpts</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	    >CommandLineOption</a
+	    >] <a href="src/PlutusTx.Plugin.Boilerplate.html#boilerplateOpts" class="link"
+	    >Source</a
+	    > <a href="#v:boilerplateOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:removeBoilerplateOpts" class="def"
+	    >removeBoilerplateOpts</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	    >CommandLineOption</a
+	    >] &#8594; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	    >CommandLineOption</a
+	    >] <a href="src/PlutusTx.Plugin.Boilerplate.html#removeBoilerplateOpts" class="link"
+	    >Source</a
+	    > <a href="#v:removeBoilerplateOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addFlagsAndExts" class="def"
+	    >addFlagsAndExts</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	    >CommandLineOption</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Env-Types.html#t:HscEnv" title="GHC.Driver.Env.Types"
+	    >HscEnv</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Env-Types.html#t:HscEnv" title="GHC.Driver.Env.Types"
+	    >HscEnv</a
+	    > <a href="src/PlutusTx.Plugin.Boilerplate.html#addFlagsAndExts" class="link"
+	    >Source</a
+	    > <a href="#v:addFlagsAndExts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addInlineables" class="def"
+	    >addInlineables</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	    >TcGblEnv</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcM" title="GHC.Tc.Types"
+	    >TcM</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Tc-Types.html#t:TcGblEnv" title="GHC.Tc.Types"
+	    >TcGblEnv</a
+	    > <a href="src/PlutusTx.Plugin.Boilerplate.html#addInlineables" class="link"
+	    >Source</a
+	    > <a href="#v:addInlineables" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Add INLINEABLE to all bindings that carry no user-written inline pragma.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addInlineableABE" class="def"
+	    >addInlineableABE</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Binds.html#t:ABExport" title="GHC.Hs.Binds"
+	    >ABExport</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Binds.html#t:ABExport" title="GHC.Hs.Binds"
+	    >ABExport</a
+	    > <a href="src/PlutusTx.Plugin.Boilerplate.html#addInlineableABE" class="link"
+	    >Source</a
+	    > <a href="#v:addInlineableABE" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addInlineable" class="def"
+	    >addInlineable</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Binds.html#t:LHsBindLR" title="Language.Haskell.Syntax.Binds"
+	    >LHsBindLR</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/Language-Haskell-Syntax-Binds.html#t:LHsBindLR" title="Language.Haskell.Syntax.Binds"
+	    >LHsBindLR</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Hs-Extension.html#t:GhcTc" title="GHC.Hs.Extension"
+	    >GhcTc</a
+	    > <a href="src/PlutusTx.Plugin.Boilerplate.html#addInlineable" class="link"
+	    >Source</a
+	    > <a href="#v:addInlineable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:needsInlineable" class="def"
+	    >needsInlineable</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Var.html#t:Id" title="GHC.Types.Var"
+	    >Id</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Plugin.Boilerplate.html#needsInlineable" class="link"
+	    >Source</a
+	    > <a href="#v:needsInlineable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return true if the <code
+	      >Id</code
+	      > carries no user-written inline pragma.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inlineable" class="def"
+	    >inlineable</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Types-Basic.html#t:InlinePragma" title="GHC.Types.Basic"
+	    >InlinePragma</a
+	    > <a href="src/PlutusTx.Plugin.Boilerplate.html#inlineable" class="link"
+	    >Source</a
+	    > <a href="#v:inlineable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

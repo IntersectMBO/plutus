@@ -1,0 +1,270 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE PolyKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>-- | The internals of the normalizer.
+<span class="lineno">    6 </span>module PlutusCore.Normalize.Internal
+<span class="lineno">    7 </span>  ( NormalizeTypeT
+<span class="lineno">    8 </span>  , MonadNormalizeType
+<span class="lineno">    9 </span>  , runNormalizeTypeT
+<span class="lineno">   10 </span>  , withExtendedTypeVarEnv
+<span class="lineno">   11 </span>  , normalizeTypeM
+<span class="lineno">   12 </span>  , substNormalizeTypeM
+<span class="lineno">   13 </span>  , normalizeTypesInM
+<span class="lineno">   14 </span>  ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import PlutusCore.Core.Plated (termSubterms, termSubtypes)
+<span class="lineno">   17 </span>import PlutusCore.Core.Type (Normalized (..), Term, Type (..))
+<span class="lineno">   18 </span>import PlutusCore.MkPlc (mkTyBuiltinOf)
+<span class="lineno">   19 </span>import PlutusCore.Name.Unique (HasUnique, TypeUnique (TypeUnique), Unique (Unique))
+<span class="lineno">   20 </span>import PlutusCore.Name.UniqueMap (UniqueMap, insertByName, lookupName)
+<span class="lineno">   21 </span>import PlutusCore.Quote (MonadQuote)
+<span class="lineno">   22 </span>import PlutusCore.Rename (Dupable, dupable, liftDupable)
+<span class="lineno">   23 </span>import PlutusPrelude (Alternative, over, (&lt;&lt;$&gt;&gt;), (&lt;&lt;*&gt;&gt;))
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>import Control.Lens (makeLenses, transformMOf)
+<span class="lineno">   26 </span>import Control.Monad (MonadPlus)
+<span class="lineno">   27 </span>import Control.Monad.Reader (MonadReader (local), ReaderT (..), asks)
+<span class="lineno">   28 </span>import Control.Monad.State (MonadState)
+<span class="lineno">   29 </span>import Universe.Core (Esc, HasUniApply (matchUniApply), SomeTypeIn (SomeTypeIn))
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>{- Note [Global uniqueness in the normalizer]
+<span class="lineno">   32 </span>WARNING: everything in this module works under the assumption that the global uniqueness condition
+<span class="lineno">   33 </span>is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
+<span class="lineno">   34 </span>that the global uniqueness condition is satisfied before calling ANY function from this module.
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>The invariant is preserved. In future we will enforce the invariant.
+<span class="lineno">   37 </span>-}
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>{-| Mapping from variables to what they stand for (each row represents a substitution).
+<span class="lineno">   40 </span>Needed for efficiency reasons, otherwise we could just use substitutions. -}
+<span class="lineno">   41 </span>type TypeVarEnv tyname uni ann = UniqueMap TypeUnique (Dupable (Normalized (Type tyname uni ann)))
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>-- | The environments that type normalization runs in.
+<span class="lineno">   44 </span>newtype NormalizeTypeEnv tyname uni ann = NormalizeTypeEnv
+<span class="lineno">   45 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">_normalizeTypeEnvTypeVarEnv</span></span></span> :: TypeVarEnv tyname uni ann
+<span class="lineno">   46 </span>  }
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''NormalizeTypeEnv</span></span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>{- Note [NormalizeTypeT]
+<span class="lineno">   51 </span>Type normalization requires 'Quote' (because we need to be able to generate fresh names), but we
+<span class="lineno">   52 </span>do not put 'Quote' into 'NormalizeTypeT'. The reason for this is that it makes type signatures of
+<span class="lineno">   53 </span>various runners much nicer and also more generic. For example, we have
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>    runNormalizeTypeT :: MonadQuote m =&gt; NormalizeTypeT m tyname uni ann a -&gt; m a
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>If 'NormalizeTypeT' contained 'Quote', it would be
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>    runNormalizeTypeT :: NormalizeTypeT m tyname uni ann a -&gt; QuoteT m a
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>which hardcodes 'QuoteT' to be the outermost transformer.
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>Type normalization can run in any @m@ (as long as it's a 'MonadQuote') as witnessed by
+<span class="lineno">   64 </span>the following type signature:
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>    normalizeTypeM
+<span class="lineno">   67 </span>        :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
+<span class="lineno">   68 </span>        =&gt; Type tyname uni ann -&gt; NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>so it's natural to have runners that do not break this genericity.
+<span class="lineno">   71 </span>-}
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>{- Note [Normalization API]
+<span class="lineno">   74 </span>Normalization is split in two parts:
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>1. functions returning computations that perform reductions and run in defined in this module
+<span class="lineno">   77 </span>   monad transformers (e.g. 'NormalizeTypeT')
+<span class="lineno">   78 </span>2. runners of those computations
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>The reason for splitting the API is that this way the type-theoretic notion of normalization is
+<span class="lineno">   81 </span>separated from implementation-specific details. (This used to be more important when we had
+<span class="lineno">   82 </span>to deal with gas, and could maybe be changed now.)
+<span class="lineno">   83 </span>-}
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>-- See Note [NormalizeTypeT].
+<span class="lineno">   86 </span>-- | The monad transformer that type normalization runs in.
+<span class="lineno">   87 </span>newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
+<span class="lineno">   88 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">unNormalizeTypeT</span></span></span> :: ReaderT (NormalizeTypeEnv tyname uni ann) m a
+<span class="lineno">   89 </span>  }
+<span class="lineno">   90 </span>  deriving newtype
+<span class="lineno">   91 </span>    ( <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>
+<span class="lineno">   92 </span>    , <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Applicative</span></span></span></span></span></span></span></span></span></span>
+<span class="lineno">   93 </span>    , <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Alternative</span></span></span></span></span></span></span></span>
+<span class="lineno">   94 </span>    , <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Monad</span></span></span></span></span></span>
+<span class="lineno">   95 </span>    , <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">MonadPlus</span></span></span></span>
+<span class="lineno">   96 </span>    , <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">MonadReader (NormalizeTypeEnv tyname uni ann)</span></span></span></span></span></span>
+<span class="lineno">   97 </span>    , <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">MonadState s</span></span></span></span></span></span>
+<span class="lineno">   98 </span>    , <span class="decl"><span class="istickedoff">MonadQuote</span></span>
+<span class="lineno">   99 </span>    )
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>-- | The constraints that type normalization requires.
+<span class="lineno">  102 </span>type MonadNormalizeType uni m =
+<span class="lineno">  103 </span>  ( MonadQuote m -- Type normalization must preserve global uniqueness.
+<span class="lineno">  104 </span>  , HasUniApply uni -- See Note [Normalization of built-in types].
+<span class="lineno">  105 </span>  )
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>-- | Run a 'NormalizeTypeT' computation.
+<span class="lineno">  108 </span>runNormalizeTypeT :: NormalizeTypeT m tyname uni ann a -&gt; m a
+<span class="lineno">  109 </span><span class="decl"><span class="istickedoff">runNormalizeTypeT = flip runReaderT (NormalizeTypeEnv mempty) . unNormalizeTypeT</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>-- | Locally extend a 'TypeVarEnv' in a 'NormalizeTypeT' computation.
+<span class="lineno">  112 </span>withExtendedTypeVarEnv
+<span class="lineno">  113 </span>  :: (HasUnique tyname TypeUnique, Monad m)
+<span class="lineno">  114 </span>  =&gt; tyname
+<span class="lineno">  115 </span>  -&gt; Normalized (Type tyname uni ann)
+<span class="lineno">  116 </span>  -&gt; NormalizeTypeT m tyname uni ann a
+<span class="lineno">  117 </span>  -&gt; NormalizeTypeT m tyname uni ann a
+<span class="lineno">  118 </span><span class="decl"><span class="istickedoff">withExtendedTypeVarEnv name =</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="istickedoff">local . over normalizeTypeEnvTypeVarEnv . insertByName name . dupable</span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>-- | Look up a @tyname@ in a 'TypeVarEnv'.
+<span class="lineno">  122 </span>lookupTyNameM
+<span class="lineno">  123 </span>  :: (HasUnique tyname TypeUnique, Monad m)
+<span class="lineno">  124 </span>  =&gt; tyname
+<span class="lineno">  125 </span>  -&gt; NormalizeTypeT m tyname uni ann (Maybe (Dupable (Normalized (Type tyname uni ann))))
+<span class="lineno">  126 </span><span class="decl"><span class="istickedoff">lookupTyNameM name = asks $ lookupName name . _normalizeTypeEnvTypeVarEnv</span></span>
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>{- Note [Normalization]
+<span class="lineno">  129 </span>Normalization works under the assumption that variables are globally unique.
+<span class="lineno">  130 </span>We use environments instead of substitutions as they're more efficient.
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>Since all names are unique and there is no need to track scopes, type normalization has only two
+<span class="lineno">  133 </span>interesting cases: function application and a variable usage. In the function application case we
+<span class="lineno">  134 </span>normalize a function and its argument, add the normalized argument to the environment and continue
+<span class="lineno">  135 </span>normalization. In the variable case we look up the variable in the current environment: if it's not
+<span class="lineno">  136 </span>found, we leave the variable untouched. If the variable is found, then what this variable stands for
+<span class="lineno">  137 </span>was previously added to an environment (while handling the function application case), so we pick
+<span class="lineno">  138 </span>this value and rename all bound variables in it to preserve the global uniqueness condition. It is
+<span class="lineno">  139 </span>safe to do so, because picked values cannot contain uninstantiated variables as only normalized
+<span class="lineno">  140 </span>types are added to environments and normalization instantiates all variables presented in an
+<span class="lineno">  141 </span>environment.
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>See also Note [Normalization of built-in types].
+<span class="lineno">  144 </span>-}
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>{- Note [Normalization of built-in types]
+<span class="lineno">  147 </span>Instantiating a polymorphic built-in type amounts to applying it to some arguments. However,
+<span class="lineno">  148 </span>the notion of &quot;applying&quot; is ambiguous, it can mean one of these two things:
+<span class="lineno">  149 </span>
+<span class="lineno">  150 </span>1. lifting the built-in type to 'Type' and applying that via 'TyApp'
+<span class="lineno">  151 </span>2. applying the built-in type right inside the universe to get a monomorphized type tag
+<span class="lineno">  152 </span>   (e.g. the default universe has 'DefaultUniApply' for that purpose)
+<span class="lineno">  153 </span>
+<span class="lineno">  154 </span>We need both of these things. The former allows us to assign types to polymorphic built-in functions
+<span class="lineno">  155 </span>(otherwise applying a built-in type to a type variable would be unrepresentable), the latter is
+<span class="lineno">  156 </span>used at runtime to juggle type tags so that we can avoid @unsafeCoerce@-ing, bring instances in
+<span class="lineno">  157 </span>scope via 'bring' etc -- for all of that we have to have fully monomorphized type tags at runtime.
+<span class="lineno">  158 </span>
+<span class="lineno">  159 </span>So in order for type checking to work we need to normalize polymorphic built-in types. For that
+<span class="lineno">  160 </span>we simply turn intra-universe applications into regular type applications during type normalization.
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>We could go the other way around and &quot;reduce&quot; regular type applications into intra-universe ones,
+<span class="lineno">  163 </span>however that would be harder to implement, because collapsing a general 'Type' into a 'SomeTypeIn'
+<span class="lineno">  164 </span>is harder than expanding a 'SomeTypeIn' into a 'Type'. And it would also be impossible to do in the
+<span class="lineno">  165 </span>general case, 'cause you can't collapse an application of a built-in type to, say, a type variable
+<span class="lineno">  166 </span>into an intra-universe application as there are no type variables there. I guess we could &quot;reduce&quot;
+<span class="lineno">  167 </span>application of built-in types in some cases and not reduce them in others and still make the whole
+<span class="lineno">  168 </span>thing work, but that requires substantially more logic and is also a lot harder to get right.
+<span class="lineno">  169 </span>Hence we do the opposite, which is straightforward.
+<span class="lineno">  170 </span>-}
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>-- See Note [Normalization of built-in types].
+<span class="lineno">  173 </span>
+<span class="lineno">  174 </span>{-| Normalize a built-in type by replacing each application inside the universe with regular
+<span class="lineno">  175 </span>type application. -}
+<span class="lineno">  176 </span>normalizeUni :: forall k (a :: k) uni tyname. HasUniApply uni =&gt; uni (Esc a) -&gt; Type tyname uni ()
+<span class="lineno">  177 </span><span class="decl"><span class="istickedoff">normalizeUni uni =</span>
+<span class="lineno">  178 </span><span class="spaces">  </span><span class="istickedoff">matchUniApply</span>
+<span class="lineno">  179 </span><span class="spaces">    </span><span class="istickedoff">uni</span>
+<span class="lineno">  180 </span><span class="spaces">    </span><span class="istickedoff">-- If @uni@ is not an intra-universe application, then we're done.</span>
+<span class="lineno">  181 </span><span class="spaces">    </span><span class="istickedoff">(mkTyBuiltinOf <span class="nottickedoff">()</span> uni)</span>
+<span class="lineno">  182 </span><span class="spaces">    </span><span class="istickedoff">-- If it is, then we turn that application into normal type application and recurse</span>
+<span class="lineno">  183 </span><span class="spaces">    </span><span class="istickedoff">-- into both the function and its argument.</span>
+<span class="lineno">  184 </span><span class="spaces">    </span><span class="istickedoff">(\uniF uniA -&gt; TyApp <span class="nottickedoff">()</span> (normalizeUni uniF) $ normalizeUni uniA)</span></span>
+<span class="lineno">  185 </span>
+<span class="lineno">  186 </span>-- See Note [Normalization].
+<span class="lineno">  187 </span>
+<span class="lineno">  188 </span>-- | Normalize a 'Type' in the 'NormalizeTypeT' monad.
+<span class="lineno">  189 </span>normalizeTypeM
+<span class="lineno">  190 </span>  :: (HasUnique tyname TypeUnique, MonadNormalizeType uni m)
+<span class="lineno">  191 </span>  =&gt; Type tyname uni ann
+<span class="lineno">  192 </span>  -&gt; NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
+<span class="lineno">  193 </span><span class="decl"><span class="istickedoff">normalizeTypeM (TyForall ann name kind body) =</span>
+<span class="lineno">  194 </span><span class="spaces">  </span><span class="istickedoff">TyForall ann name kind &lt;&lt;$&gt;&gt; normalizeTypeM body</span>
+<span class="lineno">  195 </span><span class="spaces"></span><span class="istickedoff">normalizeTypeM (TyIFix ann pat arg) =</span>
+<span class="lineno">  196 </span><span class="spaces">  </span><span class="istickedoff">TyIFix ann &lt;&lt;$&gt;&gt; normalizeTypeM pat &lt;&lt;*&gt;&gt; normalizeTypeM arg</span>
+<span class="lineno">  197 </span><span class="spaces"></span><span class="istickedoff">normalizeTypeM (TyFun ann dom cod) =</span>
+<span class="lineno">  198 </span><span class="spaces">  </span><span class="istickedoff">TyFun ann &lt;&lt;$&gt;&gt; normalizeTypeM dom &lt;&lt;*&gt;&gt; normalizeTypeM cod</span>
+<span class="lineno">  199 </span><span class="spaces"></span><span class="istickedoff">normalizeTypeM (TyLam ann name kind body) =</span>
+<span class="lineno">  200 </span><span class="spaces">  </span><span class="istickedoff">TyLam ann name kind &lt;&lt;$&gt;&gt; normalizeTypeM body</span>
+<span class="lineno">  201 </span><span class="spaces"></span><span class="istickedoff">normalizeTypeM (TyApp ann fun arg) = do</span>
+<span class="lineno">  202 </span><span class="spaces">  </span><span class="istickedoff">vFun &lt;- normalizeTypeM fun</span>
+<span class="lineno">  203 </span><span class="spaces">  </span><span class="istickedoff">vArg &lt;- normalizeTypeM arg</span>
+<span class="lineno">  204 </span><span class="spaces">  </span><span class="istickedoff">case unNormalized vFun of</span>
+<span class="lineno">  205 </span><span class="spaces">    </span><span class="istickedoff">TyLam _ nArg _ body -&gt; substNormalizeTypeM vArg nArg body</span>
+<span class="lineno">  206 </span><span class="spaces">    </span><span class="istickedoff">_ -&gt; pure $ TyApp ann &lt;$&gt; vFun &lt;*&gt; vArg</span>
+<span class="lineno">  207 </span><span class="spaces"></span><span class="istickedoff">normalizeTypeM var@(TyVar _ name) = do</span>
+<span class="lineno">  208 </span><span class="spaces">  </span><span class="istickedoff">mayTy &lt;- lookupTyNameM name</span>
+<span class="lineno">  209 </span><span class="spaces">  </span><span class="istickedoff">case mayTy of</span>
+<span class="lineno">  210 </span><span class="spaces">    </span><span class="istickedoff">-- A variable is always normalized.</span>
+<span class="lineno">  211 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; pure $ Normalized var</span>
+<span class="lineno">  212 </span><span class="spaces">    </span><span class="istickedoff">Just ty -&gt; liftDupable ty</span>
+<span class="lineno">  213 </span><span class="spaces"></span><span class="istickedoff">normalizeTypeM (TyBuiltin ann (SomeTypeIn uni)) =</span>
+<span class="lineno">  214 </span><span class="spaces">  </span><span class="istickedoff">pure . Normalized $ ann &lt;$ normalizeUni uni</span>
+<span class="lineno">  215 </span><span class="spaces"></span><span class="istickedoff">normalizeTypeM (TySOP ann tyls) = do</span>
+<span class="lineno">  216 </span><span class="spaces">  </span><span class="istickedoff">tyls' &lt;- (traverse . traverse) (fmap unNormalized . normalizeTypeM) tyls</span>
+<span class="lineno">  217 </span><span class="spaces">  </span><span class="istickedoff">pure $ Normalized $ TySOP ann tyls'</span></span>
+<span class="lineno">  218 </span>
+<span class="lineno">  219 </span>{- Note [Normalizing substitution]
+<span class="lineno">  220 </span>@substituteNormalizeM@ is only ever used as normalizing substitution that receives two already
+<span class="lineno">  221 </span>normalized types. However we do not enforce this in the type signature, because
+<span class="lineno">  222 </span>1) it's perfectly correct for the last argument to be non-normalized
+<span class="lineno">  223 </span>2) it would be annoying to wrap 'Type's into 'NormalizedType's
+<span class="lineno">  224 </span>-}
+<span class="lineno">  225 </span>
+<span class="lineno">  226 </span>-- See Note [Normalizing substitution].
+<span class="lineno">  227 </span>-- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeT' monad.
+<span class="lineno">  228 </span>substNormalizeTypeM
+<span class="lineno">  229 </span>  :: (HasUnique tyname TypeUnique, MonadNormalizeType uni m)
+<span class="lineno">  230 </span>  =&gt; Normalized (Type tyname uni ann)
+<span class="lineno">  231 </span>  -- ^ @ty@
+<span class="lineno">  232 </span>  -&gt; tyname
+<span class="lineno">  233 </span>  -- ^ @name@
+<span class="lineno">  234 </span>  -&gt; Type tyname uni ann
+<span class="lineno">  235 </span>  -- ^ @body@
+<span class="lineno">  236 </span>  -&gt; NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
+<span class="lineno">  237 </span>  -- ^ @NORM ([ty / name] body)@
+<span class="lineno">  238 </span><span class="decl"><span class="istickedoff">substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM</span></span>
+<span class="lineno">  239 </span>
+<span class="lineno">  240 </span>-- | Normalize every 'Type' in a 'Term'.
+<span class="lineno">  241 </span>normalizeTypesInM
+<span class="lineno">  242 </span>  :: (HasUnique tyname TypeUnique, MonadNormalizeType uni m)
+<span class="lineno">  243 </span>  =&gt; Term tyname name uni fun ann
+<span class="lineno">  244 </span>  -&gt; NormalizeTypeT m tyname uni ann (Term tyname name uni fun ann)
+<span class="lineno">  245 </span><span class="decl"><span class="istickedoff">normalizeTypesInM = transformMOf termSubterms normalizeChildTypes</span>
+<span class="lineno">  246 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  247 </span><span class="spaces">    </span><span class="istickedoff">normalizeChildTypes = termSubtypes (fmap unNormalized . normalizeTypeM)</span></span>
+
+</pre>
+</body>
+</html>

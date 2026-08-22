@@ -1,0 +1,2605 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Ord</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.Class.html#Ord"
+	><span class="hs-identifier"
+	  >Ord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Ordering"
+	><span class="hs-identifier"
+	  >Ordering</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.TH.html#deriveOrd"
+	><span class="hs-identifier"
+	  >deriveOrd</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Either.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Either</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Eq.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Eq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.Class.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Ord.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.TH.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Ord.TH</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680172660"
+	><span id="local-6989586621680172667"
+	  ><span id="local-6989586621680172670"
+	    ><span id="local-6989586621680172673"
+	      ><span id="local-6989586621680172676"
+		><span id="local-6989586621680172679"
+		  ><span id="local-6989586621680172682"
+		    ><span class="hs-identifier"
+		      >deriveOrd</span
+		      ><span
+		      > </span
+		      ><span class="hs-special"
+		      >''</span
+		      ><span class="hs-special"
+		      >[</span
+		      ><span class="hs-special"
+		      >]</span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span id="local-6989586621680172695"
+      ><span id="local-6989586621680172697"
+	><span id="local-6989586621680172701"
+	  ><span id="local-6989586621680172704"
+	    ><span id="local-6989586621680172707"
+	      ><span id="local-6989586621680172710"
+		><span id="local-6989586621680172713"
+		  ><span class="hs-identifier"
+		    >deriveOrd</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >''</span
+		    ><span class="hs-identifier"
+		    >Bool</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680172721"
+	><span id="local-6989586621680172724"
+	  ><span id="local-6989586621680172728"
+	    ><span id="local-6989586621680172731"
+	      ><span id="local-6989586621680172734"
+		><span id="local-6989586621680172737"
+		  ><span id="local-6989586621680172740"
+		    ><span class="hs-identifier"
+		      >deriveOrd</span
+		      ><span
+		      > </span
+		      ><span class="hs-special"
+		      >''</span
+		      ><span class="hs-identifier"
+		      >Maybe</span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span id="local-6989586621680171871"
+      ><span id="local-6989586621680171872"
+	><span id="local-6989586621680172752"
+	  ><span id="local-6989586621680172756"
+	    ><span id="local-6989586621680172760"
+	      ><span id="local-6989586621680172763"
+		><span id="local-6989586621680172766"
+		  ><span id="local-6989586621680172769"
+		    ><span id="local-6989586621680172772"
+		      ><span class="hs-identifier"
+			>deriveOrd</span
+			><span
+			> </span
+			><span class="hs-special"
+			>''</span
+			><span class="hs-identifier"
+			>Either</span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span id="local-6989586621680172782"
+      ><span id="local-6989586621680172784"
+	><span id="local-6989586621680172788"
+	  ><span id="local-6989586621680172791"
+	    ><span id="local-6989586621680172794"
+	      ><span id="local-6989586621680172797"
+		><span id="local-6989586621680172800"
+		  ><span class="hs-identifier"
+		    >deriveOrd</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >''</span
+		    ><span class="hs-identifier"
+		    >Ordering</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="local-6989586621680172806"
+      ><span id="local-6989586621680172808"
+	><span id="local-6989586621680172812"
+	  ><span id="local-6989586621680172815"
+	    ><span id="local-6989586621680172818"
+	      ><span id="local-6989586621680172821"
+		><span id="local-6989586621680172824"
+		  ><span class="hs-identifier"
+		    >deriveOrd</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >''</span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >)</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680172834"
+	  ><span id="local-6989586621680172839"
+	    ><span id="local-6989586621680172843"
+	      ><span id="local-6989586621680172846"
+		><span id="local-6989586621680172849"
+		  ><span id="local-6989586621680172852"
+		    ><span id="local-6989586621680172855"
+		      ><span class="hs-identifier"
+			>deriveOrd</span
+			><span
+			> </span
+			><span class="hs-special"
+			>''</span
+			><span class="hs-special"
+			>(</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>)</span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680172871"
+	    ><span id="local-6989586621680172878"
+	      ><span id="local-6989586621680172882"
+		><span id="local-6989586621680172885"
+		  ><span id="local-6989586621680172888"
+		    ><span id="local-6989586621680172891"
+		      ><span id="local-6989586621680172894"
+			><span class="hs-identifier"
+			  >deriveOrd</span
+			  ><span
+			  > </span
+			  ><span class="hs-special"
+			  >''</span
+			  ><span class="hs-special"
+			  >(</span
+			  ><span class="hs-special"
+			  >,</span
+			  ><span class="hs-special"
+			  >,</span
+			  ><span class="hs-special"
+			  >)</span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680172914"
+	      ><span id="local-6989586621680172923"
+		><span id="local-6989586621680172927"
+		  ><span id="local-6989586621680172930"
+		    ><span id="local-6989586621680172933"
+		      ><span id="local-6989586621680172936"
+			><span id="local-6989586621680172939"
+			  ><span class="hs-identifier"
+			    >deriveOrd</span
+			    ><span
+			    > </span
+			    ><span class="hs-special"
+			    >''</span
+			    ><span class="hs-special"
+			    >(</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >)</span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680172963"
+		><span id="local-6989586621680172974"
+		  ><span id="local-6989586621680172978"
+		    ><span id="local-6989586621680172981"
+		      ><span id="local-6989586621680172984"
+			><span id="local-6989586621680172987"
+			  ><span id="local-6989586621680172990"
+			    ><span class="hs-identifier"
+			      >deriveOrd</span
+			      ><span
+			      > </span
+			      ><span class="hs-special"
+			      >''</span
+			      ><span class="hs-special"
+			      >(</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >)</span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680173018"
+		  ><span id="local-6989586621680173031"
+		    ><span id="local-6989586621680173035"
+		      ><span id="local-6989586621680173038"
+			><span id="local-6989586621680173041"
+			  ><span id="local-6989586621680173044"
+			    ><span id="local-6989586621680173047"
+			      ><span class="hs-identifier"
+				>deriveOrd</span
+				><span
+				> </span
+				><span class="hs-special"
+				>''</span
+				><span class="hs-special"
+				>(</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>)</span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680173079"
+		    ><span id="local-6989586621680173094"
+		      ><span id="local-6989586621680173098"
+			><span id="local-6989586621680173101"
+			  ><span id="local-6989586621680173104"
+			    ><span id="local-6989586621680173107"
+			      ><span id="local-6989586621680173110"
+				><span class="hs-identifier"
+				  >deriveOrd</span
+				  ><span
+				  > </span
+				  ><span class="hs-special"
+				  >''</span
+				  ><span class="hs-special"
+				  >(</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >)</span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680173146"
+		      ><span id="local-6989586621680173163"
+			><span id="local-6989586621680173167"
+			  ><span id="local-6989586621680173170"
+			    ><span id="local-6989586621680173173"
+			      ><span id="local-6989586621680173176"
+				><span id="local-6989586621680173179"
+				  ><span class="hs-identifier"
+				    >deriveOrd</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >''</span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >)</span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680173219"
+			><span id="local-6989586621680173238"
+			  ><span id="local-6989586621680173242"
+			    ><span id="local-6989586621680173245"
+			      ><span id="local-6989586621680173248"
+				><span id="local-6989586621680173251"
+				  ><span id="local-6989586621680173254"
+				    ><span class="hs-identifier"
+				      >deriveOrd</span
+				      ><span
+				      > </span
+				      ><span class="hs-special"
+				      >''</span
+				      ><span class="hs-special"
+				      >(</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >)</span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680173298"
+			  ><span id="local-6989586621680173319"
+			    ><span id="local-6989586621680173323"
+			      ><span id="local-6989586621680173326"
+				><span id="local-6989586621680173329"
+				  ><span id="local-6989586621680173332"
+				    ><span id="local-6989586621680173335"
+				      ><span class="hs-identifier"
+					>deriveOrd</span
+					><span
+					> </span
+					><span class="hs-special"
+					>''</span
+					><span class="hs-special"
+					>(</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>)</span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680173383"
+			    ><span id="local-6989586621680173406"
+			      ><span id="local-6989586621680173410"
+				><span id="local-6989586621680173413"
+				  ><span id="local-6989586621680173416"
+				    ><span id="local-6989586621680173419"
+				      ><span id="local-6989586621680173422"
+					><span class="hs-identifier"
+					  >deriveOrd</span
+					  ><span
+					  > </span
+					  ><span class="hs-special"
+					  >''</span
+					  ><span class="hs-special"
+					  >(</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >)</span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680173474"
+			      ><span id="local-6989586621680173499"
+				><span id="local-6989586621680173503"
+				  ><span id="local-6989586621680173506"
+				    ><span id="local-6989586621680173509"
+				      ><span id="local-6989586621680173512"
+					><span id="local-6989586621680173515"
+					  ><span class="hs-identifier"
+					    >deriveOrd</span
+					    ><span
+					    > </span
+					    ><span class="hs-special"
+					    >''</span
+					    ><span class="hs-special"
+					    >(</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >)</span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680173571"
+				><span id="local-6989586621680173598"
+				  ><span id="local-6989586621680173602"
+				    ><span id="local-6989586621680173605"
+				      ><span id="local-6989586621680173608"
+					><span id="local-6989586621680173611"
+					  ><span id="local-6989586621680173614"
+					    ><span class="hs-identifier"
+					      >deriveOrd</span
+					      ><span
+					      > </span
+					      ><span class="hs-special"
+					      >''</span
+					      ><span class="hs-special"
+					      >(</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >)</span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680173674"
+				  ><span id="local-6989586621680173703"
+				    ><span id="local-6989586621680173707"
+				      ><span id="local-6989586621680173710"
+					><span id="local-6989586621680173713"
+					  ><span id="local-6989586621680173716"
+					    ><span id="local-6989586621680173719"
+					      ><span class="hs-identifier"
+						>deriveOrd</span
+						><span
+						> </span
+						><span class="hs-special"
+						>''</span
+						><span class="hs-special"
+						>(</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>)</span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680173783"
+				    ><span id="local-6989586621680173814"
+				      ><span id="local-6989586621680173818"
+					><span id="local-6989586621680173821"
+					  ><span id="local-6989586621680173824"
+					    ><span id="local-6989586621680173827"
+					      ><span id="local-6989586621680173830"
+						><span class="hs-identifier"
+						  >deriveOrd</span
+						  ><span
+						  > </span
+						  ><span class="hs-special"
+						  >''</span
+						  ><span class="hs-special"
+						  >(</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >)</span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680173898"
+				      ><span id="local-6989586621680173931"
+					><span id="local-6989586621680173935"
+					  ><span id="local-6989586621680173938"
+					    ><span id="local-6989586621680173941"
+					      ><span id="local-6989586621680173944"
+						><span id="local-6989586621680173947"
+						  ><span class="hs-identifier"
+						    >deriveOrd</span
+						    ><span
+						    > </span
+						    ><span class="hs-special"
+						    >''</span
+						    ><span class="hs-special"
+						    >(</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >)</span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680174019"
+					><span id="local-6989586621680174054"
+					  ><span id="local-6989586621680174058"
+					    ><span id="local-6989586621680174061"
+					      ><span id="local-6989586621680174064"
+						><span id="local-6989586621680174067"
+						  ><span id="local-6989586621680174070"
+						    ><span class="hs-identifier"
+						      >deriveOrd</span
+						      ><span
+						      > </span
+						      ><span class="hs-special"
+						      >''</span
+						      ><span class="hs-special"
+						      >(</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >)</span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680174146"
+					  ><span id="local-6989586621680174183"
+					    ><span id="local-6989586621680174187"
+					      ><span id="local-6989586621680174190"
+						><span id="local-6989586621680174193"
+						  ><span id="local-6989586621680174196"
+						    ><span id="local-6989586621680174199"
+						      ><span class="hs-identifier"
+							>deriveOrd</span
+							><span
+							> </span
+							><span class="hs-special"
+							>''</span
+							><span class="hs-special"
+							>(</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>)</span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680172268"
+					  ><span id="local-6989586621680174279"
+					    ><span id="local-6989586621680174318"
+					      ><span id="local-6989586621680174322"
+						><span id="local-6989586621680174325"
+						  ><span id="local-6989586621680174328"
+						    ><span id="local-6989586621680174331"
+						      ><span id="local-6989586621680174334"
+							><span class="hs-identifier"
+							  >deriveOrd</span
+							  ><span
+							  > </span
+							  ><span class="hs-special"
+							  >''</span
+							  ><span class="hs-special"
+							  >(</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >)</span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680172268"
+					  ><span id="local-6989586621680172309"
+					    ><span id="local-6989586621680174418"
+					      ><span id="local-6989586621680174459"
+						><span id="local-6989586621680174463"
+						  ><span id="local-6989586621680174466"
+						    ><span id="local-6989586621680174469"
+						      ><span id="local-6989586621680174472"
+							><span id="local-6989586621680174475"
+							  ><span class="hs-identifier"
+							    >deriveOrd</span
+							    ><span
+							    > </span
+							    ><span class="hs-special"
+							    >''</span
+							    ><span class="hs-special"
+							    >(</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >)</span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680172268"
+					  ><span id="local-6989586621680172309"
+					    ><span id="local-6989586621680172352"
+					      ><span id="local-6989586621680174563"
+						><span id="local-6989586621680174606"
+						  ><span id="local-6989586621680174610"
+						    ><span id="local-6989586621680174613"
+						      ><span id="local-6989586621680174616"
+							><span id="local-6989586621680174619"
+							  ><span id="local-6989586621680174622"
+							    ><span class="hs-identifier"
+							      >deriveOrd</span
+							      ><span
+							      > </span
+							      ><span class="hs-special"
+							      >''</span
+							      ><span class="hs-special"
+							      >(</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >)</span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680172268"
+					  ><span id="local-6989586621680172309"
+					    ><span id="local-6989586621680172352"
+					      ><span id="local-6989586621680172397"
+						><span id="local-6989586621680174714"
+						  ><span id="local-6989586621680174759"
+						    ><span id="local-6989586621680174763"
+						      ><span id="local-6989586621680174766"
+							><span id="local-6989586621680174769"
+							  ><span id="local-6989586621680174772"
+							    ><span id="local-6989586621680174775"
+							      ><span class="hs-identifier"
+								>deriveOrd</span
+								><span
+								> </span
+								><span class="hs-special"
+								>''</span
+								><span class="hs-special"
+								>(</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>)</span
+								></span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680172268"
+					  ><span id="local-6989586621680172309"
+					    ><span id="local-6989586621680172352"
+					      ><span id="local-6989586621680172397"
+						><span id="local-6989586621680172444"
+						  ><span id="local-6989586621680174871"
+						    ><span id="local-6989586621680174918"
+						      ><span id="local-6989586621680174922"
+							><span id="local-6989586621680174925"
+							  ><span id="local-6989586621680174928"
+							    ><span id="local-6989586621680174931"
+							      ><span id="local-6989586621680174934"
+								><span class="hs-identifier"
+								  >deriveOrd</span
+								  ><span
+								  > </span
+								  ><span class="hs-special"
+								  >''</span
+								  ><span class="hs-special"
+								  >(</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >,</span
+								  ><span class="hs-special"
+								  >)</span
+								  ></span
+								></span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680172268"
+					  ><span id="local-6989586621680172309"
+					    ><span id="local-6989586621680172352"
+					      ><span id="local-6989586621680172397"
+						><span id="local-6989586621680172444"
+						  ><span id="local-6989586621680172493"
+						    ><span id="local-6989586621680175034"
+						      ><span id="local-6989586621680175083"
+							><span id="local-6989586621680175087"
+							  ><span id="local-6989586621680175090"
+							    ><span id="local-6989586621680175093"
+							      ><span id="local-6989586621680175096"
+								><span id="local-6989586621680175099"
+								  ><span class="hs-identifier"
+								    >deriveOrd</span
+								    ><span
+								    > </span
+								    ><span class="hs-special"
+								    >''</span
+								    ><span class="hs-special"
+								    >(</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >,</span
+								    ><span class="hs-special"
+								    >)</span
+								    ></span
+								  ></span
+								></span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680172268"
+					  ><span id="local-6989586621680172309"
+					    ><span id="local-6989586621680172352"
+					      ><span id="local-6989586621680172397"
+						><span id="local-6989586621680172444"
+						  ><span id="local-6989586621680172493"
+						    ><span id="local-6989586621680172544"
+						      ><span id="local-6989586621680175203"
+							><span id="local-6989586621680175254"
+							  ><span id="local-6989586621680175258"
+							    ><span id="local-6989586621680175261"
+							      ><span id="local-6989586621680175264"
+								><span id="local-6989586621680175267"
+								  ><span id="local-6989586621680175270"
+								    ><span class="hs-identifier"
+								      >deriveOrd</span
+								      ><span
+								      > </span
+								      ><span class="hs-special"
+								      >''</span
+								      ><span class="hs-special"
+								      >(</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >,</span
+								      ><span class="hs-special"
+								      >)</span
+								      ></span
+								    ></span
+								  ></span
+								></span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680172268"
+					  ><span id="local-6989586621680172309"
+					    ><span id="local-6989586621680172352"
+					      ><span id="local-6989586621680172397"
+						><span id="local-6989586621680172444"
+						  ><span id="local-6989586621680172493"
+						    ><span id="local-6989586621680172544"
+						      ><span id="local-6989586621680172597"
+							><span id="local-6989586621680175378"
+							  ><span id="local-6989586621680175431"
+							    ><span id="local-6989586621680175435"
+							      ><span id="local-6989586621680175438"
+								><span id="local-6989586621680175441"
+								  ><span id="local-6989586621680175444"
+								    ><span id="local-6989586621680175447"
+								      ><span class="hs-identifier"
+									>deriveOrd</span
+									><span
+									> </span
+									><span class="hs-special"
+									>''</span
+									><span class="hs-special"
+									>(</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>,</span
+									><span class="hs-special"
+									>)</span
+									></span
+								      ></span
+								    ></span
+								  ></span
+								></span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="local-6989586621680171863"
+      ><span id="local-6989586621680171877"
+	><span id="local-6989586621680171884"
+	  ><span id="local-6989586621680171893"
+	    ><span id="local-6989586621680171904"
+	      ><span id="local-6989586621680171917"
+		><span id="local-6989586621680171932"
+		  ><span id="local-6989586621680171949"
+		    ><span id="local-6989586621680171968"
+		      ><span id="local-6989586621680171989"
+			><span id="local-6989586621680172012"
+			  ><span id="local-6989586621680172037"
+			    ><span id="local-6989586621680172064"
+			      ><span id="local-6989586621680172093"
+				><span id="local-6989586621680172124"
+				  ><span id="local-6989586621680172157"
+				    ><span id="local-6989586621680172192"
+				      ><span id="local-6989586621680172229"
+					><span id="local-6989586621680172268"
+					  ><span id="local-6989586621680172309"
+					    ><span id="local-6989586621680172352"
+					      ><span id="local-6989586621680172397"
+						><span id="local-6989586621680172444"
+						  ><span id="local-6989586621680172493"
+						    ><span id="local-6989586621680172544"
+						      ><span id="local-6989586621680172597"
+							><span id="local-6989586621680172652"
+							  ><span id="local-6989586621680175559"
+							    ><span id="local-6989586621680175614"
+							      ><span id="local-6989586621680175618"
+								><span id="local-6989586621680175621"
+								  ><span id="local-6989586621680175624"
+								    ><span id="local-6989586621680175627"
+								      ><span id="local-6989586621680175630"
+									><span class="hs-identifier"
+									  >deriveOrd</span
+									  ><span
+									  > </span
+									  ><span class="hs-special"
+									  >''</span
+									  ><span class="hs-special"
+									  >(</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >,</span
+									  ><span class="hs-special"
+									  >)</span
+									  ></span
+									></span
+								      ></span
+								    ></span
+								  ></span
+								></span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

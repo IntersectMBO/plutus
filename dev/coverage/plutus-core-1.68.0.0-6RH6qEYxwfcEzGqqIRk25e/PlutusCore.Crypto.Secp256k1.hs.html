@@ -1,0 +1,120 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>module PlutusCore.Crypto.Secp256k1
+<span class="lineno">    5 </span>  ( verifyEcdsaSecp256k1Signature
+<span class="lineno">    6 </span>  , verifySchnorrSecp256k1Signature
+<span class="lineno">    7 </span>  ) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import PlutusCore.Builtin.Result
+<span class="lineno">   10 </span>import PlutusCore.Crypto.Utils
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Cardano.Crypto.DSIGN.Class qualified as DSIGN
+<span class="lineno">   13 </span>import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
+<span class="lineno">   14 </span>import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
+<span class="lineno">   15 </span>import Data.ByteString qualified as BS
+<span class="lineno">   16 </span>import Data.Text (Text)
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>{-| Verify an ECDSA signature made using the SECP256k1 curve.
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>= Note
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>There are additional well-formation requirements for the arguments beyond
+<span class="lineno">   23 </span>their length:
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>* The first byte of the public key must correspond to the sign of the /y/
+<span class="lineno">   26 </span>coordinate: this is @0x02@ if /y/ is even, and @0x03@ otherwise.
+<span class="lineno">   27 </span>* The remaining bytes of the public key must correspond to the /x/
+<span class="lineno">   28 </span>coordinate, as a big-endian integer.
+<span class="lineno">   29 </span>* The first 32 bytes of the signature must correspond to the big-endian
+<span class="lineno">   30 </span>integer representation of _r_.
+<span class="lineno">   31 </span>* The last 32 bytes of the signature must correspond to the big-endian
+<span class="lineno">   32 </span>integer representation of _s_.
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>While this primitive /accepts/ a hash, any caller should only pass it hashes
+<span class="lineno">   35 </span>that they computed themselves: specifically, they should receive the
+<span class="lineno">   36 </span>/message/ from a sender and hash it, rather than receiving the /hash/ from
+<span class="lineno">   37 </span>said sender. Failure to do so can be
+<span class="lineno">   38 </span>[dangerous](https://bitcoin.stackexchange.com/a/81116/35586). Other than
+<span class="lineno">   39 </span>length, we make no requirements of what hash gets used. -}
+<span class="lineno">   40 </span>verifyEcdsaSecp256k1Signature
+<span class="lineno">   41 </span>  :: BS.ByteString
+<span class="lineno">   42 </span>  -- ^ Public key   (33 bytes)
+<span class="lineno">   43 </span>  -&gt; BS.ByteString
+<span class="lineno">   44 </span>  -- ^ Message hash (32 bytes)
+<span class="lineno">   45 </span>  -&gt; BS.ByteString
+<span class="lineno">   46 </span>  -- ^ Signature    (64 bytes)
+<span class="lineno">   47 </span>  -&gt; BuiltinResult Bool
+<span class="lineno">   48 </span><span class="decl"><span class="istickedoff">verifyEcdsaSecp256k1Signature pk msg sig =</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="istickedoff">case DSIGN.rawDeserialiseVerKeyDSIGN @EcdsaSecp256k1DSIGN pk of</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; failWithMessage <span class="nottickedoff">loc</span> <span class="nottickedoff">&quot;Invalid verification key.&quot;</span></span>
+<span class="lineno">   51 </span><span class="spaces">    </span><span class="istickedoff">Just pk' -&gt; case DSIGN.rawDeserialiseSigDSIGN @EcdsaSecp256k1DSIGN sig of</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="istickedoff">Nothing -&gt; failWithMessage <span class="nottickedoff">loc</span> <span class="nottickedoff">&quot;Invalid signature.&quot;</span></span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="istickedoff">Just sig' -&gt; case toMessageHash msg of</span>
+<span class="lineno">   54 </span><span class="spaces">        </span><span class="istickedoff">Nothing -&gt; failWithMessage <span class="nottickedoff">loc</span> <span class="nottickedoff">&quot;Invalid message hash.&quot;</span></span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="istickedoff">Just msg' -&gt; pure $ case DSIGN.verifyDSIGN () pk' msg' sig' of</span>
+<span class="lineno">   56 </span><span class="spaces">          </span><span class="istickedoff">Left _ -&gt; False</span>
+<span class="lineno">   57 </span><span class="spaces">          </span><span class="istickedoff">Right () -&gt; True</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">loc :: Text</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">loc = &quot;ECDSA SECP256k1 signature verification&quot;</span></span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>{-| Verify a Schnorr signature made using the SECP256k1 curve.
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>= Note
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>There are additional well-formation requirements for the arguments beyond
+<span class="lineno">   67 </span>their length. Throughout, we refer to co-ordinates of the point @R@.
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>* The bytes of the public key must correspond to the /x/ coordinate, as a
+<span class="lineno">   70 </span>big-endian integer, as specified in BIP-340.
+<span class="lineno">   71 </span>* The first 32 bytes of the signature must correspond to the /x/ coordinate,
+<span class="lineno">   72 </span>as a big-endian integer, as specified in BIP-340.
+<span class="lineno">   73 </span>* The last 32 bytes of the signature must correspond to the bytes of /s/, as
+<span class="lineno">   74 </span>a big-endian integer, as specified in BIP-340.
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>= See also
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>* [BIP-340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) -}
+<span class="lineno">   79 </span>verifySchnorrSecp256k1Signature
+<span class="lineno">   80 </span>  :: BS.ByteString
+<span class="lineno">   81 </span>  -- ^ Public key (32 bytes)
+<span class="lineno">   82 </span>  -&gt; BS.ByteString
+<span class="lineno">   83 </span>  -- ^ Message    (arbitrary length)
+<span class="lineno">   84 </span>  -&gt; BS.ByteString
+<span class="lineno">   85 </span>  -- ^ Signature  (64 bytes)
+<span class="lineno">   86 </span>  -&gt; BuiltinResult Bool
+<span class="lineno">   87 </span><span class="decl"><span class="istickedoff">verifySchnorrSecp256k1Signature pk msg sig =</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="istickedoff">case DSIGN.rawDeserialiseVerKeyDSIGN @SchnorrSecp256k1DSIGN pk of</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; failWithMessage <span class="nottickedoff">loc</span> <span class="nottickedoff">&quot;Invalid verification key.&quot;</span></span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">Just pk' -&gt; case DSIGN.rawDeserialiseSigDSIGN @SchnorrSecp256k1DSIGN sig of</span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="istickedoff">Nothing -&gt; failWithMessage <span class="nottickedoff">loc</span> <span class="nottickedoff">&quot;Invalid signature.&quot;</span></span>
+<span class="lineno">   92 </span><span class="spaces">      </span><span class="istickedoff">Just sig' -&gt; pure $ case DSIGN.verifyDSIGN () pk' msg sig' of</span>
+<span class="lineno">   93 </span><span class="spaces">        </span><span class="istickedoff">Left _ -&gt; False</span>
+<span class="lineno">   94 </span><span class="spaces">        </span><span class="istickedoff">Right () -&gt; True</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff">loc :: Text</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">loc = &quot;Schnorr SECP256k1 signature verification&quot;</span></span></span>
+
+</pre>
+</body>
+</html>
