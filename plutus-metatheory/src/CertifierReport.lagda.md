@@ -13,6 +13,7 @@ open import VerifiedCompilation.UntypedTranslation
 open import VerifiedCompilation.UInline
 open import VerifiedCompilation.UCaseReduce as CR
 import VerifiedCompilation.FloatOut as FloatOut
+open import VerifiedCompilation.UCSE as CSE
 open import Untyped.Relation.Binary.Modular
 open import Untyped.Relation.Binary.Core renaming (Pointwise to PW)
 open import Untyped
@@ -48,11 +49,11 @@ showCertifiedOptTag cseT = "Common Subexpression Elimination"
 showCertifiedOptTag applyToCaseT = "Transform multi-argument applications into case-constr form"
 showCertifiedOptTag caseReduceT = "Case-Constr and Case-Constant Cancellation"
 showCertifiedOptTag letFloatOutT = "Float bindings outwards"
+showCertifiedOptTag polyBuiltinT = "Hoist Polymorphic Builtins"
 
 showUncertifiedOptTag : UncertifiedOptTag → String
 showUncertifiedOptTag caseOfCaseT = "Case-of-Case"
 showUncertifiedOptTag constantFoldingT = "Constant Folding"
-showUncertifiedOptTag polyBuiltinT = "Hoist Polymorphic Builtins"
 
 showTag : OptTag → String
 showTag (inj₁ tag) = showUncertifiedOptTag tag ++ "  ⚠ (certifier unavailable)"
@@ -129,6 +130,7 @@ numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
 numSites {M = M} caseReduceT p = numSitesCaseReduce (CR.sound {M = M} p)
 numSites letFloatOutT p = FloatOut.numSites p
+numSites polyBuiltinT p = CSE.polyNumSites p
 
 showSites : {M N : 0 ⊢} → (tag : OptTag) → RelationOf tag M N → String
 showSites (inj₁ _) _ = ""

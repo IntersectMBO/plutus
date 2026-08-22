@@ -18,6 +18,7 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
 import qualified MAlonzo.RTE
 import qualified Data.Text
 import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Equality
 import qualified MAlonzo.Code.Agda.Builtin.List
 import qualified MAlonzo.Code.Agda.Builtin.Sigma
 import qualified MAlonzo.Code.Data.Fin.Base
@@ -26,6 +27,8 @@ import qualified MAlonzo.Code.Data.Irrelevant
 import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.Untyped.Equality
+import qualified MAlonzo.Code.Untyped.Purity
 import qualified MAlonzo.Code.Untyped.RenamingSubstitution
 import qualified MAlonzo.Code.Untyped.Strictness
 import qualified MAlonzo.Code.Utils
@@ -12127,81 +12130,679 @@ d_'46'extendedlambda2_106 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.Strictness.T__'8712''8595'__10 ->
   T_UCSE_6 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda2_106 = erased
--- VerifiedCompilation.UCSE.M₁
-d_M'8321'_124 :: MAlonzo.Code.Untyped.T__'8866'_14
-d_M'8321'_124
-  = coe
-      MAlonzo.Code.Untyped.C__'183'__22
-      (coe
-         MAlonzo.Code.Untyped.C_constr_34 (coe (0 :: Integer))
-         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
-      (coe
-         MAlonzo.Code.Untyped.C_constr_34 (coe (0 :: Integer))
-         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
--- VerifiedCompilation.UCSE.N₁
-d_N'8321'_126 :: MAlonzo.Code.Untyped.T__'8866'_14
-d_N'8321'_126
-  = coe
-      MAlonzo.Code.Untyped.C__'183'__22
-      (coe
-         MAlonzo.Code.Untyped.C_ƛ_20
-         (coe
-            MAlonzo.Code.Untyped.C__'183'__22
-            (coe
-               MAlonzo.Code.Untyped.C_'96'_18
-               (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))
-            (coe
-               MAlonzo.Code.Untyped.C_'96'_18
-               (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))
-      (coe
-         MAlonzo.Code.Untyped.C_constr_34 (coe (0 :: Integer))
-         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
--- VerifiedCompilation.UCSE.M₂
-d_M'8322'_130 :: MAlonzo.Code.Untyped.T__'8866'_14
-d_M'8322'_130
-  = coe
-      MAlonzo.Code.Untyped.C__'183'__22
-      (coe
-         MAlonzo.Code.Untyped.C_ƛ_20
-         (coe
-            MAlonzo.Code.Untyped.C_'96'_18
-            (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))
-      (coe
-         MAlonzo.Code.Untyped.C_constr_34 (coe (0 :: Integer))
-         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
--- VerifiedCompilation.UCSE.N₂
-d_N'8322'_132 :: MAlonzo.Code.Untyped.T__'8866'_14
-d_N'8322'_132
-  = coe
-      MAlonzo.Code.Untyped.C__'183'__22
-      (coe
-         MAlonzo.Code.Untyped.C_ƛ_20
-         (coe
-            MAlonzo.Code.Untyped.C_'96'_18
-            (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))
-      (coe
-         MAlonzo.Code.Untyped.C_constr_34 (coe (0 :: Integer))
-         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
--- VerifiedCompilation.UCSE.M₃
-d_M'8323'_136 :: MAlonzo.Code.Untyped.T__'8866'_14
-d_M'8323'_136
-  = coe
-      MAlonzo.Code.Untyped.C_constr_34 (coe (0 :: Integer))
-      (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)
--- VerifiedCompilation.UCSE.N₃
-d_N'8323'_138 :: MAlonzo.Code.Untyped.T__'8866'_14
-d_N'8323'_138
-  = coe
-      MAlonzo.Code.Untyped.C__'183'__22
-      (coe
-         MAlonzo.Code.Untyped.C_ƛ_20
-         (coe
-            MAlonzo.Code.Untyped.C_constr_34 (coe (0 :: Integer))
-            (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))
-      (coe MAlonzo.Code.Untyped.C_error_46)
+-- VerifiedCompilation.UCSE.applyN
+d_applyN_126 ::
+  Integer ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  MAlonzo.Code.Untyped.T__'8866'_14
+d_applyN_126 ~v0 v1 v2 = du_applyN_126 v1 v2
+du_applyN_126 ::
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  MAlonzo.Code.Untyped.T__'8866'_14
+du_applyN_126 v0 v1
+  = case coe v1 of
+      [] -> coe v0
+      (:) v2 v3
+        -> coe
+             du_applyN_126
+             (coe MAlonzo.Code.Untyped.C__'183'__22 (coe v0) (coe v2)) (coe v3)
+      _ -> MAlonzo.RTE.mazUnreachableError
+-- VerifiedCompilation.UCSE.HoistPoly
+d_HoistPoly_138 a0 a1 a2 a3 = ()
+data T_HoistPoly_138
+  = C_let'45''183'_150 T_HoistPoly_138 |
+    C_let'45'ƛ_160 MAlonzo.Code.Untyped.Purity.T_Pure_6
+                   T_HoistPoly_138 |
+    C_refl_168
+-- VerifiedCompilation.UCSE.dec-hoist
+d_dec'45'hoist_178 ::
+  Integer ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+d_dec'45'hoist_178 v0 v1 v2 v3
+  = let v4
+          = coe
+              MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
+              (coe
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du_ƛ'63'_1158
+                 (\ v4 ->
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                 (coe v3))
+              (coe
+                 MAlonzo.Code.VerifiedCompilation.UntypedViews.du__'8759''63'__2434
+                 (\ v4 ->
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                 (\ v4 ->
+                    coe MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                 (coe v1)) in
+    coe
+      (case coe v4 of
+         MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v5 v6
+           -> if coe v5
+                then case coe v6 of
+                       MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v7
+                         -> case coe v7 of
+                              MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v8 v9
+                                -> case coe v8 of
+                                     MAlonzo.Code.VerifiedCompilation.UntypedViews.C_ƛ'33'_876 v11
+                                       -> case coe v3 of
+                                            MAlonzo.Code.Untyped.C_ƛ_20 v12
+                                              -> coe
+                                                   seq (coe v11)
+                                                   (case coe v9 of
+                                                      MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'8759''33'__2426 v15 v16
+                                                        -> case coe v1 of
+                                                             (:) v17 v18
+                                                               -> coe
+                                                                    seq (coe v15)
+                                                                    (coe
+                                                                       seq (coe v16)
+                                                                       (let v19
+                                                                              = coe
+                                                                                  MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
+                                                                                  (coe
+                                                                                     MAlonzo.Code.Untyped.Purity.d_isPure'63'_72
+                                                                                     (coe v0)
+                                                                                     (coe v17))
+                                                                                  (coe
+                                                                                     d_dec'45'hoist_178
+                                                                                     (coe v0)
+                                                                                     (coe v18)
+                                                                                     (coe v2)
+                                                                                     (coe
+                                                                                        MAlonzo.Code.Untyped.RenamingSubstitution.d__'91'_'93'_478
+                                                                                        (coe v0)
+                                                                                        (coe v12)
+                                                                                        (coe
+                                                                                           v17))) in
+                                                                        coe
+                                                                          (case coe v19 of
+                                                                             MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v20 v21
+                                                                               -> if coe v20
+                                                                                    then case coe
+                                                                                                v21 of
+                                                                                           MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v22
+                                                                                             -> case coe
+                                                                                                       v22 of
+                                                                                                  MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v23 v24
+                                                                                                    -> coe
+                                                                                                         MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                         (coe
+                                                                                                            v20)
+                                                                                                         (coe
+                                                                                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                                            (coe
+                                                                                                               C_let'45'ƛ_160
+                                                                                                               v23
+                                                                                                               v24))
+                                                                                                  _ -> MAlonzo.RTE.mazUnreachableError
+                                                                                           _ -> MAlonzo.RTE.mazUnreachableError
+                                                                                    else coe
+                                                                                           seq
+                                                                                           (coe v21)
+                                                                                           (let v22
+                                                                                                  = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                                                      (coe
+                                                                                                         v0)
+                                                                                                      (coe
+                                                                                                         v2)
+                                                                                                      (coe
+                                                                                                         du_applyN_126
+                                                                                                         (coe
+                                                                                                            v3)
+                                                                                                         (coe
+                                                                                                            v1)) in
+                                                                                            coe
+                                                                                              (case coe
+                                                                                                      v22 of
+                                                                                                 MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v23 v24
+                                                                                                   -> if coe
+                                                                                                           v23
+                                                                                                        then coe
+                                                                                                               seq
+                                                                                                               (coe
+                                                                                                                  v24)
+                                                                                                               (coe
+                                                                                                                  MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                  (coe
+                                                                                                                     v23)
+                                                                                                                  (coe
+                                                                                                                     MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                                                     (coe
+                                                                                                                        C_refl_168)))
+                                                                                                        else coe
+                                                                                                               seq
+                                                                                                               (coe
+                                                                                                                  v24)
+                                                                                                               (coe
+                                                                                                                  MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                  (coe
+                                                                                                                     v23)
+                                                                                                                  (coe
+                                                                                                                     MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                                                                                 _ -> MAlonzo.RTE.mazUnreachableError))
+                                                                             _ -> MAlonzo.RTE.mazUnreachableError)))
+                                                             _ -> MAlonzo.RTE.mazUnreachableError
+                                                      _ -> MAlonzo.RTE.mazUnreachableError)
+                                            _ -> MAlonzo.RTE.mazUnreachableError
+                                     _ -> MAlonzo.RTE.mazUnreachableError
+                              _ -> MAlonzo.RTE.mazUnreachableError
+                       _ -> MAlonzo.RTE.mazUnreachableError
+                else coe
+                       seq (coe v6)
+                       (case coe v3 of
+                          MAlonzo.Code.Untyped.C_'96'_18 v7
+                            -> let v8
+                                     = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         (coe v0) (coe v2) (coe du_applyN_126 (coe v3) (coe v1)) in
+                               coe
+                                 (case coe v8 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
+                                      -> if coe v9
+                                           then coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                        (coe C_refl_168)))
+                                           else coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          MAlonzo.Code.Untyped.C_ƛ_20 v7
+                            -> let v8
+                                     = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         (coe v0) (coe v2) (coe du_applyN_126 (coe v3) (coe v1)) in
+                               coe
+                                 (case coe v8 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
+                                      -> if coe v9
+                                           then coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                        (coe C_refl_168)))
+                                           else coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          MAlonzo.Code.Untyped.C__'183'__22 v7 v8
+                            -> let v9
+                                     = coe
+                                         MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
+                                         (coe
+                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404)
+                                         (coe
+                                            MAlonzo.Code.VerifiedCompilation.UntypedViews.du_'8943'_2404) in
+                               coe
+                                 (case coe v9 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v10 v11
+                                      -> if coe v10
+                                           then case coe v11 of
+                                                  MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v12
+                                                    -> case coe v12 of
+                                                         MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v13 v14
+                                                           -> coe
+                                                                seq (coe v13)
+                                                                (coe
+                                                                   seq (coe v14)
+                                                                   (let v15
+                                                                          = d_dec'45'hoist_178
+                                                                              (coe v0)
+                                                                              (coe
+                                                                                 MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                                                                                 (coe v8) (coe v1))
+                                                                              (coe v2) (coe v7) in
+                                                                    coe
+                                                                      (case coe v15 of
+                                                                         MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v16 v17
+                                                                           -> if coe v16
+                                                                                then case coe v17 of
+                                                                                       MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v18
+                                                                                         -> coe
+                                                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                              (coe
+                                                                                                 v16)
+                                                                                              (coe
+                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                                 (coe
+                                                                                                    C_let'45''183'_150
+                                                                                                    v18))
+                                                                                       _ -> MAlonzo.RTE.mazUnreachableError
+                                                                                else coe
+                                                                                       seq (coe v17)
+                                                                                       (let v18
+                                                                                              = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                                                  (coe
+                                                                                                     v0)
+                                                                                                  (coe
+                                                                                                     v2)
+                                                                                                  (coe
+                                                                                                     du_applyN_126
+                                                                                                     (coe
+                                                                                                        v3)
+                                                                                                     (coe
+                                                                                                        v1)) in
+                                                                                        coe
+                                                                                          (case coe
+                                                                                                  v18 of
+                                                                                             MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v19 v20
+                                                                                               -> if coe
+                                                                                                       v19
+                                                                                                    then coe
+                                                                                                           seq
+                                                                                                           (coe
+                                                                                                              v20)
+                                                                                                           (coe
+                                                                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                              (coe
+                                                                                                                 v19)
+                                                                                                              (coe
+                                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                                                 (coe
+                                                                                                                    C_refl_168)))
+                                                                                                    else coe
+                                                                                                           seq
+                                                                                                           (coe
+                                                                                                              v20)
+                                                                                                           (coe
+                                                                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                              (coe
+                                                                                                                 v19)
+                                                                                                              (coe
+                                                                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                                                                             _ -> MAlonzo.RTE.mazUnreachableError))
+                                                                         _ -> MAlonzo.RTE.mazUnreachableError)))
+                                                         _ -> MAlonzo.RTE.mazUnreachableError
+                                                  _ -> MAlonzo.RTE.mazUnreachableError
+                                           else (let v12
+                                                       = seq
+                                                           (coe v11)
+                                                           (coe
+                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                              (coe v10)
+                                                              (coe
+                                                                 MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)) in
+                                                 coe
+                                                   (case coe v12 of
+                                                      MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v13 v14
+                                                        -> if coe v13
+                                                             then case coe v14 of
+                                                                    MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v15
+                                                                      -> case coe v15 of
+                                                                           MAlonzo.Code.VerifiedCompilation.UntypedViews.C__'183''33'__894 v18 v19
+                                                                             -> coe
+                                                                                  seq (coe v18)
+                                                                                  (coe
+                                                                                     seq (coe v19)
+                                                                                     (let v20
+                                                                                            = d_dec'45'hoist_178
+                                                                                                (coe
+                                                                                                   v0)
+                                                                                                (coe
+                                                                                                   MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                                                                                                   (coe
+                                                                                                      v8)
+                                                                                                   (coe
+                                                                                                      v1))
+                                                                                                (coe
+                                                                                                   v2)
+                                                                                                (coe
+                                                                                                   v7) in
+                                                                                      coe
+                                                                                        (case coe
+                                                                                                v20 of
+                                                                                           MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v21 v22
+                                                                                             -> if coe
+                                                                                                     v21
+                                                                                                  then case coe
+                                                                                                              v22 of
+                                                                                                         MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v23
+                                                                                                           -> coe
+                                                                                                                MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                (coe
+                                                                                                                   v21)
+                                                                                                                (coe
+                                                                                                                   MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                                                   (coe
+                                                                                                                      C_let'45''183'_150
+                                                                                                                      v23))
+                                                                                                         _ -> MAlonzo.RTE.mazUnreachableError
+                                                                                                  else coe
+                                                                                                         seq
+                                                                                                         (coe
+                                                                                                            v22)
+                                                                                                         (let v23
+                                                                                                                = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                                                                    (coe
+                                                                                                                       v0)
+                                                                                                                    (coe
+                                                                                                                       v2)
+                                                                                                                    (coe
+                                                                                                                       du_applyN_126
+                                                                                                                       (coe
+                                                                                                                          v3)
+                                                                                                                       (coe
+                                                                                                                          v1)) in
+                                                                                                          coe
+                                                                                                            (case coe
+                                                                                                                    v23 of
+                                                                                                               MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v24 v25
+                                                                                                                 -> if coe
+                                                                                                                         v24
+                                                                                                                      then coe
+                                                                                                                             seq
+                                                                                                                             (coe
+                                                                                                                                v25)
+                                                                                                                             (coe
+                                                                                                                                MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                                (coe
+                                                                                                                                   v24)
+                                                                                                                                (coe
+                                                                                                                                   MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                                                                   (coe
+                                                                                                                                      C_refl_168)))
+                                                                                                                      else coe
+                                                                                                                             seq
+                                                                                                                             (coe
+                                                                                                                                v25)
+                                                                                                                             (coe
+                                                                                                                                MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                                                                (coe
+                                                                                                                                   v24)
+                                                                                                                                (coe
+                                                                                                                                   MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                                                                                               _ -> MAlonzo.RTE.mazUnreachableError))
+                                                                                           _ -> MAlonzo.RTE.mazUnreachableError)))
+                                                                           _ -> MAlonzo.RTE.mazUnreachableError
+                                                                    _ -> MAlonzo.RTE.mazUnreachableError
+                                                             else coe
+                                                                    seq (coe v14)
+                                                                    (let v15
+                                                                           = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                               (coe v0) (coe v2)
+                                                                               (coe
+                                                                                  du_applyN_126
+                                                                                  (coe v3)
+                                                                                  (coe v1)) in
+                                                                     coe
+                                                                       (case coe v15 of
+                                                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v16 v17
+                                                                            -> if coe v16
+                                                                                 then coe
+                                                                                        seq
+                                                                                        (coe v17)
+                                                                                        (coe
+                                                                                           MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                           (coe v16)
+                                                                                           (coe
+                                                                                              MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                                                              (coe
+                                                                                                 C_refl_168)))
+                                                                                 else coe
+                                                                                        seq
+                                                                                        (coe v17)
+                                                                                        (coe
+                                                                                           MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                                                           (coe v16)
+                                                                                           (coe
+                                                                                              MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                                                          _ -> MAlonzo.RTE.mazUnreachableError))
+                                                      _ -> MAlonzo.RTE.mazUnreachableError))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          MAlonzo.Code.Untyped.C_force_24 v7
+                            -> let v8
+                                     = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         (coe v0) (coe v2) (coe du_applyN_126 (coe v3) (coe v1)) in
+                               coe
+                                 (case coe v8 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
+                                      -> if coe v9
+                                           then coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                        (coe C_refl_168)))
+                                           else coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          MAlonzo.Code.Untyped.C_delay_26 v7
+                            -> let v8
+                                     = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         (coe v0) (coe v2) (coe du_applyN_126 (coe v3) (coe v1)) in
+                               coe
+                                 (case coe v8 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
+                                      -> if coe v9
+                                           then coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                        (coe C_refl_168)))
+                                           else coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          MAlonzo.Code.Untyped.C_con_28 v7
+                            -> let v8
+                                     = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         (coe v0) (coe v2) (coe du_applyN_126 (coe v3) (coe v1)) in
+                               coe
+                                 (case coe v8 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
+                                      -> if coe v9
+                                           then coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                        (coe C_refl_168)))
+                                           else coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          MAlonzo.Code.Untyped.C_constr_34 v7 v8
+                            -> let v9
+                                     = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         (coe v0) (coe v2) (coe du_applyN_126 (coe v3) (coe v1)) in
+                               coe
+                                 (case coe v9 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v10 v11
+                                      -> if coe v10
+                                           then coe
+                                                  seq (coe v11)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v10)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                        (coe C_refl_168)))
+                                           else coe
+                                                  seq (coe v11)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v10)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          MAlonzo.Code.Untyped.C_case_40 v7 v8
+                            -> let v9
+                                     = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         (coe v0) (coe v2) (coe du_applyN_126 (coe v3) (coe v1)) in
+                               coe
+                                 (case coe v9 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v10 v11
+                                      -> if coe v10
+                                           then coe
+                                                  seq (coe v11)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v10)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                        (coe C_refl_168)))
+                                           else coe
+                                                  seq (coe v11)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v10)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          MAlonzo.Code.Untyped.C_builtin_44 v7
+                            -> let v8
+                                     = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         (coe v0) (coe v2) (coe du_applyN_126 (coe v3) (coe v1)) in
+                               coe
+                                 (case coe v8 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v9 v10
+                                      -> if coe v9
+                                           then coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                        (coe C_refl_168)))
+                                           else coe
+                                                  seq (coe v10)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v9)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          MAlonzo.Code.Untyped.C_error_46
+                            -> let v7
+                                     = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         (coe v0) (coe v2) (coe du_applyN_126 (coe v3) (coe v1)) in
+                               coe
+                                 (case coe v7 of
+                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v8 v9
+                                      -> if coe v8
+                                           then coe
+                                                  seq (coe v9)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v8)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22
+                                                        (coe C_refl_168)))
+                                           else coe
+                                                  seq (coe v9)
+                                                  (coe
+                                                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                                                     (coe v8)
+                                                     (coe
+                                                        MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
+                                    _ -> MAlonzo.RTE.mazUnreachableError)
+                          _ -> MAlonzo.RTE.mazUnreachableError)
+         _ -> MAlonzo.RTE.mazUnreachableError)
+-- VerifiedCompilation.UCSE..extendedlambda3
+d_'46'extendedlambda3_250 ::
+  Integer ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  T_HoistPoly_138 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda3_250 = erased
+-- VerifiedCompilation.UCSE..extendedlambda4
+d_'46'extendedlambda4_346 ::
+  Integer ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  (T_HoistPoly_138 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  T_HoistPoly_138 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda4_346 = erased
+-- VerifiedCompilation.UCSE..extendedlambda5
+d_'46'extendedlambda5_386 ::
+  Integer ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T__'183''7510'__884 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  T_HoistPoly_138 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda5_386 = erased
+-- VerifiedCompilation.UCSE.polyNumSites
+d_polyNumSites_400 ::
+  Integer ->
+  [MAlonzo.Code.Untyped.T__'8866'_14] ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 -> T_HoistPoly_138 -> Integer
+d_polyNumSites_400 ~v0 ~v1 ~v2 v3 v4 = du_polyNumSites_400 v3 v4
+du_polyNumSites_400 ::
+  MAlonzo.Code.Untyped.T__'8866'_14 -> T_HoistPoly_138 -> Integer
+du_polyNumSites_400 v0 v1
+  = case coe v1 of
+      C_let'45''183'_150 v6
+        -> case coe v0 of
+             MAlonzo.Code.Untyped.C__'183'__22 v7 v8
+               -> coe
+                    addInt (coe (1 :: Integer))
+                    (coe du_polyNumSites_400 (coe v7) (coe v6))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      C_let'45'ƛ_160 v6 v7 -> coe (0 :: Integer)
+      C_refl_168 -> coe (0 :: Integer)
+      _ -> MAlonzo.RTE.mazUnreachableError
