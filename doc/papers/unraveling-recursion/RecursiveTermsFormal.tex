@@ -22,13 +22,10 @@ functions.
   \Lambda Q . 
   \lambda (k : F\ Q) . 
   r\ f\ \{ Q \}\ (f\ \{ Q \}\ k)))\\
-
   \selk{k}(\seq{T}) &=& \lambda (\seq{x:T}) . x_k\\
-
   \by(\seq{T}) &=& \lambda (r : \forall Q . (\seqFunArr{T}{Q}) \rightarrow Q) . \Lambda Q. 
   \lambda (k : \seqFunArr{T}{Q}).
   k\ \seq{\fixed{r}\ \{ \fixed{Q} \}\ (\selk{j} \fixed{(\seq{T})})}^j\\
-
   \fixml(\seq{T}) &=& \fixBy\ \{ \lambda Q . \seqFunArr{T}{Q} \}\ \by(\seq{T})\\
   \\
   \multicolumn{3}{l}{\textsc{Compilation function}}\\
