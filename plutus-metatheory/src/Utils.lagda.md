@@ -17,10 +17,11 @@ open import Data.Nat.Properties
                using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm;+-identityʳ)
 open import Relation.Binary using (Decidable)
 import Data.Integer as I
+import Data.Integer.Properties
 import Data.List as L
-import Data.Bool.ListAction as ListAction
+open import Data.Product using (_,_)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
-open import Relation.Nullary using (Dec;yes;no;¬_)
+open import Relation.Nullary using (Dec;yes;no;¬_;isYes;map′;_×-dec_)
 open import Data.Empty using (⊥;⊥-elim)
 open import Data.Integer using (ℤ; +_)
 open import Data.String using (String)
@@ -29,6 +30,7 @@ open import Data.Maybe using (Maybe; just; nothing; maybe)
                            renaming (_>>=_ to mbind) public
 open import Data.Unit using (⊤)
 open import Level using (_⊔_)
+open import Agda.Builtin.TrustMe using (primTrustMe)
 
 {-# FOREIGN GHC import Raw #-}
 
@@ -211,11 +213,56 @@ postulate ByteString : Set
 postulate
   mkByteString : String → ByteString
 
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
-eqByteString : ByteString → ByteString → Bool
-eqByteString _ _ = Bool.true
-{-# COMPILE GHC eqByteString = (==) #-}
+eqByteString? : (b₁ b₂ : ByteString) → Dec (b₁ ≡ b₂)
+eqByteString? b₁ b₂ with primTrustMe {Agda.Primitive.lzero} {ByteString} {b₁} {b₂}
+... | refl = yes refl
+
+```
+### Equality of postulated types
+
+`ByteString` (like the BLS12-381 element types and `Value` below) is postulated, so at
+type-checking time we may only rely on Agda's unification algorithm to decide equality
+of its values. The decision procedures for these types (`eqByteString?`,
+`eqBls12-381-G1-Element?`, `eqBls12-381-G2-Element?`, `eqBls12-381-MlResult?`, `eqValue?`)
+do this by matching on `primTrustMe`, which reduces to `refl` exactly when the two sides
+are definitionally equal.
+
+Let's look at the behavior of `eqByteString? (mkByteString "foo") (mkByteString "foo")` vs
+`eqByteString? (mkByteString "foo") (mkByteString "bar")`.
+
+At type-checking time, if the two bytestrings are definitionally equal unification will
+succeed, and the function will return `yes refl`.
+
+```
+_ : isYes (eqByteString? (mkByteString "") (mkByteString "")) ≡ true
+_ = refl
+```
+
+There is no way to return `no` because there is no way to prove that the two
+terms are not equal without extra information about the `ByteString` type. But
+this is enough to make Agda not successfully type-check the program, since it
+gets stuck while trying to normalize `primTrustMe`:
+
+```
+-- The following does not type check because reduction gets stuck
+-- _ : isYes (eqByteString? (mkByteString "foo") (mkByteString "bar")) ≡ false
+-- _ = refl
+```
+
+So even though these procedures can never produce a negative proof, they are still *safe*
+checkers at type-checking time: they either answer `yes` correctly or refuse to reduce.
+
+These decision procedures cannot be used for runtime equality checks: at runtime the
+values `≡` depends on are erased and `primTrustMe` is compiled to `refl`, so the compiled
+code always takes the `yes` branch. Runtime equality of postulated types instead goes
+through Bool-valued wrappers such as `eqByteStringᵇ`, whose `COMPILE GHC` pragma replaces
+the Agda definition with Haskell's `(==)` (see also `HsEq` in `Untyped.Equality`).
+
+```
+
+eqByteStringᵇ : ByteString → ByteString → Bool
+eqByteStringᵇ b₁ b₂ = isYes (eqByteString? b₁ b₂)
+{-# COMPILE GHC eqByteStringᵇ = (==) #-}
 
 ```
 ## Record Types
@@ -329,77 +376,104 @@ data DATA : Set where
 {-# FOREIGN GHC import PlutusCore.Data as D #-}
 {-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
 
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
-{-# TERMINATING #-}
+eqDATA? : (d₁ d₂ : DATA) → Dec (d₁ ≡ d₂)
+eqListDATA? : (l₁ l₂ : List DATA) → Dec (l₁ ≡ l₂)
+eqPairDATA? : (p₁ p₂ : DATA × DATA) → Dec (p₁ ≡ p₂)
+eqListPairDATA? : (l₁ l₂ : List (DATA × DATA)) → Dec (l₁ ≡ l₂)
+
+eqDATA? (ConstrDATA i₁ l₁) (ConstrDATA i₂ l₂) =
+  map′ (λ { (p , q) → cong₂ ConstrDATA p q })
+       (λ { refl → refl , refl })
+       ((i₁ Data.Integer.Properties.≟ i₂) ×-dec eqListDATA? l₁ l₂)
+eqDATA? (ConstrDATA _ _) (MapDATA _) = no λ ()
+eqDATA? (ConstrDATA _ _) (ListDATA _) = no λ ()
+eqDATA? (ConstrDATA _ _) (iDATA _) = no λ ()
+eqDATA? (ConstrDATA _ _) (bDATA _) = no λ ()
+eqDATA? (MapDATA _) (ConstrDATA _ _) = no λ ()
+eqDATA? (MapDATA m₁) (MapDATA m₂) =
+  map′ (cong MapDATA) (λ { refl → refl }) (eqListPairDATA? m₁ m₂)
+eqDATA? (MapDATA _) (ListDATA _) = no λ ()
+eqDATA? (MapDATA _) (iDATA _) = no λ ()
+eqDATA? (MapDATA _) (bDATA _) = no λ ()
+eqDATA? (ListDATA _) (ConstrDATA _ _) = no λ ()
+eqDATA? (ListDATA _) (MapDATA _) = no λ ()
+eqDATA? (ListDATA l₁) (ListDATA l₂) =
+  map′ (cong ListDATA) (λ { refl → refl }) (eqListDATA? l₁ l₂)
+eqDATA? (ListDATA _) (iDATA _) = no λ ()
+eqDATA? (ListDATA _) (bDATA _) = no λ ()
+eqDATA? (iDATA _) (ConstrDATA _ _) = no λ ()
+eqDATA? (iDATA _) (MapDATA _) = no λ ()
+eqDATA? (iDATA _) (ListDATA _) = no λ ()
+eqDATA? (iDATA i₁) (iDATA i₂) =
+  map′ (cong iDATA) (λ { refl → refl }) (i₁ Data.Integer.Properties.≟ i₂)
+eqDATA? (iDATA _) (bDATA _) = no λ ()
+eqDATA? (bDATA _) (ConstrDATA _ _) = no λ ()
+eqDATA? (bDATA _) (MapDATA _) = no λ ()
+eqDATA? (bDATA _) (ListDATA _) = no λ ()
+eqDATA? (bDATA _) (iDATA _) = no λ ()
+eqDATA? (bDATA b₁) (bDATA b₂) =
+  map′ (cong bDATA) (λ { refl → refl }) (eqByteString? b₁ b₂)
+
+eqListDATA? [] [] = yes refl
+eqListDATA? [] (_ ∷ _) = no λ ()
+eqListDATA? (_ ∷ _) [] = no λ ()
+eqListDATA? (x₁ ∷ l₁) (x₂ ∷ l₂) =
+  map′ (λ { (p , q) → cong₂ _∷_ p q })
+       (λ { refl → refl , refl })
+       (eqDATA? x₁ x₂ ×-dec eqListDATA? l₁ l₂)
+
+eqPairDATA? (x₁ , y₁) (x₂ , y₂) =
+  map′ (λ { (p , q) → cong₂ _,_ p q })
+       (λ { refl → refl , refl })
+       (eqDATA? x₁ x₂ ×-dec eqDATA? y₁ y₂)
+
+eqListPairDATA? [] [] = yes refl
+eqListPairDATA? [] (_ ∷ _) = no λ ()
+eqListPairDATA? (_ ∷ _) [] = no λ ()
+eqListPairDATA? (p₁ ∷ l₁) (p₂ ∷ l₂) =
+  map′ (λ { (p , q) → cong₂ _∷_ p q })
+       (λ { refl → refl , refl })
+       (eqPairDATA? p₁ p₂ ×-dec eqListPairDATA? l₁ l₂)
+
 eqDATA : DATA → DATA → Bool
-eqDATA (ConstrDATA i₁ l₁) (ConstrDATA i₂ l₂) =
-    (Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂))
-  Data.Bool.∧
-    ListAction.and (L.zipWith eqDATA (toList l₁) (toList l₂))
-eqDATA (ConstrDATA x x₁) (MapDATA x₂) = Bool.false
-eqDATA (ConstrDATA x x₁) (ListDATA x₂) = Bool.false
-eqDATA (ConstrDATA x x₁) (iDATA x₂) = Bool.false
-eqDATA (ConstrDATA x x₁) (bDATA x₂) = Bool.false
-eqDATA (MapDATA x) (ConstrDATA x₁ x₂) = Bool.false
-eqDATA (MapDATA m₁) (MapDATA m₂) =
-  ListAction.and
-    (L.zipWith
-      (λ (x₁ , y₁) (x₂ , y₂) → eqDATA x₁ x₂ Data.Bool.∧ eqDATA y₁ y₂)
-      (toList m₁)
-      (toList m₂)
-    )
-eqDATA (MapDATA x) (ListDATA x₁) = Bool.false
-eqDATA (MapDATA x) (iDATA x₁) = Bool.false
-eqDATA (MapDATA x) (bDATA x₁) = Bool.false
-eqDATA (ListDATA x) (ConstrDATA x₁ x₂) = Bool.false
-eqDATA (ListDATA x) (MapDATA x₁) = Bool.false
-eqDATA (ListDATA x) (ListDATA x₁) = ListAction.and (L.zipWith eqDATA (toList x) (toList x₁))
-eqDATA (ListDATA x) (iDATA x₁) = Bool.false
-eqDATA (ListDATA x) (bDATA x₁) = Bool.false
-eqDATA (iDATA x) (ConstrDATA x₁ x₂) = Bool.false
-eqDATA (iDATA x) (MapDATA x₁) = Bool.false
-eqDATA (iDATA x) (ListDATA x₁) = Bool.false
-eqDATA (iDATA i₁) (iDATA i₂) = Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂)
-eqDATA (iDATA x) (bDATA x₁) = Bool.false
-eqDATA (bDATA x) (ConstrDATA x₁ x₂) = Bool.false
-eqDATA (bDATA x) (MapDATA x₁) = Bool.false
-eqDATA (bDATA x) (ListDATA x₁) = Bool.false
-eqDATA (bDATA x) (iDATA x₁) = Bool.false
--- Warning: eqByteString is always trivially true at the Agda level.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
-eqDATA (bDATA b₁) (bDATA b₂) = eqByteString b₁ b₂
+eqDATA d₁ d₂ = isYes (eqDATA? d₁ d₂)
 {-# COMPILE GHC eqDATA = (==) #-}
 
 postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}
 {-# COMPILE GHC Bls12-381-G1-Element = type G1.Element #-}
 
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
-eqBls12-381-G1-Element : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
-eqBls12-381-G1-Element _ _ = Bool.true
-{-# COMPILE GHC eqBls12-381-G1-Element = (==) #-}
+eqBls12-381-G1-Element? : (b₁ b₂ : Bls12-381-G1-Element) → Dec (b₁ ≡ b₂)
+eqBls12-381-G1-Element? b₁ b₂ with primTrustMe {Agda.Primitive.lzero} {Bls12-381-G1-Element} {b₁} {b₂}
+... | refl = yes refl
+
+eqBls12-381-G1-Elementᵇ : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
+eqBls12-381-G1-Elementᵇ b₁ b₂ = isYes (eqBls12-381-G1-Element? b₁ b₂)
+{-# COMPILE GHC eqBls12-381-G1-Elementᵇ = (==) #-}
 
 postulate Bls12-381-G2-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G2 as G2 #-}
 {-# COMPILE GHC Bls12-381-G2-Element = type G2.Element #-}
 
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
-eqBls12-381-G2-Element : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
-eqBls12-381-G2-Element _ _ = Bool.true
-{-# COMPILE GHC eqBls12-381-G2-Element = (==) #-}
+eqBls12-381-G2-Element? : (b₁ b₂ : Bls12-381-G2-Element) → Dec (b₁ ≡ b₂)
+eqBls12-381-G2-Element? b₁ b₂ with primTrustMe {Agda.Primitive.lzero} {Bls12-381-G2-Element} {b₁} {b₂}
+... | refl = yes refl
+
+eqBls12-381-G2-Elementᵇ : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
+eqBls12-381-G2-Elementᵇ b₁ b₂ = isYes (eqBls12-381-G2-Element? b₁ b₂)
+{-# COMPILE GHC eqBls12-381-G2-Elementᵇ = (==) #-}
 
 postulate Bls12-381-MlResult : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing #-}
 {-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
 
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
-eqBls12-381-MlResult : Bls12-381-MlResult → Bls12-381-MlResult → Bool
-eqBls12-381-MlResult _ _ = Bool.true
-{-# COMPILE GHC eqBls12-381-MlResult = (==) #-}
+eqBls12-381-MlResult? : (b₁ b₂ : Bls12-381-MlResult) → Dec (b₁ ≡ b₂)
+eqBls12-381-MlResult? b₁ b₂ with primTrustMe {Agda.Primitive.lzero} {Bls12-381-MlResult} {b₁} {b₂}
+... | refl = yes refl
+
+eqBls12-381-MlResultᵇ : Bls12-381-MlResult → Bls12-381-MlResult → Bool
+eqBls12-381-MlResultᵇ b₁ b₂ = isYes (eqBls12-381-MlResult? b₁ b₂)
+{-# COMPILE GHC eqBls12-381-MlResultᵇ = (==) #-}
 ```
 
 ## Value
@@ -415,11 +489,13 @@ postulate Value : Set
 ```
 
 ```
--- Agda implementation should only be used as part of deciding builtin equality.
--- See "Decidable Equality of Builtins" in "Untyped.Equality".
-eqValue : Value → Value → Bool
-eqValue _ _ = Bool.true
-{-# COMPILE GHC eqValue = (==) #-}
+eqValue? : (v₁ v₂ : Value) → Dec (v₁ ≡ v₂)
+eqValue? v₁ v₂ with primTrustMe {Agda.Primitive.lzero} {Value} {v₁} {v₂}
+... | refl = yes refl
+
+eqValueᵇ : Value → Value → Bool
+eqValueᵇ v₁ v₂ = isYes (eqValue? v₁ v₂)
+{-# COMPILE GHC eqValueᵇ = (==) #-}
 ```
 
 ### Constructing constants of type Value

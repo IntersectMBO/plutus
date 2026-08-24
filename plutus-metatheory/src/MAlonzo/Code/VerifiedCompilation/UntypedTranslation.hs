@@ -1610,7 +1610,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                       -> case coe v11 of
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v12
                                              -> let v13
-                                                      = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_48
+                                                      = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_76
                                                           (coe v7) (coe v9) in
                                                 coe
                                                   (case coe v13 of

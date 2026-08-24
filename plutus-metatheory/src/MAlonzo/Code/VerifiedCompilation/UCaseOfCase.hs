@@ -482,7 +482,7 @@ d_isCoCForce'63'_162 v0 v1
                                                                                                                                                                                                            (coe
                                                                                                                                                                                                               MAlonzo.Code.Data.List.Properties.du_'8801''45'dec_60
                                                                                                                                                                                                               (coe
-                                                                                                                                                                                                                 MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                                                                                                                                                                 MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_84
                                                                                                                                                                                                                  (coe
                                                                                                                                                                                                                     v0))
                                                                                                                                                                                                               (coe
@@ -632,7 +632,7 @@ d_isCoC'63'_264 v0 v1 v2
                                                                                                                                                                = coe
                                                                                                                                                                    MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'215''45'dec__84
                                                                                                                                                                    (coe
-                                                                                                                                                                      MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                                                                                                                                                      MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_84
                                                                                                                                                                       (coe
                                                                                                                                                                          v0)
                                                                                                                                                                       (coe

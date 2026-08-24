@@ -47,6 +47,7 @@ open import Builtin.Constant.AtomicType using (decAtomicTyCon)
 open import Agda.Builtin.TrustMe using (primTrustMe)
 open import Agda.Builtin.String using (String; primStringEquality)
 open import Agda.Builtin.Unit using (⊤)
+
 ```
 Instances of `DecEq` will provide a Decidable Equality procedure for their type.
 
@@ -73,13 +74,14 @@ record HsEq (A : Set) : Set where
     hsEq : A → A → Bool
 open HsEq {{...}} public
 
--- This uses the same mechanism as eqBytestring.
--- This is only used in the decidable equality function which also
--- uses `refl` to unify the two sides and defacto confirms or refutes
--- structural equality.
-eqArray : {A : Set} → {{HE : HasEq A}} → U.Array A → U.Array A → Bool
-eqArray _ _ = Bool.true
-{-# COMPILE GHC eqArray = \ _ HasEq -> (==) #-}
+eqArray? : {A : Set} (b₁ b₂ : U.Array A) → Dec (b₁ ≡ b₂)
+eqArray? {A} a₁ a₂ with primTrustMe {Agda.Primitive.lzero} {U.Array A} {a₁} {a₂}
+... | refl = yes refl
+
+eqArrayᵇ : {A : Set} {{HE : HasEq A}} → U.Array A → U.Array A → Bool
+eqArrayᵇ a₁ a₂ = isYes (eqArray? a₁ a₂)
+{-# COMPILE GHC eqArrayᵇ = \ _ HasEq -> (==) #-}
+
 
 ```
 Several of the decision procedures depend on other `DecEq` instances, so it is useful
@@ -237,23 +239,23 @@ fromDec = record { hsEq = λ x₁ x₂ → isYes (x₁ ≟ x₂) }
 
 instance
   HsEqBytestring : HsEq U.ByteString
-  HsEqBytestring = record { hsEq = U.eqByteString }
+  HsEqBytestring = record { hsEq = U.eqByteStringᵇ }
   HsEqArray : {A : Set} {{HE : HasEq A}} → HsEq (U.Array A)
-  HsEqArray {{HE = HE}} = record { hsEq = eqArray {{HE}}}
+  HsEqArray {{HE = HE}} = record { hsEq = eqArrayᵇ {{HE}}}
   HsEqList : {A : Set} {{DE : DecEq A}} → HsEq (U.List A)
   HsEqList = fromDec
   HsEqPair : {A B : Set} {{DE-A : DecEq A}} {{DE-B : DecEq B}} → HsEq (A × B)
   HsEqPair = fromDec
   HsEqBlsG1 : HsEq U.Bls12-381-G1-Element
-  HsEqBlsG1 = record { hsEq = U.eqBls12-381-G1-Element }
+  HsEqBlsG1 = record { hsEq = U.eqBls12-381-G1-Elementᵇ }
   HsEqBlsG2 : HsEq U.Bls12-381-G2-Element
-  HsEqBlsG2 = record { hsEq = U.eqBls12-381-G2-Element }
+  HsEqBlsG2 = record { hsEq = U.eqBls12-381-G2-Elementᵇ }
   HsEqBlsMlResult : HsEq U.Bls12-381-MlResult
-  HsEqBlsMlResult = record { hsEq = U.eqBls12-381-MlResult }
+  HsEqBlsMlResult = record { hsEq = U.eqBls12-381-MlResultᵇ }
   HsEqDATA : HsEq U.DATA
   HsEqDATA = record { hsEq = U.eqDATA }
   HsEqValue : HsEq U.Value
-  HsEqValue = record { hsEq = U.eqValue }
+  HsEqValue = record { hsEq = U.eqValueᵇ }
 
 HsEq-⟦_⟧tag : (t : TyTag) → HsEq ⟦ t ⟧tag
 HsEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = fromDec
@@ -271,47 +273,6 @@ HsEq-⟦ _⊢♯.array t ⟧tag = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTa
 HsEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag = HsEqPair {A = ⟦ t₁ ⟧tag} {B = ⟦ t₂ ⟧tag} {{DE-A = DecEq-⟦ t₁ ⟧tag}} {{DE-B = DecEq-⟦ t₂ ⟧tag}}
 ```
 
-## An example
-
-```
-private postulate
-  magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
-
-builtinEq : {A : Set} {{HS : HsEq A}} → Binary.Decidable {A = A} _≡_
-builtinEq {A} x y with hsEq x y
-... | false = no magicNeg
-... | true with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
-...             | refl = yes refl
-```
-
-Let's look at the behavior of `builtinEq (mkByteString "foo") (mkByteString "foo")` vs
-`builtinEq (mkByteString "foo") (mkByteString "bar")`.
-
-
-At type-checking time, if the two bytestrings are definitionally equal unification will succeed,
-and the function will return `yes refl`.
-
-```
-_ : isYes (builtinEq (U.mkByteString "") (U.mkByteString "")) ≡ true
-_ = refl
-```
-
-There is no way to return `no` because there is no way to prove that the two
-terms are not equal without extra information about the `ByteString` type. But
-this is enough to make Agda not succesfully type-check the program, since it
-gets stuck while trying to normalize `primTrustMe`:
-
-```
--- The following does not type check because reduction gets stuck
--- _ : isNo (builtinEq (U.mkByteString "foo") (U.mkByteString "bar")) ≡ false
--- _ = refl
-```
-
-At runtime, `hsEq` will defer to the Haskell implementation of bytestring equality, and return
-the correct result based on that. In the `yes` case, matching on `refl` will be a no-op,
-while in the `no` case, we return a phony negative proof. This is safe to do because we're
-at runtime and the proof gets erased anyway.
-
 ```
 -- This is split out because the HTML generator can't handle double nested instance arguments!
 hsEqArrayHelper : (t : TyTag) → HsEq (U.Array ⟦ t ⟧tag)
@@ -320,7 +281,7 @@ hsEqArrayHelper t = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}}
 decEq-Array-⟦_⟧tag :
                      (t : TyTag)
                      → DecidableEquality ⟦ _⊢♯.array t ⟧tag
-decEq-Array-⟦ t ⟧tag = builtinEq {A = U.Array ⟦ t ⟧tag} {{HS = hsEqArrayHelper t}}
+decEq-Array-⟦ t ⟧tag = eqArray? 
 ```
 # Decidable Equality for TmCon
 
@@ -330,15 +291,15 @@ type tag and semantics equality decision procedures.
 ```
 
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = Data.Integer.Properties._≟_
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = U.eqByteString?
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = Data.String.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = Data.Unit.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = Data.Bool.Properties._≟_
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = builtinEq
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = builtinEq
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = builtinEq
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = builtinEq
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = U.eqDATA?
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = U.eqValue?
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = U.eqBls12-381-G1-Element?
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = U.eqBls12-381-G2-Element?
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = U.eqBls12-381-MlResult?
 decEq-⟦ _⊢♯.list t ⟧tag U.[] U.[] = yes refl
 decEq-⟦ _⊢♯.list t ⟧tag U.[] (x U.∷ v₁) = no λ ()
 decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) U.[] = no (λ ())

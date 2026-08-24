@@ -49,10 +49,10 @@ data T_'9839'Kinded_40
   = C_'9839'_42 | C_K'9839'_48 T_'9839'Kinded_40
 -- Algorithmic.lemma♯Kinded
 d_lemma'9839'Kinded_58 ::
-  MAlonzo.Code.Utils.T_Kind_782 ->
-  MAlonzo.Code.Utils.T_Kind_782 ->
-  MAlonzo.Code.Utils.T_Kind_782 ->
-  MAlonzo.Code.Utils.T_Kind_782 ->
+  MAlonzo.Code.Utils.T_Kind_878 ->
+  MAlonzo.Code.Utils.T_Kind_878 ->
+  MAlonzo.Code.Utils.T_Kind_878 ->
+  MAlonzo.Code.Utils.T_Kind_878 ->
   T_'9839'Kinded_40 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Ne'8902'__6 ->
   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
@@ -172,11 +172,11 @@ data T__'8866'__184
     C__'183'__202 MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
                   T__'8866'__184 T__'8866'__184 |
     C_Λ_208 T__'8866'__184 |
-    C__'183''8902'_'47'__218 MAlonzo.Code.Utils.T_Kind_782
+    C__'183''8902'_'47'__218 MAlonzo.Code.Utils.T_Kind_878
                              MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 T__'8866'__184
                              MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 |
     C_wrap_226 T__'8866'__184 |
-    C_unwrap_236 MAlonzo.Code.Utils.T_Kind_782
+    C_unwrap_236 MAlonzo.Code.Utils.T_Kind_878
                  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
                  MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 T__'8866'__184 |
     C_constr_246 MAlonzo.Code.Data.Fin.Base.T_Fin_10

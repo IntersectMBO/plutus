@@ -105,7 +105,7 @@ d__'8799''7611'__50 v0 v1 v2
                -> let v7 = d__'8799''7611'__50 (coe v0) (coe v3) (coe v5) in
                   coe
                     (let v8
-                           = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                           = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_84
                                (coe v0) (coe v4) (coe v6) in
                      coe
                        (case coe v7 of
@@ -214,7 +214,7 @@ d__'8799''7611''7611'__148 v0 v1 v2 v3 v4
                          -> case coe v4 of
                               C_keep_114 v17
                                 -> let v18
-                                         = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_84
                                              (coe v0) (coe v11) (coe v11) in
                                    coe
                                      (let v19
@@ -250,7 +250,7 @@ d__'8799''7611''7611'__148 v0 v1 v2 v3 v4
                          -> case coe v4 of
                               C_drop_122 v17
                                 -> let v18
-                                         = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_56
+                                         = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_84
                                              (coe v0) (coe v11) (coe v11) in
                                    coe
                                      (let v19
@@ -612,7 +612,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_con_28 v10
                          -> let v11
-                                  = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_48
+                                  = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_76
                                       (coe v9) (coe v10) in
                             coe
                               (case coe v11 of
