@@ -3,31 +3,39 @@
 
 module PlutusTx.Ual.Parser
   ( parseBlock
+  , moduleUalFromSource
   ) where
 
 import Prelude
 
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Read qualified as Text.Read
 import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (..))
 import PlutusTx.Ual.Error (UalError (..))
+import PlutusTx.Ual.Lexer (lexModule)
 import PlutusTx.Ual.Syntax
   ( ArgumentEncoding (..)
   , BlockKind (..)
   , ExecutionBudget (..)
+  , LexedModule (..)
+  , ModuleUal (..)
   , OnchainDecl (..)
+  , PropertyDecl (..)
   , RawBlock (..)
   , UalArgument (..)
   , UalBlock (..)
+  , UalModuleName
+  , emptyModuleUal
   )
 
 parseBlock :: RawBlock -> Either UalError UalBlock
 parseBlock rb = case rawKind rb of
   KOnchain -> BOnchain <$> parseOnchain (rawLine rb) (rawBody rb)
-  KPredicate -> Left (MalformedBlock (rawLine rb) "PREDICATE not implemented yet")
-  KProperty -> Left (MalformedBlock (rawLine rb) "PROPERTY not implemented yet")
-  KUplcData -> Left (MalformedBlock (rawLine rb) "UPLC_DATA not implemented yet")
+  KPredicate -> Right (BPredicate (rawBody rb))
+  KProperty -> BProperty <$> parseProperty (rawLine rb) (rawBody rb)
+  KUplcData -> BUplcData <$> parseUplcData (rawLine rb) (rawBody rb)
 
 ----------------------------------------------------------------------------------------------------
 -- ONCHAIN -----------------------------------------------------------------------------------------
@@ -156,3 +164,84 @@ parseEncoding line = \case
   "asScott" -> Right AsScott
   other ->
     Left (MalformedBlock line ("unknown encoding '" <> other <> "'; expected asData or asScott"))
+
+----------------------------------------------------------------------------------------------------
+-- UPLC_DATA ---------------------------------------------------------------------------------------
+
+parseUplcData :: Int -> Text -> Either UalError Text
+parseUplcData line body = case Text.words body of
+  [n] -> Right n
+  _ -> Left (MalformedBlock line "expected exactly one type name")
+
+----------------------------------------------------------------------------------------------------
+-- PROPERTY ----------------------------------------------------------------------------------------
+
+{-| @name "natural language" : formal statement@
+
+The natural-language string is required: the assurance document's
+@statement.text@ is REQUIRED and there is no other source for it. A colon
+inside it is not mistaken for the separator, because the name ends at whichever
+of @"@ and @:@ comes first.
+
+Only that quote and that colon are located; the text around them is not
+validated. The name is whatever precedes the opening quote, so @"t" : True@
+parses with an empty name and @p q "t" : True@ with the name @"p q"@, and an
+empty formal statement is accepted. Checking either would need an identifier
+grammar, and this parser fixes none: several surface languages reach it. -}
+parseProperty :: Int -> Text -> Either UalError PropertyDecl
+parseProperty line body = do
+  let afterName = Text.stripStart body
+      (name, rest0) = Text.break (\c -> c == '"' || c == ':') afterName
+  (text, rest1) <- takeQuoted line (Text.stripStart rest0)
+  formal <- case Text.stripPrefix ":" (Text.stripStart rest1) of
+    Nothing -> Left (MalformedBlock line "expected ':' before the formal statement")
+    Just f -> Right (Text.strip f)
+  pure
+    MkPropertyDecl
+      { propertyName = Text.strip name
+      , propertyText = text
+      , propertyBody = formal
+      , propertyLine = line
+      }
+
+{-| Take a @"…"@ literal, ending it at the first closing quote.
+
+Backslash escapes are not recognised, so an escaped quote inside the statement
+ends the literal early and the rest of it is then read as the separator and the
+formal statement; that usually fails, but it can also parse to something
+wrong. A natural-language sentence has no need of an escaped quote, so this is
+left as it is rather than diagnosed. A quote in the /formal/ statement is
+unaffected: everything after the colon is taken verbatim. -}
+takeQuoted :: Int -> Text -> Either UalError (Text, Text)
+takeQuoted line t = case Text.stripPrefix "\"" t of
+  Nothing ->
+    Left (MalformedBlock line "expected a quoted natural-language statement after the name")
+  Just afterOpen -> case Text.breakOn "\"" afterOpen of
+    (_, rest) | Text.null rest -> Left (MalformedBlock line "unterminated string literal")
+    (inside, rest) -> Right (Text.strip (unwrapLines inside), Text.drop 1 rest)
+  where
+    -- A statement may be wrapped across source lines; collapse every run of
+    -- whitespace, newlines included, to a single space.
+    unwrapLines = Text.unwords . Text.words
+
+----------------------------------------------------------------------------------------------------
+-- Assembly ----------------------------------------------------------------------------------------
+
+{-| Lex and parse a whole surface module. @fallbackName@ is used when the source
+has no @module@ header. -}
+moduleUalFromSource :: UalModuleName -> Text -> Either UalError ModuleUal
+moduleUalFromSource fallbackName src = do
+  lexed <- lexModule src
+  blocks <- traverse parseBlock (lexedBlocks lexed)
+  let base =
+        (emptyModuleUal (fromMaybe fallbackName (lexedModuleName lexed)))
+          { ualModuleImports = lexedImports lexed
+          }
+  pure (foldl addBlock base blocks)
+  where
+    -- Appends keep source order; the lists are short.
+    addBlock m = \case
+      BOnchain d -> m {ualOnchain = ualOnchain m <> [d]}
+      BPredicate b -> m {ualPredicates = ualPredicates m <> [b]}
+      BProperty d -> m {ualProperties = ualProperties m <> [d]}
+      BUplcData n -> m {ualUplcData = ualUplcData m <> [n]}
