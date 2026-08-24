@@ -97,10 +97,22 @@ that is not part of this slice.
 
 ### 4.1 Syntax
 
-UAL blocks are `{-@ … -@}` comments, as specified in the UAL doc. Comments,
-rather than Template Haskell quasi-quotes or `ANN` pragmas, because UAL is
-*universal*: the same block must be writable in Aiken and Scalus sources, and a
-Haskell-specific surface would defeat that.
+UAL blocks are comments, rather than Template Haskell quasi-quotes or `ANN`
+pragmas, because UAL is *universal*: the same block must be writable in Aiken and
+Scalus sources, and a Haskell-specific surface would defeat that.
+
+**The delimiter is `{-@ … @-}`, not the UAL doc's `{-@ … -@}`.** The doc's
+closing delimiter does not compile: `-@}` contains no `-}`, so GHC reports
+`unterminated '{-' at end of input`. Verified:
+
+```
+$ printf 'module D1 where\n{-@ ONCHAIN foo -@}\nfoo :: Int\nfoo = 1\n' > D1.hs
+$ ghc -fno-code D1.hs
+D1.hs:2:1: error: [GHC-21231] unterminated `{-' at end of input
+```
+
+`{-@ … @-}` compiles (it is an ordinary Haskell block comment, and the same form
+Liquid Haskell uses). Recorded as a UAL doc correction in §9.
 
 Four block kinds, per UAL doc §2. Two carry headers this design parses; two are
 pass-through:
@@ -110,13 +122,13 @@ pass-through:
     mintingContract :: { CurrencySymbol : asData }
                     -> { ScriptContext  : asData }
                     -> ()
--@}
+@-}
 
-{-@ UPLC_DATA SellDatum -@}
+{-@ UPLC_DATA SellDatum @-}
 
 {-@ PREDICATE
 def sellerIsPaid (input : SpendingInput) : Prop := …
--@}
+@-}
 
 {-@ PROPERTY minting_success_imp_withdrawal
       "A successful mint implies the minting logic appears in the withdrawal map."
@@ -124,8 +136,11 @@ def sellerIsPaid (input : SpendingInput) : Prop := …
         validScriptContext ctx →
         isSuccessful (mintingContract cs ctx) →
         isMintingScriptInfo ctx
--@}
+@-}
 ```
+
+A block body may not contain the sequence `@-}`; the lexer terminates at the
+first occurrence.
 
 The `PROPERTY` natural-language string is **new**, added to UAL by this design.
 It is required: the assurance CIP makes `statement.text` REQUIRED and rests its
@@ -203,10 +218,8 @@ already makes for `id`:
   "compiledCode": "…",
   "hash": "…",
   "arguments": [
-    { "name": "pparamsCs", "encoding": "asData",
-      "schema": { "$ref": "#/definitions/CurrencySymbol" } },
-    { "name": "ctx", "encoding": "asData",
-      "schema": { "$ref": "#/definitions/ScriptContext" } }
+    { "encoding": "asData", "schema": { "$ref": "#/definitions/CurrencySymbol" } },
+    { "encoding": "asData", "schema": { "$ref": "#/definitions/ScriptContext"  } }
   ],
   "budget": { "exCPU": 1883313, "exMem": 12342 }
 }
@@ -227,6 +240,10 @@ Design notes, each a correction to an earlier draft:
   terms the program is applied to. CIP-57 splits `parameters` / `datum` /
   `redeemer` and leaves `ScriptContext` implicit; a wrapper must apply the
   program to concrete terms in order.
+- **Entries are positional and carry no `name`.** UAL's refined signature gives
+  argument *types*, not names, and `reify` does not expose a Haskell function's
+  parameter names — so there is no source for a name and inventing one would be
+  a lie. Slice 2 generates wrapper parameter names itself.
 - **`version` is not stored per validator.** UAL's `[version: PlutusV3]`
   overlaps `preamble.plutusVersion`. Storing it twice invites disagreement;
   `Resolve` validates agreement instead. This is a deliberate limitation, not
@@ -481,10 +498,20 @@ work.
    module M2 … the elaborated Lean4 module M2Predicates will import Lean4 module
    M1Predicates". M1 depends on M2, so `M1Predicates` imports `M2Predicates`.
    §6's `formalFragments.imports` implements the correct direction.
-3. **§2.4 needs the natural-language field** added in §4.1.
-4. §2.2's `PlutusV4` and §2.3's `IsScott` are ahead of the Lean implementation
+3. **The closing delimiter `-@}` does not compile.** §2.2, §2.3 and §2.4 all use
+   `{-@ … -@}`; `-@}` contains no `-}`, so GHC rejects the file with
+   `unterminated '{-' at end of input`. §2.1's example already uses the correct
+   `@-}`. Standardise on `{-@ … @-}` throughout (§4.1). Aiken and Scalus use
+   different comment syntaxes, so each surface language needs its own delimiter
+   pair anyway; the doc should say so rather than imply one spelling works
+   everywhere.
+4. **§2.4 needs the natural-language field** added in §4.1.
+5. **§2.2's refined signature has no argument names**, so nothing downstream can
+   name them; §5 records that the blueprint's `arguments` entries are positional
+   in consequence.
+6. §2.2's `PlutusV4` and §2.3's `IsScott` are ahead of the Lean implementation
    (§8.4).
-5. The open comment thread on §2.1 — "why would users write that in Lean instead
+7. The open comment thread on §2.1 — "why would users write that in Lean instead
    of their original language?" — is recorded as decided in favour of UAL for
    now. Nothing in this design forecloses a Haskell-to-Lean predicate compiler
    later: it would be an additional front end producing the same
