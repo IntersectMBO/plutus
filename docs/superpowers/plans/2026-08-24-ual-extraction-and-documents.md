@@ -433,7 +433,7 @@ import Ual.Spec qualified
 
 and add `Ual.Spec.tests` as the last entry of the `tests` list (after `Blueprint.Definition.Spec.tests`).
 
-In `plutus-tx/plutus-tx.cabal`, add to the `library` stanza's `exposed-modules`, keeping alphabetical order (they sort after `PlutusTx.TH`):
+In `plutus-tx/plutus-tx.cabal`, add to the `library` stanza's `exposed-modules`, keeping the list alphabetical — `PlutusTx.Ual.*` sorts between `PlutusTx.Traversable` and `PlutusTx.Utils`:
 
 ```
     PlutusTx.Ual.Error
