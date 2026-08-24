@@ -14,9 +14,9 @@ import Data.Text qualified as Text
 
 -- | Everything that can go wrong in any UAL phase, with a source line where known.
 data UalError
-  = -- | Line of the opening @{-\@@ that was never closed.
+  = -- | Line of the opening @{\-\@@ that was never closed.
     UnterminatedBlock Int
-  | -- | Line, and the unrecognised keyword that followed @{-\@@.
+  | -- | Line, and the unrecognised keyword that followed @{\-\@@.
     UnknownBlockKind Int Text
   | -- | Line, and what the parser expected.
     MalformedBlock Int Text

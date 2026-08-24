@@ -34,14 +34,14 @@ would clash. -}
 data BlockKind = KOnchain | KPredicate | KProperty | KUplcData
   deriving stock (Eq, Ord, Show)
 
-{-| A @{-\@@ … @\@-}@ block exactly as the lexer found it: the kind keyword, and
+{-| A @{\-\@@ … @\@-\}@ block exactly as the lexer found it: the kind keyword, and
 everything after it, untouched. -}
 data RawBlock = MkRawBlock
   { rawKind :: BlockKind
   , rawBody :: Text
   -- ^ Everything after the kind keyword, verbatim, with no trimming.
   , rawLine :: Int
-  -- ^ 1-based line of the opening @{-\@@.
+  -- ^ 1-based line of the opening @{\-\@@.
   }
   deriving stock (Eq, Show)
 
@@ -103,11 +103,11 @@ this module too and has the same four variants, so the bare names would
 clash. -}
 data UalBlock
   = BOnchain OnchainDecl
-  | BPredicate Text
-  -- ^ The body, verbatim.
+  | -- | The body, verbatim.
+    BPredicate Text
   | BProperty PropertyDecl
-  | BUplcData Text
-  -- ^ The type name.
+  | -- | The type name.
+    BUplcData Text
   deriving stock (Eq, Show)
 
 -- | Everything one surface module contributes.
