@@ -602,8 +602,11 @@ This is the guarantee the whole pass-through design rests on. -}
 bodyRoundTrip :: Property
 bodyRoundTrip = property $ do
   body <- forAll $ Gen.filter (not . Text.isInfixOf "@-}") (Gen.text (Range.linear 0 200) Gen.unicode)
-  let src = "{-@ PREDICATE" <> body <> "@-}"
-  (fmap rawBody . lexedBlocks) <$> lexModule src === Right [body]
+  -- The space after the keyword is required: without it the keyword and the
+  -- start of the body run together into one word and the block kind is
+  -- unrecognised. The lexer keeps that separator, so it is part of the body.
+  let src = "{-@ PREDICATE " <> body <> "@-}"
+  (fmap rawBody . lexedBlocks) <$> lexModule src === Right [" " <> body]
 ```
 
 - [ ] **Step 8: Run it**
