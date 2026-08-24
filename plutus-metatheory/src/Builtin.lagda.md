@@ -507,7 +507,6 @@ postulate
   lengthBS                    : ByteString → Int
   index                       : ByteString → Int → Int
 
-  TRACE                       : {a : Set} → String → a → a
 
   concat                      : ByteString → ByteString → ByteString
   cons                        : Int → ByteString → Maybe ByteString
@@ -608,8 +607,6 @@ postulate
 -- no binding needed for lessthaneq
 -- no binding needed for equals
 
-
-{-# COMPILE GHC TRACE = \_ s -> trace (Text.unpack s) #-}
 {-# COMPILE GHC concat = BS.append #-}
 {-# COMPILE GHC SHA2-256 = Hash.sha2_256 #-}
 {-# COMPILE GHC SHA3-256 = Hash.sha3_256 #-}
