@@ -422,8 +422,13 @@ document types and writer; the CIP revisions of §8.3; the UAL doc corrections o
 3. `[version: …]` agrees with `preamble.plutusVersion`.
 4. Every `formal.uses` entry names an existing fragment; fragment `imports` form
    a DAG.
-5. Property `id`s are unique within the document (a CIP consumer obligation, so
-   the producer must not emit violations).
+5. Property `id`s are unique within the document, and each one matches the
+   meta-schema's `^[A-Za-z0-9_-]+$` (both are CIP consumer obligations, so the
+   producer must not emit violations). The two halves are checked in different
+   phases: the pattern in `Ual.Parser`, the only phase that still has a source
+   line to report against, and uniqueness at assembly time, where the whole set
+   is known. Without the pattern check a name like `p q` parses happily and
+   surfaces much later as a JSON-schema error against a generated file.
 6. Every `UPLC_DATA` type has a `HasBlueprintDefinition` instance, so it will
    appear in `definitions`.
 7. Every `ONCHAIN` name has a blueprint entry whose `validatorId` matches, every
