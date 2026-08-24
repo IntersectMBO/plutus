@@ -29,6 +29,16 @@ You are working in the `plutus` monorepo (IntersectMBO/plutus). Things you need 
       (tasty's `-p` filters by test-name pattern)
   Never `git add cabal.project.ual` or `.ual-build.log` — both are local scaffolding.
   Run every command from the repo root, `/Users/romainsoulat/plutus`.
+- **This toolchain is GHC 9.8.4, which the repo does not support.** `CONTRIBUTING.adoc`
+  lists 9.6 (primary) and 9.12; golden files are keyed by GHC version, so on 9.8
+  the version-keyed golden tests under `plutus-tx/test/{Enum,Eq,Ord}/Golden/`
+  *create* new baselines instead of comparing, and pass vacuously. Delete any
+  `Golden/9.8/` directory that appears rather than committing it.
+  Two consequences for this plan: the UAL golden files we add live in
+  `plutus-tx/test/Ual/Golden/` and are deliberately **not** version-keyed, so they
+  do compare properly; and code that compiles here has not been checked on 9.6 or
+  9.12, so final verification belongs to CI. Do not use a 9.8-only language
+  feature or a base-4.19-only API.
 - **`plutus-tx` uses `NoImplicitPrelude`** by default (see the `common lang` stanza in `plutus-tx/plutus-tx.cabal`). Every new module in `src/` must `import Prelude` explicitly. Existing blueprint modules all do this — copy that style.
 - **`-Wall -Wunused-packages` and warnings are errors in CI.** Do not add a `build-depends` entry you do not use, and do not leave an unused import.
 - **Golden tests**: `goldenVsText name goldenFilePath actualText` from `Test.Tasty.Extras`. On first run with no golden file, `tasty-golden` writes it — inspect it before committing. To regenerate deliberately, delete the file and re-run.
