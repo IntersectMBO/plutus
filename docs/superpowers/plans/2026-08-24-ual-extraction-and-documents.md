@@ -3310,6 +3310,17 @@ git commit --no-verify -m "docs: UAL spec corrections and the list to hand back 
 
 ## Notes on things that will bite
 
+**`splitArrows` is naive, and that is caught later rather than earlier.**
+`Text.splitOn "->"` mis-splits a parenthesised function type: `f :: (A -> B) -> C`
+yields arguments `["(A", "B)"]`. The plan's Haddock justifies the naive split by
+brace groups, which does not cover parens. This is not silently wrong end-to-end:
+Task 8's `typeOfName` rejects any type text containing `(`, `)`, `,`, `[` or `]`
+that is not a plain name or a list of one, so such a signature fails at splice
+time with "only a plain type name or a list of one is supported in an ONCHAIN
+signature". A higher-order argument cannot be `asData`-encoded anyway, so
+rejecting it is correct — just make sure the rejection stays in `typeOfName` when
+touching Task 8, because it is what turns a mis-split into an error.
+
 **Constructor naming.** Single-constructor records use the package's `Mk`
 prefix (`MkRawBlock`, `MkModuleUal`, …), matching every record in the
 neighbouring `PlutusTx.Blueprint.*` tree. The `K` and `B` prefixes on
