@@ -30,7 +30,13 @@ tests =
           @?= Right (Just (UalModuleName "Foo.Bar"))
     , testCase "no module header" $
         lexedModuleName <$> lexModule "x = 1\n" @?= Right Nothing
-    , testCase "imports, plain and qualified and aliased" $
+    , testCase "module name with an export list" $
+        lexedModuleName <$> lexModule "module Foo.Bar (x, y) where\n"
+          @?= Right (Just (UalModuleName "Foo.Bar"))
+    , testCase "module name with an export list and no space before it" $
+        lexedModuleName <$> lexModule "module Foo.Bar(x, y) where\n"
+          @?= Right (Just (UalModuleName "Foo.Bar"))
+    , testCase "imports: plain, qualified, aliased, and with an import list" $
         lexedImports
           <$> lexModule
             ( Text.unlines
@@ -38,16 +44,19 @@ tests =
                 , "import Foo.Bar"
                 , "import qualified Baz.Qux as Q"
                 , "import Data.Text (Text)"
+                , "import Data.Set(Set)"
                 , "x = 1"
-                , "import NotAnImport.Because.Indented"
                 ]
             )
           @?= Right
             [ UalModuleName "Foo.Bar"
             , UalModuleName "Baz.Qux"
             , UalModuleName "Data.Text"
-            , UalModuleName "NotAnImport.Because.Indented"
+            , UalModuleName "Data.Set"
             ]
+    , testCase "an indented import is collected too, deliberately" $
+        lexedImports <$> lexModule "module M where\n    import Foo.Bar\n"
+          @?= Right [UalModuleName "Foo.Bar"]
     , testCase "one block of each kind, in source order" $
         (fmap rawKind . lexedBlocks)
           <$> lexModule
@@ -66,6 +75,10 @@ tests =
         (fmap rawLine . lexedBlocks)
           <$> lexModule "module M where\n\n{-@ ONCHAIN a @-}\nx = 1\n{-@ PROPERTY b @-}\n"
           @?= Right [3, 5]
+    , testCase "a multi-line body advances the line count for later blocks" $
+        (fmap rawLine . lexedBlocks)
+          <$> lexModule "{-@ PREDICATE a\nb\nc @-}\n{-@ PROPERTY d @-}\n"
+          @?= Right [1, 4]
     , testCase "unterminated block reports the opening line" $
         lexModule "module M where\n{-@ ONCHAIN a -@}\n" @?= Left (UnterminatedBlock 2)
     , testCase "unknown kind reports the keyword" $

@@ -28,21 +28,24 @@ import PlutusTx.Blueprint.Validator (ArgumentEncoding (..), ExecutionBudget (..)
 newtype UalModuleName = UalModuleName Text
   deriving stock (Eq, Ord, Show, Lift)
 
+{-| Which kind of UAL block this is. The @K@ prefix is load-bearing: 'UalBlock'
+lives in this module too and has the same four variants, so the bare names
+would clash. -}
 data BlockKind = KOnchain | KPredicate | KProperty | KUplcData
   deriving stock (Eq, Ord, Show)
 
-{-| A @{-@@ … @@-}@ block exactly as the lexer found it: the kind keyword, and
+{-| A @{-\@@ … @\@-}@ block exactly as the lexer found it: the kind keyword, and
 everything after it, untouched. -}
-data RawBlock = RawBlock
+data RawBlock = MkRawBlock
   { rawKind :: BlockKind
   , rawBody :: Text
   -- ^ Everything after the kind keyword, verbatim, with no trimming.
   , rawLine :: Int
-  -- ^ 1-based line of the opening @{-@@.
+  -- ^ 1-based line of the opening @{-\@@.
   }
   deriving stock (Eq, Show)
 
-data LexedModule = LexedModule
+data LexedModule = MkLexedModule
   { lexedModuleName :: Maybe UalModuleName
   , lexedImports :: [UalModuleName]
   , lexedBlocks :: [RawBlock]
@@ -51,7 +54,7 @@ data LexedModule = LexedModule
 
 {-| One argument of an @ONCHAIN@ refined signature, as written. Positional: UAL
 gives types, not names. -}
-data UalArgument = UalArgument
+data UalArgument = MkUalArgument
   { argTypeName :: Text
   -- ^ Source text of the type, e.g. @"CurrencySymbol"@.
   , argEncoding :: ArgumentEncoding
@@ -59,29 +62,33 @@ data UalArgument = UalArgument
   deriving stock (Eq, Show, Lift)
 
 {-| A 'UalArgument' whose type name has been resolved to a blueprint definition
-id. Produced only by the TH splice, which is the only place that has the type
-itself. No 'Lift' instance — see the note in Task 1 Step 2. -}
-data ResolvedArgument = ResolvedArgument
+id. Produced only by the Template Haskell splice, which is the only place that
+has the Haskell type to hand.
+
+No 'Lift' instance, deliberately: 'DefinitionId' does not export its
+constructor, so a stock-derived instance would splice a name that is out of
+scope at the use site. Callers that need to lift this build it field by
+field. -}
+data ResolvedArgument = MkResolvedArgument
   { resolvedEncoding :: ArgumentEncoding
   , resolvedDefinitionId :: DefinitionId
   }
   deriving stock (Eq, Show)
 
-data OnchainDecl = OnchainDecl
+data OnchainDecl = MkOnchainDecl
   { onchainName :: Text
   , onchainArgs :: [UalArgument]
   , onchainResult :: Text
-  -- ^ Source text of the result type. Unused in this slice; the generator needs it.
+  -- ^ Source text of the result type.
   , onchainVersion :: Maybe PlutusVersion
   , onchainBudget :: Maybe ExecutionBudget
   , onchainLine :: Int
   , onchainResolvedArgs :: [ResolvedArgument]
-  {-^ Empty as the parser produces it; filled by
-  'PlutusTx.Ual.TH.ualModule'. -}
+  -- ^ Empty as the parser produces it; the Template Haskell splice fills it in.
   }
   deriving stock (Eq, Show)
 
-data PropertyDecl = PropertyDecl
+data PropertyDecl = MkPropertyDecl
   { propertyName :: Text
   , propertyText :: Text
   -- ^ The natural-language statement.
@@ -91,7 +98,9 @@ data PropertyDecl = PropertyDecl
   }
   deriving stock (Eq, Show, Lift)
 
--- | A parsed UAL block.
+{-| A parsed UAL block. The @B@ prefix is load-bearing: 'BlockKind' lives in
+this module too and has the same four variants, so the bare names would
+clash. -}
 data UalBlock
   = BOnchain OnchainDecl
   | BPredicate Text
@@ -102,7 +111,7 @@ data UalBlock
   deriving stock (Eq, Show)
 
 -- | Everything one surface module contributes.
-data ModuleUal = ModuleUal
+data ModuleUal = MkModuleUal
   { ualModuleName :: UalModuleName
   , ualModuleImports :: [UalModuleName]
   , ualOnchain :: [OnchainDecl]
@@ -114,4 +123,4 @@ data ModuleUal = ModuleUal
   deriving stock (Eq, Show)
 
 emptyModuleUal :: UalModuleName -> ModuleUal
-emptyModuleUal n = ModuleUal n [] [] [] [] []
+emptyModuleUal n = MkModuleUal n [] [] [] [] []

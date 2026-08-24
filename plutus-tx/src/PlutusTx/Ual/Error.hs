@@ -14,9 +14,9 @@ import Data.Text qualified as Text
 
 -- | Everything that can go wrong in any UAL phase, with a source line where known.
 data UalError
-  = -- | Line of the opening @{-@@ that was never closed.
+  = -- | Line of the opening @{-\@@ that was never closed.
     UnterminatedBlock Int
-  | -- | Line, and the unrecognised keyword that followed @{-@@.
+  | -- | Line, and the unrecognised keyword that followed @{-\@@.
     UnknownBlockKind Int Text
   | -- | Line, and what the parser expected.
     MalformedBlock Int Text
@@ -46,18 +46,27 @@ renderUalError = \case
     atLine l "unterminated '{-@' block: no '@-}' found"
   UnknownBlockKind l kw ->
     atLine l $
-      "unknown UAL block kind " <> squote kw
+      "unknown UAL block kind "
+        <> squote kw
         <> "; expected one of ONCHAIN, PREDICATE, PROPERTY, UPLC_DATA"
   MalformedBlock l what ->
     atLine l $ "malformed UAL block: " <> what
   UnresolvedOnchainName n why ->
     "ONCHAIN " <> squote n <> ": " <> why
   ArityMismatch n declared actual ->
-    "ONCHAIN " <> squote n <> ": signature declares " <> tshow declared
-      <> " argument(s) but the Haskell type has " <> tshow actual
+    "ONCHAIN "
+      <> squote n
+      <> ": signature declares "
+      <> tshow declared
+      <> " argument(s) but the Haskell type has "
+      <> tshow actual
   VersionMismatch n declared preamble ->
-    "ONCHAIN " <> squote n <> ": declares version " <> declared
-      <> " but the blueprint preamble says " <> preamble
+    "ONCHAIN "
+      <> squote n
+      <> ": declares version "
+      <> declared
+      <> " but the blueprint preamble says "
+      <> preamble
   NoValidatorForOnchain n ->
     "ONCHAIN " <> squote n <> ": no validator in the blueprint has this id"
   OrphanValidatorArguments vid ->

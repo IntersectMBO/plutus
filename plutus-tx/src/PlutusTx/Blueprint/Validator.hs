@@ -27,7 +27,13 @@ import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (..))
 {-| How an applied argument is serialised into a UPLC term.
 
 Not part of CIP-0057: the blueprint's @datum@/@redeemer@/@parameters@ schemas say
-what an argument *is*, not how it reaches the program. -}
+what an argument *is*, not how it reaches the program.
+
+This type and 'ExecutionBudget' live in this module, rather than alongside the
+rest of the UAL syntax in @PlutusTx.Ual.Syntax@, because they are serialised
+into the blueprint and @PlutusTx.Ual.Syntax@ imports this module; putting them
+there would make the two modules mutually recursive. They therefore also join
+the @PlutusTx.Blueprint@ umbrella re-export. -}
 data ArgumentEncoding = AsData | AsScott
   deriving stock (Show, Eq, Ord, Lift)
 
@@ -36,7 +42,13 @@ instance ToJSON ArgumentEncoding where
     AsData -> "asData"
     AsScott -> "asScott"
 
--- | An on-chain execution budget, in Plutus cost-model units.
+{-| An on-chain execution budget, in Plutus cost-model units.
+
+Deliberately not @PlutusCore.Evaluation.Machine.ExBudget.ExBudget@: that type's
+fields are @SatInt@-backed newtypes tied to the evaluator's costing
+representation; its JSON keys are @exBudgetCPU@ and @exBudgetMemory@ rather than
+the @exCPU@ and @exMem@ this document format needs; and it has no 'Ord'. Plain
+'Integer' fields keep this a document type. -}
 data ExecutionBudget = MkExecutionBudget
   { budgetCPU :: Integer
   , budgetMemory :: Integer
