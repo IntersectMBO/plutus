@@ -481,9 +481,10 @@ import PlutusTx.Ual.Syntax
 blockOpen :: Text
 blockOpen = "{-@"
 
-{-| Note the spelling. The UAL design doc writes @-@}@, which is not a Haskell
-comment terminator (it contains no @-}@) and makes the enclosing file fail to
-lex with "unterminated '{-'". -}
+{-| Note the spelling: at-sign, dash, closing brace. The UAL design doc writes
+the closer the other way round (dash, at-sign, closing brace), which is not a
+Haskell comment terminator at all, and makes the enclosing source file fail to
+lex with an unterminated-comment error. -}
 blockClose :: Text
 blockClose = "@-}"
 
@@ -3285,6 +3286,17 @@ git commit --no-verify -m "docs: UAL spec corrections and the list to hand back 
 ---
 
 ## Notes on things that will bite
+
+**Never write a bare `-}` inside a Haskell block comment.** This bites when
+documenting UAL's own delimiters: `{-| … @-}@ … -}` terminates at the *first*
+`-}`, leaving the rest of the comment as top-level code and producing a parse
+error. Spell the delimiters out in words instead ("at-sign, dash, closing
+brace"), or use a line comment. Task 1 hit this in the plan's own Haddock text.
+
+**Mind operator fixity in test assertions.** `<$>` is `infixl 4` and Hedgehog's
+`===` is `infix 4`, so `f <$> g x === expected` is a parse error; parenthesise the
+left side. HUnit's `@?=` is `infix 1` and needs no parentheses, which is why the
+unit tests in these tasks are written without them.
 
 **`ContractBlueprint` is existential.** You cannot pattern-match a validator out
 of it and keep its `referencedTypes` index. Any test that inspects a validator
