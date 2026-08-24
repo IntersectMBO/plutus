@@ -122,6 +122,9 @@ library
     PlutusTx.These
     PlutusTx.Trace
     PlutusTx.Traversable
+    PlutusTx.Ual.Error
+    PlutusTx.Ual.Lexer
+    PlutusTx.Ual.Syntax
     PlutusTx.Utils
 
   other-modules:
@@ -239,6 +242,8 @@ test-suite plutus-tx-test
     Rational.Laws.Ring
     Rational.Laws.Serialization
     Show.Spec
+    Ual.Lexer.Spec
+    Ual.Spec
 
   hs-source-dirs: test
   build-depends:

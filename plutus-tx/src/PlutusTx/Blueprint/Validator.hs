@@ -18,10 +18,36 @@ import Data.Kind (Type)
 import Data.List.NonEmpty qualified as NE
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
+import Language.Haskell.TH.Syntax (Lift)
 import PlutusCore.Crypto.Hash (blake2b_224)
 import PlutusTx.Blueprint.Argument (ArgumentBlueprint)
 import PlutusTx.Blueprint.Parameter (ParameterBlueprint)
 import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (..))
+
+{-| How an applied argument is serialised into a UPLC term.
+
+Not part of CIP-0057: the blueprint's @datum@/@redeemer@/@parameters@ schemas say
+what an argument *is*, not how it reaches the program. -}
+data ArgumentEncoding = AsData | AsScott
+  deriving stock (Show, Eq, Ord, Lift)
+
+instance ToJSON ArgumentEncoding where
+  toJSON = \case
+    AsData -> "asData"
+    AsScott -> "asScott"
+
+-- | An on-chain execution budget, in Plutus cost-model units.
+data ExecutionBudget = MkExecutionBudget
+  { budgetCPU :: Integer
+  , budgetMemory :: Integer
+  }
+  deriving stock (Show, Eq, Ord, Lift)
+
+instance ToJSON ExecutionBudget where
+  toJSON MkExecutionBudget {..} =
+    buildObject $
+      requiredField "exCPU" budgetCPU
+        . requiredField "exMem" budgetMemory
 
 {-| A blueprint of a validator, as defined by the CIP-0057
 

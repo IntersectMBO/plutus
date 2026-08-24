@@ -13,7 +13,7 @@ import Data.Aeson (ToJSON (..))
 | This version corresponds to the "Plutus Ledger Language Version"
 | defined by the plutus-tx-plugin. -}
 data PlutusVersion = PlutusV1 | PlutusV2 | PlutusV3 | PlutusV4
-  deriving stock (Show)
+  deriving stock (Show, Eq)
 
 instance ToJSON PlutusVersion where
   toJSON = \case
