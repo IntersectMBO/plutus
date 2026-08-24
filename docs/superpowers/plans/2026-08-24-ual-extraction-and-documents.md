@@ -1670,11 +1670,11 @@ integerRef = Aeson.toJSON (definitionRef @Integer :: Schema '[Ticket, Integer])
 
 Two things to check while writing this:
 
-- Confirm the module that exports `definitionId`:
-  `grep -rn "definitionId ::" plutus-tx/src/PlutusTx/Blueprint/Definition/`
-  It is a `HasBlueprintDefinition` class method; import it from wherever the grep
-  points, and note that `PlutusTx.Blueprint.Definition` re-exports the module, so
-  importing from there may be tidier.
+- `definitionId` is a `HasBlueprintDefinition` class method declared in
+  `PlutusTx.Blueprint.Definition.Unroll` and re-exported by
+  `PlutusTx.Blueprint.Definition`. Import it from the latter, alongside
+  `definitionRef` and `deriveDefinitions`, and drop the separate
+  `PlutusTx.Blueprint.Definition.Unroll` import from the list above.
 - Add `vector` to the test suite's `build-depends`.
 
 Note the "duplicate validator ids" case relies on `validatorTitle` differing
@@ -2129,7 +2129,6 @@ module PlutusTx.Assurance.Write
 
 import Prelude
 
-import Crypto.Hash.SHA256 qualified as SHA256
 import Data.Aeson (toJSON)
 import Data.Aeson.Encode.Pretty (encodePretty')
 import Data.Aeson.Encode.Pretty qualified as Pretty
@@ -2138,6 +2137,7 @@ import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as LBS
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
+import PlutusCore.Crypto.Hash (sha2_256)
 import PlutusTx.Assurance.Document (AssuranceDocument, BlueprintRef (..), Digest (..))
 
 writeAssurance :: FilePath -> AssuranceDocument -> IO ()
@@ -2196,20 +2196,14 @@ blueprintRef uri path = do
     MkBlueprintRef
       { blueprintUri = uri
       , blueprintHash =
-          Just (MkDigest "sha256" (Text.decodeUtf8 (Base16.encode (SHA256.hash bytes))))
+          Just (MkDigest "sha256" (Text.decodeUtf8 (Base16.encode (sha2_256 bytes))))
       }
 ```
 
-`Crypto.Hash.SHA256` comes from `cryptohash-sha256`. Check whether it is already
-available to `plutus-tx`:
-
-Run: `grep -n "cryptohash-sha256\|cryptonite\|crypton" plutus-tx/plutus-tx.cabal plutus-core/plutus-core.cabal | head`
-
-If it is not a `plutus-tx` dependency, prefer whatever hashing package
-`plutus-core` already pulls in over adding a new one, and adjust the import. If
-neither is available, use `PlutusCore.Crypto.Hash` (already used by
-`PlutusTx.Blueprint.Validator` for `blake2b_224`) and change the digest `alg` to
-`"blake2b-256"` if it exposes that; the CIP does not fix the algorithm.
+**On the hashing:** `PlutusCore.Crypto.Hash` already exports `sha2_256`, next to
+the `blake2b_224` that `PlutusTx.Blueprint.Validator` imports from it, and
+`base16-bytestring` is already a `plutus-tx` library dependency. **Add no new
+package** — in particular do not reach for `cryptohash-sha256` or `crypton`.
 
 Create `plutus-tx/src/PlutusTx/Assurance.hs`:
 
@@ -2220,8 +2214,9 @@ import PlutusTx.Assurance.Document as X
 import PlutusTx.Assurance.Write as X
 ```
 
-Add all three modules to `exposed-modules`, add `base16-bytestring` and the
-chosen hashing package to the library's `build-depends` if not already there.
+Add all three modules to `exposed-modules`. No `build-depends` change is needed:
+`aeson-pretty`, `base16-bytestring`, `bytestring` and `text` are all already
+`plutus-tx` library dependencies.
 
 - [ ] **Step 5: Run to verify pass and inspect the golden file**
 
@@ -2833,9 +2828,10 @@ die :: UalError -> TH.Q a
 die = fail . Text.unpack . renderUalError
 ```
 
-Confirm where `definitionId` comes from before writing the import:
-
-Run: `grep -rn "definitionId ::" plutus-tx/src/PlutusTx/Blueprint/Definition/`
+`definitionId` is a `HasBlueprintDefinition` class method re-exported by
+`PlutusTx.Blueprint.Definition`, so the import is
+`import PlutusTx.Blueprint.Definition (definitionId)` — not the `.Unroll`
+submodule.
 
 Create `plutus-tx/src/PlutusTx/Ual.hs`:
 
