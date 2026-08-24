@@ -242,7 +242,7 @@ data BlockKind = KOnchain | KPredicate | KProperty | KUplcData
 
 {-| A @{-@@ … @@-}@ block exactly as the lexer found it: the kind keyword, and
 everything after it, untouched. -}
-data RawBlock = RawBlock
+data RawBlock = MkRawBlock
   { rawKind :: BlockKind
   , rawBody :: Text
   -- ^ Everything after the kind keyword, verbatim, with no trimming.
@@ -251,7 +251,7 @@ data RawBlock = RawBlock
   }
   deriving stock (Eq, Show)
 
-data LexedModule = LexedModule
+data LexedModule = MkLexedModule
   { lexedModuleName :: Maybe UalModuleName
   , lexedImports :: [UalModuleName]
   , lexedBlocks :: [RawBlock]
@@ -260,7 +260,7 @@ data LexedModule = LexedModule
 
 {-| One argument of an @ONCHAIN@ refined signature, as written. Positional: UAL
 gives types, not names. -}
-data UalArgument = UalArgument
+data UalArgument = MkUalArgument
   { argTypeName :: Text
   -- ^ Source text of the type, e.g. @"CurrencySymbol"@.
   , argEncoding :: ArgumentEncoding
@@ -270,13 +270,13 @@ data UalArgument = UalArgument
 {-| A 'UalArgument' whose type name has been resolved to a blueprint definition
 id. Produced only by the TH splice, which is the only place that has the type
 itself. No 'Lift' instance — see the note in Task 1 Step 2. -}
-data ResolvedArgument = ResolvedArgument
+data ResolvedArgument = MkResolvedArgument
   { resolvedEncoding :: ArgumentEncoding
   , resolvedDefinitionId :: DefinitionId
   }
   deriving stock (Eq, Show)
 
-data OnchainDecl = OnchainDecl
+data OnchainDecl = MkOnchainDecl
   { onchainName :: Text
   , onchainArgs :: [UalArgument]
   , onchainResult :: Text
@@ -290,7 +290,7 @@ data OnchainDecl = OnchainDecl
   }
   deriving stock (Eq, Show)
 
-data PropertyDecl = PropertyDecl
+data PropertyDecl = MkPropertyDecl
   { propertyName :: Text
   , propertyText :: Text
   -- ^ The natural-language statement.
@@ -311,7 +311,7 @@ data UalBlock
   deriving stock (Eq, Show)
 
 -- | Everything one surface module contributes.
-data ModuleUal = ModuleUal
+data ModuleUal = MkModuleUal
   { ualModuleName :: UalModuleName
   , ualModuleImports :: [UalModuleName]
   , ualOnchain :: [OnchainDecl]
@@ -323,7 +323,7 @@ data ModuleUal = ModuleUal
   deriving stock (Eq, Show)
 
 emptyModuleUal :: UalModuleName -> ModuleUal
-emptyModuleUal n = ModuleUal n [] [] [] [] []
+emptyModuleUal n = MkModuleUal n [] [] [] [] []
 ```
 
 `UalBlock` is declared here rather than in `Ual.Parser` so that Task 2 and Task 3
@@ -495,7 +495,7 @@ lexModule :: Text -> Either UalError LexedModule
 lexModule src = do
   blocks <- scan 1 src
   pure
-    LexedModule
+    MkLexedModule
       { lexedModuleName = firstJust (moduleNameOf <$> lines')
       , lexedImports = concatMap (maybe [] pure . importOf) lines'
       , lexedBlocks = blocks
@@ -663,7 +663,7 @@ tests :: TestTree
 tests = testGroup "Parser" [onchainTests]
 
 onchain :: Text.Text -> Either UalError UalBlock
-onchain body = parseBlock (RawBlock KOnchain body 7)
+onchain body = parseBlock (MkRawBlock KOnchain body 7)
 
 onchainTests :: TestTree
 onchainTests =
@@ -673,9 +673,9 @@ onchainTests =
         onchain " f :: Integer -> Bool "
           @?= Right
             ( BOnchain
-                OnchainDecl
+                MkOnchainDecl
                   { onchainName = "f"
-                  , onchainArgs = [UalArgument "Integer" AsData]
+                  , onchainArgs = [MkUalArgument "Integer" AsData]
                   , onchainResult = "Bool"
                   , onchainVersion = Nothing
                   , onchainBudget = Nothing
@@ -686,10 +686,10 @@ onchainTests =
     , testCase "braced encodings, both schemes" $
         (fmap onchainArgs . asOnchain)
           <$> onchain " f :: { A : asData } -> { B : asScott } -> () "
-          @?= Right (Just [UalArgument "A" AsData, UalArgument "B" AsScott])
+          @?= Right (Just [MkUalArgument "A" AsData, MkUalArgument "B" AsScott])
     , testCase "mixed braced and bare arguments" $
         (fmap onchainArgs . asOnchain) <$> onchain " f :: A -> { B : asScott } -> () "
-          @?= Right (Just [UalArgument "A" AsData, UalArgument "B" AsScott])
+          @?= Right (Just [MkUalArgument "A" AsData, MkUalArgument "B" AsScott])
     , testCase "single colon form is also accepted" $
         (fmap onchainName . asOnchain) <$> onchain " f : A -> () "
           @?= Right (Just "f")
@@ -716,8 +716,8 @@ onchainTests =
             )
           @?= Right
             ( Just
-                [ UalArgument "CurrencySymbol" AsData
-                , UalArgument "ScriptContext" AsData
+                [ MkUalArgument "CurrencySymbol" AsData
+                , MkUalArgument "ScriptContext" AsData
                 ]
             )
     , testCase "nullary function is an error, there is nothing to apply" $
@@ -819,7 +819,7 @@ parseOnchain line body = do
     result : revArgs -> do
       args <- traverse (parseArgument line) (reverse revArgs)
       pure
-        OnchainDecl
+        MkOnchainDecl
           { onchainName = name
           , onchainArgs = args
           , onchainResult = Text.strip result
@@ -884,13 +884,13 @@ parseArgument line raw =
    in case Text.stripPrefix "{" t >>= \i -> Text.stripSuffix "}" (Text.strip i) of
         Nothing
           | Text.null t -> Left (MalformedBlock line "empty argument type")
-          | otherwise -> Right (UalArgument t AsData)
+          | otherwise -> Right (MkUalArgument t AsData)
         Just inner -> case Text.breakOn ":" inner of
           (ty, rest)
-            | Text.null rest -> Right (UalArgument (Text.strip ty) AsData)
+            | Text.null rest -> Right (MkUalArgument (Text.strip ty) AsData)
             | otherwise -> do
                 enc <- parseEncoding line (Text.strip (Text.drop 1 rest))
-                pure (UalArgument (Text.strip ty) enc)
+                pure (MkUalArgument (Text.strip ty) enc)
 
 parseEncoding :: Int -> Text -> Either UalError ArgumentEncoding
 parseEncoding line = \case
@@ -944,12 +944,12 @@ otherKindTests =
   testGroup
     "other kinds"
     [ testCase "PREDICATE body passes through verbatim" $
-        parseBlock (RawBlock KPredicate "\ndef p (x : Int) : Prop := x > 0\n" 3)
+        parseBlock (MkRawBlock KPredicate "\ndef p (x : Int) : Prop := x > 0\n" 3)
           @?= Right (BPredicate "\ndef p (x : Int) : Prop := x > 0\n")
     , testCase "UPLC_DATA takes a single type name" $
-        parseBlock (RawBlock KUplcData "  SellDatum  " 4) @?= Right (BUplcData "SellDatum")
+        parseBlock (MkRawBlock KUplcData "  SellDatum  " 4) @?= Right (BUplcData "SellDatum")
     , testCase "UPLC_DATA rejects two names" $
-        parseBlock (RawBlock KUplcData " A B " 4)
+        parseBlock (MkRawBlock KUplcData " A B " 4)
           @?= Left (MalformedBlock 4 "expected exactly one type name")
     , testCase "PROPERTY: name, quoted text, body after the colon" $
         parseBlock
@@ -960,7 +960,7 @@ otherKindTests =
           )
           @?= Right
             ( BProperty
-                PropertyDecl
+                MkPropertyDecl
                   { propertyName = "p_one"
                   , propertyText = "Funds cannot be locked."
                   , propertyBody = "\8704 x, x \8594 x"
@@ -969,13 +969,13 @@ otherKindTests =
             )
     , testCase "PROPERTY body keeps internal newlines and indentation" $
         (fmap propertyBody . asProperty)
-          <$> parseBlock (RawBlock KProperty " p \"t\" : a \8594\n    b\n" 1)
+          <$> parseBlock (MkRawBlock KProperty " p \"t\" : a \8594\n    b\n" 1)
           @?= Right (Just "a \8594\n    b")
     , testCase "PROPERTY without text is rejected" $
-        parseBlock (RawBlock KProperty " p : True " 1)
+        parseBlock (MkRawBlock KProperty " p : True " 1)
           @?= Left (MalformedBlock 1 "expected a quoted natural-language statement after the name")
     , testCase "PROPERTY without a body separator is rejected" $
-        parseBlock (RawBlock KProperty " p \"t\" " 1)
+        parseBlock (MkRawBlock KProperty " p \"t\" " 1)
           @?= Left (MalformedBlock 1 "expected ':' before the formal statement")
     ]
 
@@ -991,13 +991,13 @@ assemblyTests =
     [ testCase "collects every kind, predicates in source order" $
         moduleUalFromSource (UalModuleName "Fallback") source
           @?= Right
-            ModuleUal
+            MkModuleUal
               { ualModuleName = UalModuleName "My.Contract"
               , ualModuleImports = [UalModuleName "My.Types"]
               , ualOnchain =
-                  [ OnchainDecl
+                  [ MkOnchainDecl
                       { onchainName = "v"
-                      , onchainArgs = [UalArgument "A" AsData]
+                      , onchainArgs = [MkUalArgument "A" AsData]
                       , onchainResult = "()"
                       , onchainVersion = Nothing
                       , onchainBudget = Nothing
@@ -1007,7 +1007,7 @@ assemblyTests =
                   ]
               , ualPredicates = ["\ndef first : Prop := True\n", "\ndef second : Prop := True\n"]
               , ualProperties =
-                  [ PropertyDecl
+                  [ MkPropertyDecl
                       { propertyName = "p"
                       , propertyText = "t"
                       , propertyBody = "True"
@@ -1082,7 +1082,7 @@ parseProperty line body = do
     Nothing -> Left (MalformedBlock line "expected ':' before the formal statement")
     Just f -> Right (Text.strip f)
   pure
-    PropertyDecl
+    MkPropertyDecl
       { propertyName = Text.strip name
       , propertyText = text
       , propertyBody = formal
@@ -1113,7 +1113,7 @@ moduleUalFromSource fallbackName src = do
   lexed <- lexModule src
   blocks <- traverse parseBlock (lexedBlocks lexed)
   let base =
-        ModuleUal
+        MkModuleUal
           { ualModuleName = maybe fallbackName id (lexedModuleName lexed)
           , ualModuleImports = lexedImports lexed
           , ualOnchain = []
@@ -1623,16 +1623,16 @@ tests =
 
 decl :: OnchainDecl
 decl =
-  OnchainDecl
+  MkOnchainDecl
     { onchainName = "v"
-    , onchainArgs = [UalArgument "Ticket" AsData, UalArgument "Integer" AsScott]
+    , onchainArgs = [MkUalArgument "Ticket" AsData, MkUalArgument "Integer" AsScott]
     , onchainResult = "()"
     , onchainVersion = Nothing
     , onchainBudget = Nothing
     , onchainLine = 1
     , onchainResolvedArgs =
-        [ ResolvedArgument AsData (definitionId @Ticket)
-        , ResolvedArgument AsScott (definitionId @Integer)
+        [ MkResolvedArgument AsData (definitionId @Ticket)
+        , MkResolvedArgument AsScott (definitionId @Integer)
         ]
     }
 
@@ -2321,7 +2321,7 @@ buildTests =
         { ualPredicates = preds
         , ualProperties = props
         }
-    prop n = PropertyDecl {propertyName = n, propertyText = "t", propertyBody = "True", propertyLine = 1}
+    prop n = MkPropertyDecl {propertyName = n, propertyText = "t", propertyBody = "True", propertyLine = 1}
 ```
 
 - [ ] **Step 2: Run to verify failure**
@@ -2727,7 +2727,7 @@ ualModule = do
   mapM_ checkUplcData (ualUplcData m)
   onchainExps <- traverse onchainExp (ualOnchain m)
   [|
-    ModuleUal
+    MkModuleUal
       { ualModuleName = $(lift (ualModuleName m))
       , ualModuleImports = $(lift (ualModuleImports m))
       , ualOnchain = $(pure (TH.ListE onchainExps))
@@ -2755,7 +2755,7 @@ onchainExp d = do
   checkOnchain d
   args <- traverse resolvedArgExp (onchainArgs d)
   [|
-    OnchainDecl
+    MkOnchainDecl
       { onchainName = $(lift (onchainName d))
       , onchainArgs = $(lift (onchainArgs d))
       , onchainResult = $(lift (onchainResult d))
@@ -2775,7 +2775,7 @@ resolvedArgExp :: UalArgument -> TH.Q TH.Exp
 resolvedArgExp a = do
   ty <- typeOfName (argTypeName a)
   [|
-    ResolvedArgument
+    MkResolvedArgument
       { resolvedEncoding = $(lift (argEncoding a))
       , resolvedDefinitionId = definitionId @($(pure ty))
       }
@@ -3299,6 +3299,13 @@ git commit --no-verify -m "docs: UAL spec corrections and the list to hand back 
 ---
 
 ## Notes on things that will bite
+
+**Constructor naming.** Single-constructor records use the package's `Mk`
+prefix (`MkRawBlock`, `MkModuleUal`, …), matching every record in the
+neighbouring `PlutusTx.Blueprint.*` tree. The `K` and `B` prefixes on
+`BlockKind` and `UalBlock` are **not** stylistic and must stay: both types have
+Onchain/Predicate/Property/UplcData variants and live in the same module, so bare
+names would clash.
 
 **Never write a bare `-}` inside a Haskell block comment.** This bites when
 documenting UAL's own delimiters: `{-| … @-}@ … -}` terminates at the *first*
