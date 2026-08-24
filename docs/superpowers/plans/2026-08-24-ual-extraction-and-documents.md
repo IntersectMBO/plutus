@@ -16,7 +16,19 @@
 
 You are working in the `plutus` monorepo (IntersectMBO/plutus). Things you need to know that are not obvious:
 
-- **Build and test**: `cabal build plutus-tx` and `cabal test plutus-tx:plutus-tx-test`. To run one test group: `cabal run plutus-tx:plutus-tx-test -- -p '/UAL/'` (tasty's `-p` filters by test-name pattern).
+- **Build and test — you MUST pass `--project-file=cabal.project.ual`.** This
+  repo normally builds inside a nix devshell, and nix is not installed here. The
+  root `cabal.project` lists `plutus-benchmark`, `plutus-metatheory` and
+  `plutus-core +with-inline-r +with-cert`, which need Agda, R and Coq and make the
+  solver fail outright. `cabal.project.ual` is an untracked, local-only project
+  file listing just `plutus-core`, `plutus-ledger-api`, `plutus-tx` and
+  `plutus-tx-plugin` with those flags off. So:
+    - build: `cabal build --project-file=cabal.project.ual plutus-tx:plutus-tx-test`
+    - test: `cabal test --project-file=cabal.project.ual plutus-tx:plutus-tx-test`
+    - one group: `cabal run --project-file=cabal.project.ual plutus-tx:plutus-tx-test -- -p '/UAL/'`
+      (tasty's `-p` filters by test-name pattern)
+  Never `git add cabal.project.ual` or `.ual-build.log` — both are local scaffolding.
+  Run every command from the repo root, `/Users/romainsoulat/plutus`.
 - **`plutus-tx` uses `NoImplicitPrelude`** by default (see the `common lang` stanza in `plutus-tx/plutus-tx.cabal`). Every new module in `src/` must `import Prelude` explicitly. Existing blueprint modules all do this — copy that style.
 - **`-Wall -Wunused-packages` and warnings are errors in CI.** Do not add a `build-depends` entry you do not use, and do not leave an unused import.
 - **Golden tests**: `goldenVsText name goldenFilePath actualText` from `Test.Tasty.Extras`. On first run with no golden file, `tasty-golden` writes it — inspect it before committing. To regenerate deliberately, delete the file and re-run.
@@ -35,15 +47,6 @@ You are working in the `plutus` monorepo (IntersectMBO/plutus). Things you need 
 | `PlutusTx/Ual/Lexer.hs` | `lexModule :: Text -> Either UalError LexedModule`. Finds `{-@ … @-}` blocks and `import` declarations. No interpretation of bodies. |
 | `PlutusTx/Ual/Parser.hs` | `parseBlock`, `moduleUalFromSource`. Parses `ONCHAIN` and `PROPERTY` headers; `PREDICATE` and `UPLC_DATA` bodies pass through. |
 | `PlutusTx/Ual/TH.hs` | `ualModule :: Q Exp`, `ualIdFor :: Name -> Q Exp`. Reads the enclosing module's source, `addDependentFile`, resolves and type-checks `ONCHAIN`/`UPLC_DATA` names. |
-
-**One spec item is dropped, and the spec is wrong about it.** Spec §7 lists
-"`compile`-splice generation for `ONCHAIN` functions" under `Ual.TH`, so that a
-non-validator `ONCHAIN` function gets a `CompiledCode` without the author writing
-one. That cannot live in `plutus-tx`: generating `$$(compile [|| f ||])` needs the
-`plinthc` marker from `plutus-tx-plugin`, and `plutus-tx` cannot depend on the
-plugin that depends on it. Task 12 records the spec correction. For now the author
-writes the `compile` call and sets `validatorCompiled` by hand, exactly as they
-already do for validators — the helper was a convenience, never a requirement.
 | `PlutusTx/Ual/Resolve.hs` | `attachUal :: [ModuleUal] -> ContractBlueprint -> Either [UalError] ContractBlueprint`. |
 | `PlutusTx/Ual.hs` | Re-export module (mirrors `PlutusTx/Blueprint.hs`). |
 | `PlutusTx/Assurance/Document.hs` | Document types + `ToJSON`. |
@@ -75,6 +78,15 @@ already do for validators — the helper was a convenience, never a requirement.
 | `Ual/Golden/*.golden.json` | Golden files. |
 
 Note the two `Blueprint`-named test modules: the existing `Blueprint.Spec` is a type-level module that is *not* wired into `Spec.hs`. Ours is `Ual.Blueprint.Spec` and *is* wired in, via `Ual.Spec`.
+
+**One spec item is dropped, and the spec is wrong about it.** Spec §7 lists
+"`compile`-splice generation for `ONCHAIN` functions" under `Ual.TH`, so that a
+non-validator `ONCHAIN` function gets a `CompiledCode` without the author writing
+one. That cannot live in `plutus-tx`: generating `$$(compile [|| f ||])` needs the
+`plinthc` marker from `plutus-tx-plugin`, and `plutus-tx` cannot depend on the
+plugin that depends on it. Task 12 records the spec correction. For now the author
+writes the `compile` call and sets `validatorCompiled` by hand, exactly as they
+already do for validators — the helper was a convenience, never a requirement.
 
 ---
 
