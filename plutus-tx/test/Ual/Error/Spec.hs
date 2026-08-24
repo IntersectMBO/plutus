@@ -29,6 +29,9 @@ tests =
     , testCase "VersionMismatch keeps declared before preamble" $
         renderUalError (VersionMismatch "spend" "v3" "v2")
           @?= "ONCHAIN 'spend': declares version v3 but the blueprint preamble says v2"
+    , testCase "UnresolvedOnchainName keeps name before reason" $
+        renderUalError (UnresolvedOnchainName "spend" "no such value is in scope")
+          @?= "ONCHAIN 'spend': no such value is in scope"
     , testCase "UnknownFragment keeps property before fragment" $
         renderUalError (UnknownFragment "no-double-spend" "utxoValid")
           @?= "property 'no-double-spend' uses unknown fragment 'utxoValid'"
