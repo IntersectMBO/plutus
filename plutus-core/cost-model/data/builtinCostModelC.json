@@ -1360,8 +1360,8 @@
   "policies": {
     "cpu": {
       "arguments": {
-        "intercept": 243433,
-        "slope": 15995
+        "intercept": 7158161,
+        "slope": 13922
       },
       "type": "linear_in_x"
     },

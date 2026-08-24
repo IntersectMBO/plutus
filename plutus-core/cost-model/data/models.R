@@ -857,33 +857,7 @@ modelFun <- function(path) {
     ## benchmark generates that shape, so the slope below is the per-policy cost.  Values
     ## carrying more tokens per policy have a larger size for the same work, so they are
     ## over-charged rather than under-charged.
-    ##
-    ## Least squares is a poor fit here, for the opposite reason to multiIndexArray above.
-    ## The measured cost per policy *falls* across the range (15.2ns per policy below 5000
-    ## policies, 14.1ns above 30000), and least squares answers that by trading slope for
-    ## intercept: it returns an intercept of 7.16us, thirty times the measured cost of an
-    ## empty value, which then dominates the charge for anything under about 500 policies.
-    ## Values on chain hold a handful.
-    ##
-    ## Charge at the largest per-policy rate measured, with the intercept taken as the
-    ## largest amount by which any observation exceeds that rate.  Because no observation
-    ## has a rate above the slope, that intercept is just the measured cost of the empty
-    ## value, and the line sits above every measurement.  It over-charges the largest
-    ## benchmarked values by 16% and prices realistic ones around twenty times cheaper
-    ## than the least-squares line.
-    policiesModel <- {
-        fname <- "Policies"
-        filtered <- data %>%
-            filter.and.check.nonempty (fname) %>%
-            discard.overhead ()
-        nonzero <- filtered[filtered$x_mem > 0, ]
-        slope <- max (nonzero$t / nonzero$x_mem)
-        icept <- max (filtered$t - slope * filtered$x_mem)
-        m <- lm (t ~ x_mem, filtered)
-        m$coefficients[["(Intercept)"]] <- icept
-        m$coefficients[["x_mem"]] <- slope
-        mk.result (m, "linear_in_x")
-    }
+    policiesModel <- linearInX ("Policies")
 
     ## Values
 
