@@ -86,6 +86,9 @@ onchainTests =
         onchain " f :: () " @?= Left (MalformedBlock 7 "signature has no arguments")
     , testCase "missing signature separator" $
         onchain " f A -> () " @?= Left (MalformedBlock 7 "expected '::' or ':' after the name")
+    , testCase "a colon inside a brace group is not the signature separator" $
+        onchain " f A -> { B : asData } -> () "
+          @?= Left (MalformedBlock 7 "expected '::' or ':' after the name")
     , testCase "unknown encoding scheme" $
         onchain " f :: { A : asBytes } -> () "
           @?= Left (MalformedBlock 7 "unknown encoding 'asBytes'; expected asData or asScott")

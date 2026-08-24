@@ -7,9 +7,9 @@ module PlutusTx.Ual.Parser
 
 import Prelude
 
-import Data.Char qualified as Char
 import Data.Text (Text)
 import Data.Text qualified as Text
+import Data.Text.Read qualified as Text.Read
 import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (..))
 import PlutusTx.Ual.Error (UalError (..))
 import PlutusTx.Ual.Syntax
@@ -42,11 +42,8 @@ parseOnchain line body = do
   version <- traverse (parseVersion line) (lookup "version" opts)
   budget <- parseBudget line opts
   (name, sig) <- splitSignature line afterOpts
-  let parts = splitArrows sig
-  case reverse parts of
-    [] -> Left (MalformedBlock line "signature has no arguments")
-    [_] -> Left (MalformedBlock line "signature has no arguments")
-    result : revArgs -> do
+  case reverse (splitArrows sig) of
+    result : revArgs@(_ : _) -> do
       args <- traverse (parseArgument line) (reverse revArgs)
       pure
         MkOnchainDecl
@@ -58,6 +55,7 @@ parseOnchain line body = do
           , onchainLine = line
           , onchainResolvedArgs = []
           }
+    _ -> Left (MalformedBlock line "signature has no arguments")
 
 -- | Peel leading @[k: v, k: v]@ groups, returning their key/value pairs.
 takeOptions :: Int -> Text -> Either UalError ([(Text, Text)], Text)
@@ -92,24 +90,52 @@ parseBudget line opts = case (lookup "exCPU" opts, lookup "exMem" opts) of
   (Just c, Just m) -> Just <$> (MkExecutionBudget <$> nat c <*> nat m)
   _ -> Left (MalformedBlock line "budget needs both exCPU and exMem")
   where
-    nat v
-      | Text.all Char.isDigit v && not (Text.null v) = Right (read (Text.unpack v))
-      | otherwise = Left (MalformedBlock line ("'" <> v <> "' is not a non-negative integer"))
+    -- Not @read@: this module is total, and a guard establishing that @read@
+    -- cannot fail here would be a non-local safety argument.
+    nat v = case Text.Read.decimal v of
+      Right (n, rest) | Text.null rest -> Right n
+      _ -> Left (MalformedBlock line ("'" <> v <> "' is not a non-negative integer"))
 
--- | @name :: rest@ or @name : rest@.
+{-| @name :: rest@ or @name : rest@.
+
+The separator is looked for only in the text before the first @{@ or @-@, never
+in the whole body. Searching the whole body finds the colon inside the first
+@{ T : enc }@ group instead, which silently accepts a signature whose separator
+was omitted altogether: @f A -> { B : asData } -> ()@ yields the name
+@"f A -> { B"@. Stopping at @-@ as well as @{@ is what makes the omitted
+separator an error rather than a bogus parse, and it is safe because
+'takeOptions' has already consumed the option groups and no Haskell or Aiken
+identifier contains @-@. -}
 splitSignature :: Int -> Text -> Either UalError (Text, Text)
-splitSignature line t = case Text.breakOn "::" t of
-  (n, rest) | not (Text.null rest) -> Right (Text.strip n, Text.drop 2 rest)
-  _ -> case Text.breakOn ":" t of
-    (n, rest) | not (Text.null rest) -> Right (Text.strip n, Text.drop 1 rest)
-    _ -> Left (MalformedBlock line "expected '::' or ':' after the name")
+splitSignature line t =
+  let (beforeArgs, argsText) = Text.break (\c -> c == '{' || c == '-') t
+   in case Text.breakOn "::" beforeArgs of
+        (n, rest)
+          | not (Text.null rest) -> Right (Text.strip n, Text.drop 2 rest <> argsText)
+        _ -> case Text.breakOn ":" beforeArgs of
+          (n, rest)
+            | not (Text.null rest) -> Right (Text.strip n, Text.drop 1 rest <> argsText)
+          _ -> Left (MalformedBlock line "expected '::' or ':' after the name")
 
-{-| Split on top-level @->@. Brace groups cannot contain arrows, so a plain
-split is sufficient. -}
+{-| Split on every @->@, including ones nested inside parentheses. A
+parenthesised function type therefore mis-splits: @(A -> B) -> C@ gives the
+fragments @"(A"@, @"B)"@ and @"C"@ rather than two arguments.
+
+That is accepted rather than fixed. A validator argument is never higher-order,
+so the case does not arise in practice, and the fragments a mis-split produces
+are not type names, so name resolution in the Template Haskell splice
+(@typeOfName@) rejects them. Recognising nesting here would buy a better
+diagnostic for a signature that cannot be valid anyway. -}
 splitArrows :: Text -> [Text]
 splitArrows = Text.splitOn "->"
 
--- | @{ T : enc }@ or a bare @T@ (which means @asData@).
+{-| @{ T : enc }@, or a bare @T@ (which means @asData@).
+
+An unclosed @{@ is taken as a bare type name with the brace included, so
+@{ A : asData@ becomes the type name @"{ A : asData"@. No guard for it here:
+that text is not a type name either, so name resolution rejects it, and doing so
+keeps this function's error cases to the one thing it can judge locally, namely
+the encoding keyword. -}
 parseArgument :: Int -> Text -> Either UalError UalArgument
 parseArgument line raw =
   let t = Text.strip raw
