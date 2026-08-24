@@ -229,7 +229,11 @@ Design notes, each a correction to an earlier draft:
   program to concrete terms in order.
 - **`version` is not stored per validator.** UAL's `[version: PlutusV3]`
   overlaps `preamble.plutusVersion`. Storing it twice invites disagreement;
-  `Resolve` validates agreement instead.
+  `Resolve` validates agreement instead. This is a deliberate limitation, not
+  just a validation rule: CIP-57's preamble holds one Plutus version per
+  contract, so **all validators in one contract must target the same version**.
+  A contract mixing versions would need either a per-validator version field in
+  the blueprint or one blueprint per version. Neither is in this slice.
 - `encoding` is `asData` (default) or `asScott`. `asScott` is accepted and
   emitted by this slice but not yet consumable — see §8.
 - **`budget` units are unresolved.** UAL specifies `exCPU`/`exMem`, which are
@@ -280,12 +284,21 @@ blob discards that. Here:
 - its `source` is the concatenation of that module's `PREDICATE` block bodies in
   source order, separated by a blank line — source order matters, because UAL
   doc §2.1 lets a section reference definitions from earlier sections;
-- `imports` mirror that module's imports, restricted to modules that have
-  `PREDICATE` blocks;
+- `imports` mirror that module's imports, restricted to modules that produced a
+  fragment;
 - a property's `formal.uses` names the fragments its statement needs. A property
-  in module M defaults to `uses: ["M"]` when it references no other module's
-  predicates; `imports` supplies the transitive closure, so `uses` need not
-  spell it out.
+  in module M defaults to `uses: ["M"]`, or to `[]` when M produced no fragment;
+  `imports` supplies the transitive closure, so `uses` need not spell it out.
+
+**How `imports` is obtained.** Template Haskell cannot enumerate the current
+module's imports, and `reify` on an imported name says nothing about whether its
+module carries `PREDICATE` blocks — so the edges are not derivable from `Q`
+alone. Instead the lexer collects `import` declarations in the same pass over the
+raw source it already makes, and `ModuleUal` records its own module name
+alongside that import list. The assembly step (§7.1) then intersects each
+module's import list with the set of modules that actually produced fragments.
+The restriction is therefore computed where the whole set is known, not
+per-module.
 
 This gives slice 2 real dependency information: one Lean file per surface module
 in the predicates folder, and each property file importing only what it uses —
@@ -304,7 +317,7 @@ directly):
 | Module | Responsibility |
 |---|---|
 | `PlutusTx.Ual.Syntax` | AST: `Onchain`, `Predicate`, `Property`, `UplcData`; `ModuleUal` |
-| `PlutusTx.Ual.Lexer` | scan `{-@ … -@}` blocks → kind keyword, raw body, source span |
+| `PlutusTx.Ual.Lexer` | scan `{-@ … -@}` blocks → kind keyword, raw body, source span; collect `import` declarations in the same pass (§6) |
 | `PlutusTx.Ual.Parser` | `ONCHAIN` refined signature and option lists; `PROPERTY` name + text; bodies verbatim |
 | `PlutusTx.Ual.TH` | `ualModule :: Q Exp`; `addDependentFile`; `reify`-based name resolution; `compile`-splice generation for `ONCHAIN` functions |
 | `PlutusTx.Ual.Resolve` | validation (see §8.2) |
@@ -315,6 +328,65 @@ directly):
 record-construction sites. Mitigate with a `mkValidatorBlueprint` defaulting
 helper and a scriv changelog fragment; `doc/docusaurus/static/code/Example/Cip57/`
 must be updated in the same change.
+
+### 7.1 The `ModuleUal` → blueprint seam
+
+An `ONCHAIN` block names a Haskell binding (`mintingContract`); a
+`ValidatorBlueprint` carries a prose `validatorTitle` ("My Validator"). Nothing
+links them today, so the join key must be specified rather than left to the
+implementation.
+
+**`validatorId` is the join key, and the author never types it.** A TH splice
+derives it from the reified name, so the two sides cannot drift:
+
+```haskell
+data ModuleUal = ModuleUal
+  { ualModuleName    :: Text
+  , ualModuleImports :: [Text]          -- §6
+  , ualOnchain       :: [OnchainDecl]   -- each with its resolved binding name
+  , ualPredicates    :: [Text]          -- bodies, source order
+  , ualProperties    :: [PropertyDecl]
+  , ualUplcData      :: [Text]
+  }
+
+ualModule :: Q Exp                      -- ~ ModuleUal, one splice per module
+ualIdFor  :: Name -> Q Exp              -- ~ Text, the stable validator id
+```
+
+```haskell
+myValidator =
+  mkValidatorBlueprint
+    { validatorId = Just $(ualIdFor 'mintingContract)
+    , validatorTitle = "My Validator"
+    , … }
+```
+
+**Validation splits by phase**, because a TH splice cannot see a runtime
+blueprint value:
+
+- *Compile time* (`Ual.TH`): checks 1, 2, 6 of §8.2 — name resolution, arity and
+  argument-type agreement, `HasBlueprintDefinition` presence.
+- *Assembly time* (`Ual.Resolve`, pure): checks 3, 4, 5, 7 — version agreement,
+  fragment DAG and `uses` resolution, property-id uniqueness, and the
+  `ONCHAIN`↔blueprint correspondence.
+
+Two total functions carry it, and the author's `main` composes them in the order
+the CIP's hash constraint demands:
+
+```haskell
+attachUal      :: [ModuleUal] -> ContractBlueprint
+               -> Either [UalError] ContractBlueprint   -- fills arguments/budget/id
+buildAssurance :: AssurancePreamble -> BlueprintRef -> [ModuleUal]
+               -> Either [UalError] AssuranceDocument
+
+main = do
+  bp  <- orDie $ attachUal uals myContractBlueprint
+  writeBlueprint "plutus.json" bp
+  ref <- blueprintRef "plutus.json"        -- hash computed only once the file is final
+  doc <- orDie $ buildAssurance myAssurancePreamble ref uals
+  writeAssurance "assurance.json" doc
+  where uals = [myContractUal, myTypesUal]
+```
 
 ## 8. Scope
 
@@ -337,6 +409,12 @@ document types and writer; the CIP revisions of §8.3; the UAL doc corrections o
    the producer must not emit violations).
 6. Every `UPLC_DATA` type has a `HasBlueprintDefinition` instance, so it will
    appear in `definitions`.
+7. Every `ONCHAIN` name has a blueprint entry whose `validatorId` matches, every
+   `validatorId` is unique within the contract, and no blueprint entry carries
+   `arguments`/`budget` without a corresponding `ONCHAIN` block.
+
+Checks 1, 2 and 6 run at compile time in the splice; 3, 4, 5 and 7 run at
+assembly time, per §7.1.
 
 ### 8.3 CIP revisions required
 
