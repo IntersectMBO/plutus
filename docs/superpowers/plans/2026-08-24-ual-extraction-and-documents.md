@@ -16,34 +16,41 @@
 
 You are working in the `plutus` monorepo (IntersectMBO/plutus). Things you need to know that are not obvious:
 
-- **Build and test — you MUST pass `--project-file=cabal.project.ual`.** This
-  repo normally builds inside a nix devshell, and nix is not installed here. The
-  root `cabal.project` lists `plutus-benchmark`, `plutus-metatheory` and
-  `plutus-core +with-inline-r +with-cert`, which need Agda, R and Coq and make the
-  solver fail outright. `cabal.project.ual` is an untracked, local-only project
-  file listing just `plutus-core`, `plutus-ledger-api`, `plutus-tx` and
-  `plutus-tx-plugin` with those flags off. So:
-    - build: `cabal build --project-file=cabal.project.ual plutus-tx:plutus-tx-test`
-    - test: `cabal test --project-file=cabal.project.ual plutus-tx:plutus-tx-test`
-    - one group: `cabal run --project-file=cabal.project.ual plutus-tx:plutus-tx-test -- -p '/UAL/'`
-      (tasty's `-p` filters by test-name pattern)
-  Never `git add cabal.project.ual` or `.ual-build.log` — both are local scaffolding.
-  Run every command from the repo root, `/Users/romainsoulat/plutus`.
-- **This toolchain is GHC 9.8.4, which the repo does not support.** `CONTRIBUTING.adoc`
-  lists 9.6 (primary) and 9.12; golden files are keyed by GHC version, so on 9.8
-  the version-keyed golden tests under `plutus-tx/test/{Enum,Eq,Ord}/Golden/`
-  *create* new baselines instead of comparing, and pass vacuously. Delete any
-  `Golden/9.8/` directory that appears rather than committing it.
-  Two consequences for this plan: the UAL golden files we add live in
-  `plutus-tx/test/Ual/Golden/` and are deliberately **not** version-keyed, so they
-  do compare properly; and code that compiles here has not been checked on 9.6 or
-  9.12, so final verification belongs to CI. Do not use a 9.8-only language
-  feature or a base-4.19-only API.
+- **Build and test inside the nix devshell.** `nix` is not on `PATH` in a
+  non-interactive shell, so every command takes this shape, run from
+  `/Users/romainsoulat/plutus`:
+
+  ```bash
+  export PATH="/nix/var/nix/profiles/default/bin:$PATH"
+  nix develop --accept-flake-config --command bash -c 'cabal test plutus-tx:plutus-tx-test'
+  ```
+
+  The devshell gives GHC 9.6.7 (the repo's primary supported version, per
+  `CONTRIBUTING.adoc`), cabal 3.12.1 and `fourmolu` 0.17. Use the root
+  `cabal.project`; do **not** pass `--project-file`. Prefer `cabal test` over
+  `cabal run` — `cabal run` from the repo root writes a stray duplicate golden
+  tree at `<repo-root>/test/`, because golden paths resolve relative to cwd. To
+  filter, `cabal test` accepts `--test-options="-p /UAL/"`.
+
+- **Check formatting; do not guess it.** Before committing, run
+  `fourmolu --mode check` inside the devshell on every file you touched, and
+  `fourmolu --mode inplace` to fix. `fourmolu.yaml` sets `column-limit: 100`.
+  Earlier tasks lost review cycles to hand-guessed layout — and fourmolu knows
+  things a human pass will not, such as the Haddock escape for the block
+  delimiter being `{\-\@` rather than `{-\@`.
+
+- **Commit inside the devshell and let the hooks run.** The devshell installs a
+  working `.git/hooks/pre-commit` (cabal-fmt, editorconfig-checker, fourmolu).
+  Do **not** pass `--no-verify`; a hook failure is real feedback:
+
+  ```bash
+  nix develop --accept-flake-config --command bash -c 'git add <paths> && git commit -m "..."'
+  ```
+
 - **`plutus-tx` uses `NoImplicitPrelude`** by default (see the `common lang` stanza in `plutus-tx/plutus-tx.cabal`). Every new module in `src/` must `import Prelude` explicitly. Existing blueprint modules all do this — copy that style.
 - **`-Wall -Wunused-packages` and warnings are errors in CI.** Do not add a `build-depends` entry you do not use, and do not leave an unused import.
 - **Golden tests**: `goldenVsText name goldenFilePath actualText` from `Test.Tasty.Extras`. On first run with no golden file, `tasty-golden` writes it — inspect it before committing. To regenerate deliberately, delete the file and re-run.
 - **Changelog**: this repo uses `scriv`. A user-visible or breaking change needs a fragment file under `plutus-tx/changelog.d/`. Look at an existing fragment for the format before writing one.
-- **`.git/hooks/pre-commit` is a dangling exec in this checkout**, so `git commit` fails with `cannot exec`. Use `git commit --no-verify`. This is a broken local hook, not a policy.
 - **The UAL block delimiter is `{-@ … @-}`.** The UAL design doc says `-@}`; that does not compile, because `-@}` contains no `-}`. Do not "fix" the code back to the doc's spelling.
 
 ## File structure
