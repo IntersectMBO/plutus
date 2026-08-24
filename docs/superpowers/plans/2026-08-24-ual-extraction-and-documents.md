@@ -1255,8 +1255,17 @@ Expected: build failure, `Module 'PlutusTx.Blueprint.Validator' does not export 
 
 - [ ] **Step 3: Add the new blueprint types and fields**
 
-In `plutus-tx/src/PlutusTx/Blueprint/Validator.hs`, add these types before
-`ValidatorBlueprint`:
+**Task 1 already added two of these.** `ArgumentEncoding` and `ExecutionBudget`
+exist in `plutus-tx/src/PlutusTx/Blueprint/Validator.hs` already, with their
+`ToJSON` instances, their `Lift` deriving and the
+`import Language.Haskell.TH.Syntax (Lift)` — Task 1 needed them as a forward
+dependency. They are reproduced below so you can check them, but **do not re-add
+them**; that is a duplicate-definition error. What is genuinely missing from that
+file is `AppliedArgument`, `import PlutusTx.Blueprint.Schema (Schema)`, the three
+new `ValidatorBlueprint` fields, and `mkValidatorBlueprint`.
+
+In `plutus-tx/src/PlutusTx/Blueprint/Validator.hs`, the types before
+`ValidatorBlueprint` should end up as:
 
 ```haskell
 {-| How an applied argument is serialised into a UPLC term.
@@ -1368,12 +1377,14 @@ The `error` for `validatorRedeemer` is deliberate: CIP-0057 makes `redeemer`
 required, so there is no honest default, and a bottom that names the missing
 field is better than a silently wrong one.
 
-- [ ] **Step 4: Add `Eq` and `Lift` to `PlutusVersion`**
+- [ ] **Step 4: Add `Lift` to `PlutusVersion`**
 
-In `plutus-tx/src/PlutusTx/Blueprint/PlutusVersion.hs`, change
+**Task 1 already added `Eq`**, which `deriving Eq OnchainDecl` required. The file
+currently reads `deriving stock (Show, Eq)`, so in
+`plutus-tx/src/PlutusTx/Blueprint/PlutusVersion.hs` change
 
 ```haskell
-  deriving stock (Show)
+  deriving stock (Show, Eq)
 ```
 
 to
@@ -1382,8 +1393,9 @@ to
   deriving stock (Show, Eq, Lift)
 ```
 
-and add `import Language.Haskell.TH.Syntax (Lift)`. `Eq` is needed by the
-version-agreement check in Task 5; `Lift` by the TH splice in Task 8.
+and add `import Language.Haskell.TH.Syntax (Lift)`. `Eq` is what the
+version-agreement check in Task 5 needs; `Lift` is what the TH splice in Task 8
+needs.
 
 - [ ] **Step 5: Extend the JSON key order**
 
