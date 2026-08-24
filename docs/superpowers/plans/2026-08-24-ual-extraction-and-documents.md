@@ -1430,6 +1430,13 @@ list. Insert `"id"` before `"title"`, and add `"arguments"`, `"budget"`,
 
 - [ ] **Step 6: Fix the two existing construction sites**
 
+**The docusaurus example cannot be compile-checked here.** Its cabal stanzas are
+`buildable: False` for `impl(ghc >= 9.7)` (see `common ghc-version-support` in
+`doc/docusaurus/docusaurus-examples.cabal`) and this toolchain is GHC 9.8.4. So
+edit it by careful inspection, and do not spend time trying to make
+`cabal build example-cip57` work — it is gated off upstream, not broken by you.
+The plugin test suite *is* buildable and must be checked (Step 7).
+
 In `doc/docusaurus/static/code/Example/Cip57/Blueprint/Main.hs`, change
 `myValidator = MkValidatorBlueprint { … }` to
 `myValidator = mkValidatorBlueprint { … }` and drop the now-defaulted
@@ -3041,10 +3048,16 @@ main = do
 The two-argument `blueprintRef uri path` takes the URI to record in the document
 and the path to hash; they coincide here.
 
-Check whether this new example needs registering. Run:
-`grep -rn "Cip57" doc/docusaurus/*.cabal doc/docusaurus/**/*.cabal 2>/dev/null | head`
-and follow whatever pattern the Cip57 example uses (a `data-files` entry or an
-`other-modules` entry in the docusaurus examples stanza).
+Register it the way `example-cip57` is registered: add an `executable`
+stanza to `doc/docusaurus/docusaurus-examples.cabal` mirroring that one
+(`import: lang, ghc-version-support, os-support`, `hs-source-dirs: static/code`,
+`other-modules: Paths_docusaurus_examples`, the same `build-depends`).
+
+**This example cannot be compile-checked here** — every docusaurus stanza is
+`buildable: False` for `impl(ghc >= 9.7)` and this toolchain is GHC 9.8.4. Write
+it by careful inspection against the `Cip57` example next to it, and rely on the
+golden tests of Steps 1-2 for the actual verification that the pipeline works.
+Do not weaken the cabal file's version gate to force it to build.
 
 - [ ] **Step 5: Full test run**
 
