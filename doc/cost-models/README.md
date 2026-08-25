@@ -4,19 +4,19 @@ Interactive visualizations of Plutus Core builtin function cost models using Plo
 
 ## Quick Start
 
-### Local Development
+Open `index.html` in a browser. The pages fetch the benchmark CSV and the cost
+model JSON from GitHub over HTTPS, so nothing has to be served locally.
 
-Start a local HTTP server in this directory:
+A local server is only needed to plot data that is not on GitHub yet, such as a
+benchmark run that has not been pushed: `fetch()` rejects `file://` URLs, so
+local data files have to come over HTTP. Run this in the repository root
 
 ```bash
-python -m http.server 8000
-# or
 python3 -m http.server 8000
 ```
 
-Then open your browser to:
-
-- <http://localhost:8000/>
+then open <http://localhost:8000/doc/cost-models/> and point the data source
+fields at `http://localhost:8000/plutus-core/cost-model/data/`.
 
 ### Available Visualizations
 

@@ -198,12 +198,12 @@ const benchmarkZ = benchmarkData.map(d => d.time);     // Time (always Z)</code>
 
       <h3>Deployment</h3>
       <p>
-        This site can be deployed to GitHub Pages or any static hosting service. For local development,
-        simply run a local HTTP server in the project directory:
+        This site can be deployed to GitHub Pages or any static hosting service. Opening
+        <code>index.html</code> from disk works as well, because the data is fetched from GitHub
+        over HTTPS. A local HTTP server is only needed to plot data files that are not on GitHub
+        yet, since <code>fetch()</code> rejects <code>file://</code> URLs:
       </p>
-      <pre><code>python -m http.server 8000
-# or
-python3 -m http.server 8000</code></pre>
+      <pre><code>python3 -m http.server 8000</code></pre>
     </section>
   </div>
 
