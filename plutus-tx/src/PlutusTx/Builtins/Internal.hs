@@ -1186,6 +1186,10 @@ policies :: BuiltinValue -> BuiltinList BuiltinByteString
 policies (BuiltinValue v) = BuiltinList (BuiltinByteString <$> Value.policies v)
 {-# OPAQUE policies #-}
 
+assetCount :: BuiltinValue -> BuiltinInteger
+assetCount (BuiltinValue v) = fromIntegral (Value.totalSize v)
+{-# OPAQUE assetCount #-}
+
 caseInteger :: Integer -> [a] -> a
 caseInteger i b
   | 0 <= i && i < toInteger (Haskell.length b) = b !! fromInteger i

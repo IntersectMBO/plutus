@@ -4,13 +4,16 @@ sidebar_position: 5
 
 # Generating Keys and Addresses
 
-The best way to setup your environment is with the [plinth-template](https://github.com/IntersectMBO/plinth-template) repository. See its [README](https://github.com/IntersectMBO/plinth-template?tab=readme-ov-file#plinth-template) for complete instructions on how to get up and running using Docker, Nix, or a custom approach.
+The best way to set up your environment is with the [plinth-template](https://github.com/IntersectMBO/plinth-template) installer, which creates a ready-to-build Plinth project using your choice of Nix, Docker, Demeter, or plain GHC + Cabal. See its [README](https://github.com/IntersectMBO/plinth-template?tab=readme-ov-file#plinth-template) for details. For this tutorial, create the project in a directory named `on-chain`:
+
+```
+curl -fsSL https://raw.githubusercontent.com/IntersectMBO/plinth-template/main/install.sh | sh -s -- --dir on-chain
+```
 
 Make sure you also have [NodeJS](https://nodejs.org/en) and [yarn](https://yarnpkg.com/) (or [npm](https://github.com/npm/cli), which comes with `NodeJS`) installed.
 Then, create a separate `off-chain` directory, initialize `package.json`, and install the required dependencies:
 
 ```
-git clone git@github.com:IntersectMBO/plinth-template.git on-chain
 mkdir off-chain && cd $_
 yarn init -y
 yarn add @meshsdk/core
