@@ -1052,7 +1052,8 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe
                                                C_V'45'con_86
-                                               (coe MAlonzo.Code.Builtin.d_equals_352 v23 v25))
+                                               (MAlonzo.Code.Builtin.d_equals_440
+                                                  (coe v23) (coe v25)))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
@@ -1306,7 +1307,7 @@ du_BUILTIN_384 v0 v1
                        C_V'45'con_86 v13
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
-                              (coe C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_ENCODEUTF8_354 v13))
+                              (coe C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_ENCODEUTF8_352 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_decodeUtf8_58
@@ -1316,7 +1317,7 @@ du_BUILTIN_384 v0 v1
                     seq (coe v10)
                     (case coe v11 of
                        C_V'45'con_86 v13
-                         -> let v14 = coe MAlonzo.Code.Builtin.d_DECODEUTF8_356 v13 in
+                         -> let v14 = coe MAlonzo.Code.Builtin.d_DECODEUTF8_354 v13 in
                             coe
                               (case coe v14 of
                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v15
@@ -1401,7 +1402,7 @@ du_BUILTIN_384 v0 v1
                                   (case coe v11 of
                                      C_V'45'con_86 v41
                                        -> case coe v41 of
-                                            MAlonzo.Code.Utils.C__'44'__474 v42 v43
+                                            MAlonzo.Code.Utils.C__'44'__522 v42 v43
                                               -> coe
                                                    MAlonzo.Code.Utils.C_inj'8322'_14
                                                    (coe C_V'45'con_86 v42)
@@ -1422,7 +1423,7 @@ du_BUILTIN_384 v0 v1
                                   (case coe v11 of
                                      C_V'45'con_86 v41
                                        -> case coe v41 of
-                                            MAlonzo.Code.Utils.C__'44'__474 v42 v43
+                                            MAlonzo.Code.Utils.C__'44'__522 v42 v43
                                               -> coe
                                                    MAlonzo.Code.Utils.C_inj'8322'_14
                                                    (coe C_V'45'con_86 v43)
@@ -1447,11 +1448,11 @@ du_BUILTIN_384 v0 v1
                                                 (case coe v31 of
                                                    C_V'45'con_86 v61
                                                      -> case coe v61 of
-                                                          MAlonzo.Code.Utils.C_'91''93'_482
+                                                          MAlonzo.Code.Utils.C_'91''93'_530
                                                             -> coe
                                                                  MAlonzo.Code.Utils.C_inj'8322'_14
                                                                  (coe v21)
-                                                          MAlonzo.Code.Utils.C__'8759'__484 v62 v63
+                                                          MAlonzo.Code.Utils.C__'8759'__532 v62 v63
                                                             -> coe
                                                                  MAlonzo.Code.Utils.C_inj'8322'_14
                                                                  (coe v11)
@@ -1480,7 +1481,7 @@ du_BUILTIN_384 v0 v1
                                                    (coe
                                                       C_V'45'con_86
                                                       (coe
-                                                         MAlonzo.Code.Utils.C__'8759'__484 (coe v37)
+                                                         MAlonzo.Code.Utils.C__'8759'__532 (coe v37)
                                                          (coe v39)))
                                             _ -> MAlonzo.RTE.mazUnreachableError
                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1497,7 +1498,7 @@ du_BUILTIN_384 v0 v1
                            (case coe v11 of
                               C_V'45'con_86 v27
                                 -> case coe v27 of
-                                     MAlonzo.Code.Utils.C_'91''93'_482
+                                     MAlonzo.Code.Utils.C_'91''93'_530
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8321'_12
                                             (coe
@@ -1568,7 +1569,7 @@ du_BUILTIN_384 v0 v1
                                                               (coe
                                                                  MAlonzo.Code.Builtin.du_a_232)))))
                                                   (coe MAlonzo.Code.Type.BetaNBE.du_idEnv_250)))
-                                     MAlonzo.Code.Utils.C__'8759'__484 v28 v29
+                                     MAlonzo.Code.Utils.C__'8759'__532 v28 v29
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe C_V'45'con_86 v28)
@@ -1586,7 +1587,7 @@ du_BUILTIN_384 v0 v1
                            (case coe v11 of
                               C_V'45'con_86 v27
                                 -> case coe v27 of
-                                     MAlonzo.Code.Utils.C_'91''93'_482
+                                     MAlonzo.Code.Utils.C_'91''93'_530
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8321'_12
                                             (coe
@@ -1601,7 +1602,7 @@ du_BUILTIN_384 v0 v1
                                                         (coe
                                                            MAlonzo.Code.Builtin.Constant.Type.C_list_10))
                                                      v23)))
-                                     MAlonzo.Code.Utils.C__'8759'__484 v28 v29
+                                     MAlonzo.Code.Utils.C__'8759'__532 v28 v29
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe C_V'45'con_86 v29)
@@ -1619,13 +1620,13 @@ du_BUILTIN_384 v0 v1
                            (case coe v11 of
                               C_V'45'con_86 v27
                                 -> case coe v27 of
-                                     MAlonzo.Code.Utils.C_'91''93'_482
+                                     MAlonzo.Code.Utils.C_'91''93'_530
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe
                                                C_V'45'con_86
                                                (coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10))
-                                     MAlonzo.Code.Utils.C__'8759'__484 v28 v29
+                                     MAlonzo.Code.Utils.C__'8759'__532 v28 v29
                                        -> coe
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe
@@ -1648,7 +1649,7 @@ du_BUILTIN_384 v0 v1
                                      MAlonzo.Code.Utils.C_inj'8322'_14
                                      (coe
                                         C_V'45'con_86
-                                        (coe MAlonzo.Code.Utils.d_HSlengthOfArray_630 erased v27))
+                                        (coe MAlonzo.Code.Utils.d_HSlengthOfArray_678 erased v27))
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -1665,7 +1666,7 @@ du_BUILTIN_384 v0 v1
                                      MAlonzo.Code.Utils.C_inj'8322'_14
                                      (coe
                                         C_V'45'con_86
-                                        (coe MAlonzo.Code.Utils.d_HSlistToArray_634 erased v27))
+                                        (coe MAlonzo.Code.Utils.d_HSlistToArray_682 erased v27))
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -1695,7 +1696,7 @@ du_BUILTIN_384 v0 v1
                                                                            = MAlonzo.Code.Data.Integer.Properties.d__'60''63'__3190
                                                                                (coe v39)
                                                                                (coe
-                                                                                  MAlonzo.Code.Utils.d_HSlengthOfArray_630
+                                                                                  MAlonzo.Code.Utils.d_HSlengthOfArray_678
                                                                                   erased v37) in
                                                                      coe
                                                                        (case coe v43 of
@@ -1709,7 +1710,7 @@ du_BUILTIN_384 v0 v1
                                                                                            (coe
                                                                                               C_V'45'con_86
                                                                                               (coe
-                                                                                                 MAlonzo.Code.Utils.d_HSindexArray_636
+                                                                                                 MAlonzo.Code.Utils.d_HSindexArray_684
                                                                                                  erased
                                                                                                  v37
                                                                                                  v39)))
@@ -1755,23 +1756,23 @@ du_BUILTIN_384 v0 v1
                                                               (case coe v61 of
                                                                  C_V'45'con_86 v77
                                                                    -> case coe v77 of
-                                                                        MAlonzo.Code.Utils.C_ConstrDATA_644 v78 v79
+                                                                        MAlonzo.Code.Utils.C_ConstrDATA_692 v78 v79
                                                                           -> coe
                                                                                MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                (coe v51)
-                                                                        MAlonzo.Code.Utils.C_MapDATA_646 v78
+                                                                        MAlonzo.Code.Utils.C_MapDATA_694 v78
                                                                           -> coe
                                                                                MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                (coe v41)
-                                                                        MAlonzo.Code.Utils.C_ListDATA_648 v78
+                                                                        MAlonzo.Code.Utils.C_ListDATA_696 v78
                                                                           -> coe
                                                                                MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                (coe v31)
-                                                                        MAlonzo.Code.Utils.C_iDATA_650 v78
+                                                                        MAlonzo.Code.Utils.C_iDATA_698 v78
                                                                           -> coe
                                                                                MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                (coe v21)
-                                                                        MAlonzo.Code.Utils.C_bDATA_652 v78
+                                                                        MAlonzo.Code.Utils.C_bDATA_700 v78
                                                                           -> coe
                                                                                MAlonzo.Code.Utils.C_inj'8322'_14
                                                                                (coe v11)
@@ -1800,7 +1801,7 @@ du_BUILTIN_384 v0 v1
                                             (coe
                                                C_V'45'con_86
                                                (coe
-                                                  MAlonzo.Code.Utils.C_ConstrDATA_644 (coe v23)
+                                                  MAlonzo.Code.Utils.C_ConstrDATA_692 (coe v23)
                                                   (coe v25)))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1816,7 +1817,7 @@ du_BUILTIN_384 v0 v1
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
-                                 C_V'45'con_86 (coe MAlonzo.Code.Utils.C_MapDATA_646 (coe v13)))
+                                 C_V'45'con_86 (coe MAlonzo.Code.Utils.C_MapDATA_694 (coe v13)))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_listData_92
@@ -1829,7 +1830,7 @@ du_BUILTIN_384 v0 v1
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
-                                 C_V'45'con_86 (coe MAlonzo.Code.Utils.C_ListDATA_648 (coe v13)))
+                                 C_V'45'con_86 (coe MAlonzo.Code.Utils.C_ListDATA_696 (coe v13)))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_iData_94
@@ -1841,7 +1842,7 @@ du_BUILTIN_384 v0 v1
                        C_V'45'con_86 v13
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
-                              (coe C_V'45'con_86 (coe MAlonzo.Code.Utils.C_iDATA_650 (coe v13)))
+                              (coe C_V'45'con_86 (coe MAlonzo.Code.Utils.C_iDATA_698 (coe v13)))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_bData_96
@@ -1853,7 +1854,7 @@ du_BUILTIN_384 v0 v1
                        C_V'45'con_86 v13
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
-                              (coe C_V'45'con_86 (coe MAlonzo.Code.Utils.C_bDATA_652 (coe v13)))
+                              (coe C_V'45'con_86 (coe MAlonzo.Code.Utils.C_bDATA_700 (coe v13)))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_unConstrData_98
@@ -1872,13 +1873,13 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
-                                 MAlonzo.Code.Utils.C_ConstrDATA_644 v15 v16
+                                 MAlonzo.Code.Utils.C_ConstrDATA_692 v15 v16
                                    -> coe
                                         MAlonzo.Code.Utils.C_inj'8322'_14
                                         (coe
                                            C_V'45'con_86
                                            (coe
-                                              MAlonzo.Code.Utils.C__'44'__474 (coe v15) (coe v16)))
+                                              MAlonzo.Code.Utils.C__'44'__522 (coe v15) (coe v16)))
                                  _ -> coe v14)
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -1898,7 +1899,7 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
-                                 MAlonzo.Code.Utils.C_MapDATA_646 v15
+                                 MAlonzo.Code.Utils.C_MapDATA_694 v15
                                    -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_V'45'con_86 v15)
                                  _ -> coe v14)
                        _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1919,7 +1920,7 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
-                                 MAlonzo.Code.Utils.C_ListDATA_648 v15
+                                 MAlonzo.Code.Utils.C_ListDATA_696 v15
                                    -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_V'45'con_86 v15)
                                  _ -> coe v14)
                        _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1940,7 +1941,7 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
-                                 MAlonzo.Code.Utils.C_iDATA_650 v15
+                                 MAlonzo.Code.Utils.C_iDATA_698 v15
                                    -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_V'45'con_86 v15)
                                  _ -> coe v14)
                        _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1961,7 +1962,7 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)) in
                             coe
                               (case coe v13 of
-                                 MAlonzo.Code.Utils.C_bDATA_652 v15
+                                 MAlonzo.Code.Utils.C_bDATA_700 v15
                                    -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe C_V'45'con_86 v15)
                                  _ -> coe v14)
                        _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1981,7 +1982,7 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe
                                                C_V'45'con_86
-                                               (MAlonzo.Code.Utils.d_eqDATA_766
+                                               (MAlonzo.Code.Utils.d_eqDATA_814
                                                   (coe v23) (coe v25)))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -1997,7 +1998,7 @@ du_BUILTIN_384 v0 v1
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
-                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_serialiseDATA_358 v13))
+                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_serialiseDATA_356 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_insertCoin_112
@@ -2021,7 +2022,7 @@ du_BUILTIN_384 v0 v1
                                                                  C_V'45'con_86 v49
                                                                    -> let v50
                                                                             = coe
-                                                                                MAlonzo.Code.Builtin.d_insertCOIN_360
+                                                                                MAlonzo.Code.Builtin.d_insertCOIN_358
                                                                                 v43 v45 v47 v49 in
                                                                       coe
                                                                         (case coe v50 of
@@ -2067,7 +2068,7 @@ du_BUILTIN_384 v0 v1
                                                           (coe
                                                              C_V'45'con_86
                                                              (coe
-                                                                MAlonzo.Code.Builtin.d_lookupCOIN_362
+                                                                MAlonzo.Code.Builtin.d_lookupCOIN_360
                                                                 v33 v35 v37))
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -2088,7 +2089,7 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_unionVALUE_364 v23 v25 in
+                                                    MAlonzo.Code.Builtin.d_unionVALUE_362 v23 v25 in
                                           coe
                                             (case coe v26 of
                                                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v27
@@ -2120,7 +2121,7 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_valueCONTAINS_366 v23
+                                                    MAlonzo.Code.Builtin.d_valueCONTAINS_364 v23
                                                     v25 in
                                           coe
                                             (case coe v26 of
@@ -2153,7 +2154,7 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_scaleVALUE_368 v23 v25 in
+                                                    MAlonzo.Code.Builtin.d_scaleVALUE_366 v23 v25 in
                                           coe
                                             (case coe v26 of
                                                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v27
@@ -2179,7 +2180,7 @@ du_BUILTIN_384 v0 v1
                     seq (coe v10)
                     (case coe v11 of
                        C_V'45'con_86 v13
-                         -> let v14 = coe MAlonzo.Code.Builtin.d_valueDATA_370 v13 in
+                         -> let v14 = coe MAlonzo.Code.Builtin.d_valueDATA_368 v13 in
                             coe
                               (case coe v14 of
                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v15
@@ -2201,7 +2202,7 @@ du_BUILTIN_384 v0 v1
                     seq (coe v10)
                     (case coe v11 of
                        C_V'45'con_86 v13
-                         -> let v14 = coe MAlonzo.Code.Builtin.d_unValueDATA_372 v13 in
+                         -> let v14 = coe MAlonzo.Code.Builtin.d_unValueDATA_370 v13 in
                             coe
                               (case coe v14 of
                                  MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v15
@@ -2232,7 +2233,7 @@ du_BUILTIN_384 v0 v1
                                             (coe
                                                C_V'45'con_86
                                                (coe
-                                                  MAlonzo.Code.Utils.C__'44'__474 (coe v23)
+                                                  MAlonzo.Code.Utils.C__'44'__522 (coe v23)
                                                   (coe v25)))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2247,7 +2248,7 @@ du_BUILTIN_384 v0 v1
                        seq (coe v11)
                        (coe
                           MAlonzo.Code.Utils.C_inj'8322'_14
-                          (coe C_V'45'con_86 (coe MAlonzo.Code.Utils.C_'91''93'_482))))
+                          (coe C_V'45'con_86 (coe MAlonzo.Code.Utils.C_'91''93'_530))))
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_mkNilPairData_130
         -> case coe v1 of
@@ -2258,7 +2259,7 @@ du_BUILTIN_384 v0 v1
                        seq (coe v11)
                        (coe
                           MAlonzo.Code.Utils.C_inj'8322'_14
-                          (coe C_V'45'con_86 (coe MAlonzo.Code.Utils.C_'91''93'_482))))
+                          (coe C_V'45'con_86 (coe MAlonzo.Code.Utils.C_'91''93'_530))))
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'add_132
         -> case coe v1 of
@@ -2276,7 +2277,7 @@ du_BUILTIN_384 v0 v1
                                             (coe
                                                C_V'45'con_86
                                                (coe
-                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'add_374
+                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'add_372
                                                   v23 v25))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2293,7 +2294,7 @@ du_BUILTIN_384 v0 v1
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
                                  C_V'45'con_86
-                                 (coe MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'neg_376 v13))
+                                 (coe MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'neg_374 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'scalarMul_136
@@ -2312,7 +2313,7 @@ du_BUILTIN_384 v0 v1
                                             (coe
                                                C_V'45'con_86
                                                (coe
-                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'scalarMul_378
+                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'scalarMul_376
                                                   v23 v25))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2333,9 +2334,8 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe
                                                C_V'45'con_86
-                                               (coe
-                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'equal_380
-                                                  v23 v25))
+                                               (MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'equal_446
+                                                  (coe v23) (coe v25)))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
@@ -2353,7 +2353,7 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'hashToGroup_382
+                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'hashToGroup_378
                                                     v23 v25 in
                                           coe
                                             (case coe v26 of
@@ -2385,7 +2385,7 @@ du_BUILTIN_384 v0 v1
                               (coe
                                  C_V'45'con_86
                                  (coe
-                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'compress_384 v13))
+                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'compress_380 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_bls12'45'381'45'G1'45'uncompress_144
@@ -2397,7 +2397,7 @@ du_BUILTIN_384 v0 v1
                        C_V'45'con_86 v13
                          -> let v14
                                   = coe
-                                      MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'uncompress_386
+                                      MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'uncompress_382
                                       v13 in
                             coe
                               (case coe v14 of
@@ -2429,7 +2429,7 @@ du_BUILTIN_384 v0 v1
                                             (coe
                                                C_V'45'con_86
                                                (coe
-                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'add_388
+                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'add_384
                                                   v23 v25))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2446,7 +2446,7 @@ du_BUILTIN_384 v0 v1
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
                                  C_V'45'con_86
-                                 (coe MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'neg_390 v13))
+                                 (coe MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'neg_386 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'scalarMul_150
@@ -2465,7 +2465,7 @@ du_BUILTIN_384 v0 v1
                                             (coe
                                                C_V'45'con_86
                                                (coe
-                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'scalarMul_392
+                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'scalarMul_388
                                                   v23 v25))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2486,9 +2486,8 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe
                                                C_V'45'con_86
-                                               (coe
-                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'equal_394
-                                                  v23 v25))
+                                               (MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'equal_452
+                                                  (coe v23) (coe v25)))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
@@ -2506,7 +2505,7 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'hashToGroup_396
+                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'hashToGroup_390
                                                     v23 v25 in
                                           coe
                                             (case coe v26 of
@@ -2538,7 +2537,7 @@ du_BUILTIN_384 v0 v1
                               (coe
                                  C_V'45'con_86
                                  (coe
-                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'compress_398 v13))
+                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'compress_392 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_bls12'45'381'45'G2'45'uncompress_158
@@ -2550,7 +2549,7 @@ du_BUILTIN_384 v0 v1
                        C_V'45'con_86 v13
                          -> let v14
                                   = coe
-                                      MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'uncompress_400
+                                      MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'uncompress_394
                                       v13 in
                             coe
                               (case coe v14 of
@@ -2582,7 +2581,7 @@ du_BUILTIN_384 v0 v1
                                             (coe
                                                C_V'45'con_86
                                                (coe
-                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'millerLoop_402
+                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'millerLoop_396
                                                   v23 v25))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2604,7 +2603,7 @@ du_BUILTIN_384 v0 v1
                                             (coe
                                                C_V'45'con_86
                                                (coe
-                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'mulMlResult_404
+                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'mulMlResult_398
                                                   v23 v25))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2626,7 +2625,7 @@ du_BUILTIN_384 v0 v1
                                             (coe
                                                C_V'45'con_86
                                                (coe
-                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'finalVerify_406
+                                                  MAlonzo.Code.Builtin.d_BLS12'45'381'45'finalVerify_400
                                                   v23 v25))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
@@ -2642,7 +2641,7 @@ du_BUILTIN_384 v0 v1
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
-                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_KECCAK'45'256_408 v13))
+                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_KECCAK'45'256_402 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_blake2b'45'224_168
@@ -2655,7 +2654,7 @@ du_BUILTIN_384 v0 v1
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
-                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_BLAKE2B'45'224_410 v13))
+                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_BLAKE2B'45'224_404 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_byteStringToInteger_170
@@ -2673,7 +2672,7 @@ du_BUILTIN_384 v0 v1
                                             MAlonzo.Code.Utils.C_inj'8322'_14
                                             (coe
                                                C_V'45'con_86
-                                               (coe MAlonzo.Code.Builtin.d_BStoI_412 v23 v25))
+                                               (coe MAlonzo.Code.Builtin.d_BStoI_406 v23 v25))
                                      _ -> MAlonzo.RTE.mazUnreachableError
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
@@ -2695,7 +2694,7 @@ du_BUILTIN_384 v0 v1
                                                    C_V'45'con_86 v37
                                                      -> let v38
                                                               = coe
-                                                                  MAlonzo.Code.Builtin.d_ItoBS_414
+                                                                  MAlonzo.Code.Builtin.d_ItoBS_408
                                                                   v33 v35 v37 in
                                                         coe
                                                           (case coe v38 of
@@ -2737,7 +2736,7 @@ du_BUILTIN_384 v0 v1
                                                           (coe
                                                              C_V'45'con_86
                                                              (coe
-                                                                MAlonzo.Code.Builtin.d_andBYTESTRING_416
+                                                                MAlonzo.Code.Builtin.d_andBYTESTRING_410
                                                                 v33 v35 v37))
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -2765,7 +2764,7 @@ du_BUILTIN_384 v0 v1
                                                           (coe
                                                              C_V'45'con_86
                                                              (coe
-                                                                MAlonzo.Code.Builtin.d_orBYTESTRING_418
+                                                                MAlonzo.Code.Builtin.d_orBYTESTRING_412
                                                                 v33 v35 v37))
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -2793,7 +2792,7 @@ du_BUILTIN_384 v0 v1
                                                           (coe
                                                              C_V'45'con_86
                                                              (coe
-                                                                MAlonzo.Code.Builtin.d_xorBYTESTRING_420
+                                                                MAlonzo.Code.Builtin.d_xorBYTESTRING_414
                                                                 v33 v35 v37))
                                                    _ -> MAlonzo.RTE.mazUnreachableError
                                             _ -> MAlonzo.RTE.mazUnreachableError
@@ -2812,7 +2811,7 @@ du_BUILTIN_384 v0 v1
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
                                  C_V'45'con_86
-                                 (coe MAlonzo.Code.Builtin.d_complementBYTESTRING_422 v13))
+                                 (coe MAlonzo.Code.Builtin.d_complementBYTESTRING_416 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_readBit_182
@@ -2827,7 +2826,7 @@ du_BUILTIN_384 v0 v1
                                 -> case coe v11 of
                                      C_V'45'con_86 v25
                                        -> let v26
-                                                = coe MAlonzo.Code.Builtin.d_readBIT_424 v23 v25 in
+                                                = coe MAlonzo.Code.Builtin.d_readBIT_418 v23 v25 in
                                           coe
                                             (case coe v26 of
                                                MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v27
@@ -2863,10 +2862,10 @@ du_BUILTIN_384 v0 v1
                                                    C_V'45'con_86 v37
                                                      -> let v38
                                                               = coe
-                                                                  MAlonzo.Code.Builtin.d_writeBITS_426
+                                                                  MAlonzo.Code.Builtin.d_writeBITS_420
                                                                   v33
                                                                   (coe
-                                                                     MAlonzo.Code.Utils.du_toList_536
+                                                                     MAlonzo.Code.Utils.du_toList_584
                                                                      (coe v35))
                                                                   v37 in
                                                         coe
@@ -2902,7 +2901,7 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_replicateBYTE_428 v23
+                                                    MAlonzo.Code.Builtin.d_replicateBYTE_422 v23
                                                     v25 in
                                           coe
                                             (case coe v26 of
@@ -2935,7 +2934,7 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_shiftBYTESTRING_430 v23
+                                                    MAlonzo.Code.Builtin.d_shiftBYTESTRING_424 v23
                                                     v25 in
                                           coe
                                             (case coe v26 of
@@ -2968,7 +2967,7 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_rotateBYTESTRING_432 v23
+                                                    MAlonzo.Code.Builtin.d_rotateBYTESTRING_426 v23
                                                     v25 in
                                           coe
                                             (case coe v26 of
@@ -2998,7 +2997,7 @@ du_BUILTIN_384 v0 v1
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
-                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_countSetBITS_434 v13))
+                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_countSetBITS_428 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_findFirstSetBit_194
@@ -3011,7 +3010,7 @@ du_BUILTIN_384 v0 v1
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
-                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_findFirstSetBIT_436 v13))
+                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_findFirstSetBIT_430 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_ripemd'45'160_196
@@ -3024,7 +3023,7 @@ du_BUILTIN_384 v0 v1
                          -> coe
                               MAlonzo.Code.Utils.C_inj'8322'_14
                               (coe
-                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_RIPEMD'45'160_438 v13))
+                                 C_V'45'con_86 (coe MAlonzo.Code.Builtin.d_RIPEMD'45'160_432 v13))
                        _ -> MAlonzo.RTE.mazUnreachableError)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.C_expModInteger_198
@@ -3044,7 +3043,7 @@ du_BUILTIN_384 v0 v1
                                                    C_V'45'con_86 v37
                                                      -> let v38
                                                               = coe
-                                                                  MAlonzo.Code.Builtin.d_expModINTEGER_440
+                                                                  MAlonzo.Code.Builtin.d_expModINTEGER_434
                                                                   v33 v35 v37 in
                                                         coe
                                                           (case coe v38 of
@@ -3084,7 +3083,7 @@ du_BUILTIN_384 v0 v1
                                                    (coe
                                                       C_V'45'con_86
                                                       (coe
-                                                         MAlonzo.Code.Utils.du_dropLIST_552
+                                                         MAlonzo.Code.Utils.du_dropLIST_600
                                                          (coe v37) (coe v39)))
                                             _ -> MAlonzo.RTE.mazUnreachableError
                                      _ -> MAlonzo.RTE.mazUnreachableError)
@@ -3104,10 +3103,10 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'multiScalarMul_442
-                                                    (coe MAlonzo.Code.Utils.du_toList_536 (coe v23))
+                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G1'45'multiScalarMul_436
+                                                    (coe MAlonzo.Code.Utils.du_toList_584 (coe v23))
                                                     (coe
-                                                       MAlonzo.Code.Utils.du_toList_536
+                                                       MAlonzo.Code.Utils.du_toList_584
                                                        (coe v25)) in
                                           coe
                                             (case coe v26 of
@@ -3140,10 +3139,10 @@ du_BUILTIN_384 v0 v1
                                      C_V'45'con_86 v25
                                        -> let v26
                                                 = coe
-                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'multiScalarMul_444
-                                                    (coe MAlonzo.Code.Utils.du_toList_536 (coe v23))
+                                                    MAlonzo.Code.Builtin.d_BLS12'45'381'45'G2'45'multiScalarMul_438
+                                                    (coe MAlonzo.Code.Utils.du_toList_584 (coe v23))
                                                     (coe
-                                                       MAlonzo.Code.Utils.du_toList_536
+                                                       MAlonzo.Code.Utils.du_toList_584
                                                        (coe v25)) in
                                           coe
                                             (case coe v26 of

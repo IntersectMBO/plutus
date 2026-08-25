@@ -2729,310 +2729,310 @@ d_verifySchnorrSecp256k1Sig_350 ::
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10 () Bool
 d_verifySchnorrSecp256k1Sig_350
   = \k m s -> builtinResultToMaybe $ verifySchnorrSecp256k1Signature k m s
--- Builtin.equals
-d_equals_352 ::
-  MAlonzo.Code.Utils.T_ByteString_426 ->
-  MAlonzo.Code.Utils.T_ByteString_426 -> Bool
-d_equals_352 = (==)
 -- Builtin.ENCODEUTF8
-d_ENCODEUTF8_354 ::
+d_ENCODEUTF8_352 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_ENCODEUTF8_354 = encodeUtf8
+d_ENCODEUTF8_352 = encodeUtf8
 -- Builtin.DECODEUTF8
-d_DECODEUTF8_356 ::
+d_DECODEUTF8_354 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     () MAlonzo.Code.Agda.Builtin.String.T_String_6
-d_DECODEUTF8_356 = eitherToMaybe . decodeUtf8'
+d_DECODEUTF8_354 = eitherToMaybe . decodeUtf8'
 -- Builtin.serialiseDATA
-d_serialiseDATA_358 ::
-  MAlonzo.Code.Utils.T_DATA_642 ->
+d_serialiseDATA_356 ::
+  MAlonzo.Code.Utils.T_DATA_690 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_serialiseDATA_358 = BSL.toStrict . serialise
+d_serialiseDATA_356 = BSL.toStrict . serialise
 -- Builtin.insertCOIN
-d_insertCOIN_360 ::
+d_insertCOIN_358 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
   Integer ->
-  MAlonzo.Code.Utils.T_Value_850 ->
+  MAlonzo.Code.Utils.T_Value_862 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Value_850
-d_insertCOIN_360
+    () MAlonzo.Code.Utils.T_Value_862
+d_insertCOIN_358
   = \ccy tok x v -> builtinResultToMaybe $ Value.insertCoin ccy tok x v
 -- Builtin.lookupCOIN
-d_lookupCOIN_362 ::
+d_lookupCOIN_360 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
-  MAlonzo.Code.Utils.T_Value_850 -> Integer
-d_lookupCOIN_362 = Value.lookupCoin
+  MAlonzo.Code.Utils.T_Value_862 -> Integer
+d_lookupCOIN_360 = Value.lookupCoin
 -- Builtin.unionVALUE
-d_unionVALUE_364 ::
-  MAlonzo.Code.Utils.T_Value_850 ->
-  MAlonzo.Code.Utils.T_Value_850 ->
+d_unionVALUE_362 ::
+  MAlonzo.Code.Utils.T_Value_862 ->
+  MAlonzo.Code.Utils.T_Value_862 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Value_850
-d_unionVALUE_364
+    () MAlonzo.Code.Utils.T_Value_862
+d_unionVALUE_362
   = \v1 v2 -> builtinResultToMaybe $ Value.unionValue v1 v2
 -- Builtin.valueCONTAINS
-d_valueCONTAINS_366 ::
-  MAlonzo.Code.Utils.T_Value_850 ->
-  MAlonzo.Code.Utils.T_Value_850 ->
+d_valueCONTAINS_364 ::
+  MAlonzo.Code.Utils.T_Value_862 ->
+  MAlonzo.Code.Utils.T_Value_862 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10 () Bool
-d_valueCONTAINS_366
+d_valueCONTAINS_364
   = \v1 v2 -> builtinResultToMaybe $ Value.valueContains v1 v2
 -- Builtin.scaleVALUE
-d_scaleVALUE_368 ::
+d_scaleVALUE_366 ::
   Integer ->
-  MAlonzo.Code.Utils.T_Value_850 ->
+  MAlonzo.Code.Utils.T_Value_862 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Value_850
-d_scaleVALUE_368
+    () MAlonzo.Code.Utils.T_Value_862
+d_scaleVALUE_366
   = \n v -> builtinResultToMaybe $ Value.scaleValue n v
 -- Builtin.valueDATA
-d_valueDATA_370 ::
-  MAlonzo.Code.Utils.T_Value_850 ->
+d_valueDATA_368 ::
+  MAlonzo.Code.Utils.T_Value_862 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_DATA_642
-d_valueDATA_370 = \v -> builtinResultToMaybe $ Value.valueData v
+    () MAlonzo.Code.Utils.T_DATA_690
+d_valueDATA_368 = \v -> builtinResultToMaybe $ Value.valueData v
 -- Builtin.unValueDATA
-d_unValueDATA_372 ::
-  MAlonzo.Code.Utils.T_DATA_642 ->
+d_unValueDATA_370 ::
+  MAlonzo.Code.Utils.T_DATA_690 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Value_850
-d_unValueDATA_372
+    () MAlonzo.Code.Utils.T_Value_862
+d_unValueDATA_370
   = \d -> builtinResultToMaybe $ Value.unValueData d
 -- Builtin.BLS12-381-G1-add
-d_BLS12'45'381'45'G1'45'add_374 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772
-d_BLS12'45'381'45'G1'45'add_374 = G1.add
+d_BLS12'45'381'45'G1'45'add_372 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820
+d_BLS12'45'381'45'G1'45'add_372 = G1.add
 -- Builtin.BLS12-381-G1-neg
-d_BLS12'45'381'45'G1'45'neg_376 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772
-d_BLS12'45'381'45'G1'45'neg_376 = G1.neg
+d_BLS12'45'381'45'G1'45'neg_374 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820
+d_BLS12'45'381'45'G1'45'neg_374 = G1.neg
 -- Builtin.BLS12-381-G1-scalarMul
-d_BLS12'45'381'45'G1'45'scalarMul_378 ::
+d_BLS12'45'381'45'G1'45'scalarMul_376 ::
   Integer ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772
-d_BLS12'45'381'45'G1'45'scalarMul_378 = G1.scalarMul
--- Builtin.BLS12-381-G1-equal
-d_BLS12'45'381'45'G1'45'equal_380 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772 -> Bool
-d_BLS12'45'381'45'G1'45'equal_380 = (==)
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820
+d_BLS12'45'381'45'G1'45'scalarMul_376 = G1.scalarMul
 -- Builtin.BLS12-381-G1-hashToGroup
-d_BLS12'45'381'45'G1'45'hashToGroup_382 ::
+d_BLS12'45'381'45'G1'45'hashToGroup_378 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772
-d_BLS12'45'381'45'G1'45'hashToGroup_382
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820
+d_BLS12'45'381'45'G1'45'hashToGroup_378
   = eitherToMaybe .* G1.hashToGroup
 -- Builtin.BLS12-381-G1-compress
-d_BLS12'45'381'45'G1'45'compress_384 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772 ->
+d_BLS12'45'381'45'G1'45'compress_380 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_BLS12'45'381'45'G1'45'compress_384 = G1.compress
+d_BLS12'45'381'45'G1'45'compress_380 = G1.compress
 -- Builtin.BLS12-381-G1-uncompress
-d_BLS12'45'381'45'G1'45'uncompress_386 ::
+d_BLS12'45'381'45'G1'45'uncompress_382 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772
-d_BLS12'45'381'45'G1'45'uncompress_386
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820
+d_BLS12'45'381'45'G1'45'uncompress_382
   = eitherToMaybe . G1.uncompress
 -- Builtin.BLS12-381-G2-add
-d_BLS12'45'381'45'G2'45'add_388 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798
-d_BLS12'45'381'45'G2'45'add_388 = G2.add
+d_BLS12'45'381'45'G2'45'add_384 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834
+d_BLS12'45'381'45'G2'45'add_384 = G2.add
 -- Builtin.BLS12-381-G2-neg
-d_BLS12'45'381'45'G2'45'neg_390 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798
-d_BLS12'45'381'45'G2'45'neg_390 = G2.neg
+d_BLS12'45'381'45'G2'45'neg_386 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834
+d_BLS12'45'381'45'G2'45'neg_386 = G2.neg
 -- Builtin.BLS12-381-G2-scalarMul
-d_BLS12'45'381'45'G2'45'scalarMul_392 ::
+d_BLS12'45'381'45'G2'45'scalarMul_388 ::
   Integer ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798
-d_BLS12'45'381'45'G2'45'scalarMul_392 = G2.scalarMul
--- Builtin.BLS12-381-G2-equal
-d_BLS12'45'381'45'G2'45'equal_394 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798 -> Bool
-d_BLS12'45'381'45'G2'45'equal_394 = (==)
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834
+d_BLS12'45'381'45'G2'45'scalarMul_388 = G2.scalarMul
 -- Builtin.BLS12-381-G2-hashToGroup
-d_BLS12'45'381'45'G2'45'hashToGroup_396 ::
+d_BLS12'45'381'45'G2'45'hashToGroup_390 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798
-d_BLS12'45'381'45'G2'45'hashToGroup_396
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834
+d_BLS12'45'381'45'G2'45'hashToGroup_390
   = eitherToMaybe .* G2.hashToGroup
 -- Builtin.BLS12-381-G2-compress
-d_BLS12'45'381'45'G2'45'compress_398 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798 ->
+d_BLS12'45'381'45'G2'45'compress_392 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_BLS12'45'381'45'G2'45'compress_398 = G2.compress
+d_BLS12'45'381'45'G2'45'compress_392 = G2.compress
 -- Builtin.BLS12-381-G2-uncompress
-d_BLS12'45'381'45'G2'45'uncompress_400 ::
+d_BLS12'45'381'45'G2'45'uncompress_394 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798
-d_BLS12'45'381'45'G2'45'uncompress_400
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834
+d_BLS12'45'381'45'G2'45'uncompress_394
   = eitherToMaybe . G2.uncompress
 -- Builtin.BLS12-381-millerLoop
-d_BLS12'45'381'45'millerLoop_402 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_824
-d_BLS12'45'381'45'millerLoop_402 = Pairing.millerLoop
+d_BLS12'45'381'45'millerLoop_396 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_848
+d_BLS12'45'381'45'millerLoop_396 = Pairing.millerLoop
 -- Builtin.BLS12-381-mulMlResult
-d_BLS12'45'381'45'mulMlResult_404 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_824 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_824 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_824
-d_BLS12'45'381'45'mulMlResult_404 = Pairing.mulMlResult
+d_BLS12'45'381'45'mulMlResult_398 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_848 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_848 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_848
+d_BLS12'45'381'45'mulMlResult_398 = Pairing.mulMlResult
 -- Builtin.BLS12-381-finalVerify
-d_BLS12'45'381'45'finalVerify_406 ::
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_824 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_824 -> Bool
-d_BLS12'45'381'45'finalVerify_406 = Pairing.finalVerify
+d_BLS12'45'381'45'finalVerify_400 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_848 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_848 -> Bool
+d_BLS12'45'381'45'finalVerify_400 = Pairing.finalVerify
 -- Builtin.KECCAK-256
-d_KECCAK'45'256_408 ::
+d_KECCAK'45'256_402 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_KECCAK'45'256_408 = Hash.keccak_256
+d_KECCAK'45'256_402 = Hash.keccak_256
 -- Builtin.BLAKE2B-224
-d_BLAKE2B'45'224_410 ::
+d_BLAKE2B'45'224_404 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_BLAKE2B'45'224_410 = Hash.blake2b_224
+d_BLAKE2B'45'224_404 = Hash.blake2b_224
 -- Builtin.BStoI
-d_BStoI_412 ::
+d_BStoI_406 ::
   Bool -> MAlonzo.Code.Utils.T_ByteString_426 -> Integer
-d_BStoI_412 = Bitwise.byteStringToInteger
+d_BStoI_406 = Bitwise.byteStringToInteger
 -- Builtin.ItoBS
-d_ItoBS_414 ::
+d_ItoBS_408 ::
   Bool ->
   Integer ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     () MAlonzo.Code.Utils.T_ByteString_426
-d_ItoBS_414
+d_ItoBS_408
   = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteString e w n
 -- Builtin.andBYTESTRING
-d_andBYTESTRING_416 ::
+d_andBYTESTRING_410 ::
   Bool ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_andBYTESTRING_416 = Bitwise.andByteString
+d_andBYTESTRING_410 = Bitwise.andByteString
 -- Builtin.orBYTESTRING
-d_orBYTESTRING_418 ::
+d_orBYTESTRING_412 ::
   Bool ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_orBYTESTRING_418 = Bitwise.orByteString
+d_orBYTESTRING_412 = Bitwise.orByteString
 -- Builtin.xorBYTESTRING
-d_xorBYTESTRING_420 ::
+d_xorBYTESTRING_414 ::
   Bool ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_xorBYTESTRING_420 = Bitwise.xorByteString
+d_xorBYTESTRING_414 = Bitwise.xorByteString
 -- Builtin.complementBYTESTRING
-d_complementBYTESTRING_422 ::
+d_complementBYTESTRING_416 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_complementBYTESTRING_422 = Bitwise.complementByteString
+d_complementBYTESTRING_416 = Bitwise.complementByteString
 -- Builtin.readBIT
-d_readBIT_424 ::
+d_readBIT_418 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   Integer -> MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10 () Bool
-d_readBIT_424
+d_readBIT_418
   = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n)
 -- Builtin.writeBITS
-d_writeBITS_426 ::
+d_writeBITS_420 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Agda.Builtin.List.T_List_10 () Integer ->
   Bool ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     () MAlonzo.Code.Utils.T_ByteString_426
-d_writeBITS_426
+d_writeBITS_420
   = \s ps u -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) u
 -- Builtin.replicateBYTE
-d_replicateBYTE_428 ::
+d_replicateBYTE_422 ::
   Integer ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     () MAlonzo.Code.Utils.T_ByteString_426
-d_replicateBYTE_428
+d_replicateBYTE_422
   = \n w8 -> case toIntegralSized w8 of { Nothing -> Nothing; Just w -> builtinResultToMaybe $ Bitwise.replicateByte n w }
 -- Builtin.shiftBYTESTRING
-d_shiftBYTESTRING_430 ::
+d_shiftBYTESTRING_424 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     () MAlonzo.Code.Utils.T_ByteString_426
-d_shiftBYTESTRING_430
+d_shiftBYTESTRING_424
   = \s i -> if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int) then Just $ Bitwise.shiftByteString s i else Nothing
 -- Builtin.rotateBYTESTRING
-d_rotateBYTESTRING_432 ::
+d_rotateBYTESTRING_426 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   Integer ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
     () MAlonzo.Code.Utils.T_ByteString_426
-d_rotateBYTESTRING_432
+d_rotateBYTESTRING_426
   = \s i -> if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int) then Just $ Bitwise.rotateByteString s i else Nothing
 -- Builtin.countSetBITS
-d_countSetBITS_434 ::
+d_countSetBITS_428 ::
   MAlonzo.Code.Utils.T_ByteString_426 -> Integer
-d_countSetBITS_434 = \s -> fromIntegral $ Bitwise.countSetBits s
+d_countSetBITS_428 = \s -> fromIntegral $ Bitwise.countSetBits s
 -- Builtin.findFirstSetBIT
-d_findFirstSetBIT_436 ::
+d_findFirstSetBIT_430 ::
   MAlonzo.Code.Utils.T_ByteString_426 -> Integer
-d_findFirstSetBIT_436
+d_findFirstSetBIT_430
   = \s -> fromIntegral $ Bitwise.findFirstSetBit s
 -- Builtin.RIPEMD-160
-d_RIPEMD'45'160_438 ::
+d_RIPEMD'45'160_432 ::
   MAlonzo.Code.Utils.T_ByteString_426 ->
   MAlonzo.Code.Utils.T_ByteString_426
-d_RIPEMD'45'160_438 = Hash.ripemd_160
+d_RIPEMD'45'160_432 = Hash.ripemd_160
 -- Builtin.expModINTEGER
-d_expModINTEGER_440 ::
+d_expModINTEGER_434 ::
   Integer ->
   Integer ->
   Integer -> MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10 () Integer
-d_expModINTEGER_440
+d_expModINTEGER_434
   = \b e m -> if m < 0 then Nothing else fmap fromIntegral $ builtinResultToMaybe $ ExpMod.expMod b e (fromIntegral m)
 -- Builtin.BLS12-381-G1-multiScalarMul
-d_BLS12'45'381'45'G1'45'multiScalarMul_442 ::
+d_BLS12'45'381'45'G1'45'multiScalarMul_436 ::
   MAlonzo.Code.Agda.Builtin.List.T_List_10 () Integer ->
   MAlonzo.Code.Agda.Builtin.List.T_List_10
-    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772 ->
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_772
-d_BLS12'45'381'45'G1'45'multiScalarMul_442
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820
+d_BLS12'45'381'45'G1'45'multiScalarMul_436
   = \s p -> builtinResultToMaybe $ G1.multiScalarMul s p
 -- Builtin.BLS12-381-G2-multiScalarMul
-d_BLS12'45'381'45'G2'45'multiScalarMul_444 ::
+d_BLS12'45'381'45'G2'45'multiScalarMul_438 ::
   MAlonzo.Code.Agda.Builtin.List.T_List_10 () Integer ->
   MAlonzo.Code.Agda.Builtin.List.T_List_10
-    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798 ->
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834 ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
-    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_798
-d_BLS12'45'381'45'G2'45'multiScalarMul_444
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834
+d_BLS12'45'381'45'G2'45'multiScalarMul_438
   = \s p -> builtinResultToMaybe $ G2.multiScalarMul s p
+-- Builtin.equals
+d_equals_440 ::
+  MAlonzo.Code.Utils.T_ByteString_426 ->
+  MAlonzo.Code.Utils.T_ByteString_426 -> Bool
+d_equals_440 = (==)
+-- Builtin.BLS12-381-G1-equal
+d_BLS12'45'381'45'G1'45'equal_446 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_820 -> Bool
+d_BLS12'45'381'45'G1'45'equal_446 = (==)
+-- Builtin.BLS12-381-G2-equal
+d_BLS12'45'381'45'G2'45'equal_452 ::
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834 ->
+  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_834 -> Bool
+d_BLS12'45'381'45'G2'45'equal_452 = (==)
 -- Builtin.enumBuiltin
-d_enumBuiltin_446 :: T_Builtin_2 -> Integer
-d_enumBuiltin_446 v0
+d_enumBuiltin_458 :: T_Builtin_2 -> Integer
+d_enumBuiltin_458 v0
   = case coe v0 of
       C_addInteger_4 -> coe (0 :: Integer)
       C_subtractInteger_6 -> coe (1 :: Integer)
@@ -3137,18 +3137,18 @@ d_enumBuiltin_446 v0
       C_bls12'45'381'45'G2'45'multiScalarMul_204 -> coe (100 :: Integer)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.enumBuiltin-injective
-d_enumBuiltin'45'injective_452 ::
+d_enumBuiltin'45'injective_464 ::
   T_Builtin_2 ->
   T_Builtin_2 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_enumBuiltin'45'injective_452 = erased
+d_enumBuiltin'45'injective_464 = erased
 -- Builtin.decBuiltin
-d_decBuiltin_460 ::
+d_decBuiltin_472 ::
   T_Builtin_2 ->
   T_Builtin_2 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_decBuiltin_460 v0 v1
+d_decBuiltin_472 v0 v1
   = let v2
           = coe
               MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_178
@@ -3156,12 +3156,12 @@ d_decBuiltin_460 v0 v1
               (\ v2 ->
                  coe
                    MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
-                   (coe d_enumBuiltin_446 (coe v0)))
+                   (coe d_enumBuiltin_458 (coe v0)))
               (coe
                  MAlonzo.Code.Relation.Nullary.Decidable.Core.d_T'63'_72
                  (coe
-                    eqInt (coe d_enumBuiltin_446 (coe v0))
-                    (coe d_enumBuiltin_446 (coe v1)))) in
+                    eqInt (coe d_enumBuiltin_458 (coe v0))
+                    (coe d_enumBuiltin_458 (coe v1)))) in
     coe
       (case coe v2 of
          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v3 v4
@@ -3180,9 +3180,9 @@ d_decBuiltin_460 v0 v1
                           (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Builtin.showBuiltin
-d_showBuiltin_484 ::
+d_showBuiltin_496 ::
   T_Builtin_2 -> MAlonzo.Code.Agda.Builtin.String.T_String_6
-d_showBuiltin_484 v0
+d_showBuiltin_496 v0
   = case coe v0 of
       C_addInteger_4 -> coe ("addInteger" :: Data.Text.Text)
       C_subtractInteger_6 -> coe ("subtractInteger" :: Data.Text.Text)
@@ -3317,8 +3317,8 @@ d_showBuiltin_484 v0
         -> coe ("bls12-381-G2-multiScalarMul" :: Data.Text.Text)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Builtin.builtinList
-d_builtinList_486 :: [T_Builtin_2]
-d_builtinList_486
+d_builtinList_498 :: [T_Builtin_2]
+d_builtinList_498
   = coe
       MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe C_addInteger_4)
       (coe

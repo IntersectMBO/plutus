@@ -213,35 +213,82 @@ postulate ByteString : Set
 postulate
   mkByteString : String → ByteString
 
-eqByteString? : (b₁ b₂ : ByteString) → Dec (b₁ ≡ b₂)
-eqByteString? b₁ b₂ with primTrustMe {Agda.Primitive.lzero} {ByteString} {b₁} {b₂}
-... | refl = yes refl
-
 ```
 ### Equality of postulated types
 
-`ByteString` (like the BLS12-381 element types and `Value` below) is postulated, so at
-type-checking time we may only rely on Agda's unification algorithm to decide equality
-of its values. The decision procedures for these types (`eqByteString?`,
-`eqBls12-381-G1-Element?`, `eqBls12-381-G2-Element?`, `eqBls12-381-MlResult?`, `eqValue?`)
-do this by matching on `primTrustMe`, which reduces to `refl` exactly when the two sides
-are definitionally equal.
+`ByteString` (like the BLS12-381 element types and `Value` below) is postulated, so
+Agda knows nothing about its values: at type-checking time we may only rely on Agda's
+unification algorithm to decide equality, while at runtime we must defer to the
+Haskell implementation of equality.
 
-Let's look at the behavior of `eqByteString? (mkByteString "foo") (mkByteString "foo")` vs
+We bridge the two stages as follows. For each postulated type we define a Bool-valued
+equality primitive (`eqByteStringᵇ` below) whose Agda definition is constantly `true`,
+and whose `COMPILE GHC` pragma replaces it with Haskell's `(==)` at runtime (Agda's
+FFI allows the two definitions to differ, see the warning at
+https://agda.readthedocs.io/en/v2.7.0.1/language/foreign-function-interface.html#using-haskell-functions-from-agda).
+This pragma is the single trusted point of the construction: we trust that Haskell's
+`(==)` decides propositional equality of the postulated type.
+
+The primitive is then turned into a decision procedure by `decEqFromBool`. In the
+`true` branch it matches on `primTrustMe`, which reduces to `refl` exactly when the
+two sides are definitionally equal, and gets stuck otherwise. The `false` branch is
+honest Agda: the caller must prove that the primitive is constantly `true`, which
+makes the branch unreachable at type-checking time, so the required negative proof
+follows from the contradictory hypotheses — no postulate is involved. At runtime,
+where `(==)` can actually return `false`, the branch produces `no` with a proof that
+is never forced (only the `does` field of `Dec` is ever inspected, e.g. by `isYes`).
+
+Note that the contradiction must live *inside* the `no` lambda: refuting the `false`
+branch with an absurd pattern instead would compile to an unreachable-code error and
+crash at runtime.
+
+The primitives are kept `private`: since their Agda-side bodies are constantly `true`,
+using them for anything other than feeding `decEqFromBool` would be a bug. Code that
+genuinely needs Bool-valued equality of a postulated type at the Agda level should go
+through the decision procedures instead, i.e. `isYes (eqX? …)` — as `eqDATA` below and
+`equals` in `Builtin` do — which answers correctly or gets stuck, but never lies.
+Making the primitives private makes such misuse impossible.
+
+```
+private
+  true≢false : true ≡ false → ⊥
+  true≢false ()
+
+decEqFromBool
+  : {A : Set}
+    (eqᵇ : A → A → Bool)
+  → (∀ x y → eqᵇ x y ≡ true)
+  → (x y : A) → Dec (x ≡ y)
+decEqFromBool eqᵇ complete x y with eqᵇ x y in eq
+... | false = no (λ _ → true≢false (trans (sym (complete x y)) eq))
+... | true with primTrustMe {Agda.Primitive.lzero} {_} {x} {y}
+...   | refl = yes refl
+
+private
+  eqByteStringᵇ : ByteString → ByteString → Bool
+  eqByteStringᵇ _ _ = true
+  {-# COMPILE GHC eqByteStringᵇ = (==) #-}
+
+eqByteString? : (b₁ b₂ : ByteString) → Dec (b₁ ≡ b₂)
+eqByteString? = decEqFromBool eqByteStringᵇ (λ _ _ → refl)
+```
+
+Let's look at the type-checking time behavior of
+`eqByteString? (mkByteString "foo") (mkByteString "foo")` vs
 `eqByteString? (mkByteString "foo") (mkByteString "bar")`.
 
-At type-checking time, if the two bytestrings are definitionally equal unification will
-succeed, and the function will return `yes refl`.
+If the two bytestrings are definitionally equal unification will succeed, and the
+procedure will return `yes refl`.
 
 ```
 _ : isYes (eqByteString? (mkByteString "") (mkByteString "")) ≡ true
 _ = refl
 ```
 
-There is no way to return `no` because there is no way to prove that the two
-terms are not equal without extra information about the `ByteString` type. But
-this is enough to make Agda not successfully type-check the program, since it
-gets stuck while trying to normalize `primTrustMe`:
+There is no way to return `no` at type-checking time because there is no way to prove
+that two values of a postulated type are not equal. But this is enough to make Agda
+not successfully type-check the program, since it gets stuck while trying to
+normalize `primTrustMe`:
 
 ```
 -- The following does not type check because reduction gets stuck
@@ -249,22 +296,9 @@ gets stuck while trying to normalize `primTrustMe`:
 -- _ = refl
 ```
 
-So even though these procedures can never produce a negative proof, they are still *safe*
-checkers at type-checking time: they either answer `yes` correctly or refuse to reduce.
+So at type-checking time these procedures either answer `yes` correctly or refuse to
+reduce, while at runtime they follow Haskell's `(==)`.
 
-These decision procedures cannot be used for runtime equality checks: at runtime the
-values `≡` depends on are erased and `primTrustMe` is compiled to `refl`, so the compiled
-code always takes the `yes` branch. Runtime equality of postulated types instead goes
-through Bool-valued wrappers such as `eqByteStringᵇ`, whose `COMPILE GHC` pragma replaces
-the Agda definition with Haskell's `(==)` (see also `HsEq` in `Untyped.Equality`).
-
-```
-
-eqByteStringᵇ : ByteString → ByteString → Bool
-eqByteStringᵇ b₁ b₂ = isYes (eqByteString? b₁ b₂)
-{-# COMPILE GHC eqByteStringᵇ = (==) #-}
-
-```
 ## Record Types
 ```
 
@@ -443,37 +477,37 @@ postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}
 {-# COMPILE GHC Bls12-381-G1-Element = type G1.Element #-}
 
-eqBls12-381-G1-Element? : (b₁ b₂ : Bls12-381-G1-Element) → Dec (b₁ ≡ b₂)
-eqBls12-381-G1-Element? b₁ b₂ with primTrustMe {Agda.Primitive.lzero} {Bls12-381-G1-Element} {b₁} {b₂}
-... | refl = yes refl
+private
+  eqBls12-381-G1-Elementᵇ : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
+  eqBls12-381-G1-Elementᵇ _ _ = true
+  {-# COMPILE GHC eqBls12-381-G1-Elementᵇ = (==) #-}
 
-eqBls12-381-G1-Elementᵇ : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
-eqBls12-381-G1-Elementᵇ b₁ b₂ = isYes (eqBls12-381-G1-Element? b₁ b₂)
-{-# COMPILE GHC eqBls12-381-G1-Elementᵇ = (==) #-}
+eqBls12-381-G1-Element? : (b₁ b₂ : Bls12-381-G1-Element) → Dec (b₁ ≡ b₂)
+eqBls12-381-G1-Element? = decEqFromBool eqBls12-381-G1-Elementᵇ (λ _ _ → refl)
 
 postulate Bls12-381-G2-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G2 as G2 #-}
 {-# COMPILE GHC Bls12-381-G2-Element = type G2.Element #-}
 
-eqBls12-381-G2-Element? : (b₁ b₂ : Bls12-381-G2-Element) → Dec (b₁ ≡ b₂)
-eqBls12-381-G2-Element? b₁ b₂ with primTrustMe {Agda.Primitive.lzero} {Bls12-381-G2-Element} {b₁} {b₂}
-... | refl = yes refl
+private
+  eqBls12-381-G2-Elementᵇ : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
+  eqBls12-381-G2-Elementᵇ _ _ = true
+  {-# COMPILE GHC eqBls12-381-G2-Elementᵇ = (==) #-}
 
-eqBls12-381-G2-Elementᵇ : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
-eqBls12-381-G2-Elementᵇ b₁ b₂ = isYes (eqBls12-381-G2-Element? b₁ b₂)
-{-# COMPILE GHC eqBls12-381-G2-Elementᵇ = (==) #-}
+eqBls12-381-G2-Element? : (b₁ b₂ : Bls12-381-G2-Element) → Dec (b₁ ≡ b₂)
+eqBls12-381-G2-Element? = decEqFromBool eqBls12-381-G2-Elementᵇ (λ _ _ → refl)
 
 postulate Bls12-381-MlResult : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing #-}
 {-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
 
-eqBls12-381-MlResult? : (b₁ b₂ : Bls12-381-MlResult) → Dec (b₁ ≡ b₂)
-eqBls12-381-MlResult? b₁ b₂ with primTrustMe {Agda.Primitive.lzero} {Bls12-381-MlResult} {b₁} {b₂}
-... | refl = yes refl
+private
+  eqBls12-381-MlResultᵇ : Bls12-381-MlResult → Bls12-381-MlResult → Bool
+  eqBls12-381-MlResultᵇ _ _ = true
+  {-# COMPILE GHC eqBls12-381-MlResultᵇ = (==) #-}
 
-eqBls12-381-MlResultᵇ : Bls12-381-MlResult → Bls12-381-MlResult → Bool
-eqBls12-381-MlResultᵇ b₁ b₂ = isYes (eqBls12-381-MlResult? b₁ b₂)
-{-# COMPILE GHC eqBls12-381-MlResultᵇ = (==) #-}
+eqBls12-381-MlResult? : (b₁ b₂ : Bls12-381-MlResult) → Dec (b₁ ≡ b₂)
+eqBls12-381-MlResult? = decEqFromBool eqBls12-381-MlResultᵇ (λ _ _ → refl)
 ```
 
 ## Value
@@ -489,13 +523,13 @@ postulate Value : Set
 ```
 
 ```
-eqValue? : (v₁ v₂ : Value) → Dec (v₁ ≡ v₂)
-eqValue? v₁ v₂ with primTrustMe {Agda.Primitive.lzero} {Value} {v₁} {v₂}
-... | refl = yes refl
+private
+  eqValueᵇ : Value → Value → Bool
+  eqValueᵇ _ _ = true
+  {-# COMPILE GHC eqValueᵇ = (==) #-}
 
-eqValueᵇ : Value → Value → Bool
-eqValueᵇ v₁ v₂ = isYes (eqValue? v₁ v₂)
-{-# COMPILE GHC eqValueᵇ = (==) #-}
+eqValue? : (v₁ v₂ : Value) → Dec (v₁ ≡ v₂)
+eqValue? = decEqFromBool eqValueᵇ (λ _ _ → refl)
 ```
 
 ### Constructing constants of type Value

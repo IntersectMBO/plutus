@@ -105,7 +105,7 @@ d__'8799''7611'__50 v0 v1 v2
                -> let v7 = d__'8799''7611'__50 (coe v0) (coe v3) (coe v5) in
                   coe
                     (let v8
-                           = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_84
+                           = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_52
                                (coe v0) (coe v4) (coe v6) in
                      coe
                        (case coe v7 of
@@ -214,7 +214,7 @@ d__'8799''7611''7611'__148 v0 v1 v2 v3 v4
                          -> case coe v4 of
                               C_keep_114 v17
                                 -> let v18
-                                         = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_84
+                                         = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_52
                                              (coe v0) (coe v11) (coe v11) in
                                    coe
                                      (let v19
@@ -250,7 +250,7 @@ d__'8799''7611''7611'__148 v0 v1 v2 v3 v4
                          -> case coe v4 of
                               C_drop_122 v17
                                 -> let v18
-                                         = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_84
+                                         = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_52
                                              (coe v0) (coe v11) (coe v11) in
                                    coe
                                      (let v19
@@ -612,7 +612,7 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                   -> case coe v7 of
                        MAlonzo.Code.Untyped.C_con_28 v10
                          -> let v11
-                                  = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_76
+                                  = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_44
                                       (coe v9) (coe v10) in
                             coe
                               (case coe v11 of
@@ -711,20 +711,20 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                       (\ v11 ->
                                          coe
                                            MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
-                                           (coe MAlonzo.Code.Builtin.d_enumBuiltin_446 (coe v9)))
+                                           (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v9)))
                                       (coe
                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                                          (coe
                                             eqInt
-                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_446 (coe v9))
-                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_446 (coe v10)))
+                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v9))
+                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v10)))
                                          (coe
                                             MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
                                             (coe
                                                eqInt
-                                               (coe MAlonzo.Code.Builtin.d_enumBuiltin_446 (coe v9))
+                                               (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v9))
                                                (coe
-                                                  MAlonzo.Code.Builtin.d_enumBuiltin_446
+                                                  MAlonzo.Code.Builtin.d_enumBuiltin_458
                                                   (coe v10))))) in
                             coe
                               (case coe v11 of

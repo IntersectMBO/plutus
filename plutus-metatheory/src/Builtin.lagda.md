@@ -30,6 +30,7 @@ open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
 open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse;length)
 open import Data.Product using (Σ;proj₁;proj₂)
 open import Relation.Binary using (DecidableEquality)
+open import Relation.Nullary using (isYes)
 
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
@@ -520,7 +521,6 @@ postulate
   verifyEd25519Sig            : ByteString → ByteString → ByteString → Maybe Bool
   verifyEcdsaSecp256k1Sig     : ByteString → ByteString → ByteString → Maybe Bool
   verifySchnorrSecp256k1Sig   : ByteString → ByteString → ByteString → Maybe Bool
-  equals                      : ByteString → ByteString → Bool
   ENCODEUTF8                  : String → ByteString
   DECODEUTF8                  : ByteString → Maybe String
   serialiseDATA               : DATA → ByteString
@@ -534,14 +534,12 @@ postulate
   BLS12-381-G1-add            : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-neg            : Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-scalarMul      : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
-  BLS12-381-G1-equal          : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
   BLS12-381-G1-hashToGroup    : ByteString → ByteString → Maybe Bls12-381-G1-Element
   BLS12-381-G1-compress       : Bls12-381-G1-Element → ByteString
   BLS12-381-G1-uncompress     : ByteString → Maybe Bls12-381-G1-Element -- FIXME: this really returns Either BLSTError Element
   BLS12-381-G2-add            : Bls12-381-G2-Element → Bls12-381-G2-Element → Bls12-381-G2-Element
   BLS12-381-G2-neg            : Bls12-381-G2-Element → Bls12-381-G2-Element
   BLS12-381-G2-scalarMul      : Int → Bls12-381-G2-Element → Bls12-381-G2-Element
-  BLS12-381-G2-equal          : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
   BLS12-381-G2-hashToGroup    : ByteString → ByteString → Maybe Bls12-381-G2-Element
   BLS12-381-G2-compress       : Bls12-381-G2-Element → ByteString
   BLS12-381-G2-uncompress     : ByteString → Maybe Bls12-381-G2-Element -- FIXME: this really returns Either BLSTError Element
@@ -567,6 +565,24 @@ postulate
   expModINTEGER               : Int -> Int -> Int -> Maybe Int
   BLS12-381-G1-multiScalarMul : List Int → List Bls12-381-G1-Element → Maybe Bls12-381-G1-Element
   BLS12-381-G2-multiScalarMul : List Int → List Bls12-381-G2-Element → Maybe Bls12-381-G2-Element
+```
+
+The equality functions on `ByteString` and the BLS12-381 element types are *not*
+postulated: they are backed by the decision procedures for these postulated types
+(see "Equality of postulated types" in `Utils`), mirroring how `eqDATA` is defined.
+At the Agda level they compute `true` on definitionally equal arguments and get
+stuck otherwise — never answering wrongly — while their `COMPILE GHC` pragmas below
+still replace them with Haskell's `(==)` at runtime.
+
+```
+equals : ByteString → ByteString → Bool
+equals b b' = isYes (U.eqByteString? b b')
+
+BLS12-381-G1-equal : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
+BLS12-381-G1-equal e e' = isYes (U.eqBls12-381-G1-Element? e e')
+
+BLS12-381-G2-equal : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
+BLS12-381-G2-equal e e' = isYes (U.eqBls12-381-G2-Element? e e')
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell

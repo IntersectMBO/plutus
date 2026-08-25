@@ -741,7 +741,7 @@ du_tail_258 v0
 d_reportPasses_268 ::
   Integer ->
   MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_90
-    (MAlonzo.Code.Utils.T__'215'__460
+    (MAlonzo.Code.Utils.T__'215'__508
        (MAlonzo.Code.Utils.T_Either_6
           MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
           MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12)
@@ -754,9 +754,9 @@ d_reportPasses_268 v0 v1 v2 v3
   = case coe v1 of
       MAlonzo.Code.VerifiedCompilation.Trace.C_cons_96 v4 v5 v6
         -> case coe v5 of
-             MAlonzo.Code.Utils.C__'44'__474 v7 v8
+             MAlonzo.Code.Utils.C__'44'__522 v7 v8
                -> case coe v2 of
-                    MAlonzo.Code.Utils.C__'44'__474 v9 v10
+                    MAlonzo.Code.Utils.C__'44'__522 v9 v10
                       -> coe
                            MAlonzo.Code.Data.String.Base.d__'43''43'__20 d_hl_8
                            (coe
