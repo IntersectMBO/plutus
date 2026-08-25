@@ -76,6 +76,7 @@ errorTerm sp =
 constrTerm :: SrcSpan -> Parser PTerm
 constrTerm sp = do
   let maxTag = fromIntegral (maxBound :: Word64)
+  whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
   tag :: Integer <- Lex.decimal
   when (tag > maxTag) $ do
     o <- getOffset
@@ -83,7 +84,6 @@ constrTerm sp = do
       fail "constr tag too large: must be a legal Word64 value"
   whitespace
   args <- many term
-  whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
   pure $ UPLC.Constr sp (fromIntegral tag) args
 
 caseTerm :: SrcSpan -> Parser PTerm

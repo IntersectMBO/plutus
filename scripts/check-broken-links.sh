@@ -14,6 +14,8 @@ IGNORE_URLS=(
     https://pvp.haskell.org
     https://github.com/cardano-foundation/CIPs/pulls\?q\=is%3Apr+is%3Aopen+label%3A%22Category%3A+Plutus%22
     https://github.com/IntersectMBO/plutus/issues\?q\=is%3Aissue%20state%3Aopen%20label%3A%22status%3A%20needs%20triage%22
+    # Slack links sit behind a login wall, so linkchecker cannot validate them.
+    https://input-output-rnd.slack.com/archives/C21UF2WVC
 )
 
 check_links() {

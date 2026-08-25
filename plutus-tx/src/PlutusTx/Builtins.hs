@@ -169,6 +169,7 @@ module PlutusTx.Builtins
   , BI.unsafeDataAsValue
   , BI.scaleValue
   , BI.policies
+  , BI.assetCount
   ) where
 
 import Data.Maybe
