@@ -3317,6 +3317,15 @@ git commit --no-verify -m "docs: UAL spec corrections and the list to hand back 
 
 ## Notes on things that will bite
 
+**`plutus-tx` compiles with `default-extensions: Strict`.** All data fields are
+strict, so no "value with a bottom field" trick works: a record holding
+`error "…"` in any field is bottom *as a whole*, and reading any other field
+throws. Task 4 hit this with `mkValidatorBlueprint`'s deliberate
+`validatorRedeemer = error "…"` and fixed it with a lazy field annotation
+(`~(ArgumentBlueprint referencedTypes)`), which keeps the intended API and moves
+the bottom to first demand. If you need a partial default anywhere in Tasks 5-12,
+you need the same annotation — and say so at the field.
+
 **`splitArrows` is naive, and that is caught later rather than earlier.**
 `Text.splitOn "->"` mis-splits a parenthesised function type: `f :: (A -> B) -> C`
 yields arguments `["(A", "B)"]`. The plan's Haddock justifies the naive split by
