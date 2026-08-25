@@ -111,6 +111,7 @@ library
     PlutusLedgerApi.V4.Tx
 
   other-modules:
+    PlutusLedgerApi.Common.Case
     PlutusLedgerApi.Common.Eval
     PlutusLedgerApi.Common.Hash
     PlutusLedgerApi.Common.ParamName
@@ -136,6 +137,7 @@ library
     , serialise
     , tagged
     , text
+    , vector
 
 library plutus-execlib
   import:          lang
