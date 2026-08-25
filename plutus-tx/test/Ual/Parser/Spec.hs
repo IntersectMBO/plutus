@@ -146,6 +146,16 @@ otherKindTests =
     , testCase "PROPERTY without a body separator is rejected" $
         parseBlock (MkRawBlock KProperty " p \"t\" " 1)
           @?= Left (MalformedBlock 1 "expected ':' before the formal statement")
+    , testCase "PROPERTY name may contain an underscore" $
+        (fmap propertyName . asProperty)
+          <$> parseBlock (MkRawBlock KProperty " p_one \"t\" : True " 1)
+          @?= Right (Just "p_one")
+    , testCase "PROPERTY with no name is rejected" $
+        parseBlock (MkRawBlock KProperty " \"t\" : True " 1)
+          @?= Left (MalformedBlock 1 "property name is empty")
+    , testCase "PROPERTY name outside the assurance id pattern is rejected" $
+        parseBlock (MkRawBlock KProperty " p q \"t\" : True " 1)
+          @?= Left (MalformedBlock 1 "property name 'p q' must match [A-Za-z0-9_-]+")
     ]
 
 asProperty :: UalBlock -> Maybe PropertyDecl

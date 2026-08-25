@@ -8,6 +8,7 @@ module PlutusTx.Ual.Parser
 
 import Prelude
 
+import Data.Char qualified as Char
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -183,26 +184,49 @@ The natural-language string is required: the assurance document's
 inside it is not mistaken for the separator, because the name ends at whichever
 of @"@ and @:@ comes first.
 
-Only that quote and that colon are located; the text around them is not
-validated. The name is whatever precedes the opening quote, so @"t" : True@
-parses with an empty name and @p q "t" : True@ with the name @"p q"@, and an
-empty formal statement is accepted. Checking either would need an identifier
-grammar, and this parser fixes none: several surface languages reach it. -}
+The name is everything before the opening quote, and 'validPropertyName' has
+the last word on it. The formal statement is not checked and may be empty: it
+is Lean source, and only Lean can judge it. -}
 parseProperty :: Int -> Text -> Either UalError PropertyDecl
 parseProperty line body = do
   let afterName = Text.stripStart body
-      (name, rest0) = Text.break (\c -> c == '"' || c == ':') afterName
+      (nameText, rest0) = Text.break (\c -> c == '"' || c == ':') afterName
   (text, rest1) <- takeQuoted line (Text.stripStart rest0)
   formal <- case Text.stripPrefix ":" (Text.stripStart rest1) of
     Nothing -> Left (MalformedBlock line "expected ':' before the formal statement")
     Just f -> Right (Text.strip f)
+  -- Checked after the shape, not before it: a forgotten quote leaves the whole
+  -- sentence sitting in the name, and "expected a quoted natural-language
+  -- statement" names that mistake far better than a complaint about the name
+  -- would. Checking last keeps this error about names that really are names.
+  name <- validPropertyName line (Text.strip nameText)
   pure
     MkPropertyDecl
-      { propertyName = Text.strip name
+      { propertyName = name
       , propertyText = text
       , propertyBody = formal
       , propertyLine = line
       }
+
+{-| A property name becomes the assurance document's @properties[].id@, whose
+schema constrains it to @^[A-Za-z0-9_-]+$@ and requires it. Rejecting a bad name
+here reports the offending source line; letting it through fails much later, as
+a JSON-schema error against a generated file with no source position in it.
+
+The pattern is the schema's, not any surface language's, so it is the stricter
+of the two: a Haskell name ending in a prime is a legal Haskell name and an
+illegal property id. -}
+validPropertyName :: Int -> Text -> Either UalError Text
+validPropertyName line n
+  | Text.null n = Left (MalformedBlock line "property name is empty")
+  | Text.all ok n = Right n
+  | otherwise =
+      Left (MalformedBlock line ("property name '" <> n <> "' must match [A-Za-z0-9_-]+"))
+  where
+    -- Char.isDigit is ASCII-only, which is what the schema pattern means; a
+    -- non-ASCII digit has to be rejected, and isAsciiUpper/isAsciiLower keep
+    -- the letters ASCII too.
+    ok c = Char.isAsciiUpper c || Char.isAsciiLower c || Char.isDigit c || c == '_' || c == '-'
 
 {-| Take a @"…"@ literal, ending it at the first closing quote.
 
