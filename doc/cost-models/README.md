@@ -21,7 +21,8 @@ Then open your browser to:
 ### Available Visualizations
 
 One page per builtin, one directory each. The list of pages lives in `PAGES`
-in `shared/utils.js`, which also drives the navigation bar on every page.
+in `shared/utils.js`, which also drives the navigation bar on every page and the
+list of visualizations on the landing page.
 
 ## Project Structure
 
@@ -65,9 +66,9 @@ Data is loaded dynamically from the Plutus repository using the browser's `fetch
    cp -r valuedata/ myfunction/
    ```
 
-2. Add the page to `PAGES` in `shared/utils.js` (slug and display name).
-   The navigation bar on every page and the landing page pick it up from
-   there, so the pages that already exist stay untouched.
+2. Add the page to `PAGES` in `shared/utils.js` (slug, display name and a
+   one-sentence description). The navigation bar on every page and the landing
+   page pick it up from there, so the pages that already exist stay untouched.
 
 3. Edit `myfunction/plot.js`: the constants at the top (`FUNCTION_NAME` as it
    appears in the CSV, `COST_MODEL_NAME` as the key in the JSON, `ARITY`), the
