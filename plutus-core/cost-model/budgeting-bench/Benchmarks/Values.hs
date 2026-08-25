@@ -25,6 +25,7 @@ import PlutusCore
       ( AssetCount
       , InsertCoin
       , LookupCoin
+      , Policies
       , ScaleValue
       , UnValueData
       , UnionValue
@@ -37,6 +38,7 @@ import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, Builti
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ValueMaxDepth (..)
+  , ValueOuterSize (..)
   , ValueTotalSize (..)
   )
 import PlutusCore.Value
@@ -67,6 +69,7 @@ makeBenchmarks gen =
   , unionValueBenchmark gen
   , scaleValueBenchmark gen
   , assetCountBenchmark gen
+  , policiesBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -389,6 +392,47 @@ assetCountBenchmark gen =
     AssetCount
     []
     (generateTestValues gen)
+
+-- Policies ----------------------------------------------------------------------------------------
+
+{- Note [Benchmarking policies]
+`policies` is \(O(m)\) in the size of the outer map, which is exactly what
+`ValueOuterSize` (the measure the denotation uses) reports, so the fit applies to any
+shape of `Value`. The number of policies is log-uniform so every decade gets similar
+coverage. The token count per policy is random under a total-size cap: the inner maps
+are never traversed, so it must not show in the measurements, and the fixed-size
+stacks (1000 and 5000 policies at several token counts) would make a violation
+visible as vertical spread at a single x.
+-}
+policiesBenchmark :: StdGen -> Benchmark
+policiesBenchmark gen =
+  createOneTermBuiltinBenchWithWrapper_NF ValueOuterSize Policies [] (runBenchGen gen policiesArgs)
+  where
+    -- 40k pairs: safely above the largest `Value` a script can build within the
+    -- CPU budget (roughly 14k `insertCoin` applications).
+    maxTotalSize :: Int
+    maxTotalSize = Value.valueDataMaxSize
+
+    policiesArgs :: StatefulGen g m => g -> m [Value]
+    policiesArgs g = do
+      randoms <- replicateM 100 do
+        u <- uniformRM (0 :: Double, log (fromIntegral maxTotalSize)) g
+        let numPolicies = min maxTotalSize (max 1 (round (exp u)))
+        numTokens <- uniformRM (1, maxTotalSize `div` numPolicies) g
+        generate g numPolicies numTokens
+      stacks <-
+        sequence
+          [ generate g m k
+          | (m, ks) <- [(1000, [1, 2, 5, 10, 20, 40]), (5000, [1, 2, 4, 8])]
+          , k <- ks
+          ]
+      pure $ Value.empty : randoms <> stacks
+
+    generate :: StatefulGen g m => g -> Int -> Int -> m Value
+    generate g numPolicies numTokens = do
+      policyIds <- replicateM numPolicies (generateKey g)
+      tokenNames <- replicateM numTokens (generateKey g)
+      pure $ buildValue policyIds tokenNames (mkQuantity 1)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------

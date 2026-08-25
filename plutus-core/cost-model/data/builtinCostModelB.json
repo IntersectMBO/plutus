@@ -1348,5 +1348,21 @@
       "arguments": 10,
       "type": "constant_cost"
     }
+  },
+  "policies": {
+    "cpu": {
+      "arguments": {
+        "intercept": 930912,
+        "slope": 13220
+      },
+      "type": "linear_in_x"
+    },
+    "memory": {
+      "arguments": {
+        "intercept": 4,
+        "slope": 3
+      },
+      "type": "linear_in_x"
+    }
   }
 }
