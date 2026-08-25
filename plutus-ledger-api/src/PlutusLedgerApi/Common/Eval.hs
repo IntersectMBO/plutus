@@ -24,7 +24,12 @@ module PlutusLedgerApi.Common.Eval
   ) where
 
 import PlutusCore
-import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
+import PlutusCore.Builtin
+  ( CaserBuiltin (..)
+  , caseBuiltin
+  , unavailableCaserBuiltin
+  )
+import PlutusCore.Builtin.Case.Default (caseBuiltinNoData)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -34,7 +39,6 @@ import PlutusCore.Evaluation.Machine.MachineParameters (MachineParameters (..))
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
-import PlutusLedgerApi.Common.Case (caseBuiltinDataUnavailable)
 import PlutusLedgerApi.Common.SerialisedScript
 import PlutusLedgerApi.Common.Versions
 import PlutusPrelude
@@ -139,7 +143,7 @@ toMachineParameters pv (EvaluationContext ll toCaser toSemVar machParsList) =
 defaultCaserBuiltinFor :: MajorProtocolVersion -> CaserBuiltin DefaultUni
 defaultCaserBuiltinFor pv
   | pv < vanRossemPV = unavailableCaserBuiltin $ getMajorProtocolVersion pv
-  | pv < dijkstraPV = CaserBuiltin caseBuiltinDataUnavailable
+  | pv < dijkstraPV = CaserBuiltin caseBuiltinNoData
   | otherwise = CaserBuiltin caseBuiltin
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
