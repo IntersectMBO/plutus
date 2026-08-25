@@ -16,6 +16,7 @@ module PlutusLedgerApi.Common.Eval
   , evaluateScriptRestricting
   , evaluateScriptCounting
   , evaluateTerm
+  , defaultCaserBuiltinFor
   , mkDynEvaluationContext
   , toMachineParameters
   , mkTermToEvaluate
@@ -23,7 +24,7 @@ module PlutusLedgerApi.Common.Eval
   ) where
 
 import PlutusCore
-import PlutusCore.Builtin (CaserBuiltin)
+import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -33,6 +34,7 @@ import PlutusCore.Evaluation.Machine.MachineParameters (MachineParameters (..))
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
+import PlutusLedgerApi.Common.Case (caseBuiltinDataUnavailable)
 import PlutusLedgerApi.Common.SerialisedScript
 import PlutusLedgerApi.Common.Versions
 import PlutusPrelude
@@ -133,6 +135,13 @@ toMachineParameters pv (EvaluationContext ll toCaser toSemVar machParsList) =
           ["Internal error: ", show ll, " does not support protocol version ", show pv]
     Just machVarPars -> MachineParameters (toCaser pv) machVarPars
 
+-- | Select built-in casing semantics once, before entering the evaluator.
+defaultCaserBuiltinFor :: MajorProtocolVersion -> CaserBuiltin DefaultUni
+defaultCaserBuiltinFor pv
+  | pv < vanRossemPV = unavailableCaserBuiltin $ getMajorProtocolVersion pv
+  | pv < dijkstraPV = CaserBuiltin caseBuiltinDataUnavailable
+  | otherwise = CaserBuiltin caseBuiltin
+
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
 script. This is so that they can be computed once and cached, rather than being recomputed on every
 evaluation.
@@ -164,11 +173,11 @@ data EvaluationContext = EvaluationContext
   { _evalCtxLedgerLang :: PlutusLedgerLanguage
   -- ^ Specifies what language versions the 'EvaluationContext' is for.
   , _evalCtxCaserBuiltin :: MajorProtocolVersion -> CaserBuiltin DefaultUni
-  {-^ Specifies how 'case' on values of built-in types works: fails evaluation for older
-  protocol versions and defers to 'caseBuiltin' for newer ones. Note that this function
-  doesn't depend on the 'PlutusLedgerLanguage' or the AST version: deserialisation of a 1.0.0
-  AST fails upon encountering a 'Case' node anyway, so we can safely assume here that 'case'
-  is available.
+  {-^ Specifies how 'case' on values of built-in types works: fails evaluation before van Rossem,
+  permits casing except on 'Data' before Dijkstra, and permits all supported built-in types from
+  Dijkstra onwards. Note that this function doesn't depend on the 'PlutusLedgerLanguage' or the AST
+  version: deserialisation of a 1.0.0 AST fails upon encountering a 'Case' node anyway, so we can
+  safely assume here that 'case' is available.
   FIXME: do we need to test that it fails for older PVs?  We can't submit
   transactions in old PVs, so maybe it doesn't matter. -}
   , _evalCtxToSemVar :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
