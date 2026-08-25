@@ -2,7 +2,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusLedgerApi.Common.Case (caseBuiltinDataUnavailable) where
+module PlutusCore.Builtin.Case.Default (caseBuiltinNoData) where
 
 import PlutusPrelude
 
@@ -12,14 +12,12 @@ import PlutusCore.Default
 import Data.Text (Text)
 import Data.Vector qualified as Vector
 
-{-| The built-in caser used after casing becomes available but before casing on 'Data'. Keeping
-this as a first-order dispatcher lets the evaluation context select it once, without adding an
-era check to the evaluator's casing path. -}
-caseBuiltinDataUnavailable
+-- | The built-in caser used when casing is available except on 'Data'.
+caseBuiltinNoData
   :: Some (ValueOf DefaultUni)
   -> Vector.Vector term
   -> HeadSpine Text term (Some (ValueOf DefaultUni))
-caseBuiltinDataUnavailable someVal@(Some (ValueOf uni x)) branches = case uni of
+caseBuiltinNoData someVal@(Some (ValueOf uni x)) branches = case uni of
   DefaultUniUnit
     | 1 == len -> HeadOnly $ branches Vector.! 0
     | otherwise -> HeadError $ outOfBoundsErr someVal branches
@@ -49,7 +47,7 @@ caseBuiltinDataUnavailable someVal@(Some (ValueOf uni x)) branches = case uni of
   _ -> HeadError $ display uni <> " isn't supported in 'case'"
   where
     !len = Vector.length branches
-{-# INLINE caseBuiltinDataUnavailable #-}
+{-# INLINE caseBuiltinNoData #-}
 
 outOfBoundsErr :: Pretty a => a -> Vector.Vector term -> Text
 outOfBoundsErr x branches =
