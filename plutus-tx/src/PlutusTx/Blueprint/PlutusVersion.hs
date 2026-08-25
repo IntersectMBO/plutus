@@ -7,13 +7,14 @@ module PlutusTx.Blueprint.PlutusVersion where
 import Prelude
 
 import Data.Aeson (ToJSON (..))
+import Language.Haskell.TH.Syntax (Lift)
 
 {-| A "Plutus Version", as defined by the CIP-0057
 |
 | This version corresponds to the "Plutus Ledger Language Version"
 | defined by the plutus-tx-plugin. -}
 data PlutusVersion = PlutusV1 | PlutusV2 | PlutusV3 | PlutusV4
-  deriving stock (Show, Eq)
+  deriving stock (Show, Eq, Lift)
 
 instance ToJSON PlutusVersion where
   toJSON = \case

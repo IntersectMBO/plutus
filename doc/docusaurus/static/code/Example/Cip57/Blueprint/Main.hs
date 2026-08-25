@@ -170,7 +170,7 @@ myPreamble =
 -- BEGIN validator blueprint declaration
 
 myValidator =
-  MkValidatorBlueprint
+  mkValidatorBlueprint
     { validatorTitle = "My Validator"
     , validatorDescription = Just "An example validator"
     , validatorParameters =
@@ -196,7 +196,6 @@ myValidator =
             , argumentPurpose = Set.singleton Spend
             , argumentSchema = definitionRef @MyDatum
             }
-    , validatorCompiled = Nothing -- you can optionally provide the compiled code here
     }
 
 -- END validator blueprint declaration
