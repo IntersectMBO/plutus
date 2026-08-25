@@ -382,6 +382,7 @@ builtinMemoryModels =
       -- the array; only the spine is new, at three words per cons cell. The nonzero
       -- intercept keeps the cost nonzero for the empty index list.
       paramMultiIndexArray = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 4 3
+    , paramAssetCount = Id $ ModelOneArgumentConstantCost 10
     }
   where
     identityFunction = OneVariableLinearFunction 0 1

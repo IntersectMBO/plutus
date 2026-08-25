@@ -496,20 +496,52 @@ const BENCH_CSV_FILE = 'benching-conway.csv';
 const COST_MODEL_FILE = 'builtinCostModelE.json';
 const COST_MODEL_NOTE = '(PlutusV3 from PV 11 / vanRossem)';
 
-// One entry per builtin page, in navigation order.
+// One entry per builtin page, in navigation order: [slug, label, description].  Both the
+// nav bar and the landing page's function list are generated from this, so adding a page
+// means adding one entry here and nothing else.
 const PAGES = [
-  ['valuedata', 'ValueData'],
-  ['unvaluedata', 'UnValueData'],
-  ['valuecontains', 'ValueContains'],
-  ['lookupcoin', 'LookupCoin'],
-  ['insertcoin', 'InsertCoin'],
-  ['unionvalue', 'UnionValue'],
-  ['scalevalue', 'ScaleValue'],
-  ['listtoarray', 'ListToArray'],
-  ['lengthofarray', 'LengthOfArray'],
-  ['indexarray', 'IndexArray'],
-  ['multiindexarray', 'MultiIndexArray'],
-  ['indexbytestring', 'IndexByteString']
+  ['valuedata', 'ValueData',
+   'Converts a Plutus <code>Value</code> to <code>Data</code> representation. ' +
+   '(2D visualization: Value Size vs Time)'],
+  ['unvaluedata', 'UnValueData',
+   'Converts <code>Data</code> representation back to a Plutus <code>Value</code>. ' +
+   '(2D visualization: Data Size vs Time)'],
+  ['valuecontains', 'ValueContains',
+   'Checks if a Plutus <code>Value</code> (haystack) contains another <code>Value</code> ' +
+   '(needle). (3D visualization: Container Size \u00d7 Contained Size \u00d7 Time)'],
+  ['lookupcoin', 'LookupCoin',
+   'Looks up a specific coin (currency symbol and token name) in a Plutus ' +
+   '<code>Value</code>. (2D visualization: Value Size vs Time)'],
+  ['insertcoin', 'InsertCoin',
+   'Inserts a coin into a Plutus <code>Value</code> map structure. ' +
+   '(2D visualization: Value Size vs Time)'],
+  ['unionvalue', 'UnionValue',
+   'Unions two Plutus <code>Value</code> structures into one. ' +
+   '(3D visualization: Value Size \u00d7 Value Size \u00d7 Time)'],
+  ['scalevalue', 'ScaleValue',
+   'Multiplies a Plutus <code>Value</code> by a scalar, scaling all quantities. ' +
+   '(2D visualization: Value Size vs Time)'],
+  ['assetcount', 'AssetCount',
+   'Returns the number of <code>(currency symbol, token name)</code> pairs in a Plutus ' +
+   '<code>Value</code> in O(1) time. ' +
+   '(2D visualization: Value Size vs Time - constant cost)'],
+  ['listtoarray', 'ListToArray',
+   'Converts a Plutus list to an array representation. ' +
+   '(2D visualization: List Size vs Time)'],
+  ['lengthofarray', 'LengthOfArray',
+   'Returns the length of a Plutus array in O(1) time. ' +
+   '(2D visualization: Array Size vs Time - constant cost)'],
+  ['indexarray', 'IndexArray',
+   'Retrieves an element at a given index from a Plutus array in O(1) time. ' +
+   '(2D visualization: Array Size vs Time - constant cost)'],
+  ['multiindexarray', 'MultiIndexArray',
+   'Looks up a list of indices in a Plutus array; linear in the number of indices, ' +
+   'independent of the array size. (3D visualization: Haystack Size \u00d7 Needles Size ' +
+   'vs Time, plus per-index time distribution histogram)'],
+  ['indexbytestring', 'IndexByteString',
+   'Retrieves a byte at a given index from a ByteString in O(1) time. Performs a bounds ' +
+   'check and returns the byte value (Word8). ' +
+   '(2D visualization: ByteString Size vs Time - constant cost)']
 ];
 
 // LocalStorage keys
@@ -585,6 +617,17 @@ function renderNav(active, prefix = '..') {
     PAGES.map(([slug, name]) => [`${prefix}/${slug}/index.html`, name, slug === active]));
   nav.innerHTML = '<ul>' + items.map(([href, name, isActive]) =>
     `<li><a href="${href}"${isActive ? ' class="active"' : ''}>${name}</a></li>`).join('') + '</ul>';
+}
+
+// Fill the landing page's function list from the standard page list.  The descriptions
+// carry markup, so they go in as HTML; unlike `showError` below, nothing here comes from
+// a user-editable field.
+function renderFunctionList() {
+  const list = document.querySelector('ul.function-list');
+  if (!list) return;
+  list.innerHTML = PAGES.map(([slug, name, description]) =>
+    `<li><a href="${slug}/index.html">${name}</a>` +
+    `<p class="description">${description}</p></li>`).join('');
 }
 
 function renderFooter() {
