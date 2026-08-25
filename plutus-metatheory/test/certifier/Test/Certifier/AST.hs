@@ -13,6 +13,7 @@ import FFI.OptimizerTrace (mkFfiOptimizerTrace)
 import MAlonzo.Code.Certifier (runCertifierMain)
 
 import Data.Text.Encoding qualified as Text
+import Data.Vector.Strict qualified as Vector
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -109,9 +110,10 @@ testTrivialFailure1 =
 bs :: Text -> ByteString
 bs = Text.encodeUtf8
 
--- The following tests exercise the runtime decidable equality of the
--- postulated builtin types (see "Equality of postulated types" in the
--- metatheory's Utils module): each unequal pair must make the certifier
+-- The following tests exercise the certifier's runtime equality checks on
+-- builtin constants, in particular the paths which go through the decidable
+-- equality of the postulated types (see "Equality of postulated types" in
+-- the metatheory's Utils module): each unequal pair must make the certifier
 -- reject the trace, and each equal pair must make it accept.
 
 testByteStringEq :: TestTree
@@ -170,6 +172,46 @@ testByteStringListNeq =
     (mkConstant () [bs "foo", bs "bar"])
     (mkConstant () [bs "foo", bs "baz"])
 
+testArrayEq :: TestTree
+testArrayEq =
+  testSuccess
+    "equal array constants are accepted"
+    FloatDelayStage
+    (mkConstant () (Vector.fromList [10, 20, 30 :: Integer]))
+    (mkConstant () (Vector.fromList [10, 20, 30 :: Integer]))
+
+testArrayNeq :: TestTree
+testArrayNeq =
+  testFailure
+    "unequal array constants of equal length are rejected"
+    FloatDelayStage
+    (mkConstant () (Vector.fromList [10, 20, 30 :: Integer]))
+    (mkConstant () (Vector.fromList [10, 20, 31 :: Integer]))
+
+testArrayLengthNeq :: TestTree
+testArrayLengthNeq =
+  testFailure
+    "array constants of different lengths are rejected"
+    FloatDelayStage
+    (mkConstant () (Vector.fromList [10, 20, 30 :: Integer]))
+    (mkConstant () (Vector.fromList [10, 20 :: Integer]))
+
+testByteStringArrayEq :: TestTree
+testByteStringArrayEq =
+  testSuccess
+    "equal bytestring array constants are accepted"
+    FloatDelayStage
+    (mkConstant () (Vector.fromList [bs "foo", bs "bar"]))
+    (mkConstant () (Vector.fromList [bs "foo", bs "bar"]))
+
+testByteStringArrayNeq :: TestTree
+testByteStringArrayNeq =
+  testFailure
+    "unequal bytestring array constants are rejected"
+    FloatDelayStage
+    (mkConstant () (Vector.fromList [bs "foo", bs "bar"]))
+    (mkConstant () (Vector.fromList [bs "foo", bs "baz"]))
+
 astTests :: TestTree
 astTests =
   testGroup
@@ -183,4 +225,9 @@ astTests =
     , testNestedDataNeq
     , testByteStringListEq
     , testByteStringListNeq
+    , testArrayEq
+    , testArrayNeq
+    , testArrayLengthNeq
+    , testByteStringArrayEq
+    , testByteStringArrayNeq
     ]

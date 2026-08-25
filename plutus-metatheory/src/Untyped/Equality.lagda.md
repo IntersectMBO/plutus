@@ -37,7 +37,7 @@ import Data.Unit.Properties using (_≟_)
 open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error)
 import Relation.Unary as Unary using (Decidable)
 import Relation.Binary.Definitions as Binary using (Decidable)
-open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Relation.Nullary using (Dec; yes; no; ¬_; map′)
 open import Data.Product using (_,_)
 open import Relation.Nullary using (_×-dec_)
 open import Utils as U using (Either; _×_; _,_)
@@ -58,33 +58,6 @@ open import Agda.Builtin.Bool using (Bool)
 open import Algorithmic using (⟦_⟧)
 open import Type using (Ctx⋆)
 open import Type.BetaNormal using (_⊢Nf⋆_)
-```
-
-`Array` is a postulated type, so its decidable equality follows the scheme described
-in "Equality of postulated types" in `Utils`: a Bool-valued primitive which is
-constantly `true` in Agda and Haskell's `(==)` at runtime, turned into a decision
-procedure by `U.decEqFromBool`. The only extra ingredient is `HasEq`, which carries
-the `Eq` dictionary for the element type over to the Haskell side, since `(==)` on
-arrays requires equality of the elements.
-
-```
-{-# FOREIGN GHC data HasEq a = Eq a => HasEq #-}
-postulate
-  HasEq : Set → Set
-{-# COMPILE GHC HasEq = type HasEq #-}
-
-postulate
-    hasEq-TyTag : (t : TyTag) → HasEq ⟦ t ⟧tag
-
-private
-  eqArrayᵇ : {A : Set} {{HE : HasEq A}} → U.Array A → U.Array A → Bool
-  eqArrayᵇ _ _ = true
-  {-# COMPILE GHC eqArrayᵇ = \ _ HasEq -> (==) #-}
-
-eqArray? : {A : Set} {{HE : HasEq A}} → DecidableEquality (U.Array A)
-eqArray? {{HE}} = U.decEqFromBool (eqArrayᵇ {{HE}}) (λ _ _ → refl)
-
-
 ```
 Several of the decision procedures depend on other `DecEq` instances, so it is useful
 to give them types and bind them to instance declarations first and then use them in the
@@ -199,9 +172,16 @@ instance
 
 We need to decide equality between our builtin types. For the types implemented in
 Agda this is unproblematic. The postulated types (`ByteString`, the BLS12-381
-element types, `Value`, and `Array`) are handled by the scheme described in
-"Equality of postulated types" in `Utils`, which injects Haskell's `(==)` at
-runtime while remaining sound at type-checking time.
+element types, and `Value`) are handled by the scheme described in "Equality of
+postulated types" in `Utils`, which injects Haskell's `(==)` at runtime while
+remaining sound at type-checking time. `Array` (also postulated) is different:
+Haskell's `(==)` on arrays needs an `Eq` dictionary for the elements, which Agda
+cannot supply. Instead we convert both arrays to lists with `U.HSarrayToList` and
+compare those structurally with the decision procedure for the element type (via
+the helper `decEqUList-⟦_⟧tag`, which is mutually recursive with `decEq-⟦_⟧tag` so
+that the termination checker can track the recursion into the elements); the
+`yes` proof is transported back along the (postulated, true) injectivity of the
+conversion.
 
 Why not just implement the builtin types in Agda? The problem is that Agda's FFI
 only allows non-postulated Agda types which are representationally equivalent to
@@ -213,10 +193,14 @@ We also cannot de-couple the Agda types from the Haskell types because the Agda
 specification of UPLC is also used in conformance testing.
 
 ```
-decEq-Array-⟦_⟧tag
-  : (t : TyTag)
-  → DecidableEquality ⟦ _⊢♯.array t ⟧tag
-decEq-Array-⟦ t ⟧tag = eqArray? {{hasEq-TyTag t}}
+decEqUList-⟦_⟧tag : (t : TyTag) → DecidableEquality (U.List ⟦ t ⟧tag)
+decEqUList-⟦ t ⟧tag U.[] U.[] = yes refl
+decEqUList-⟦ t ⟧tag U.[] (x' U.∷ l') = no λ ()
+decEqUList-⟦ t ⟧tag (x U.∷ l) U.[] = no (λ ())
+decEqUList-⟦ t ⟧tag (x U.∷ l) (x' U.∷ l') =
+  map′ (λ { (p , q) → cong₂ U._∷_ p q })
+       (λ { refl → refl , refl })
+       (decEq-⟦ t ⟧tag x x' ×-dec decEqUList-⟦ t ⟧tag l l')
 ```
 # Decidable Equality for TmCon
 
@@ -238,12 +222,13 @@ decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = U.eqBls12-381-
 decEq-⟦ _⊢♯.list t ⟧tag U.[] U.[] = yes refl
 decEq-⟦ _⊢♯.list t ⟧tag U.[] (x U.∷ v₁) = no λ ()
 decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) U.[] = no (λ ())
-decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) with decEq-⟦ t ⟧tag x x₁
-... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
-... | yes p with decEq-⟦ _⊢♯.list t ⟧tag v v₁
-...                  | yes q = yes (cong₂ U._∷_ p q)
-...                  | no ¬v=v₁ = no λ { refl → ¬v=v₁ refl }
-decEq-⟦ _⊢♯.array t ⟧tag = decEq-Array-⟦ t ⟧tag
+decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) =
+  map′ (λ { (p , q) → cong₂ U._∷_ p q })
+       (λ { refl → refl , refl })
+       (decEq-⟦ t ⟧tag x x₁ ×-dec decEq-⟦ _⊢♯.list t ⟧tag v v₁)
+decEq-⟦ _⊢♯.array t ⟧tag a a' =
+  map′ U.HSarrayToList-injective (cong U.HSarrayToList)
+       (decEqUList-⟦ t ⟧tag (U.HSarrayToList a) (U.HSarrayToList a'))
 decEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag (proj₁ U., proj₂) (proj₃ U., proj₄) with (decEq-⟦ t₁ ⟧tag proj₁ proj₃) ×-dec (decEq-⟦ t₂ ⟧tag proj₂ proj₄)
 ... | yes ( p , q ) = yes (cong₂ U._,_ p q)
 ... | no ¬pq = no λ { refl → ¬pq (refl , refl) }

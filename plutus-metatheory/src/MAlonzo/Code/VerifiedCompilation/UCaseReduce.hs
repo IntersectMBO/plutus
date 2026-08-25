@@ -1900,7 +1900,7 @@ d_decide_526 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
 d_decide_526 v0 v1 v2
   = let v3
-          = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_52
+          = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_28
               (coe v0)
               (coe
                  MAlonzo.Code.Data.Maybe.Base.du_maybe_32 (coe (\ v3 -> v3))
@@ -2936,7 +2936,7 @@ du_decide'45''126'_648 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_50
 du_decide'45''126'_648 v0 v1 v2
   = let v3
-          = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_52
+          = MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_28
               (coe v0)
               (coe
                  MAlonzo.Code.Data.Maybe.Base.du_maybe_32 (coe (\ v3 -> v3))

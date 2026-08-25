@@ -466,6 +466,7 @@ test-suite test-certifier
     , tasty
     , tasty-hunit
     , text
+    , vector
 
 test-suite test-certifier-report
   import:         lang, os-support, ghc-version-support

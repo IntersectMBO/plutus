@@ -236,7 +236,8 @@ honest Agda: the caller must prove that the primitive is constantly `true`, whic
 makes the branch unreachable at type-checking time, so the required negative proof
 follows from the contradictory hypotheses — no postulate is involved. At runtime,
 where `(==)` can actually return `false`, the branch produces `no` with a proof that
-is never forced (only the `does` field of `Dec` is ever inspected, e.g. by `isYes`).
+is never applied (a negative proof is a function, and nothing ever calls it at
+runtime).
 
 Note that the contradiction must live *inside* the `no` lambda: refuting the `false`
 branch with an absurd pattern instead would compile to an unreachable-code error and
@@ -386,10 +387,31 @@ postulate
   HSlengthOfArray : Array A → ℤ
   HSlistToArray : (ls : List A) → Array A
   HSindexArray : Array A → ℤ → A
+  HSarrayToList : Array A → List A
 -- These have to consume the hidden {A : Set} param in the Agda.
 {-# COMPILE GHC HSlengthOfArray = \() -> \as -> toInteger (Strict.length as) #-}
 {-# COMPILE GHC HSlistToArray = \() -> Strict.fromList #-}
 {-# COMPILE GHC HSindexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
+{-# COMPILE GHC HSarrayToList = \() -> Strict.toList #-}
+
+```
+
+Decidable equality of arrays (see `Untyped.Equality`) is obtained by converting both
+arrays to lists with `HSarrayToList` and comparing those structurally with the
+decision procedure for the element type. Arrays are *not* handled by the scheme
+described in "Equality of postulated types" above: that scheme injects Haskell's
+`(==)` at runtime, but `(==)` on vectors needs an `Eq` dictionary for the elements,
+which Agda cannot supply.
+
+The conversion approach needs one new axiom: `HSarrayToList` is injective. This is a
+true fact about `Data.Vector.Strict.toList` (two vectors are equal exactly when they
+have the same elements in the same order). The postulate is only ever used to build
+equality proofs, so it is erased by compilation and needs no `COMPILE` pragma.
+
+```
+postulate
+  HSarrayToList-injective : {a a' : Array A}
+                          → HSarrayToList a ≡ HSarrayToList a' → a ≡ a'
 
 -- This only exists for literal arrays in certificates,
 -- much like mkBytestring above.

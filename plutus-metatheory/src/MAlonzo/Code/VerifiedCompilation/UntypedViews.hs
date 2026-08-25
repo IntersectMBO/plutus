@@ -2843,7 +2843,7 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                                  (coe
                                                                                                     MAlonzo.Code.Builtin.C_addInteger_4)))
                                                                                            (coe
-                                                                                              MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_52
+                                                                                              MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_28
                                                                                               (coe
                                                                                                  v0)
                                                                                               (coe
@@ -2851,7 +2851,7 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                            (coe
                                                                                               v19))
                                                                                         (coe
-                                                                                           MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_52
+                                                                                           MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_28
                                                                                            (coe v0)
                                                                                            (coe v18)
                                                                                            (coe
@@ -3067,7 +3067,7 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                                                    (coe
                                                                                                                       MAlonzo.Code.Builtin.C_addInteger_4)))
                                                                                                              (coe
-                                                                                                                MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_52
+                                                                                                                MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_28
                                                                                                                 (coe
                                                                                                                    v0)
                                                                                                                 (coe
@@ -3075,7 +3075,7 @@ d_addComm'63'_2812 v0 v1 v2
                                                                                                              (coe
                                                                                                                 v24))
                                                                                                           (coe
-                                                                                                             MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_52
+                                                                                                             MAlonzo.Code.Untyped.Equality.d_decEq'45''8866'_28
                                                                                                              (coe
                                                                                                                 v0)
                                                                                                              (coe
