@@ -20,7 +20,9 @@ import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Bitwise.CIP0122 qualified as CIP0122
 import Evaluation.Builtins.Bitwise.CIP0123 qualified as CIP0123
 import Evaluation.Builtins.Common
-  ( typecheckAnd
+  ( PlcError
+  , UplcTerm
+  , typecheckAnd
   , typecheckEvaluateCek
   , typecheckEvaluateCekNoEmit
   , typecheckReadKnownCek
@@ -2269,15 +2271,7 @@ test_AssetCount =
     , testCase "single asset" do
         evalAssetCount (unsafeMkValue [("currency", "token", 42)]) @?= expectedCount 1
     , testCase "counts (currency, token) pairs" do
-        let v =
-              unsafeMkValue
-                [ ("bbb", "t1", 1)
-                , ("", "", 2000000)
-                , ("aaa", "t1", 2)
-                , ("bbb", "t2", 3)
-                , ("aaa", "t2", -7)
-                ]
-        evalAssetCount v @?= expectedCount 5
+        evalAssetCount mixedValue @?= expectedCount 5
     , QC.testProperty "agrees with recounting the entries" \v ->
         evalAssetCount v QC.=== expectedCount (toInteger . length $ Value.toFlatList v)
     ]
@@ -2313,12 +2307,53 @@ test_KeepPolicies =
         evalKeepPolicies [pack (replicate 33 0)] mixedValue @?= expectedValue Value.empty
     ]
   where
-    evalKeepPolicies ps v =
-      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting $
-        mkIterAppNoAnn
-          (builtin () KeepPolicies)
-          [mkConstant @[ByteString] () ps, mkConstant @Value () v]
-    expectedValue = Right . EvaluationSuccess . mkConstant @Value ()
+    evalKeepPolicies = evalPolicyFilter KeepPolicies
+    expectedValue = expectedFilteredValue
+
+-- | Tests for the `dropPolicies` builtin (CIP-0168).
+test_DropPolicies :: TestTree
+test_DropPolicies =
+  testGroup
+    "DropPolicies"
+    [ testCase "empty Value" do
+        evalDropPolicies ["aaa"] Value.empty @?= expectedValue Value.empty
+    , testCase "empty policy list keeps everything" do
+        evalDropPolicies [] mixedValue @?= expectedValue mixedValue
+    , testCase "absent policy id" do
+        evalDropPolicies ["nope"] mixedValue @?= expectedValue mixedValue
+    , testCase "duplicate ids are a no-op" do
+        evalDropPolicies ["aaa", "aaa"] mixedValue
+          @?= expectedValue (unsafeMkValue [("", "", 2000000), ("bbb", "t1", 1), ("bbb", "t2", 3)])
+    , testCase "lovelace is an ordinary policy" do
+        evalDropPolicies [""] mixedValue
+          @?= expectedValue
+            ( unsafeMkValue
+                [("aaa", "t1", 2), ("aaa", "t2", -7), ("bbb", "t1", 1), ("bbb", "t2", 3)]
+            )
+    , testCase "all policies dropped" do
+        evalDropPolicies ["", "aaa", "bbb"] mixedValue @?= expectedValue Value.empty
+    , testCase "inner maps are untouched" do
+        evalDropPolicies ["", "aaa"] mixedValue
+          @?= expectedValue (unsafeMkValue [("bbb", "t1", 1), ("bbb", "t2", 3)])
+    , testCase "oversized policy id matches nothing" do
+        evalDropPolicies [pack (replicate 33 0)] mixedValue @?= expectedValue mixedValue
+    ]
+  where
+    evalDropPolicies = evalPolicyFilter DropPolicies
+    expectedValue = expectedFilteredValue
+
+-- | Evaluate a policy-filtering builtin (`KeepPolicies` or `DropPolicies`) on CEK.
+evalPolicyFilter
+  :: DefaultFun -> [ByteString] -> Value -> Either PlcError (EvaluationResult UplcTerm)
+evalPolicyFilter fun ps v =
+  typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting $
+    mkIterAppNoAnn
+      (builtin () fun)
+      [mkConstant @[ByteString] () ps, mkConstant @Value () v]
+
+-- | The expected result of a successful `evalPolicyFilter` evaluation.
+expectedFilteredValue :: Value -> Either PlcError (EvaluationResult UplcTerm)
+expectedFilteredValue = Right . EvaluationSuccess . mkConstant @Value ()
 
 -- | A `Value` with lovelace and two multi-token policies, one holding a negative amount.
 mixedValue :: Value
@@ -2379,4 +2414,5 @@ test_definition =
     , test_Policies
     , test_AssetCount
     , test_KeepPolicies
+    , test_DropPolicies
     ]

@@ -1186,6 +1186,11 @@ keepPolicies (BuiltinList ps) (BuiltinValue v) =
   BuiltinValue (Value.keepPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
 {-# OPAQUE keepPolicies #-}
 
+dropPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
+dropPolicies (BuiltinList ps) (BuiltinValue v) =
+  BuiltinValue (Value.dropPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
+{-# OPAQUE dropPolicies #-}
+
 caseInteger :: Integer -> [a] -> a
 caseInteger i b
   | 0 <= i && i < toInteger (Haskell.length b) = b !! fromInteger i

@@ -225,6 +225,7 @@ data DefaultFun
   | Policies
   | AssetCount
   | KeepPolicies
+  | DropPolicies
   deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
   deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2516,6 +2517,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           keepPoliciesDenotation
           (runCostingFunTwoArguments . unimplementedCostingFun)
+  toBuiltinMeaning _semvar DropPolicies =
+    let dropPoliciesDenotation :: [ByteString] -> Value -> Value
+        dropPoliciesDenotation = Value.dropPolicies
+        {-# INLINE dropPoliciesDenotation #-}
+     in makeBuiltinMeaning
+          dropPoliciesDenotation
+          (runCostingFunTwoArguments . unimplementedCostingFun)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 
@@ -2663,6 +2671,7 @@ instance Flat DefaultFun where
       Policies -> 102
       AssetCount -> 103
       KeepPolicies -> 104
+      DropPolicies -> 105
 
   decode = go =<< decodeBuiltin
     where
@@ -2771,6 +2780,7 @@ instance Flat DefaultFun where
       go 102 = pure Policies
       go 103 = pure AssetCount
       go 104 = pure KeepPolicies
+      go 105 = pure DropPolicies
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth

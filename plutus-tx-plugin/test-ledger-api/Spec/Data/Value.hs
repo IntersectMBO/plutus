@@ -44,7 +44,7 @@ import Data.List qualified as Haskell
 import Data.Map qualified as Map
 import PlutusLedgerApi.Test.V1.Data.Value qualified as ListToValue
 import Prettyprinter qualified as Pretty
-import Test.QuickCheck (Arbitrary (arbitrary), forAll, sublistOf, (===))
+import Test.QuickCheck (Arbitrary (arbitrary), Gen, forAll, sublistOf, (===))
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.QuickCheck (testProperty)
@@ -457,26 +457,68 @@ test_keepPolicies =
     "builtin keepPolicies retains the requested currency symbols on CEK"
     \(normalise -> val) ->
       let allPolicies = B.fromBuiltin . unCurrencySymbol . fst Haskell.<$> valueToLists val
-       in forAll (sublistOf allPolicies) \kept ->
-            runKeepPoliciesCode kept val === Haskell.filter (`Haskell.elem` kept) allPolicies
+       in forAll (genPolicyFilterIds allPolicies) \kept ->
+            runPolicyFilterCode compiledKeepPolicies kept val
+              === Haskell.filter (`Haskell.elem` kept) allPolicies
+
+{-| Evaluate a compiled policy-filtering builtin on CEK: apply it to the policy id list
+and the data-encoded `Value`, and decode the resulting list. -}
+runPolicyFilterCode
+  :: CompiledCode
+       ( BI.BuiltinList BI.BuiltinByteString
+         -> BI.BuiltinData
+         -> BI.BuiltinList BI.BuiltinByteString
+       )
+  -> [BS.ByteString]
+  -> Value
+  -> [BS.ByteString]
+runPolicyFilterCode code ps value =
+  either Haskell.throw id $ evalResult (evaluateCompiledCode prog) >>= PLC.readKnownSelf
   where
-    -- \| Evaluate the compiled builtin @keepPolicies@ on CEK and decode the resulting list.
-    runKeepPoliciesCode :: [BS.ByteString] -> Value -> [BS.ByteString]
-    runKeepPoliciesCode kept value = either Haskell.throw id $ errOrRes >>= PLC.readKnownSelf
-      where
-        prog =
-          compiledKeepPolicies
-            `unsafeApplyCode` liftCodeDef (B.toBuiltin kept)
-            `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
-        (errOrRes, _cost) =
-          PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
-            . PLC.runQuote
-            . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
-            . PLC._progTerm
-            $ getPlc prog
+    prog =
+      code
+        `unsafeApplyCode` liftCodeDef (B.toBuiltin ps)
+        `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+
+{-| Policy ids to filter by: a sublist of the given policies plus ids certainly absent
+from them (one ordinary, one longer than the 32-byte key limit), so that the absent-id
+path is exercised on the compiled/CEK route as well. -}
+genPolicyFilterIds :: [BS.ByteString] -> Gen [BS.ByteString]
+genPolicyFilterIds allPolicies = (<> absent) Haskell.<$> sublistOf allPolicies
+  where
+    absent =
+      Haskell.filter (Haskell.not . (`Haskell.elem` allPolicies)) ["#absent", BS.replicate 33 0x78]
 
 test_keepPoliciesUplc :: TestTree
 test_keepPoliciesUplc =
   runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
     . pure
     $ testNestedGhc [goldenUPlcReadable "keepPolicies" compiledKeepPolicies]
+
+{-| Compiled builtin path: @\\ps bd -> policies (dropPolicies ps (unsafeDataAsValue bd))@.
+The result is projected through @policies@ so that it decodes to a comparable list. -}
+compiledDropPolicies
+  :: CompiledCode
+       ( BI.BuiltinList BI.BuiltinByteString
+         -> BI.BuiltinData
+         -> BI.BuiltinList BI.BuiltinByteString
+       )
+compiledDropPolicies = plinthc (\ps bd -> B.policies (B.dropPolicies ps (B.unsafeDataAsValue bd)))
+
+{-| The builtin @dropPolicies@ must remove exactly the requested currency symbols, leaving
+the rest in ascending order. -}
+test_dropPolicies :: TestTree
+test_dropPolicies =
+  testProperty
+    "builtin dropPolicies removes the requested currency symbols on CEK"
+    \(normalise -> val) ->
+      let allPolicies = B.fromBuiltin . unCurrencySymbol . fst Haskell.<$> valueToLists val
+       in forAll (genPolicyFilterIds allPolicies) \dropped ->
+            runPolicyFilterCode compiledDropPolicies dropped val
+              === Haskell.filter (Haskell.not . (`Haskell.elem` dropped)) allPolicies
+
+test_dropPoliciesUplc :: TestTree
+test_dropPoliciesUplc =
+  runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
+    . pure
+    $ testNestedGhc [goldenUPlcReadable "dropPolicies" compiledDropPolicies]

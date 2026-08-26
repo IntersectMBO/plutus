@@ -159,3 +159,4 @@ isCommutative = \case
   Policies -> False
   AssetCount -> False
   KeepPolicies -> False
+  DropPolicies -> False

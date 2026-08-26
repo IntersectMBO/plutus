@@ -212,6 +212,20 @@ prop_keepPoliciesSelects v =
   forAll (genPolicyIds v) $ \ps ->
     V.policies (V.keepPolicies ps v) === filter (`elem` ps) (V.policies v)
 
+prop_dropPoliciesBookkeeping :: Value -> Property
+prop_dropPoliciesBookkeeping v =
+  forAll (genPolicyIds v) $ checkBookkeeping . flip V.dropPolicies v
+
+prop_dropPoliciesPreservesInvariants :: Value -> Property
+prop_dropPoliciesPreservesInvariants v =
+  forAll (genPolicyIds v) $ checkInvariants . flip V.dropPolicies v
+
+-- | @dropPolicies@ removes exactly those requested policies the `Value` has.
+prop_dropPoliciesSelects :: Value -> Property
+prop_dropPoliciesSelects v =
+  forAll (genPolicyIds v) $ \ps ->
+    V.policies (V.dropPolicies ps v) === filter (`notElem` ps) (V.policies v)
+
 toPositiveValue :: Value -> Value
 toPositiveValue =
   V.pack . fmap (Map.map (fromMaybe maxBound . V.quantity . abs . V.unQuantity)) . V.unpack
@@ -551,6 +565,15 @@ tests =
     , testProperty
         "keepPoliciesSelects"
         (withNumTests 20 prop_keepPoliciesSelects)
+    , testProperty
+        "dropPoliciesBookkeeping"
+        (withNumTests 20 prop_dropPoliciesBookkeeping)
+    , testProperty
+        "dropPoliciesPreservesInvariants"
+        (withNumTests 20 prop_dropPoliciesPreservesInvariants)
+    , testProperty
+        "dropPoliciesSelects"
+        (withNumTests 20 prop_dropPoliciesSelects)
     , testProperty
         "containsReflexive"
         prop_containsReflexive

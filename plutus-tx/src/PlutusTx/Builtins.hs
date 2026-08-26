@@ -170,6 +170,7 @@ module PlutusTx.Builtins
   , BI.policies
   , BI.assetCount
   , BI.keepPolicies
+  , BI.dropPolicies
   ) where
 
 import Data.Maybe

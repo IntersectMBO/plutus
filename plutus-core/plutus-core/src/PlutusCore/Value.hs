@@ -33,6 +33,7 @@ module PlutusCore.Value
   , lookupCoin
   , policies
   , keepPolicies
+  , dropPolicies
   , valueContains
   , unionValue
   , valueData
@@ -62,6 +63,7 @@ import Data.IntMap.Strict qualified as IntMap
 import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
+import Data.Maybe (mapMaybe)
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Text.Encoding qualified as Text
@@ -415,8 +417,18 @@ keepPolicies :: [ByteString] -> Value -> Value
 keepPolicies ps (unpack -> outer) = pack' (Map.restrictKeys outer (policySet ps))
 {-# INLINEABLE keepPolicies #-}
 
+{-| Like `keepPolicies`, but removes the listed currencies instead of retaining them.
+Same asymptotics, except that \(n'\) here covers everything /not/ dropped, so removing a
+few policies from a large `Value` still traverses the whole retained map. -}
+dropPolicies :: [ByteString] -> Value -> Value
+dropPolicies ps (unpack -> outer) = pack' (Map.withoutKeys outer (policySet ps))
+{-# INLINEABLE dropPolicies #-}
+
+{-| Ids longer than `maxKeyLen` match no key of a well-formed `Value`, so dropping them
+is semantically a no-op. It bounds the cost: a list argument is measured by its length
+alone, so unfiltered ids would make each `Set` comparison scan bytes nothing charges for. -}
 policySet :: [ByteString] -> Set K
-policySet = Set.fromList . map UnsafeK
+policySet = Set.fromList . mapMaybe k
 {-# INLINE policySet #-}
 
 {-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second

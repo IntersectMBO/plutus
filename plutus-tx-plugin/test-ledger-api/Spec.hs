@@ -35,6 +35,8 @@ tests =
     , Spec.Data.Value.test_assetCountUplc
     , Spec.Data.Value.test_keepPolicies
     , Spec.Data.Value.test_keepPoliciesUplc
+    , Spec.Data.Value.test_dropPolicies
+    , Spec.Data.Value.test_dropPoliciesUplc
     , Spec.Data.MintValue.V3.tests
     , Spec.Envelope.tests
     , Spec.ReturnUnit.V1.tests
