@@ -398,11 +398,17 @@ assetCountBenchmark gen =
 {- Note [Benchmarking policies]
 `policies` is \(O(m)\) in the size of the outer map, which is exactly what
 `ValueOuterSize` (the measure the denotation uses) reports, so the fit applies to any
-shape of `Value`. The number of policies is log-uniform so every decade gets similar
-coverage. The token count per policy is random under a total-size cap: the inner maps
-are never traversed, so it must not show in the measurements, and the fixed-size
-stacks (1000 and 5000 policies at several token counts) would make a violation
-visible as vertical spread at a single x.
+shape of `Value`.
+
+The number of policies is sampled uniformly on a log scale, which puts a similar number
+of points in 1-10, 10-100, 100-1000 and so on. Sampling uniformly on the count itself
+would put almost every point above 1000, leaving the sizes that occur on chain
+unmeasured.
+
+The token count per policy is random under a total-size cap: the inner maps are never
+traversed, so it must not show in the measurements, and the fixed-size stacks (1000 and
+5000 policies at several token counts) would make a violation visible as vertical spread
+at a single x.
 -}
 policiesBenchmark :: StdGen -> Benchmark
 policiesBenchmark gen =
