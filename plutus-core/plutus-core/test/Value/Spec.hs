@@ -226,6 +226,15 @@ prop_dropPoliciesSelects v =
   forAll (genPolicyIds v) $ \ps ->
     V.policies (V.dropPolicies ps v) === filter (`notElem` ps) (V.policies v)
 
+{-| @keepPolicies@ and @dropPolicies@ partition a `Value`: reuniting the two halves
+recovers the original, caches included. -}
+prop_keepDropPartition :: Value -> Property
+prop_keepDropPartition v =
+  forAll (genPolicyIds v) $ \ps ->
+    case V.unionValue (V.keepPolicies ps v) (V.dropPolicies ps v) of
+      BuiltinSuccess u -> u === v
+      _ -> property False
+
 toPositiveValue :: Value -> Value
 toPositiveValue =
   V.pack . fmap (Map.map (fromMaybe maxBound . V.quantity . abs . V.unQuantity)) . V.unpack
@@ -574,6 +583,9 @@ tests =
     , testProperty
         "dropPoliciesSelects"
         (withNumTests 20 prop_dropPoliciesSelects)
+    , testProperty
+        "keepDropPartition"
+        (withNumTests 20 prop_keepDropPartition)
     , testProperty
         "containsReflexive"
         prop_containsReflexive
