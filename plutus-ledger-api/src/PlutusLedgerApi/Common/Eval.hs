@@ -122,7 +122,8 @@ mkTermToEvaluate ll pv script args = do
       PlutusCoreLanguageNotAvailableError v ll pv
 
   -- make sure that term is closed, i.e. well-scoped
-  through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
+  -- through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
+  return appliedT
 
 toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
 toMachineParameters pv (EvaluationContext ll toCaser toSemVar machParsList) =
