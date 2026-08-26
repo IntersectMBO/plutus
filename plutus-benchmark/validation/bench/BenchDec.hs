@@ -20,7 +20,7 @@ the time taken to only flat-deserialize the script
  Run the benchmarks.  You can run groups of benchmarks by typing things like
      `stack bench -- plutus-benchmark:validation-decode --ba crowdfunding`
    or
-     `cabal bench -- plutus-benchmark:validation-decode --benchmark-options crowdfunding`. -}
+     `cabal bench plutus-benchmark:validation-decode --benchmark-options crowdfunding`. -}
 main :: IO ()
 main = benchWith mkDecBM
   where
@@ -38,8 +38,15 @@ main = benchWith mkDecBM
         -- we then have to re-encode and serialise it
         !(benchScript :: SerialisedScript) =
           force (serialiseUPLC $ UPLC.Program () v unsaturated)
+
+        -- The validation benchmarks were all created from PlutusV1 scripts
+        ll = PlutusV1
+        pv = futurePV
        in
         -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
-        whnf
-          (either throw id . void . deserialiseScript futurePV)
-          benchScript
+        -- whnf
+        --   (either throw id . void . deserialiseScript futurePV)
+        --   benchScript
+        flip whnf benchScript $ \scriptBytes ->
+          let scriptForEval = either throw id $ deserialiseScript pv scriptBytes
+           in either throw id . void $ mkTermToEvaluate ll pv scriptForEval []

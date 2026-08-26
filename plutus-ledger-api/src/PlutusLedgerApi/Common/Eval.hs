@@ -308,6 +308,8 @@ processLogsAndErrors ll logs res = do
     handleOldVersions = unless (ll == PlutusV1 || ll == PlutusV2) $ throwError InvalidReturnValue
 {-# INLINE processLogsAndErrors #-}
 
+instance Exception EvaluationError
+
 {- Note [Checking the Plutus Core language version]
 Since long ago this check has been in `mkTermToEvaluate`, which makes it a phase 2 failure.
 But this is really far too strict: we can check when deserializing, so it can be a phase 1
