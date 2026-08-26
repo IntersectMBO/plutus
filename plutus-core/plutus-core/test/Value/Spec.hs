@@ -189,6 +189,29 @@ prop_policiesAfterDeletion v0 =
   where
     BuiltinSuccess v = if V.totalSize v0 > 0 then pure v0 else V.insertCoin "c" "t" 1 v0
 
+{-| Policy ids for the @keepPolicies@/@dropPolicies@ properties: some drawn from the
+`Value` itself, so that the properties are not vacuous, plus generated ones that
+usually miss. -}
+genPolicyIds :: Value -> Gen [ByteString]
+genPolicyIds v = do
+  present <- sublistOf (V.policies v)
+  absent <- listOf (V.unK <$> genShortHex (V.totalSize v))
+  shuffle (present <> absent)
+
+prop_keepPoliciesBookkeeping :: Value -> Property
+prop_keepPoliciesBookkeeping v =
+  forAll (genPolicyIds v) $ checkBookkeeping . flip V.keepPolicies v
+
+prop_keepPoliciesPreservesInvariants :: Value -> Property
+prop_keepPoliciesPreservesInvariants v =
+  forAll (genPolicyIds v) $ checkInvariants . flip V.keepPolicies v
+
+-- | @keepPolicies@ retains exactly those requested policies the `Value` has.
+prop_keepPoliciesSelects :: Value -> Property
+prop_keepPoliciesSelects v =
+  forAll (genPolicyIds v) $ \ps ->
+    V.policies (V.keepPolicies ps v) === filter (`elem` ps) (V.policies v)
+
 toPositiveValue :: Value -> Value
 toPositiveValue =
   V.pack . fmap (Map.map (fromMaybe maxBound . V.quantity . abs . V.unQuantity)) . V.unpack
@@ -519,6 +542,15 @@ tests =
     , testProperty
         "policiesAfterDeletion"
         (withNumTests 20 prop_policiesAfterDeletion)
+    , testProperty
+        "keepPoliciesBookkeeping"
+        (withNumTests 20 prop_keepPoliciesBookkeeping)
+    , testProperty
+        "keepPoliciesPreservesInvariants"
+        (withNumTests 20 prop_keepPoliciesPreservesInvariants)
+    , testProperty
+        "keepPoliciesSelects"
+        (withNumTests 20 prop_keepPoliciesSelects)
     , testProperty
         "containsReflexive"
         prop_containsReflexive

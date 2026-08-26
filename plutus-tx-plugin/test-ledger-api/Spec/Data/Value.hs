@@ -44,7 +44,7 @@ import Data.List qualified as Haskell
 import Data.Map qualified as Map
 import PlutusLedgerApi.Test.V1.Data.Value qualified as ListToValue
 import Prettyprinter qualified as Pretty
-import Test.QuickCheck (Arbitrary (arbitrary), forAll, (===))
+import Test.QuickCheck (Arbitrary (arbitrary), forAll, sublistOf, (===))
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.QuickCheck (testProperty)
@@ -438,3 +438,45 @@ test_assetCountUplc =
   runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
     . pure
     $ testNestedGhc [goldenUPlcReadable "assetCount" compiledAssetCount]
+
+{-| Compiled builtin path: @\\ps bd -> policies (keepPolicies ps (unsafeDataAsValue bd))@.
+The result is projected through @policies@ so that it decodes to a comparable list. -}
+compiledKeepPolicies
+  :: CompiledCode
+       ( BI.BuiltinList BI.BuiltinByteString
+         -> BI.BuiltinData
+         -> BI.BuiltinList BI.BuiltinByteString
+       )
+compiledKeepPolicies = plinthc (\ps bd -> B.policies (B.keepPolicies ps (B.unsafeDataAsValue bd)))
+
+{-| The builtin @keepPolicies@ must retain exactly the requested currency symbols the
+`Value` actually has, in ascending order. -}
+test_keepPolicies :: TestTree
+test_keepPolicies =
+  testProperty
+    "builtin keepPolicies retains the requested currency symbols on CEK"
+    \(normalise -> val) ->
+      let allPolicies = B.fromBuiltin . unCurrencySymbol . fst Haskell.<$> valueToLists val
+       in forAll (sublistOf allPolicies) \kept ->
+            runKeepPoliciesCode kept val === Haskell.filter (`Haskell.elem` kept) allPolicies
+  where
+    -- \| Evaluate the compiled builtin @keepPolicies@ on CEK and decode the resulting list.
+    runKeepPoliciesCode :: [BS.ByteString] -> Value -> [BS.ByteString]
+    runKeepPoliciesCode kept value = either Haskell.throw id $ errOrRes >>= PLC.readKnownSelf
+      where
+        prog =
+          compiledKeepPolicies
+            `unsafeApplyCode` liftCodeDef (B.toBuiltin kept)
+            `unsafeApplyCode` liftCodeDef (Tx.toBuiltinData value)
+        (errOrRes, _cost) =
+          PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
+            . PLC.runQuote
+            . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
+            . PLC._progTerm
+            $ getPlc prog
+
+test_keepPoliciesUplc :: TestTree
+test_keepPoliciesUplc =
+  runTestNested ["test-ledger-api", "Spec", "Data", "Value"]
+    . pure
+    $ testNestedGhc [goldenUPlcReadable "keepPolicies" compiledKeepPolicies]

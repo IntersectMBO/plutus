@@ -57,6 +57,7 @@ Parsable functions are  [ addInteger
                         , insertCoin
                         , integerToByteString
                         , keccak_256
+                        , keepPolicies
                         , lengthOfArray
                         , lengthOfByteString
                         , lessThanByteString

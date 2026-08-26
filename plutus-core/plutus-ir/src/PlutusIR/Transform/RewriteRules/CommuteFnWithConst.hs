@@ -158,3 +158,4 @@ isCommutative = \case
   MultiIndexArray -> False
   Policies -> False
   AssetCount -> False
+  KeepPolicies -> False

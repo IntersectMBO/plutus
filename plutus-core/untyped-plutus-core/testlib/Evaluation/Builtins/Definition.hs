@@ -2287,6 +2287,50 @@ test_AssetCount =
         apply () (builtin () AssetCount) (mkConstant @Value () v)
     expectedCount = Right . EvaluationSuccess . mkConstant @Integer ()
 
+-- | Tests for the `keepPolicies` builtin (CIP-0168).
+test_KeepPolicies :: TestTree
+test_KeepPolicies =
+  testGroup
+    "KeepPolicies"
+    [ testCase "empty Value" do
+        evalKeepPolicies ["aaa"] Value.empty @?= expectedValue Value.empty
+    , testCase "empty policy list drops everything" do
+        evalKeepPolicies [] mixedValue @?= expectedValue Value.empty
+    , testCase "absent policy id" do
+        evalKeepPolicies ["nope"] mixedValue @?= expectedValue Value.empty
+    , testCase "duplicate ids are a no-op" do
+        evalKeepPolicies ["aaa", "aaa"] mixedValue
+          @?= expectedValue (unsafeMkValue [("aaa", "t1", 2), ("aaa", "t2", -7)])
+    , testCase "lovelace is an ordinary policy" do
+        evalKeepPolicies [""] mixedValue
+          @?= expectedValue (unsafeMkValue [("", "", 2000000)])
+    , testCase "all policies kept" do
+        evalKeepPolicies ["", "aaa", "bbb"] mixedValue @?= expectedValue mixedValue
+    , testCase "inner maps are untouched" do
+        evalKeepPolicies ["bbb"] mixedValue
+          @?= expectedValue (unsafeMkValue [("bbb", "t1", 1), ("bbb", "t2", 3)])
+    , testCase "oversized policy id matches nothing" do
+        evalKeepPolicies [pack (replicate 33 0)] mixedValue @?= expectedValue Value.empty
+    ]
+  where
+    evalKeepPolicies ps v =
+      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting $
+        mkIterAppNoAnn
+          (builtin () KeepPolicies)
+          [mkConstant @[ByteString] () ps, mkConstant @Value () v]
+    expectedValue = Right . EvaluationSuccess . mkConstant @Value ()
+
+-- | A `Value` with lovelace and two multi-token policies, one holding a negative amount.
+mixedValue :: Value
+mixedValue =
+  unsafeMkValue
+    [ ("bbb", "t1", 1)
+    , ("", "", 2000000)
+    , ("aaa", "t1", 2)
+    , ("bbb", "t2", 3)
+    , ("aaa", "t2", -7)
+    ]
+
 test_definition :: TestTree
 test_definition =
   testGroup
@@ -2334,4 +2378,5 @@ test_definition =
     , test_Case
     , test_Policies
     , test_AssetCount
+    , test_KeepPolicies
     ]

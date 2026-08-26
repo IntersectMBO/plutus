@@ -32,6 +32,7 @@ module PlutusCore.Value
   , scaleValue
   , lookupCoin
   , policies
+  , keepPolicies
   , valueContains
   , unionValue
   , valueData
@@ -61,6 +62,8 @@ import Data.IntMap.Strict qualified as IntMap
 import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
 import GHC.Stack
@@ -402,6 +405,19 @@ empty bytestring) if present. -}
 policies :: Value -> [ByteString]
 policies = map unK . Map.keys . unpack
 {-# INLINEABLE policies #-}
+
+{-| \(O(p \log p + m + n')\), where \(p\) is the length of the policy list, \(m\) is
+the size of the outer map and \(n'\) is the total size of the result. Retains only the
+currencies listed in @ps@; ids absent from the `Value`, including any longer than
+`maxKeyLen`, are ignored. Restricting the outer map can neither empty an inner map nor
+zero a quantity, so the result needs no normalization. -}
+keepPolicies :: [ByteString] -> Value -> Value
+keepPolicies ps (unpack -> outer) = pack' (Map.restrictKeys outer (policySet ps))
+{-# INLINEABLE keepPolicies #-}
+
+policySet :: [ByteString] -> Set K
+policySet = Set.fromList . map UnsafeK
+{-# INLINE policySet #-}
 
 {-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second
 `Value`, \(m_{1}\) is the size of the outer map in the first `Value` and \(k_{1}\) is
