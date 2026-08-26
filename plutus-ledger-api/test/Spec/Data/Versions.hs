@@ -101,7 +101,8 @@ testLedgerLanguages =
     [ testProperty "PlutusV1 not before but after" $ prop_notBeforeButAfter V1.deserialiseScript alonzoPV
     , testProperty "PlutusV2 not before but after" $ prop_notBeforeButAfter V2.deserialiseScript vasilPV
     , testProperty "PlutusV3 not before but after" $ prop_notBeforeButAfter V3.deserialiseScript changPV
-    , testProperty "PlutusV4 not before but after" $ prop_notBeforeButAfter V4.deserialiseScript dijkstraPV
+    , testProperty "PlutusV4 not before but after" $
+        prop_notBeforeButAfter V4.deserialiseScript dijkstraPV
     , testProperty "protocol-versions can add but not remove ledger languages" $
         \pvA pvB -> pvA < pvB ==> ledgerLanguagesAvailableIn pvA `Set.isSubsetOf` ledgerLanguagesAvailableIn pvB
     ]
@@ -476,11 +477,11 @@ testRmdr =
         assertBool "remdr1c" $ isRight $ V1.deserialiseScript changPV $ errorScript <> "remdr1"
         assertBool "remdr2c" $ isRight $ V2.deserialiseScript changPV $ errorScript <> "remdr2"
         assertEqual "remdr3" (RemainderError "remdr3") $
-          fromLeft (Prelude.error "Expected Reft, got Right") $
+          fromLeft (Prelude.error "Expected Left, got Right") $
             V3.deserialiseScript changPV $
               errorScript <> "remdr3"
         assertEqual "remdr4" (RemainderError "remdr4") $
-          fromLeft (Prelude.error "Expected Reft, got Right") $
+          fromLeft (Prelude.error "Expected Left, got Right") $
             V4.deserialiseScript dijkstraPV $
               errorScript <> "remdr4"
     , testProperty "remdr1gen" $ \remdr -> isRight $ V1.deserialiseScript valentinePV $ errorScript <> BSS.pack remdr
