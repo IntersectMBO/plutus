@@ -126,7 +126,7 @@ state.
  s;\rho & \compute \delay{M}                         &~\mapsto~& s\return \VDelay{M}{\rho}\\
  s;\rho & \compute \force{M}                         &~\mapsto~& \inForceFrame{} \cons s;\rho \compute M \\
  s;\rho & \compute \appU{M}{N}                       &~\mapsto~& \inAppLeftFrame{(N,\rho)} \cons s ;\rho \compute M\\
-  s;\rho & \compute \constr{i}{M \cons \repetition{M}} &~\mapsto~& \inConstrFrame{i}{[]}{(\repetition{M},\rho)} \cons s ;\rho \compute M\\
+ s;\rho & \compute \constr{i}{M \cons \repetition{M}} &~\mapsto~& \inConstrFrame{i}{[]}{(\repetition{M},\rho)} \cons s ;\rho \compute M\\
  s;\rho & \compute \constr{i}{[]} &~\mapsto~&  s \return \VConstr{i}{[]}\\
  s;\rho & \compute \kase{N}{\repetition{M}} &~\mapsto~&  \inCaseFrame{(\repetition{M},\rho)} \cons s ;\rho \compute N\\
 % No nullary builtins (yet)
@@ -163,21 +163,18 @@ state.
 \end{subfigure}
 
 \bigskip
-\begin{subfigure}[c]{\linewidth}
-  \begin{align*}
- \EvalCEK(s, b, [V_1, \ldots, V_n]) =
-  &   \begin{cases}
-        \cekerror  & \text{if $r = \errorX$}\\
-        \inAppLeftFrame{V^{\prime}_m} \cons \cdots \cons \inAppLeftFrame{V^{\prime}_1} \cons s \return V^{\prime}
-          & \text{if $r = (V^{\prime}|V^{\prime}_1,\ldots,V^{\prime}_m) \in \R^{+}$}
-      \end{cases}\\
-  &  \;\;\text{where $r = \Eval\,(b,[V_1, \ldots, V_n])$}\\
-   \end{align*}
-  \caption{Evaluation of built-in functions}
-  \label{fig:untyped-cek-builtins}
+  \begin{subfigure}[c]{\linewidth}
+   $$ \EvalCEK(s, b, [V_1, \ldots, V_n]) =
+   \begin{cases}
+      \cekerror  & \text{if $\Eval\,(b,[V_1, \ldots, V_n]) = \errorX$}\\
+      s \return \Eval\,(b,[V_1, \ldots, V_n]) & \text{otherwise}
+   \end{cases}
+   $$
+   \caption{Evaluation of built-in functions}
+   \label{fig:untyped-cek-builtins}
 \end{subfigure}
 
-  \caption{A CEK machine for Plutus Core}
+\caption{A CEK machine for Plutus Core}
 \label{fig:untyped-cek-machine}
 \end{figure}
 
