@@ -125,6 +125,7 @@ library
     PlutusTx.Ual.Error
     PlutusTx.Ual.Lexer
     PlutusTx.Ual.Parser
+    PlutusTx.Ual.Resolve
     PlutusTx.Ual.Syntax
     PlutusTx.Utils
 
@@ -247,6 +248,7 @@ test-suite plutus-tx-test
     Ual.Error.Spec
     Ual.Lexer.Spec
     Ual.Parser.Spec
+    Ual.Resolve.Spec
     Ual.Spec
 
   hs-source-dirs: test
@@ -272,3 +274,4 @@ test-suite plutus-tx-test
     , tasty-hedgehog
     , tasty-hunit
     , text
+    , vector

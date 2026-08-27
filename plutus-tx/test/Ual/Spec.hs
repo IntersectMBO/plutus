@@ -5,6 +5,7 @@ import Ual.Blueprint.Spec qualified
 import Ual.Error.Spec qualified
 import Ual.Lexer.Spec qualified
 import Ual.Parser.Spec qualified
+import Ual.Resolve.Spec qualified
 
 tests :: TestTree
 tests =
@@ -14,4 +15,5 @@ tests =
     , Ual.Error.Spec.tests
     , Ual.Lexer.Spec.tests
     , Ual.Parser.Spec.tests
+    , Ual.Resolve.Spec.tests
     ]

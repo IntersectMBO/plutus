@@ -38,7 +38,10 @@ data UalError
     UnknownFragment Text Text
   | -- | The fragment ids taking part in an import cycle.
     FragmentCycle [Text]
-  deriving stock (Eq, Show)
+  {- Ord is derived only so that a phase collecting several errors can sort them
+  into a stable report order. That order is the constructor order above and means
+  nothing beyond determinism: it is not a severity ranking. -}
+  deriving stock (Eq, Ord, Show)
 
 renderUalError :: UalError -> Text
 renderUalError = \case
