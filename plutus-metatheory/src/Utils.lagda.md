@@ -226,13 +226,11 @@ equality primitive (`eqByteStringᵇ` below) whose Agda definition is constantly
 and whose `COMPILE GHC` pragma replaces it with Haskell's `(==)` at runtime (Agda's
 FFI allows the two definitions to differ, see the warning at
 https://agda.readthedocs.io/en/v2.7.0.1/language/foreign-function-interface.html#using-haskell-functions-from-agda).
-This pragma is the single trusted point of the construction: we trust that Haskell's
-`(==)` decides propositional equality of the postulated type.
 
 The primitive is then turned into a decision procedure by `decEqFromBool`. In the
 `true` branch it matches on `primTrustMe`, which reduces to `refl` exactly when the
-two sides are definitionally equal, and gets stuck otherwise. The `false` branch is
-honest Agda: the caller must prove that the primitive is constantly `true`, which
+two sides are definitionally equal, and gets stuck otherwise. For the `false` branch,
+the caller must prove that the primitive is constantly `true`, which
 makes the branch unreachable at type-checking time, so the required negative proof
 follows from the contradictory hypotheses — no postulate is involved. At runtime,
 where `(==)` can actually return `false`, the branch produces `no` with a proof that
@@ -248,7 +246,6 @@ using them for anything other than feeding `decEqFromBool` would be a bug. Code 
 genuinely needs Bool-valued equality of a postulated type at the Agda level should go
 through the decision procedures instead, i.e. `isYes (eqX? …)` — as `eqDATA` below and
 `equals` in `Builtin` do — which answers correctly or gets stuck, but never lies.
-Making the primitives private makes such misuse impossible.
 
 ```
 private
@@ -410,8 +407,10 @@ equality proofs, so it is erased by compilation and needs no `COMPILE` pragma.
 
 ```
 postulate
-  HSarrayToList-injective : {a a' : Array A}
-                          → HSarrayToList a ≡ HSarrayToList a' → a ≡ a'
+  HSarrayToList-injective
+    : {a a' : Array A}
+    → HSarrayToList a ≡ HSarrayToList a'
+    → a ≡ a'
 
 -- This only exists for literal arrays in certificates,
 -- much like mkBytestring above.
