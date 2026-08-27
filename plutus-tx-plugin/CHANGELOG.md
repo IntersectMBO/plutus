@@ -1,4 +1,11 @@
 
+<a id='changelog-1.68.0.0'></a>
+# 1.68.0.0 — 2026-08-21
+
+## Changed
+
+- Haskell unit is now compiled to built-in unit, instead of Scott/SOP unit.
+
 <a id='changelog-1.67.0.0'></a>
 # 1.67.0.0 — 2026-08-06
 

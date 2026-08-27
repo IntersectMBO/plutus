@@ -2506,7 +2506,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         {-# INLINE assetCountDenotation #-}
      in makeBuiltinMeaning
           assetCountDenotation
-          (runCostingFunOneArgument . unimplementedCostingFun)
+          (runCostingFunOneArgument . paramAssetCount)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 

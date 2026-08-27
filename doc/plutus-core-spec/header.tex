@@ -285,9 +285,7 @@
 
 \renewcommand{\star}{\text{\textasteriskcentered}}
 % ^ {*}, the set of fully-polymorphic type variables (but there's only one of those)
-\newcommand{\ap}{\textsf{ap}}  % deferred applications
 \newcommand{\VarStar}{\{\star\}}
-\newcommand{\VarStarAp}{\{\star, \ap\}}
 \newcommand{\forallStar}{\forall\star}
 
 %% \newcommand\disj{\mathbin{\dot{\cup}}}    % Infix disjoint union
@@ -303,7 +301,6 @@
 \newcommand\Unihashn[1]{\Uni_{\#,#1}}
 \newcommand\Sext{\hat{S}}
 \newcommand\UnihashStar{\Unihash \disj \VarStar}     % Built-in type or type name
-\newcommand\UnihashStarAp{\Unihash \disj \VarStarAp} % Built-in type or type name or deferred application
 \newcommand\UnihashTop{\Unihash^{\top}}      % Universe of built-in types extended with a top element
 \newcommand\op{\textit{op}}               % Type operator names
 \newcommand\valency[1]{\left| #1 \right|} % Valency of a type operator

@@ -160,6 +160,7 @@ arity <- function(name) {
         "UnValueData" = 1,
         "ScaleValue" = 2,
         "MultiIndexArray" = 2,
+        "AssetCount" = 1,
         -1  ## Default for missing values
         )
 }
@@ -850,6 +851,8 @@ modelFun <- function(path) {
         mk.result (m, "quadratic_in_y")
     }
 
+    assetCountModel           <- constantModel ("AssetCount")
+
     ## Values
 
     # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
@@ -1006,7 +1009,8 @@ modelFun <- function(path) {
         insertCoinModel                      = insertCoinModel,
         unionValueModel                      = unionValueModel,
         scaleValueModel                      = scaleValueModel,
-        multiIndexArrayModel                 = multiIndexArrayModel
+        multiIndexArrayModel                 = multiIndexArrayModel,
+        assetCountModel                      = assetCountModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative
