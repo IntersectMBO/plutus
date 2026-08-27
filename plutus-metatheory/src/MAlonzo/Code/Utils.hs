@@ -23,6 +23,7 @@ import qualified MAlonzo.Code.Agda.Builtin.Int
 import qualified MAlonzo.Code.Agda.Builtin.List
 import qualified MAlonzo.Code.Agda.Builtin.Maybe
 import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.String
 import qualified MAlonzo.Code.Agda.Builtin.Unit
 import qualified MAlonzo.Code.Agda.Primitive
 import qualified MAlonzo.Code.Data.Fin.Base
@@ -1102,3 +1103,10 @@ cover_Kind_886 x
       Star -> ()
       Sharp -> ()
       Arrow _ _ -> ()
+-- Utils.TRACE
+d_TRACE_902 ::
+  () ->
+  MAlonzo.Code.Agda.Builtin.String.T_String_6 -> AgdaAny -> AgdaAny
+d_TRACE_902 ~v0 ~v1 v2 = du_TRACE_902 v2
+du_TRACE_902 :: AgdaAny -> AgdaAny
+du_TRACE_902 v0 = coe v0

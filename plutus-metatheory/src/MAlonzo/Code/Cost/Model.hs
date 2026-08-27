@@ -920,13 +920,13 @@ d_getModel_520 v0 v1
                                (\ v6 ->
                                   coe
                                     MAlonzo.Code.Data.String.Properties.du_'8776''45'reflexive_8
-                                    (coe MAlonzo.Code.Builtin.d_showBuiltin_496 (coe v0)))
+                                    (coe MAlonzo.Code.Builtin.d_showBuiltin_492 (coe v0)))
                                (coe
                                   MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.du_decidable_112
                                   (coe MAlonzo.Code.Data.Char.Properties.d__'8799'__14)
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12
-                                     (MAlonzo.Code.Builtin.d_showBuiltin_496 (coe v0)))
+                                     (MAlonzo.Code.Builtin.d_showBuiltin_492 (coe v0)))
                                   (coe
                                      MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12 v4))) in
                   coe
@@ -976,17 +976,17 @@ d_lookupModel_562 v0 v1
                             (\ v6 ->
                                coe
                                  MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
-                                 (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v4)))
+                                 (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v4)))
                             (coe
                                MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                                (coe
-                                  eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v4))
-                                  (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v1)))
+                                  eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v4))
+                                  (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v1)))
                                (coe
                                   MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
                                   (coe
-                                     eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v4))
-                                     (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v1))))) in
+                                     eqInt (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v4))
+                                     (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v1))))) in
                   coe
                     (case coe v6 of
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v7 v8
@@ -1066,4 +1066,4 @@ d_createMap_624 v0
          (coe
             MAlonzo.Code.Data.List.Base.du_map_22
             (coe (\ v1 -> d_getModel_520 (coe v1) (coe v0)))
-            (coe MAlonzo.Code.Builtin.d_builtinList_498)))
+            (coe MAlonzo.Code.Builtin.d_builtinList_494)))

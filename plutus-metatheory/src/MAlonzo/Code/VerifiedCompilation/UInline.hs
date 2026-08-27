@@ -711,20 +711,20 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                       (\ v11 ->
                                          coe
                                            MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
-                                           (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v9)))
+                                           (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v9)))
                                       (coe
                                          MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                                          (coe
                                             eqInt
-                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v9))
-                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v10)))
+                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v9))
+                                            (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v10)))
                                          (coe
                                             MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
                                             (coe
                                                eqInt
-                                               (coe MAlonzo.Code.Builtin.d_enumBuiltin_458 (coe v9))
+                                               (coe MAlonzo.Code.Builtin.d_enumBuiltin_454 (coe v9))
                                                (coe
-                                                  MAlonzo.Code.Builtin.d_enumBuiltin_458
+                                                  MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                   (coe v10))))) in
                             coe
                               (case coe v11 of

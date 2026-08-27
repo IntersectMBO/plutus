@@ -1338,5 +1338,15 @@
       },
       "type": "linear_in_y"
     }
+  },
+  "assetCount": {
+    "cpu": {
+      "arguments": 129043,
+      "type": "constant_cost"
+    },
+    "memory": {
+      "arguments": 10,
+      "type": "constant_cost"
+    }
   }
 }

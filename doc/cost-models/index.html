@@ -39,105 +39,7 @@
     <section>
       <h2>Available Visualizations</h2>
 
-      <ul class="function-list">
-        <li>
-          <a href="valuedata/index.html">ValueData</a>
-          <p class="description">
-            Converts a Plutus <code>Value</code> to <code>Data</code> representation.
-            (2D visualization: Value Size vs Time)
-          </p>
-        </li>
-
-        <li>
-          <a href="unvaluedata/index.html">UnValueData</a>
-          <p class="description">
-            Converts <code>Data</code> representation back to a Plutus <code>Value</code>.
-            (2D visualization: Data Size vs Time)
-          </p>
-        </li>
-
-        <li>
-          <a href="valuecontains/index.html">ValueContains</a>
-          <p class="description">
-            Checks if a Plutus <code>Value</code> (haystack) contains another <code>Value</code> (needle).
-            (3D visualization: Container Size × Contained Size × Time)
-          </p>
-        </li>
-
-        <li>
-          <a href="lookupcoin/index.html">LookupCoin</a>
-          <p class="description">
-            Looks up a specific coin (currency symbol and token name) in a Plutus <code>Value</code>.
-            (2D visualization: Value Size vs Time)
-          </p>
-        </li>
-
-        <li>
-          <a href="insertcoin/index.html">InsertCoin</a>
-          <p class="description">
-            Inserts a coin into a Plutus <code>Value</code> map structure.
-            (2D visualization: Value Size vs Time)
-          </p>
-        </li>
-
-        <li>
-          <a href="unionvalue/index.html">UnionValue</a>
-          <p class="description">
-            Unions two Plutus <code>Value</code> structures into one.
-            (3D visualization: Value Size × Value Size × Time)
-          </p>
-        </li>
-
-        <li>
-          <a href="scalevalue/index.html">ScaleValue</a>
-          <p class="description">
-            Multiplies a Plutus <code>Value</code> by a scalar, scaling all quantities.
-            (2D visualization: Value Size vs Time)
-          </p>
-        </li>
-
-        <li>
-          <a href="listtoarray/index.html">ListToArray</a>
-          <p class="description">
-            Converts a Plutus list to an array representation.
-            (2D visualization: List Size vs Time)
-          </p>
-        </li>
-
-        <li>
-          <a href="lengthofarray/index.html">LengthOfArray</a>
-          <p class="description">
-            Returns the length of a Plutus array in O(1) time.
-            (2D visualization: Array Size vs Time - constant cost)
-          </p>
-        </li>
-
-        <li>
-          <a href="indexarray/index.html">IndexArray</a>
-          <p class="description">
-            Retrieves an element at a given index from a Plutus array in O(1) time.
-            (2D visualization: Array Size vs Time - constant cost)
-          </p>
-        </li>
-
-        <li>
-          <a href="multiindexarray/index.html">MultiIndexArray</a>
-          <p class="description">
-            Looks up a list of indices in a Plutus array; linear in the number of indices,
-            independent of the array size.
-            (3D visualization: Haystack Size &times; Needles Size vs Time, plus per-index time
-            distribution histogram)
-          </p>
-        </li>
-
-        <li>
-          <a href="indexbytestring/index.html">IndexByteString</a>
-          <p class="description">
-            Retrieves a byte at a given index from a ByteString in O(1) time. Performs a bounds check and returns the byte value (Word8).
-            (2D visualization: ByteString Size vs Time - constant cost)
-          </p>
-        </li>
-      </ul>
+      <ul class="function-list"></ul>
     </section>
 
     <section>
@@ -186,9 +88,14 @@
           <strong>Edit <code>myfunction/index.html</code>:</strong>
           <ul>
             <li>Update page title and heading</li>
-            <li>Update navigation links (add your function to the nav menu)</li>
             <li>Update plot information panel labels (X-axis, Y-axis, description)</li>
           </ul>
+        </li>
+
+        <li>
+          <strong>Add an entry to <code>PAGES</code> in <code>shared/utils.js</code>:</strong>
+          <pre><code>['myfunction', 'MyFunction', 'What it does. (2D visualization: ...)']</code></pre>
+          This is what puts the page in the navigation bar and in the list above.
         </li>
 
         <li>
@@ -291,12 +198,12 @@ const benchmarkZ = benchmarkData.map(d => d.time);     // Time (always Z)</code>
 
       <h3>Deployment</h3>
       <p>
-        This site can be deployed to GitHub Pages or any static hosting service. For local development,
-        simply run a local HTTP server in the project directory:
+        This site can be deployed to GitHub Pages or any static hosting service. Opening
+        <code>index.html</code> from disk works as well, because the data is fetched from GitHub
+        over HTTPS. A local HTTP server is only needed to plot data files that are not on GitHub
+        yet, since <code>fetch()</code> rejects <code>file://</code> URLs:
       </p>
-      <pre><code>python -m http.server 8000
-# or
-python3 -m http.server 8000</code></pre>
+      <pre><code>python3 -m http.server 8000</code></pre>
     </section>
   </div>
 
@@ -308,6 +215,11 @@ python3 -m http.server 8000</code></pre>
     </p>
   </footer>
   <script src="shared/utils.js"></script>
-  <script>document.addEventListener('DOMContentLoaded', () => renderNav(null, '.'));</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderNav(null, '.');
+      renderFunctionList();
+    });
+  </script>
 </body>
 </html>

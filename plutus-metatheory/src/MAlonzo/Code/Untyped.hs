@@ -541,7 +541,7 @@ d_decUTm_298 v0 v1
                 MAlonzo.Code.RawU.C_UBuiltin_222 v4
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
-                       (coe MAlonzo.Code.Builtin.d_decBuiltin_472 (coe v3) (coe v4))
+                       (coe MAlonzo.Code.Builtin.d_decBuiltin_468 (coe v3) (coe v4))
                 _ -> coe v2
          MAlonzo.Code.RawU.C_UDelay_224 v3
            -> case coe v1 of
