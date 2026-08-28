@@ -60,6 +60,7 @@ import Data.Foldable (find)
 import Data.Hashable (Hashable (..))
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
+import Data.List qualified as List
 import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
@@ -417,12 +418,36 @@ keepPolicies :: [ByteString] -> Value -> Value
 keepPolicies ps (unpack -> outer) = pack' (Map.restrictKeys outer (policySet ps))
 {-# INLINEABLE keepPolicies #-}
 
-{-| Like `keepPolicies`, but removes the listed currencies instead of retaining them.
-Same asymptotics, except that \(n'\) here covers everything /not/ dropped, so removing a
-few policies from a large `Value` still traverses the whole retained map. -}
+{-| \(O(p \log m + d)\), where \(p\) is the length of the policy list, \(m\) is the size
+of the outer map and \(d\) is the total size of the dropped currencies. Removes the
+currencies listed in @ps@; ids absent from the `Value`, including any longer than
+`maxKeyLen`, are ignored. Where `keepPolicies` recomputes the caches over its result,
+this subtracts the dropped currencies' contributions from them, so the retained part is
+never traversed. -}
 dropPolicies :: [ByteString] -> Value -> Value
-dropPolicies ps (unpack -> outer) = pack' (Map.withoutKeys outer (policySet ps))
+dropPolicies ps v = List.foldl' dropPolicy v (mapMaybe k ps)
 {-# INLINEABLE dropPolicies #-}
+
+{-| Remove one currency and subtract what it contributed to the cached sizes, total and
+negative count. Absent currencies are a no-op, which is also what makes a duplicate id in
+`dropPolicies` harmless. -}
+dropPolicy :: Value -> K -> Value
+dropPolicy v@(Value outer sizes total neg) currency =
+  case Map.updateLookupWithKey (\_ _ -> Nothing) currency outer of
+    (Nothing, _) -> v
+    (Just inner, outer') ->
+      let innerSize = Map.size inner
+       in Value
+            outer'
+            (updateSizes innerSize 0 sizes)
+            (total - innerSize)
+            (neg - countNegative inner)
+{-# INLINE dropPolicy #-}
+
+-- | Number of negative quantities in an inner map.
+countNegative :: Map K Quantity -> Int
+countNegative = Map.foldl' (\ !acc q -> if q < zeroQuantity then acc + 1 else acc) 0
+{-# INLINE countNegative #-}
 
 {-| Ids longer than `maxKeyLen` match no key of a well-formed `Value`, so dropping them
 is semantically a no-op. It bounds the cost: a list argument is measured by its length

@@ -226,6 +226,16 @@ prop_dropPoliciesSelects v =
   forAll (genPolicyIds v) $ \ps ->
     V.policies (V.dropPolicies ps v) === filter (`notElem` ps) (V.policies v)
 
+{-| `dropPolicies` maintains the caches by subtraction instead of recomputing them, so it
+has to agree field for field with a `Value` repacked from the retained map. Unlike
+`checkBookkeeping`, which only samples the size histogram at its maximum, this pins the
+whole histogram through the derived `Eq`. -}
+prop_dropPoliciesAgreesWithRepack :: Value -> Property
+prop_dropPoliciesAgreesWithRepack v =
+  forAll (genPolicyIds v) $ \ps ->
+    let ks = mapMaybe V.k ps
+     in V.dropPolicies ps v === V.pack (Map.filterWithKey (\c _ -> c `notElem` ks) (V.unpack v))
+
 {-| @keepPolicies@ and @dropPolicies@ partition a `Value`: reuniting the two halves
 recovers the original, caches included. -}
 prop_keepDropPartition :: Value -> Property
@@ -583,6 +593,9 @@ tests =
     , testProperty
         "dropPoliciesSelects"
         (withNumTests 20 prop_dropPoliciesSelects)
+    , testProperty
+        "dropPoliciesAgreesWithRepack"
+        (withNumTests 20 prop_dropPoliciesAgreesWithRepack)
     , testProperty
         "keepDropPartition"
         (withNumTests 20 prop_keepDropPartition)
