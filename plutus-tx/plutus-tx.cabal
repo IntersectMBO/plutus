@@ -57,6 +57,7 @@ library
     PlutusTx.AsData.Internal
     PlutusTx.AssocMap
     PlutusTx.Assurance
+    PlutusTx.Assurance.Build
     PlutusTx.Assurance.Document
     PlutusTx.Assurance.Write
     PlutusTx.Base
