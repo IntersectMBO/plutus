@@ -251,13 +251,26 @@ pack = pack' . normalize
 pack' :: NestedMap -> Value
 pack' v = Value v sizes total neg
   where
-    (sizes, total, neg) = Map.foldl' alg (mempty, 0, 0) v
-    alg (ss, t, n) inner =
-      ( IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) ss
-      , t + Map.size inner
-      , n + Map.size (Map.filter (< zeroQuantity) inner)
-      )
+    Caches sizes total neg = Map.foldl' alg (Caches mempty 0 0) v
+    alg (Caches ss t n) inner =
+      let innerSize = Map.size inner
+       in Caches
+            (IntMap.insertWith (+) innerSize 1 ss)
+            (t + innerSize)
+            (n + countNegative inner)
 {-# INLINEABLE pack' #-}
+
+{-| The three cached fields of a `Value`, as an accumulator for `pack'`. Bang patterns on a
+tuple are not a substitute: they change when a field is forced, not whether it is allocated,
+so every step still builds the tuple box plus a closure per field. That costs 168 bytes per
+currency against 40 for this record. Holding the strictness in the type also keeps a later
+caller from dropping it. -}
+data Caches = Caches !(IntMap Int) {-# UNPACK #-} !Int {-# UNPACK #-} !Int
+
+-- | Number of negative quantities in an inner map.
+countNegative :: Map K Quantity -> Int
+countNegative = Map.foldl' (\ !acc q -> if q < zeroQuantity then acc + 1 else acc) 0
+{-# INLINE countNegative #-}
 
 {-| Total size, i.e., the number of distinct `(currency symbol, token name)` pairs
 contained in the `Value`. -}
@@ -443,11 +456,6 @@ dropPolicy v@(Value outer sizes total neg) currency =
             (total - innerSize)
             (neg - countNegative inner)
 {-# INLINE dropPolicy #-}
-
--- | Number of negative quantities in an inner map.
-countNegative :: Map K Quantity -> Int
-countNegative = Map.foldl' (\ !acc q -> if q < zeroQuantity then acc + 1 else acc) 0
-{-# INLINE countNegative #-}
 
 {-| Ids longer than `maxKeyLen` match no key of a well-formed `Value`, so dropping them
 is semantically a no-op. It bounds the cost: a list argument is measured by its length
