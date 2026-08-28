@@ -554,6 +554,7 @@ main =
       , $(genTest 2 "unionValue") Everywhere
       , $(genTest 2 "valueContains") BelowDiagonal
       , $(genTest 1 "valueData")
+      , $(genTest 1 "policies")
       , -- FIXME: the test for unValueData fails. This may be because of a rounding error in the top coefficient.
         -- , $(genTest 1 "unValueData")
         $(genTest 2 "scaleValue") Everywhere

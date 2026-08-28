@@ -32,6 +32,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
+  , ValueOuterSize (..)
   , ValueTotalSize (..)
   , memoryUsage
   , singletonRose
@@ -2494,12 +2495,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           multiIndexArrayDenotation
           (runCostingFunTwoArguments . paramMultiIndexArray)
   toBuiltinMeaning _semvar Policies =
-    let policiesDenotation :: Value -> [ByteString]
-        policiesDenotation = Value.policies
+    let policiesDenotation :: ValueOuterSize -> [ByteString]
+        policiesDenotation (ValueOuterSize v) = Value.policies v
         {-# INLINE policiesDenotation #-}
      in makeBuiltinMeaning
           policiesDenotation
-          (runCostingFunOneArgument . unimplementedCostingFun)
+          (runCostingFunOneArgument . paramPolicies)
   toBuiltinMeaning _semvar AssetCount =
     let assetCountDenotation :: Value -> Integer
         assetCountDenotation = toInteger . Value.totalSize
