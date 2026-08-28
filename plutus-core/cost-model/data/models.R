@@ -162,6 +162,7 @@ arity <- function(name) {
         "MultiIndexArray" = 2,
         "AssetCount" = 1,
         "Policies" = 1,
+        "KeepPolicies" = 2,
         -1  ## Default for missing values
         )
 }
@@ -445,6 +446,19 @@ modelFun <- function(path) {
             discard.overhead ()
         m <- lm(t ~ u_mem, filtered)
         return (mk.result(m, "linear_in_u"))
+   }
+
+   ## Two-variable linear model on the points with y_mem > 0.  Used by the `Value`
+   ## policy-filter builtins, which return before they look at the list when the `Value` is
+   ## empty, so the y = 0 points cost the machine sizing the list rather than the builtin
+   ## doing its work, and one slope cannot price both.
+   linearInXAndYNonzeroY <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter(y_mem > 0) %>%
+            discard.overhead ()
+        m <- lm(t ~ x_mem + y_mem, filtered)
+        return (mk.result(m, "linear_in_x_and_y"))
    }
 
    linearOnDiagonal <- function (fname) {
@@ -856,6 +870,11 @@ modelFun <- function(path) {
     ## X wrapped with `ValueOuterSize`
     policiesModel <- linearInX ("Policies")
 
+    ## X is the length of the policy list, Y is `Value.totalSize`.  The builtin skips the part
+    ## of the outer map the list cannot reach, so what costs anything is the pairs the list
+    ## names.  See Note [Benchmarking keepPolicies] in Benchmarks.Values.
+    keepPoliciesModel <- linearInXAndYNonzeroY ("KeepPolicies")
+
     ## Values
 
     # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
@@ -1014,7 +1033,8 @@ modelFun <- function(path) {
         scaleValueModel                      = scaleValueModel,
         multiIndexArrayModel                 = multiIndexArrayModel,
         assetCountModel                      = assetCountModel,
-        policiesModel                        = policiesModel
+        policiesModel                        = policiesModel,
+        keepPoliciesModel                    = keepPoliciesModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

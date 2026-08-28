@@ -387,6 +387,11 @@ builtinMemoryModels =
       -- `Value`, so only the list spine is new, at three words per cons cell (as for
       -- `multiIndexArray`). The size measure is the number of policies (`ValueOuterSize`).
       paramPolicies = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 3
+    , -- The result shares the inner maps of the `Value` wholesale and its policy ids by
+      -- pointer, so the only new structure is the outer map spine, at six words per `Bin`
+      -- node, of which the result holds at most one per pair. The intercept covers the
+      -- `Value` closure, the `IntMap` of inner sizes and the two `Tip`s.
+      paramKeepPolicies = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 32 6
     }
   where
     identityFunction = OneVariableLinearFunction 0 1
