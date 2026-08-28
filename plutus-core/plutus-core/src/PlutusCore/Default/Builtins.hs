@@ -2516,7 +2516,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         {-# INLINE keepPoliciesDenotation #-}
      in makeBuiltinMeaning
           keepPoliciesDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+          (runCostingFunTwoArguments . paramKeepPolicies)
   toBuiltinMeaning _semvar DropPolicies =
     let dropPoliciesDenotation :: [ByteString] -> Value -> Value
         dropPoliciesDenotation = Value.dropPolicies
