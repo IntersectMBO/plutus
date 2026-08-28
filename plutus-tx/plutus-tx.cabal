@@ -56,6 +56,9 @@ library
     PlutusTx.AsData
     PlutusTx.AsData.Internal
     PlutusTx.AssocMap
+    PlutusTx.Assurance
+    PlutusTx.Assurance.Document
+    PlutusTx.Assurance.Write
     PlutusTx.Base
     PlutusTx.Blueprint
     PlutusTx.Blueprint.Argument
@@ -244,6 +247,7 @@ test-suite plutus-tx-test
     Rational.Laws.Ring
     Rational.Laws.Serialization
     Show.Spec
+    Ual.Assurance.Spec
     Ual.Blueprint.Spec
     Ual.Error.Spec
     Ual.Lexer.Spec

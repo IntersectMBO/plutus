@@ -1,0 +1,57 @@
+{
+  "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance.json",
+  "preamble": {
+    "title": "Ticket contract — UAL assurance",
+    "description": "Generated from UAL annotations.",
+    "version": "1.0.0",
+    "authors": [
+      "Example Author <a@example.com>"
+    ],
+    "created": "2026-08-24",
+    "license": "CC-BY-4.0"
+  },
+  "blueprint": {
+    "uri": "plutus.json",
+    "hash": {
+      "alg": "sha256",
+      "digest": "0f"
+    }
+  },
+  "languages": {
+    "ual": {
+      "name": "Universal Annotation Language",
+      "version": "0.4",
+      "uri": "https://github.com/input-output-hk/ual-spec"
+    }
+  },
+  "formalFragments": [
+    {
+      "id": "My.Contract",
+      "language": "ual",
+      "imports": [
+        "My.Types"
+      ],
+      "source": "def ok : Prop := True"
+    }
+  ],
+  "properties": [
+    {
+      "id": "ticket_ok",
+      "scope": {
+        "validators": [
+          "ticket-spend"
+        ]
+      },
+      "statement": {
+        "text": "A valid ticket is always accepted.",
+        "formal": {
+          "language": "ual",
+          "uses": [
+            "My.Contract"
+          ],
+          "source": "∀ t, ok t"
+        }
+      }
+    }
+  ]
+}
