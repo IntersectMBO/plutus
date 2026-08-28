@@ -309,6 +309,115 @@ function generateModelPredictions(benchmarkData, costModel, overhead) {
 }
 
 /**
+ * Fit t = intercept + slope1*x + slope2*y by least squares, the way models.R's plain
+ * `lm(t ~ x_mem + y_mem)` does: on times with the call overhead taken off, and with a
+ * negative coefficient clamped to 1000 ps the way `adjustModels` clamps it.
+ *
+ * `points` are {args: [x, y], time} in nanoseconds; the result is in picoseconds, so it
+ * can be handed to `evaluateCostModel` alongside a model read from the JSON.
+ */
+function fitLinearInXAndY(points, overhead) {
+  const rows = points.map(p => [1, p.args[0], p.args[1]]);
+  const rhs = points.map(p => p.time - (overhead || 0));
+
+  // Normal equations, solved by Gauss-Jordan on the 3x4 augmented matrix.
+  const m = [0, 1, 2].map(i =>
+    [0, 1, 2].map(j => rows.reduce((acc, r, k) => acc + r[i] * r[j], 0))
+      .concat(rows.reduce((acc, r, k) => acc + r[i] * rhs[k], 0)));
+
+  for (let i = 0; i < 3; i++) {
+    let pivot = i;
+    for (let r = i + 1; r < 3; r++) {
+      if (Math.abs(m[r][i]) > Math.abs(m[pivot][i])) pivot = r;
+    }
+    [m[i], m[pivot]] = [m[pivot], m[i]];
+    if (m[i][i] === 0) return null;
+    const d = m[i][i];
+    for (let c = i; c < 4; c++) m[i][c] /= d;
+    for (let r = 0; r < 3; r++) {
+      if (r === i || m[r][i] === 0) continue;
+      const f = m[r][i];
+      for (let c = i; c < 4; c++) m[r][c] -= f * m[i][c];
+    }
+  }
+
+  // `adjustModels` in models.R replaces a negative coefficient with 1 ns, ie 1000 ps.
+  const clamp = v => (v < 0 ? 1000 : v);
+  return {
+    modelType: 'linear_in_x_and_y',
+    coefficients: {
+      intercept: clamp(m[0][3] * 1000),
+      slope1: clamp(m[1][3] * 1000),
+      slope2: clamp(m[2][3] * 1000)
+    }
+  };
+}
+
+/**
+ * A model's predicted total time in nanoseconds for one benchmark point, overhead
+ * included, or null when the model is missing or cannot be evaluated.
+ */
+function modelCharge(model, args, overhead) {
+  if (!model) return null;
+  const ps = evaluateCostModel(model.modelType, model.coefficients, args);
+  return ps === null ? null : ps / 1000 + overhead;
+}
+
+function median(values) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
+/**
+ * One info-panel block per fit: coefficients, how many of the given points the model
+ * undercharges, and by how much. `points` should be the population the fit was built on,
+ * and `terms` names the two size variables in the charge line (e.g. ['p', 'n']).
+ */
+function fitSummary(name, model, points, overhead, terms) {
+  if (!model) return `<p>${name}: not available</p>`;
+  const c = model.coefficients;
+  const ratios = [];
+  let undercharged = 0;
+  let worstShortfall = 0;
+  let worstRatio = 1;
+  for (const d of points) {
+    const predicted = modelCharge(model, d.args, overhead);
+    if (predicted === null) return `<p>${name}: not evaluable (${model.modelType})</p>`;
+    ratios.push(predicted / d.time);
+    if (predicted < d.time) {
+      undercharged += 1;
+      worstShortfall = Math.max(worstShortfall, d.time - predicted);
+      worstRatio = Math.min(worstRatio, predicted / d.time);
+    }
+  }
+  const fmt = v => v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  return `
+    <p><strong>${name}</strong></p>
+    <dl>
+      <dt>Charge (ps):</dt>
+      <dd>${fmt(c.intercept)} + ${fmt(c.slope1)}&middot;${terms[0]} + ${fmt(c.slope2)}&middot;${terms[1]}</dd>
+      <dt>Undercharged points:</dt>
+      <dd>${undercharged} of ${points.length}${undercharged
+        ? `, worst ${(worstShortfall / 1000).toFixed(1)} us (${worstRatio.toFixed(2)}x)`
+        : ''}</dd>
+      <dt>Median overcharge:</dt>
+      <dd>${median(ratios).toFixed(2)}x</dd>
+    </dl>`;
+}
+
+/* The shared loader replaces the contents of `#plot-container` with its own status message
+before it calls a page's render, so the plot div has to be the page's to create. */
+function ensurePlotPanel(id) {
+  if (document.getElementById(id)) return;
+  const container = document.getElementById('plot-container');
+  container.innerHTML = '';
+  const panel = document.createElement('div');
+  panel.id = id;
+  container.appendChild(panel);
+}
+
+/**
  * Format model formula as human-readable string
  */
 function formatModelFormula(modelType, coefficients) {
@@ -528,6 +637,9 @@ const PAGES = [
   ['policies', 'Policies',
    'Returns the currency symbols of a Plutus <code>Value</code>; linear in the number ' +
    'of policies. (2D visualization: Policy Count vs Time)'],
+  ['keeppolicies', 'KeepPolicies',
+   'Retains only the listed currencies of a Plutus <code>Value</code>. ' +
+   '(3D visualization: List Length \u00d7 Value Size \u00d7 Time)'],
   ['listtoarray', 'ListToArray',
    'Converts a Plutus list to an array representation. ' +
    '(2D visualization: List Size vs Time)'],
