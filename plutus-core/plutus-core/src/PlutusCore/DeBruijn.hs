@@ -35,6 +35,7 @@ module PlutusCore.DeBruijn
   , deBruijnInitIndex
   , fromFake
   , toFake
+  , shiftNamedDeBruijn
   ) where
 
 import PlutusCore.DeBruijn.Internal
