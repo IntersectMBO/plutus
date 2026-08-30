@@ -1,0 +1,5 @@
+[ { (builtin ifThenElse) (con integer) }
+    (con bool True)
+    (con integer 1)
+    [ [ (builtin divideInteger) (con integer 1) ] (con integer 0) ]
+]
