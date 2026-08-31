@@ -156,9 +156,19 @@ represent values of the built-in types (the integer 123 or the string
 on these values, and possibly also general Plutus Core terms.  Precise details
 are given in Section~\ref{sec:specify-builtins}.
 
-See Section~\ref{sec:cardano-builtins}
-for a description of the types and functions which have already been deployed on
-the Cardano blockchain (or will be in the near future).
+See Section~\ref{sec:cardano-builtins} for a description of the types and
+functions which have already been deployed on the Cardano blockchain (or will be
+in the near future).
+
+\paragraph{Casing on built-in types.}  Some built-in types
+support branching using \texttt{case}.  For example, with Cardano's default
+universe, if $i$ is a variable bound to a value of the \texttt{integer} type
+then \texttt{(case $i$ $M_0$ ... $M_5$)} will cause the term $M_i$ to be
+evaluated if $i$ lies between 0 and 5, with `(error)` occurring if $i<0$ or
+$i>5$.  See Section~\ref{sec:cardano-builtins} for details of the types which
+can currently be used with \texttt{case} on the Cardano blockchain.
+
+
 
 \nomenclature[E1]{$\Fun$}{The set of built-in functions}
 

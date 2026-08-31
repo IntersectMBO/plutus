@@ -22,6 +22,65 @@ The sixth batch of built-in types and functions provides
       Sections~\ref{sec:built-in-value-type} and \ref{sec:built-in-value-functions}. See CIP-0153~\cite{CIP-0153}.
 \end{itemize}
 
+\newcommand{\dapp}[2]{(#1\,|\,#2)}
+
+{ % New scope: change the vertical spacing for this table only.
+% Casing functions for individual types are represented as embedded arrays.
+% We still use an array even if there's only one case: without this the
+% sub-arrays are indented further than the non-arrays.
+\renewcommand*{\arraystretch}{2.3}
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        Type &\quad Casing function\\
+        \hline
+        $\ty{unit}$ &
+        {\renewcommand*{\arraystretch}{1}   % Reset spacing for sub-array
+        $ \begin{array}{ll}
+         (\mathtt{()}, x) &\mapsto \dapp{x}{}\\
+        \end{array}$
+        }\\
+%         \hline
+        $\ty{boolean}$ &
+        {\renewcommand*{\arraystretch}{1}
+        $ \begin{array}{ll}
+         (\mathtt{false}, x) & \mapsto \dapp{x}{}\\
+         (\mathtt{false}, (x,y)) & \mapsto \dapp{x}{}\\
+         (\mathtt{true}, (x,y)) &\mapsto \dapp{y}{}
+        \end{array}$
+        }\\
+%         \hline
+        \ty{integer}
+        &
+        {\renewcommand*{\arraystretch}{1}
+        $\begin{array}{ll}
+         (k, (x_0, ..., x_{n-1})) &\mapsto \dapp{x_k}{}\quad  \text{if $0 \leq k \leq n-1$}\\
+        \end{array}$
+        }\\
+%         \hline
+        $\ty{list}\,\tau$ &
+        {\renewcommand*{\arraystretch}{1}
+        $ \begin{array}{ll}
+         ([x_1,x_2,\ldots,x_n], f) & \mapsto \dapp{f}{x_1,[x_2,\ldots,x_n]}   \quad (n \geq 1)\\
+         ([x_1,x_2,\ldots,x_n], (f,g)) & \mapsto \dapp{f}{x_1,[x_2,\ldots,x_n]} \quad (n \geq 1)\\
+         ([], [f,g]) & \mapsto \dapp{g}{}\\
+        \end{array}$
+        }\\
+%         \hline
+        $\ty{pair\, \tau_1\, \tau_2}$ &
+        {\renewcommand*{\arraystretch}{1}
+        $ \begin{array}{ll}
+        ((a,b),f) & \mapsto \dapp{f}{a,b}\\
+        \end{array}$
+        }\\
+        \hline
+        \end{tabular}
+   \caption{Casing functions for built-in types}
+    \label{table:builtin-casing-functions}
+\end{table}
+}
+
 \subsubsection{The \texttt{array} type operator}
 \label{sec:built-in-type-operators-6}
 The \texttt{array} type operator is described in Table~\ref{table:array-type-operator}.
