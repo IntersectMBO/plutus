@@ -263,8 +263,7 @@ pack' v = Value v sizes total neg
 {-| The three cached fields of a `Value`, as an accumulator for `pack'`. Bang patterns on a
 tuple are not a substitute: they change when a field is forced, not whether it is allocated,
 so every step still builds the tuple box plus a closure per field. That costs 168 bytes per
-currency against 40 for this record. Holding the strictness in the type also keeps a later
-caller from dropping it. -}
+currency against 40 for this record. -}
 data Caches = Caches !(IntMap Int) {-# UNPACK #-} !Int {-# UNPACK #-} !Int
 
 -- | Number of negative quantities in an inner map.
@@ -423,27 +422,24 @@ policies = map unK . Map.keys . unpack
 {-# INLINEABLE policies #-}
 
 {-| \(O(p \log p + m + n')\), where \(p\) is the length of the policy list, \(m\) is
-the size of the outer map and \(n'\) is the total size of the result. Retains only the
-currencies listed in @ps@; ids absent from the `Value`, including any longer than
-`maxKeyLen`, are ignored. Restricting the outer map can neither empty an inner map nor
-zero a quantity, so the result needs no normalization. -}
+the size of the outer map and \(n'\) is the total size of the result. Ids absent from the
+`Value`, including any longer than `maxKeyLen`, are ignored. Restricting the outer map can
+neither empty an inner map nor zero a quantity, so the result needs no normalization. -}
 keepPolicies :: [ByteString] -> Value -> Value
 keepPolicies ps (unpack -> outer) = pack' (Map.restrictKeys outer (policySet ps))
 {-# INLINEABLE keepPolicies #-}
 
 {-| \(O(p \log m + d)\), where \(p\) is the length of the policy list, \(m\) is the size
-of the outer map and \(d\) is the total size of the dropped currencies. Removes the
-currencies listed in @ps@; ids absent from the `Value`, including any longer than
-`maxKeyLen`, are ignored. Where `keepPolicies` recomputes the caches over its result,
-this subtracts the dropped currencies' contributions from them, so the retained part is
-never traversed. -}
+of the outer map and \(d\) is the total size of the dropped currencies. Ids absent from the
+`Value`, including any longer than `maxKeyLen`, are ignored. Where `keepPolicies` recomputes
+the caches over its result, this subtracts the dropped currencies' contributions from them,
+so the retained part is never traversed. -}
 dropPolicies :: [ByteString] -> Value -> Value
 dropPolicies ps v = List.foldl' dropPolicy v (mapMaybe k ps)
 {-# INLINEABLE dropPolicies #-}
 
-{-| Remove one currency and subtract what it contributed to the cached sizes, total and
-negative count. Absent currencies are a no-op, which is also what makes a duplicate id in
-`dropPolicies` harmless. -}
+{-| Absent currencies are a no-op, which is also what makes a duplicate id in `dropPolicies`
+harmless. -}
 dropPolicy :: Value -> K -> Value
 dropPolicy v@(Value outer sizes total neg) currency =
   case Map.updateLookupWithKey (\_ _ -> Nothing) currency outer of
@@ -457,9 +453,10 @@ dropPolicy v@(Value outer sizes total neg) currency =
             (neg - countNegative inner)
 {-# INLINE dropPolicy #-}
 
-{-| Ids longer than `maxKeyLen` match no key of a well-formed `Value`, so dropping them
-is semantically a no-op. It bounds the cost: a list argument is measured by its length
-alone, so unfiltered ids would make each `Set` comparison scan bytes nothing charges for. -}
+{-| Ids longer than `maxKeyLen` match no key of a well-formed `Value`, so dropping them is
+semantically a no-op. It also bounds the cost of building the `Set`: a list argument is
+measured by its length alone, so unfiltered ids would make each comparison between two of
+them scan bytes nothing charges for. -}
 policySet :: [ByteString] -> Set K
 policySet = Set.fromList . mapMaybe k
 {-# INLINE policySet #-}
