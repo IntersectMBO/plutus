@@ -108,7 +108,6 @@ library
     PlutusCore.AstSize
     PlutusCore.Bitwise
     PlutusCore.Builtin
-    PlutusCore.Builtin.Case.Default
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
     PlutusCore.Check.Normal
