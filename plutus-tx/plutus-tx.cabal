@@ -126,11 +126,13 @@ library
     PlutusTx.These
     PlutusTx.Trace
     PlutusTx.Traversable
+    PlutusTx.Ual
     PlutusTx.Ual.Error
     PlutusTx.Ual.Lexer
     PlutusTx.Ual.Parser
     PlutusTx.Ual.Resolve
     PlutusTx.Ual.Syntax
+    PlutusTx.Ual.TH
     PlutusTx.Utils
 
   other-modules:
@@ -251,6 +253,7 @@ test-suite plutus-tx-test
     Ual.Assurance.Spec
     Ual.Blueprint.Spec
     Ual.Error.Spec
+    Ual.Fixture
     Ual.Lexer.Spec
     Ual.Parser.Spec
     Ual.Resolve.Spec
