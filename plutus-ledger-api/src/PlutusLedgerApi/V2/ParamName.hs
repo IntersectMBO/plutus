@@ -368,5 +368,10 @@ data ParamName
   | KeepPolicies'cpu'arguments'slope2
   | KeepPolicies'memory'arguments'intercept
   | KeepPolicies'memory'arguments'slope
+  | DropPolicies'cpu'arguments'intercept
+  | DropPolicies'cpu'arguments'slope1
+  | DropPolicies'cpu'arguments'slope2
+  | DropPolicies'memory'arguments'intercept
+  | DropPolicies'memory'arguments'slope
   deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
   deriving (IsParamName) via (GenericParamName ParamName)

@@ -432,6 +432,7 @@ unitCostBuiltinCostModel =
     , paramAssetCount = unitCostOneArgument
     , paramPolicies = unitCostOneArgument
     , paramKeepPolicies = unitCostTwoArguments
+    , paramDropPolicies = unitCostTwoArguments
     }
 
 unitCekParameters
