@@ -5,6 +5,8 @@ module Ual.Assurance.Spec (tests) where
 import Prelude
 
 import Data.ByteString.Lazy qualified as LBS
+import Data.List (intercalate)
+import Data.Text (Text, unpack)
 import Data.Text.Encoding qualified as Text
 import PlutusTx.Assurance
   ( AssuranceDocument (..)
@@ -19,7 +21,9 @@ import PlutusTx.Assurance
   , buildAssurance
   , encodeAssurance
   )
-import PlutusTx.Ual.Error (UalError (..))
+import PlutusTx.Blueprint.Write (encodeBlueprint)
+import PlutusTx.Ual.Error (UalError (..), renderUalError)
+import PlutusTx.Ual.Resolve (attachUal)
 import PlutusTx.Ual.Syntax
   ( ModuleUal (..)
   , PropertyDecl (..)
@@ -29,6 +33,7 @@ import PlutusTx.Ual.Syntax
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Extras (goldenVsText)
 import Test.Tasty.HUnit (testCase, (@?=))
+import Ual.Fixture (fixtureContract, fixtureUal)
 
 tests :: TestTree
 tests =
@@ -37,9 +42,50 @@ tests =
     [ goldenVsText
         "document"
         "test/Ual/Golden/assurance.golden.json"
-        (Text.decodeUtf8 (LBS.toStrict (encodeAssurance doc)))
+        (render (encodeAssurance doc))
     , buildTests
+    , endToEndTests
     ]
+
+{-| The whole pipeline over one annotated module: 'Ual.Fixture' carries the UAL,
+@$(ualModule)@ has already extracted it into 'fixtureUal', and these two goldens
+pin the documents an author would ship.
+
+Both use 'error' on a 'Left'. That is the failure mode we want: a golden built
+from an error message would compare equal to itself for ever, whereas an
+exception fails the test with the rendered 'UalError'. -}
+endToEndTests :: TestTree
+endToEndTests =
+  testGroup
+    "end to end"
+    [ goldenVsText
+        "blueprint"
+        "test/Ual/Golden/end-to-end-plutus.golden.json"
+        (render (encodeBlueprint (orDie (attachUal [fixtureUal] fixtureContract))))
+    , goldenVsText
+        "assurance"
+        "test/Ual/Golden/end-to-end-assurance.golden.json"
+        ( render
+            ( encodeAssurance
+                ( orDie
+                    ( buildAssurance
+                        (assurancePreamble doc)
+                        (assuranceBlueprint doc)
+                        "ticketSpend"
+                        [fixtureUal]
+                    )
+                )
+            )
+        )
+    ]
+
+render :: LBS.ByteString -> Text
+render = Text.decodeUtf8 . LBS.toStrict
+
+{-| The value of a pipeline stage, or an exception carrying every error it
+reported. -}
+orDie :: Either [UalError] a -> a
+orDie = either (error . intercalate "; " . map (unpack . renderUalError)) id
 
 buildTests :: TestTree
 buildTests =
@@ -59,31 +105,37 @@ buildTests =
           @?= Right ["A"]
     , testCase "predicates are joined in source order, blank line separated" $
         (fmap fragmentSource . assuranceFormalFragments)
-          <$> build [modWith "A" ["one", "two"] []]
+          <$> build [modWith "A" ["one", "two"] [prop "p"]]
           @?= Right ["one\n\ntwo"]
     , testCase "imports are restricted to modules that produced a fragment" $
         (fmap fragmentImports . assuranceFormalFragments)
           <$> build
-            [ (modWith "A" ["a"] []) {ualModuleImports = map UalModuleName ["B", "C", "Data.Text"]}
+            [ (modWith "A" ["a"] [prop "p"])
+                { ualModuleImports = map UalModuleName ["B", "C", "Data.Text"]
+                }
             , modWith "B" ["b"] []
             , modWith "C" [] []
             ]
           @?= Right [["B"], []]
+    , testCase "no module declaring a property is rejected" $
+        build [modWith "A" ["a"] []] @?= Left [NoProperties]
+    , testCase "an empty module list is rejected" $
+        build [] @?= Left [NoProperties]
     , testCase "duplicate property ids are reported" $
         build [modWith "A" [] [prop "p"], modWith "B" [] [prop "p"]]
           @?= Left [DuplicatePropertyId "p"]
     , testCase "a fragment import cycle is reported" $
         build
-          [ (modWith "A" ["a"] []) {ualModuleImports = [UalModuleName "B"]}
+          [ (modWith "A" ["a"] [prop "p"]) {ualModuleImports = [UalModuleName "B"]}
           , (modWith "B" ["b"] []) {ualModuleImports = [UalModuleName "A"]}
           ]
           @?= Left [FragmentCycle ["A", "B"]]
     , testCase "a fragment importing itself is a cycle" $
-        build [(modWith "A" ["a"] []) {ualModuleImports = [UalModuleName "A"]}]
+        build [(modWith "A" ["a"] [prop "p"]) {ualModuleImports = [UalModuleName "A"]}]
           @?= Left [FragmentCycle ["A"]]
     , testCase "two disjoint cycles report the first one found" $
         build
-          [ (modWith "A" ["a"] []) {ualModuleImports = [UalModuleName "B"]}
+          [ (modWith "A" ["a"] [prop "p"]) {ualModuleImports = [UalModuleName "B"]}
           , (modWith "B" ["b"] []) {ualModuleImports = [UalModuleName "A"]}
           , (modWith "C" ["c"] []) {ualModuleImports = [UalModuleName "D"]}
           , (modWith "D" ["d"] []) {ualModuleImports = [UalModuleName "C"]}
@@ -92,7 +144,7 @@ buildTests =
     , testCase "a diamond of imports is not a cycle" $
         (fmap fragmentImports . assuranceFormalFragments)
           <$> build
-            [ (modWith "A" ["a"] []) {ualModuleImports = map UalModuleName ["B", "C"]}
+            [ (modWith "A" ["a"] [prop "p"]) {ualModuleImports = map UalModuleName ["B", "C"]}
             , (modWith "B" ["b"] []) {ualModuleImports = [UalModuleName "D"]}
             , (modWith "C" ["c"] []) {ualModuleImports = [UalModuleName "D"]}
             , modWith "D" ["d"] []
@@ -104,6 +156,12 @@ buildTests =
           , (modWith "B" ["b"] [prop "p"]) {ualModuleImports = [UalModuleName "A"]}
           ]
           @?= Left [DuplicatePropertyId "p", FragmentCycle ["A", "B"]]
+    , testCase "a missing property list does not hide a cycle" $
+        build
+          [ (modWith "A" ["a"] []) {ualModuleImports = [UalModuleName "B"]}
+          , (modWith "B" ["b"] []) {ualModuleImports = [UalModuleName "A"]}
+          ]
+          @?= Left [FragmentCycle ["A", "B"], NoProperties]
     ]
   where
     build = buildAssurance (assurancePreamble doc) (assuranceBlueprint doc) "ticket-spend"

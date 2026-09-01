@@ -44,16 +44,15 @@ a @scope@ field in the UAL @PROPERTY@ syntax, which does not exist yet; a single
 scope is honest about what the annotation actually says.
 
 Of the three arrays the CIP's meta-schema marks both @required@ and
-@minItems: 1@, this guarantees one. @scope.validators@ is the singleton built
-from the validator id argument. @preamble.authors@ comes from the caller's
-'AssurancePreamble' and is not checked here. @properties@ is empty whenever no
-module declares a @PROPERTY@ block, and this still returns 'Right': the result
-is then a document the CIP's schema rejects, and it is the caller's job not to
-publish it.
+@minItems: 1@, this guarantees two. @scope.validators@ is the singleton built
+from the validator id argument. @properties@ is non-empty because a run over
+modules that declare no @PROPERTY@ block returns 'NoProperties' rather than a
+document the schema rejects. @preamble.authors@ comes from the caller's
+'AssurancePreamble' and is still not checked here.
 
-Both checks below run on every input, so one call reports duplicate property ids
-and an import cycle together rather than stopping at the first. Only one cycle
-is reported, however many the fragments contain. -}
+Every check below runs on every input, so one call reports duplicate property
+ids, an import cycle and an empty property list together rather than stopping at
+the first. Only one cycle is reported, however many the fragments contain. -}
 buildAssurance
   :: AssurancePreamble
   -> BlueprintRef
@@ -62,7 +61,7 @@ buildAssurance
   -> [ModuleUal]
   -> Either [UalError] AssuranceDocument
 buildAssurance preamble ref defaultValidator modules =
-  case sort (dupPropertyErrors <> cycleErrors) of
+  case sort (dupPropertyErrors <> cycleErrors <> noPropertyErrors) of
     [] ->
       Right
         MkAssuranceDocument
@@ -121,6 +120,14 @@ buildAssurance preamble ref defaultValidator modules =
       , let mname = nameOf (ualModuleName m)
       , p <- ualProperties m
       ]
+
+    {- The meta-schema marks @properties@ both required and @minItems: 1@, so an
+    empty list is not a degenerate document but an invalid one. Refusing here
+    rather than in 'PlutusTx.Assurance.Write.encodeAssurance' keeps the
+    invariant with the producer that can explain it, and matches the two checks
+    below, which also reject inputs only because the document they would
+    produce is invalid. -}
+    noPropertyErrors = [NoProperties | null properties]
 
     dupPropertyErrors =
       [ DuplicatePropertyId pid

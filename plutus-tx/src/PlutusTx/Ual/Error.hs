@@ -38,6 +38,9 @@ data UalError
     UnknownFragment Text Text
   | -- | The fragment ids taking part in an import cycle.
     FragmentCycle [Text]
+  | {-| No module declared a @PROPERTY@ block, so the assurance document would
+    carry an empty @properties@ array. -}
+    NoProperties
   {- Ord is derived only so that a phase collecting several errors can sort them
   into a stable report order. That order is the constructor order above and means
   nothing beyond determinism: it is not a severity ranking. -}
@@ -82,6 +85,8 @@ renderUalError = \case
     "property " <> squote pid <> " uses unknown fragment " <> squote frag
   FragmentCycle ids ->
     "cycle in fragment imports: " <> Text.intercalate " -> " ids
+  NoProperties ->
+    "no PROPERTY blocks: an assurance document must declare at least one property"
   where
     atLine l msg = "line " <> tshow l <> ": " <> msg
     squote t = "'" <> t <> "'"

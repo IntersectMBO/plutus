@@ -38,4 +38,7 @@ tests =
     , testCase "FragmentCycle joins the cycle in order" $
         renderUalError (FragmentCycle ["a", "b", "a"])
           @?= "cycle in fragment imports: a -> b -> a"
+    , testCase "NoProperties names the block kind that is missing" $
+        renderUalError NoProperties
+          @?= "no PROPERTY blocks: an assurance document must declare at least one property"
     ]
