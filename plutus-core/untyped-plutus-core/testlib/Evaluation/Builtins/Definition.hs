@@ -2158,6 +2158,36 @@ test_Case =
                 Left _ -> False
                 Right EvaluationFailure -> 0 > scrut || scrut >= fromIntegral (length is)
                 Right (EvaluationSuccess res) -> res == mkConstant () (is !! fromIntegral scrut)
+    , QC.testProperty "Data.Constr fields" . BaseQC.withNumTests 99 $
+        \(QC.NonEmpty branchMarkers :: QC.NonEmptyList Integer) (fieldValues :: [Integer]) ->
+          QC.forAll (QC.chooseInt (0, length branchMarkers - 1)) $ \tag ->
+            let fields = I <$> fieldValues
+                term :: Term TyName Name DefaultUni DefaultFun ()
+                term = runQuote $ do
+                  xs <- freshName "xs"
+                  let listDataTy = mkTyBuiltin @_ @[Data] ()
+                      handler = lamAbs () xs listDataTy $ var () xs
+                  pure $
+                    kase
+                      ()
+                      listDataTy
+                      (mkConstant () $ Constr (toInteger tag) fields)
+                      (replicate (length branchMarkers) handler)
+             in Right (EvaluationSuccess $ mkConstant () fields)
+                  QC.=== typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
+    , testCase "Data non-Constr fails" $
+        let term :: Term TyName Name DefaultUni DefaultFun ()
+            term = runQuote $ do
+              xs <- freshName "xs"
+              let listDataTy = mkTyBuiltin @_ @[Data] ()
+              pure $
+                kase
+                  ()
+                  listDataTy
+                  (mkConstant () $ I 1)
+                  [lamAbs () xs listDataTy $ var () xs]
+         in Right EvaluationFailure
+              @?= typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
     , QC.testProperty "List, 1 branch" . BaseQC.withNumTests 99 $
         \(scrut :: [Integer]) ->
           let

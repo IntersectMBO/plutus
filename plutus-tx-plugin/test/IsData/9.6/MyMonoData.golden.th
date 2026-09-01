@@ -41,20 +41,17 @@ instance PlutusTx.IsData.Class.UnsafeFromData Plugin.Data.Spec.MyMonoData where
   {-# INLINABLE PlutusTx.IsData.Class.unsafeFromBuiltinData #-}
   PlutusTx.IsData.Class.unsafeFromBuiltinData
     d_0
-    = (PlutusTx.Builtins.Internal.casePair (PlutusTx.Builtins.Internal.unsafeDataAsConstr d_0))
-      GHC.Base.$ (\index_0 args_0 ->
-        PlutusTx.Builtins.Internal.caseInteger index_0
-          [ \case
-            {(PlutusTx.AsData.Internal.directUnsafeCaseList -> ( (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)
-            , (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)) ))
-              = Plugin.Data.Spec.Mono1 arg_0 arg_0
-             _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}
-          , \case
-            {(PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0))
-              = Plugin.Data.Spec.Mono2 arg_0
-             _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}
-          , \case
-            {(PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0))
-              = Plugin.Data.Spec.Mono3 arg_0
-             _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError} ]
-          args_0)
+    = PlutusTx.Builtins.Internal.caseData d_0
+      [ \case
+        {(PlutusTx.AsData.Internal.directUnsafeCaseList -> ( (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)
+        , (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)) ))
+          = Plugin.Data.Spec.Mono1 arg_0 arg_0
+         _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}
+      , \case
+        {(PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0))
+          = Plugin.Data.Spec.Mono2 arg_0
+         _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}
+      , \case
+        {(PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0))
+          = Plugin.Data.Spec.Mono3 arg_0
+         _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError} ]

@@ -32,6 +32,7 @@ import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe (fromJust)
 import NoThunks.Class
+import PlutusCore.Data qualified as Data
 import Test.Tasty
 import Test.Tasty.Extras (ignoreTestWhenHpcEnabled)
 import Test.Tasty.HUnit
@@ -52,15 +53,35 @@ testAPI :: TestTree
 testAPI = "v1-api" `testWith` evalAPI vasilPV
 
 evalAPI :: MajorProtocolVersion -> T -> Bool
-evalAPI pv t =
+evalAPI = evalAPIWithVersion PLC.plcVersion100
+
+evalAPIWithVersion :: PLC.Version -> MajorProtocolVersion -> T -> Bool
+evalAPIWithVersion version pv t =
   -- handcraft a serialised script
-  let ss :: V1.SerialisedScript = V1.serialiseUPLC $ Program () PLC.plcVersion100 t
+  let ss :: V1.SerialisedScript = V1.serialiseUPLC $ Program () version t
       s :: V1.ScriptForEvaluation = either (Prelude.error . show) id $ deserialiseScript PlutusV1 pv ss
       ec :: V1.EvaluationContext =
         fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext $ fmap snd V1.costModelParamsForTesting
    in isRight $
         snd $
           V1.evaluateScriptRestricting pv V1.Quiet ec (unExRestrictingBudget enormousBudget) s []
+
+dataCaseTerm :: T
+dataCaseTerm =
+  Case
+    ()
+    (mkConstant @Data.Data () $ Data.Constr 0 [])
+    (pure $ LamAbs () (DeBruijn 0) $ mkConstant @Integer () 42)
+
+unitCaseTerm :: T
+unitCaseTerm = Case () (mkConstant @() () ()) (pure $ mkConstant @Integer () 42)
+
+dataCaseIsDijkstraOnly :: TestTree
+dataCaseIsDijkstraOnly = testCase "case on Data.Constr is available from Dijkstra" $ do
+  let evalCase pv = evalAPIWithVersion PLC.plcVersion110 pv
+  evalCase vanRossemPV unitCaseTerm @?= True
+  evalCase vanRossemPV dataCaseTerm @?= False
+  evalCase dijkstraPV dataCaseTerm @?= True
 
 {-| Test a given eval function against the expected results.
 These tests are modified from untyped-plutus-core-test:Evaluation.FreeVars
@@ -139,6 +160,7 @@ tests =
   testGroup
     "eval"
     [ testAPI
+    , dataCaseIsDijkstraOnly
     , --    , testUnlifting
       evaluationContextCacheIsComplete
     , ignoreTestWhenHpcEnabled evaluationContextNoThunks

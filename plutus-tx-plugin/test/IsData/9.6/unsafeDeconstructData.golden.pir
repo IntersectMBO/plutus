@@ -1,12 +1,9 @@
 let
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  !casePair : all a b r. pair a b -> (a -> b -> r) -> r
-    = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
   !droppableUnsafeCaseList : all a r. (a -> list a -> r) -> list a -> r
     = /\a r -> \(f : a -> list a -> r) (xs : list a) -> case r xs [f]
   !head : all a. list a -> a = headList
-  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> Tuple2 a b
     = /\a b ->
@@ -16,37 +13,23 @@ let
           let
             !d : data = d
           in
-          casePair
-            {integer}
-            {list data}
-            {Tuple2 a b}
-            (unsafeDataAsConstr d)
-            (\(index : integer) ->
-               let
-                 !index : integer = index
-               in
-               \(args : list data) ->
+          case
+            (Tuple2 a b)
+            d
+            [ (\(ds : list data) ->
                  let
-                   !args : list data = args
+                   !ds : list data = ds
                  in
-                 case
-                   (list data -> Tuple2 a b)
-                   index
-                   [ (\(ds : list data) ->
-                        let
-                          !ds : list data = ds
-                        in
-                        droppableUnsafeCaseList
-                          {data}
-                          {Tuple2 a b}
-                          (\(ds : data) (ds : list data) ->
-                             Tuple2
-                               {a}
-                               {b}
-                               (`$dUnsafeFromData` ds)
-                               (`$dUnsafeFromData` (head {data} ds)))
-                          ds) ]
-                   args)
+                 droppableUnsafeCaseList
+                   {data}
+                   {Tuple2 a b}
+                   (\(ds : data) (ds : list data) ->
+                      Tuple2
+                        {a}
+                        {b}
+                        (`$dUnsafeFromData` ds)
+                        (`$dUnsafeFromData` (head {data} ds)))
+                   ds) ]
   ~`$fUnsafeFromDataTuple2` :
      all a b.
        (\a -> data -> a) a ->
@@ -71,29 +54,15 @@ let
           let
             !d : data = d
           in
-          casePair
-            {integer}
-            {list data}
-            {Maybe a}
-            (unsafeDataAsConstr d)
-            (\(index : integer) ->
-               let
-                 !index : integer = index
-               in
-               \(args : list data) ->
+          case
+            (Maybe a)
+            d
+            [ (\(ds : list data) ->
                  let
-                   !args : list data = args
+                   !ds : list data = ds
                  in
-                 case
-                   (list data -> Maybe a)
-                   index
-                   [ (\(ds : list data) ->
-                        let
-                          !ds : list data = ds
-                        in
-                        Just {a} (`$dUnsafeFromData` (head {data} ds)))
-                   , (\(ds : list data) -> Nothing {a}) ]
-                   args)
+                 Just {a} (`$dUnsafeFromData` (head {data} ds)))
+            , (\(ds : list data) -> Nothing {a}) ]
   ~`$fUnsafeFromDataMaybe` :
      all a. (\a -> data -> a) a -> (\a -> data -> a) (Maybe a)
     = `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
