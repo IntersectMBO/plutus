@@ -29,7 +29,6 @@ import PlutusCore.Builtin
   , caseBuiltin
   , unavailableCaserBuiltin
   )
-import PlutusCore.Builtin.Case.Default (caseBuiltinNoData)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
