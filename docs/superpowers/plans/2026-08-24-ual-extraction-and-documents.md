@@ -636,7 +636,7 @@ Expected: PASS, `1 test passed`.
 
 ```bash
 git add plutus-tx/src/PlutusTx/Ual plutus-tx/test/Ual plutus-tx/test/Spec.hs plutus-tx/plutus-tx.cabal
-git commit --no-verify -m "feat(plutus-tx): UAL block lexer"
+git commit -m "feat(plutus-tx): UAL block lexer"
 ```
 
 ---
@@ -933,7 +933,7 @@ Expected: PASS, 13 tests.
 
 ```bash
 git add plutus-tx/src/PlutusTx/Ual plutus-tx/test/Ual plutus-tx/plutus-tx.cabal
-git commit --no-verify -m "feat(plutus-tx): parse UAL ONCHAIN refined signatures"
+git commit -m "feat(plutus-tx): parse UAL ONCHAIN refined signatures"
 ```
 
 ---
@@ -1157,7 +1157,7 @@ Expected: PASS, 23 tests.
 
 ```bash
 git add plutus-tx/src/PlutusTx/Ual plutus-tx/test/Ual
-git commit --no-verify -m "feat(plutus-tx): parse UAL predicates, properties and data blocks"
+git commit -m "feat(plutus-tx): parse UAL predicates, properties and data blocks"
 ```
 
 ---
@@ -1447,12 +1447,12 @@ list. Insert `"id"` before `"title"`, and add `"arguments"`, `"budget"`,
 
 - [ ] **Step 6: Fix the two existing construction sites**
 
-**The docusaurus example cannot be compile-checked here.** Its cabal stanzas are
-`buildable: False` for `impl(ghc >= 9.7)` (see `common ghc-version-support` in
-`doc/docusaurus/docusaurus-examples.cabal`) and this toolchain is GHC 9.8.4. So
-edit it by careful inspection, and do not spend time trying to make
-`cabal build example-cip57` work — it is gated off upstream, not broken by you.
-The plugin test suite *is* buildable and must be checked (Step 7).
+**The docusaurus example can be compile-checked.** `common ghc-version-support`
+in `doc/docusaurus/docusaurus-examples.cabal` sets `buildable: False` only for
+`impl(ghc <9.6) || impl(ghc >=9.7)`, and the nix devshell is GHC 9.6.7, so
+`cabal build example-cip57` works. (An earlier revision of this plan claimed the
+toolchain was GHC 9.8.4 and the stanza gated off; Task 9 built it and found
+otherwise.) The plugin test suite is buildable too and must be checked (Step 7).
 
 In `doc/docusaurus/static/code/Example/Cip57/Blueprint/Main.hs`, change
 `myValidator = MkValidatorBlueprint { … }` to
@@ -1498,7 +1498,7 @@ record-construction sites must be updated or switched to `mkValidatorBlueprint`.
 
 ```bash
 git add plutus-tx plutus-tx-plugin/test/Blueprint/Tests.hs doc/docusaurus/static/code/Example/Cip57/Blueprint/Main.hs
-git commit --no-verify -m "feat(plutus-tx): applied-argument encodings and budget on ValidatorBlueprint"
+git commit -m "feat(plutus-tx): applied-argument encodings and budget on ValidatorBlueprint"
 ```
 
 ---
@@ -1853,7 +1853,7 @@ Expected: PASS, 8 tests.
 
 ```bash
 git add plutus-tx
-git commit --no-verify -m "feat(plutus-tx): attachUal fills applied arguments from ONCHAIN blocks"
+git commit -m "feat(plutus-tx): attachUal fills applied arguments from ONCHAIN blocks"
 ```
 
 ---
@@ -2271,7 +2271,7 @@ holds `[]`.
 
 ```bash
 git add plutus-tx
-git commit --no-verify -m "feat(plutus-tx): assurance document types and writer"
+git commit -m "feat(plutus-tx): assurance document types and writer"
 ```
 
 ---
@@ -2521,7 +2521,7 @@ so check that `sort` is actually applied.
 
 ```bash
 git add plutus-tx
-git commit --no-verify -m "feat(plutus-tx): buildAssurance assembles fragments and properties"
+git commit -m "feat(plutus-tx): buildAssurance assembles fragments and properties"
 ```
 
 ---
@@ -2951,7 +2951,7 @@ here means the mechanism is genuinely not working.
 
 ```bash
 git add plutus-tx
-git commit --no-verify -m "feat(plutus-tx): ualModule TH splice reads and resolves a module's UAL"
+git commit -m "feat(plutus-tx): ualModule TH splice reads and resolves a module's UAL"
 ```
 
 ---
@@ -3015,7 +3015,8 @@ Expected: PASS, both golden files created.
 
 Check `end-to-end-plutus.golden.json`: the validator carries `id: "ticketSpend"`,
 `arguments` with two entries whose `schema` are `$ref`s to `Ticket` and
-`Integer`, and `budget` with `exCPU: 1883313`.
+`List_Integer` — the fixture's second argument is `[Integer]` — and `budget`
+with `exCPU: 1883313`.
 
 Check `end-to-end-assurance.golden.json`: one `formalFragments` entry with id
 `Ual.Fixture`, one property `ticket_ok` whose `statement.text` is the fixture's
@@ -3033,20 +3034,23 @@ check-jsonschema \
 
 Expected: `ok -- validation done`.
 
-If `check-jsonschema` is not installed, use `pipx run check-jsonschema …` or any
-draft-2020-12 validator. The schema sets no `additionalProperties: false`, so the
-`formalFragments` and `uses` extensions validate as-is; a failure means a
-*required* field is missing or malformed, most likely `preamble.created` not
-matching `^\d{4}-\d{2}-\d{2}$`.
+`check-jsonschema` is not on `PATH` here and is not in the devshell either.
+`nix run nixpkgs#check-jsonschema -- --schemafile … <file>…` does work, takes
+several files at once, and prints exactly `ok -- validation done`; the first
+call pays for fetching nixpkgs. `python3` also has `jsonschema` 4.17.3, whose
+`Draft202012Validator` gives per-error paths.
+
+The schema sets no `additionalProperties: false`, so the `formalFragments` and
+`uses` extensions validate as-is; a failure means a *required* field is missing
+or malformed, most likely `preamble.created` not matching `^\d{4}-\d{2}-\d{2}$`.
 
 - [ ] **Step 4: Write the documentation example**
 
 Create `doc/docusaurus/static/code/Example/Ual/Blueprint/Main.hs`, modelled on
 `doc/docusaurus/static/code/Example/Cip57/Blueprint/Main.hs`. It must contain:
-the same pragma block as the Cip57 example (it needs the plugin), a `Ticket`
-type with `HasBlueprintDefinition`, an `ONCHAIN`-annotated validator, one
-`PREDICATE` block, one `PROPERTY` block, `contractUal = $(ualModule)` as the last
-declaration, and:
+a `Ticket` type with `HasBlueprintDefinition`, an `ONCHAIN`-annotated validator,
+one `PREDICATE` block, one `PROPERTY` block, `contractUal = $(ualModule)` below
+a `$(pure [])`, and:
 
 ```haskell
 main :: IO ()
@@ -3067,25 +3071,39 @@ and the path to hash; they coincide here.
 
 Register it the way `example-cip57` is registered: add an `executable`
 stanza to `doc/docusaurus/docusaurus-examples.cabal` mirroring that one
-(`import: lang, ghc-version-support, os-support`, `hs-source-dirs: static/code`,
-`other-modules: Paths_docusaurus_examples`, the same `build-depends`).
+(`import: lang, ghc-version-support, os-support`, `hs-source-dirs: static/code`).
+List only the dependencies the module imports: `common lang` sets
+`-Wunused-packages`. Omit `other-modules: Paths_docusaurus_examples` unless the
+example calls `getDataFileName`, which writes into the source tree.
 
-**This example cannot be compile-checked here** — every docusaurus stanza is
-`buildable: False` for `impl(ghc >= 9.7)` and this toolchain is GHC 9.8.4. Write
-it by careful inspection against the `Cip57` example next to it, and rely on the
-golden tests of Steps 1-2 for the actual verification that the pipeline works.
-Do not weaken the cabal file's version gate to force it to build.
+The nix devshell is GHC 9.6.7, so `common ghc-version-support` does not gate the
+stanza off and the example both builds and runs. Build it with
+`cabal build example-ual-blueprint`, then run the binary that `cabal list-bin`
+names, from a scratch directory: `main` writes its two files into the working
+directory. Do not use `cabal run` from the repo root; it leaves a stray golden
+tree at `<repo-root>/test/`.
+
+Two things the plan got wrong here, settled by building it. The Plinth plugin is
+*not* needed: it only fires on a `PlutusTx.compile` quote, and an example about
+the annotation pipeline has none, so carrying the pragma block would overclaim
+and `-Wunused-packages` would then flag the `plutus-tx-plugin` dependency. And
+`$(ualModule)` may not be the last declaration: it needs `$(pure [])` above it,
+for the reason Task 8 records.
 
 - [ ] **Step 5: Full test run**
 
-Run: `cabal test plutus-tx:plutus-tx-test && cabal build all 2>&1 | tail -5`
-Expected: all tests pass; `cabal build all` reports no errors.
+Run: `cabal test plutus-tx:plutus-tx-test`, then `cabal build docusaurus-examples`
+Expected: all tests pass; the whole docusaurus package builds.
+
+Not `cabal build all`: `cabal build all --dry-run` in this checkout lists every
+target of every package as `(first run)`, so it would build the monorepo from
+scratch. Building the packages the change touches is the check that pays.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add plutus-tx doc/docusaurus
-git commit --no-verify -m "feat(plutus-tx): end-to-end UAL example and golden documents"
+git commit -m "feat(plutus-tx): end-to-end UAL example and golden documents"
 ```
 
 ---
@@ -3145,7 +3163,7 @@ whether it blocks slice 2. Two are known already and must appear in the list:
 
 ```bash
 git add docs/superpowers/ual-linear-vesting-acceptance.md
-git commit --no-verify -m "docs: linear-vesting acceptance check for the UAL document pair"
+git commit -m "docs: linear-vesting acceptance check for the UAL document pair"
 ```
 
 ---
@@ -3310,7 +3328,7 @@ be planned from. Fix both:
 
 ```bash
 git add docs/superpowers
-git commit --no-verify -m "docs: UAL spec corrections and the list to hand back upstream"
+git commit -m "docs: UAL spec corrections and the list to hand back upstream"
 ```
 
 ---
