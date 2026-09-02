@@ -205,6 +205,22 @@ state.
 \caption[]{A CEK machine for Plutus Core (continued)}
 \end{figure}
 
+\paragraph{Optimisations.}  The machine presented above is suboptimal in a number
+of ways.  For example, when casing on a built-in value one frame is pushed onto
+the stack for each of the values $\reify{V_1}, \ldots, \reify{V_m}$ and these
+then have to be popped off and processed one by one. It would be more efficient
+to have a single frame which contains all of the values, and in fact this
+optimisation is implemented in Cardano's production CEK machine.  However we
+have chosen to keep the evaluator in the specification minimal because
+optimisations are typically implementation-dependent and may or may not be
+sensible depending on the implementation language and implementation strategy
+and we do not wish to impose unsuitable optimisations on other implementers.
+Using an un-optimised machine also simplifies specification and formalisation;
+optimisations can then be proved to be correct in the sense that it should be
+possible to translate constructs in an optimised machine into constructs in the
+basic machine and show that the translation respects the semantics of the
+language.
+
 \subsection{Converting CEK evaluation results into Plutus Core terms}
 The purpose of the CEK machine is to evaluate Plutus Core terms, but in the
 definition in Figure~\ref{fig:untyped-cek-machine} it does not return a Plutus
