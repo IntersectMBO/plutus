@@ -163,12 +163,10 @@ in the near future).
 \paragraph{Casing on built-in types.}  Some built-in types
 support branching using \texttt{case}.  For example, with Cardano's default
 universe, if $i$ is a variable bound to a value of the \texttt{integer} type
-then \texttt{(case $i$ $M_0$ ... $M_5$)} will cause the term $M_i$ to be
-evaluated if $i$ lies between 0 and 5, with `(error)` occurring if $i<0$ or
-$i>5$.  See Section~\ref{sec:cardano-builtins} for details of the types which
+then $\kase{i}{M_1 \ldots M_5}$ will cause the term $M_{i+1}$ to be
+evaluated if $i$ lies between 0 and 4, with \texttt{(error)} occurring if $i<0$
+or $i>4$.  See Section~\ref{sec:cardano-builtins} for details of the types which
 can currently be used with \texttt{case} on the Cardano blockchain.
-
-
 
 \nomenclature[E1]{$\Fun$}{The set of built-in functions}
 
