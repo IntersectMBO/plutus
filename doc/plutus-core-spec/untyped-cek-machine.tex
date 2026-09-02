@@ -155,7 +155,8 @@ state.
 \inConstrFrame{i}{\repetition{V}}{([], \rho)} \cons s & \return V   &~\mapsto~&
                          s \return \VConstr{i}{\repetition{V} \cons V} \\
 \inCaseFrame{(M_1 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_1 \ldots V_m}   &~\mapsto~&
-                         \inAppLeftFrame{V_1} \cons \cdots \cons \inAppLeftFrame{V_m} \cons s ;\rho \compute M_{i+1} \enskip \text{if $0 \leq i \leq n-1$}
+                         \inAppLeftFrame{V_1} \cons \cdots \cons \inAppLeftFrame{V_m} \cons s ;\rho \compute M_{i+1} \enskip \text{if $0 \leq n-1$} \\
+\inCaseFrame{(M_1 \ldots M_n, \rho)} \cons s & \return \VCon{T}{c} &~\mapsto~& \CaseCEK(s,\rho, c, T, (M_1, \ldots, M_n))
 \end{alignat*}
 \end{minipage}
     \caption{CEK machine transitions for Plutus Core}
@@ -176,6 +177,32 @@ state.
 
 \caption{A CEK machine for Plutus Core}
 \label{fig:untyped-cek-machine}
+\end{figure}
+
+% The figure is too long to fit on a single page, so it's split into two parts
+% here.  \ContinuedFloat makes the second part keep the same figure number and
+% continue the subfigure lettering.
+\begin{figure}[H]\ContinuedFloat
+  \begin{subfigure}[c]{\linewidth}
+   $$ \CaseCEK(s,\rho, c, T, (M_1, \ldots, M_n)) =
+    \begin{cases}
+      \inAppLeftFrame{\reify{v_1}} \cons \cdots \cons \inAppLeftFrame{\reify{v_m}} \cons s ;\rho \compute M_{i}
+      & \text{if\;
+        $
+        \begin{cases}
+          n \leq \maxbranch(T) \\
+          \match{T}(c) = (i,(v_1, \ldots, v_m)) \\
+          1 \leq i \leq n
+        \end{cases}
+      $}\\
+      \cekerror  & \text{otherwise}.
+   \end{cases}
+   $$
+   \caption{Casing on built-in constants}
+   \label{fig:untyped-cek-case-const}
+\end{subfigure}
+
+\caption[]{A CEK machine for Plutus Core (continued)}
 \end{figure}
 
 \subsection{Converting CEK evaluation results into Plutus Core terms}

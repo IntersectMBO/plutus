@@ -114,13 +114,13 @@ occurrence of \texttt{lam} in some enclosing term; in this case, we always
 assume that $x$ refers to the \textit{most recent} (ie, innermost) such binding.
 
 \paragraph{Iterated applications.}
-An application of a term $M$ to a term $N$ is represented by
-$\appU{M}{N}$. We may occasionally write
-$\appU{M}{N_1 \ldots N_k}$ or
-$\appU{M}{\repetition{N}}$ as an abbreviation for an iterated application
-$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots $  %% Try to avoid a bad line break
-  $N_k\mathtt{]}$,
-and tools may also use this as concrete syntax.
+An application of a term $M$ to a term $N$ is represented by $\appU{M}{N}$. We
+may occasionally write $\appU{M}{N_1 \ldots N_k}$ or $\appU{M}{\repetition{N}}$
+as an abbreviation for an iterated application
+$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots $ %% Try to avoid a bad line break 
+$N_k\mathtt{]}$, and tools may also use this as
+concrete syntax.  If the sequence ${N_1 \ldots N_k}$ is empty (which will happen
+when $k=0$, for instance) then $\appU{M}{\repetition{N}}$ is just $M$.
 
 \paragraph{Constructors and case analysis.}
 Plutus Core supports creating structured data using $\keyword{constr}$ and

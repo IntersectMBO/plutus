@@ -54,6 +54,12 @@ is not performed on occurrences of $x$ inside subterms of $M$ of the form
 $\lamU{x}{N}$.%
 \nomenclature[Fr3]{$[V/x]M$}{Capture-avoiding substitution of value $V$ for variable $x$ in term $M$}
 
+\medskip
+\noindent Recall also that $\appU{M}{N_1 \ldots N_k}$ is an abbreviation for
+iterated application
+$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots N_k\mathtt{]}$
+and that $\appU{M}{N_1 \ldots N_k}= M$ if $k=0$.
+
 \begin{figure}[H]
 \begin{subfigure}[c]{\linewidth}
     \centering
@@ -115,7 +121,16 @@ $\lamU{x}{N}$.%
     \begin{prooftree}
         \AxiomC{$0 \leq i \leq n-1$}
         % \RightLabel{\textsf{case-of-constr}}
-        \UnaryInfC{$\step{\kase{\constr{i}{\repetition{V}}}{U_1 \ldots U_n}}{\app{U_{i+1}}{\repetition{V}}}$}
+        \UnaryInfC{$\step{\kase{\constr{i}{\repetition{V}}}{M_1 \ldots M_n}}{\app{M_{i+1}}{\repetition{V}}}$}
+    \end{prooftree}
+
+    % case (constr c vs) cs -> [c_i vs]
+    \begin{prooftree}
+      \AxiomC{$n \leq \maxbranch(T)$}
+      \AxiomC{$\match{T}(c) = (i,(v_1, \ldots, v_k))$}
+      \AxiomC{$1 \leq i \leq n$}
+        % \RightLabel{\textsf{case-of-constr}}
+        \TrinaryInfC{$\step{\kase{\con{T}{c}{}}{M_1 \ldots M_n}}{\app{M_{i}}{\reify{v_1} \ldots \reify{v_k}}}$}
     \end{prooftree}
 
     % Saturated force

@@ -326,6 +326,7 @@
 \newcommand{\sigmabar}{\bar{\sigma}}
 \newcommand{\Eval}{\mathsf{Eval}}
 \newcommand{\EvalCEK}{\mathsf{Eval_{\,CEK}}}
+\newcommand{\CaseCEK}{\mathsf{Case_{\,CEK}}}
 %% NOTE!!!  Probably \byte and \Z are only used in V1-builtins
 
 \newcommand{\cons}{\mathbin{\!\cdot\!}}
@@ -348,6 +349,11 @@
 \DeclareMathOperator{\is}{is}
 \DeclareMathOperator{\dom}{dom}
 \newcommand{\units}[1]{#1^{\times}}  % Group of units of a field
+
+\DeclareMathOperator{\maxbranch}{\mathsf{maxBranch}}
+% ^ Maximum number of branches for casing on built-in values
+\newcommand{\match}[1]{\ensuremath{\mathsf{match}_{#1}}}
+% ^ Matching function for a built-in type
 
 %%% Spacing in tables
 
