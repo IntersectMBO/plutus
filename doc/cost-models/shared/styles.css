@@ -398,6 +398,21 @@ select {
   font-size: 1.2em;
 }
 
+.provenance-note {
+  margin-top: 6px;
+  font-size: 0.85em;
+  color: #744210;
+  background-color: #FFFAF0;
+  border-left: 3px solid #D69E2E;
+  padding: 6px 10px;
+}
+
+.provenance-note button {
+  font-size: 0.9em;
+  padding: 2px 8px;
+  margin-left: 4px;
+}
+
 .error {
   background-color: #FFF5F5;
   border: 2px solid #E53E3E;

@@ -475,7 +475,9 @@ async function loadData(csvUrl, jsonUrl) {
  */
 function getBranchFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  return params.get('branch');
+  // `has`, not a truthiness test: `?branch=` says "the default", not "whatever this browser
+  // happens to remember".
+  return params.has('branch') ? params.get('branch') : null;
 }
 
 // ============================================================================
@@ -548,6 +550,12 @@ const PAGES = [
 ];
 
 // LocalStorage keys
+// Where each data-source field's value came from on this page load: 'link' for a query
+// parameter, 'browser' for `localStorage`, 'branch' for the URL derived from the branch name.
+// A stale stored path 404s where an empty field would have fallen back to the branch and
+// worked, so a failed request needs to be able to say which it was.
+const fieldProvenance = { csv: 'branch', json: 'branch' };
+
 const STORAGE_KEYS = {
   BRANCH: 'plutus-viz-branch',
   CSV_URL: 'plutus-viz-csv-url',
@@ -567,15 +575,71 @@ function getFileUrls(baseUrl) {
   };
 }
 
-// Load settings from localStorage (URL param takes precedence)
+// A link wins over what this browser remembers, and what it remembers wins over the branch
+// default. `csv` and `json` let a review link point at files a branch does not have yet,
+// which needs a local HTTP server because fetch() rejects the file: scheme. See the README.
 function loadSettings() {
+  const params = new URLSearchParams(window.location.search);
   const urlBranch = getBranchFromUrl();
+  const storedBranch = localStorage.getItem(STORAGE_KEYS.BRANCH);
+  const branch = urlBranch !== null ? urlBranch : storedBranch || DEFAULT_BRANCH;
+  // A stored path belongs to the branch it was saved against, so following a link to a
+  // different branch must not drag it along.
+  const storedApplies = urlBranch === null || urlBranch === storedBranch;
+
+  const pick = (param, storageKey) => {
+    if (params.has(param)) return { value: params.get(param), source: 'link' };
+    const stored = storedApplies ? localStorage.getItem(storageKey) : null;
+    if (stored) return { value: stored, source: 'browser' };
+    return { value: '', source: 'branch' };
+  };
+  const csv = pick('csv', STORAGE_KEYS.CSV_URL);
+  const json = pick('json', STORAGE_KEYS.JSON_URL);
+
   return {
-    branch: urlBranch || localStorage.getItem(STORAGE_KEYS.BRANCH) || DEFAULT_BRANCH,
-    csvUrl: localStorage.getItem(STORAGE_KEYS.CSV_URL) || '',
-    jsonUrl: localStorage.getItem(STORAGE_KEYS.JSON_URL) || '',
+    branch,
+    csvUrl: csv.value,
+    csvSource: csv.source,
+    jsonUrl: json.value,
+    jsonSource: json.source,
     collapsed: localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_COLLAPSED) === 'true'
   };
+}
+
+/* Mark the fields this browser filled in, and offer to drop the stored value. Without this a
+value nobody chose is indistinguishable from one somebody did. */
+function renderProvenance(settings) {
+  const fields = [
+    ['csv', 'csv-url', settings.csvSource, STORAGE_KEYS.CSV_URL],
+    ['json', 'json-url', settings.jsonSource, STORAGE_KEYS.JSON_URL]
+  ];
+  for (const [key, inputId, source, storageKey] of fields) {
+    fieldProvenance[key] = source;
+    const input = document.getElementById(inputId);
+    if (!input) continue;
+    const previous = document.getElementById(`${inputId}-provenance`);
+    if (previous) previous.remove();
+    if (source !== 'browser') continue;
+
+    const note = document.createElement('div');
+    note.id = `${inputId}-provenance`;
+    note.className = 'provenance-note';
+    note.appendChild(document.createTextNode('Restored from this browser, not from the link. '));
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.textContent = 'Clear';
+    clear.addEventListener('click', () => {
+      localStorage.removeItem(storageKey);
+      fieldProvenance[key] = 'branch';
+      // Only this field: the other one may hold a value somebody chose, and its own note
+      // would be left pointing at something the field no longer contains.
+      const branch = document.getElementById('branch-name').value.trim() || DEFAULT_BRANCH;
+      input.value = getFileUrls (generateUrlFromBranch (branch))[key];
+      note.remove();
+    });
+    note.appendChild(clear);
+    input.insertAdjacentElement('afterend', note);
+  }
 }
 
 function saveSettings(branch, csvUrl, jsonUrl) {
@@ -697,7 +761,13 @@ function setupCostModelPage(page) {
       page.render({ benchmarkData, costModel, overhead, modelPredictions });
     } catch (error) {
       console.error('Error loading data:', error);
-      showError(`Failed to load data. Check console for details. Error: ${error.message}`);
+      const restored = fieldProvenance.csv === 'browser' || fieldProvenance.json === 'browser';
+      const hint = restored
+        ? ' One of these URLs was restored from this browser rather than taken from the link;'
+          + ' use Clear beside the field to fall back to the branch.'
+        : '';
+      showError(
+        `Failed to load data. Check console for details. Error: ${error.message}${hint}`);
     }
   }
 
@@ -739,13 +809,17 @@ function setupCostModelPage(page) {
     const jsonInput = document.getElementById('json-url');
 
     branchInput.value = settings.branch;
-    if (settings.csvUrl && settings.jsonUrl) {
-      csvInput.value = settings.csvUrl;
-      jsonInput.value = settings.jsonUrl;
-    } else {
+    // Derive both from the branch first, then override only what was actually supplied: one
+    // field arriving from a link must not discard the other.
+    updateUrlsFromBranch();
+    if (settings.csvUrl) csvInput.value = settings.csvUrl;
+    if (settings.jsonUrl) jsonInput.value = settings.jsonUrl;
+    renderProvenance(settings);
+
+    branchInput.addEventListener('input', () => {
       updateUrlsFromBranch();
-    }
-    branchInput.addEventListener('input', updateUrlsFromBranch);
+      renderProvenance({ csvSource: 'branch', jsonSource: 'branch' });
+    });
 
     document.getElementById('reload-data').addEventListener('click', async () => {
       const branch = branchInput.value.trim() || DEFAULT_BRANCH;
@@ -758,6 +832,11 @@ function setupCostModelPage(page) {
       const url = new URL(window.location.href);
       url.search = '';
       url.searchParams.set('branch', branch);
+      // Carry any field the branch does not imply, so the link stands on its own instead of
+      // depending on what the recipient's browser remembers.
+      const fromBranch = getFileUrls(generateUrlFromBranch(branch));
+      if (csvInput.value.trim() !== fromBranch.csv) url.searchParams.set('csv', csvInput.value.trim());
+      if (jsonInput.value.trim() !== fromBranch.json) url.searchParams.set('json', jsonInput.value.trim());
       navigator.clipboard.writeText(url.toString());
       const btn = document.getElementById('copy-link');
       const original = btn.textContent;
