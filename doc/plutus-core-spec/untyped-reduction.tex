@@ -124,7 +124,8 @@ and that $\appU{M}{N_1 \ldots N_k}= M$ if $k=0$.
         \UnaryInfC{$\step{\kase{\constr{i}{\repetition{V}}}{M_1 \ldots M_n}}{\app{M_{i+1}}{\repetition{V}}}$}
     \end{prooftree}
 
-    % case (constr c vs) cs -> [c_i vs]
+    % case (con T c) cs -> c_i, depending on \match{T}(c)
+    % Note that this doesn't apply if \match{T}(c) = \errorX, so we'll get (error) in that case
     \begin{prooftree}
       \AxiomC{$n \leq \maxbranch(T)$}
       \AxiomC{$\match{T}(c) = (i,(v_1, \ldots, v_k))$}
