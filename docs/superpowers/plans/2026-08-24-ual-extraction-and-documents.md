@@ -3047,10 +3047,25 @@ or malformed, most likely `preamble.created` not matching `^\d{4}-\d{2}-\d{2}$`.
 - [ ] **Step 4: Write the documentation example**
 
 Create `doc/docusaurus/static/code/Example/Ual/Blueprint/Main.hs`, modelled on
-`doc/docusaurus/static/code/Example/Cip57/Blueprint/Main.hs`. It must contain:
-a `Ticket` type with `HasBlueprintDefinition`, an `ONCHAIN`-annotated validator,
-one `PREDICATE` block, one `PROPERTY` block, `contractUal = $(ualModule)` below
-a `$(pure [])`, and:
+`doc/docusaurus/static/code/Example/Cip57/Blueprint/Main.hs`.
+
+**It must be built on a genuinely compiled validator.** A first attempt used a
+toy `Ticket` validator that was never passed to `PlutusTx.compile`, so its
+blueprint had no `compiledCode`, no `hash`, and an invented budget — it
+demonstrated the annotation flow without showing that any of it attaches to a
+real script. Use `cardano-constitution` instead: it is in this repo and in
+`cabal.project`, `Cardano.Constitution.Validator.Sorted` exports
+`defaultConstitutionCode :: CompiledCode ConstitutionValidator` from a real
+`$$(compile …)`, and `ConstitutionValidator = BuiltinData -> BuiltinUnit` is a
+clean single-argument V3 signature whose argument type already has the blueprint
+instances. Take the `[exCPU/exMem]` figure from
+`cardano-constitution/test/…/GoldenTests/sorted.golden.large.budget` — a real
+measurement — rather than inventing one, and state its caveats.
+
+The module needs: an `ONCHAIN`-annotated local binding with an explicit
+signature (so `reify` can check its arity), one `PREDICATE` block, `PROPERTY`
+blocks that say something true about what the constitution actually checks,
+`contractUal = $(ualModule)` below a `$(pure [])`, and:
 
 ```haskell
 main :: IO ()
