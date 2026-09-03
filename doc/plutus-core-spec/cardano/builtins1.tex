@@ -51,6 +51,89 @@ useful for tools working with Plutus Core.
     \label{table:built-in-type-operators-1}
 \end{table}
 
+\paragraph{Casing on built-in constants.}
+From Protocol Version 11 onwards, Plutus Core supports casing on some of the
+built-in types described in Tables~\ref{table:built-in-types-1} and
+\ref{table:built-in-type-operators-1}.  See Table~\ref{table:builtin-matching-functions}
+and Section~\ref{sec:builtin-casing} for details.  Casing is only available for
+the types mentioned in Table~\ref{table:builtin-matching-functions}, and for all
+other types $T$ one should assume that $\maxbranch(T) = 0$ and $\match{T}(x)
+= \errorX$ for all $x$: the semantics of Plutus Core as defined in
+Figure~\ref{fig:untyped-term-reduction} and implemented in the CEK machine
+(Figure~\ref{fig:untyped-cek-machine}) will ensure that this
+causes \texttt{(error)} if an attempt is made to case on a value of such a type
+during evaluation of a Plutus Core script.
+
+{ % New scope: change the vertical spacing for this table only.
+% Casing functions for individual types are represented as embedded arrays.
+% We still use an array even if there's only one case: without this the
+% sub-arrays are indented further than the non-arrays.
+\renewcommand*{\arraystretch}{2.3}
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        Type $T$ &\quad $\match{T}$  & $\maxbranch(T)$\\
+        \hline
+% unit
+        $\ty{unit}$ &
+        {\renewcommand*{\arraystretch}{1}   % Reset spacing for sub-array
+        $ \begin{array}{ll}
+         \mathtt{()} &\mapsto (1,())\\
+        \end{array}$
+        }
+        & $1$
+        \\
+% boolean
+        $\ty{boolean}$ &
+        {\renewcommand*{\arraystretch}{1}
+        $ \begin{array}{ll}
+         \mathtt{false} & \mapsto (1,())\\
+         \mathtt{true}  &\mapsto (2,())
+        \end{array}$
+        }
+        & $2$
+        \\
+% integer
+        \ty{integer}
+        &
+        {\renewcommand*{\arraystretch}{1}
+        $\begin{array}{ll}
+         k &\mapsto (k+1,())
+        % We have k+1 here because we're numbering the branches from 1 to n, not 0 to n-1
+        \end{array}$
+        }
+        & $\infty$
+        \\
+% list
+        $\ty{list}\,T_1$ &
+        {\renewcommand*{\arraystretch}{1}
+        $ \begin{array}{ll}
+         [x_1,x_2,\ldots,x_n] & \mapsto (1,(x_1,[x_2,\ldots,x_n]))   \quad (n \geq 1)\\
+         %% \\ followed by [] causes problems because it looks like a size argument for \\
+         \left[ \right]                  & \mapsto (2,())\\
+        \end{array}$
+        }
+        & $2$
+        \\
+% pair
+        $\ty{pair}\, T_1\, T_2$ &
+        {\renewcommand*{\arraystretch}{1}
+        $ \begin{array}{ll}
+        (a,b) & \mapsto (1,(a,b))\\
+        \end{array}$
+        }
+        & $1$
+        \\
+        \hline
+        \end{tabular}
+   \caption{Matching functions for built-in types}
+    \label{table:builtin-matching-functions}
+\end{table}
+}
+
+
+
 \paragraph{Concrete syntax for strings.} Strings are represented as sequences of Unicode characters
 enclosed in double quotes, and may include standard escape sequences.  Surrogate
 characters in the range \texttt{U+D800}--\texttt{U+DFFF} are replaced with the

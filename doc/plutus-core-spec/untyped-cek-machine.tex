@@ -15,7 +15,7 @@ returns a value to the outside world.%
 \nomenclature[Ga1]{$\triangleright$}{CEK compute phase}%
 \nomenclature[Ga2]{$\triangleleft$}{CEK return phase}%
 \nomenclature[Ga3]{$\cekerror$}{CEK error state}%
-\nomenclature[Ga4]{$\cekhalt$}{CEK halting state}
+\nomenclature[Ga4]{$\cekhalt{}$}{CEK halting state}
 
 To evaluate a program $\texttt{(program}\ v\ M \texttt{)}$, we first check that
 the version number $v$ is valid, then start the machine in the state $[];[]
@@ -60,7 +60,6 @@ to apply a variable to some other term).
                        &    &       & \inAppRightFrame{V}                                                 & \textrm{right application of value}\\
                        &    &       & \inConstrFrame{i}{\repetition{V}}{(\repetition{M}, \rho)}           & \textrm{constructor argument}\\
                        &    &       & \inCaseFrame{(\repetition{M}, \rho)}                                & \textrm{case scrutinee}
-
     \end{array}\]
     \caption{Grammar of CEK stack frames}
     \label{fig:untyped-cek-reduction-frames}
@@ -155,7 +154,9 @@ state.
 \inConstrFrame{i}{\repetition{V}}{([], \rho)} \cons s & \return V   &~\mapsto~&
                          s \return \VConstr{i}{\repetition{V} \cons V} \\
 \inCaseFrame{(M_1 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_1 \ldots V_m}   &~\mapsto~&
-                         \inAppLeftFrame{V_1} \cons \cdots \cons \inAppLeftFrame{V_m} \cons s ;\rho \compute M_{i+1} \enskip \text{if $0 \leq i \leq n-1$}
+                         \inAppLeftFrame{V_1} \cons \cdots \cons \inAppLeftFrame{V_m} \cons s ;\rho \compute M_{i+1}
+                         \enskip \text{if $0 \leq i \leq n-1$} \\
+\inCaseFrame{(M_1 \ldots M_n, \rho)} \cons s & \return \VCon{T}{c} &~\mapsto~& \CaseCEK(s,\rho, T, c, (M_1, \ldots, M_n))
 \end{alignat*}
 \end{minipage}
     \caption{CEK machine transitions for Plutus Core}
@@ -177,6 +178,48 @@ state.
 \caption{A CEK machine for Plutus Core}
 \label{fig:untyped-cek-machine}
 \end{figure}
+
+% The figure is too long to fit on a single page, so it's split into two parts
+% here.  \ContinuedFloat makes the second part keep the same figure number and
+% continue the subfigure lettering.
+\begin{figure}[H]\ContinuedFloat
+  \begin{subfigure}[c]{\linewidth}
+   $$ \CaseCEK(s,\rho, T, c, (M_1, \ldots, M_n)) =
+    \begin{cases}
+      \inAppLeftFrame{\reify{v_1}} \cons \cdots \cons \inAppLeftFrame{\reify{v_m}} \cons s ;\rho \compute M_{i}
+      & \text{if\;
+        $
+        \begin{cases}
+          n \leq \maxbranch(T) \\
+          \match{T}(c) = (i,(v_1, \ldots, v_m)) \\
+          1 \leq i \leq n
+        \end{cases}
+      $}\\
+      \cekerror  & \text{otherwise}.  % This includes the case when \match{T}(c) = \errorX
+   \end{cases}
+   $$
+   \caption{Casing on built-in constants}
+   \label{fig:untyped-cek-case-const}
+\end{subfigure}
+
+\caption[]{A CEK machine for Plutus Core (continued)}
+\end{figure}
+
+\paragraph{Optimisations.}  The machine presented above is suboptimal in a number
+of ways.  For example, when casing on a built-in value one frame is pushed onto
+the stack for each of the values $\reify{V_1}, \ldots, \reify{V_m}$ and these
+then have to be popped off and processed one by one. It would be more efficient
+to have a single frame which contains all of the values, and in fact this
+optimisation is implemented in Cardano's production CEK machine.  However we
+have chosen to keep the evaluator in the specification minimal because
+optimisations are typically implementation-dependent and may or may not be
+sensible depending on the implementation language and implementation strategy
+and we do not wish to impose unsuitable optimisations on other implementers.
+Using an un-optimised machine also simplifies specification and formalisation;
+optimisations can then be proved to be correct in the sense that it should be
+possible to translate constructs in an optimised machine into constructs in the
+basic machine and show that the translation respects the semantics of the
+language.
 
 \subsection{Converting CEK evaluation results into Plutus Core terms}
 The purpose of the CEK machine is to evaluate Plutus Core terms, but in the

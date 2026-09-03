@@ -237,6 +237,59 @@ and only if one of the following holds:
 \kwxm{\sf I tried using inference rules for this but the final case
   got kind of out of hand.}
 
+\subsubsection{Casing on built-in types}
+\label{sec:builtin-casing}
+In concrete implementations, some built-in types may admit \textit{casing},
+which allows them to be used as the scrutinee of the \texttt{case} construct.
+One can write $\kase{M}{M_1 \ldots M_n}$ where $M$ evaluates to a
+value $x$ of some built-in type $T$, and one of the terms $M_i$ will be
+evaluated, perhaps applied to some built-in values which will generally be
+obtained from $x$.  For example, $\kase{\con{\ty{integer}}{k}}{M_1 \ldots
+  M_n}$ will evaluate $M_{k+1}$ if $0 \leq k \leq n-1$ and will evaluate to
+\texttt{(error)} otherwise.  If $x$ is \texttt{(con (pair boolean integer)
+  (False, 5))} then $\kase{x}{M_1}$ will cause the application
+\texttt{[[$M_1$ (con boolean False)] (con integer 5)]} to be evaluated (possibly
+failing if $M_1$ is of the wrong type).  For pairs, exactly one branch is
+required, with \texttt{(error)} occurring otherwise.  In general the number of
+branches for a particular type is variable, with an error occurring if
+\texttt{case} would cause a non-existent branch to be selected.
+
+\medskip
+To specify this behaviour in general we require some more notation.  For each
+built-in type $T \in \Uni$ we assume that there is a \textit{branch bound}
+$\maxbranch(T) \in \N \disj \{\infty\}$ and a \textit{matching function}
+$$
+\match{T}: \denote{T} \rightarrow \N \times \denote{\Uni}^* \disj \{\errorX\}.
+$$
+\nomenclature[Dz7]{$\maxbranch(T)$}{Maximum number of branches in a \texttt{case} expression on a built-in type $T$}
+\nomenclature[Dz7]{$\match{T}$}{Matching function for a built-in type $T$}
+
+Given a built-in type $T$ and $x \in \denote{T}$, $\match{T}(x)$ returns either
+$\errorX$ (indicating an error) or a pair $(i, (v_1, \ldots, v_k))$ with $i$ a
+natural number and the $v_i$ built-in values in $\denote{\Uni}$. If $M$ is a term which
+evaluates to the constant \texttt{(con $T$ $x$)} then the expression
+$$
+\kase{M}{M_1 \ldots M_n}
+$$
+\noindent will evaluate to \texttt{(error)} if any of the following holds:
+\begin{itemize}
+\item $\maxbranch(T) \neq \infty$ and $n > \maxbranch(T)$ 
+\item $\match{T}(x) = \errorX$
+\item $\match{T}(x) = (i,(v_1, \ldots, v_k))$ and $i=0$ or $i>n$.
+\end{itemize}
+\noindent Otherwise, the \texttt{case} expression will cause $M_i$ to be
+evaluated with the arguments $\reify{v_1}, \ldots, \reify{v_k}$ (where
+$\reify{\cdot}$ is a \textit{reification} function which converts elements of
+$\denote{\Uni}$ back into constants in the term language: see
+Section~\ref{sec:builtin-results} below).  The case $k=0$ is allowed, in which
+case the expression $M_i$ is evaluated as normal.
+
+\bigskip
+\noindent
+Definitions of $\match{T}$ and $\maxbranch(T)$ for Cardano's built-in types are given in
+Chapter~\ref{chap:cardano-uplc}.  Not all built-in types permit casing, and
+\texttt{case} will always fail with \texttt{(error)} for such types.
+
 \subsection{Built-in functions}
 \label{sec:builtin-functions}
 
@@ -284,15 +337,15 @@ $$
 
 \noindent For example, we could take $\Inputs$ to be the set of all Plutus Core
 values (see Section~\ref{sec:uplc-values}), $\Con{\tn}$ to be the set of all
-terms of the form $\con{\tn}{c}$, and $\denote{\cdot}_{\tn}$ to be the function
-which maps $\con{\tn}{c}$ to $c$.  For simplicity we are assuming that
-mathematical entities occurring as members of type denotations $\denote{\tn}$
-are embedded directly as values $c$ in Plutus Core constant terms. In reality,
-tools which work with Plutus Core will need some concrete syntactic
-representation of constants; we do not specify this here, but see
-Section~\ref{sec:cardano-builtins}
-for suggested syntax for the built-in types currently in use on the Cardano
-blockchain.
+terms of the form $\con{\tn}{c}$, $\denote{\cdot}_{\tn}$ to be the function
+$\con{\tn}{c} \mapsto c$, and $\reify{\cdot}_{\tn}$ to be the function $c
+\mapsto \con{\tn}{c}$.  For simplicity we are assuming that mathematical
+entities occurring as members of type denotations $\denote{\tn}$ are embedded
+directly as values $c$ in Plutus Core constant terms. In reality, tools which
+work with Plutus Core will need some concrete syntactic representation of
+constants; we do not specify this here, but see
+Section~\ref{sec:cardano-builtins} for suggested syntax for the built-in types
+currently in use on the Cardano blockchain.
 
 \subsubsection{Outputs of built-in functions}
 \label{sec:builtin-outputs}
@@ -478,9 +531,9 @@ $$
 \Uni$ are disjoint from each other and from $\Inputs$
 (Section~\ref{sec:builtin-inputs}) we can define a function
 $$
-\reify{\cdot}: \R \rightarrow \withError{\Inputs}
+\reify{\cdot}: \R_{\errorX} \rightarrow \withError{\Inputs}
 $$
-which converts elements $r \in \R$ back into inputs (or the $\errorX$ symbol) by
+which converts elements $r \in \R_{\errorX}$ back into inputs (or the $\errorX$ symbol) by
 $$
 \reify{r} =
 \begin{cases}
