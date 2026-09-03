@@ -1181,6 +1181,16 @@ assetCount :: BuiltinValue -> BuiltinInteger
 assetCount (BuiltinValue v) = fromIntegral (Value.totalSize v)
 {-# OPAQUE assetCount #-}
 
+keepPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
+keepPolicies (BuiltinList ps) (BuiltinValue v) =
+  BuiltinValue (Value.keepPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
+{-# OPAQUE keepPolicies #-}
+
+dropPolicies :: BuiltinList BuiltinByteString -> BuiltinValue -> BuiltinValue
+dropPolicies (BuiltinList ps) (BuiltinValue v) =
+  BuiltinValue (Value.dropPolicies (fmap (\(BuiltinByteString b) -> b) ps) v)
+{-# OPAQUE dropPolicies #-}
+
 caseInteger :: Integer -> [a] -> a
 caseInteger i b
   | 0 <= i && i < toInteger (Haskell.length b) = b !! fromInteger i

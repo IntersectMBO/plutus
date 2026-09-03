@@ -41,6 +41,7 @@ Parsable functions are  [ addInteger
                         , decodeUtf8
                         , divideInteger
                         , dropList
+                        , dropPolicies
                         , encodeUtf8
                         , equalsByteString
                         , equalsData
@@ -57,6 +58,7 @@ Parsable functions are  [ addInteger
                         , insertCoin
                         , integerToByteString
                         , keccak_256
+                        , keepPolicies
                         , lengthOfArray
                         , lengthOfByteString
                         , lessThanByteString

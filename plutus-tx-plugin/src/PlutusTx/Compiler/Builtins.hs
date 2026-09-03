@@ -300,6 +300,8 @@ builtinNames =
   , 'Builtins.scaleValue
   , 'Builtins.policies
   , 'Builtins.assetCount
+  , 'Builtins.keepPolicies
+  , 'Builtins.dropPolicies
   ]
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -844,6 +846,8 @@ defineBuiltinTerms = do
           PLC.ScaleValue -> defineBuiltinInl 'Builtins.scaleValue
           PLC.Policies -> defineBuiltinInl 'Builtins.policies
           PLC.AssetCount -> defineBuiltinInl 'Builtins.assetCount
+          PLC.KeepPolicies -> defineBuiltinInl 'Builtins.keepPolicies
+          PLC.DropPolicies -> defineBuiltinInl 'Builtins.dropPolicies
 
 defineBuiltinTypes :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTypes = do
