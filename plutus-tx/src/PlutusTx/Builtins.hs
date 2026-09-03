@@ -169,6 +169,8 @@ module PlutusTx.Builtins
   , BI.scaleValue
   , BI.policies
   , BI.assetCount
+  , BI.keepPolicies
+  , BI.dropPolicies
   ) where
 
 import Data.Maybe

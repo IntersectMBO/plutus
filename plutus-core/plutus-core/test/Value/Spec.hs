@@ -189,6 +189,66 @@ prop_policiesAfterDeletion v0 =
   where
     BuiltinSuccess v = if V.totalSize v0 > 0 then pure v0 else V.insertCoin "c" "t" 1 v0
 
+{-| Policy ids for the @keepPolicies@/@dropPolicies@ properties.
+
+Some are drawn from the `Value` itself, or the properties would hold vacuously on ids that
+match nothing. The rest are generated and almost never match, which is what exercises the
+absent-id path. -}
+genPolicyIds :: Value -> Gen [ByteString]
+genPolicyIds v = do
+  present <- sublistOf (V.policies v)
+  absent <- listOf (V.unK <$> genShortHex (V.totalSize v))
+  shuffle (present <> absent)
+
+prop_keepPoliciesBookkeeping :: Value -> Property
+prop_keepPoliciesBookkeeping v =
+  forAll (genPolicyIds v) $ checkBookkeeping . flip V.keepPolicies v
+
+prop_keepPoliciesPreservesInvariants :: Value -> Property
+prop_keepPoliciesPreservesInvariants v =
+  forAll (genPolicyIds v) $ checkInvariants . flip V.keepPolicies v
+
+-- | @keepPolicies@ retains exactly those requested policies the `Value` has.
+prop_keepPoliciesSelects :: Value -> Property
+prop_keepPoliciesSelects v =
+  forAll (genPolicyIds v) $ \ps ->
+    V.policies (V.keepPolicies ps v) === filter (`elem` ps) (V.policies v)
+
+prop_dropPoliciesBookkeeping :: Value -> Property
+prop_dropPoliciesBookkeeping v =
+  forAll (genPolicyIds v) $ checkBookkeeping . flip V.dropPolicies v
+
+prop_dropPoliciesPreservesInvariants :: Value -> Property
+prop_dropPoliciesPreservesInvariants v =
+  forAll (genPolicyIds v) $ checkInvariants . flip V.dropPolicies v
+
+-- | @dropPolicies@ removes exactly those requested policies the `Value` has.
+prop_dropPoliciesSelects :: Value -> Property
+prop_dropPoliciesSelects v =
+  forAll (genPolicyIds v) $ \ps ->
+    V.policies (V.dropPolicies ps v) === filter (`notElem` ps) (V.policies v)
+
+{-| `dropPolicies` maintains the caches by subtraction instead of recomputing them, so it
+has to agree field for field with a `Value` repacked from the retained map.
+
+`checkBookkeeping` only looks at the largest entry of the size histogram, so a wrong count in
+any other entry would pass it. Comparing whole `Value`s through the derived `Eq` checks every
+entry. -}
+prop_dropPoliciesAgreesWithRepack :: Value -> Property
+prop_dropPoliciesAgreesWithRepack v =
+  forAll (genPolicyIds v) $ \ps ->
+    let ks = mapMaybe V.k ps
+     in V.dropPolicies ps v === V.pack (Map.filterWithKey (\c _ -> c `notElem` ks) (V.unpack v))
+
+{-| @keepPolicies@ and @dropPolicies@ partition a `Value`: reuniting the two halves
+recovers the original, caches included. -}
+prop_keepDropPartition :: Value -> Property
+prop_keepDropPartition v =
+  forAll (genPolicyIds v) $ \ps ->
+    case V.unionValue (V.keepPolicies ps v) (V.dropPolicies ps v) of
+      BuiltinSuccess u -> u === v
+      _ -> property False
+
 toPositiveValue :: Value -> Value
 toPositiveValue =
   V.pack . fmap (Map.map (fromMaybe maxBound . V.quantity . abs . V.unQuantity)) . V.unpack
@@ -519,6 +579,30 @@ tests =
     , testProperty
         "policiesAfterDeletion"
         (withNumTests 20 prop_policiesAfterDeletion)
+    , testProperty
+        "keepPoliciesBookkeeping"
+        (withNumTests 20 prop_keepPoliciesBookkeeping)
+    , testProperty
+        "keepPoliciesPreservesInvariants"
+        (withNumTests 20 prop_keepPoliciesPreservesInvariants)
+    , testProperty
+        "keepPoliciesSelects"
+        (withNumTests 20 prop_keepPoliciesSelects)
+    , testProperty
+        "dropPoliciesBookkeeping"
+        (withNumTests 20 prop_dropPoliciesBookkeeping)
+    , testProperty
+        "dropPoliciesPreservesInvariants"
+        (withNumTests 20 prop_dropPoliciesPreservesInvariants)
+    , testProperty
+        "dropPoliciesSelects"
+        (withNumTests 20 prop_dropPoliciesSelects)
+    , testProperty
+        "dropPoliciesAgreesWithRepack"
+        (withNumTests 20 prop_dropPoliciesAgreesWithRepack)
+    , testProperty
+        "keepDropPartition"
+        (withNumTests 20 prop_keepDropPartition)
     , testProperty
         "containsReflexive"
         prop_containsReflexive

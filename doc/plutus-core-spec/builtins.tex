@@ -101,14 +101,16 @@ Figure~\ref{fig:type-variables}.
 % "type system", and (b) caseData and caseList in fact returned a HeadSpine
 % object and if you supplied a non-function argument it would be embedded in one
 % of these and the type mismatch wouldn't be discovered until the HeadSpine was
-% later evaluated.  At some point we will remove the notational machinery
-% introduced to deal with these builtins, but it will probably make sense to
-% keep the single fully-polymorphic type variable * if we do that.
-
-% If we ever specify TPLC we'll need a richer grammar of types for it, and here
-% we will need genuine type variables which are polymorphic over terms; these
-% will have to undergo an erasure process (replacing all a_*, b_*, ... with *)
-% to obtain the types used here.
+% later evaluated.  The specification was updated to reflect this in PR #6895,
+% but we eventually abandoned those builtins in favour of extending UPLC's
+% `case` constructor to work with built-in types and removed the notational
+% machinery introduced to deal with them in PR #7214.  However we've kept the
+% single fully-polymorphic type variable * since there's no static way of
+% distinguishing different "types" of terms in UPLC.  If we ever specify TPLC
+% we'll need a richer grammar of types for it, and here we will need genuine
+% type variables which are polymorphic over terms; these will have to undergo an
+% erasure process (replacing all a_*, b_*, ... with *) to obtain the types used
+% here.
 
 \medskip
 \noindent
@@ -294,25 +296,14 @@ blockchain.
 
 \subsubsection{Outputs of built-in functions}
 \label{sec:builtin-outputs}
-All built-in functions either fail or conceptually return a non-empty list whose
-entries lie either in the denotation of some built-in type $T$ or in the set of
-inputs $\Inputs$, i.e., builtins return elements of the set ${(\R^+)_{\errorX}}$,
-where
-
+All built-in functions either fail (in which case we will regard them as
+returning the symbol $\errorX$) or return an object which lies in either the
+denotation of some built-in type $T$ or in the set of inputs $\Inputs$, i.e.,
+builtins return elements of the set
 $$
-\R := \bigdisj\left\{\denote{\tn}: \tn \in \Uni \right\} \disj \Inputs.
+\R_{\errorX} := \bigdisj\left\{\denote{\tn}: \tn \in \Uni \right\} \disj \Inputs \disj \{\errorX\}.
 $$%%
 \nomenclature[Eb]{$\R$}{The set of single values returned by built-in functions}%%
-\nomenclature[Ec]{$\R^+$}{The set of sequences of values returned by built-in functions}
-
-\noindent We will denote elements of $\R^+$ by expressions of the form $(v|v_1,
-\ldots, v_k)$ with $v, v_i \in \R$ and $k \geq 0$, the case $k=0$ indicating a
-list $(v|)$ with a single entry.  Currently all builtins return a single
-value, and to simplify notation we will identify $\R$ with $\{(v|): v \in \R\}
-\subseteq \R^+$.  The intention is that $(v|v_1, \ldots, v_k)$ will
-immediately be interpreted as an application $v \;v_1\; \ldots\; v_k$ in the
-ambient language (eg, typed or untyped Plutus Core); the number of arguments $k$
-may depend on the values of the inputs to the function.
 
 \subsubsection{Signatures and denotations of built-in functions}
 \label{sec:signatures}
@@ -336,17 +327,16 @@ the types of its arguments and its return value: a signature is of the form
 $$[\iota_1, \ldots, \iota_n] \rightarrow \omega$$ with
 \begin{itemize}
   \item $\iota_j \in \UnihashStar \disj \QVar \enspace\text{for all $j$}$
-  \item $\omega \in \UnihashStarAp$
+  \item $\omega \in \UnihashStar$
   \item $\lvert\{j : \iota_j \notin \QVar\}\rvert \geq 1$ (so $n \geq 1$)
   \item If $\iota_j$ involves $v \in \Var$ then $\iota_k = \forallty{v}$ for
     some $k < j$, and similarly for $\omega$; in other words, any type variable
     $v$ must be introduced by a quantification before it is used. (Here $\iota$
     \textit{involves} $v$ if either $\iota = \tn \in \Unihash$ and $v \in \fv{\tn}$
-    or $\iota = v$ and $v \in \VarStar$.)
+    or $\iota = v = \star$.)
   \item If $\omega$ involves $v \in \Var$ then some $\iota_j$ must involve $v$;
     this implies that $\fv{\omega} \subseteq \bigcup \{\fv{\iota_j}: \iota_j \in
-    \Unihash\}$ (where we extend the earlier definition of $\mathsf{FV}_{\#}$ by
-    setting $\fv{\ap}=\varnothing$).
+    \Unihash\}$.
   \item If $j \neq k$ and $\iota_j, \iota_k \in \QVar$ then $\iota_j \neq
     \iota_k$; ie, no quantification appears more than once.
   \item If $\iota_i = \forall v \in \QVar$ then some $i_j \notin \QVar$ with $j
@@ -433,20 +423,6 @@ builtins are values which can be treated like any others (for example, by being
 passed as an argument to a \texttt{lam}-expression): see
 Section~\ref{sec:uplc-values}.
 
-In general a builtin returns a sequence $(v|v_1,\ldots,v_k) \in \R^+$, but in
-fact the majority of builtins currently deployed on Cardano only return a single
-value, and in this case we can specify a signature where $\omega$ is either a
-built-in type name $T$ or $\star$, denoting an input (typically a value in the
-ambient language), and this tells us exactly what sort of value is returned.
-The general case is considerably more complicated: the size of the list
-returned, and the types of its entries, may be different for different
-inputs. To specify this sort of behaviour precisely in a signature would require
-a considerable increase in the complexity of the notation for signatures, so
-instead we approximate all return types involving elements of $\R^+\backslash
-\R$ by $\ap$.  However, when specifying the semantics of particular builtins
-with $\omega = \ap$ we will always give a precise description of the possible
-return values.
-
 \subsubsection{Denotations of built-in functions}
 \label{sec:builtin-denotations}
 The basic idea is that a built-in function $b$ should represent some
@@ -465,11 +441,11 @@ $$%
 \nomenclature[Ez4]{$\denote{b}_S$}{The denotation of the built-in function $b$ at the type assignment $S$}
 \noindent where
 $$
-\denote{\star} = \Inputs \quad\text{and}\quad \denote{\ap} = \R^+.
+\denote{\star} = \Inputs.
 $$
 \noindent This makes sense because $\Sext(\tau_i) \in \Uni \disj
 \Inputs$ for all $i$, so $\denote{\Sext(\tau_i)}$ is always defined,
-and similarly for $\omega$ (extending $\Sext$ by setting $\Sext(\ap) = \ap$).
+and similarly for $\omega$.
 
 \medskip
 \noindent If $\fv{\sigmabar(b)} = \varnothing$ (in which case we say that $b$ is
@@ -496,7 +472,7 @@ not insist on this though.
 Recall from Section~\ref{sec:builtin-outputs} that the result of the
 evaluation of a built-in function lies in the set
 $$
-(\R^+)_{\errorX} = \left(\bigdisj\left\{\denote{\tn}: \tn \in \Uni \right\} \disj \Inputs \right)^+ \disj \{\errorX\}.
+\R_{\errorX} = \bigdisj\left\{\denote{\tn}: \tn \in \Uni \right\} \disj \Inputs \disj \{\errorX\}.
 $$
 \noindent Since we have assumed that all denotations $\denote{T}$ with $T \in
 \Uni$ are disjoint from each other and from $\Inputs$
@@ -504,24 +480,19 @@ $$
 $$
 \reify{\cdot}: \R \rightarrow \withError{\Inputs}
 $$
-which converts elements $r \in \R$ back into inputs by
+which converts elements $r \in \R$ back into inputs (or the $\errorX$ symbol) by
 $$
 \reify{r} =
 \begin{cases}
   \reify{r}_{\tn} \in \Con{\tn} \subseteq \Inputs & \text{if $r \in \denote{\tn}$}\\
-  r & \text{if $r \in \Inputs$}
+  r & \text{if $r \in \Inputs$}\\
+  \errorX & \text{if $r = \errorX$}.
 \end{cases}
 $$
-\noindent(see Section~\ref{sec:builtin-inputs} for the definition of
-$\reify{\cdot}_{\tn}$), and we can extend this to a function
-$\reify{\cdot}: (\R^+)_{\errorX} \rightarrow \withError{\Inputs}$ by defining
-
-\begin{align*}
-  \reify{(r, r_1, \ldots, r_k)} &= (\reify{r}|\reify{r_1}, \ldots, \reify{r_k})\\
-  \reify{\errorX} &= \errorX.
-\end{align*}%%
-\nomenclature[Dz4]{$\reify{\cdot}$}{Reification of the result of a built-in
-  function application}
+\noindent See Section~\ref{sec:builtin-inputs} for the definition of
+$\reify{\cdot}_{\tn}$.%
+\nomenclature[Dz4]{$\reify{\cdot}$}{Reification of the
+result of a built-in function application}
 
 \kwxm{We have to use $\Inputs \disj \{\errorX\}$ to deal with the fact that
   $\errorU$ isn't a value, so we have to defer handling errors until later.}
