@@ -200,9 +200,14 @@ in substance "named compiled programs with argument schemas". So:
 
 - The assurance CIP's "Validators only" rationale must widen (§8.3 below).
 - In Plinth, UPLC exists only for expressions passed to `plinthc`/`plc`. An
-  `ONCHAIN` function therefore needs a `CompiledCode`. The UAL TH helper
-  generates the `compile` splice for it, so the author does not maintain that by
-  hand.
+  `ONCHAIN` function therefore needs a `CompiledCode`, and **the author writes
+  the `compile` call and sets `validatorCompiled` by hand**, exactly as they
+  already do for a validator. An earlier draft of this spec had the UAL TH
+  helper generate the splice; it cannot. Generating `$$(compile [|| f ||])`
+  needs the `plinthc` marker from `plutus-tx-plugin`, and `plutus-tx` — where
+  every module in §7 lives — cannot depend on the plugin that depends on it. A
+  helper would have to live in `plutus-tx-plugin` if it is ever wanted; it was a
+  convenience, never a requirement.
 
 ## 5. Output: `plutus.json`
 
@@ -334,12 +339,18 @@ directly):
 | Module | Responsibility |
 |---|---|
 | `PlutusTx.Ual.Syntax` | AST: `Onchain`, `Predicate`, `Property`, `UplcData`; `ModuleUal` |
-| `PlutusTx.Ual.Lexer` | scan `{-@ … -@}` blocks → kind keyword, raw body, source span; collect `import` declarations in the same pass (§6) |
+| `PlutusTx.Ual.Lexer` | scan `{-@ … @-}` blocks → kind keyword, raw body, source span; collect `import` declarations in the same pass (§6) |
 | `PlutusTx.Ual.Parser` | `ONCHAIN` refined signature and option lists; `PROPERTY` name + text; bodies verbatim |
-| `PlutusTx.Ual.TH` | `ualModule :: Q Exp`; `addDependentFile`; `reify`-based name resolution; `compile`-splice generation for `ONCHAIN` functions |
+| `PlutusTx.Ual.TH` | `ualModule :: Q Exp`; `addDependentFile`; `reify`-based name resolution |
 | `PlutusTx.Ual.Resolve` | validation (see §8.2) |
 | `PlutusTx.Blueprint.Validator` | + `validatorId`, `validatorArguments`, `validatorBudget` and their JSON |
 | `PlutusTx.Assurance.*` | document types, `formalFragments`, `writeAssurance` |
+
+**One component was dropped from this table.** An earlier draft gave
+`PlutusTx.Ual.TH` a fourth responsibility, "`compile`-splice generation for
+`ONCHAIN` functions". It cannot live in `plutus-tx`: the splice needs the
+`plinthc` marker from `plutus-tx-plugin`, and `plutus-tx` cannot depend on the
+plugin that depends on it. §4.4 says what the author does instead.
 
 **Source-breaking change.** New fields on `ValidatorBlueprint` break existing
 record-construction sites. Mitigate with a `mkValidatorBlueprint` defaulting
@@ -382,7 +393,7 @@ myValidator =
 blueprint value:
 
 - *Compile time* (`Ual.TH`): checks 1, 2, 6 of §8.2 — name resolution, arity and
-  argument-type agreement, `HasBlueprintDefinition` presence.
+  argument-type agreement, and `UPLC_DATA` type resolution.
 - *Assembly time* (`Ual.Resolve`, pure): checks 3, 4, 5, 7 — version agreement,
   fragment DAG and `uses` resolution, property-id uniqueness, and the
   `ONCHAIN`↔blueprint correspondence.
@@ -429,8 +440,20 @@ document types and writer; the CIP revisions of §8.3; the UAL doc corrections o
    line to report against, and uniqueness at assembly time, where the whole set
    is known. Without the pattern check a name like `p q` parses happily and
    surfaces much later as a JSON-schema error against a generated file.
-6. Every `UPLC_DATA` type has a `HasBlueprintDefinition` instance, so it will
-   appear in `definitions`.
+6. Every `UPLC_DATA` type name **resolves to a type in scope at the splice**.
+   That is all the splice checks, and an earlier draft of this spec overstated
+   it as a `HasBlueprintDefinition` check. The instance is not verified here and
+   does not need to be: the real enforcement is the author's
+   `deriveDefinitions @[…]`, which is a *type error* without the instance, and a
+   type error is a better diagnostic than anything a splice could report. What
+   this check catches is the case `deriveDefinitions` cannot — a `UPLC_DATA`
+   block naming a type that does not exist, e.g. after a rename.
+
+   Note what neither check gives: `UPLC_DATA` cannot *force* a type into
+   `definitions`. Whether it appears there depends entirely on the author
+   listing it in `deriveDefinitions` and referencing it from a schema. A
+   `UPLC_DATA` block on a type the author forgot to list is silently absent from
+   the blueprint. Recorded in §11.
 7. Every `ONCHAIN` name has a blueprint entry whose `validatorId` matches, every
    `validatorId` is unique within the contract, and no blueprint entry carries
    `arguments`/`budget` without a corresponding `ONCHAIN` block.
@@ -442,6 +465,16 @@ assembly time, per §7.1.
 
 The CIP is at `CIP-XXXX/README.md` on branch
 `cip/extended-blueprints-verification` of the local `CIPs` checkout.
+
+**Status: all six have landed**, together with three additions the acceptance
+exercise of §10 turned up after this list was written — a normative obligation
+on `formal.language` to define how `scope.validators` ids are denoted inside a
+statement, a note that `languages`/`tools` registry entries are open objects a
+language may extend with the environment it elaborates in, and an explicit
+statement of what mandatory `scope` costs. Consumer obligation 2 was extended to
+the `uses`/`imports` constraints the meta-schema cannot express, and the
+pipeline's own output was added as a CIP example. What was *not* changed, and
+why, is under §11.
 
 1. **Rationale reason #2 is wrong for this case.** It argues against embedding
    assurance data in `plutus.json` because "hand-maintained assurance data
@@ -469,8 +502,36 @@ The CIP is at `CIP-XXXX/README.md` on branch
 
 - **Slice 2 — the generator**: extended `plutus.json` + `assurance.json` → the
   Lean project tree (script/wiring, predicates, one file per property with a
-  `blaster` call), plus a templated `lakefile.toml`. Its acceptance test is a
-  diff against `contracts-library/formal/Formal/Vesting/Linear/`.
+  `blaster` call), plus a templated `lakefile.toml`.
+
+  **Its acceptance test is a semantic comparison against
+  `contracts-library/formal/Formal/Vesting/Linear/`, not a diff.** An earlier
+  draft of this spec said "a diff against" that directory, and that criterion
+  cannot be met — not because the generator will be weak, but because the pair
+  does not determine a file layout. `imports` and per-fragment ordering give a
+  dependency **DAG**, which is everything a consumer needs to *elaborate* the
+  project; the reference's five files are grouped by proof *polarity*
+  (`Soundness` / `Completeness` / `Robustness`) with definitions living in
+  whichever theorem module first needs them, and a Plinth contract has no
+  "Soundness" module to key that off. The pair is sufficient to generate *a*
+  correct project and insufficient to generate *that* project. See
+  `docs/superpowers/ual-linear-vesting-acceptance.md` §3.6.
+
+  The criterion should therefore be: every definition and every theorem
+  statement of the reference is present, up to module placement and identifier
+  renaming, and each theorem is closed by the same tactic or left `sorry` where
+  the reference does. If a byte diff is wanted later, relay out the reference to
+  whatever layout the generator picks — the layout is the arbitrary half.
+
+  **The top blocker on this slice is not in the pair at all.** A Plinth
+  `plutus.json` cannot express a data type's constructor or field names, so the
+  Lean side's `#import_blueprints` emits no datum or redeemer types and the
+  reference project stops building. That is a CIP-57 conformance gap in
+  `plutus-tx`'s `Schema`, designed separately in
+  `docs/superpowers/specs/2026-09-03-blueprint-field-names-design.md`, which
+  should land as its own PR **before** the generator is attempted. Two further
+  blockers are in the pair and are recorded in §11: nothing binds a validator
+  into a formal statement, and fragment `imports` name only fragments.
 - **Slice 3 — evidence**: Blaster populates `evidence` records with outcomes,
   script hashes and proof artifacts.
 - `asScott` consumption. `CardanoLedgerApi` has `IsData` (`IsData/Class.lean`)
@@ -539,6 +600,59 @@ work.
 
 ## 11. Open items
 
+The first four came out of the acceptance exercise of §10, written up in full in
+`docs/superpowers/ual-linear-vesting-acceptance.md`. They are format and syntax
+questions, cheapest to settle before the CIP is published.
+
+- **Nothing binds a validator into a formal statement.** UAL reserves no name
+  for "the program this property is scoped to", so a property cannot mention the
+  code it is about. The worked example axiomatises the script's behaviour
+  instead, which makes its five properties provable without the script existing.
+  The CIP half is now discharged — a `formal.language` specification MUST define
+  how `scope.validators` ids are denoted in a statement (CIP-XXXX,
+  "Statements") — and UAL is the language that has to answer it. Acceptance
+  §3.3; corrections item 8. **Blocks slice 2**, because it decides every theorem
+  statement the generator emits.
+- **Fragment `imports` names only fragments.** `Build.hs:92` intersects a
+  module's imports against the fragment set and silently drops the rest, so a
+  fragment's dependencies on the language's own libraries
+  (`CardanoLedgerApi.V1.Time` in the reference) are unrecoverable from the pair.
+  The CIP now says `imports` is fragment-scoped by design and points at the
+  `languages` registry entry — an open object — as where a language declares the
+  environment it elaborates in; that covers a fixed prelude and its versions, but
+  not a contract-specific external import. Acceptance §3.4. **Blocks slice 2**
+  for a generator that must emit a buildable project.
+- **Per-property scope.** Every property this slice emits is scoped to the one
+  validator id passed to `buildAssurance`, so a multi-validator contract
+  publishes properties about B as claims about A — false, not merely coarse, and
+  undetectable by any consumer. Linear vesting *is* multi-validator
+  (`…spend` and `…else`) and survives only because the properties really are all
+  about `spend`. Separately, a property about a contract's pure model has no home
+  at all while `scope.validators` is REQUIRED and non-empty; the CIP records that
+  as needing a new `$schema` URI. UAL needs a `[scope: …]` clause. Acceptance
+  §3.5; corrections item 9. Also: `buildAssurance` never validates its scope
+  argument against the blueprint's validator ids, unlike `attachUal`'s checks —
+  worth fixing here regardless of what UAL does.
+- **`exCPU`/`exMem` versus the Lean CEK machine's step bound** (§5). The
+  acceptance exercise found this may not need a conversion at all:
+  `cekExecuteProgramWithBudget` already consumes an `ExBudget` and distinguishes
+  `BudgetExhausted` from `EvaluationError`, which the step-count machine cannot.
+  If `blaster` can symbolically execute it, the fix is in `Formal/Common.lean`
+  and the blueprint needs only a cost-model selector plus budget provenance; if
+  not, the blueprint needs a producer-computed step bound alongside the budget,
+  because only the producer has the cost model. Whether `blaster` can was not
+  determinable without a Lean toolchain. Acceptance §3.2. Blocks nothing in this
+  slice.
+- **`UPLC_DATA` cannot force a type into `definitions`** (§8.2 check 6). Whether
+  an annotated type reaches `definitions` depends on the author listing it in
+  `deriveDefinitions` and referencing it from a schema; a `UPLC_DATA` block on a
+  type they forgot is silently absent from the blueprint. A check would need the
+  blueprint value, which the splice does not have, so it belongs in `Resolve` —
+  but `Resolve` does not currently see `ualUplcData`.
+- **Property `id` to target-language identifier has no stated mapping.** The
+  CIP's `^[A-Za-z0-9_-]+$` permits `-`, which is illegal in a Lean identifier,
+  and `foo-bar` collides with `foo_bar` under any sanitizer. Slice 2's problem,
+  but the producer is where a constraint could be enforced.
 - Whether `plutus-tx` is the right home, or whether UAL should be its own package
   to avoid growing `plutus-tx`'s surface. Decided in favour of `plutus-tx` for
   now, to share `PlutusTx.Blueprint` types without a new dependency edge.
