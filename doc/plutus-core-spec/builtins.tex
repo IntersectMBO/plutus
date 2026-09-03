@@ -256,17 +256,17 @@ branches for a particular type is variable, with an error occurring if
 
 \medskip
 To specify this behaviour in general we require some more notation.  For each
-built-in type $T \in \Uni$ we assume that there is a \textit{matching function}
+built-in type $T \in \Uni$ we assume that there is a \textit{branch bound}
+$\maxbranch(T) \in \N \disj \{\infty\}$ and a \textit{matching function}
 $$
-\match{T}: \denote{T} \rightarrow \N \times \denote{\Uni}^* \disj \{\errorX\}
+\match{T}: \denote{T} \rightarrow \N \times \denote{\Uni}^* \disj \{\errorX\}.
 $$
-and a \textit{branch bound} $\maxbranch(T) \in \N \disj \{\infty\}$.
+\nomenclature[Dz7]{$\maxbranch(T)$}{Maximum number of branches in a \texttt{case} expression on a built-in type $T$}
 \nomenclature[Dz7]{$\match{T}$}{Matching function for a built-in type $T$}
-\nomenclature[Dz8]{$\maxbranch(T)$}{Maximum number of branches in a \texttt{case} expression on a built-in type $T$}
 
 Given a built-in type $T$ and $x \in \denote{T}$, $\match{T}(x)$ returns either
 $\errorX$ (indicating an error) or a pair $(i, (v_1, \ldots, v_k))$ with $i$ a
-natural number and the $v_i$ built-in values in $\Uni$. If $M$ is a term which
+natural number and the $v_i$ built-in values in $\denote{\Uni}$. If $M$ is a term which
 evaluates to the constant \texttt{(con $T$ $x$)} then the expression
 $$
 \kase{M}{M_1 \ldots M_n}
