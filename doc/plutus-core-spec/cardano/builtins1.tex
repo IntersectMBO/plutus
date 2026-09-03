@@ -55,11 +55,12 @@ useful for tools working with Plutus Core.
 From Protocol Version 11 onwards, Plutus Core supports casing on some of the
 built-in types described in Tables~\ref{table:built-in-types-1} and
 \ref{table:built-in-type-operators-1}.  See Table~\ref{table:builtin-matching-functions}
-and Section~\ref{sec:builtin-casing} for details.  Casing is not available for
-types not mentioned in this table, and for such types $T$ one should assume that
-$\maxbranch(T) = 0$ and $\match{T}(x) = (0,())$: the semantics of Plutus Core as
-given in Figure~\ref{fig:untyped-term-reduction} and implemented in the CEK
-machine (Figure~\ref{fig:untyped-cek-machine}) will ensure that this
+and Section~\ref{sec:builtin-casing} for details.  Casing is only available for
+the types mentioned in Table~\ref{table:builtin-matching-functions}, and for all
+other types $T$ one should assume that $\maxbranch(T) = 0$ and $\match{T}(x)
+= \errorX$ for all $x$: the semantics of Plutus Core as defined in
+Figure~\ref{fig:untyped-term-reduction} and implemented in the CEK machine
+(Figure~\ref{fig:untyped-cek-machine}) will ensure that this
 causes \texttt{(error)} if an attempt is made to case on a value of such a type
 during evaluation of a Plutus Core script.
 
