@@ -189,9 +189,11 @@ prop_policiesAfterDeletion v0 =
   where
     BuiltinSuccess v = if V.totalSize v0 > 0 then pure v0 else V.insertCoin "c" "t" 1 v0
 
-{-| Policy ids for the @keepPolicies@/@dropPolicies@ properties: some drawn from the
-`Value` itself, so that the properties are not vacuous, plus generated ones that
-usually miss. -}
+{-| Policy ids for the @keepPolicies@/@dropPolicies@ properties.
+
+Some are drawn from the `Value` itself, or the properties would hold vacuously on ids that
+match nothing. The rest are generated and almost never match, which is what exercises the
+absent-id path. -}
 genPolicyIds :: Value -> Gen [ByteString]
 genPolicyIds v = do
   present <- sublistOf (V.policies v)
@@ -227,9 +229,11 @@ prop_dropPoliciesSelects v =
     V.policies (V.dropPolicies ps v) === filter (`notElem` ps) (V.policies v)
 
 {-| `dropPolicies` maintains the caches by subtraction instead of recomputing them, so it
-has to agree field for field with a `Value` repacked from the retained map. Unlike
-`checkBookkeeping`, which only samples the size histogram at its maximum, this pins the
-whole histogram through the derived `Eq`. -}
+has to agree field for field with a `Value` repacked from the retained map.
+
+`checkBookkeeping` only looks at the largest entry of the size histogram, so a wrong count in
+any other entry would pass it. Comparing whole `Value`s through the derived `Eq` checks every
+entry. -}
 prop_dropPoliciesAgreesWithRepack :: Value -> Property
 prop_dropPoliciesAgreesWithRepack v =
   forAll (genPolicyIds v) $ \ps ->
