@@ -1,0 +1,17 @@
+Operation,Parameter name,Note
+apply,cekApplyCost-exBudgetCPU,Constant CPU cost
+apply,cekApplyCost-exBudgetMemory,Constant memory cost
+builtin,cekBuiltinCost-exBudgetCPU,Constant CPU cost
+builtin,cekBuiltinCost-exBudgetMemory,Constant memory cost
+con,cekConstCost-exBudgetCPU,Constant CPU cost
+con,cekConstCost-exBudgetMemory,Constant memory cost
+delay,cekDelayCost-exBudgetCPU,Constant CPU cost
+delay,cekDelayCost-exBudgetMemory,Constant memory cost
+force,cekForceCost-exBudgetCPU,Constant CPU cost
+force,cekForceCost-exBudgetMemory,Constant memory cost
+lam,cekLamCost-exBudgetCPU,Constant CPU cost
+lam,cekLamCost-exBudgetMemory,Constant memory cost
+startup,cekStartupCost-exBudgetCPU,Constant CPU cost
+startup,cekStartupCost-exBudgetMemory,Constant memory cost
+var,cekVarCost-exBudgetCPU,Constant CPU cost
+var,cekVarCost-exBudgetMemory,Constant memory cost

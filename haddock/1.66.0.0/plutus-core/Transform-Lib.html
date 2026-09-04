@@ -1,0 +1,607 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Transform.Lib</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.66.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Transform.Lib.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Transform.Lib</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Common UPLC term-construction helpers shared across the
+<code
+	    >Transform.*.Spec</code
+	    > test modules.</p
+	  ><p
+	  >Variables are referred to by name: <code
+	    >var &quot;x&quot;</code
+	    > is an occurrence, <code
+	    >lam &quot;x&quot;
+body</code
+	    > a binder, and <code
+	    >name &quot;x&quot;</code
+	    > the bare <code
+	    ><a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      ></code
+	    >. See Note [Names from strings]. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:T"
+	      >T</a
+	      > = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:var"
+	      >var</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:lam"
+	      >lam</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:app"
+	      >app</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:force"
+	      >force</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:delay"
+	      >delay</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:case_"
+	      >case_</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      > &#8594; [<a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      >] &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtin"
+	      >builtin</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:constr"
+	      >constr</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      > &#8594; [<a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      >] &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sopTrue"
+	      >sopTrue</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sopFalse"
+	      >sopFalse</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinTrue"
+	      >builtinTrue</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinFalse"
+	      >builtinFalse</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ite"
+	      >ite</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:con"
+	      >con</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:text"
+	      >text</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:err"
+	      >err</a
+	      > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	      >T</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:name"
+	      >name</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T" class="def"
+	    >T</a
+	    > = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Transform.Lib.html#T" class="link"
+	    >Source</a
+	    > <a href="#t:T" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convenient alias used throughout the test modules.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:var" class="def"
+	    >var</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#var" class="link"
+	    >Source</a
+	    > <a href="#v:var" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="../plutus-core/UntypedPlutusCore-Core-Type.html#v:Var" title="UntypedPlutusCore.Core.Type"
+		>Var</a
+		></code
+	      > occurrence of the variable with the given name.
+See Note [Names from strings] </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lam" class="def"
+	    >lam</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#lam" class="link"
+	    >Source</a
+	    > <a href="#v:lam" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A lambda binding the variable with the given name.
+See Note [Names from strings] </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:app" class="def"
+	    >app</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#app" class="link"
+	    >Source</a
+	    > <a href="#v:app" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:force" class="def"
+	    >force</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#force" class="link"
+	    >Source</a
+	    > <a href="#v:force" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:delay" class="def"
+	    >delay</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#delay" class="link"
+	    >Source</a
+	    > <a href="#v:delay" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:case_" class="def"
+	    >case_</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > &#8594; [<a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    >] &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#case_" class="link"
+	    >Source</a
+	    > <a href="#v:case_" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtin" class="def"
+	    >builtin</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#builtin" class="link"
+	    >Source</a
+	    > <a href="#v:builtin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:constr" class="def"
+	    >constr</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > &#8594; [<a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    >] &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#constr" class="link"
+	    >Source</a
+	    > <a href="#v:constr" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="../plutus-core/UntypedPlutusCore-Core-Type.html#v:Constr" title="UntypedPlutusCore.Core.Type"
+		>Constr</a
+		></code
+	      > term tagged with the given index.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sopTrue" class="def"
+	    >sopTrue</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#sopTrue" class="link"
+	    >Source</a
+	    > <a href="#v:sopTrue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >True</code
+	      > as a sum-of-products value, <code
+	      >Constr 0 []</code
+	      > (the datatype encoding of <code
+	      >Bool</code
+	      >).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sopFalse" class="def"
+	    >sopFalse</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#sopFalse" class="link"
+	    >Source</a
+	    > <a href="#v:sopFalse" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >False</code
+	      > as a sum-of-products value, <code
+	      >Constr 1 []</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinTrue" class="def"
+	    >builtinTrue</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#builtinTrue" class="link"
+	    >Source</a
+	    > <a href="#v:builtinTrue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >True</code
+	      > as the builtin <code
+	      >bool</code
+	      > constant.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinFalse" class="def"
+	    >builtinFalse</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#builtinFalse" class="link"
+	    >Source</a
+	    > <a href="#v:builtinFalse" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >False</code
+	      > as the builtin <code
+	      >bool</code
+	      > constant.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ite" class="def"
+	    >ite</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#ite" class="link"
+	    >Source</a
+	    > <a href="#v:ite" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >ifThenElse</code
+	      > forced and applied to a condition and the two branches.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:con" class="def"
+	    >con</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#con" class="link"
+	    >Source</a
+	    > <a href="#v:con" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		>Integer</a
+		></code
+	      > constant.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:text" class="def"
+	    >text</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#text" class="link"
+	    >Source</a
+	    > <a href="#v:text" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		>Text</a
+		></code
+	      > constant from a literal.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:err" class="def"
+	    >err</a
+	    > &#8759; <a href="Transform-Lib.html#t:T" title="Transform.Lib"
+	    >T</a
+	    > <a href="src/Transform.Lib.html#err" class="link"
+	    >Source</a
+	    > <a href="#v:err" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:name" class="def"
+	    >name</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="src/Transform.Lib.html#name" class="link"
+	    >Source</a
+	    > <a href="#v:name" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Build a <code
+	      ><a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		>Name</a
+		></code
+	      > from a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		>String</a
+		></code
+	      >. See Note [Names from strings]</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

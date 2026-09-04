@@ -1,0 +1,61 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module PlutusCore.Pretty.ConfigName
+<span class="lineno">    6 </span>  ( PrettyConfigName (..)
+<span class="lineno">    7 </span>  , HasPrettyConfigName (..)
+<span class="lineno">    8 </span>  , prettyConfigName
+<span class="lineno">    9 </span>  , prettyConfigNameSimple
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Data.Coerce (coerce)
+<span class="lineno">   13 </span>import Text.PrettyBy (HasPrettyDefaults)
+<span class="lineno">   14 </span>import Text.PrettyBy.Fixity (Sole (Sole))
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>-- | A config that determines how to pretty-print a PLC name.
+<span class="lineno">   17 </span>newtype PrettyConfigName = PrettyConfigName
+<span class="lineno">   18 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_pcnShowsUnique</span></span></span> :: Bool
+<span class="lineno">   19 </span>  -- ^ Whether to show the 'Unique' of a name or not.
+<span class="lineno">   20 </span>  }
+<span class="lineno">   21 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>type instance HasPrettyDefaults PrettyConfigName = 'True
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- | A class of configs from which a 'PrettyConfigName' can be extracted.
+<span class="lineno">   26 </span>class HasPrettyConfigName config where
+<span class="lineno">   27 </span>  toPrettyConfigName :: config -&gt; PrettyConfigName
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>instance HasPrettyConfigName (Sole PrettyConfigName) where
+<span class="lineno">   30 </span>  <span class="decl"><span class="nottickedoff">toPrettyConfigName = coerce</span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>-- | The 'PrettyConfigName' used by default: print 'Unique' indexes after nams.
+<span class="lineno">   33 </span>prettyConfigName :: PrettyConfigName
+<span class="lineno">   34 </span><span class="decl"><span class="istickedoff">prettyConfigName = PrettyConfigName {_pcnShowsUnique = True}</span></span>
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>-- | The 'PrettyConfigName' to be used when 'Unique' indices don't matter. Easier to read.
+<span class="lineno">   37 </span>prettyConfigNameSimple :: PrettyConfigName
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">prettyConfigNameSimple = PrettyConfigName {_pcnShowsUnique = False}</span></span>
+
+</pre>
+</body>
+</html>

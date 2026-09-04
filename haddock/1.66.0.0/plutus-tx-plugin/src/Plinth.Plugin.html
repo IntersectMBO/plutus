@@ -1,0 +1,887 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskellQuotes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Plinth.Plugin</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Plinth.Plugin.html#plugin"
+	><span class="hs-identifier"
+	  >plugin</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Plugin.Utils.html#plinthc"
+	><span class="hs-identifier"
+	  >plinthc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Options.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Options</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Plugin.Boilerplate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Common.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Plugin.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Plugin.Unsupported</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Plugin.Utils.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Plugin.Utils</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Exception.html"
+	><span class="hs-identifier"
+	  >Control.Exception</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#throwIO"
+	><span class="hs-identifier"
+	  >throwIO</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-operator"
+	>(^.)</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html"
+	><span class="hs-identifier"
+	  >Control.Monad.IO.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html#liftIO"
+	><span class="hs-identifier"
+	  >liftIO</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/either-5.0.3/docs/src/Data.Either.Validation.html"
+	><span class="hs-identifier"
+	  >Data.Either.Validation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Plugins.html"
+	><span class="hs-identifier"
+	  >GHC.Plugins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="annot"
+      ><a href="Plinth.Plugin.html#plugin"
+	><span class="hs-identifier hs-type"
+	  >plugin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#Plugin"
+	><span class="hs-identifier hs-type"
+	  >GHC.Plugin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="plugin"
+      ><span class="annot"
+	><span class="annottext"
+	  >plugin :: Plugin
+</span
+	  ><a href="Plinth.Plugin.html#plugin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >plugin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Plugin
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#defaultPlugin"
+	><span class="hs-identifier hs-var"
+	  >GHC.defaultPlugin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#driverPlugin"
+	><span class="hs-identifier hs-var"
+	  >GHC.driverPlugin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#addFlagsAndExts"
+	><span class="hs-identifier hs-type"
+	  >addFlagsAndExts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#typeCheckResultAction"
+	><span class="hs-identifier hs-var"
+	  >GHC.typeCheckResultAction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679622083"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CommandLineOption]
+</span
+	  ><a href="#local-6989586621679622083"
+	  ><span class="hs-identifier hs-var"
+	    >cliOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679622084"
+      ><span class="annot"
+	><span class="annottext"
+	  >ModSummary
+</span
+	  ><a href="#local-6989586621679622084"
+	  ><span class="hs-identifier hs-var"
+	    >_modSummary</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679622085"
+      ><span class="annot"
+	><span class="annottext"
+	  >TcGblEnv
+</span
+	  ><a href="#local-6989586621679622085"
+	  ><span class="hs-identifier hs-var"
+	    >env</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679622086"
+      ><span class="annot"
+	><span class="annottext"
+	  >PluginOptions
+</span
+	  ><a href="#local-6989586621679622086"
+	  ><span class="hs-identifier hs-var"
+	    >opts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CommandLineOption] -&gt; Validation ParseErrors PluginOptions
+</span
+	><a href="PlutusTx.Options.html#parsePluginOptions"
+	><span class="hs-identifier hs-var"
+	  >parsePluginOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CommandLineOption] -&gt; [CommandLineOption]
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#removeBoilerplateOpts"
+	><span class="hs-identifier hs-var"
+	  >removeBoilerplateOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CommandLineOption]
+</span
+	><a href="#local-6989586621679622083"
+	><span class="hs-identifier hs-var"
+	  >cliOpts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/either-5.0.3/docs/src/Data.Either.Validation.html#Success"
+	><span class="hs-identifier hs-type"
+	  >Success</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679622090"
+      ><span class="annot"
+	><span class="annottext"
+	  >PluginOptions
+</span
+	  ><a href="#local-6989586621679622090"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PluginOptions -&gt; IOEnv (Env TcGblEnv TcLclEnv) PluginOptions
+forall a. a -&gt; IOEnv (Env TcGblEnv TcLclEnv) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PluginOptions
+</span
+	><a href="#local-6989586621679622090"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/either-5.0.3/docs/src/Data.Either.Validation.html#Failure"
+	><span class="hs-identifier hs-type"
+	  >Failure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679622092"
+      ><span class="annot"
+	><span class="annottext"
+	  >ParseErrors
+</span
+	  ><a href="#local-6989586621679622092"
+	  ><span class="hs-identifier hs-var"
+	    >errs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IO PluginOptions -&gt; IOEnv (Env TcGblEnv TcLclEnv) PluginOptions
+forall a. IO a -&gt; IOEnv (Env TcGblEnv TcLclEnv) a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html#liftIO"
+	><span class="hs-identifier hs-var"
+	  >liftIO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IO PluginOptions -&gt; IOEnv (Env TcGblEnv TcLclEnv) PluginOptions)
+-&gt; IO PluginOptions -&gt; IOEnv (Env TcGblEnv TcLclEnv) PluginOptions
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParseErrors -&gt; IO PluginOptions
+forall e a. Exception e =&gt; e -&gt; IO a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IO.html#throwIO"
+	><span class="hs-identifier hs-var"
+	  >throwIO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParseErrors
+</span
+	><a href="#local-6989586621679622092"
+	><span class="hs-identifier hs-var"
+	  >errs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679622096"
+      ><span class="annot"
+	><span class="annottext"
+	  >maybeInjectAnchors :: TcGblEnv -&gt; TcM TcGblEnv
+</span
+	  ><a href="#local-6989586621679622096"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >maybeInjectAnchors</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PluginOptions
+</span
+	><a href="#local-6989586621679622086"
+	><span class="hs-identifier hs-var"
+	  >opts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PluginOptions -&gt; Getting Bool PluginOptions Bool -&gt; Bool
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Bool PluginOptions Bool
+Lens' PluginOptions Bool
+</span
+	><a href="PlutusTx.Options.html#posPreserveSourceLocations"
+	><span class="hs-identifier hs-var"
+	  >posPreserveSourceLocations</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv -&gt; TcM TcGblEnv
+</span
+	><a href="PlutusTx.Plugin.Common.html#injectAnchors"
+	><span class="hs-identifier hs-var"
+	  >injectAnchors</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv -&gt; TcM TcGblEnv
+forall a. a -&gt; IOEnv (Env TcGblEnv TcLclEnv) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv -&gt; TcM TcGblEnv
+</span
+	><a href="#local-6989586621679622096"
+	><span class="hs-identifier hs-var"
+	  >maybeInjectAnchors</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv
+</span
+	><a href="#local-6989586621679622085"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcM TcGblEnv -&gt; (TcGblEnv -&gt; TcM TcGblEnv) -&gt; TcM TcGblEnv
+forall a b.
+IOEnv (Env TcGblEnv TcLclEnv) a
+-&gt; (a -&gt; IOEnv (Env TcGblEnv TcLclEnv) b)
+-&gt; IOEnv (Env TcGblEnv TcLclEnv) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv -&gt; TcM TcGblEnv
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#injectUnsupportedMarkers"
+	><span class="hs-identifier hs-var"
+	  >injectUnsupportedMarkers</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcM TcGblEnv -&gt; (TcGblEnv -&gt; TcM TcGblEnv) -&gt; TcM TcGblEnv
+forall a b.
+IOEnv (Env TcGblEnv TcLclEnv) a
+-&gt; (a -&gt; IOEnv (Env TcGblEnv TcLclEnv) b)
+-&gt; IOEnv (Env TcGblEnv TcLclEnv) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv -&gt; TcM TcGblEnv
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#addInlineables"
+	><span class="hs-identifier hs-var"
+	  >addInlineables</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#pluginRecompile"
+	><span class="hs-identifier hs-var"
+	  >GHC.pluginRecompile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#flagRecompile"
+	><span class="hs-identifier hs-type"
+	  >GHC.flagRecompile</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#installCoreToDos"
+	><span class="hs-identifier hs-var"
+	  >GHC.installCoreToDos</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Common.html#installCorePlugin"
+	><span class="hs-identifier hs-type"
+	  >installCorePlugin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-identifier"
+      >plinthc</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

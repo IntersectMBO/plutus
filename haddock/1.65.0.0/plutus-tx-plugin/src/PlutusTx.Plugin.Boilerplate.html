@@ -1,0 +1,3131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Insert necessary or recommended GHC flags and extensions via a driver plugin.
+See https://plutus.cardano.intersectmbo.org/docs/using-plinth/extensions-flags-pragmas -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Plugin.Boilerplate</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Compat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Compat</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html"
+	><span class="hs-identifier"
+	  >GHC.Driver.Flags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.html"
+	><span class="hs-identifier"
+	  >GHC.Hs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-boot-9.6.7/docs/src/GHC.LanguageExtensions.html"
+	><span class="hs-identifier"
+	  >GHC.LanguageExtensions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Plugins.html"
+	><span class="hs-identifier"
+	  >GHC.Plugins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html"
+	><span class="hs-identifier"
+	  >GHC.Tc.Types</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SourceText.html"
+	><span class="hs-identifier"
+	  >GHC.Types.SourceText</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Unfortunately, it seems like the `Strict` extension set by the driver plugin cannot be
+unset via @LANGUAGE NoStrict@. So we add a plugin flag to allow users to do so. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#optNoStrict"
+	><span class="hs-identifier hs-type"
+	  >optNoStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span id="optNoStrict"
+      ><span class="annot"
+	><span class="annottext"
+	  >optNoStrict :: CommandLineOption
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#optNoStrict"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >optNoStrict</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption
+</span
+	><span class="hs-string"
+	>&quot;no-strict&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#boilerplateOpts"
+	><span class="hs-identifier hs-type"
+	  >boilerplateOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span id="boilerplateOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >boilerplateOpts :: [CommandLineOption]
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#boilerplateOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >boilerplateOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#optNoStrict"
+	><span class="hs-identifier hs-var"
+	  >optNoStrict</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#removeBoilerplateOpts"
+	><span class="hs-identifier hs-type"
+	  >removeBoilerplateOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="removeBoilerplateOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >removeBoilerplateOpts :: [CommandLineOption] -&gt; [CommandLineOption]
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#removeBoilerplateOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >removeBoilerplateOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CommandLineOption -&gt; Bool)
+-&gt; [CommandLineOption] -&gt; [CommandLineOption]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#filter"
+	><span class="hs-identifier hs-var"
+	  >filter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption -&gt; [CommandLineOption] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#notElem"
+	><span class="hs-operator hs-var"
+	  >`notElem`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CommandLineOption]
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#boilerplateOpts"
+	><span class="hs-identifier hs-var"
+	  >boilerplateOpts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#addFlagsAndExts"
+	><span class="hs-identifier hs-type"
+	  >addFlagsAndExts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Plugins.html#CommandLineOption"
+	><span class="hs-identifier hs-type"
+	  >GHC.CommandLineOption</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Env.Types.html#HscEnv"
+	><span class="hs-identifier hs-type"
+	  >GHC.HscEnv</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#IO"
+	><span class="hs-identifier hs-type"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Env.Types.html#HscEnv"
+	><span class="hs-identifier hs-type"
+	  >GHC.HscEnv</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="addFlagsAndExts"
+      ><span class="annot"
+	><span class="annottext"
+	  >addFlagsAndExts :: [CommandLineOption] -&gt; HscEnv -&gt; IO HscEnv
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#addFlagsAndExts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addFlagsAndExts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618402"
+      ><span class="annot"
+	><span class="annottext"
+	  >[CommandLineOption]
+</span
+	  ><a href="#local-6989586621679618402"
+	  ><span class="hs-identifier hs-var"
+	    >opts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618403"
+      ><span class="annot"
+	><span class="annottext"
+	  >HscEnv
+</span
+	  ><a href="#local-6989586621679618403"
+	  ><span class="hs-identifier hs-var"
+	    >env</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv -&gt; IO HscEnv
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv
+</span
+	><a href="#local-6989586621679618403"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Env.Types.html#hsc_dflags"
+	><span class="hs-identifier hs-var"
+	  >GHC.hsc_dflags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618405"
+	><span class="hs-identifier hs-type"
+	  >dflags</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679618405"
+      ><span class="annot"
+	><span class="annottext"
+	  >dflags :: DynFlags
+</span
+	  ><a href="#local-6989586621679618405"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dflags</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; DynFlags
+</span
+	><a href="#local-6989586621679618406"
+	><span class="hs-identifier hs-var"
+	  >setStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DynFlags -&gt; DynFlags)
+-&gt; (DynFlags -&gt; DynFlags) -&gt; DynFlags -&gt; DynFlags
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; DynFlags
+</span
+	><a href="#local-6989586621679618408"
+	><span class="hs-identifier hs-var"
+	  >unsetFlags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DynFlags -&gt; DynFlags) -&gt; DynFlags -&gt; DynFlags
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv -&gt; DynFlags
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Env.Types.html#hsc_dflags"
+	><span class="hs-identifier hs-var"
+	  >GHC.hsc_dflags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv
+</span
+	><a href="#local-6989586621679618403"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618408"
+	><span class="hs-identifier hs-type"
+	  >unsetFlags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#DynFlags"
+	><span class="hs-identifier hs-type"
+	  >GHC.DynFlags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#DynFlags"
+	><span class="hs-identifier hs-type"
+	  >GHC.DynFlags</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679618408"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsetFlags :: DynFlags -&gt; DynFlags
+</span
+	  ><a href="#local-6989586621679618408"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsetFlags</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DynFlags -&gt; [GeneralFlag] -&gt; DynFlags)
+-&gt; [GeneralFlag] -&gt; DynFlags -&gt; DynFlags
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DynFlags -&gt; GeneralFlag -&gt; DynFlags)
+-&gt; DynFlags -&gt; [GeneralFlag] -&gt; DynFlags
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldl"
+	><span class="hs-identifier hs-var"
+	  >foldl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; GeneralFlag -&gt; DynFlags
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#gopt_unset"
+	><span class="hs-identifier hs-var"
+	  >GHC.gopt_unset</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_IgnoreInterfacePragmas"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_IgnoreInterfacePragmas</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_OmitInterfacePragmas"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_OmitInterfacePragmas</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_FullLaziness"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_FullLaziness</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_SpecConstr"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_SpecConstr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_Specialise"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_Specialise</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_Strictness"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_Strictness</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_UnboxStrictFields"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_UnboxStrictFields</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GeneralFlag
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Flags.html#Opt_UnboxSmallStrictFields"
+	><span class="hs-identifier hs-var"
+	  >GHC.Opt_UnboxSmallStrictFields</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618406"
+	><span class="hs-identifier hs-type"
+	  >setStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#DynFlags"
+	><span class="hs-identifier hs-type"
+	  >GHC.DynFlags</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#DynFlags"
+	><span class="hs-identifier hs-type"
+	  >GHC.DynFlags</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679618406"
+      ><span class="annot"
+	><span class="annottext"
+	  >setStrict :: DynFlags -&gt; DynFlags
+</span
+	  ><a href="#local-6989586621679618406"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >setStrict</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#optNoStrict"
+	><span class="hs-identifier hs-var"
+	  >optNoStrict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CommandLineOption -&gt; [CommandLineOption] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#elem"
+	><span class="hs-operator hs-var"
+	  >`elem`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[CommandLineOption]
+</span
+	><a href="#local-6989586621679618402"
+	><span class="hs-identifier hs-var"
+	  >opts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; DynFlags
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DynFlags -&gt; Extension -&gt; DynFlags
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#xopt_set"
+	><span class="hs-operator hs-var"
+	  >`GHC.xopt_set`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Extension
+</span
+	><a href="https://hackage.haskell.org/package/ghc-boot-th-9.6.7/docs/src/GHC.LanguageExtensions.Type.html#Strict"
+	><span class="hs-identifier hs-var"
+	  >GHC.Strict</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Add INLINEABLE to all bindings that carry no user-written inline pragma.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#addInlineables"
+	><span class="hs-identifier hs-type"
+	  >addInlineables</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#TcGblEnv"
+	><span class="hs-identifier hs-type"
+	  >GHC.TcGblEnv</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#TcM"
+	><span class="hs-identifier hs-type"
+	  >GHC.TcM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#TcGblEnv"
+	><span class="hs-identifier hs-type"
+	  >GHC.TcGblEnv</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="addInlineables"
+      ><span class="annot"
+	><span class="annottext"
+	  >addInlineables :: TcGblEnv -&gt; TcM TcGblEnv
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#addInlineables"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addInlineables</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618425"
+      ><span class="annot"
+	><span class="annottext"
+	  >TcGblEnv
+</span
+	  ><a href="#local-6989586621679618425"
+	  ><span class="hs-identifier hs-var"
+	    >env</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv -&gt; TcM TcGblEnv
+forall a. a -&gt; IOEnv (Env TcGblEnv TcLclEnv) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv
+</span
+	><a href="#local-6989586621679618425"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#tcg_binds"
+	><span class="hs-identifier hs-var"
+	  >GHC.tcg_binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618427"
+	><span class="hs-identifier hs-type"
+	  >binds'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679618428"
+      ><span class="annot"
+	><span class="annottext"
+	  >binds :: Bag
+  (XRec
+     (GhcPass 'Typechecked)
+     (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)))
+</span
+	  ><a href="#local-6989586621679618428"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >binds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv
+-&gt; Bag
+     (XRec
+        (GhcPass 'Typechecked)
+        (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)))
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#tcg_binds"
+	><span class="hs-identifier hs-var"
+	  >GHC.tcg_binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv
+</span
+	><a href="#local-6989586621679618425"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679618427"
+      ><span class="annot"
+	><span class="annottext"
+	  >binds' :: Bag
+  (XRec
+     (GhcPass 'Typechecked)
+     (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)))
+</span
+	  ><a href="#local-6989586621679618427"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >binds'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([XRec
+    (GhcPass 'Typechecked)
+    (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))]
+ -&gt; [XRec
+       (GhcPass 'Typechecked)
+       (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))])
+-&gt; Bag
+     (XRec
+        (GhcPass 'Typechecked)
+        (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)))
+-&gt; Bag
+     (XRec
+        (GhcPass 'Typechecked)
+        (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)))
+forall p.
+([LHsBindLR p p] -&gt; [LHsBindLR p p]) -&gt; LHsBinds p -&gt; LHsBinds p
+</span
+	><a href="PlutusTx.Compiler.Compat.html#modifyBinds"
+	><span class="hs-identifier hs-var"
+	  >Compat.modifyBinds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(XRec
+   (GhcPass 'Typechecked)
+   (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))
+ -&gt; XRec
+      (GhcPass 'Typechecked)
+      (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)))
+-&gt; [XRec
+      (GhcPass 'Typechecked)
+      (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))]
+-&gt; [XRec
+      (GhcPass 'Typechecked)
+      (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XRec
+  (GhcPass 'Typechecked)
+  (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))
+-&gt; XRec
+     (GhcPass 'Typechecked)
+     (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#addInlineable"
+	><span class="hs-identifier hs-var"
+	  >addInlineable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bag
+  (XRec
+     (GhcPass 'Typechecked)
+     (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)))
+Bag
+  (GenLocated
+     SrcSpanAnnA
+     (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)))
+</span
+	><a href="#local-6989586621679618428"
+	><span class="hs-identifier hs-var"
+	  >binds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#addInlineableABE"
+	><span class="hs-identifier hs-type"
+	  >addInlineableABE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Binds.html#ABExport"
+	><span class="hs-identifier hs-type"
+	  >GHC.ABExport</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Binds.html#ABExport"
+	><span class="hs-identifier hs-type"
+	  >GHC.ABExport</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="addInlineableABE"
+      ><span class="annot"
+	><span class="annottext"
+	  >addInlineableABE :: ABExport -&gt; ABExport
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#addInlineableABE"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addInlineableABE</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618432"
+      ><span class="annot"
+	><span class="annottext"
+	  >ABExport
+</span
+	  ><a href="#local-6989586621679618432"
+	  ><span class="hs-identifier hs-var"
+	    >abe</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ABExport
+</span
+	><a href="#local-6989586621679618432"
+	><span class="hs-identifier hs-var"
+	  >abe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Binds.html#ABE"
+	><span class="hs-identifier hs-type"
+	  >GHC.ABE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>abe_poly :: ABExport -&gt; Id
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Binds.html#abe_poly"
+	><span class="hs-identifier hs-var"
+	  >GHC.abe_poly</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="local-6989586621679618435"
+      ><span class="annot"
+	><span class="annottext"
+	  >Id
+</span
+	  ><a href="#local-6989586621679618435"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id -&gt; Bool
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#needsInlineable"
+	><span class="hs-identifier hs-var"
+	  >needsInlineable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id
+</span
+	><a href="#local-6989586621679618435"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ABExport
+</span
+	><a href="#local-6989586621679618432"
+	><span class="hs-identifier hs-var"
+	  >abe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Binds.html#abe_poly"
+	><span class="hs-identifier hs-var"
+	  >GHC.abe_poly</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.html#setInlinePragma"
+	><span class="hs-identifier hs-type"
+	  >GHC.setInlinePragma</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618435"
+	><span class="hs-identifier hs-type"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#inlineable"
+	><span class="hs-identifier hs-type"
+	  >inlineable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ABExport
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ABExport
+</span
+	><a href="#local-6989586621679618432"
+	><span class="hs-identifier hs-var"
+	  >abe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#addInlineable"
+	><span class="hs-identifier hs-type"
+	  >addInlineable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#LHsBindLR"
+	><span class="hs-identifier hs-type"
+	  >GHC.LHsBindLR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#LHsBindLR"
+	><span class="hs-identifier hs-type"
+	  >GHC.LHsBindLR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="addInlineable"
+      ><span class="annot"
+	><span class="annottext"
+	  >addInlineable :: XRec
+  (GhcPass 'Typechecked)
+  (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))
+-&gt; XRec
+     (GhcPass 'Typechecked)
+     (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#addInlineable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addInlineable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SrcLoc.html#L"
+	><span class="hs-identifier hs-type"
+	  >GHC.L</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618441"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpanAnnA
+</span
+	  ><a href="#local-6989586621679618441"
+	  ><span class="hs-identifier hs-var"
+	    >loc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618442"
+      ><span class="annot"
+	><span class="annottext"
+	  >HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	  ><a href="#local-6989586621679618442"
+	  ><span class="hs-identifier hs-var"
+	    >bind</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpanAnnA
+-&gt; HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+-&gt; GenLocated
+     SrcSpanAnnA
+     (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))
+forall l e. l -&gt; e -&gt; GenLocated l e
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SrcLoc.html#L"
+	><span class="hs-identifier hs-var"
+	  >GHC.L</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpanAnnA
+</span
+	><a href="#local-6989586621679618441"
+	><span class="hs-identifier hs-var"
+	  >loc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+ -&gt; GenLocated
+      SrcSpanAnnA
+      (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)))
+-&gt; HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+-&gt; GenLocated
+     SrcSpanAnnA
+     (HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	><a href="#local-6989586621679618442"
+	><span class="hs-identifier hs-var"
+	  >bind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679618443"
+      ><span class="annot"
+	><span class="annottext"
+	  >b :: HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	  ><a href="#local-6989586621679618443"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#FunBind"
+	><span class="hs-identifier hs-type"
+	  >GHC.FunBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun_id :: forall idL idR. HsBindLR idL idR -&gt; LIdP idL
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#fun_id"
+	><span class="hs-identifier hs-var"
+	  >GHC.fun_id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SrcLoc.html#L"
+	><span class="hs-identifier hs-type"
+	  >GHC.L</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618446"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpanAnnN
+</span
+	  ><a href="#local-6989586621679618446"
+	  ><span class="hs-identifier hs-var"
+	    >idLoc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618447"
+      ><span class="annot"
+	><span class="annottext"
+	  >Id
+</span
+	  ><a href="#local-6989586621679618447"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id -&gt; Bool
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#needsInlineable"
+	><span class="hs-identifier hs-var"
+	  >needsInlineable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id
+</span
+	><a href="#local-6989586621679618447"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	><a href="#local-6989586621679618443"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#fun_id"
+	><span class="hs-identifier hs-var"
+	  >GHC.fun_id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SrcLoc.html#L"
+	><span class="hs-identifier hs-type"
+	  >GHC.L</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618446"
+	><span class="hs-identifier hs-type"
+	  >idLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.html#setInlinePragma"
+	><span class="hs-identifier hs-type"
+	  >GHC.setInlinePragma</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618447"
+	><span class="hs-identifier hs-type"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#inlineable"
+	><span class="hs-identifier hs-type"
+	  >inlineable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679618448"
+      ><span class="annot"
+	><span class="annottext"
+	  >b :: HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	  ><a href="#local-6989586621679618448"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#VarBind"
+	><span class="hs-identifier hs-type"
+	  >GHC.VarBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>var_id :: forall idL idR. HsBindLR idL idR -&gt; IdP idL
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#var_id"
+	><span class="hs-identifier hs-var"
+	  >GHC.var_id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="local-6989586621679618451"
+      ><span class="annot"
+	><span class="annottext"
+	  >IdP (GhcPass 'Typechecked)
+</span
+	  ><a href="#local-6989586621679618451"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id -&gt; Bool
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#needsInlineable"
+	><span class="hs-identifier hs-var"
+	  >needsInlineable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IdP (GhcPass 'Typechecked)
+Id
+</span
+	><a href="#local-6989586621679618451"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	><a href="#local-6989586621679618448"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#var_id"
+	><span class="hs-identifier hs-var"
+	  >GHC.var_id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.html#setInlinePragma"
+	><span class="hs-identifier hs-type"
+	  >GHC.setInlinePragma</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618451"
+	><span class="hs-identifier hs-type"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#inlineable"
+	><span class="hs-identifier hs-type"
+	  >inlineable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#PatSynBind"
+	><span class="hs-identifier hs-type"
+	  >GHC.PatSynBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618453"
+      ><span class="annot"
+	><span class="annottext"
+	  >XPatSynBind (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	  ><a href="#local-6989586621679618453"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618454"
+      ><span class="annot"
+	><span class="annottext"
+	  >psb :: PatSynBind (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	  ><a href="#local-6989586621679618454"
+	  ><span class="hs-identifier hs-var"
+	    >psb</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#PSB"
+	><span class="hs-identifier hs-type"
+	  >GHC.PSB</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>psb_id :: forall idL idR. PatSynBind idL idR -&gt; LIdP idL
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#psb_id"
+	><span class="hs-identifier hs-var"
+	  >GHC.psb_id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SrcLoc.html#L"
+	><span class="hs-identifier hs-type"
+	  >GHC.L</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618457"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpanAnnN
+</span
+	  ><a href="#local-6989586621679618457"
+	  ><span class="hs-identifier hs-var"
+	    >idLoc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618458"
+      ><span class="annot"
+	><span class="annottext"
+	  >Id
+</span
+	  ><a href="#local-6989586621679618458"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id -&gt; Bool
+</span
+	><a href="PlutusTx.Plugin.Boilerplate.html#needsInlineable"
+	><span class="hs-identifier hs-var"
+	  >needsInlineable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id
+</span
+	><a href="#local-6989586621679618458"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XPatSynBind (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+-&gt; PatSynBind (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+-&gt; HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+forall idL idR.
+XPatSynBind idL idR -&gt; PatSynBind idL idR -&gt; HsBindLR idL idR
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#PatSynBind"
+	><span class="hs-identifier hs-var"
+	  >GHC.PatSynBind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XPatSynBind (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	><a href="#local-6989586621679618453"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PatSynBind (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	><a href="#local-6989586621679618454"
+	><span class="hs-identifier hs-var"
+	  >psb</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#psb_id"
+	><span class="hs-identifier hs-var"
+	  >GHC.psb_id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SrcLoc.html#L"
+	><span class="hs-identifier hs-type"
+	  >GHC.L</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618457"
+	><span class="hs-identifier hs-type"
+	  >idLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.html#setInlinePragma"
+	><span class="hs-identifier hs-type"
+	  >GHC.setInlinePragma</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618458"
+	><span class="hs-identifier hs-type"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#inlineable"
+	><span class="hs-identifier hs-type"
+	  >inlineable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#XHsBindsLR"
+	><span class="hs-identifier hs-type"
+	  >GHC.XHsBindsLR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679618460"
+      ><span class="annot"
+	><span class="annottext"
+	  >XXHsBindsLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	  ><a href="#local-6989586621679618460"
+	  ><span class="hs-keyword hs-var"
+	    >as</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XXHsBindsLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+-&gt; HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+forall idL idR. XXHsBindsLR idL idR -&gt; HsBindLR idL idR
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Binds.html#XHsBindsLR"
+	><span class="hs-identifier hs-var"
+	  >GHC.XHsBindsLR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XXHsBindsLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	><a href="#local-6989586621679618460"
+	><span class="hs-keyword hs-var"
+	  >as</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Binds.html#abs_exports"
+	><span class="hs-identifier hs-var"
+	  >GHC.abs_exports</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#addInlineableABE"
+	><span class="hs-identifier hs-type"
+	  >addInlineableABE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-type"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Binds.html#abs_exports"
+	><span class="hs-identifier hs-var"
+	  >GHC.abs_exports</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618460"
+	><span class="hs-keyword hs-type"
+	  >as</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Binds.html#abs_binds"
+	><span class="hs-identifier hs-var"
+	  >GHC.abs_binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#modifyBinds"
+	><span class="hs-identifier hs-type"
+	  >Compat.modifyBinds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-type"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#addInlineable"
+	><span class="hs-identifier hs-type"
+	  >addInlineable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Binds.html#abs_binds"
+	><span class="hs-identifier hs-var"
+	  >GHC.abs_binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679618460"
+	><span class="hs-keyword hs-type"
+	  >as</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679618464"
+      ><span class="annot"
+	><span class="annottext"
+	  >HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	  ><a href="#local-6989586621679618464"
+	  ><span class="hs-identifier hs-var"
+	    >other</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsBindLR (GhcPass 'Typechecked) (GhcPass 'Typechecked)
+</span
+	><a href="#local-6989586621679618464"
+	><span class="hs-identifier hs-var"
+	  >other</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Return true if the @Id@ carries no user-written inline pragma.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#needsInlineable"
+	><span class="hs-identifier hs-type"
+	  >needsInlineable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Var.html#Id"
+	><span class="hs-identifier hs-type"
+	  >GHC.Id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span id="needsInlineable"
+      ><span class="annot"
+	><span class="annottext"
+	  >needsInlineable :: Id -&gt; Bool
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#needsInlineable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >needsInlineable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>InlinePragma -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#isDefaultInlinePragma"
+	><span class="hs-identifier hs-var"
+	  >GHC.isDefaultInlinePragma</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(InlinePragma -&gt; Bool) -&gt; (Id -&gt; InlinePragma) -&gt; Id -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id -&gt; InlinePragma
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.html#idInlinePragma"
+	><span class="hs-identifier hs-var"
+	  >GHC.idInlinePragma</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Boilerplate.html#inlineable"
+	><span class="hs-identifier hs-type"
+	  >inlineable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#InlinePragma"
+	><span class="hs-identifier hs-type"
+	  >GHC.InlinePragma</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span id="inlineable"
+      ><span class="annot"
+	><span class="annottext"
+	  >inlineable :: InlinePragma
+</span
+	  ><a href="PlutusTx.Plugin.Boilerplate.html#inlineable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inlineable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#InlinePragma"
+	><span class="hs-identifier hs-type"
+	  >GHC.InlinePragma</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>inl_src :: SourceText
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#inl_src"
+	><span class="hs-identifier hs-var"
+	  >GHC.inl_src</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SourceText
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SourceText.html#NoSourceText"
+	><span class="hs-identifier hs-var"
+	  >GHC.NoSourceText</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>inl_inline :: InlineSpec
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#inl_inline"
+	><span class="hs-identifier hs-var"
+	  >GHC.inl_inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SourceText -&gt; InlineSpec
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#Inlinable"
+	><span class="hs-identifier hs-var"
+	  >GHC.Inlinable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SourceText
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SourceText.html#NoSourceText"
+	><span class="hs-identifier hs-var"
+	  >GHC.NoSourceText</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>inl_sat :: Maybe Arity
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#inl_sat"
+	><span class="hs-identifier hs-var"
+	  >GHC.inl_sat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Arity
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>inl_act :: Activation
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#inl_act"
+	><span class="hs-identifier hs-var"
+	  >GHC.inl_act</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Activation
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#AlwaysActive"
+	><span class="hs-identifier hs-var"
+	  >GHC.AlwaysActive</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>inl_rule :: RuleMatchInfo
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#inl_rule"
+	><span class="hs-identifier hs-var"
+	  >GHC.inl_rule</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RuleMatchInfo
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Basic.html#FunLike"
+	><span class="hs-identifier hs-var"
+	  >GHC.FunLike</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

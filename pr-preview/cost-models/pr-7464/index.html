@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plutus Cost Model Visualization</title>
+  <link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="valuedata/index.html">ValueData</a></li>
+      <li><a href="unvaluedata/index.html">UnValueData</a></li>
+      <li><a href="valuecontains/index.html">ValueContains</a></li>
+      <li><a href="lookupcoin/index.html">LookupCoin</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1>Plutus Cost Model Visualization</h1>
+
+    <section>
+      <h2>Overview</h2>
+      <p>
+        This website provides interactive visualizations of Plutus Core builtin function cost models.
+        Each visualization displays benchmark data alongside fitted cost model predictions, allowing
+        developers and stakeholders to understand the performance characteristics of builtin functions.
+      </p>
+
+      <p>
+        Cost models are critical for ensuring accurate script execution costs on the Cardano blockchain.
+        These visualizations help verify that the mathematical models accurately represent the actual
+        execution time measured during benchmarking.
+      </p>
+
+      <h3>Key Features</h3>
+      <ul>
+        <li><strong>Interactive Plots:</strong> 2D and 3D scatter plots with zoom, pan, and rotation controls</li>
+        <li><strong>Model Overlay:</strong> Compare benchmark data with fitted cost model predictions</li>
+        <li><strong>Detailed Information:</strong> View model formulas, parameters, overhead calculations, and data ranges</li>
+        <li><strong>Toggle Controls:</strong> Show/hide model predictions and adjust axis ranges</li>
+        <li><strong>Live Data:</strong> Loads latest benchmark data from the Plutus repository</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Available Visualizations</h2>
+
+      <ul class="function-list">
+        <li>
+          <a href="valuedata/index.html">ValueData</a>
+          <p class="description">
+            Converts a Plutus <code>Value</code> to <code>Data</code> representation.
+            (2D visualization: Value Size vs Time)
+          </p>
+        </li>
+
+        <li>
+          <a href="unvaluedata/index.html">UnValueData</a>
+          <p class="description">
+            Converts <code>Data</code> representation back to a Plutus <code>Value</code>.
+            (2D visualization: Data Size vs Time)
+          </p>
+        </li>
+
+        <li>
+          <a href="valuecontains/index.html">ValueContains</a>
+          <p class="description">
+            Checks if a Plutus <code>Value</code> (haystack) contains another <code>Value</code> (needle).
+            (3D visualization: Container Size × Contained Size × Time)
+          </p>
+        </li>
+
+        <li>
+          <a href="lookupcoin/index.html">LookupCoin</a>
+          <p class="description">
+            Looks up a specific coin (currency symbol and token name) in a Plutus <code>Value</code>.
+            (2D visualization: Value Size vs Time)
+          </p>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Data Sources</h2>
+      <p>
+        All visualizations load data directly from the official Plutus repository:
+      </p>
+      <ul>
+        <li>
+          <strong>Benchmark Data:</strong>
+          <a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/benching-conway.csv" target="_blank">benching-conway.csv</a>
+        </li>
+        <li>
+          <strong>Cost Models:</strong>
+          <a href="https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/builtinCostModelC.json" target="_blank">builtinCostModelC.json</a>
+        </li>
+      </ul>
+      <p>
+        Data is fetched dynamically using the browser's <code>fetch()</code> API, ensuring you always see
+        the latest benchmarks and cost models from the master branch.
+      </p>
+    </section>
+
+    <section class="instructions">
+      <h2>Adding New Functions</h2>
+
+      <p>
+        Developers can easily add visualizations for additional builtin functions by following these steps:
+      </p>
+
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>Basic JavaScript knowledge</li>
+        <li>Understanding of your builtin function's cost model</li>
+        <li>Familiarity with <a href="https://plotly.com/javascript/reference/" target="_blank">Plotly.js API</a></li>
+      </ul>
+
+      <h3>Steps</h3>
+      <ol>
+        <li>
+          <strong>Copy an existing function directory:</strong>
+          <pre><code>cp -r valuedata/ myfunction/</code></pre>
+        </li>
+
+        <li>
+          <strong>Edit <code>myfunction/index.html</code>:</strong>
+          <ul>
+            <li>Update page title and heading</li>
+            <li>Update navigation links (add your function to the nav menu)</li>
+            <li>Update plot information panel labels (X-axis, Y-axis, description)</li>
+          </ul>
+        </li>
+
+        <li>
+          <strong>Edit <code>myfunction/plot.js</code>:</strong>
+          <ul>
+            <li>Update <code>FUNCTION_NAME</code> constant (must match CSV entry exactly)</li>
+            <li>Update <code>ARITY</code> constant (number of arguments for overhead calculation)</li>
+            <li>If needed, adjust plot type (2D vs 3D) by modifying the <code>renderPlot()</code> function</li>
+            <li>Update axis labels in the layout configuration</li>
+          </ul>
+        </li>
+
+        <li>
+          <strong>Test locally:</strong>
+          <pre><code>python -m http.server 8000
+# Visit http://localhost:8000/myfunction/</code></pre>
+        </li>
+
+        <li>
+          <strong>Add to navigation:</strong>
+          <ul>
+            <li>Update <code>index.html</code> to include your function in the list</li>
+            <li>Add navigation link to all other function pages</li>
+          </ul>
+        </li>
+
+        <li>
+          <strong>Verify:</strong>
+          <ul>
+            <li>Data loads correctly from CSV</li>
+            <li>Model predictions render (if cost model exists)</li>
+            <li>Plot information displays accurate details</li>
+            <li>Toggle controls work as expected</li>
+          </ul>
+        </li>
+      </ol>
+
+      <h3>Troubleshooting</h3>
+      <ul>
+        <li>
+          <strong>Data not loading:</strong> Check browser console for CORS errors;
+          verify CSV path matches exactly (case-sensitive)
+        </li>
+        <li>
+          <strong>Model not found:</strong> Verify function name matches the key in
+          <code>builtinCostModelC.json</code>
+        </li>
+        <li>
+          <strong>Plot not rendering:</strong> Check Plotly errors in console;
+          verify data structure and axis mappings
+        </li>
+        <li>
+          <strong>Unsupported model type:</strong> Check console for model type name;
+          you may need to add a new evaluator in <code>shared/utils.js</code>
+        </li>
+      </ul>
+
+      <h3>Example Configuration</h3>
+      <p>For a 2D plot with a single argument:</p>
+      <pre><code>const FUNCTION_NAME = 'MyFunction';  // Must match CSV
+const ARITY = 1;                      // Number of arguments
+
+// In renderPlot():
+const benchmarkX = benchmarkData.map(d => d.args[0]);  // First argument
+const benchmarkY = benchmarkData.map(d => d.time);     // Time (always Y)</code></pre>
+
+      <p>For a 3D plot with two arguments:</p>
+      <pre><code>const FUNCTION_NAME = 'MyFunction';
+const ARITY = 2;
+
+// In renderPlot():
+const benchmarkX = benchmarkData.map(d => d.args[0]);  // First argument
+const benchmarkY = benchmarkData.map(d => d.args[1]);  // Second argument
+const benchmarkZ = benchmarkData.map(d => d.time);     // Time (always Z)</code></pre>
+    </section>
+
+    <section>
+      <h2>Technical Details</h2>
+
+      <h3>Architecture</h3>
+      <p>
+        This is a static website built with plain HTML, CSS, and JavaScript. It uses
+        <a href="https://plotly.com/javascript/" target="_blank">Plotly.js</a> for interactive plotting.
+        No build tools or frameworks are required.
+      </p>
+
+      <h3>Cost Model Evaluation</h3>
+      <p>
+        The website implements JavaScript evaluators for various cost model types (linear, quadratic,
+        multi-dimensional, etc.). Model predictions are calculated at the same input points as the
+        benchmark data to enable direct comparison.
+      </p>
+
+      <h3>Overhead Calculation</h3>
+      <p>
+        Overhead values are automatically calculated from <code>Nop</code> benchmarks in the CSV file.
+        The overhead for a given arity is added to all model predictions to account for the base cost
+        of function invocation and result handling.
+      </p>
+
+      <h3>Deployment</h3>
+      <p>
+        This site can be deployed to GitHub Pages or any static hosting service. For local development,
+        simply run a local HTTP server in the project directory:
+      </p>
+      <pre><code>python -m http.server 8000
+# or
+python3 -m http.server 8000</code></pre>
+    </section>
+  </div>
+
+  <footer>
+    <p>
+      Plutus Cost Model Visualization |
+      <a href="https://github.com/IntersectMBO/plutus" target="_blank">Plutus Repository</a> |
+      <a href="https://plutus.cardano.intersectmbo.org/docs/" target="_blank">Plutus Documentation</a>
+    </p>
+  </footer>
+</body>
+</html>
