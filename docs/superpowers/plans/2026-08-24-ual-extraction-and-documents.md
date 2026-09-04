@@ -3170,9 +3170,17 @@ whether it blocks slice 2. Two are known already and must appear in the list:
 - **`exCPU`/`exMem` versus a step bound.** `validatorAccepts` takes a step count;
   UAL declares cost-model units. Nothing in this slice converts between them.
 - **Per-property scope.** Every property this slice emits is scoped to a single
-  validator id passed to `buildAssurance`. `Soundness.lean` and `Robustness.lean`
-  are all about the same validator, so linear vesting does not expose this — but a
-  multi-validator contract would, and UAL's `PROPERTY` syntax has no scope field.
+  validator id passed to `buildAssurance`, and UAL's `PROPERTY` syntax has no
+  scope field. **Do not repeat this plan's assumption that linear vesting is
+  single-validator and therefore does not expose it.** Task 10 checked: `aiken
+  build` emitted *two* validators, `linear_vesting.linear_vesting.spend` and
+  `linear_vesting.linear_vesting.else`, sharing one `compiledCode`. The proofs
+  target only `spend`, so a single global scope happens to be right here — but
+  only by luck of which id the caller passes, and no property could ever be
+  stated about `else`. There is also a second half a single scope cannot reach at
+  all: six theorems in `Spec.lean` are about the pure schedule arithmetic and
+  belong to no validator, while `scope.validators` is required and non-empty.
+  Both are written up in the acceptance document's §3.5.
 
 - [ ] **Step 4: Commit**
 
@@ -3192,6 +3200,21 @@ git commit -m "docs: linear-vesting acceptance check for the UAL document pair"
 
 This is a different git repository, on branch `cip/extended-blueprints-verification`.
 Commit there separately. The six revisions are spec §8.3.
+
+**Three additions were made beyond the six**, all from Task 10's findings, and
+they are recorded here because the step list below does not mention them: a
+normative sentence in "Statements" requiring a `formal.language` to define how
+`scope.validators` ids are denoted inside a formal statement (Task 10 §3.3 —
+without it a property can axiomatise the script and prove nothing about the
+code); a paragraph in "languages and tools" noting that registry entries are
+open objects a language may extend with the library versions it elaborates
+against (§3.4); and a paragraph in "Validators only" stating what mandatory
+`scope` costs, since relaxing `minItems: 1` would change a REQUIRED field and by
+the CIP's own versioning rule needs a new `$schema` URI (§3.5). Consumer
+obligation 2 was also extended to the `uses`/`imports` constraints the
+meta-schema cannot express, and the root field table gained
+`?formalFragments` — the plan's Step 4 asks for the subsection and the schema
+but not the table row, and without it the document contradicts itself.
 
 - [ ] **Step 1: Confirm the branch**
 
@@ -3273,6 +3296,12 @@ cp plutus-tx/test/Ual/Golden/end-to-end-assurance.golden.json \
    /Users/romainsoulat/Documents/GitHub/CIPs/CIP-XXXX/examples/assurance-ual-generated.json
 ```
 
+**Then fix `blueprint.hash.digest`.** The golden's value is `0f`, which passes
+the meta-schema (the pattern is only `^([0-9a-f]{2})+$`) but is not a possible
+sha256, and a CIP reviewer catches that on the first read. The copy carries a
+well-formed 64-hex digest instead; the two files therefore differ in that one
+value, deliberately. Do not "resynchronise" them by copying `0f` back.
+
 Add a `<details>` block for it in the README's Examples section, titled
 "Compiler-generated from source annotations (formalFragments, no evidence)", with
 a sentence noting that its properties carry no evidence records because it is
@@ -3326,6 +3355,17 @@ yes; `#prep_uplc`, `PlutusV4`, `IsScott` — deferred to a later slice).
 Two claims in `docs/superpowers/specs/2026-08-24-ual-extended-blueprints-design.md`
 turned out to be wrong while planning, and the spec is the document slice 2 will
 be planned from. Fix both:
+
+**Two more were fixed than this step asks for**, both from Task 10. **§8.4's
+acceptance criterion for slice 2** — "a diff against
+`contracts-library/formal/Formal/Vesting/Linear/`" — cannot be met as written,
+because the document pair determines a dependency DAG and the reference is laid
+out by proof polarity, which nothing in the pair implies (acceptance §3.6). It
+became a semantic comparison, and §8.4 now also names the top blocker on slice
+2, which is not in the pair at all: the CIP-57 constructor and field name gap
+designed in `specs/2026-09-03-blueprint-field-names-design.md`. And **§7's
+component table spelled the delimiter `-@}`** — the exact error §9 item 3 is
+about, in the spec's own text.
 
 - **§7's component table** lists "`compile`-splice generation for `ONCHAIN`
   functions" under `PlutusTx.Ual.TH`. Remove it and note why: the splice needs the
