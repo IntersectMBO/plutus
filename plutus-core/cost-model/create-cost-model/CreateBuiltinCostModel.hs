@@ -156,6 +156,7 @@ builtinCostModelNames =
     , paramMultiIndexArray = "multiIndexArrayModel"
     , paramAssetCount = "assetCountModel"
     , paramPolicies = "policiesModel"
+    , paramKeepPolicies = "keepPoliciesModel"
     }
 
 {-| Loads the models from R.
@@ -314,6 +315,7 @@ createBuiltinCostModel bmfile rfile = do
   paramMultiIndexArray <- getParams readCF2 paramMultiIndexArray
   paramAssetCount <- getParams readCF1 paramAssetCount
   paramPolicies <- getParams readCF1 paramPolicies
+  paramKeepPolicies <- getParams readCF2 paramKeepPolicies
 
   pure $ BuiltinCostModelBase {..}
 

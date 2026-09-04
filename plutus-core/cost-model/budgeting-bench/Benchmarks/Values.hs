@@ -24,6 +24,7 @@ import PlutusCore
   ( DefaultFun
       ( AssetCount
       , InsertCoin
+      , KeepPolicies
       , LookupCoin
       , Policies
       , ScaleValue
@@ -70,6 +71,7 @@ makeBenchmarks gen =
   , scaleValueBenchmark gen
   , assetCountBenchmark gen
   , policiesBenchmark gen
+  , keepPoliciesBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -414,17 +416,11 @@ policiesBenchmark :: StdGen -> Benchmark
 policiesBenchmark gen =
   createOneTermBuiltinBenchWithWrapper_NF ValueOuterSize Policies [] (runBenchGen gen policiesArgs)
   where
-    -- 40k pairs: safely above the largest `Value` a script can build within the
-    -- CPU budget (roughly 14k `insertCoin` applications).
-    maxTotalSize :: Int
-    maxTotalSize = Value.valueDataMaxSize
-
     policiesArgs :: StatefulGen g m => g -> m [Value]
     policiesArgs g = do
       randoms <- replicateM 100 do
-        u <- uniformRM (0 :: Double, log (fromIntegral maxTotalSize)) g
-        let numPolicies = min maxTotalSize (max 1 (round (exp u)))
-        numTokens <- uniformRM (1, maxTotalSize `div` numPolicies) g
+        numPolicies <- logUniform g maxValueTotalSize
+        numTokens <- uniformRM (1, maxValueTotalSize `div` numPolicies) g
         generate g numPolicies numTokens
       stacks <-
         sequence
@@ -435,13 +431,121 @@ policiesBenchmark gen =
       pure $ Value.empty : randoms <> stacks
 
     generate :: StatefulGen g m => g -> Int -> Int -> m Value
-    generate g numPolicies numTokens = do
-      policyIds <- replicateM numPolicies (generateKey g)
-      tokenNames <- replicateM numTokens (generateKey g)
-      pure $ buildValue policyIds tokenNames (mkQuantity 1)
+    generate g numPolicies numTokens = snd <$> generateValueWithPolicyIds g numPolicies numTokens
+
+-- KeepPolicies ------------------------------------------------------------------------------------
+
+{- Note [Benchmarking keepPolicies]
+`keepPolicies` pays for three things: building a `Set` from the list, walking the outer
+map to drop what the list did not name, and recomputing the caches the `Value` carries
+over what is left. Only the first is proportional to the list length, and the last is
+proportional to the size of the result, which the cost model never sees. It sees the list
+length and the total size of the argument.
+
+Every point of `randomSizes`, the hundred with both sizes drawn independently on a log
+scale, is built to make those two agree: the list names every policy the `Value` has, so
+nothing is dropped and the result is the whole argument. The pairs are packed into as few
+policies as the list can cover, and the rest of the list is ids the `Value` does not have.
+On an input where half the policies get dropped the same two sizes would buy half the
+work, and a fit trained on those would undercharge a script that names them all. The log
+scale is what puts the sizes that occur on chain in the sample and not only the large ones.
+
+`shapeSweep` and `hitSweep` hold both sizes fixed and vary what the model cannot see: how
+many policies hold the pairs, and how much of the list hits. They therefore look like
+repeated measurements of one point, and a model that cannot tell those inputs apart shows
+it as vertical spread there. For `keepPolicies` the spread is a factor of 1.23 across the
+ten points at a 10000-element list against a 10000-pair `Value`, because building the
+`Set` dominates and the shape of the `Value` barely enters.
+
+`listOnly` hands the builtin an empty `Value`, which it returns from before it looks at
+the list. Those points are the control on the rig: had criterion floated the list work out
+of the measured loop, a list against an empty `Value` would cost what it costs against a
+full one. A 40000-element list against an empty `Value` costs 91 microseconds, and 38564
+elements against an 87-pair `Value` cost 22361. `models.R` drops them from the fit, since
+nothing there is proportional to either size.
+-}
+
+keepPoliciesBenchmark :: StdGen -> Benchmark
+keepPoliciesBenchmark gen =
+  createTwoTermBuiltinBenchElementwise KeepPolicies [] (runBenchGen gen keepPoliciesArgs)
+
+-- | See Note [Benchmarking keepPolicies]
+keepPoliciesArgs :: forall g m. StatefulGen g m => g -> m [([ByteString], Value)]
+keepPoliciesArgs g = do
+  -- Both sizes drawn independently on a log scale, each point the costliest of its sizes.
+  randomSizes <- replicateM 100 do
+    totalSize <- logUniform g maxValueTotalSize
+    listLen <- logUniform g maxValueTotalSize
+    worstCase totalSize listLen
+  -- One `Value`, growing list.
+  listSweep <- traverse (worstCase 1000) [1000, 3000, 10_000, maxValueTotalSize]
+  -- One total size, policy counts from one to one per pair.  Run against a short list as
+  -- well as a long one, because a long list swamps the `Value` term.
+  shapeSweep <-
+    sequence
+      [ reaching numPolicies (10_000 `div` numPolicies) listLen
+      | listLen <- [100, 10_000]
+      , numPolicies <- [1, 10, 100, 1000, 10_000]
+      ]
+  -- One pair of sizes, list hits from none to all.
+  hitSweep <- traverse (hitting 10_000) [0, 2500, 5000, 7500, 10_000]
+  -- The list on its own, including the empty list.
+  listOnly <-
+    traverse
+      (\listLen -> (,Value.empty) <$> paddedList [] listLen)
+      [0, 10, 100, 1000, 10_000, maxValueTotalSize]
+  -- Lovelace: the empty bytestring is a valid policy id, and `policySet` keeps it.
+  lovelace <- do
+    tokenName <- generateKey g
+    pure ([BS.empty], buildValue [emptyKey] [tokenName] (mkQuantity 1))
+  pure $ randomSizes <> listSweep <> shapeSweep <> hitSweep <> listOnly <> [lovelace]
+  where
+    -- The costliest input of its sizes: the pairs packed into as few policies as the list
+    -- covers, so that the list names every one of them.
+    worstCase :: Int -> Int -> m ([ByteString], Value)
+    worstCase totalSize listLen =
+      let numPolicies = max 1 (min listLen totalSize)
+       in reaching numPolicies (max 1 (totalSize `div` numPolicies)) listLen
+
+    -- A `Value` of the given shape, and a list of the given length that names as much of
+    -- it as it can.
+    reaching :: Int -> Int -> Int -> m ([ByteString], Value)
+    reaching numPolicies numTokens listLen = do
+      (policyIds, value) <- generateValueWithPolicyIds g numPolicies numTokens
+      ps <- paddedList policyIds listLen
+      pure (ps, value)
+
+    -- Every policy id the list has room for, padded to the given length with ids that are
+    -- absent from the `Value`.
+    paddedList :: [K] -> Int -> m [ByteString]
+    paddedList policyIds listLen = do
+      let hits = take listLen policyIds
+      misses <- replicateM (listLen - length hits) (generateKey g)
+      pure $ Value.unK <$> (hits <> misses)
+
+    -- A flat `Value` of @totalSize@ pairs, and a list of the same length hitting @numHits@
+    -- of its policies.
+    hitting :: Int -> Int -> m ([ByteString], Value)
+    hitting totalSize numHits = do
+      (policyIds, value) <- generateValueWithPolicyIds g totalSize 1
+      ps <- paddedList (take numHits policyIds) totalSize
+      pure (ps, value)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
+
+{-| 40k pairs: safely above the largest `Value` a script can build within the CPU budget
+(roughly 14k `insertCoin` applications). -}
+maxValueTotalSize :: Int
+maxValueTotalSize = Value.valueDataMaxSize
+
+{-| A `Value` of @numPolicies@ policies holding @numTokens@ tokens each, together with its
+policy ids. -}
+generateValueWithPolicyIds :: StatefulGen g m => g -> Int -> Int -> m ([K], Value)
+generateValueWithPolicyIds g numPolicies numTokens = do
+  policyIds <- replicateM numPolicies (generateKey g)
+  tokenNames <- replicateM numTokens (generateKey g)
+  pure (policyIds, buildValue policyIds tokenNames (mkQuantity 1))
 
 {-| Build Value from given policy IDs, token names and and a single quantity
 for each (policy ID, token name) pair.
@@ -544,6 +648,20 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
 
 ----------------------------------------------------------------------------------------------------
 -- Other Generators --------------------------------------------------------------------------------
+
+{-| Sample @[1, hi]@ uniformly on a log scale, so that every decade gets a similar number of
+points. Sampling the count itself would put almost every point above 1000, leaving the sizes
+that occur on chain unmeasured. -}
+logUniform :: StatefulGen g m => g -> Int -> m Int
+logUniform g hi = do
+  u <- uniformRM (0 :: Double, log (fromIntegral hi)) g
+  pure $ min hi (max 1 (round (exp u)))
+
+-- | The policy id of lovelace.
+emptyKey :: K
+emptyKey = case Value.k BS.empty of
+  Just key -> key
+  Nothing -> error "Internal error: the empty bytestring should always be a valid key"
 
 {-| Generate a worst-case key for benchmarking ByteString comparisons.
 

@@ -431,6 +431,7 @@ unitCostBuiltinCostModel =
       paramMultiIndexArray = unitCostTwoArguments
     , paramAssetCount = unitCostOneArgument
     , paramPolicies = unitCostOneArgument
+    , paramKeepPolicies = unitCostTwoArguments
     }
 
 unitCekParameters
