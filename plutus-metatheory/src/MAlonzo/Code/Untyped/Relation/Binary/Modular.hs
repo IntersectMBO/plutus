@@ -2008,7 +2008,7 @@ du_compatCon'63'_884 v0 v1
                                                         MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
                                            MAlonzo.Code.Untyped.C_con_28 v8
                                              -> let v9
-                                                      = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_48
+                                                      = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_20
                                                           (coe v3) (coe v8) in
                                                 coe
                                                   (case coe v9 of
@@ -2151,7 +2151,7 @@ du_compatCon'63'_884 v0 v1
                                                                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
                                                                     MAlonzo.Code.Untyped.C_con_28 v14
                                                                       -> let v15
-                                                                               = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_48
+                                                                               = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_20
                                                                                    (coe v3)
                                                                                    (coe v14) in
                                                                          coe
@@ -2453,7 +2453,7 @@ du_compatBuiltin'63'_938 v0 v1
                                                         MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26))
                                            MAlonzo.Code.Untyped.C_builtin_44 v8
                                              -> let v9
-                                                      = MAlonzo.Code.Builtin.d_decBuiltin_456
+                                                      = MAlonzo.Code.Builtin.d_decBuiltin_468
                                                           (coe v3) (coe v8) in
                                                 coe
                                                   (case coe v9 of
@@ -2584,7 +2584,7 @@ du_compatBuiltin'63'_938 v0 v1
                                                                               MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
                                                                     MAlonzo.Code.Untyped.C_builtin_44 v14
                                                                       -> let v15
-                                                                               = MAlonzo.Code.Builtin.d_decBuiltin_456
+                                                                               = MAlonzo.Code.Builtin.d_decBuiltin_468
                                                                                    (coe v3)
                                                                                    (coe v14) in
                                                                          coe

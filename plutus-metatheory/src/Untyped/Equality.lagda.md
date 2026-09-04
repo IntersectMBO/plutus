@@ -37,16 +37,15 @@ import Data.Unit.Properties using (_≟_)
 open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error)
 import Relation.Unary as Unary using (Decidable)
 import Relation.Binary.Definitions as Binary using (Decidable)
-open import Relation.Nullary using (Dec; yes; no; ¬_)
-open import Relation.Nullary.Decidable.Core using (isYes)
+open import Relation.Nullary using (Dec; yes; no; ¬_; map′)
 open import Data.Product using (_,_)
 open import Relation.Nullary using (_×-dec_)
 open import Utils as U using (Either; _×_; _,_)
 import Data.List.Properties as LP using (≡-dec)
 open import Builtin.Constant.AtomicType using (decAtomicTyCon)
-open import Agda.Builtin.TrustMe using (primTrustMe)
-open import Agda.Builtin.String using (String; primStringEquality)
+open import Agda.Builtin.String using (String)
 open import Agda.Builtin.Unit using (⊤)
+
 ```
 Instances of `DecEq` will provide a Decidable Equality procedure for their type.
 
@@ -59,28 +58,6 @@ open import Agda.Builtin.Bool using (Bool)
 open import Algorithmic using (⟦_⟧)
 open import Type using (Ctx⋆)
 open import Type.BetaNormal using (_⊢Nf⋆_)
-
-{-# FOREIGN GHC data HasEq a = Eq a => HasEq #-}
-postulate
-  HasEq : Set → Set
-{-# COMPILE GHC HasEq = type HasEq #-}
-
-postulate
-    hasEq-TyTag : (t : TyTag) → HasEq ⟦ t ⟧tag
-
-record HsEq (A : Set) : Set where
-  field
-    hsEq : A → A → Bool
-open HsEq {{...}} public
-
--- This uses the same mechanism as eqBytestring.
--- This is only used in the decidable equality function which also
--- uses `refl` to unify the two sides and defacto confirms or refutes
--- structural equality.
-eqArray : {A : Set} → {{HE : HasEq A}} → U.Array A → U.Array A → Bool
-eqArray _ _ = Bool.true
-{-# COMPILE GHC eqArray = \ _ HasEq -> (==) #-}
-
 ```
 Several of the decision procedures depend on other `DecEq` instances, so it is useful
 to give them types and bind them to instance declarations first and then use them in the
@@ -193,134 +170,37 @@ instance
 ```
 # Decidable Equality of Builtins
 
-We need to decide equality between our builtin types. This is tricky because
-this needs to be done at both the Agda type-checking time and at runtime, while
-each stage has a completely different representation of the types.
+We need to decide equality between our builtin types. For the types implemented in
+Agda this is unproblematic. The postulated types (`ByteString`, the BLS12-381
+element types, and `Value`) are handled by the scheme described in "Equality of
+postulated types" in `Utils`, which injects Haskell's `(==)` at runtime while
+remaining sound at type-checking time. `Array` (also postulated) is different:
+Haskell's `(==)` on arrays needs an `Eq` dictionary for the elements, which Agda
+cannot supply. Instead we convert both arrays to lists with `U.HSarrayToList` and
+compare those structurally with the decision procedure for the element type (via
+the helper `decEqUList-⟦_⟧tag`, which is mutually recursive with `decEq-⟦_⟧tag` so
+that the termination checker can track the recursion into the elements); the
+`yes` proof is transported back along the (postulated, true) injectivity of the
+conversion.
 
-## Type-checking time vs runtime
-
-In Agda, the types are postulated, which means that at type-checking time we
-may only rely on Agda's unification algorithm to decide equality. This can be
-done by matching on `refl`, which checks whether the left hand side and the
-right hand side of `≡` are definitionally equal. However, this does not translate
-to the runtime stage, since at runtime the values which the `≡` type depends on
-are erased. Therefore, we need to somehow "inject" a Haskell equality function which
-triggers only at the runtime stage.
-
-## Why not just implement the builtin types in Agda?
-
-The problem is that Agda's FFI only allows non-postulated Agda types which are
-representationally equivalent to the Haskell types they compile to. If we were to
-implement the types in Agda, they would need to be equivalent to the highly optimized
-and complicated Haskell types, and this is not feasible.
+Why not just implement the builtin types in Agda? The problem is that Agda's FFI
+only allows non-postulated Agda types which are representationally equivalent to
+the Haskell types they compile to. If we were to implement the types in Agda, they
+would need to be equivalent to the highly optimized and complicated Haskell types,
+and this is not feasible.
 
 We also cannot de-couple the Agda types from the Haskell types because the Agda
 specification of UPLC is also used in conformance testing.
 
-## Using the quirks of the FFI to our advantage
-
-Agda's FFI machinery allows us to define functions with different runtime
-and type-checking definitions (see the warning at https://agda.readthedocs.io/en/v2.7.0.1/language/foreign-function-interface.html#using-haskell-functions-from-agda).
-We are still constrained by the type, which needs to agree between the two
-stages, so we can't just define the two implementations arbitrarily.
-
-The simplest solution is to provide separate type-checking time and runtime definitions
-for the instances of `HsEq`. During type-checking, the functions are essentially no-ops
-by always returning `true`, while at runtime they defer to the Haskell implementation of
-equality for each type. At type-checking time, we rely on matching on `refl` to defer to
-Agda's unification algorithm, while at runtime, the matching on `refl` becomes a no-op.
-
 ```
-
-fromDec : {A : Set} → {{DE : DecEq A}} → HsEq A
-fromDec = record { hsEq = λ x₁ x₂ → isYes (x₁ ≟ x₂) }
-
-instance
-  HsEqBytestring : HsEq U.ByteString
-  HsEqBytestring = record { hsEq = U.eqByteString }
-  HsEqArray : {A : Set} {{HE : HasEq A}} → HsEq (U.Array A)
-  HsEqArray {{HE = HE}} = record { hsEq = eqArray {{HE}}}
-  HsEqList : {A : Set} {{DE : DecEq A}} → HsEq (U.List A)
-  HsEqList = fromDec
-  HsEqPair : {A B : Set} {{DE-A : DecEq A}} {{DE-B : DecEq B}} → HsEq (A × B)
-  HsEqPair = fromDec
-  HsEqBlsG1 : HsEq U.Bls12-381-G1-Element
-  HsEqBlsG1 = record { hsEq = U.eqBls12-381-G1-Element }
-  HsEqBlsG2 : HsEq U.Bls12-381-G2-Element
-  HsEqBlsG2 = record { hsEq = U.eqBls12-381-G2-Element }
-  HsEqBlsMlResult : HsEq U.Bls12-381-MlResult
-  HsEqBlsMlResult = record { hsEq = U.eqBls12-381-MlResult }
-  HsEqDATA : HsEq U.DATA
-  HsEqDATA = record { hsEq = U.eqDATA }
-  HsEqValue : HsEq U.Value
-  HsEqValue = record { hsEq = U.eqValue }
-
-HsEq-⟦_⟧tag : (t : TyTag) → HsEq ⟦ t ⟧tag
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = fromDec
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = HsEqBytestring
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = fromDec
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = fromDec
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = fromDec
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = HsEqDATA
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = HsEqValue
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = HsEqBlsG1
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = HsEqBlsG2
-HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = HsEqBlsMlResult
-HsEq-⟦ _⊢♯.list t ⟧tag = HsEqList {A = ⟦ t ⟧tag} {{DE = DecEq-⟦ t ⟧tag }}
-HsEq-⟦ _⊢♯.array t ⟧tag = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}}
-HsEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag = HsEqPair {A = ⟦ t₁ ⟧tag} {B = ⟦ t₂ ⟧tag} {{DE-A = DecEq-⟦ t₁ ⟧tag}} {{DE-B = DecEq-⟦ t₂ ⟧tag}}
-```
-
-## An example
-
-```
-private postulate
-  magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
-
-builtinEq : {A : Set} {{HS : HsEq A}} → Binary.Decidable {A = A} _≡_
-builtinEq {A} x y with hsEq x y
-... | false = no magicNeg
-... | true with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
-...             | refl = yes refl
-```
-
-Let's look at the behavior of `builtinEq (mkByteString "foo") (mkByteString "foo")` vs
-`builtinEq (mkByteString "foo") (mkByteString "bar")`.
-
-
-At type-checking time, if the two bytestrings are definitionally equal unification will succeed,
-and the function will return `yes refl`.
-
-```
-_ : isYes (builtinEq (U.mkByteString "") (U.mkByteString "")) ≡ true
-_ = refl
-```
-
-There is no way to return `no` because there is no way to prove that the two
-terms are not equal without extra information about the `ByteString` type. But
-this is enough to make Agda not succesfully type-check the program, since it
-gets stuck while trying to normalize `primTrustMe`:
-
-```
--- The following does not type check because reduction gets stuck
--- _ : isNo (builtinEq (U.mkByteString "foo") (U.mkByteString "bar")) ≡ false
--- _ = refl
-```
-
-At runtime, `hsEq` will defer to the Haskell implementation of bytestring equality, and return
-the correct result based on that. In the `yes` case, matching on `refl` will be a no-op,
-while in the `no` case, we return a phony negative proof. This is safe to do because we're
-at runtime and the proof gets erased anyway.
-
-```
--- This is split out because the HTML generator can't handle double nested instance arguments!
-hsEqArrayHelper : (t : TyTag) → HsEq (U.Array ⟦ t ⟧tag)
-hsEqArrayHelper t = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}}
-
-decEq-Array-⟦_⟧tag :
-                     (t : TyTag)
-                     → DecidableEquality ⟦ _⊢♯.array t ⟧tag
-decEq-Array-⟦ t ⟧tag = builtinEq {A = U.Array ⟦ t ⟧tag} {{HS = hsEqArrayHelper t}}
+decEqUList-⟦_⟧tag : (t : TyTag) → DecidableEquality (U.List ⟦ t ⟧tag)
+decEqUList-⟦ t ⟧tag U.[] U.[] = yes refl
+decEqUList-⟦ t ⟧tag U.[] (x' U.∷ l') = no λ ()
+decEqUList-⟦ t ⟧tag (x U.∷ l) U.[] = no (λ ())
+decEqUList-⟦ t ⟧tag (x U.∷ l) (x' U.∷ l') =
+  map′ (λ { (p , q) → cong₂ U._∷_ p q })
+       (λ { refl → refl , refl })
+       (decEq-⟦ t ⟧tag x x' ×-dec decEqUList-⟦ t ⟧tag l l')
 ```
 # Decidable Equality for TmCon
 
@@ -330,24 +210,25 @@ type tag and semantics equality decision procedures.
 ```
 
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = Data.Integer.Properties._≟_
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = U.eqByteString?
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = Data.String.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = Data.Unit.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = Data.Bool.Properties._≟_
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = builtinEq
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = builtinEq
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = builtinEq
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = builtinEq
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = U.eqDATA?
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aValue ⟧tag = U.eqValue?
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = U.eqBls12-381-G1-Element?
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = U.eqBls12-381-G2-Element?
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = U.eqBls12-381-MlResult?
 decEq-⟦ _⊢♯.list t ⟧tag U.[] U.[] = yes refl
 decEq-⟦ _⊢♯.list t ⟧tag U.[] (x U.∷ v₁) = no λ ()
 decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) U.[] = no (λ ())
-decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) with decEq-⟦ t ⟧tag x x₁
-... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
-... | yes p with decEq-⟦ _⊢♯.list t ⟧tag v v₁
-...                  | yes q = yes (cong₂ U._∷_ p q)
-...                  | no ¬v=v₁ = no λ { refl → ¬v=v₁ refl }
-decEq-⟦ _⊢♯.array t ⟧tag = decEq-Array-⟦ t ⟧tag
+decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) =
+  map′ (λ { (p , q) → cong₂ U._∷_ p q })
+       (λ { refl → refl , refl })
+       (decEq-⟦ t ⟧tag x x₁ ×-dec decEq-⟦ _⊢♯.list t ⟧tag v v₁)
+decEq-⟦ _⊢♯.array t ⟧tag a a' =
+  map′ U.HSarrayToList-injective (cong U.HSarrayToList)
+       (decEqUList-⟦ t ⟧tag (U.HSarrayToList a) (U.HSarrayToList a'))
 decEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag (proj₁ U., proj₂) (proj₃ U., proj₄) with (decEq-⟦ t₁ ⟧tag proj₁ proj₃) ×-dec (decEq-⟦ t₂ ⟧tag proj₂ proj₄)
 ... | yes ( p , q ) = yes (cong₂ U._,_ p q)
 ... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
