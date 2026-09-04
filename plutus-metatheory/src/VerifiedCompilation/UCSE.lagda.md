@@ -3,7 +3,7 @@ title: VerifiedCompilation.UCSE
 layout: page
 ---
 
-# Common Subexpression Elimination Translation Phase
+# CSE and Hoist Polymorphic Builtins
 ```
 module VerifiedCompilation.UCSE where
 
@@ -13,18 +13,28 @@ module VerifiedCompilation.UCSE where
 ```
 open import VerifiedCompilation.UntypedViews
 open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation)
+open import VerifiedCompilation.UntypedViews
 import Relation.Binary as Binary using (Decidable)
-open import Relation.Nullary using (Dec; yes; no; ¬_)
-open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; Let_In_)
+open import Relation.Nullary using (Dec; yes; no; ¬_; from-yes)
+open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; Let_In_; let₂)
+open import Builtin
+open import Untyped.RenamingSubstitution
+open import Untyped.Strictness
+open import Untyped.Purity using (Pure; isPure?)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
-open import Data.Nat using (ℕ; suc)
-open import Data.Fin using (Fin; suc; zero)
+open import Data.Nat using (ℕ; suc; _+_)
+open import Data.Fin using (Fin; suc; zero; #_)
 open import Untyped.RenamingSubstitution using (_[_])
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; DecidableCE; CseT; isProof?)
 open import Data.Bool.Base using (Bool; false; true)
 open import Data.List hiding ([_])
-open import Untyped.Strictness
+open import Data.Product using (_×_; _,_)
+open import Relation.Nullary using (_×-dec_)
+open import Data.Unit using (⊤)
+open import Data.Empty using (⊥)
+open import Data.Product using (∃ ; _,_)
+open import Untyped.Equality using (_≟_)
 
 ```
 ## Description
@@ -84,6 +94,118 @@ isUCSE? ast₁ ast₂ with (Let? ⋯ In? ⋯) ast₂
 isUntypedCSE? = translation? CseT isUCSE?
 ```
 
+## Hoisting polymorphic built-ins
+
+This pass differs slightly from CSE in two ways:
+
+1. it produces multi-lets, i.e.
+
+   (λ (λ (...)) · M₀ · ... · Mₙ
+
+2. all produced lets appear at the very top of the post-term.
+
+3. Only partially applied built-ins are lifted (always pure)
+
+
+### Application contexts
+
+For describing the nested let structure we need to keep track of an application
+context, represented as a list of terms. We sometimes need to apply a function
+to those arguments.
+
+```
+applyN : ∀ {X} → X ⊢ → List (X ⊢) → X ⊢
+applyN M [] = M
+applyN M (N ∷ Ns) = applyN (M · N) Ns
+```
+
+The relation keeps a list of function arguments as extra index, similar to the
+zipper of the inliner relation:
+
+```
+data HoistPoly {X : ℕ} : List (X ⊢) → X ⊢ → X ⊢ → Set where
+  let-·
+    : {Ls : List (X ⊢)}
+    → {M N L : X ⊢}
+    → HoistPoly (L ∷ Ls) M N
+    ------------------------
+    → HoistPoly Ls M (N · L)
+
+  let-ƛ
+    : {Ls : List (X ⊢)}
+    → {M L : X ⊢}
+    → {N : suc X ⊢}
+    → Pure L
+    → HoistPoly Ls M (N [ L ])
+    ----------------------------
+    → HoistPoly (L ∷ Ls) M (ƛ N)
+
+  refl
+    : {Ls : List (X ⊢)}
+    → {M N : X ⊢}
+    → M ≡ applyN N Ls
+    → HoistPoly Ls M N
+```
+
+The first two rules traverse the structure of nested lets, by collecting the
+arguments and traversing the corresponding lambdas. At each lambda, we
+substitute the bound term. Once we traversed the lets, we simply require terms
+to be equal.
+
+### Decision procedure
+
+Termination argument: we traverse a finite amount of lets on the top-level this
+would be easier to prove if we keep a substitution environment in the relation
+instead of directly susbtituting having a rule for the variable case that looks
+in that environment. That way, size(M) + size(N) decreases in every rule.
+
+```
+{-# TERMINATING #-}
+dec-hoist : {X : ℕ} (Ls : List (X ⊢)) (M N : X ⊢) → Dec (HoistPoly Ls M N)
+dec-hoist Ls M N
+  with (ƛ? ⋯) N ×-dec (⋯ ∷? ⋯) Ls
+dec-hoist _ M _ | yes (ƛ! (match! N) , (match! L) ∷! (match! Ls) )
+  with isPure? L ×-dec dec-hoist Ls M (N [ L ])
+... | yes (pure , hoist) = yes (let-ƛ pure hoist)
+... | no ¬pure-hoist
+  with M ≟ applyN (ƛ N) (L ∷ Ls)
+... | yes refl = yes (refl refl)
+... | no ¬refl = no λ { (let-ƛ pure M~N[L]) → ¬pure-hoist (pure , M~N[L])
+                      ; (refl refl) → ¬refl refl
+                      }
+dec-hoist Ls M N | no ¬ƛ∷ 
+  with (⋯ ·? ⋯) N
+... | yes (match! N ·! match! L)
+  with dec-hoist (L ∷ Ls) M N
+... | yes M~N = yes (let-· M~N)
+... | no ¬M~N
+  with M ≟ applyN (N · L) Ls
+... | yes refl = yes (refl refl)
+... | no ¬refl = no λ { (let-· M~N) → ¬M~N M~N
+                      ; (refl refl) → ¬refl refl}
+
+dec-hoist Ls M N | no ¬ƛ∷ | no ¬·
+  with M ≟ (applyN N Ls)
+... | yes refl = yes (refl refl)
+
+... | no ¬refl = no λ { (let-ƛ pure M~N[L]) → ¬ƛ∷ inhabitant
+                      ; (let-· _) → ¬· inhabitant
+                      ; (refl refl) → ¬refl refl
+                      }
+
+```
+
+### Counting optimization sites
+
+The amount of expressions that appear hoisted in the post-term:
+
+```
+polyNumSites : ∀ {X} {Ls : List (X ⊢)} {M N : X ⊢} → HoistPoly Ls M N → ℕ
+polyNumSites (let-· p) = 1 + polyNumSites p
+polyNumSites (let-ƛ x p) = 0
+polyNumSites (refl x) = 0
+```
+
 ## Tests
 
 A few unit tests which check that the decision procedure works as expected.
@@ -92,31 +214,73 @@ The third test shows that the strictness condition catches an unsound transforma
 
 ```
 
-M₁ : 1 ⊢
-M₁ = constr 0 [] · constr 0 []
+private
 
-N₁ : 1 ⊢
-N₁ = Let constr 0 [] In ` zero · ` zero
+  M₁ : 1 ⊢
+  M₁ = constr 0 [] · constr 0 []
 
-_ : isProof? (isUntypedCSE? M₁ N₁) ≡ true
-_ = refl
+  N₁ : 1 ⊢
+  N₁ = Let constr 0 [] In ` zero · ` zero
 
-M₂ : 1 ⊢
-M₂ = Let constr 0 [] In ` zero
+  _ : isProof? (isUntypedCSE? M₁ N₁) ≡ true
+  _ = refl
 
-N₂ : 1 ⊢
-N₂ = Let constr 0 [] In ` zero
+  M₂ : 1 ⊢
+  M₂ = Let constr 0 [] In ` zero
 
-_ : isProof? (isUntypedCSE? M₂ N₂) ≡ true
-_ = refl
+  N₂ : 1 ⊢
+  N₂ = Let constr 0 [] In ` zero
 
-M₃ : 1 ⊢
-M₃ = constr 0 []
+  _ : isProof? (isUntypedCSE? M₂ N₂) ≡ true
+  _ = refl
 
-N₃ : 1 ⊢
-N₃ = Let error In constr 0 []
+  M₃ : 1 ⊢
+  M₃ = constr 0 []
 
-_ : isProof? (isUntypedCSE? M₃ N₃) ≡ false
-_ = refl
+  N₃ : 1 ⊢
+  N₃ = Let error In constr 0 []
 
+  _ : isProof? (isUntypedCSE? M₃ N₃) ≡ false
+  _ = refl
+```
+
+Tests for HoistPoly
+
+```
+private
+  pre : 2 ⊢
+  pre = force (builtin ifThenElse)
+        · (` (# 0))
+        · (constr 0 [])
+        · (force (builtin trace)
+           · (` (# 1))
+           · (constr 1 [])
+          )
+
+  post : 2 ⊢
+  post = let₂
+        (force (builtin ifThenElse))
+        (force (builtin trace))
+        ( ` (# 1) -- ifThenElse
+        · ` (# 2)
+        · constr 0 []
+        · ( ` (# 0) -- trace
+          · ` (# 3)
+          · constr 1 []
+          )
+        )
+
+  open Pure
+  pure₁ : Pure {2} (force (builtin ifThenElse))
+  pure₁ = unsat-builtin₀₋₁ refl builtin
+  pure₂ : Pure {2} (force (builtin trace))
+  pure₂ = unsat-builtin₀₋₁ refl builtin
+
+  -- manual derivation
+  pre-post : HoistPoly [] pre post
+  pre-post = let-· (let-· (let-ƛ pure₁ (let-ƛ pure₂ (refl refl))))
+
+  -- decision procedure
+  pre-post' : HoistPoly [] pre post
+  pre-post' = from-yes (dec-hoist [] pre post)
 ```
