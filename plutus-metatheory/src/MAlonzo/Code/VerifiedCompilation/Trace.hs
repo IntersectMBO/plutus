@@ -209,61 +209,78 @@ cover_InlineHints_54 x
       Hints.InlError -> ()
       Hints.InlConstr _ -> ()
       Hints.InlCase _ _ -> ()
+-- VerifiedCompilation.Trace.InlineSeq
+d_InlineSeq_82 a0 = ()
+type T_InlineSeq_82 a0 = Hints.InlineSeq a0
+pattern C__'8593''7511'_86 a0 = Hints.InlOne a0
+pattern C__'10814''91'_'93'__88 a0 a1 a2 = Hints.InlSeq a0 a1 a2
+check__'8593''7511'_86 ::
+  forall xA. T_InlineHints_54 -> T_InlineSeq_82 xA
+check__'8593''7511'_86 = Hints.InlOne
+check__'10814''91'_'93'__88 ::
+  forall xA.
+    T_InlineSeq_82 xA -> xA -> T_InlineSeq_82 xA -> T_InlineSeq_82 xA
+check__'10814''91'_'93'__88 = Hints.InlSeq
+cover_InlineSeq_82 :: Hints.InlineSeq a1 -> ()
+cover_InlineSeq_82 x
+  = case x of
+      Hints.InlOne _ -> ()
+      Hints.InlSeq _ _ _ -> ()
 -- VerifiedCompilation.Trace.Hints
-d_Hints_80 = ()
-type T_Hints_80 = Hints.Hints
-pattern C_inline_82 a0 = Hints.Inline a0
-pattern C_none_84 = Hints.NoHints
-check_inline_82 :: T_InlineHints_54 -> T_Hints_80
-check_inline_82 = Hints.Inline
-check_none_84 :: T_Hints_80
-check_none_84 = Hints.NoHints
-cover_Hints_80 :: Hints.Hints -> ()
-cover_Hints_80 x
+d_Hints_92 a0 = ()
+type T_Hints_92 a0 = Hints.Hints a0
+pattern C_inline_96 a0 = Hints.Inline a0
+pattern C_none_98 = Hints.NoHints
+check_inline_96 :: forall xA. T_InlineSeq_82 xA -> T_Hints_92 xA
+check_inline_96 = Hints.Inline
+check_none_98 :: forall xA. T_Hints_92 xA
+check_none_98 = Hints.NoHints
+cover_Hints_92 :: Hints.Hints a1 -> ()
+cover_Hints_92 x
   = case x of
       Hints.Inline _ -> ()
       Hints.NoHints -> ()
 -- VerifiedCompilation.Trace.NonEmptySep
-d_NonEmptySep_90 a0 a1 = ()
-type T_NonEmptySep_90 a0 a1 = NES.NonEmptySep a0 a1
-pattern C_cons_96 a0 a1 a2 = NES.Cons a0 a1 a2
-pattern C_singleton_98 a0 = NES.Singleton a0
-check_cons_96 ::
+d_NonEmptySep_104 a0 a1 = ()
+type T_NonEmptySep_104 a0 a1 = NES.NonEmptySep a0 a1
+pattern C_cons_110 a0 a1 a2 = NES.Cons a0 a1 a2
+pattern C_singleton_112 a0 = NES.Singleton a0
+check_cons_110 ::
   forall xS.
     forall xA.
-      xA -> xS -> T_NonEmptySep_90 xS xA -> T_NonEmptySep_90 xS xA
-check_cons_96 = NES.Cons
-check_singleton_98 ::
-  forall xS. forall xA. xA -> T_NonEmptySep_90 xS xA
-check_singleton_98 = NES.Singleton
-cover_NonEmptySep_90 :: NES.NonEmptySep a1 a2 -> ()
-cover_NonEmptySep_90 x
+      xA -> xS -> T_NonEmptySep_104 xS xA -> T_NonEmptySep_104 xS xA
+check_cons_110 = NES.Cons
+check_singleton_112 ::
+  forall xS. forall xA. xA -> T_NonEmptySep_104 xS xA
+check_singleton_112 = NES.Singleton
+cover_NonEmptySep_104 :: NES.NonEmptySep a1 a2 -> ()
+cover_NonEmptySep_104 x
   = case x of
       NES.Cons _ _ _ -> ()
       NES.Singleton _ -> ()
 -- VerifiedCompilation.Trace.head
-d_head_112 :: T_NonEmptySep_90 AgdaAny AgdaAny -> AgdaAny
-d_head_112 v0
+d_head_126 :: T_NonEmptySep_104 AgdaAny AgdaAny -> AgdaAny
+d_head_126 v0
   = case coe v0 of
-      C_cons_96 v1 v2 v3 -> coe v1
-      C_singleton_98 v1 -> coe v1
+      C_cons_110 v1 v2 v3 -> coe v1
+      C_singleton_112 v1 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Trace.Trace
-d_Trace_118 :: () -> ()
-d_Trace_118 = erased
+d_Trace_132 :: () -> ()
+d_Trace_132 = erased
 -- VerifiedCompilation.Trace.EvalResult
-d_EvalResult_122 = ()
-type T_EvalResult_122 = EvalResult
-pattern C_success_124 a0 a1 = EvalSuccess a0 a1
-pattern C_failure_126 a0 a1 a2 = EvalFailure a0 a1 a2
-check_success_124 :: Integer -> Integer -> T_EvalResult_122
-check_success_124 = EvalSuccess
-check_failure_126 ::
+d_EvalResult_136 = ()
+type T_EvalResult_136 = EvalResult
+pattern C_success_138 a0 a1 = EvalSuccess a0 a1
+pattern C_failure_140 a0 a1 a2 = EvalFailure a0 a1 a2
+check_success_138 :: Integer -> Integer -> T_EvalResult_136
+check_success_138 = EvalSuccess
+check_failure_140 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
-  Integer -> Integer -> T_EvalResult_122
-check_failure_126 = EvalFailure
-cover_EvalResult_122 :: EvalResult -> ()
-cover_EvalResult_122 x
+  Integer -> Integer -> T_EvalResult_136
+check_failure_140 = EvalFailure
+cover_EvalResult_136 :: EvalResult -> ()
+cover_EvalResult_136 x
   = case x of
       EvalSuccess _ _ -> ()
       EvalFailure _ _ _ -> ()

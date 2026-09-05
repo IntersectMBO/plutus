@@ -80,10 +80,16 @@ instance AgdaUnparse UncertifiedOptStage where
   agdaUnparse ConstantFolding = "constantFoldingT"
   agdaUnparse PolyBuiltin = "polyBuiltinT"
 
-instance AgdaUnparse Hints.Hints where
+instance AgdaUnparse term => AgdaUnparse (Hints.Hints term) where
   agdaUnparse = \case
     Hints.NoHints -> "none"
     Hints.Inline x -> parens ("inline" <+> agdaUnparse x)
+
+instance AgdaUnparse term => AgdaUnparse (Hints.InlineSeq term) where
+  agdaUnparse = \case
+    Hints.InlOne h -> parens (agdaUnparse h <+> "↑ᵗ")
+    Hints.InlSeq a n b ->
+      parens (agdaUnparse a <+> "⨾[" <+> agdaUnparse n <+> "]" <+> agdaUnparse b)
 
 instance AgdaUnparse Hints.Inline where
   agdaUnparse = \case

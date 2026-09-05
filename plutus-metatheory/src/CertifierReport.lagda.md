@@ -119,12 +119,15 @@ numSitesInline (case r rs) = numSitesInline r + numSitesInlineᵖʷ rs
 numSitesInlineᵖʷ Pointwise.[] = 0
 numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖʷ xs
 
+numSitesInline⁺ : {M N : 0 ⊢} → Inline⁺ M N → ℕ
+numSitesInline⁺ (r ↑ᵗ) = numSitesInline r
+numSitesInline⁺ (r ⨾ s) = numSitesInline⁺ r + numSitesInline⁺ s
 
 numSites : {M N : 0 ⊢} (tag : CertifiedOptTag) → RelationOf (inj₂ tag) M N → ℕ
 numSites forceDelayT p = numSites′ p
 numSites floatDelayT p = numSites′ p
 numSites cseT p = numSites′ p
-numSites inlineT p = numSitesInline p
+numSites inlineT p = numSitesInline⁺ p
 numSites forceCaseDelayT p = numSites′ p
 numSites applyToCaseT p = numSites′ p
 numSites {M = M} caseReduceT p = numSitesCaseReduce (CR.sound {M = M} p)
