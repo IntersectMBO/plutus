@@ -28,6 +28,7 @@ module UntypedPlutusCore.Transform.Inline
     -- * Exported for testing
   , InlineM
   , S (..)
+  , initialState
   , Decoration (..)
   , Ann
   , InlineInfo (..)
@@ -38,11 +39,12 @@ module UntypedPlutusCore.Transform.Inline
   , effectSafe
   ) where
 
-import Control.Lens (Lens', forMOf, makeLenses, view, (%~), (&), (^.), _1)
-import Control.Monad.Extra (ifM, (&&^), (||^))
+import Control.Lens (Lens', anyOf, forMOf, makeLenses, view, (%~), (&), (.~), (^.), _1)
+import Control.Monad.Extra (ifM, when, (&&^), (||^))
 import Control.Monad.Reader (ReaderT (runReaderT))
-import Control.Monad.State (StateT, evalStateT, gets, modify')
+import Control.Monad.State (StateT, gets, modify', runStateT)
 import Data.Bifunctor (first)
+import Data.Maybe (fromMaybe)
 import Data.Vector qualified as V
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (Inline (AlwaysInline, SafeToInline), InlineHints (..))
@@ -115,6 +117,8 @@ data VarInfo name uni fun ann = VarInfo
   , _varRhsBody :: InlineTerm name uni fun ann
   {-^ The body of the RHS of the variable (i.e., RHS minus the binders).
   Using 'InlineTerm' here to ensure the body is renamed when inlined. -}
+  , _varRhsChanged :: Bool
+  -- ^ Whether the RHS was transformed by the current round of the inliner
   }
 
 makeLenses ''VarInfo
@@ -123,15 +127,24 @@ makeLenses ''VarInfo
 data S name uni fun a = S
   { _subst :: Subst name uni fun a
   , _vars :: PLC.UniqueMap TermUnique (VarInfo name uni fun a)
+  , _callsiteCounts :: PLC.UniqueMap TermUnique Int
+  -- ^ A map from bindings to how many callsites are inlined
+  , _needCheckpoint :: Bool
+  {-^ True if a checkpoint and another round is needed after the current round.
+  See Note [Checkpointing in the UPLC inliner]. -}
   }
 
 makeLenses ''S
 
-instance Semigroup (S name uni fun a) where
-  S a1 b1 <> S a2 b2 = S (a1 <> a2) (b1 <> b2)
-
-instance Monoid (S name uni fun a) where
-  mempty = S mempty mempty
+-- | The initial inliner state (per round).
+initialState :: S name uni fun a
+initialState =
+  S
+    { _subst = mempty
+    , _vars = mempty
+    , _callsiteCounts = mempty
+    , _needCheckpoint = False
+    }
 
 type ExternalConstraints name uni fun m =
   ( HasUnique name TermUnique
@@ -227,27 +240,45 @@ inline
   hints
   builtinSemanticsVariant
   t = do
-    decoratedResult <-
-      liftQuote $
-        flip evalStateT mempty $
-          runReaderT
-            (processTerm (emptyDecoration <$> t))
-            InlineInfo
-              { _iiUsages = Usages.termUsages t
-              , _iiHints = hints
-              , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
-              , _iiInlineConstants = inlineConstants
-              , _iiInlineUnconditionalGrowth = unconditionalGrowth
-              , _iiInlineCallsiteGrowth = callsiteGrowth
-              , _iiPreserveLogging = preserveLogging
-              }
-    let result = snd <$> decoratedResult
+    (certifierHints, result) <- liftQuote $ go (emptyDecoration <$> t)
     recordOptimizationWithHints
-      (CertifierHints.Inline (mkHints decoratedResult))
+      (CertifierHints.Inline certifierHints)
       t
       InlineStage
       result
     return result
+    where
+      -- Each invocation of `go` performs one round of inlining.
+      -- See Note [Checkpointing in the UPLC inliner].
+      go
+        :: Term name uni fun (Ann a)
+        -> Quote (CertifierHints.InlineSeq (Term name uni fun a), Term name uni fun a)
+      go tIn = do
+        (decorated, finalState) <-
+          flip runStateT initialState $
+            runReaderT
+              (processTerm tIn)
+              InlineInfo
+                { _iiUsages = Usages.termUsages tIn
+                , _iiHints = hints
+                , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
+                , _iiInlineConstants = inlineConstants
+                , _iiInlineUnconditionalGrowth = unconditionalGrowth
+                , _iiInlineCallsiteGrowth = callsiteGrowth
+                , _iiPreserveLogging = preserveLogging
+                }
+        let checkpoint = snd <$> decorated
+        if finalState ^. needCheckpoint
+          then do
+            (rest, result) <- go (clearDecorations decorated)
+            pure
+              ( CertifierHints.InlSeq
+                  (CertifierHints.InlOne (mkHints decorated))
+                  checkpoint
+                  rest
+              , result
+              )
+          else pure (CertifierHints.InlOne (mkHints decorated), checkpoint)
 
 -- See Note [Differences from PIR inliner] 3
 
@@ -352,6 +383,7 @@ processSingleBinding body (Def vd@(UVarDecl a n) rhs0, aa) =
             { _varBinders = binders
             , _varRhs = rhs
             , _varRhsBody = Done (dupable rhsBody)
+            , _varRhsChanged = hasDecorations rhs
             }
         pure . Right $ Def vd rhs
       Nothing -> pure (Left a)
@@ -378,19 +410,53 @@ maybeAddSubst body a n rhs0 = do
   case shouldInline hints a n of
     AlwaysInline ->
       -- if we've been told specifically, then do it right away
-      extendAndDrop (Done $ dupable rhs)
+      extendAndDrop rhs
     hint ->
       let safeToInline = hint == SafeToInline
        in ifM
             (shouldUnconditionallyInline safeToInline n rhs body)
-            (extendAndDrop (Done $ dupable rhs))
+            (extendAndDrop rhs)
             (pure $ Just rhs)
   where
     extendAndDrop
-      :: forall b
-       . InlineTerm name uni fun (Ann a)
-      -> InlineM name uni fun a (Maybe b)
-    extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
+      :: Term name uni fun (Ann a)
+      -> InlineM name uni fun a (Maybe (Term name uni fun (Ann a)))
+    extendAndDrop rhs =
+      ifM
+        (postponeUnconditional n rhs)
+        (pure $ Just rhs)
+        (modify' (extendTerm n (Done (dupable rhs))) >> pure Nothing)
+
+{-| Whether the current unconditional inlining should be postponed to the next round.
+See Note [Checkpointing in the UPLC inliner]. -}
+postponeUnconditional
+  :: forall name uni fun a
+   . InliningConstraints name uni fun
+  => name
+  -> Term name uni fun (Ann a)
+  -> InlineM name uni fun a Bool
+postponeUnconditional n rhs = do
+  usages <- view iiUsages
+  let postpone =
+        Usages.getUsageCount n usages >= 2 && hasDecorations rhs
+  -- If anything is postponed, we'll need a checkpoint after this round.
+  when postpone $ modify' (needCheckpoint .~ True)
+  pure postpone
+
+{-| Whether the current callsite inlining should be postponed to the next round.
+See Note [Checkpointing in the UPLC inliner]. -}
+postponeCallsite
+  :: forall name uni fun a
+   . InliningConstraints name uni fun
+  => name
+  -> VarInfo name uni fun (Ann a)
+  -> InlineM name uni fun a Bool
+postponeCallsite n varInfo = do
+  nInlined <- gets (fromMaybe 0 . UMap.lookupName n . (^. callsiteCounts))
+  let postpone = nInlined >= 1 && varInfo ^. varRhsChanged
+  -- If anything is postponed, we'll need a checkpoint after this round.
+  when postpone $ modify' (needCheckpoint .~ True)
+  pure postpone
 
 shouldUnconditionallyInline
   :: InliningConstraints name uni fun
@@ -646,10 +712,18 @@ inlineSaturatedApp t
               -- The RHS is always pure if it is a LamAbs,
               -- but may not be otherwise.
               rhsPure <- checkPurity rhs
-              pure $
-                if sizeIsOk && costIsOk && rhsPure
-                  then fullyApplied
-                  else t
+              if sizeIsOk && costIsOk && rhsPure
+                then
+                  ifM
+                    (postponeCallsite name varInfo)
+                    (pure t)
+                    ( do
+                        modify' $
+                          callsiteCounts %~ \m ->
+                            UMap.insertByName name (1 + fromMaybe 0 (UMap.lookupName name m)) m
+                        pure fullyApplied
+                    )
+                else pure t
   | otherwise = pure t
 
 -------------------------------------------------------------------------------
@@ -699,6 +773,15 @@ mkHints = go
           Error {} -> CertifierHints.InlError
           Constr _ _ args -> CertifierHints.InlConstr (go <$> args)
           Case _ scrut alts -> CertifierHints.InlCase (go scrut) (go <$> V.toList alts)
+
+-- | Does any node of the term carry a decoration?
+hasDecorations :: Term name uni fun (Ann a) -> Bool
+hasDecorations t =
+  not (null (getAnn t ^. decorations)) || anyOf termSubterms hasDecorations t
+
+-- | Remove the decorations of every node of the term.
+clearDecorations :: Term name uni fun (Ann a) -> Term name uni fun (Ann a)
+clearDecorations = fmap (first (const []))
 
 {- Note [Inliner's Certifier Hints]
 
@@ -761,4 +844,27 @@ description. Observe that at any point during inlining, the hints structure mirr
 the structure of the current term, except for the decorations. Therefore all we need
 is to store the decorations of each node in its `ann`. When inlining is done, we can
 construct the hints structure using these decorations.
+-}
+
+{- Note [Checkpointing in the UPLC inliner]
+
+Note [Inliner's Certifier Hints] describes how to generate hints for a single chunk
+of inlining. The certifier uses the transitive closure of the Inline relation, Inline⁺,
+to avoid exponential blowups. Correspondingly, the inliner must generate appropriate
+intermediate terms, or checkpoints.
+
+The idea is to generate a checkpoint whenever the inliner is about to inline a binding,
+whose RHS has been simplified, at two or more call sites. A direct implementation of
+this strategy, however, would be both difficult and inefficient: in particular, several
+such bindings may share the same checkpoint. We therefore use the following approach.
+
+The inliner performs multiple rounds of inlining. Whenever it is about to inline a binding
+whose RHS has been simplified at two or more call sites, it postpones that inlining until
+the next round and records that a checkpoint is required at the end of the current round.
+If a checkpoint is required, the term produced by the current round is used as the checkpoint.
+
+More specifically, for unconditional inlining, we can simply inspect the usage count of
+the variable. For callsite inlining, we maintain a map recording how many times each
+binding has been inlined. Once the inliner is about to inline a binding at a second call site,
+that inlining is postponed until the next round.
 -}

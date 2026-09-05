@@ -111,20 +111,28 @@ data InlineHints : Set where
   constr  : List InlineHints → InlineHints
   case    : InlineHints → List InlineHints → InlineHints
 
-data Hints : Set where
-  inline : InlineHints → Hints
-  none : Hints
+infixl 5 _⨾[_]_
+infix  8 _↑ᵗ
+
+data InlineSeq (A : Set) : Set where
+  _↑ᵗ    : InlineHints → InlineSeq A
+  _⨾[_]_ : InlineSeq A → A → InlineSeq A → InlineSeq A
+
+data Hints (A : Set) : Set where
+  inline : InlineSeq A → Hints A
+  none : Hints A
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Certify.Trace #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Transform.Certify.Hints as Hints #-}
 {-# COMPILE GHC InlineHints = data Hints.Inline (Hints.InlVar | Hints.InlExpand | Hints.InlLam | Hints.InlApply | Hints.InlDrop | Hints.InlForce | Hints.InlDelay | Hints.InlCon | Hints.InlBuiltin | Hints.InlError | Hints.InlConstr | Hints.InlCase) #-}
+{-# COMPILE GHC InlineSeq = data Hints.InlineSeq (Hints.InlOne | Hints.InlSeq) #-}
 {-# COMPILE GHC Hints = data Hints.Hints (Hints.Inline | Hints.NoHints) #-}
 ```
 
 ## Compiler traces
 
 A `NonEmptySep S A` is a non-empty list of values of type `A`, separated by
-values of type `S`. 
+values of type `S`.
 ```
 
 data NonEmptySep (S A : Set) : Set where
@@ -145,12 +153,13 @@ head (cons x _ _) = x
 
 A `Trace A` is a sequence of optimisation transformations applied to terms of
 AST type `A`. Each transition is labeled with a `OptTag` and `Hints` that have
-information about which pass was performed.
+information about which pass was performed. The hints may contain intermediate
+terms, which are of the same AST type `A` as the terms in the trace.
 
 ```
 -- An optimizer trace, parametrized by the AST type
 Trace : Set → Set
-Trace A = NonEmptySep (OptTag × Hints) A
+Trace A = NonEmptySep (OptTag × Hints A) A
 ```
 
 `EvalResult` is used to report script execution costs, before and after an optimisation (or optimisations).

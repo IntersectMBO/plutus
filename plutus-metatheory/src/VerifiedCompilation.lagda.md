@@ -77,7 +77,7 @@ tagToRelation : CertifiedOptTag → (0 ⊢ → 0 ⊢ → Set)
 tagToRelation floatDelayT = UFlD.FloatDelay
 tagToRelation forceDelayT = UFD.ForceDelay
 tagToRelation forceCaseDelayT = UFCD.ForceCaseDelay
-tagToRelation inlineT = UInline.Inline (λ()) UInline.□
+tagToRelation inlineT = UInline.Inline⁺
 tagToRelation cseT = UCSE.UntypedCSE
 tagToRelation applyToCaseT = UA2C.UApplyToCase
 tagToRelation caseReduceT = UCR.CaseReduce
@@ -98,12 +98,12 @@ hasRelation = is-inj₂
 The corresponding certifier can then be called for a given pass:
 
 ```
-certifyPass : (pass : OptTag) → Hints → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
+certifyPass : (pass : OptTag) → Hints (0 ⊢) → (M M' : 0 ⊢) → CertResult (RelationOf pass M M')
 certifyPass (inj₁ _) _ = certNotImplemented
 certifyPass (inj₂ floatDelayT) _ = decider UFlD.isFloatDelay?
 certifyPass (inj₂ forceDelayT) _ = decider UFD.isForceDelay?
 certifyPass (inj₂ forceCaseDelayT) _ = decider UFCD.isForceCaseDelay?
-certifyPass (inj₂ inlineT) (inline hs) = checker (UInline.top-check hs)
+certifyPass (inj₂ inlineT) (inline hs) = checker (UInline.top-check⁺ hs)
 certifyPass (inj₂ inlineT) none = λ M M' → abort InlineT M M'
 certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
 certifyPass (inj₂ applyToCaseT) _ = decider UA2C.a2c?ᶜᶜ
@@ -148,6 +148,20 @@ check all terms in the trace.
 checkScope : Untyped → Maybe (0 ⊢)
 checkScope = eitherToMaybe ∘ scopeCheckU0
 
+checkScopeˢ : InlineSeq Untyped → Maybe (InlineSeq (0 ⊢))
+checkScopeˢ (h ↑ᵗ) = return (h ↑ᵗ)
+checkScopeˢ (a ⨾[ t ] b) = do
+  a' ← checkScopeˢ a
+  t' ← checkScope t
+  b' ← checkScopeˢ b
+  return (a' ⨾[ t' ] b')
+
+checkScopeʰ : Hints Untyped → Maybe (Hints (0 ⊢))
+checkScopeʰ none = return none
+checkScopeʰ (inline hs) = do
+  hs' ← checkScopeˢ hs
+  return (inline hs')
+
 -- Scope-check all terms in a trace
 checkScopeᵗ : Trace Untyped → Maybe (Trace (0 ⊢))
 checkScopeᵗ (singleton x) = do
@@ -155,6 +169,7 @@ checkScopeᵗ (singleton x) = do
   return (singleton x')
 checkScopeᵗ (cons t (pass , hints) ts) = do
   t' ← checkScope t
+  hints' ← checkScopeʰ hints
   ts' ← checkScopeᵗ ts
-  return (cons t' (pass , hints) ts')
+  return (cons t' (pass , hints') ts')
 ```

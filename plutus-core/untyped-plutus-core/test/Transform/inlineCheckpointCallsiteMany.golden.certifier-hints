@@ -1,0 +1,70 @@
+-- Certifier hints #1 (Right FloatDelay) --
+NoHints
+
+-- Certifier hints #2 (Right ForceCaseDelay) --
+NoHints
+
+-- Certifier hints #3 (Right LetFloatOut) --
+NoHints
+
+-- Certifier hints #4 (Right ForceDelay) --
+NoHints
+
+-- Certifier hints #5 (Left CaseOfCase) --
+NoHints
+
+-- Certifier hints #6 (Right CaseReduce) --
+NoHints
+
+-- Certifier hints #7 (Right Inline) --
+InlLam
+  InlApply
+    InlLam
+      InlApply
+        InlApply
+          InlVar
+          InlDrop
+            InlDrop
+              InlExpand
+                InlDrop
+                  InlExpand
+                    InlExpand
+                      InlCon
+        InlApply
+          InlApply
+            InlVar
+            InlCon
+          InlCon
+    InlLam
+      InlLam
+        InlDrop
+          InlExpand
+            InlVar
+-- intermediate term --
+\f -> (\a -> f 0 (a 2 3)) (\p q -> p)
+-- next chunk --
+InlLam
+  InlDrop
+    InlApply
+      InlApply
+        InlVar
+        InlCon
+      InlApply
+        InlApply
+          InlExpand
+            InlLam
+              InlLam
+                InlVar
+          InlCon
+        InlCon
+
+
+-- Certifier hints #8 (Left ConstantFolding) --
+NoHints
+
+-- Certifier hints #9 (Left PolyBuiltin) --
+NoHints
+
+-- Certifier hints #10 (Right ApplyToCase) --
+NoHints
+
