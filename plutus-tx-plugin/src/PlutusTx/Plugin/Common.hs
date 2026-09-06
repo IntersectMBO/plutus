@@ -107,6 +107,7 @@ data PluginCtx = PluginCtx
   , pcFamEnvs :: GHC.FamInstEnvs
   , pcMarkerName :: GHC.Name
   , pcAnchorName :: GHC.Name
+  , pcBindingAnchorName :: GHC.Name
   , pcModuleName :: GHC.ModuleName
   , pcModuleModBreaks :: Maybe GHC.ModBreaks
   , pcPackageName :: String
@@ -158,9 +159,10 @@ installCorePlugin markerTHName args rest = do
       : pluginPass
       : rest
 
-plinthcModName, anchorName :: String
+plinthcModName, anchorName, bindingAnchorName :: String
 plinthcModName = fromJust $ TH.nameModule 'PlutusTx.Plugin.Utils.anchor
 anchorName = TH.nameBase 'PlutusTx.Plugin.Utils.anchor
+bindingAnchorName = TH.nameBase 'PlutusTx.Plugin.Utils.bindingAnchor
 
 -- | Wrap certain @HsExpr@s in the typed checked module with @anchor@.
 injectAnchors
@@ -174,9 +176,11 @@ injectAnchors env = do
         hscEnv
         (GHC.mkModuleName plinthcModName)
         GHC.NoPkgQual
-  anchorId <- case findResult of
+  (anchorId, bindingAnchorId) <- case findResult of
     GHC.Found _ m -> do
-      GHC.tcLookupId =<< GHC.lookupOrig m (GHC.mkVarOcc anchorName)
+      anchorId <- GHC.tcLookupId =<< GHC.lookupOrig m (GHC.mkVarOcc anchorName)
+      bindingAnchorId <- GHC.tcLookupId =<< GHC.lookupOrig m (GHC.mkVarOcc bindingAnchorName)
+      pure (anchorId, bindingAnchorId)
     _ ->
       GHC.pprPanic
         "Plinth.Plugin"
@@ -184,7 +188,10 @@ injectAnchors env = do
   let binds = GHC.tcg_binds env
       bindsAnchored =
         Compat.modifyBinds
-          (transformBi (stripGuardAnchors anchorId) . transformBi (anchorExpr anchorId))
+          ( transformBi (stripGuardAnchors anchorId)
+              . transformBi (anchorBinding bindingAnchorId)
+              . transformBi (anchorExpr anchorId)
+          )
           binds
   pure env {GHC.tcg_binds = bindsAnchored}
 
@@ -193,13 +200,53 @@ anchorExpr :: GHC.Id -> GHC.LHsExpr GHC.GhcTc -> GHC.LHsExpr GHC.GhcTc
 anchorExpr anchorId le@(GHC.L ann e)
   | isAnchorWorthy anchorId e
   , Just !sp <- GHC.srcSpanToRealSrcSpan (GHC.locA ann) =
+      wrapWithAnchor anchorId sp le
+  | otherwise = le
+
+wrapWithAnchor
+  :: GHC.Id
+  -> GHC.RealSrcSpan
+  -> GHC.LHsExpr GHC.GhcTc
+  -> GHC.LHsExpr GHC.GhcTc
+wrapWithAnchor anchorId sp le@(GHC.L _ e)
+  | GHC.mightBeUnliftedType (GHC.hsExprType e) = le
+  | otherwise =
       let locStr = encodeSrcSpan sp
           locTy = GHC.LitTy (GHC.StrTyLit (GHC.mkFastString locStr))
           exprTy = GHC.hsExprType e
           wrapper = GHC.WpTyApp exprTy `GHC.WpCompose` GHC.WpTyApp locTy
           anchor = GHC.mkHsWrap wrapper (GHC.HsVar GHC.noExtField $ GHC.noLocA anchorId)
        in GHC.noLocA (Compat.hsAppTc (GHC.noLocA anchor) le)
-  | otherwise = le
+
+anchorBinding
+  :: GHC.Id
+  -> GHC.HsBindLR GHC.GhcTc GHC.GhcTc
+  -> GHC.HsBindLR GHC.GhcTc GHC.GhcTc
+anchorBinding bindingAnchorId = \case
+  fb@GHC.FunBind {GHC.fun_id = GHC.L ann _, GHC.fun_matches = mg}
+    | Just sp <- GHC.srcSpanToRealSrcSpan (GHC.locA ann) ->
+        fb {GHC.fun_matches = wrapMatchGroup sp mg}
+  pb@GHC.PatBind {GHC.pat_lhs = GHC.L ann _, GHC.pat_rhs = grhss}
+    | Just sp <- GHC.srcSpanToRealSrcSpan (GHC.locA ann) ->
+        pb {GHC.pat_rhs = wrapGRHSs sp grhss}
+  other -> other
+  where
+    wrapMatchGroup sp = \case
+      mg@GHC.MG {GHC.mg_alts = lalts} ->
+        mg {GHC.mg_alts = (fmap . fmap . fmap) (wrapMatch sp) lalts}
+      other -> other
+    wrapMatch sp = \case
+      m@GHC.Match {GHC.m_grhss = grhss} ->
+        m {GHC.m_grhss = wrapGRHSs sp grhss}
+      other -> other
+    wrapGRHSs sp = \case
+      grhss@GHC.GRHSs {GHC.grhssGRHSs = lgrhss} ->
+        grhss {GHC.grhssGRHSs = (fmap . fmap) (wrapGRHS sp) lgrhss}
+      other -> other
+    wrapGRHS sp = \case
+      GHC.GRHS x guards body ->
+        GHC.GRHS x guards (wrapWithAnchor bindingAnchorId sp body)
+      other -> other
 
 isAnchorWorthy :: GHC.Id -> GHC.HsExpr GHC.GhcTc -> Bool
 isAnchorWorthy marker expr
@@ -363,9 +410,10 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
   -- See Note [Marker resolution]
   maybeMarkerName <- GHC.thNameToGhcName markerTHName
   maybeanchorGhcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.anchor
-  case (maybeMarkerName, maybeanchorGhcName) of
+  maybeBindingAnchorGhcName <- GHC.thNameToGhcName 'PlutusTx.Plugin.Utils.bindingAnchor
+  case (maybeMarkerName, maybeanchorGhcName, maybeBindingAnchorGhcName) of
     -- See Note [Marker resolution]
-    (Just markerName, Just anchorGhcName) -> do
+    (Just markerName, Just anchorGhcName, Just bindingAnchorGhcName) -> do
       hscEnv <- GHC.getHscEnv
       let thisModule = GHC.mg_module guts
           pctx =
@@ -374,6 +422,7 @@ mkPluginPass markerTHName opts = GHC.CoreDoPluginPass "Core to PLC" $ \guts -> d
               , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
               , pcMarkerName = markerName
               , pcAnchorName = anchorGhcName
+              , pcBindingAnchorName = bindingAnchorGhcName
               , pcModuleName = GHC.moduleName thisModule
               , pcModuleModBreaks = GHC.mg_modBreaks guts
               , pcPackageName = getPackageName hscEnv thisModule
@@ -510,7 +559,8 @@ compileMarkedExprs :: GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.
 compileMarkedExprs expr = do
   markerName <- asks pcMarkerName
   anchorGhcName <- asks pcAnchorName
-  case expr of
+  bindingAnchorGhcName <- asks pcBindingAnchorName
+  case stripCoreAnchors bindingAnchorGhcName expr of
     -- This clause is for the `plc` marker. It can be removed when we remove `plc`.
     GHC.App
       ( GHC.App
@@ -619,6 +669,7 @@ compileMarkedExpr _locStr codeTy origE = do
            , 'mkNil
            , 'PlutusTx.Builtins.equalsInteger
            , 'PlutusTx.Plugin.Utils.anchor
+           , 'PlutusTx.Plugin.Utils.bindingAnchor
            , 'PlutusTx.Plugin.Utils.unsupported
            ]
   modBreaks <- asks pcModuleModBreaks
