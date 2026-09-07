@@ -64,12 +64,12 @@ executable example-ual-blueprint
   hs-source-dirs:   static/code
   default-language: Haskell2010
   build-depends:
-    , base                  ^>=4.18
+    , base               ^>=4.18
     , bytestring
-    , cardano-constitution  ^>=1.68
     , containers
-    , plutus-ledger-api     ^>=1.68
-    , plutus-tx             ^>=1.68
+    , plutus-ledger-api  ^>=1.68
+    , plutus-tx          ^>=1.68
+    , plutus-tx-plugin   ^>=1.68
 
 executable example-evaluation
   import:           lang, ghc-version-support, os-support
