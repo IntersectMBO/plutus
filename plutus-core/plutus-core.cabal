@@ -128,6 +128,7 @@ library
     PlutusCore.Crypto.Ed25519
     PlutusCore.Crypto.ExpMod
     PlutusCore.Crypto.Hash
+    PlutusCore.Crypto.Poseidon
     PlutusCore.Crypto.Secp256k1
     PlutusCore.Data
     PlutusCore.DataFilePaths

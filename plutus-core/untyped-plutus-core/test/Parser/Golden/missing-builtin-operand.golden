@@ -30,6 +30,7 @@ Parsable functions are  [ addInteger
                         , bls12_381_finalVerify
                         , bls12_381_millerLoop
                         , bls12_381_mulMlResult
+                        , bls12_381_poseidonPermutation
                         , byteStringToInteger
                         , chooseData
                         , chooseList

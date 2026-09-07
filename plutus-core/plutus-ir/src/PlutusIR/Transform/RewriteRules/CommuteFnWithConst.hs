@@ -160,3 +160,4 @@ isCommutative = \case
   AssetCount -> False
   KeepPolicies -> False
   DropPolicies -> False
+  Bls12_381_poseidonPermutation -> False

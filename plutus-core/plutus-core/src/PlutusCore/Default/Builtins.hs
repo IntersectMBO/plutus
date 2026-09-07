@@ -48,6 +48,7 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature)
 import PlutusCore.Crypto.ExpMod qualified as ExpMod
 import PlutusCore.Crypto.Hash qualified as Hash
+import PlutusCore.Crypto.Poseidon qualified as Poseidon
 import PlutusCore.Crypto.Secp256k1
   ( verifyEcdsaSecp256k1Signature
   , verifySchnorrSecp256k1Signature
@@ -226,6 +227,8 @@ data DefaultFun
   | AssetCount
   | KeepPolicies
   | DropPolicies
+  | -- Poseidon
+    Bls12_381_poseidonPermutation
   deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
   deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2524,6 +2527,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           dropPoliciesDenotation
           (runCostingFunTwoArguments . unimplementedCostingFun)
+  toBuiltinMeaning _semvar Bls12_381_poseidonPermutation =
+    let bls12_381_poseidonPermutationDenotation
+          :: Integer -> [Integer] -> BuiltinResult [Integer]
+        bls12_381_poseidonPermutationDenotation = Poseidon.poseidonPermutation
+        {-# INLINE bls12_381_poseidonPermutationDenotation #-}
+     in makeBuiltinMeaning
+          bls12_381_poseidonPermutationDenotation
+          (runCostingFunTwoArguments . unimplementedCostingFun)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 
@@ -2672,6 +2683,7 @@ instance Flat DefaultFun where
       AssetCount -> 103
       KeepPolicies -> 104
       DropPolicies -> 105
+      Bls12_381_poseidonPermutation -> 106
 
   decode = go =<< decodeBuiltin
     where
@@ -2781,6 +2793,7 @@ instance Flat DefaultFun where
       go 103 = pure AssetCount
       go 104 = pure KeepPolicies
       go 105 = pure DropPolicies
+      go 106 = pure Bls12_381_poseidonPermutation
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth

@@ -55,6 +55,7 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 qualified
 import PlutusCore.Crypto.ExpMod as ExpMod
 import PlutusCore.Crypto.Hash qualified as Hash
+import PlutusCore.Crypto.Poseidon qualified as Poseidon
 import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty (Pretty (..), display)
@@ -908,6 +909,19 @@ bls12_381_finalVerify :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult 
 bls12_381_finalVerify (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b) =
   BLS12_381.Pairing.finalVerify a b
 {-# OPAQUE bls12_381_finalVerify #-}
+
+{-| Applies the Poseidon permutation of the given registry variant to a full
+input state of exactly the variant's width many integers, returning the full
+output state; fails on an unregistered variant index or a wrong input length. -}
+bls12_381_poseidonPermutation
+  :: BuiltinInteger -> BuiltinList BuiltinInteger -> BuiltinList BuiltinInteger
+bls12_381_poseidonPermutation variantIndex (BuiltinList input) =
+  case Poseidon.poseidonPermutation variantIndex input of
+    BuiltinSuccess output -> BuiltinList output
+    BuiltinSuccessWithLogs logs output -> traceAll logs (BuiltinList output)
+    BuiltinFailure logs err ->
+      traceAll (logs <> pure (display err)) $ Haskell.error "bls12_381_poseidonPermutation failed."
+{-# OPAQUE bls12_381_poseidonPermutation #-}
 
 {-
 CONVERSION

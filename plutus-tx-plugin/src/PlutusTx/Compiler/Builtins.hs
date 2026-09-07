@@ -276,6 +276,7 @@ builtinNames =
   , 'Builtins.bls12_381_millerLoop
   , 'Builtins.bls12_381_mulMlResult
   , 'Builtins.bls12_381_finalVerify
+  , 'Builtins.bls12_381_poseidonPermutation
   , 'Builtins.integerToByteString
   , 'Builtins.byteStringToInteger
   , 'Builtins.andByteString
@@ -848,6 +849,8 @@ defineBuiltinTerms = do
           PLC.AssetCount -> defineBuiltinInl 'Builtins.assetCount
           PLC.KeepPolicies -> defineBuiltinInl 'Builtins.keepPolicies
           PLC.DropPolicies -> defineBuiltinInl 'Builtins.dropPolicies
+          PLC.Bls12_381_poseidonPermutation ->
+            defineBuiltinInl 'Builtins.bls12_381_poseidonPermutation
 
 defineBuiltinTypes :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTypes = do
