@@ -15,8 +15,9 @@ import PlutusCore.Builtin
 import PlutusIR.Contexts
 import PlutusIR.Core
 
-import Control.Lens (transformOf, (^.))
+import Control.Lens (preview, transformOf, (^.))
 import Data.Functor (void)
+import Data.Map qualified as Map
 import PlutusCore qualified as PLC
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Pass
@@ -90,6 +91,62 @@ evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms proc
             -- with the annotation that was on the `ifThenElse` node. But we can't
             -- easily do better.
             -- See Note [Unserializable constants]
-            Just t' | termIsSerializable binfo t' -> x <$ t'
+            Just t'
+              | termIsSerializable binfo t'
+              , matcherLikeBranchesAreValues binfo bn argCtx ->
+                  x <$ t'
             _ -> t
     processTerm t = t
+
+    -- Note [Conservative folding for matcher-like builtins]
+    -- `evaluateBuiltins` may replace a builtin application with its result only when
+    -- this preserves operational behaviour.
+    -- Matcher-like builtins (e.g. `ifThenElse`) select one branch and discard others.
+    -- Replacing the whole application with the selected branch is not conservative if
+    -- a discarded branch is not already a value.
+    -- So we only fold matcher-like builtins when all branches are values.
+    -- See issue #6167.
+    matcherLikeBranchesAreValues
+      :: BuiltinsInfo uni fun
+      -> fun
+      -> AppContext tyname name uni fun a
+      -> Bool
+    matcherLikeBranchesAreValues info bn argCtx =
+      case Map.lookup bn (info ^. biMatcherLike) of
+        Nothing -> True
+        -- Non-matcher-like builtins - do not discard branches
+        Just (BuiltinMatcherLike splitPrism _) ->
+          case preview splitPrism argCtx of
+            Nothing -> False -- be conservative
+            Just smc -> allBranchesAreValues smc
+      where
+        allBranchesAreValues =
+          all isTermValueLike . extractTermAppArgs . smBranches
+
+    -- Extract only term arguments from an application context, ignoring type arguments.
+    extractTermAppArgs :: AppContext tyname name uni fun a -> [Term tyname name uni fun a]
+    extractTermAppArgs = go []
+      where
+        go acc = \case
+          TermAppContext arg _ ctx -> go (arg : acc) ctx
+          TypeAppContext _ _ ctx -> go acc ctx
+          AppContextEnd -> reverse acc
+
+    -- A conservative PIR-side approximation of "already a value".
+    -- Used only to decide whether it is safe to discard an unchosen branch
+    -- of a matcher-like builtin during constant folding.
+    isTermValueLike :: Term tyname name uni fun a -> Bool
+    isTermValueLike = \case
+      TyAbs {} -> True
+      LamAbs {} -> True
+      Constant {} -> True
+      Constr _ _ _ xs -> all isTermValueLike xs
+      IWrap _ _ _ t -> isTermValueLike t
+      Var {} -> False
+      Error {} -> False
+      Let {} -> False
+      Apply {} -> False
+      TyInst {} -> False
+      Unwrap {} -> False
+      Builtin {} -> False
+      Case {} -> False
