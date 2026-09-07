@@ -366,6 +366,38 @@ blsBenchmarks gen =
       , benchBls12_381_finalVerify
       ]
 
+{- The Poseidon permutation (bls12_381_poseidonPermutation) selects a parameter
+set from an append-only registry by its first argument; both registered
+variants (0 = midnight-zk with 60 partial rounds, 1 = the circom BLS12-381
+port with 56) have width 3, so the input state is a list of exactly three
+integers.  For a fixed variant the permutation itself does a constant amount
+of work; the only input-dependent work is the initial reduction of each input
+integer modulo the scalar field order, which grows with the size of the
+integer.  Realistic inputs are field elements of at most four words, but the
+reduction is total, so we benchmark states of three equally-sized integers of
+1,3,...,31 words to expose the reduction cost.  Note that the size measure of
+a list argument is its spine length (always 3 here), which cannot see the
+element sizes: the benchmark names record the variant index and the
+per-element size in words instead, and the eventual costing function will
+have to bound or charge for the reduction separately. -}
+benchPoseidonPermutation :: StdGen -> Benchmark
+benchPoseidonPermutation gen =
+  let fun = Bls12_381_poseidonPermutation
+      width = 3
+      step (acc, g) k =
+        let (state, g') = makeSizedIntegers g (replicate width k)
+         in (acc ++ [state], g')
+      (states, _) = foldl step ([], gen) [1, 3 .. 31 :: Int]
+   in bgroup
+        (show fun)
+        [ bgroup
+            (show variant)
+            [ benchDefault (showMemoryUsage el) $ mkApp2 fun [] variant state
+            | state@(el : _) <- states
+            ]
+        | variant <- [0, 1 :: Integer]
+        ]
+
 ---------------- Main benchmarks ----------------
 
 makeBenchmarks :: StdGen -> [Benchmark]
@@ -376,3 +408,4 @@ makeBenchmarks gen =
   ]
     <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_224, Blake2b_256, Keccak_256, Ripemd_160])
     <> blsBenchmarks gen
+    <> [benchPoseidonPermutation gen]
