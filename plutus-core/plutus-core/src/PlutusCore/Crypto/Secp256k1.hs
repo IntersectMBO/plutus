@@ -1,6 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
+-- cardano-crypto-class 2.6 deprecates rawDeserialise*DSIGN and toMessageHash
+-- in favour of rawDecodeFixedSized; migrating is out of scope for the
+-- Poseidon work.
+{-# OPTIONS_GHC -Wno-deprecations #-}
+
 module PlutusCore.Crypto.Secp256k1
   ( verifyEcdsaSecp256k1Signature
   , verifySchnorrSecp256k1Signature

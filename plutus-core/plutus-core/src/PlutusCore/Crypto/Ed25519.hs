@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
+-- cardano-crypto-class 2.6 deprecates rawDeserialise*DSIGN in favour of
+-- rawDecodeFixedSized; migrating is out of scope for the Poseidon work.
+{-# OPTIONS_GHC -Wno-deprecations #-}
+
 module PlutusCore.Crypto.Ed25519 (verifyEd25519Signature)
 where
 

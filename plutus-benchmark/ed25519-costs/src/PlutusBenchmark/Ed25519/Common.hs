@@ -7,6 +7,11 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
 
+-- cardano-crypto-class 2.6 deprecates the raw{Serialise,Deserialise}*DSIGN
+-- family in favour of rawEncodeFixedSized/rawDecodeFixedSized; migrating is
+-- out of scope for the Poseidon work.
+{-# OPTIONS_GHC -Wno-deprecations #-}
+
 {-| Check how many Ed25519 signature verifications we can perform within the
    limits specified in the protocol parameters. -}
 module PlutusBenchmark.Ed25519.Common (runTests)

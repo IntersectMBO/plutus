@@ -4,6 +4,11 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
+-- cardano-crypto-class 2.6 deprecates the raw{Serialise,Deserialise}*DSIGN
+-- family and toMessageHash in favour of rawEncodeFixedSized and
+-- rawDecodeFixedSized; migrating is out of scope for the Poseidon work.
+{-# OPTIONS_GHC -Wno-deprecations #-}
+
 module Benchmarks.Crypto (makeBenchmarks) where
 
 import Common

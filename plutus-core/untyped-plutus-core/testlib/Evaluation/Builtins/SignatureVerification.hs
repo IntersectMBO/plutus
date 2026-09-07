@@ -8,6 +8,11 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 
+-- cardano-crypto-class 2.6 deprecates the raw{Serialise,Deserialise}*DSIGN
+-- family in favour of rawEncodeFixedSized/rawDecodeFixedSized; migrating is
+-- out of scope for the Poseidon work.
+{-# OPTIONS_GHC -Wno-deprecations #-}
+
 module Evaluation.Builtins.SignatureVerification
   ( ecdsaSecp256k1Prop
   , ed25519Prop
