@@ -66,10 +66,10 @@ executable example-ual-blueprint
   build-depends:
     , base                  ^>=4.18
     , bytestring
-    , cardano-constitution  ^>=1.67
+    , cardano-constitution  ^>=1.68
     , containers
-    , plutus-ledger-api     ^>=1.67
-    , plutus-tx             ^>=1.67
+    , plutus-ledger-api     ^>=1.68
+    , plutus-tx             ^>=1.68
 
 executable example-evaluation
   import:           lang, ghc-version-support, os-support
