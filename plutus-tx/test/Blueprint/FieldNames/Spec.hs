@@ -93,9 +93,11 @@ tests =
     , testCase "a derived positional constructor's fields carry no names" $
         (fmap titleOf <$> fieldsOf (toJSON (schema @Pair @'[Pair, Integer])))
           @?= Just [Nothing, Nothing]
-    , testCase "each constructor's title is its own name" $
+    , testCase "each variant of a sum type is titled with its own name" $
         variantTitles (toJSON (schema @Outcome @'[Outcome]))
           @?= Just [Just "Accepted", Just "Rejected"]
+    , testCase "a single-constructor type carries no constructor title" $
+        titleOf (toJSON (schema @Escrow @'[Escrow, Integer])) @?= Nothing
     ]
 
 -- | @{ "title": "owner", "dataType": "bytes" }@ — a record field.

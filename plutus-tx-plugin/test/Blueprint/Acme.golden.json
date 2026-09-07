@@ -132,7 +132,6 @@
       ]
     },
     "Datum2": {
-      "title": "MkDatum2",
       "dataType": "constructor",
       "fields": [
         {
@@ -147,7 +146,6 @@
       "index": 0
     },
     "DatumPayload": {
-      "title": "MkDatumPayload",
       "$comment": "MkDatumPayload",
       "dataType": "constructor",
       "fields": [
@@ -172,7 +170,6 @@
       }
     },
     "Param2a": {
-      "title": "MkParam2a",
       "dataType": "constructor",
       "fields": [
         {
@@ -182,7 +179,6 @@
       "index": 0
     },
     "Param2b": {
-      "title": "MkParam2b",
       "dataType": "constructor",
       "fields": [
         {
@@ -192,7 +188,6 @@
       "index": 0
     },
     "Params": {
-      "title": "MkParams",
       "dataType": "constructor",
       "fields": [
         {
@@ -223,7 +218,6 @@
       "index": 0
     },
     "Unit": {
-      "title": "()",
       "dataType": "constructor",
       "fields": [],
       "index": 0

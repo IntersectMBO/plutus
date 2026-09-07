@@ -136,8 +136,15 @@ mkSchemaClause
 mkSchemaClause ts ctorIndexes =
   case ctorIndexes of
     [] -> fail "At least one constructor index must be specified."
-    [ctorIndex] -> mkBody (mkSchemaConstructor ctorIndex)
-    _ -> mkBody [|SchemaOneOf (NE.fromList $(TH.listE (map mkSchemaConstructor ctorIndexes)))|]
+    {- A single-constructor type has no sibling to be told apart from, and its
+    definition object *is* the constructor schema — so a title here is read as
+    the type's name by a consumer generating code from the blueprint, where the
+    constructor's name would displace the more useful one. CIP-0057's own
+    example agrees: the single constructor of @Datum@ is titled @Datum@. -}
+    [ctorIndex] -> mkBody (mkSchemaConstructor False ctorIndex)
+    _ ->
+      mkBody
+        [|SchemaOneOf (NE.fromList $(TH.listE (map (mkSchemaConstructor True) ctorIndexes)))|]
   where
     mkBody :: TH.ExpQ -> TH.ClauseQ
     mkBody body = do
@@ -145,30 +152,34 @@ mkSchemaClause ts ctorIndexes =
       let whereDecls = []
       TH.clause patterns (TH.normalB body) whereDecls
 
-    mkSchemaConstructor :: (TH.ConstructorInfo, SchemaInfo, Natural) -> TH.ExpQ
-    mkSchemaConstructor (TH.ConstructorInfo {..}, info, naturalToInteger -> ctorIndex) = do
-      {- CIP-0057 identifies a variant by its title, so the type's own title
-      would make every variant of a sum type identical. Default to the
-      constructor's name; an explicit SchemaTitle annotation still wins. -}
-      let ctorInfo = case title info of
-            Just _ -> info
-            Nothing ->
-              MkSchemaInfo
-                (Just (TH.nameBase constructorName))
-                (description info)
-                (comment info)
-      {- A record constructor knows its field names; a normal or infix one has
-      none to report, and CIP-0057 makes the per-field title optional. -}
-      let names = case constructorVariant of
-            TH.RecordConstructor fieldNames -> Just . TH.nameBase <$> fieldNames
-            _ -> Nothing <$ constructorFields
-      fields <- for (zip names constructorFields) $ \(name, t) ->
-        [|
-          MkFieldSchema
-            (Text.pack <$> name)
-            (definitionRef @($(pure t)) @($(pure ts)))
-          |]
-      [|SchemaConstructor ctorInfo (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]
+    mkSchemaConstructor :: Bool -> (TH.ConstructorInfo, SchemaInfo, Natural) -> TH.ExpQ
+    mkSchemaConstructor
+      nameTheVariant
+      (TH.ConstructorInfo {..}, info, naturalToInteger -> ctorIndex) = do
+        {- CIP-0057 identifies a variant by its title, so with none the variants of
+        a sum type are indistinguishable. Default to the constructor's name, but
+        only where there is more than one variant: see 'mkSchemaClause'. An
+        explicit SchemaTitle annotation always wins. -}
+        let ctorInfo = case (title info, nameTheVariant) of
+              (Just _, _) -> info
+              (Nothing, False) -> info
+              (Nothing, True) ->
+                MkSchemaInfo
+                  (Just (TH.nameBase constructorName))
+                  (description info)
+                  (comment info)
+        {- A record constructor knows its field names; a normal or infix one has
+        none to report, and CIP-0057 makes the per-field title optional. -}
+        let names = case constructorVariant of
+              TH.RecordConstructor fieldNames -> Just . TH.nameBase <$> fieldNames
+              _ -> Nothing <$ constructorFields
+        fields <- for (zip names constructorFields) $ \(name, t) ->
+          [|
+            MkFieldSchema
+              (Text.pack <$> name)
+              (definitionRef @($(pure t)) @($(pure ts)))
+            |]
+        [|SchemaConstructor ctorInfo (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]
 
 deriveParameterBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
 deriveParameterBlueprint tyName purpose = do

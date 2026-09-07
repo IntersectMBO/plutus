@@ -319,10 +319,34 @@ Found while implementing, and worth fixing separately:
   `Schema`. It therefore only sees definition refs that are a definition's
   top-level schema. Neither caused nor fixed by this change; the `Plated (Schema
   …)` instance it imports is effectively unused.
-- **`Unit` now emits `"title": "()"`**, which is truthfully the constructor's
-  `nameBase` and valid CIP-57, but not a usable identifier for a code generator.
-  Left as-is deliberately: suppressing it would be less truthful than letting the
-  consumer sanitise. Revisit if a consumer complains.
+- **A definition's `title` is neither a usable identifier nor unique**, and a
+  generator naming types from it must sanitise and disambiguate. This is not
+  introduced here — every case below comes from an explicit `SchemaTitle`
+  annotation or a hand-written schema, which this design deliberately leaves
+  untouched — but it is on the same path as the constructor-title decision, so it
+  belongs recorded next to it. Audited across both regenerated blueprints:
+
+  | Definition | `title` | Source |
+  |---|---|---|
+  | `LowerBound_Extended_Integer`, `LowerBound_Extended_POSIXTime` | `LowerBound` | hand-written `plutus-ledger-api` instance |
+  | `UpperBound_Extended_Integer`, `UpperBound_Extended_POSIXTime` | `UpperBound` | same |
+  | `Rational` | `(,)` | tuple constructor |
+  | `MyParams` | `Title for the MyParams definition` | `SchemaTitle` in the docs example |
+  | `Bytes_Void` | `SchemaBytes` | test fixture |
+
+  The `LowerBound`/`UpperBound` pairs are the sharp case: two distinct types
+  collide on one name, so `PlutusCore/UPLC/BlueprintEncoding/Basic.lean`'s
+  `defTypeName` would emit one Lean type for both instantiations. `Rational`
+  becoming `(,)` is not a legal Lean identifier at all.
+
+- **A single-constructor type deliberately carries no constructor title.** Its
+  definition object *is* the constructor schema, so a title there is what
+  `defTypeName` reads as the *type's* name — and the constructor's name would
+  displace the more useful one (`VestingParams` became `MkVestingParams` in a
+  first attempt). CIP-0057's own example agrees: the single constructor of
+  `Datum` is titled `Datum`. Pinned by the test "a single-constructor type
+  carries no constructor title"; without it the unconditional default could be
+  restored with no test objecting.
 - **The hand-written `plutus-ledger-api` instances could carry real field
   names.** `Interval` is a record with `ivFrom`/`ivTo`; its schema currently
   reports `MkFieldSchema Nothing`. Out of scope per §4.2, but it is exactly the
