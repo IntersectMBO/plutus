@@ -93,11 +93,20 @@ parseVersion line = \case
   "PlutusV4" -> Right PlutusV4
   other -> Left (MalformedBlock line ("unknown version '" <> other <> "'"))
 
+{-| @[exCPU: n, exMem: n]@, or the provisional @[steps: n]@.
+
+The two are alternatives: a block declares cost-model units or a step count,
+never both. See 'PlutusTx.Blueprint.Validator.ExecutionBudget' for why a step
+count exists and why it is not a substitute for a budget. -}
 parseBudget :: Int -> [(Text, Text)] -> Either UalError (Maybe ExecutionBudget)
-parseBudget line opts = case (lookup "exCPU" opts, lookup "exMem" opts) of
-  (Nothing, Nothing) -> Right Nothing
-  (Just c, Just m) -> Just <$> (MkExecutionBudget <$> nat c <*> nat m)
-  _ -> Left (MalformedBlock line "budget needs both exCPU and exMem")
+parseBudget line opts =
+  case (lookup "exCPU" opts, lookup "exMem" opts, lookup "steps" opts) of
+    (Nothing, Nothing, Nothing) -> Right Nothing
+    (Just c, Just m, Nothing) -> Just <$> (MkExecutionBudget <$> nat c <*> nat m)
+    (Nothing, Nothing, Just n) -> Just . MkStepBudget <$> nat n
+    (_, _, Just _) ->
+      Left (MalformedBlock line "give either exCPU and exMem, or steps, not both")
+    _ -> Left (MalformedBlock line "budget needs both exCPU and exMem")
   where
     -- Not @read@: this module is total, and a guard establishing that @read@
     -- cannot fail here would be a non-local safety argument.

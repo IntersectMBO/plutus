@@ -98,6 +98,12 @@ onchainTests =
     , testCase "unknown plutus version" $
         onchain " [version: PlutusV9] f :: A -> () "
           @?= Left (MalformedBlock 7 "unknown version 'PlutusV9'")
+    , testCase "step budget, the provisional alternative" $
+        (fmap onchainBudget . asOnchain) <$> onchain " [steps: 2500] f :: A -> () "
+          @?= Right (Just (Just (MkStepBudget 2500)))
+    , testCase "a budget cannot be given both ways" $
+        onchain " [exCPU: 1, exMem: 2, steps: 3] f :: A -> () "
+          @?= Left (MalformedBlock 7 "give either exCPU and exMem, or steps, not both")
     , testCase "budget missing exMem" $
         onchain " [exCPU: 1] f :: A -> () "
           @?= Left (MalformedBlock 7 "budget needs both exCPU and exMem")

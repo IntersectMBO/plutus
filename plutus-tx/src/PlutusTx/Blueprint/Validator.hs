@@ -50,17 +50,37 @@ fields are @SatInt@-backed newtypes tied to the evaluator's costing
 representation; its JSON keys are @exBudgetCPU@ and @exBudgetMemory@ rather than
 the @exCPU@ and @exMem@ this document format needs; and it has no 'Ord'. Plain
 'Integer' fields keep this a document type. -}
-data ExecutionBudget = MkExecutionBudget
-  { budgetCPU :: Integer
-  , budgetMemory :: Integer
-  }
+{-| A validator's declared execution budget. Not a CIP-0057 field: CIP-0057 has
+no budget at all, and this is carried as an additional field, which validator
+objects permit.
+
+'MkStepBudget' is **provisional**. A consumer generating a proof obligation runs
+the compiled program on an abstract machine, and the one this work targets takes
+a step count rather than cost-model units — @cekExecuteProgram : Program -> List
+Term -> Nat -> State@, with no budget-aware variant. So there is nothing to
+convert an 'MkExecutionBudget' into without a cost model, and declaring steps
+directly is what lets the pipeline run end to end today.
+
+A step count is not a substitute for a budget. It is specific to one machine,
+says nothing about on-chain cost, and cannot be compared against the ledger's
+limits. Prefer 'MkExecutionBudget' wherever a consumer can use it. -}
+data ExecutionBudget
+  = -- | Cost-model units, as the ledger meters execution.
+    MkExecutionBudget Integer Integer
+  | -- | Abstract-machine steps. Provisional; see above.
+    MkStepBudget Integer
   deriving stock (Show, Eq, Ord, Lift)
 
+{-| Positional rather than a record: field selectors on a sum type are partial,
+and @budgetCPU@ applied to an 'MkStepBudget' would be a runtime error. -}
 instance ToJSON ExecutionBudget where
-  toJSON MkExecutionBudget {..} =
-    buildObject $
-      requiredField "exCPU" budgetCPU
-        . requiredField "exMem" budgetMemory
+  toJSON = \case
+    MkExecutionBudget cpu mem ->
+      buildObject $
+        requiredField "exCPU" cpu
+          . requiredField "exMem" mem
+    MkStepBudget steps ->
+      buildObject $ requiredField "steps" steps
 
 {-| One element of a validator's ordered applied-argument list: the terms the
 compiled program is applied to, in order.

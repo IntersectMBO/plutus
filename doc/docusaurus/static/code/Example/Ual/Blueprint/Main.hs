@@ -113,26 +113,29 @@ slice but has no consumer yet.
 
 == Where the execution budget comes from
 
-@[exCPU: 10000000000, exMem: 16500000]@ is mainnet's per-transaction execution
-limit: the @maxTxExecutionUnits@ pair, which @cardano-constitution@'s golden
-tests name @maxTxExSteps@ and @maxTxExMem@ and point at a protocol-parameter
-page for. The two figures were read on 2026-09-07 from a query for the
-parameters in force on mainnet in epoch 654 (Koios's @epoch_params@ endpoint,
-fields @max_tx_ex_steps@ and @max_tx_ex_mem@).
+@[steps: 2500]@ is a bound on abstract-machine steps, not a budget in cost-model
+units. UAL accepts either, and this example uses steps because that is what a
+consumer of the assurance document can currently act on: the machine it runs the
+compiled program on takes a step count, and no budget-aware variant of it exists
+yet. Declaring @[exCPU: n, exMem: n]@ instead would be the more meaningful
+statement and would leave a consumer with nothing to convert it into.
 
-That makes it a ceiling rather than a measurement, which is what UAL defines
-@exCPU@/@exMem@ to be: the most the compiled term is permitted to consume, under
-the cost model in force, and not what it did consume on any particular run. Four
-things it is not:
+2500 is the figure the hand-written proofs in @contracts-library/formal@ use for
+a spending validator. It is a declared bound, chosen to be large enough to reach
+a verdict — not a measurement, and nothing here measures one.
+
+Five things this figure is not:
 
   * It is not this validator's cost. Nobody has measured that; this example
     contains no evaluation.
-  * It is a /loose/ ceiling. The limit is per transaction and every script a
-    transaction runs draws on the same allowance, so a single validator's true
-    ceiling is lower by whatever else the transaction does.
-  * It is not stable. The memory limit was 14000000 until a governance action
-    raised it to the figure above, and further rises have been proposed since. A
-    protocol parameter written into source goes stale, and nothing here notices.
+  * It is not comparable to the ledger's limits. Those are in cost-model units
+    per transaction; a step count is specific to one abstract machine and has no
+    exchange rate with them.
+  * It is not a substitute for a budget. 'PlutusTx.Blueprint.Validator.MkStepBudget'
+    says so in as many words, and 'MkExecutionBudget' stays preferred wherever a
+    consumer can use it.
+  * It is not stable across machines. A different evaluator, or a change to this
+    one's step accounting, moves it.
   * Nothing in this pipeline checks it. @attachUal@ copies the annotation's
     budget into the blueprint, and 'validatorBudget' is explicit that it is not
     compared against 'validatorCompiled'.
@@ -262,7 +265,7 @@ def unvested (p : VestingParams) (now : POSIXTime) : Value :=
   trancheUnvested p.vpTranche1 now + trancheUnvested p.vpTranche2 now
 @-}
 
-{-@ ONCHAIN [version: PlutusV3] [exCPU: 10000000000, exMem: 16500000]
+{-@ ONCHAIN [version: PlutusV3] [steps: 2500]
     vestingValidator :: { VestingParams : asScott }
                      -> { BuiltinData : asData }
                      -> BuiltinUnit
