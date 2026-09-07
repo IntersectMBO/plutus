@@ -1,0 +1,109 @@
+{
+  "$schema": "https://cips.cardano.org/cips/cipXXXX/schemas/assurance.json",
+  "preamble": {
+    "title": "Two-tranche vesting — UAL assurance",
+    "description": "Generated from the UAL annotations in this module.",
+    "version": "1.0.0",
+    "authors": [
+      "Romain Soulat <romain.soulat@iohk.io>"
+    ],
+    "created": "2026-09-07",
+    "license": "CC-BY-4.0"
+  },
+  "blueprint": {
+    "uri": "plutus.json",
+    "hash": {
+      "alg": "sha256",
+      "digest": "9849074bd14566ca1a84079020edcc6888f68626c7a257d5ed513c31a7b8b7a6"
+    }
+  },
+  "languages": {
+    "ual": {
+      "name": "Universal Annotation Language",
+      "description": "Property specification language used by Blaster.",
+      "version": "0.4",
+      "uri": "https://github.com/input-output-hk/ual-spec"
+    }
+  },
+  "formalFragments": [
+    {
+      "id": "Main",
+      "language": "ual",
+      "source": "-- What one tranche still requires to stay locked, at a time. `Value` and\n-- `POSIXTime` are CardanoLedgerApi.V3's; `Tranche` and its field names come\n-- from this blueprint's `definitions`.\ndef trancheUnvested (t : Tranche) (now : POSIXTime) : Value :=\n  if now >= t.trancheDeadline then 0 else t.trancheAmount\n\n-- What the whole schedule requires to stay locked.\ndef unvested (p : VestingParams) (now : POSIXTime) : Value :=\n  trancheUnvested p.vpTranche1 now + trancheUnvested p.vpTranche2 now"
+    }
+  ],
+  "properties": [
+    {
+      "id": "owner_signature_required",
+      "scope": {
+        "validators": [
+          "vestingValidator"
+        ]
+      },
+      "statement": {
+        "text": "A transaction that the owner has not signed is rejected.",
+        "formal": {
+          "language": "ual",
+          "uses": [
+            "Main"
+          ],
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        ¬ txSignedBy ctx.scriptContextTxInfo p.vpOwner →\n          ¬ isSuccessful (vestingValidator p ctx)"
+        }
+      }
+    },
+    {
+      "id": "unvested_value_stays_locked",
+      "scope": {
+        "validators": [
+          "vestingValidator"
+        ]
+      },
+      "statement": {
+        "text": "A transaction is rejected when it leaves less value at the address of the input it spends than the total of the tranches that are not yet vested.",
+        "formal": {
+          "language": "ual",
+          "uses": [
+            "Main"
+          ],
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),\n        validRangeFrom ctx now →\n          ¬ (continuingValue ctx ≥ unvested p now) →\n            ¬ isSuccessful (vestingValidator p ctx)"
+        }
+      }
+    },
+    {
+      "id": "own_input_required",
+      "scope": {
+        "validators": [
+          "vestingValidator"
+        ]
+      },
+      "statement": {
+        "text": "A transaction is rejected when the validator is not spending one of its inputs.",
+        "formal": {
+          "language": "ual",
+          "uses": [
+            "Main"
+          ],
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        findOwnInput ctx = none → ¬ isSuccessful (vestingValidator p ctx)"
+        }
+      }
+    },
+    {
+      "id": "conforming_spend_accepted",
+      "scope": {
+        "validators": [
+          "vestingValidator"
+        ]
+      },
+      "statement": {
+        "text": "A transaction is accepted when it spends an input the validator guards, is signed by the owner, and leaves at least the total of the tranches that are not yet vested at the address of that input.",
+        "formal": {
+          "language": "ual",
+          "uses": [
+            "Main"
+          ],
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),\n        (findOwnInput ctx).isSome →\n          txSignedBy ctx.scriptContextTxInfo p.vpOwner →\n            validRangeFrom ctx now →\n              continuingValue ctx ≥ unvested p now →\n                isSuccessful (vestingValidator p ctx)"
+        }
+      }
+    }
+  ]
+}

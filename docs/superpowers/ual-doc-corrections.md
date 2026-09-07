@@ -212,7 +212,7 @@ not imply that annotating a contract validates the annotations.
 
 ---
 
-## 8. §2.1: no `PROPERTY` can name the validator it is about
+## 8. §2.1: a `PROPERTY` needs a way to name the validator it is about
 
 This item and the next are the two the acceptance check turned up. Both are
 additions rather than corrections, and both are cheaper now than after the CIP
@@ -222,32 +222,47 @@ is published.
 reserves no identifier for "the program this property is scoped to", and defines
 no acceptance or rejection predicate over it.
 
-**Should say.** Specify the naming contract. Either:
+**Should say.** Specify the naming contract as follows — this is concrete, and
+the worked example now demonstrates it.
 
-- **(a)** every id in the property's scope is bound as an in-scope name in the
-  formal statement, together with an acceptance predicate over it; or
-- **(b)** each `ONCHAIN` block emits the wrapper of item 1 under a stated name,
-  and properties refer to that.
+> Inside a `PROPERTY` body, the name of a function marked `ONCHAIN` denotes the
+> compiled program for that function, applied to the arguments its refined
+> signature declares. A consumer generating a proof obligation emits, for each
+> `ONCHAIN` block, the wrapper of item 1 — named after the block, taking the
+> declared argument types in order, encoding each as its scheme says, and running
+> the compiled program under the declared budget.
 
-(b) is the better fit, because item 1's wrapper has to exist anyway and already
-has a name and an arity.
+Nothing further is needed. The information was always in the document pair:
+`validators[].id` gives the name and `arguments` gives the signature and
+encodings. Only the *convention* was missing — a consumer had no licence to
+assume that `vestingValidator` in a property means the program in
+`compiledCode`, so the two halves sat side by side unconnected.
 
-**Evidence.** Without it, a property cannot mention the code it is about, and
-the failure is silent. Every theorem in the reference project mentions the
-compiled program — `Soundness.lean:163` is `validatorAccepts ctx spendValidator`
-— and this pipeline's own worked example, having no way to name it,
-axiomatises the script's behaviour instead
-(`doc/docusaurus/static/code/Example/Ual/Blueprint/Main.hs:170`):
+This subsumes the alternative of binding `scope.validators` ids directly and
+adding a separate acceptance predicate: the wrapper of item 1 has to exist
+anyway, and it already has a name, an arity and a budget.
+
+**Evidence.** Without the convention, a property cannot mention the code it is
+about, and the failure is silent. Every theorem in the reference project mentions
+the compiled program — `Soundness.lean:163` is
+`validatorAccepts ctx spendValidator`. An earlier draft of this pipeline's worked
+example, having nothing to name, axiomatised the script's behaviour instead:
 
 ```lean
 axiom verdict : GovAction → Verdict
 ```
 
-and states all five of its properties about `verdict`. Those properties are
-provable without the script existing. They are well-formed, they carry a real
-natural-language claim, no checker rejects them — and they constrain no compiled
-code. That is the worst failure mode a specification language can have, and it
-is what the absence of a naming contract produces by default.
+and stated all five of its properties about `verdict`. Those properties were
+provable **without the script existing**. They were well-formed, carried real
+natural-language claims, and no checker would reject them — and they constrained
+no compiled code. That is the worst failure mode a specification language can
+have, and it is what the absence of a naming contract produces by default.
+
+It also cost about fifty lines of scaffolding. Stating properties over an
+axiomatised script means re-declaring, in the `PREDICATE` block, an abstraction
+of the context (`structure Spend`), an outcome type (`inductive Verdict`), and
+placeholder ledger types — none of it specification, all of it there to give the
+axiom something to range over.
 
 **Where the other half of the fix went.** The CIP now requires a
 `formal.language` specification to define how the validators named in
@@ -256,10 +271,27 @@ define acceptance/rejection (CIP-XXXX, "Statements"). That obligation is
 language-agnostic, which is all a language-neutral format can say; **UAL is the
 language it now falls to.** This item is that obligation discharged.
 
-**This implementation.** Does not solve it, and cannot: with no syntax to
-express the binding, `buildAssurance` has nothing to emit. The worked example's
-`axiom verdict` is the visible consequence and should be revisited once the
-contract is written down.
+**This implementation.** Emits everything the convention needs — `validators[].id`
+and the `arguments` list — and the worked example at
+`doc/docusaurus/static/code/Example/Ual/Blueprint/Main.hs` is now written against
+it: its properties read
+
+```lean
+∀ (p : VestingParams) (ctx : ScriptContext),
+  ¬ txSignedBy ctx.scriptContextTxInfo p.vpOwner →
+    ¬ isSuccessful (vestingValidator p ctx)
+```
+
+where `vestingValidator` is the compiled program, `VestingParams` and its field
+names are generated from the blueprint's `definitions`, and everything else is
+`CardanoLedgerApi.V3`'s. The `PREDICATE` block is down to the two definitions
+that are genuinely specification, and contains no `axiom` at all.
+
+Two dependencies remain, neither of them this contract's problem. The wrapper
+needs a Scott encoder for an `asScott` argument, and `CardanoLedgerApi` has
+`IsData` but no `IsScott` (item 6). And no Lean toolchain in this repository
+checks any of these bodies, so the example's properties are well-formed by
+inspection rather than by elaboration.
 
 ---
 

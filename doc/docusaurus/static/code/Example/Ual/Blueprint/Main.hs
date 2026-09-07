@@ -1,4 +1,3 @@
--- BEGIN pragmas
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -25,8 +24,6 @@
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin Plinth.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt Plinth.Plugin:target-version=1.1.0 #-}
-
--- END pragmas
 
 {-| UAL annotations on a compiled, parameterised validator, and a @main@ that
 writes the two documents they produce: a CIP-0057 blueprint and a CIP assurance
@@ -146,21 +143,33 @@ The four @PROPERTY@ blocks are stated, unverified claims. 'buildAssurance' runs
 at build time, before any proof, so the emitted properties carry no evidence
 records; the CIP names that case explicitly.
 
-Each one is a claim about the behaviour described above, and each is stated over
-the abstraction the @PREDICATE@ block introduces: a @Spend@ is the four facts the
-validator reads out of its @ScriptContext@, and @verdict@ is its outcome on a
-context those facts describe. Nothing is said about a @BuiltinData@ that does not
-decode as a @ScriptContext@ at all — the script errors on one, but the model has
-no name for it.
+Each is stated against the script itself, not against a model of it. The name
+@vestingValidator@ in a property denotes the compiled program: a consumer reads
+@validators[0].id@ and the @arguments@ list out of the blueprint and emits a
+wrapper that applies the program to the encoded arguments and runs it, so
+@isSuccessful (vestingValidator p ctx)@ is a claim about the UPLC in
+@compiledCode@. That is what makes these properties falsifiable — a claim about
+an axiom standing in for the script would be provable whether or not the script
+behaved that way.
 
-The @PREDICATE@ body is Lean source. Nothing in this repository parses or checks
-it; the lexer reads the block verbatim and the assurance document carries it
-through unchanged, for a prover to consume. Its @Value@ is uninterpreted apart
-from the constant and the two operations the validator uses, which is why the
-properties speak of @Value.geq@ and @Value.add@ rather than of amounts. -}
+Everything else the properties mention comes from somewhere concrete too:
+@VestingParams@, @Tranche@ and their field names are generated from this
+blueprint's @definitions@; @ScriptContext@, @POSIXTime@, @Value@, @txSignedBy@
+and @findOwnInput@ are @CardanoLedgerApi.V3@'s. The @PREDICATE@ block therefore
+carries only what is genuinely specification — the vesting schedule — rather than
+re-declaring types the blueprint already describes.
+
+Two things this leans on that do not exist yet, stated rather than glossed. The
+wrapper needs a Scott encoder for the parameter, and @CardanoLedgerApi@ has
+@IsData@ but no @IsScott@, so it cannot be emitted for an @asScott@ argument
+today. And the convention that a validator's id denotes that wrapper inside a
+property is not yet written down in the UAL specification, only proposed. Both
+are recorded in @docs/superpowers/ual-doc-corrections.md@.
+
+The @PREDICATE@ and @PROPERTY@ bodies are Lean source. Nothing in this repository
+parses or checks them; the lexer reads each block verbatim and the assurance
+document carries it through unchanged, for a prover to consume. -}
 module Main where
-
--- BEGIN imports
 
 import Data.ByteString.Short qualified as SBS
 import Data.Set qualified as Set
@@ -195,9 +204,6 @@ import PlutusTx.Ual (ModuleUal, attachUal)
 import PlutusTx.Ual.TH (ualIdFor, ualModule)
 import Prelude qualified as Haskell
 
--- END imports
--- BEGIN interface types
-
 {-| One instalment of the schedule.
 
 Its two fields are what the blueprint's @definitions@ entry for @Tranche@ is
@@ -227,9 +233,6 @@ data VestingParams = MkVestingParams
   deriving stock (Generic)
   deriving anyclass (HasBlueprintDefinition)
 
--- END interface types
--- BEGIN instances
-
 {- 'makeIsDataSchemaIndexed' gives each type its @Data@ encoding *and* its
 blueprint schema, with the constructor index pinned in the source. @Tranche@
 comes first because @VestingParams@'s schema refers to it.
@@ -241,9 +244,6 @@ $(makeIsDataSchemaIndexed ''VestingParams [('MkVestingParams, 0)])
 $(PlutusTx.makeLift ''Tranche)
 $(PlutusTx.makeLift ''VestingParams)
 
--- END instances
--- BEGIN annotated validator
-
 {-@ UPLC_DATA VestingParams @-}
 
 {-@ UPLC_DATA Tranche @-}
@@ -251,62 +251,15 @@ $(PlutusTx.makeLift ''VestingParams)
 {-@ UPLC_DATA BuiltinData @-}
 
 {-@ PREDICATE
--- The ledger types the validator's parameter is built from, left
--- uninterpreted: nothing below needs to know what a key hash is.
-axiom PubKeyHash : Type
-axiom Value : Type
-
--- Value, with just what the validator uses of it: the empty value, addition,
--- and the pointwise ordering `geq` compares with.
-axiom Value.zero : Value
-axiom Value.add : Value → Value → Value
-axiom Value.geq : Value → Value → Prop
-
--- POSIXTime: milliseconds since the Unix epoch, as the ledger counts them.
-abbrev Time := Int
-
-structure Tranche where
-  deadline : Time
-  amount : Value
-
-structure VestingParams where
-  owner : PubKeyHash
-  tranche1 : Tranche
-  tranche2 : Tranche
-
--- The four facts the validator reads out of its ScriptContext, and nothing
--- else: a context is described here exactly as far as the script inspects it.
-structure Spend where
-  -- `findOwnInput` succeeds: the script info says this run is spending an
-  -- input, and the transaction has an input carrying that reference.
-  ownInput : Bool
-  -- The transaction's signatory list contains this key hash.
-  signedBy : PubKeyHash → Bool
-  -- The transaction's validity range lies entirely at or after this time.
-  atOrAfter : Time → Bool
-  -- The total value of the outputs that pay back to the address of the input
-  -- being spent: `getContinuingOutputs`, summed.
-  continuing : Value
-
--- The two outcomes of a script run: it returns BuiltinUnit, or it errors.
--- Which error, and whether anything was traced, is not distinguished.
-inductive Verdict where
-  | pass
-  | fail
-
--- The outcome of the validator, on a well-formed ScriptContext whose facts are
--- the given ones. Nothing is said about a BuiltinData that does not decode as
--- a ScriptContext: the script errors on one, but no `Spend` describes it.
-axiom verdict : VestingParams → Spend → Verdict
-
--- What one tranche requires to stay locked: nothing once its deadline is
--- reached in the sense above, its whole amount before that.
-def Tranche.unvested (t : Tranche) (s : Spend) : Value :=
-  if s.atOrAfter t.deadline then Value.zero else t.amount
+-- What one tranche still requires to stay locked, at a time. `Value` and
+-- `POSIXTime` are CardanoLedgerApi.V3's; `Tranche` and its field names come
+-- from this blueprint's `definitions`.
+def trancheUnvested (t : Tranche) (now : POSIXTime) : Value :=
+  if now >= t.trancheDeadline then 0 else t.trancheAmount
 
 -- What the whole schedule requires to stay locked.
-def unvested (p : VestingParams) (s : Spend) : Value :=
-  Value.add (p.tranche1.unvested s) (p.tranche2.unvested s)
+def unvested (p : VestingParams) (now : POSIXTime) : Value :=
+  trancheUnvested p.vpTranche1 now + trancheUnvested p.vpTranche2 now
 @-}
 
 {-@ ONCHAIN [version: PlutusV3] [exCPU: 10000000000, exMem: 16500000]
@@ -361,35 +314,38 @@ trancheUnvested tranche range =
 
 {-@ PROPERTY owner_signature_required
       "A transaction that the owner has not signed is rejected."
-    : ∀ (p : VestingParams) (s : Spend),
-        s.signedBy p.owner = false → verdict p s = Verdict.fail
+    : ∀ (p : VestingParams) (ctx : ScriptContext),
+        ¬ txSignedBy ctx.scriptContextTxInfo p.vpOwner →
+          ¬ isSuccessful (vestingValidator p ctx)
 @-}
 
 {-@ PROPERTY unvested_value_stays_locked
       "A transaction is rejected when it leaves less value at the address of the
       input it spends than the total of the tranches that are not yet vested."
-    : ∀ (p : VestingParams) (s : Spend),
-        ¬ Value.geq s.continuing (unvested p s) → verdict p s = Verdict.fail
+    : ∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),
+        validRangeFrom ctx now →
+          ¬ (continuingValue ctx ≥ unvested p now) →
+            ¬ isSuccessful (vestingValidator p ctx)
 @-}
 
 {-@ PROPERTY own_input_required
       "A transaction is rejected when the validator is not spending one of its
       inputs."
-    : ∀ (p : VestingParams) (s : Spend),
-        s.ownInput = false → verdict p s = Verdict.fail
+    : ∀ (p : VestingParams) (ctx : ScriptContext),
+        findOwnInput ctx = none → ¬ isSuccessful (vestingValidator p ctx)
 @-}
 
 {-@ PROPERTY conforming_spend_accepted
       "A transaction is accepted when it spends an input the validator guards,
       is signed by the owner, and leaves at least the total of the tranches that
       are not yet vested at the address of that input."
-    : ∀ (p : VestingParams) (s : Spend),
-        s.ownInput = true → s.signedBy p.owner = true →
-          Value.geq s.continuing (unvested p s) → verdict p s = Verdict.pass
+    : ∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),
+        (findOwnInput ctx).isSome →
+          txSignedBy ctx.scriptContextTxInfo p.vpOwner →
+            validRangeFrom ctx now →
+              continuingValue ctx ≥ unvested p now →
+                isSuccessful (vestingValidator p ctx)
 @-}
-
--- END annotated validator
--- BEGIN compiled code
 
 {-| The validator as the Plinth plugin compiles it, with the parameter still to
 apply.
@@ -441,9 +397,6 @@ vestingInstance
   :: Haskell.Either Haskell.String (PlutusTx.CompiledCode (BuiltinData -> BuiltinUnit))
 vestingInstance =
   vestingValidatorCode `PlutusTx.applyCode` PlutusTx.liftCodeDef exampleParams
-
--- END compiled code
--- BEGIN blueprint
 
 myContractBlueprint :: ContractBlueprint
 myContractBlueprint =
@@ -513,9 +466,6 @@ myContractBlueprint =
       contractDefinitions = deriveDefinitions @'[VestingParams, Tranche, BuiltinData]
     }
 
--- END blueprint
--- BEGIN assurance preamble
-
 myAssurancePreamble :: AssurancePreamble
 myAssurancePreamble =
   MkAssurancePreamble
@@ -527,8 +477,6 @@ myAssurancePreamble =
     , assuranceLicense = Just "CC-BY-4.0"
     }
 
--- END assurance preamble
-
 {- A top-level declaration splice that adds nothing. Its only job is to end the
 declaration group above it: 'ualModule' reifies each ONCHAIN function to check
 its arity, and GHC only puts a binding in the type environment once the group it
@@ -539,17 +487,12 @@ belongs to has been type-checked. Without this line the splice below fails with
 is the on-chain one and has no instance for the Template Haskell @Q@ monad. -}
 $(Haskell.pure [])
 
--- BEGIN extraction
-
 {-| Every UAL block of this module, read out of this file at compile time.
 
 The splice must sit below every annotated binding and past the group boundary
 above. Further declarations may follow, as 'main' does. -}
 contractUal :: ModuleUal
 contractUal = $(ualModule)
-
--- END extraction
--- BEGIN main
 
 {-| Write @plutus.json@ and @assurance.json@ into the current directory.
 
@@ -571,5 +514,3 @@ main = do
   where
     die :: Haskell.Show e => e -> Haskell.IO a
     die = Haskell.fail . Haskell.show
-
--- END main
