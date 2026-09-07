@@ -551,10 +551,13 @@ const PAGES = [
 
 // LocalStorage keys
 // Where each data-source field's value came from on this page load: 'link' for a query
-// parameter, 'browser' for `localStorage`, 'branch' for the URL derived from the branch name.
-// A stale stored path 404s where an empty field would have fallen back to the branch and
-// worked, so a failed request needs to be able to say which it was.
-const fieldProvenance = { csv: 'branch', json: 'branch' };
+// parameter, 'browser' for `localStorage`, 'typed' for a value entered on the page, and for
+// the rest either 'branch' for a URL derived from the branch name or 'default' for
+// `DEFAULT_BRANCH`.
+// A stale stored value 404s where an empty field would have fallen back and worked, so a
+// failed request needs to be able to say which it was. A remembered branch does it at one
+// remove: both URLs read 'branch' and are built correctly, from a branch nobody chose.
+const fieldProvenance = { branch: 'default', csv: 'branch', json: 'branch' };
 
 const STORAGE_KEYS = {
   BRANCH: 'plutus-viz-branch',
@@ -586,6 +589,7 @@ function loadSettings() {
   // A stored path belongs to the branch it was saved against, so following a link to a
   // different branch must not drag it along.
   const storedApplies = urlBranch === null || urlBranch === storedBranch;
+  const branchSource = urlBranch !== null ? 'link' : storedBranch ? 'browser' : 'default';
 
   const pick = (param, storageKey) => {
     if (params.has(param)) return { value: params.get(param), source: 'link' };
@@ -598,6 +602,7 @@ function loadSettings() {
 
   return {
     branch,
+    branchSource,
     csvUrl: csv.value,
     csvSource: csv.source,
     jsonUrl: json.value,
@@ -609,11 +614,28 @@ function loadSettings() {
 /* Mark the fields this browser filled in, and offer to drop the stored value. Without this a
 value nobody chose is indistinguishable from one somebody did. */
 function renderProvenance(settings) {
+  const deriveFromBranch = key => {
+    const branch = document.getElementById('branch-name').value.trim() || DEFAULT_BRANCH;
+    document.getElementById(`${key}-url`).value =
+      getFileUrls (generateUrlFromBranch (branch))[key];
+  };
+  // Each row carries what its own Clear leaves behind, because clearing one field must not
+  // disturb another that holds a value somebody chose. For the branch that means re-deriving
+  // only the URLs still reading 'branch'; a note left beside a field the reset overwrote
+  // would point at something the field no longer contains.
   const fields = [
-    ['csv', 'csv-url', settings.csvSource, STORAGE_KEYS.CSV_URL],
-    ['json', 'json-url', settings.jsonSource, STORAGE_KEYS.JSON_URL]
+    ['branch', 'branch-name', settings.branchSource, STORAGE_KEYS.BRANCH, 'default', () => {
+      document.getElementById('branch-name').value = DEFAULT_BRANCH;
+      for (const key of ['csv', 'json']) {
+        if (fieldProvenance[key] === 'branch') deriveFromBranch(key);
+      }
+    }],
+    ['csv', 'csv-url', settings.csvSource, STORAGE_KEYS.CSV_URL, 'branch',
+     () => deriveFromBranch('csv')],
+    ['json', 'json-url', settings.jsonSource, STORAGE_KEYS.JSON_URL, 'branch',
+     () => deriveFromBranch('json')]
   ];
-  for (const [key, inputId, source, storageKey] of fields) {
+  for (const [key, inputId, source, storageKey, cleared, reset] of fields) {
     fieldProvenance[key] = source;
     const input = document.getElementById(inputId);
     if (!input) continue;
@@ -630,11 +652,8 @@ function renderProvenance(settings) {
     clear.textContent = 'Clear';
     clear.addEventListener('click', () => {
       localStorage.removeItem(storageKey);
-      fieldProvenance[key] = 'branch';
-      // Only this field: the other one may hold a value somebody chose, and its own note
-      // would be left pointing at something the field no longer contains.
-      const branch = document.getElementById('branch-name').value.trim() || DEFAULT_BRANCH;
-      input.value = getFileUrls (generateUrlFromBranch (branch))[key];
+      fieldProvenance[key] = cleared;
+      reset();
       note.remove();
     });
     note.appendChild(clear);
@@ -761,10 +780,11 @@ function setupCostModelPage(page) {
       page.render({ benchmarkData, costModel, overhead, modelPredictions });
     } catch (error) {
       console.error('Error loading data:', error);
-      const restored = fieldProvenance.csv === 'browser' || fieldProvenance.json === 'browser';
-      const hint = restored
-        ? ' One of these URLs was restored from this browser rather than taken from the link;'
-          + ' use Clear beside the field to fall back to the branch.'
+      const restored =
+        ['branch', 'csv', 'json'].filter(field => fieldProvenance[field] === 'browser');
+      const hint = restored.length
+        ? ` Restored from this browser rather than taken from the link: ${restored.join(', ')}.`
+          + ' Use Clear beside the field to fall back to the default.'
         : '';
       showError(
         `Failed to load data. Check console for details. Error: ${error.message}${hint}`);
@@ -818,7 +838,7 @@ function setupCostModelPage(page) {
 
     branchInput.addEventListener('input', () => {
       updateUrlsFromBranch();
-      renderProvenance({ csvSource: 'branch', jsonSource: 'branch' });
+      renderProvenance({ branchSource: 'typed', csvSource: 'branch', jsonSource: 'branch' });
     });
 
     document.getElementById('reload-data').addEventListener('click', async () => {
