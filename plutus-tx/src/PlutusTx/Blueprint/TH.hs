@@ -28,7 +28,7 @@ import PlutusTx.Blueprint.Definition.Internal (HasSchemaDefinition)
 import PlutusTx.Blueprint.Definition.Unroll (HasBlueprintDefinition)
 import PlutusTx.Blueprint.Parameter (ParameterBlueprint (..))
 import PlutusTx.Blueprint.Purpose (Purpose)
-import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..))
+import PlutusTx.Blueprint.Schema (ConstructorSchema (..), FieldSchema (..), Schema (..))
 import PlutusTx.Blueprint.Schema.Annotation
   ( SchemaAnn (..)
   , SchemaComment
@@ -147,8 +147,28 @@ mkSchemaClause ts ctorIndexes =
 
     mkSchemaConstructor :: (TH.ConstructorInfo, SchemaInfo, Natural) -> TH.ExpQ
     mkSchemaConstructor (TH.ConstructorInfo {..}, info, naturalToInteger -> ctorIndex) = do
-      fields <- for constructorFields $ \t -> [|definitionRef @($(pure t)) @($(pure ts))|]
-      [|SchemaConstructor info (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]
+      {- CIP-0057 identifies a variant by its title, so the type's own title
+      would make every variant of a sum type identical. Default to the
+      constructor's name; an explicit SchemaTitle annotation still wins. -}
+      let ctorInfo = case title info of
+            Just _ -> info
+            Nothing ->
+              MkSchemaInfo
+                (Just (TH.nameBase constructorName))
+                (description info)
+                (comment info)
+      {- A record constructor knows its field names; a normal or infix one has
+      none to report, and CIP-0057 makes the per-field title optional. -}
+      let names = case constructorVariant of
+            TH.RecordConstructor fieldNames -> Just . TH.nameBase <$> fieldNames
+            _ -> Nothing <$ constructorFields
+      fields <- for (zip names constructorFields) $ \(name, t) ->
+        [|
+          MkFieldSchema
+            (Text.pack <$> name)
+            (definitionRef @($(pure t)) @($(pure ts)))
+          |]
+      [|SchemaConstructor ctorInfo (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]
 
 deriveParameterBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
 deriveParameterBlueprint tyName purpose = do

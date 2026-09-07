@@ -83,11 +83,13 @@
     "Bool": {
       "oneOf": [
         {
+          "title": "False",
           "dataType": "constructor",
           "fields": [],
           "index": 0
         },
         {
+          "title": "True",
           "dataType": "constructor",
           "fields": [],
           "index": 1
@@ -130,25 +132,31 @@
       ]
     },
     "Datum2": {
+      "title": "MkDatum2",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "datum2integer",
           "$ref": "#/definitions/Integer"
         },
         {
+          "title": "datum2bool",
           "$ref": "#/definitions/Bool"
         }
       ],
       "index": 0
     },
     "DatumPayload": {
+      "title": "MkDatumPayload",
       "$comment": "MkDatumPayload",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "myAwesomeDatum1",
           "$ref": "#/definitions/Integer"
         },
         {
+          "title": "myAwesomeDatum2",
           "$ref": "#/definitions/Bytes_Void"
         }
       ],
@@ -164,6 +172,7 @@
       }
     },
     "Param2a": {
+      "title": "MkParam2a",
       "dataType": "constructor",
       "fields": [
         {
@@ -173,6 +182,7 @@
       "index": 0
     },
     "Param2b": {
+      "title": "MkParam2b",
       "dataType": "constructor",
       "fields": [
         {
@@ -182,30 +192,38 @@
       "index": 0
     },
     "Params": {
+      "title": "MkParams",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "myUnit",
           "$ref": "#/definitions/Unit"
         },
         {
+          "title": "myBool",
           "$ref": "#/definitions/Bool"
         },
         {
+          "title": "myInteger",
           "$ref": "#/definitions/Integer"
         },
         {
+          "title": "myListOfInts",
           "$ref": "#/definitions/List_Integer"
         },
         {
+          "title": "myBuiltinData",
           "$ref": "#/definitions/BuiltinData"
         },
         {
+          "title": "myBuiltinByteString",
           "$ref": "#/definitions/BuiltinByteString"
         }
       ],
       "index": 0
     },
     "Unit": {
+      "title": "()",
       "dataType": "constructor",
       "fields": [],
       "index": 0

@@ -219,6 +219,7 @@ test-suite plutus-tx-test
     Array.Spec
     Blueprint.Definition.Fixture
     Blueprint.Definition.Spec
+    Blueprint.FieldNames.Spec
     Blueprint.Spec
     Bool.Spec
     Builtins.Spec

@@ -53,12 +53,15 @@
   ],
   "definitions": {
     "Address": {
+      "title": "Address",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "addressCredential",
           "$ref": "#/definitions/Credential"
         },
         {
+          "title": "addressStakingCredential",
           "$ref": "#/definitions/Maybe_StakingCredential"
         }
       ],
@@ -67,11 +70,13 @@
     "Bool": {
       "oneOf": [
         {
+          "title": "False",
           "dataType": "constructor",
           "fields": [],
           "index": 0
         },
         {
+          "title": "True",
           "dataType": "constructor",
           "fields": [],
           "index": 1
@@ -88,6 +93,7 @@
     "ColdCommitteeCredential": {
       "oneOf": [
         {
+          "title": "PubKeyCredential",
           "dataType": "constructor",
           "fields": [
             {
@@ -97,6 +103,7 @@
           "index": 0
         },
         {
+          "title": "ScriptCredential",
           "dataType": "constructor",
           "fields": [
             {
@@ -108,9 +115,11 @@
       ]
     },
     "Constitution": {
+      "title": "Constitution",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "constitutionScript",
           "$ref": "#/definitions/Maybe_ScriptHash"
         }
       ],
@@ -119,6 +128,7 @@
     "Credential": {
       "oneOf": [
         {
+          "title": "PubKeyCredential",
           "dataType": "constructor",
           "fields": [
             {
@@ -128,6 +138,7 @@
           "index": 0
         },
         {
+          "title": "ScriptCredential",
           "dataType": "constructor",
           "fields": [
             {
@@ -227,6 +238,7 @@
     "DRep": {
       "oneOf": [
         {
+          "title": "DRep",
           "dataType": "constructor",
           "fields": [
             {
@@ -236,11 +248,13 @@
           "index": 0
         },
         {
+          "title": "DRepAlwaysAbstain",
           "dataType": "constructor",
           "fields": [],
           "index": 1
         },
         {
+          "title": "DRepAlwaysNoConfidence",
           "dataType": "constructor",
           "fields": [],
           "index": 2
@@ -250,6 +264,7 @@
     "DRepCredential": {
       "oneOf": [
         {
+          "title": "PubKeyCredential",
           "dataType": "constructor",
           "fields": [
             {
@@ -259,6 +274,7 @@
           "index": 0
         },
         {
+          "title": "ScriptCredential",
           "dataType": "constructor",
           "fields": [
             {
@@ -279,6 +295,7 @@
     "Delegatee": {
       "oneOf": [
         {
+          "title": "DelegStake",
           "dataType": "constructor",
           "fields": [
             {
@@ -288,6 +305,7 @@
           "index": 0
         },
         {
+          "title": "DelegVote",
           "dataType": "constructor",
           "fields": [
             {
@@ -297,6 +315,7 @@
           "index": 1
         },
         {
+          "title": "DelegStakeVote",
           "dataType": "constructor",
           "fields": [
             {
@@ -317,11 +336,13 @@
     "Extended_Integer": {
       "oneOf": [
         {
+          "title": "NegInf",
           "dataType": "constructor",
           "fields": [],
           "index": 0
         },
         {
+          "title": "Finite",
           "dataType": "constructor",
           "fields": [
             {
@@ -331,6 +352,7 @@
           "index": 1
         },
         {
+          "title": "PosInf",
           "dataType": "constructor",
           "fields": [],
           "index": 2
@@ -340,11 +362,13 @@
     "Extended_POSIXTime": {
       "oneOf": [
         {
+          "title": "NegInf",
           "dataType": "constructor",
           "fields": [],
           "index": 0
         },
         {
+          "title": "Finite",
           "dataType": "constructor",
           "fields": [
             {
@@ -354,6 +378,7 @@
           "index": 1
         },
         {
+          "title": "PosInf",
           "dataType": "constructor",
           "fields": [],
           "index": 2
@@ -363,6 +388,7 @@
     "GovernanceAction": {
       "oneOf": [
         {
+          "title": "ParameterChange",
           "dataType": "constructor",
           "fields": [
             {
@@ -378,6 +404,7 @@
           "index": 0
         },
         {
+          "title": "HardForkInitiation",
           "dataType": "constructor",
           "fields": [
             {
@@ -390,6 +417,7 @@
           "index": 1
         },
         {
+          "title": "TreasuryWithdrawals",
           "dataType": "constructor",
           "fields": [
             {
@@ -402,6 +430,7 @@
           "index": 2
         },
         {
+          "title": "NoConfidence",
           "dataType": "constructor",
           "fields": [
             {
@@ -411,6 +440,7 @@
           "index": 3
         },
         {
+          "title": "UpdateCommittee",
           "dataType": "constructor",
           "fields": [
             {
@@ -429,6 +459,7 @@
           "index": 4
         },
         {
+          "title": "NewConstitution",
           "dataType": "constructor",
           "fields": [
             {
@@ -441,6 +472,7 @@
           "index": 5
         },
         {
+          "title": "InfoAction",
           "dataType": "constructor",
           "fields": [],
           "index": 6
@@ -448,12 +480,15 @@
       ]
     },
     "GovernanceActionId": {
+      "title": "GovernanceActionId",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "gaidTxId",
           "$ref": "#/definitions/TxId"
         },
         {
+          "title": "gaidGovActionIx",
           "$ref": "#/definitions/Integer"
         }
       ],
@@ -462,6 +497,7 @@
     "HotCommitteeCredential": {
       "oneOf": [
         {
+          "title": "PubKeyCredential",
           "dataType": "constructor",
           "fields": [
             {
@@ -471,6 +507,7 @@
           "index": 0
         },
         {
+          "title": "ScriptCredential",
           "dataType": "constructor",
           "fields": [
             {
@@ -517,6 +554,7 @@
       "items": {
         "oneOf": [
           {
+            "title": "PubKeyCredential",
             "dataType": "constructor",
             "fields": [
               {
@@ -526,6 +564,7 @@
             "index": 0
           },
           {
+            "title": "ScriptCredential",
             "dataType": "constructor",
             "fields": [
               {
@@ -540,15 +579,19 @@
     "List_ProposalProcedure": {
       "dataType": "list",
       "items": {
+        "title": "ProposalProcedure",
         "dataType": "constructor",
         "fields": [
           {
+            "title": "ppDeposit",
             "$ref": "#/definitions/Lovelace"
           },
           {
+            "title": "ppReturnAddr",
             "$ref": "#/definitions/Credential"
           },
           {
+            "title": "ppGovernanceAction",
             "$ref": "#/definitions/GovernanceAction"
           }
         ],
@@ -567,6 +610,7 @@
       "items": {
         "oneOf": [
           {
+            "title": "TxCertRegStaking",
             "dataType": "constructor",
             "fields": [
               {
@@ -579,6 +623,7 @@
             "index": 0
           },
           {
+            "title": "TxCertUnRegStaking",
             "dataType": "constructor",
             "fields": [
               {
@@ -591,6 +636,7 @@
             "index": 1
           },
           {
+            "title": "TxCertDelegStaking",
             "dataType": "constructor",
             "fields": [
               {
@@ -603,6 +649,7 @@
             "index": 2
           },
           {
+            "title": "TxCertRegDeleg",
             "dataType": "constructor",
             "fields": [
               {
@@ -618,6 +665,7 @@
             "index": 3
           },
           {
+            "title": "TxCertRegDRep",
             "dataType": "constructor",
             "fields": [
               {
@@ -630,6 +678,7 @@
             "index": 4
           },
           {
+            "title": "TxCertUpdateDRep",
             "dataType": "constructor",
             "fields": [
               {
@@ -639,6 +688,7 @@
             "index": 5
           },
           {
+            "title": "TxCertUnRegDRep",
             "dataType": "constructor",
             "fields": [
               {
@@ -651,6 +701,7 @@
             "index": 6
           },
           {
+            "title": "TxCertPoolRegister",
             "dataType": "constructor",
             "fields": [
               {
@@ -663,6 +714,7 @@
             "index": 7
           },
           {
+            "title": "TxCertPoolRetire",
             "dataType": "constructor",
             "fields": [
               {
@@ -675,6 +727,7 @@
             "index": 8
           },
           {
+            "title": "TxCertAuthHotCommittee",
             "dataType": "constructor",
             "fields": [
               {
@@ -687,6 +740,7 @@
             "index": 9
           },
           {
+            "title": "TxCertResignColdCommittee",
             "dataType": "constructor",
             "fields": [
               {
@@ -701,12 +755,15 @@
     "List_TxInInfo": {
       "dataType": "list",
       "items": {
+        "title": "TxInInfo",
         "dataType": "constructor",
         "fields": [
           {
+            "title": "txInInfoOutRef",
             "$ref": "#/definitions/TxOutRef"
           },
           {
+            "title": "txInInfoResolved",
             "$ref": "#/definitions/TxOut"
           }
         ],
@@ -716,18 +773,23 @@
     "List_TxOut": {
       "dataType": "list",
       "items": {
+        "title": "TxOut",
         "dataType": "constructor",
         "fields": [
           {
+            "title": "txOutAddress",
             "$ref": "#/definitions/Address"
           },
           {
+            "title": "txOutValue",
             "$ref": "#/definitions/Value"
           },
           {
+            "title": "txOutDatum",
             "$ref": "#/definitions/OutputDatum"
           },
           {
+            "title": "txOutReferenceScript",
             "$ref": "#/definitions/Maybe_ScriptHash"
           }
         ],
@@ -769,6 +831,7 @@
       "keys": {
         "oneOf": [
           {
+            "title": "PubKeyCredential",
             "dataType": "constructor",
             "fields": [
               {
@@ -778,6 +841,7 @@
             "index": 0
           },
           {
+            "title": "ScriptCredential",
             "dataType": "constructor",
             "fields": [
               {
@@ -797,6 +861,7 @@
       "keys": {
         "oneOf": [
           {
+            "title": "PubKeyCredential",
             "dataType": "constructor",
             "fields": [
               {
@@ -806,6 +871,7 @@
             "index": 0
           },
           {
+            "title": "ScriptCredential",
             "dataType": "constructor",
             "fields": [
               {
@@ -834,12 +900,15 @@
     "Map_GovernanceActionId_Vote": {
       "dataType": "map",
       "keys": {
+        "title": "GovernanceActionId",
         "dataType": "constructor",
         "fields": [
           {
+            "title": "gaidTxId",
             "$ref": "#/definitions/TxId"
           },
           {
+            "title": "gaidGovActionIx",
             "$ref": "#/definitions/Integer"
           }
         ],
@@ -848,16 +917,19 @@
       "values": {
         "oneOf": [
           {
+            "title": "VoteNo",
             "dataType": "constructor",
             "fields": [],
             "index": 0
           },
           {
+            "title": "VoteYes",
             "dataType": "constructor",
             "fields": [],
             "index": 1
           },
           {
+            "title": "Abstain",
             "dataType": "constructor",
             "fields": [],
             "index": 2
@@ -873,11 +945,13 @@
       "values": {
         "oneOf": [
           {
+            "title": "False",
             "dataType": "constructor",
             "fields": [],
             "index": 0
           },
           {
+            "title": "True",
             "dataType": "constructor",
             "fields": [],
             "index": 1
@@ -890,6 +964,7 @@
       "keys": {
         "oneOf": [
           {
+            "title": "Minting",
             "dataType": "constructor",
             "fields": [
               {
@@ -899,6 +974,7 @@
             "index": 0
           },
           {
+            "title": "Spending",
             "dataType": "constructor",
             "fields": [
               {
@@ -908,6 +984,7 @@
             "index": 1
           },
           {
+            "title": "Rewarding",
             "dataType": "constructor",
             "fields": [
               {
@@ -917,6 +994,7 @@
             "index": 2
           },
           {
+            "title": "Certifying",
             "dataType": "constructor",
             "fields": [
               {
@@ -929,6 +1007,7 @@
             "index": 3
           },
           {
+            "title": "Voting",
             "dataType": "constructor",
             "fields": [
               {
@@ -938,6 +1017,7 @@
             "index": 4
           },
           {
+            "title": "Proposing",
             "dataType": "constructor",
             "fields": [
               {
@@ -960,6 +1040,7 @@
       "keys": {
         "oneOf": [
           {
+            "title": "CommitteeVoter",
             "dataType": "constructor",
             "fields": [
               {
@@ -969,6 +1050,7 @@
             "index": 0
           },
           {
+            "title": "DRepVoter",
             "dataType": "constructor",
             "fields": [
               {
@@ -978,6 +1060,7 @@
             "index": 1
           },
           {
+            "title": "StakePoolVoter",
             "dataType": "constructor",
             "fields": [
               {
@@ -991,12 +1074,15 @@
       "values": {
         "dataType": "map",
         "keys": {
+          "title": "GovernanceActionId",
           "dataType": "constructor",
           "fields": [
             {
+              "title": "gaidTxId",
               "$ref": "#/definitions/TxId"
             },
             {
+              "title": "gaidGovActionIx",
               "$ref": "#/definitions/Integer"
             }
           ],
@@ -1005,16 +1091,19 @@
         "values": {
           "oneOf": [
             {
+              "title": "VoteNo",
               "dataType": "constructor",
               "fields": [],
               "index": 0
             },
             {
+              "title": "VoteYes",
               "dataType": "constructor",
               "fields": [],
               "index": 1
             },
             {
+              "title": "Abstain",
               "dataType": "constructor",
               "fields": [],
               "index": 2
@@ -1026,11 +1115,13 @@
     "Maybe_Datum": {
       "oneOf": [
         {
+          "title": "Nothing",
           "dataType": "constructor",
           "fields": [],
           "index": 1
         },
         {
+          "title": "Just",
           "dataType": "constructor",
           "fields": [
             {
@@ -1044,11 +1135,13 @@
     "Maybe_GovernanceActionId": {
       "oneOf": [
         {
+          "title": "Nothing",
           "dataType": "constructor",
           "fields": [],
           "index": 1
         },
         {
+          "title": "Just",
           "dataType": "constructor",
           "fields": [
             {
@@ -1062,11 +1155,13 @@
     "Maybe_Lovelace": {
       "oneOf": [
         {
+          "title": "Nothing",
           "dataType": "constructor",
           "fields": [],
           "index": 1
         },
         {
+          "title": "Just",
           "dataType": "constructor",
           "fields": [
             {
@@ -1080,11 +1175,13 @@
     "Maybe_ScriptHash": {
       "oneOf": [
         {
+          "title": "Nothing",
           "dataType": "constructor",
           "fields": [],
           "index": 1
         },
         {
+          "title": "Just",
           "dataType": "constructor",
           "fields": [
             {
@@ -1098,11 +1195,13 @@
     "Maybe_StakingCredential": {
       "oneOf": [
         {
+          "title": "Nothing",
           "dataType": "constructor",
           "fields": [],
           "index": 1
         },
         {
+          "title": "Just",
           "dataType": "constructor",
           "fields": [
             {
@@ -1135,81 +1234,107 @@
       "dataType": "constructor",
       "fields": [
         {
+          "title": "myBool",
           "$ref": "#/definitions/Bool"
         },
         {
+          "title": "myInteger",
           "$ref": "#/definitions/Integer"
         },
         {
+          "title": "myMap",
           "$ref": "#/definitions/Map_Integer_Bool"
         },
         {
+          "title": "myDCert",
           "$ref": "#/definitions/DCert"
         },
         {
+          "title": "myScriptTag",
           "$ref": "#/definitions/ScriptTag"
         },
         {
+          "title": "myRedeemerPtr",
           "$ref": "#/definitions/RedeemerPtr"
         },
         {
+          "title": "myDiffMillis",
           "$ref": "#/definitions/DiffMilliSeconds"
         },
         {
+          "title": "myTxId",
           "$ref": "#/definitions/TxId"
         },
         {
+          "title": "myTokenName",
           "$ref": "#/definitions/TokenName"
         },
         {
+          "title": "myAddress",
           "$ref": "#/definitions/Address"
         },
         {
+          "title": "myPubKey",
           "$ref": "#/definitions/PubKeyHash"
         },
         {
+          "title": "myPOSIXTime",
           "$ref": "#/definitions/POSIXTime"
         },
         {
+          "title": "myLedgerBytes",
           "$ref": "#/definitions/LedgerBytes"
         },
         {
+          "title": "myCredential",
           "$ref": "#/definitions/Credential"
         },
         {
+          "title": "myDatum",
           "$ref": "#/definitions/Datum"
         },
         {
+          "title": "myLovelace",
           "$ref": "#/definitions/Lovelace"
         },
         {
+          "title": "myInterval",
           "$ref": "#/definitions/Interval_Integer"
         },
         {
+          "title": "myScriptHash",
           "$ref": "#/definitions/ScriptHash"
         },
         {
+          "title": "myRedeemer",
           "$ref": "#/definitions/Redeemer"
         },
         {
+          "title": "myRedeemerHash",
           "$ref": "#/definitions/RedeemerHash"
         },
         {
+          "title": "myDatum_",
           "$ref": "#/definitions/Datum"
         },
         {
+          "title": "myDatumHash",
           "$ref": "#/definitions/DatumHash"
         },
         {
+          "title": "myTxInInfo",
           "$ref": "#/definitions/TxInInfo"
         },
         {
+          "title": "myTxInfo",
           "$ref": "#/definitions/TxInfo"
         },
         {
+          "title": "myScriptPurpose",
           "$ref": "#/definitions/ScriptPurpose"
         },
         {
+          "title": "myScriptContext",
           "$ref": "#/definitions/ScriptContext"
         }
       ],
@@ -1218,12 +1343,14 @@
     "MyRedeemer": {
       "oneOf": [
         {
+          "title": "R0",
           "$comment": "Redeemer 0",
           "dataType": "constructor",
           "fields": [],
           "index": 0
         },
         {
+          "title": "R1",
           "$comment": "Redeemer 1",
           "dataType": "constructor",
           "fields": [
@@ -1234,6 +1361,7 @@
           "index": 1
         },
         {
+          "title": "R2",
           "$comment": "Redeemer 2",
           "dataType": "constructor",
           "fields": [
@@ -1248,11 +1376,13 @@
     "OutputDatum": {
       "oneOf": [
         {
+          "title": "NoOutputDatum",
           "dataType": "constructor",
           "fields": [],
           "index": 0
         },
         {
+          "title": "OutputDatumHash",
           "dataType": "constructor",
           "fields": [
             {
@@ -1262,6 +1392,7 @@
           "index": 1
         },
         {
+          "title": "OutputDatum",
           "dataType": "constructor",
           "fields": [
             {
@@ -1277,27 +1408,34 @@
       "dataType": "integer"
     },
     "ProposalProcedure": {
+      "title": "ProposalProcedure",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "ppDeposit",
           "$ref": "#/definitions/Lovelace"
         },
         {
+          "title": "ppReturnAddr",
           "$ref": "#/definitions/Credential"
         },
         {
+          "title": "ppGovernanceAction",
           "$ref": "#/definitions/GovernanceAction"
         }
       ],
       "index": 0
     },
     "ProtocolVersion": {
+      "title": "ProtocolVersion",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "pvMajor",
           "$ref": "#/definitions/Integer"
         },
         {
+          "title": "pvMinor",
           "$ref": "#/definitions/Integer"
         }
       ],
@@ -1308,6 +1446,7 @@
       "dataType": "bytes"
     },
     "Rational": {
+      "title": "(,)",
       "dataType": "constructor",
       "fields": [
         {
@@ -1327,6 +1466,7 @@
       "dataType": "bytes"
     },
     "RedeemerPtr": {
+      "title": "RedeemerPtr",
       "dataType": "constructor",
       "fields": [
         {
@@ -1339,15 +1479,19 @@
       "index": 0
     },
     "ScriptContext": {
+      "title": "ScriptContext",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "scriptContextTxInfo",
           "$ref": "#/definitions/TxInfo"
         },
         {
+          "title": "scriptContextRedeemer",
           "$ref": "#/definitions/Redeemer"
         },
         {
+          "title": "scriptContextScriptInfo",
           "$ref": "#/definitions/ScriptInfo"
         }
       ],
@@ -1360,6 +1504,7 @@
     "ScriptInfo": {
       "oneOf": [
         {
+          "title": "MintingScript",
           "dataType": "constructor",
           "fields": [
             {
@@ -1369,6 +1514,7 @@
           "index": 0
         },
         {
+          "title": "SpendingScript",
           "dataType": "constructor",
           "fields": [
             {
@@ -1381,6 +1527,7 @@
           "index": 1
         },
         {
+          "title": "RewardingScript",
           "dataType": "constructor",
           "fields": [
             {
@@ -1390,6 +1537,7 @@
           "index": 2
         },
         {
+          "title": "CertifyingScript",
           "dataType": "constructor",
           "fields": [
             {
@@ -1402,6 +1550,7 @@
           "index": 3
         },
         {
+          "title": "VotingScript",
           "dataType": "constructor",
           "fields": [
             {
@@ -1411,6 +1560,7 @@
           "index": 4
         },
         {
+          "title": "ProposingScript",
           "dataType": "constructor",
           "fields": [
             {
@@ -1427,6 +1577,7 @@
     "ScriptPurpose": {
       "oneOf": [
         {
+          "title": "Minting",
           "dataType": "constructor",
           "fields": [
             {
@@ -1436,6 +1587,7 @@
           "index": 0
         },
         {
+          "title": "Spending",
           "dataType": "constructor",
           "fields": [
             {
@@ -1445,6 +1597,7 @@
           "index": 1
         },
         {
+          "title": "Rewarding",
           "dataType": "constructor",
           "fields": [
             {
@@ -1454,6 +1607,7 @@
           "index": 2
         },
         {
+          "title": "Certifying",
           "dataType": "constructor",
           "fields": [
             {
@@ -1466,6 +1620,7 @@
           "index": 3
         },
         {
+          "title": "Voting",
           "dataType": "constructor",
           "fields": [
             {
@@ -1475,6 +1630,7 @@
           "index": 4
         },
         {
+          "title": "Proposing",
           "dataType": "constructor",
           "fields": [
             {
@@ -1491,21 +1647,25 @@
     "ScriptTag": {
       "oneOf": [
         {
+          "title": "Spend",
           "dataType": "constructor",
           "fields": [],
           "index": 0
         },
         {
+          "title": "Mint",
           "dataType": "constructor",
           "fields": [],
           "index": 1
         },
         {
+          "title": "Cert",
           "dataType": "constructor",
           "fields": [],
           "index": 2
         },
         {
+          "title": "Reward",
           "dataType": "constructor",
           "fields": [],
           "index": 3
@@ -1515,6 +1675,7 @@
     "StakingCredential": {
       "oneOf": [
         {
+          "title": "StakingHash",
           "dataType": "constructor",
           "fields": [
             {
@@ -1524,6 +1685,7 @@
           "index": 0
         },
         {
+          "title": "StakingPtr",
           "dataType": "constructor",
           "fields": [
             {
@@ -1547,6 +1709,7 @@
     "TxCert": {
       "oneOf": [
         {
+          "title": "TxCertRegStaking",
           "dataType": "constructor",
           "fields": [
             {
@@ -1559,6 +1722,7 @@
           "index": 0
         },
         {
+          "title": "TxCertUnRegStaking",
           "dataType": "constructor",
           "fields": [
             {
@@ -1571,6 +1735,7 @@
           "index": 1
         },
         {
+          "title": "TxCertDelegStaking",
           "dataType": "constructor",
           "fields": [
             {
@@ -1583,6 +1748,7 @@
           "index": 2
         },
         {
+          "title": "TxCertRegDeleg",
           "dataType": "constructor",
           "fields": [
             {
@@ -1598,6 +1764,7 @@
           "index": 3
         },
         {
+          "title": "TxCertRegDRep",
           "dataType": "constructor",
           "fields": [
             {
@@ -1610,6 +1777,7 @@
           "index": 4
         },
         {
+          "title": "TxCertUpdateDRep",
           "dataType": "constructor",
           "fields": [
             {
@@ -1619,6 +1787,7 @@
           "index": 5
         },
         {
+          "title": "TxCertUnRegDRep",
           "dataType": "constructor",
           "fields": [
             {
@@ -1631,6 +1800,7 @@
           "index": 6
         },
         {
+          "title": "TxCertPoolRegister",
           "dataType": "constructor",
           "fields": [
             {
@@ -1643,6 +1813,7 @@
           "index": 7
         },
         {
+          "title": "TxCertPoolRetire",
           "dataType": "constructor",
           "fields": [
             {
@@ -1655,6 +1826,7 @@
           "index": 8
         },
         {
+          "title": "TxCertAuthHotCommittee",
           "dataType": "constructor",
           "fields": [
             {
@@ -1667,6 +1839,7 @@
           "index": 9
         },
         {
+          "title": "TxCertResignColdCommittee",
           "dataType": "constructor",
           "fields": [
             {
@@ -1682,96 +1855,124 @@
       "dataType": "bytes"
     },
     "TxInInfo": {
+      "title": "TxInInfo",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "txInInfoOutRef",
           "$ref": "#/definitions/TxOutRef"
         },
         {
+          "title": "txInInfoResolved",
           "$ref": "#/definitions/TxOut"
         }
       ],
       "index": 0
     },
     "TxInfo": {
+      "title": "TxInfo",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "txInfoInputs",
           "$ref": "#/definitions/List_TxInInfo"
         },
         {
+          "title": "txInfoReferenceInputs",
           "$ref": "#/definitions/List_TxInInfo"
         },
         {
+          "title": "txInfoOutputs",
           "$ref": "#/definitions/List_TxOut"
         },
         {
+          "title": "txInfoFee",
           "$ref": "#/definitions/Lovelace"
         },
         {
+          "title": "txInfoMint",
           "$ref": "#/definitions/MintValue"
         },
         {
+          "title": "txInfoTxCerts",
           "$ref": "#/definitions/List_TxCert"
         },
         {
+          "title": "txInfoWdrl",
           "$ref": "#/definitions/Map_Credential_Lovelace"
         },
         {
+          "title": "txInfoValidRange",
           "$ref": "#/definitions/Interval_POSIXTime"
         },
         {
+          "title": "txInfoSignatories",
           "$ref": "#/definitions/List_PubKeyHash"
         },
         {
+          "title": "txInfoRedeemers",
           "$ref": "#/definitions/Map_ScriptPurpose_Redeemer"
         },
         {
+          "title": "txInfoData",
           "$ref": "#/definitions/Map_DatumHash_Datum"
         },
         {
+          "title": "txInfoId",
           "$ref": "#/definitions/TxId"
         },
         {
+          "title": "txInfoVotes",
           "$ref": "#/definitions/Map_Voter_Map_GovernanceActionId_Vote"
         },
         {
+          "title": "txInfoProposalProcedures",
           "$ref": "#/definitions/List_ProposalProcedure"
         },
         {
+          "title": "txInfoCurrentTreasuryAmount",
           "$ref": "#/definitions/Maybe_Lovelace"
         },
         {
+          "title": "txInfoTreasuryDonation",
           "$ref": "#/definitions/Maybe_Lovelace"
         }
       ],
       "index": 0
     },
     "TxOut": {
+      "title": "TxOut",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "txOutAddress",
           "$ref": "#/definitions/Address"
         },
         {
+          "title": "txOutValue",
           "$ref": "#/definitions/Value"
         },
         {
+          "title": "txOutDatum",
           "$ref": "#/definitions/OutputDatum"
         },
         {
+          "title": "txOutReferenceScript",
           "$ref": "#/definitions/Maybe_ScriptHash"
         }
       ],
       "index": 0
     },
     "TxOutRef": {
+      "title": "TxOutRef",
       "dataType": "constructor",
       "fields": [
         {
+          "title": "txOutRefId",
           "$ref": "#/definitions/TxId"
         },
         {
+          "title": "txOutRefIdx",
           "$ref": "#/definitions/Integer"
         }
       ],
@@ -1822,6 +2023,7 @@
     "Voter": {
       "oneOf": [
         {
+          "title": "CommitteeVoter",
           "dataType": "constructor",
           "fields": [
             {
@@ -1831,6 +2033,7 @@
           "index": 0
         },
         {
+          "title": "DRepVoter",
           "dataType": "constructor",
           "fields": [
             {
@@ -1840,6 +2043,7 @@
           "index": 1
         },
         {
+          "title": "StakePoolVoter",
           "dataType": "constructor",
           "fields": [
             {

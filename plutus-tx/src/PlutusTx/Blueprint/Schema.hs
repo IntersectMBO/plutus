@@ -235,11 +235,38 @@ data MapSchema (referencedTypes :: [Type]) = MkMapSchema
   }
   deriving stock (Eq, Ord, Show, Generic, Data)
 
+{-| One field of a constructor: its schema, plus its name where the source has
+one.
+
+CIP-0057 gives each field object an optional @title@ — see the @hello_world@
+blueprint in the specification, whose single field is
+@{ "title": "owner", "dataType": "bytes" }@. A positional constructor has no
+names to report, hence the 'Maybe'. -}
+data FieldSchema (referencedTypes :: [Type]) = MkFieldSchema
+  { fieldName :: Maybe Text
+  , fieldSchema :: Schema referencedTypes
+  }
+  deriving stock (Eq, Ord, Show, Generic, Data)
+
+{-| The field name is merged into the field's own schema object rather than
+wrapping it, which is the shape CIP-0057 shows: a field object *is* a schema
+object with a @title@ added.
+
+A schema that did not serialise to a JSON object would lose its name here. No
+'Schema' constructor does that today — every branch of that instance produces an
+object — and the fallthrough drops the name rather than emitting a malformed
+field. -}
+instance ToJSON (FieldSchema referencedTypes) where
+  toJSON MkFieldSchema {fieldName, fieldSchema} =
+    case (fieldName, toJSON fieldSchema) of
+      (Just n, Aeson.Object o) -> Aeson.Object (KeyMap.insert "title" (toJSON n) o)
+      (_, v) -> v
+
 data ConstructorSchema (referencedTypes :: [Type]) = MkConstructorSchema
   { index :: Natural
   -- ^ Constructor index
-  , fieldSchemas :: [Schema referencedTypes]
-  -- ^ Field schemas
+  , fieldSchemas :: [FieldSchema referencedTypes]
+  -- ^ Field schemas, in declaration order
   }
   deriving stock (Eq, Ord, Show, Generic, Data)
 

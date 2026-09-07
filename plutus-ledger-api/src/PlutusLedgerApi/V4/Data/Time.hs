@@ -30,7 +30,7 @@ import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Data.Time (POSIXTime (..))
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
-import PlutusTx.Blueprint (ConstructorSchema (..), Schema (..))
+import PlutusTx.Blueprint (ConstructorSchema (..), FieldSchema (..), Schema (..))
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (schema))
 import PlutusTx.Blueprint.Definition
   ( HasBlueprintDefinition (..)
@@ -74,8 +74,8 @@ instance
       emptySchemaInfo {title = Haskell.Just "POSIXTimeRange"}
       ( MkConstructorSchema
           0
-          [ definitionRef @(Haskell.Maybe POSIXTime) @referencedTypes
-          , definitionRef @(Haskell.Maybe POSIXTime) @referencedTypes
+          [ MkFieldSchema Nothing (definitionRef @(Haskell.Maybe POSIXTime) @referencedTypes)
+          , MkFieldSchema Nothing (definitionRef @(Haskell.Maybe POSIXTime) @referencedTypes)
           ]
       )
 
