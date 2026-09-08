@@ -35,6 +35,7 @@ module VerifiedCompilation where
 ```
 open import Function using (_∘_)
 open import Data.Bool.Base
+open import Data.List using ([])
 open import Data.Maybe using (is-just ; fromMaybe)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 open import Agda.Builtin.Unit using (⊤; tt)
@@ -82,6 +83,7 @@ tagToRelation cseT = UCSE.UntypedCSE
 tagToRelation applyToCaseT = UA2C.UApplyToCase
 tagToRelation caseReduceT = UCR.CaseReduce
 tagToRelation letFloatOutT = FO.FloatOut
+tagToRelation polyBuiltinT = UCSE.HoistPoly []
 ```
 
 We default to the `NotImplemented` relation to give each `OptTag` a relation:
@@ -109,6 +111,7 @@ certifyPass (inj₂ cseT) _ = decider UCSE.isUntypedCSE?
 certifyPass (inj₂ applyToCaseT) _ = decider UA2C.a2c?ᶜᶜ
 certifyPass (inj₂ caseReduceT) _ = decider UCR.decide
 certifyPass (inj₂ letFloatOutT) _ = decider FO.decide
+certifyPass (inj₂ polyBuiltinT) _ = decider' (inj₂ polyBuiltinT) (UCSE.dec-hoist [])
 ```
 
 A `Certificate t` states the main theorem of a trace `t`: a sequence (product)

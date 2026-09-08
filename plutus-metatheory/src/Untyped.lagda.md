@@ -72,8 +72,20 @@ data _⊢ (n : ℕ) : Set where
 
 pattern Let_In_ rhs body = ƛ body · rhs
 infix 2 Let_In_
+```
 
-pattern let' rhs body = ƛ body · rhs
+Convenient pattern synonyms for nested lets
+
+```
+pattern let₁ M₁ N                      = ƛ N · M₁
+pattern let₂ M₁ M₂ N                   = (ƛ (ƛ N)) · M₁ · M₂
+pattern let₃ M₁ M₂ M₃ N                = (ƛ (ƛ (ƛ N))) · M₁ · M₂ · M₃
+pattern let₄ M₁ M₂ M₃ M₄ N             = (ƛ (ƛ (ƛ (ƛ N)))) · M₁ · M₂ · M₃ · M₄
+pattern let₅ M₁ M₂ M₃ M₄ M₅ N          = (ƛ (ƛ (ƛ (ƛ (ƛ N))))) · M₁ · M₂ · M₃ · M₄ · M₅
+pattern let₆ M₁ M₂ M₃ M₄ M₅ M₆ N       = (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ N)))))) · M₁ · M₂ · M₃ · M₄ · M₅ · M₆
+pattern let₇ M₁ M₂ M₃ M₄ M₅ M₆ M₇ N    = (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ N))))))) · M₁ · M₂ · M₃ · M₄ · M₅ · M₆ · M₇
+pattern let₈ M₁ M₂ M₃ M₄ M₅ M₆ M₇ M₈ N = (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ N)))))))) · M₁ · M₂ · M₃ · M₄ · M₅ · M₆ · M₇ · M₈
+pattern let₉ M₁ M₂ M₃ M₄ M₅ M₆ M₇ M₈ M₉ N = (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ (ƛ N))))))))) · M₁ · M₂ · M₃ · M₄ · M₅ · M₆ · M₇ · M₈ · M₉
 ```
 
 ```

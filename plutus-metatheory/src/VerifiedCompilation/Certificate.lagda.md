@@ -103,6 +103,11 @@ decider f x y with f x y
 ... | proof p = proof p
 ... | ce ¬p tag a b = ce ¬p tag a b
 
+decider' : ∀ {X} {P : X → X → Set} → OptTag → Binary.Decidable P → Certifiable P
+decider' tag f x y with f x y
+... | yes p = proof p
+... | no ¬p  = ce ¬p tag x y
+
 decToPCE : {X : Set} {P : Set} → OptTag → Dec P → {before after : X} → ProofOrCE P
 decToPCE _ (yes p) = proof p
 decToPCE tag (no ¬p) {before} {after} = ce ¬p tag before after

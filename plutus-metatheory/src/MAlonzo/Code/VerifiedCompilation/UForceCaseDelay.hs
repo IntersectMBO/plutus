@@ -269,7 +269,7 @@ d_isFCD'63'_96 v0 v1 v2
                                                                                                                                        MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_56 v31
                                                                                                                                          -> let v32
                                                                                                                                                   = coe
-                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_316
+                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.du_pcePointwise_354
                                                                                                                                                       (coe
                                                                                                                                                          MAlonzo.Code.VerifiedCompilation.Trace.d_ForceCaseDelayT_36)
                                                                                                                                                       (coe
@@ -382,7 +382,7 @@ d_'46'extendedlambda4_228 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
@@ -401,7 +401,7 @@ d_'46'extendedlambda5_280 ::
   () ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.VerifiedCompilation.Trace.T_UncertifiedOptTag_4
-    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_12 ->
+    MAlonzo.Code.VerifiedCompilation.Trace.T_CertifiedOptTag_10 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
