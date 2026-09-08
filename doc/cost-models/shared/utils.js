@@ -476,8 +476,10 @@ async function loadData(csvUrl, jsonUrl) {
 function getBranchFromUrl() {
   const params = new URLSearchParams(window.location.search);
   // `has`, not a truthiness test: `?branch=` says "the default", not "whatever this browser
-  // happens to remember".
-  return params.has('branch') ? params.get('branch') : null;
+  // happens to remember". Resolving it here keeps that promise in the field as well as in
+  // the URLs derived from it, and lets `storedApplies` compare two branch names.
+  if (!params.has('branch')) return null;
+  return params.get('branch').trim() || DEFAULT_BRANCH;
 }
 
 // ============================================================================
@@ -617,7 +619,7 @@ function renderProvenance(settings) {
   const deriveFromBranch = key => {
     const branch = document.getElementById('branch-name').value.trim() || DEFAULT_BRANCH;
     document.getElementById(`${key}-url`).value =
-      getFileUrls (generateUrlFromBranch (branch))[key];
+      getFileUrls(generateUrlFromBranch(branch))[key];
   };
   // Each row carries what its own Clear leaves behind, because clearing one field must not
   // disturb another that holds a value somebody chose. For the branch that means re-deriving
@@ -663,10 +665,19 @@ function renderProvenance(settings) {
   }
 }
 
+// Only a value the default does not already give is worth remembering: the branch when it
+// is not `DEFAULT_BRANCH`, a URL when the branch does not imply it. Storing one that is
+// implied would report every later visit as restored from the browser, and a note that
+// fires on ordinary use stops carrying information.
 function saveSettings(branch, csvUrl, jsonUrl) {
-  localStorage.setItem(STORAGE_KEYS.BRANCH, branch);
-  localStorage.setItem(STORAGE_KEYS.CSV_URL, csvUrl);
-  localStorage.setItem(STORAGE_KEYS.JSON_URL, jsonUrl);
+  if (branch && branch !== DEFAULT_BRANCH) localStorage.setItem(STORAGE_KEYS.BRANCH, branch);
+  else localStorage.removeItem(STORAGE_KEYS.BRANCH);
+  const fromBranch = getFileUrls(generateUrlFromBranch(branch));
+  const pairs = [['csv', csvUrl, STORAGE_KEYS.CSV_URL], ['json', jsonUrl, STORAGE_KEYS.JSON_URL]];
+  for (const [key, value, storageKey] of pairs) {
+    if (value && value !== fromBranch[key]) localStorage.setItem(storageKey, value);
+    else localStorage.removeItem(storageKey);
+  }
 }
 
 // Update URL fields based on branch name
@@ -842,6 +853,17 @@ function setupCostModelPage(page) {
       updateUrlsFromBranch();
       renderProvenance({ branchSource: 'typed', csvSource: 'branch', jsonSource: 'branch' });
     });
+
+    // Typing into a URL field settles its provenance on the spot. Without this the note
+    // stays beside a value the reader supplied, and its Clear would throw that value away;
+    // a later failure would also blame storage for a URL nobody restored.
+    for (const [key, input] of [['csv', csvInput], ['json', jsonInput]]) {
+      input.addEventListener('input', () => {
+        fieldProvenance[key] = 'typed';
+        const note = document.getElementById(`${input.id}-provenance`);
+        if (note) note.remove();
+      });
+    }
 
     document.getElementById('reload-data').addEventListener('click', async () => {
       const branch = branchInput.value.trim() || DEFAULT_BRANCH;
