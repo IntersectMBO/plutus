@@ -1610,7 +1610,7 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                       -> case coe v11 of
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v12
                                              -> let v13
-                                                      = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_48
+                                                      = MAlonzo.Code.Untyped.Equality.d_decEq'45'TmCon_20
                                                           (coe v7) (coe v9) in
                                                 coe
                                                   (case coe v13 of
@@ -2535,27 +2535,27 @@ du_translation'63'_160 v0 v1 v2 v3 v4
                                                              coe
                                                                MAlonzo.Code.Data.Nat.Properties.du_'8801''8658''8801''7495'_2786
                                                                (coe
-                                                                  MAlonzo.Code.Builtin.d_enumBuiltin_442
+                                                                  MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                   (coe v7)))
                                                           (coe
                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                                                              (coe
                                                                 eqInt
                                                                 (coe
-                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_442
+                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                    (coe v7))
                                                                 (coe
-                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_442
+                                                                   MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                    (coe v9)))
                                                              (coe
                                                                 MAlonzo.Code.Relation.Nullary.Reflects.d_T'45'reflects_70
                                                                 (coe
                                                                    eqInt
                                                                    (coe
-                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_442
+                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                       (coe v7))
                                                                    (coe
-                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_442
+                                                                      MAlonzo.Code.Builtin.d_enumBuiltin_454
                                                                       (coe v9))))) in
                                                 coe
                                                   (case coe v13 of
