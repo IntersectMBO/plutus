@@ -83,6 +83,7 @@ import System.Exit
 import System.FilePath
 import System.IO
   ( hPrint
+  , hPutStrLn
   , stderr
   )
 import System.Mem (performGC)
@@ -610,8 +611,18 @@ execCertifier optimizerTrace cert out costs = do
         InvalidCertificate _ _ -> exitWith $ ExitFailure 1
         InvalidCompilerOutput -> exitWith $ ExitFailure 2
         ValidationError _ -> exitWith $ ExitFailure 3
-    -- TODO: Only Right True is success
-    Right _ -> pure ()
+    Right True ->
+      hPutStrLn stderr "The compilation was successfully certified."
+    Right False -> do
+      -- In project output mode a rejected certification is reported as
+      -- 'InvalidCertificate' above, so this only happens in basic and
+      -- report output modes.
+      hPutStrLn stderr $
+        "The compilation was not successfully certified."
+          <> case out of
+            ReportOutput file -> " See the certifier report in " <> file <> "."
+            _ -> ""
+      exitWith $ ExitFailure 1
 
 ---------------- Load script arguments for evaluation ----------------
 
