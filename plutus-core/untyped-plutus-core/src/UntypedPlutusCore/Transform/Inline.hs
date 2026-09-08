@@ -867,4 +867,11 @@ More specifically, for unconditional inlining, we can simply inspect the usage c
 the variable. For callsite inlining, we maintain a map recording how many times each
 binding has been inlined. Once the inliner is about to inline a binding at a second call site,
 that inlining is postponed until the next round.
+
+Without the transitive closure, in the following example, the inliner transforms `Lᵢ` to `L₀`
+in polynomial time in `i`, but certifying the translation would take exponential time in `i`:
+
+two = \f a. f (f a)
+L₀ = \a. a
+Lᵢ = two Lᵢ₋₁
 -}
