@@ -657,7 +657,9 @@ function renderProvenance(settings) {
       note.remove();
     });
     note.appendChild(clear);
-    input.insertAdjacentElement('afterend', note);
+    // Appended to the group rather than placed after the input, because the branch input
+    // shares a flex row with Copy Link and a sibling there lands on the same line.
+    (input.closest('.control-group-vertical') || input.parentElement).appendChild(note);
   }
 }
 
