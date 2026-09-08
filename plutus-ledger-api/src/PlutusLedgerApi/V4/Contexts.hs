@@ -81,7 +81,7 @@ import PlutusLedgerApi.V3.Tx qualified as V3
 import PlutusLedgerApi.V4.Address (AccountId (..), Address (..))
 import PlutusLedgerApi.V4.Time (POSIXTimeRange)
 import PlutusLedgerApi.V4.Tx (TxOut (..))
-import PlutusTx (makeIsDataSchemaIndexed)
+import PlutusTx (makeIsDataSchemaAsList, makeIsDataSchemaIndexed)
 import PlutusTx qualified
 import PlutusTx.AssocMap (Map, lookup, toList)
 import PlutusTx.Blueprint
@@ -477,16 +477,16 @@ $( makeIsDataSchemaIndexed
  )
 
 $(makeLift ''TxInInfo)
-$(makeIsDataSchemaIndexed ''TxInInfo [('TxInInfo, 0)])
+$(makeIsDataSchemaAsList ''TxInInfo)
 
 $(makeLift ''TxInfo)
-$(makeIsDataSchemaIndexed ''TxInfo [('TxInfo, 0)])
+$(makeIsDataSchemaAsList ''TxInfo)
 
 $(makeLift ''TopTxInfoSimplified)
-$(makeIsDataSchemaIndexed ''TopTxInfoSimplified [('TopTxInfoSimplified, 0)])
+$(makeIsDataSchemaAsList ''TopTxInfoSimplified)
 
 $(makeLift ''TopTxInfo)
-$(makeIsDataSchemaIndexed ''TopTxInfo [('TopTxInfo, 0)])
+$(makeIsDataSchemaAsList ''TopTxInfo)
 
 $(makeLift ''ScriptInfo)
 $( makeIsDataSchemaIndexed
@@ -502,4 +502,4 @@ $( makeIsDataSchemaIndexed
  )
 
 $(makeLift ''ScriptContext)
-$(makeIsDataSchemaIndexed ''ScriptContext [('ScriptContext, 0)])
+$(makeIsDataSchemaAsList ''ScriptContext)

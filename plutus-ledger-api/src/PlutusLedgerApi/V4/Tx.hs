@@ -92,5 +92,5 @@ pubKeyHashTxOut v pkh = TxOut (pubKeyHashAddress pkh) v NoOutputDatum Nothing
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
 
-$(PlutusTx.makeIsDataSchemaIndexed ''TxOut [('TxOut, 0)])
+$(PlutusTx.makeIsDataSchemaAsList ''TxOut)
 $(PlutusTx.makeLift ''TxOut)

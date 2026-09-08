@@ -331,7 +331,7 @@ PlutusTx.asData
 
 PlutusTx.makeLift ''ScriptPurpose
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TxInInfo = TxInInfo
       { txInInfoOutRef :: V3.TxOutRef
@@ -348,7 +348,7 @@ instance Pretty TxInInfo where
   pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
     pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TxInfo = TxInfo
       { txInfoId :: V3.TxId
@@ -377,7 +377,7 @@ PlutusTx.asData
 
 PlutusTx.makeLift ''TxInfo
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TopTxInfoSimplified = TopTxInfoSimplified
       { ttisIds :: List V3.TxId
@@ -433,7 +433,7 @@ PlutusTx.asData
 
 PlutusTx.makeLift ''TopTxInfoSimplified
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TopTxInfo = TopTxInfo
       { topTxInfoSubTransactions :: List TxInfo
@@ -487,7 +487,7 @@ PlutusTx.asData
 
 PlutusTx.makeLift ''ScriptInfo
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data ScriptContext = ScriptContext
       { scriptContextTxInfo :: TxInfo

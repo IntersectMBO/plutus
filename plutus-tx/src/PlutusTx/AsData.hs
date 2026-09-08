@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
 
-module PlutusTx.AsData (asData, asDataFor) where
+module PlutusTx.AsData (asData, asDataFor, asDataAsList) where
 
 import Control.Lens (ifor)
 import Control.Monad (unless)
@@ -17,12 +17,16 @@ import Language.Haskell.TH.Datatype qualified as TH
 import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (ToData, UnsafeFromData)
 import PlutusTx.IsData.TH
   ( AsDataProdType (..)
   , mkConstrCreateExpr
   , mkDestructor
+  , mkListCreateExpr
+  , mkListDestructor
   , mkUnsafeConstrMatchPattern
+  , mkUnsafeConstrPartsMatchPattern
   )
 
 import Prelude
@@ -77,9 +81,18 @@ asData decQ = do
   outputDecs <- for decs asDataFor
   pure $ concat outputDecs
 
+asDataAsList :: TH.Q [TH.Dec] -> TH.Q [TH.Dec]
+asDataAsList decQ = do
+  decs <- decQ
+  outputDecs <- for decs (asDataForWith True)
+  pure $ concat outputDecs
+
 {- FOURMOLU_DISABLE -} -- Fourmolu gets upset on the segment below. This will just turn off fourmolu entirely.
 asDataFor :: TH.Dec -> TH.Q [TH.Dec]
-asDataFor dec = do
+asDataFor = asDataForWith False
+
+asDataForWith :: Bool -> TH.Dec -> TH.Q [TH.Dec]
+asDataForWith encodeAsList dec = do
   -- th-abstraction doesn't include deriving clauses, so we have to handle that here
   let derivs = case dec of
         TH.DataD _ _ _ _ _ deriv -> deriv
@@ -97,6 +110,8 @@ asDataFor dec = do
   -- Other stuff is data families and so on
   unless (dVariant == TH.Datatype) $
     fail $ "asData: can't handle datatype variant " ++ show dVariant
+  unless (not encodeAsList || length cons == 1) $
+    fail "Only data types with a single constructor are eligible for 'asDataAsList'"
   -- a fresh name for the new datatype, but same lexically as the old one
   cname <- TH.newName (show name)
   -- The newtype declaration
@@ -139,9 +154,16 @@ asDataFor dec = do
         [f1,f2] -> pure $ TH.infixPatSyn f1 f2
         _       -> fail "asData: infix data constructor with other than two fields"
     let
-      pat = TH.conP cname [mkUnsafeConstrMatchPattern isProductType (fromIntegral conIx) fieldNames]
+      matchPat
+        | encodeAsList =
+            [p| (BI.unsafeDataAsList -> $(mkUnsafeConstrPartsMatchPattern IsAsDataProdType 0 fieldNames)) |]
+        | otherwise = mkUnsafeConstrMatchPattern isProductType (fromIntegral conIx) fieldNames
+      pat = TH.conP cname [matchPat]
 
-      createExpr = [|$(TH.conE cname) $(mkConstrCreateExpr (fromIntegral conIx) createFieldNames) |]
+      createData
+        | encodeAsList = [|BI.mkList $(mkListCreateExpr createFieldNames)|]
+        | otherwise = mkConstrCreateExpr (fromIntegral conIx) createFieldNames
+      createExpr = [|$(TH.conE cname) $createData|]
       clause = TH.clause (fmap TH.varP createFieldNames) (TH.normalB createExpr) []
       patSynD = TH.patSynD conName patSynArgs (TH.explBidir [clause]) pat
       dataConstraints t = [TH.ConT ''ToData `TH.AppT` t, TH.ConT ''UnsafeFromData `TH.AppT` t]
@@ -157,6 +179,9 @@ asDataFor dec = do
   -- A complete pragma, to top it off
   let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
 
-  destructor <- mkDestructor di cname cons
+  destructor <-
+    if encodeAsList
+      then mkListDestructor di cname cons
+      else mkDestructor di cname cons
   pure $ ntD : compl : concat pats ++ destructor
 {- FOURMOLU_ENABLE -}

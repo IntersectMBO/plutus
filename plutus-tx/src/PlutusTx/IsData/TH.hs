@@ -8,11 +8,13 @@ module PlutusTx.IsData.TH
   , unstableMakeIsData
   , makeIsDataIndexed
   , makeIsDataAsList
+  , mkListCreateExpr
   , mkConstrCreateExpr
   , mkUnsafeConstrMatchPattern
   , mkConstrPartsMatchPattern
   , mkUnsafeConstrPartsMatchPattern
   , mkDestructor
+  , mkListDestructor
   , AsDataProdType (..)
   , fromDataClause
   ) where
@@ -495,8 +497,23 @@ mkDestructor
   -> TH.Name
   -> [TH.ConstructorInfo]
   -> TH.Q [TH.Dec]
-mkDestructor _ _ [] = pure []
-mkDestructor di cname cons = do
+mkDestructor = mkDestructorWith False
+
+mkListDestructor
+  :: TH.DatatypeInfo
+  -> TH.Name
+  -> [TH.ConstructorInfo]
+  -> TH.Q [TH.Dec]
+mkListDestructor = mkDestructorWith True
+
+mkDestructorWith
+  :: Bool
+  -> TH.DatatypeInfo
+  -> TH.Name
+  -> [TH.ConstructorInfo]
+  -> TH.Q [TH.Dec]
+mkDestructorWith _ _ _ [] = pure []
+mkDestructorWith encodeAsList di cname cons = do
   destructorName <- TH.newName ("match" ++ TH.nameBase (TH.datatypeName di))
 
   dName <- TH.newName "d"
@@ -538,12 +555,20 @@ mkDestructor di cname cons = do
     [con] -> do
       -- product type
       kName <- TH.newName "k"
+      let branch = mkDestructorBranch kName argsName (length (TH.constructorFields con))
       (,)
-        <$> [|
-          BI.casePair (AI.wrapUnsafeDataAsConstr $(TH.varE dName)) $
-            \ $TH.wildP $argsPat ->
-              $(mkDestructorBranch kName argsName (length (TH.constructorFields con)))
-          |]
+        <$> ( if encodeAsList
+                then
+                  [|
+                    let $(TH.bangP argsPat) = BI.unsafeDataAsList $(TH.varE dName)
+                     in $branch
+                    |]
+                else
+                  [|
+                    BI.casePair (AI.wrapUnsafeDataAsConstr $(TH.varE dName)) $
+                      \ $TH.wildP $argsPat -> $branch
+                    |]
+            )
         <*> pure [kName]
     _ -> do
       kNames <- for (cons `zip` [0 ..]) $ \(_, i) ->

@@ -74,7 +74,7 @@ import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter (Pretty (pretty), hang, vsep, (<+>))
 
 -- | Transaction output for Plutus V4.
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TxOut = TxOut
       { txOutAddress :: Address
