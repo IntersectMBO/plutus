@@ -209,20 +209,21 @@ cover_InlineHints_54 x
       Hints.InlError -> ()
       Hints.InlConstr _ -> ()
       Hints.InlCase _ _ -> ()
--- VerifiedCompilation.Trace.InlineSeq
-d_InlineSeq_82 a0 = ()
-type T_InlineSeq_82 a0 = Hints.InlineSeq a0
+-- VerifiedCompilation.Trace.InlineHints⁺
+d_InlineHints'8314'_82 a0 = ()
+type T_InlineHints'8314'_82 a0 = Hints.InlinePlus a0
 pattern C__'8593''7511'_86 a0 = Hints.InlOne a0
 pattern C__'10814''91'_'93'__88 a0 a1 a2 = Hints.InlSeq a0 a1 a2
 check__'8593''7511'_86 ::
-  forall xA. T_InlineHints_54 -> T_InlineSeq_82 xA
+  forall xA. T_InlineHints_54 -> T_InlineHints'8314'_82 xA
 check__'8593''7511'_86 = Hints.InlOne
 check__'10814''91'_'93'__88 ::
   forall xA.
-    T_InlineSeq_82 xA -> xA -> T_InlineSeq_82 xA -> T_InlineSeq_82 xA
+    T_InlineHints_54 ->
+    xA -> T_InlineHints'8314'_82 xA -> T_InlineHints'8314'_82 xA
 check__'10814''91'_'93'__88 = Hints.InlSeq
-cover_InlineSeq_82 :: Hints.InlineSeq a1 -> ()
-cover_InlineSeq_82 x
+cover_InlineHints'8314'_82 :: Hints.InlinePlus a1 -> ()
+cover_InlineHints'8314'_82 x
   = case x of
       Hints.InlOne _ -> ()
       Hints.InlSeq _ _ _ -> ()
@@ -231,7 +232,8 @@ d_Hints_92 a0 = ()
 type T_Hints_92 a0 = Hints.Hints a0
 pattern C_inline_96 a0 = Hints.Inline a0
 pattern C_none_98 = Hints.NoHints
-check_inline_96 :: forall xA. T_InlineSeq_82 xA -> T_Hints_92 xA
+check_inline_96 ::
+  forall xA. T_InlineHints'8314'_82 xA -> T_Hints_92 xA
 check_inline_96 = Hints.Inline
 check_none_98 :: forall xA. T_Hints_92 xA
 check_none_98 = Hints.NoHints

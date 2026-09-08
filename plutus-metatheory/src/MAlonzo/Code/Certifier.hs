@@ -47,7 +47,7 @@ d_runCertifier_2 v0
       (coe
          MAlonzo.Code.Utils.du_try_102
          (coe
-            MAlonzo.Code.VerifiedCompilation.d_checkScope'7511'_124 (coe v0))
+            MAlonzo.Code.VerifiedCompilation.d_checkScope'7511'_122 (coe v0))
          (coe MAlonzo.Code.VerifiedCompilation.C_illScoped_6))
       (coe
          (\ v1 ->

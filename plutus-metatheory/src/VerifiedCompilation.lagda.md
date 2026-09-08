@@ -148,13 +148,12 @@ check all terms in the trace.
 checkScope : Untyped → Maybe (0 ⊢)
 checkScope = eitherToMaybe ∘ scopeCheckU0
 
-checkScopeˢ : InlineSeq Untyped → Maybe (InlineSeq (0 ⊢))
+checkScopeˢ : InlineHints⁺ Untyped → Maybe (InlineHints⁺ (0 ⊢))
 checkScopeˢ (h ↑ᵗ) = return (h ↑ᵗ)
-checkScopeˢ (a ⨾[ t ] b) = do
-  a' ← checkScopeˢ a
+checkScopeˢ (h ⨾[ t ] hs) = do
   t' ← checkScope t
-  b' ← checkScopeˢ b
-  return (a' ⨾[ t' ] b')
+  hs' ← checkScopeˢ hs
+  return (h ⨾[ t' ] hs')
 
 checkScopeʰ : Hints Untyped → Maybe (Hints (0 ⊢))
 checkScopeʰ none = return none

@@ -71,16 +71,16 @@ renderCertifierHints (Trace.OptimizerTrace ss)
 
     renderHints = \case
       Hints.NoHints -> "NoHints"
-      Hints.Inline h -> renderInlineSeq h
+      Hints.Inline h -> renderInlinePlus h
 
-    renderInlineSeq = \case
+    renderInlinePlus = \case
       Hints.InlOne h -> renderInlineHints 0 h
-      Hints.InlSeq a n b ->
-        renderInlineSeq a
+      Hints.InlSeq h n hs ->
+        renderInlineHints 0 h
           <> "-- intermediate term --\n"
           <> render (prettyPlcReadableSimple n)
           <> "\n-- next chunk --\n"
-          <> renderInlineSeq b
+          <> renderInlinePlus hs
 
     renderInlineHints i = \case
       Hints.InlVar -> line i "InlVar"

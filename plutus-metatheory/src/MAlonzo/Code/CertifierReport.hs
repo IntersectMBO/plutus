@@ -578,8 +578,13 @@ d_numSitesInline'8314'_176 v0 v1 v2
              (coe v0) (coe v1) (coe v5)
       MAlonzo.Code.VerifiedCompilation.UInline.C__'10814'__746 v4 v6 v7
         -> coe
-             addInt (coe d_numSitesInline'8314'_176 (coe v0) (coe v4) (coe v6))
-             (coe d_numSitesInline'8314'_176 (coe v4) (coe v1) (coe v7))
+             addInt (coe d_numSitesInline'8314'_176 (coe v4) (coe v1) (coe v7))
+             (coe
+                d_numSitesInline_140 (coe (0 :: Integer)) erased
+                (coe MAlonzo.Code.VerifiedCompilation.UInline.C_'9633'_32)
+                (coe MAlonzo.Code.VerifiedCompilation.UInline.C_'9633'_32)
+                (coe MAlonzo.Code.VerifiedCompilation.UInline.C_'9633'_106)
+                (coe v0) (coe v4) (coe v6))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- CertifierReport.numSites
 d_numSites_190 ::

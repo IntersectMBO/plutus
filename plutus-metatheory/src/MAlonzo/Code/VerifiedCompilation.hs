@@ -227,10 +227,10 @@ d_checkScope_100 v0
       (coe MAlonzo.Code.Untyped.d_scopeCheckU0_290 (coe v0))
 -- VerifiedCompilation.checkScopeˢ
 d_checkScope'738'_102 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineSeq_82
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints'8314'_82
     MAlonzo.Code.RawU.T_Untyped_210 ->
   Maybe
-    (MAlonzo.Code.VerifiedCompilation.Trace.T_InlineSeq_82
+    (MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints'8314'_82
        MAlonzo.Code.Untyped.T__'8866'_14)
 d_checkScope'738'_102 v0
   = case coe v0 of
@@ -239,33 +239,28 @@ d_checkScope'738'_102 v0
       MAlonzo.Code.VerifiedCompilation.Trace.C__'10814''91'_'93'__88 v1 v2 v3
         -> coe
              MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72
-             (coe d_checkScope'738'_102 (coe v1))
+             (coe d_checkScope_100 (coe v2))
              (coe
                 (\ v4 ->
                    coe
                      MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72
-                     (coe d_checkScope_100 (coe v2))
+                     (coe d_checkScope'738'_102 (coe v3))
                      (coe
                         (\ v5 ->
                            coe
-                             MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72
-                             (coe d_checkScope'738'_102 (coe v3))
+                             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
                              (coe
-                                (\ v6 ->
-                                   coe
-                                     MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                                     (coe
-                                        MAlonzo.Code.VerifiedCompilation.Trace.C__'10814''91'_'93'__88
-                                        (coe v4) (coe v5) (coe v6))))))))
+                                MAlonzo.Code.VerifiedCompilation.Trace.C__'10814''91'_'93'__88
+                                (coe v1) (coe v4) (coe v5))))))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.checkScopeʰ
-d_checkScope'688'_118 ::
+d_checkScope'688'_116 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_92
     MAlonzo.Code.RawU.T_Untyped_210 ->
   Maybe
     (MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_92
        MAlonzo.Code.Untyped.T__'8866'_14)
-d_checkScope'688'_118 v0
+d_checkScope'688'_116 v0
   = case coe v0 of
       MAlonzo.Code.VerifiedCompilation.Trace.C_inline_96 v1
         -> coe
@@ -280,7 +275,7 @@ d_checkScope'688'_118 v0
         -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe v0)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.checkScopeᵗ
-d_checkScope'7511'_124 ::
+d_checkScope'7511'_122 ::
   MAlonzo.Code.VerifiedCompilation.Trace.T_NonEmptySep_104
     (MAlonzo.Code.Utils.T__'215'__436
        (MAlonzo.Code.Utils.T_Either_6
@@ -298,7 +293,7 @@ d_checkScope'7511'_124 ::
           (MAlonzo.Code.VerifiedCompilation.Trace.T_Hints_92
              MAlonzo.Code.Untyped.T__'8866'_14))
        MAlonzo.Code.Untyped.T__'8866'_14)
-d_checkScope'7511'_124 v0
+d_checkScope'7511'_122 v0
   = case coe v0 of
       MAlonzo.Code.VerifiedCompilation.Trace.C_cons_110 v1 v2 v3
         -> case coe v2 of
@@ -310,12 +305,12 @@ d_checkScope'7511'_124 v0
                        (\ v6 ->
                           coe
                             MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72
-                            (coe d_checkScope'688'_118 (coe v5))
+                            (coe d_checkScope'688'_116 (coe v5))
                             (coe
                                (\ v7 ->
                                   coe
                                     MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72
-                                    (coe d_checkScope'7511'_124 (coe v3))
+                                    (coe d_checkScope'7511'_122 (coe v3))
                                     (coe
                                        (\ v8 ->
                                           coe

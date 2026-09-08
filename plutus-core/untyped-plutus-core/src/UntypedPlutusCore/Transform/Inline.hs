@@ -252,14 +252,14 @@ inline
       -- See Note [Checkpointing in the UPLC inliner].
       go
         :: Term name uni fun (Ann a)
-        -> Quote (CertifierHints.InlineSeq (Term name uni fun a), Term name uni fun a)
-      go tIn = do
+        -> Quote (CertifierHints.InlinePlus (Term name uni fun a), Term name uni fun a)
+      go t' = do
         (decorated, finalState) <-
           flip runStateT initialState $
             runReaderT
-              (processTerm tIn)
+              (processTerm t')
               InlineInfo
-                { _iiUsages = Usages.termUsages tIn
+                { _iiUsages = Usages.termUsages t'
                 , _iiHints = hints
                 , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
                 , _iiInlineConstants = inlineConstants
@@ -272,10 +272,7 @@ inline
           then do
             (rest, result) <- go (clearDecorations decorated)
             pure
-              ( CertifierHints.InlSeq
-                  (CertifierHints.InlOne (mkHints decorated))
-                  checkpoint
-                  rest
+              ( CertifierHints.InlSeq (mkHints decorated) checkpoint rest
               , result
               )
           else pure (CertifierHints.InlOne (mkHints decorated), checkpoint)

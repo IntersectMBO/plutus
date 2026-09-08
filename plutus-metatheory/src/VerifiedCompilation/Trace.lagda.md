@@ -111,21 +111,21 @@ data InlineHints : Set where
   constr  : List InlineHints → InlineHints
   case    : InlineHints → List InlineHints → InlineHints
 
-infixl 5 _⨾[_]_
+infixr 5 _⨾[_]_
 infix  8 _↑ᵗ
 
-data InlineSeq (A : Set) : Set where
-  _↑ᵗ    : InlineHints → InlineSeq A
-  _⨾[_]_ : InlineSeq A → A → InlineSeq A → InlineSeq A
+data InlineHints⁺ (A : Set) : Set where
+  _↑ᵗ    : InlineHints → InlineHints⁺ A
+  _⨾[_]_ : InlineHints → A → InlineHints⁺ A → InlineHints⁺ A
 
 data Hints (A : Set) : Set where
-  inline : InlineSeq A → Hints A
+  inline : InlineHints⁺ A → Hints A
   none : Hints A
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Certify.Trace #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Transform.Certify.Hints as Hints #-}
 {-# COMPILE GHC InlineHints = data Hints.Inline (Hints.InlVar | Hints.InlExpand | Hints.InlLam | Hints.InlApply | Hints.InlDrop | Hints.InlForce | Hints.InlDelay | Hints.InlCon | Hints.InlBuiltin | Hints.InlError | Hints.InlConstr | Hints.InlCase) #-}
-{-# COMPILE GHC InlineSeq = data Hints.InlineSeq (Hints.InlOne | Hints.InlSeq) #-}
+{-# COMPILE GHC InlineHints⁺ = data Hints.InlinePlus (Hints.InlOne | Hints.InlSeq) #-}
 {-# COMPILE GHC Hints = data Hints.Hints (Hints.Inline | Hints.NoHints) #-}
 ```
 

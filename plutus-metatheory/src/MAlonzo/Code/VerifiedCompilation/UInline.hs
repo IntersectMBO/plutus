@@ -808,11 +808,11 @@ d_top'45'check_718 v0 v1 v2
 d_Inline'8314'_726 a0 a1 = ()
 data T_Inline'8314'_726
   = C__'8593''7511'_734 T_Inline_224 |
-    C__'10814'__746 MAlonzo.Code.Untyped.T__'8866'_14
-                    T_Inline'8314'_726 T_Inline'8314'_726
+    C__'10814'__746 MAlonzo.Code.Untyped.T__'8866'_14 T_Inline_224
+                    T_Inline'8314'_726
 -- VerifiedCompilation.UInline.top-check⁺
 d_top'45'check'8314'_754 ::
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineSeq_82
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints'8314'_82
     MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -831,7 +831,7 @@ d_top'45'check'8314'_754 v0 v1 v2
       MAlonzo.Code.VerifiedCompilation.Trace.C__'10814''91'_'93'__88 v3 v4 v5
         -> coe
              MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__100
-             (coe d_top'45'check'8314'_754 (coe v3) (coe v1) (coe v4))
+             (coe d_top'45'check_718 (coe v3) (coe v1) (coe v4))
              (coe
                 (\ v6 ->
                    coe
@@ -1438,7 +1438,10 @@ d_complete'8314'_1442 v0 v1 v2
                        erased
                 _ -> MAlonzo.RTE.mazUnreachableError)
       C__'10814'__746 v4 v6 v7
-        -> let v8 = d_complete'8314'_1442 (coe v0) (coe v4) (coe v6) in
+        -> let v8
+                 = d_complete_858
+                     (coe (0 :: Integer)) (coe C_'9633'_32) (coe C_'9633'_32) erased
+                     (coe C_'9633'_106) (coe v0) (coe v4) (coe v6) in
            coe
              (let v9 = d_complete'8314'_1442 (coe v4) (coe v1) (coe v7) in
               coe
@@ -1469,12 +1472,11 @@ d_e'8242'_1510 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
+  T_Inline_224 ->
   T_Inline'8314'_726 ->
-  T_Inline'8314'_726 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineSeq_82
-    MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints_54 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineSeq_82
+  MAlonzo.Code.VerifiedCompilation.Trace.T_InlineHints'8314'_82
     MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12

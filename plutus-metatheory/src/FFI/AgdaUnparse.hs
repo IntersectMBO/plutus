@@ -85,11 +85,11 @@ instance AgdaUnparse term => AgdaUnparse (Hints.Hints term) where
     Hints.NoHints -> "none"
     Hints.Inline x -> parens ("inline" <+> agdaUnparse x)
 
-instance AgdaUnparse term => AgdaUnparse (Hints.InlineSeq term) where
+instance AgdaUnparse term => AgdaUnparse (Hints.InlinePlus term) where
   agdaUnparse = \case
     Hints.InlOne h -> parens (agdaUnparse h <+> "↑ᵗ")
-    Hints.InlSeq a n b ->
-      parens (agdaUnparse a <+> "⨾[" <+> agdaUnparse n <+> "]" <+> agdaUnparse b)
+    Hints.InlSeq h n hs ->
+      parens (agdaUnparse h <+> "⨾[" <+> agdaUnparse n <+> "]" <+> agdaUnparse hs)
 
 instance AgdaUnparse Hints.Inline where
   agdaUnparse = \case

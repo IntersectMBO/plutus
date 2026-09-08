@@ -121,7 +121,7 @@ numSitesInlineᵖʷ (x Pointwise.∷ xs) = numSitesInline x + numSitesInlineᵖ�
 
 numSitesInline⁺ : {M N : 0 ⊢} → Inline⁺ M N → ℕ
 numSitesInline⁺ (r ↑ᵗ) = numSitesInline r
-numSitesInline⁺ (r ⨾ s) = numSitesInline⁺ r + numSitesInline⁺ s
+numSitesInline⁺ (r ⨾ s) = numSitesInline r + numSitesInline⁺ s
 
 numSites : {M N : 0 ⊢} (tag : CertifiedOptTag) → RelationOf (inj₂ tag) M N → ℕ
 numSites forceDelayT p = numSites′ p
