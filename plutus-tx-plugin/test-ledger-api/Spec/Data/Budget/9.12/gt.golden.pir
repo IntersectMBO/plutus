@@ -10,35 +10,26 @@ let
         \(`$dUnsafeFromData` : (\a -> data -> a) a)
          (`$dUnsafeFromData` : (\a -> data -> a) b)
          (d : data) ->
-          (let
-              b = list data
-            in
-            /\r ->
-              \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
-            {These a b}
-            (unConstrData d)
-            (\(index : integer) (args : list data) ->
-               case
-                 (list data -> These a b)
-                 index
-                 [ (\(ds : list data) ->
-                      This {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      That {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
-                 , (\(ds : list data) ->
-                      (let
-                          r = These a b
-                        in
-                        \(f : data -> list data -> r) (xs : list data) ->
-                          case r xs [f])
-                        (\(ds : data) (ds : list data) ->
-                           These
-                             {a}
-                             {b}
-                             (`$dUnsafeFromData` ds)
-                             (`$dUnsafeFromData` (headList {data} ds)))
-                        ds) ]
-                 args)
+          case
+            (These a b)
+            d
+            [ (\(ds : list data) ->
+                 This {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
+            , (\(ds : list data) ->
+                 That {a} {b} (`$dUnsafeFromData` (headList {data} ds)))
+            , (\(ds : list data) ->
+                 (let
+                     r = These a b
+                   in
+                   \(f : data -> list data -> r) (xs : list data) ->
+                     case r xs [f])
+                   (\(ds : data) (ds : list data) ->
+                      These
+                        {a}
+                        {b}
+                        (`$dUnsafeFromData` ds)
+                        (`$dUnsafeFromData` (headList {data} ds)))
+                   ds) ]
 in
 letrec
   !go : list (pair data data) -> bool

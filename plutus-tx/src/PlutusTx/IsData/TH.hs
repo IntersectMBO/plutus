@@ -284,9 +284,7 @@ unsafeFromDataClause indexedCons = do
               <$> indexedConsSorted
         body =
           [|
-            BI.casePair (BI.unsafeDataAsConstr $(TH.varE dName)) $
-              \($(TH.varP indexName)) ($(TH.varP argsName)) ->
-                caseInteger $(TH.varE indexName) $kases $(TH.varE argsName)
+            caseData $(TH.varE dName) $kases
             |]
 
       TH.clause [TH.varP dName] (TH.normalB body) []
@@ -500,7 +498,6 @@ mkDestructor di cname cons = do
   destructorName <- TH.newName ("match" ++ TH.nameBase (TH.datatypeName di))
 
   dName <- TH.newName "d"
-  idxName <- TH.newName "idx"
   argsName <- TH.newName "args"
   rName <- TH.newName "r"
 
@@ -550,15 +547,18 @@ mkDestructor di cname cons = do
         TH.newName ("k" ++ show (i :: Int))
       let branches =
             TH.listE
-              [ mkDestructorBranch kN argsName (length (TH.constructorFields con))
+              [ TH.lamE
+                  [ if Li.null (TH.constructorFields con)
+                      then TH.wildP
+                      else TH.varP argsName
+                  ]
+                  (mkDestructorBranch kN argsName (length (TH.constructorFields con)))
               | (kN, con) <- zip kNames cons
               ]
 
       (,)
         <$> [|
-          BI.casePair (AI.wrapUnsafeDataAsConstr $(TH.varE dName)) $
-            \ $(TH.varP idxName) $argsPat ->
-              caseInteger $(TH.varE idxName) $branches
+          AI.wrapCaseData $(TH.varE dName) $branches
           |]
         <*> pure kNames
 
