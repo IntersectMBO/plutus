@@ -1,5 +1,3 @@
--- editorconfig-checker-disable-file
-
 -- | The interface to Plutus V1 for the ledger.
 module PlutusLedgerApi.V1
   ( -- * Scripts

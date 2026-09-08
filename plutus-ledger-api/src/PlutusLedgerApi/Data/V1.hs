@@ -1,280 +1,208 @@
 {-# LANGUAGE PatternSynonyms #-}
 
--- | The interface to Plutus V1 for the ledger.
+-- | The data-backed type interface to Plutus V1 for the ledger.
 module PlutusLedgerApi.Data.V1
   ( -- * Scripts
-    SerialisedScript
-  , ScriptForEvaluation
-  , serialisedScript
-  , deserialisedScript
-  , serialiseCompiledCode
-  , serialiseUPLC
-  , deserialiseScript
-  , uncheckedDeserialiseUPLC
+    Common.SerialisedScript
+  , Common.ScriptForEvaluation
+  , Common.serialisedScript
+  , Common.deserialisedScript
+  , Common.serialiseCompiledCode
+  , Common.serialiseUPLC
+  , V1SOP.deserialiseScript
+  , Common.uncheckedDeserialiseUPLC
 
     -- * Running scripts
-  , evaluateScriptRestricting
-  , evaluateScriptCounting
+  , V1SOP.evaluateScriptRestricting
+  , V1SOP.evaluateScriptCounting
 
     -- ** Protocol version
-  , MajorProtocolVersion (..)
+  , Common.MajorProtocolVersion (..)
 
     -- ** Verbose mode and log output
-  , VerboseMode (..)
-  , LogOutput
+  , Common.VerboseMode (..)
+  , Common.LogOutput
 
     -- * Costing-related types
-  , ExBudget (..)
-  , ExCPU (..)
-  , ExMemory (..)
-  , SatInt (unSatInt)
-  , fromSatInt
+  , Common.ExBudget (..)
+  , Common.ExCPU (..)
+  , Common.ExMemory (..)
+  , Common.SatInt (Common.unSatInt)
+  , Common.fromSatInt
 
     -- ** Cost model
-  , EvaluationContext
-  , mkEvaluationContext
-  , ParamName (..)
-  , CostModelApplyError (..)
-  , CostModelParams
-  , assertWellFormedCostModelParams
+  , EvaluationContext.EvaluationContext
+  , EvaluationContext.mkEvaluationContext
+  , ParamName.ParamName (..)
+  , EvaluationContext.CostModelApplyError (..)
+  , EvaluationContext.CostModelParams
+  , EvaluationContext.assertWellFormedCostModelParams
 
     -- * Context types
-  , ScriptContext
-  , pattern ScriptContext
-  , scriptContextTxInfo
-  , scriptContextPurpose
-  , ScriptPurpose
-  , pattern Minting
-  , pattern Spending
-  , pattern Rewarding
-  , pattern Certifying
+  , Contexts.ScriptContext
+  , pattern Contexts.ScriptContext
+  , Contexts.scriptContextTxInfo
+  , Contexts.scriptContextPurpose
+  , Contexts.ScriptPurpose
+  , pattern Contexts.Minting
+  , pattern Contexts.Spending
+  , pattern Contexts.Rewarding
+  , pattern Contexts.Certifying
 
     -- ** Supporting types used in the context types
 
     -- *** ByteStrings
-  , BuiltinByteString
-  , toBuiltin
-  , fromBuiltin
+  , Common.BuiltinByteString
+  , Common.toBuiltin
+  , Common.fromBuiltin
 
     -- *** Bytes
-  , LedgerBytes (..)
-  , fromBytes
+  , V1SOP.LedgerBytes (..)
+  , V1SOP.fromBytes
 
     -- *** Certificates
-  , DCert
-  , pattern DCertDelegRegKey
-  , pattern DCertDelegDeRegKey
-  , pattern DCertDelegDelegate
-  , pattern DCertPoolRegister
-  , pattern DCertPoolRetire
-  , pattern DCertGenesis
-  , pattern DCertMir
+  , DCert.DCert
+  , pattern DCert.DCertDelegRegKey
+  , pattern DCert.DCertDelegDeRegKey
+  , pattern DCert.DCertDelegDelegate
+  , pattern DCert.DCertPoolRegister
+  , pattern DCert.DCertPoolRetire
+  , pattern DCert.DCertGenesis
+  , pattern DCert.DCertMir
 
     -- *** Credentials
-  , StakingCredential
-  , pattern StakingHash
-  , pattern StakingPtr
-  , Credential
-  , pattern PubKeyCredential
-  , pattern ScriptCredential
+  , Credential.StakingCredential
+  , pattern Credential.StakingHash
+  , pattern Credential.StakingPtr
+  , Credential.Credential
+  , pattern Credential.PubKeyCredential
+  , pattern Credential.ScriptCredential
 
     -- *** Value
-  , Value (..)
-  , CurrencySymbol (..)
-  , TokenName (..)
-  , singleton
-  , unionWith
-  , adaSymbol
-  , adaToken
-  , Lovelace (..)
-  , AssetClass (..)
-  , assetClass
-  , assetClassValue
-  , assetClassValueOf
-  , currencySymbol
-  , currencySymbolValueOf
-  , flattenValue
-  , geq
-  , gt
-  , isZero
-  , leq
-  , lovelaceValue
-  , lovelaceValueOf
-  , lt
-  , scale
-  , split
-  , symbols
-  , tokenName
-  , unsafeLovelaceValueOf
-  , valueOf
-  , withCurrencySymbol
+  , Value.Value (..)
+  , Value.CurrencySymbol (..)
+  , Value.TokenName (..)
+  , Value.singleton
+  , Value.unionWith
+  , Value.adaSymbol
+  , Value.adaToken
+  , Value.Lovelace (..)
+  , Value.AssetClass (..)
+  , Value.assetClass
+  , Value.assetClassValue
+  , Value.assetClassValueOf
+  , Value.currencySymbol
+  , Value.currencySymbolValueOf
+  , Value.flattenValue
+  , Value.geq
+  , Value.gt
+  , Value.isZero
+  , Value.leq
+  , Value.lovelaceValue
+  , Value.lovelaceValueOf
+  , Value.lt
+  , Value.scale
+  , Value.split
+  , Value.symbols
+  , Value.tokenName
+  , Value.unsafeLovelaceValueOf
+  , Value.valueOf
+  , Value.withCurrencySymbol
 
     -- *** Time
-  , POSIXTime (..)
-  , POSIXTimeRange
+  , Time.POSIXTime (..)
+  , Time.POSIXTimeRange
 
     -- *** Types for representing transactions
-  , Address
-  , pattern Address
-  , addressCredential
-  , addressStakingCredential
-  , PubKeyHash (..)
-  , TxId (..)
-  , TxInfo
-  , pattern TxInfo
-  , txInfoInputs
-  , txInfoOutputs
-  , txInfoFee
-  , txInfoMint
-  , txInfoDCert
-  , txInfoWdrl
-  , txInfoValidRange
-  , txInfoSignatories
-  , txInfoData
-  , txInfoId
-  , TxOut
-  , pattern TxOut
-  , txOutAddress
-  , txOutValue
-  , txOutDatumHash
-  , TxOutRef
-  , pattern TxOutRef
-  , txOutRefId
-  , txOutRefIdx
-  , TxInInfo
-  , pattern TxInInfo
-  , txInInfoOutRef
-  , txInInfoResolved
+  , Address.Address
+  , pattern Address.Address
+  , Address.addressCredential
+  , Address.addressStakingCredential
+  , V1SOP.PubKeyHash (..)
+  , Contexts.TxId (..)
+  , Contexts.TxInfo
+  , pattern Contexts.TxInfo
+  , Contexts.txInfoInputs
+  , Contexts.txInfoOutputs
+  , Contexts.txInfoFee
+  , Contexts.txInfoMint
+  , Contexts.txInfoDCert
+  , Contexts.txInfoWdrl
+  , Contexts.txInfoValidRange
+  , Contexts.txInfoSignatories
+  , Contexts.txInfoData
+  , Contexts.txInfoId
+  , Contexts.TxOut
+  , pattern Contexts.TxOut
+  , Contexts.txOutAddress
+  , Contexts.txOutValue
+  , Contexts.txOutDatumHash
+  , Contexts.TxOutRef
+  , pattern Contexts.TxOutRef
+  , Contexts.txOutRefId
+  , Contexts.txOutRefIdx
+  , Contexts.TxInInfo
+  , pattern Contexts.TxInInfo
+  , Contexts.txInInfoOutRef
+  , Contexts.txInInfoResolved
 
     -- *** Intervals
-  , Interval
-  , pattern Interval
-  , ivFrom
-  , ivTo
-  , Extended
-  , pattern NegInf
-  , pattern PosInf
-  , pattern Finite
-  , Closure
-  , UpperBound
-  , pattern UpperBound
-  , LowerBound
-  , pattern LowerBound
-  , always
-  , from
-  , to
-  , lowerBound
-  , upperBound
-  , strictLowerBound
-  , strictUpperBound
-  , inclusiveLowerBound
-  , inclusiveUpperBound
+  , Interval.Interval
+  , pattern Interval.Interval
+  , Interval.ivFrom
+  , Interval.ivTo
+  , Interval.Extended
+  , pattern Interval.NegInf
+  , pattern Interval.PosInf
+  , pattern Interval.Finite
+  , Interval.Closure
+  , Interval.UpperBound
+  , pattern Interval.UpperBound
+  , Interval.LowerBound
+  , pattern Interval.LowerBound
+  , Interval.always
+  , Interval.from
+  , Interval.to
+  , Interval.lowerBound
+  , Interval.upperBound
+  , Interval.strictLowerBound
+  , Interval.strictUpperBound
+  , Interval.inclusiveLowerBound
+  , Interval.inclusiveUpperBound
 
     -- *** Newtypes and hash types
-  , ScriptHash (..)
-  , Redeemer (..)
-  , RedeemerHash (..)
-  , Datum (..)
-  , DatumHash (..)
+  , V1SOP.ScriptHash (..)
+  , V1SOP.Redeemer (..)
+  , V1SOP.RedeemerHash (..)
+  , V1SOP.Datum (..)
+  , V1SOP.DatumHash (..)
 
     -- * Data
-  , PLC.Data (..)
-  , BuiltinData (..)
-  , ToData (..)
-  , FromData (..)
-  , UnsafeFromData (..)
-  , toData
-  , fromData
-  , dataToBuiltinData
-  , builtinDataToData
+  , Common.Data (..)
+  , Common.BuiltinData (..)
+  , Common.ToData (..)
+  , Common.FromData (..)
+  , Common.UnsafeFromData (..)
+  , Common.toData
+  , Common.fromData
+  , Common.dataToBuiltinData
+  , Common.builtinDataToData
 
     -- * Errors
-  , EvaluationError (..)
-  , ScriptDecodeError (..)
+  , Common.EvaluationError (..)
+  , Common.ScriptDecodeError (..)
   ) where
 
-import Data.SatInt
-import PlutusCore.Data qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudget as PLC
-import PlutusLedgerApi.Common as Common hiding
-  ( deserialiseScript
-  , evaluateScriptCounting
-  , evaluateScriptRestricting
-  )
 import PlutusLedgerApi.Common qualified as Common
-  ( deserialiseScript
-  , evaluateScriptCounting
-  , evaluateScriptRestricting
-  )
-import PlutusLedgerApi.V1.Bytes
-import PlutusLedgerApi.V1.Crypto
-import PlutusLedgerApi.V1.Data.Address
-import PlutusLedgerApi.V1.Data.Contexts
-import PlutusLedgerApi.V1.Data.Credential
-import PlutusLedgerApi.V1.Data.DCert
-import PlutusLedgerApi.V1.Data.Interval hiding (singleton)
-import PlutusLedgerApi.V1.Data.Time
-import PlutusLedgerApi.V1.Data.Value
-import PlutusLedgerApi.V1.EvaluationContext
-import PlutusLedgerApi.V1.ParamName
-import PlutusLedgerApi.V1.Scripts as Scripts
-
-{-| An alias to the Plutus ledger language this module exposes at runtime.
- MAYBE: Use CPP '__FILE__' + some TH to automate this. -}
-thisLedgerLanguage :: PlutusLedgerLanguage
-thisLedgerLanguage = PlutusV1
+import PlutusLedgerApi.V1 qualified as V1SOP
+import PlutusLedgerApi.V1.Data.Address qualified as Address
+import PlutusLedgerApi.V1.Data.Contexts qualified as Contexts
+import PlutusLedgerApi.V1.Data.Credential qualified as Credential
+import PlutusLedgerApi.V1.Data.DCert qualified as DCert
+import PlutusLedgerApi.V1.Data.Interval qualified as Interval
+import PlutusLedgerApi.V1.Data.Time qualified as Time
+import PlutusLedgerApi.V1.Data.Value qualified as Value
+import PlutusLedgerApi.V1.EvaluationContext qualified as EvaluationContext
+import PlutusLedgerApi.V1.ParamName qualified as ParamName
 
 -- See Note [Abstract types in the ledger API]
-
-{-| The deserialization from a serialised script into a `ScriptForEvaluation`,
-ready to be evaluated on-chain.
-Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error). -}
-deserialiseScript
-  :: forall m
-   . MonadError ScriptDecodeError m
-  => MajorProtocolVersion
-  -- ^ which major protocol version the script was submitted in.
-  -> SerialisedScript
-  -- ^ the script to deserialise.
-  -> m ScriptForEvaluation
-deserialiseScript = Common.deserialiseScript thisLedgerLanguage
-
-{-| Evaluates a script, returning the minimum budget that the script would need
-to evaluate successfully. lalaThis will take as long as the script takes, if you need to
-limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
-also returns the used budget. -}
-evaluateScriptCounting
-  :: MajorProtocolVersion
-  -- ^ Which major protocol version to run the operation in
-  -> VerboseMode
-  -- ^ Whether to produce log output
-  -> EvaluationContext
-  -- ^ Includes the cost model to use for tallying up the execution costs
-  -> ScriptForEvaluation
-  -- ^ The script to evaluate
-  -> [PLC.Data]
-  -- ^ The arguments to the script
-  -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
-
-{-| Evaluates a script, with a cost model and a budget that restricts how many
-resources it can use according to the cost model. Also returns the budget that
-was actually used.
-
-Can be used to calculate budgets for scripts, but even in this case you must give
-a limit to guard against scripts that run for a long time or loop. -}
-evaluateScriptRestricting
-  :: MajorProtocolVersion
-  -- ^ Which major protocol version to run the operation in
-  -> VerboseMode
-  -- ^ Whether to produce log output
-  -> EvaluationContext
-  -- ^ Includes the cost model to use for tallying up the execution costs
-  -> ExBudget
-  -- ^ The resource budget which must not be exceeded during evaluation
-  -> ScriptForEvaluation
-  -- ^ The script to evaluate
-  -> [PLC.Data]
-  -- ^ The arguments to the script
-  -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage

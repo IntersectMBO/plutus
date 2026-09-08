@@ -25,6 +25,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords
   , TextCostedByByteLength
   , ValueMaxDepth
+  , ValueOuterSize
   , ValueTotalSize
   )
 import PlutusCore.Generators.Hedgehog.AST hiding
@@ -130,6 +131,7 @@ genConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @Value) = genArbitraryBuiltin @Value
   | Just HRefl <- eqTypeRep tr (typeRep @ValueTotalSize) = genArbitraryBuiltin @Value
   | Just HRefl <- eqTypeRep tr (typeRep @ValueMaxDepth) = genArbitraryBuiltin @Value
+  | Just HRefl <- eqTypeRep tr (typeRep @ValueOuterSize) = genArbitraryBuiltin @Value
   | trPair `App` tr1 `App` tr2 <- tr
   , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
       -- We can perhaps use the @QuickCheck@ generator here too, but this seems rather hard.

@@ -14,6 +14,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , IntegerCostedLiterally (..)
   , TextCostedByByteLength (..)
   , ValueTotalSize (..)
+  , ValueOuterSize (..)
   , ValueMaxDepth (..)
   , DataNodeCount (..)
   ) where
@@ -420,6 +421,13 @@ newtype ValueTotalSize = ValueTotalSize {unValueTotalSize :: Value}
 
 instance ExMemoryUsage ValueTotalSize where
   memoryUsage = singletonRose . fromIntegral . Value.totalSize . unValueTotalSize
+  {-# INLINE memoryUsage #-}
+
+-- | Measure the size of a `Value` by its number of policies (the outer map size).
+newtype ValueOuterSize = ValueOuterSize {unValueOuterSize :: Value}
+
+instance ExMemoryUsage ValueOuterSize where
+  memoryUsage = singletonRose . fromIntegral . Map.size . Value.unpack . unValueOuterSize
   {-# INLINE memoryUsage #-}
 
 {- Note [ValueMaxDepth]

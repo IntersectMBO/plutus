@@ -143,7 +143,7 @@ collectUpTo m thisPv =
   then a new `batch` object MUST be added to contain them and the
   `builtinsIntroducedIn` function must be updated; the contents of batches which
   have already been deployed must NOT be altered.  Also, remember to UPDATE THE
-  TESTS in `Spec.Versions` and `Spec.Data.Versions` when a new batch is added.
+  TESTS in `Spec.Versions` when a new batch is added.
 -}
 
 {- It's tempting to try something like `fmap toEnum [0..50]` here, but that's
@@ -310,7 +310,7 @@ batch6 =
 -- version. See Note [Adding new builtins: protocol versions].
 batch7 :: [DefaultFun]
 batch7 =
-  [MultiIndexArray, Policies, AssetCount]
+  [MultiIndexArray, Policies, AssetCount, KeepPolicies, DropPolicies]
 
 {-| Given a ledger language, return a map indicating which builtin functions were
   introduced in which 'MajorProtocolVersion'.  This __must__ be updated when new

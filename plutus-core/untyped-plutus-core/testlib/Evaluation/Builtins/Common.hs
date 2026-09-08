@@ -14,6 +14,7 @@ module Evaluation.Builtins.Common
   , typecheckReadKnownCek
   , PlcType
   , PlcTerm
+  , PlcError
   , UplcTerm
   , TypeErrorOrCekResult (..)
   , evalTerm

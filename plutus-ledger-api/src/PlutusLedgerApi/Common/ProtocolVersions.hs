@@ -29,7 +29,7 @@ import Prettyprinter
   be moved to an earlier MajorProtocolVersion once they have been fully
   implemented and costed and their release under the relevant protocol version
   has been officially approved.  Remember to update the tests in `Spec.Versions`
-  and `Spec.Data.Versions` when this happens.  If there are some builtins that
+  when this happens.  If there are some builtins that
   are not to be released then leave them under `futurePV` (splitting the batch
   if necessary) and also make sure that the names of their cost model parameters
   come at the end of the `ParamName` types.

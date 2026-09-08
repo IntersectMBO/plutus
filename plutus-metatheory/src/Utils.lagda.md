@@ -459,3 +459,14 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 ```
+
+## Strings
+
+The `TRACE` builtin function is expected to produce the side effect of printing a string to a logging mechanism.
+We do not formalize the effect here, since it is up to each node implementation to decide how to handle logging.
+Instead, from the point of view of the semantics of UPLC, `TRACE` is a no-op.
+
+```
+TRACE : {a : Set} → String → a → a
+TRACE _ x = x
+```
