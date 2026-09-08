@@ -35,38 +35,32 @@
                                                                                 r ->
                                                                                  l) ]))
                                                                     , (case
-                                                                         (unConstrData
-                                                                            (case
-                                                                               hd
-                                                                               [ (\l
-                                                                                   r ->
-                                                                                    r) ]))
-                                                                         [ (\index
-                                                                             args ->
+                                                                         (case
+                                                                            hd
+                                                                            [ (\l
+                                                                                r ->
+                                                                                 r) ])
+                                                                         [ (\ds ->
+                                                                              constr 2
+                                                                                [ (unIData
+                                                                                     (forced
+                                                                                        ds)) ])
+                                                                         , (\ds ->
+                                                                              constr 0
+                                                                                [ (unIData
+                                                                                     (forced
+                                                                                        ds)) ])
+                                                                         , (\ds ->
                                                                               case
-                                                                                index
-                                                                                [ (\ds ->
-                                                                                     constr 2
+                                                                                ds
+                                                                                [ (\ds
+                                                                                    ds ->
+                                                                                     constr 1
                                                                                        [ (unIData
+                                                                                            ds)
+                                                                                       , (unIData
                                                                                             (forced
-                                                                                               ds)) ])
-                                                                                , (\ds ->
-                                                                                     constr 0
-                                                                                       [ (unIData
-                                                                                            (forced
-                                                                                               ds)) ])
-                                                                                , (\ds ->
-                                                                                     case
-                                                                                       ds
-                                                                                       [ (\ds
-                                                                                           ds ->
-                                                                                            constr 1
-                                                                                              [ (unIData
-                                                                                                   ds)
-                                                                                              , (unIData
-                                                                                                   (forced
-                                                                                                      ds)) ]) ]) ]
-                                                                                args) ]) ])
+                                                                                               ds)) ]) ]) ]) ])
                                                                , (s s tl) ])
                                                         , (constr 0 []) ])))
                                              (\s
