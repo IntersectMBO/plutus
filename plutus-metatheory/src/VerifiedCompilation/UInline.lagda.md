@@ -36,7 +36,7 @@ open import Untyped.RenamingSubstitution using (weaken)
 open import Data.Empty using (⊥)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
-open import VerifiedCompilation.Certificate using (Proof?; _>>=_; InlineHints; var; expand; ƛ; _·_; _·↓; force; delay; con; builtin; error; constr; case; abort; proof; InlineT)
+open import VerifiedCompilation.Certificate using (Proof?; _>>=_; InlineHints; InlineHints⁺; _↑ᵗ; _⨾[_]_; var; expand; ƛ; _·_; _·↓; force; delay; con; builtin; error; constr; case; abort; proof; InlineT)
 ```
 
 # Zippers, and relating two zippers
@@ -310,6 +310,36 @@ top-check : (h : InlineHints) (M M′ : 0 ⊢)
 top-check h M M′ = check (λ()) M □ h M′
 ```
 
+# Transitive closure
+
+```
+infix  8 _↑ᵗ
+infixr 5 _⨾_
+
+data Inline⁺ : (0 ⊢) → (0 ⊢) → Set where
+
+  _↑ᵗ : {M M′ : 0 ⊢}
+      (r : Inline (λ()) □ M M′)
+    → ------------------------
+      Inline⁺ M M′
+
+  _⨾_ : {M N M′ : 0 ⊢}
+      (r : Inline (λ()) □ M N)
+      (s : Inline⁺ N M′)
+    → ------------------
+      Inline⁺ M M′
+
+top-check⁺ : (hs : InlineHints⁺ (0 ⊢)) (M M′ : 0 ⊢)
+             → Proof? (Inline⁺ M M′)
+top-check⁺ (h ↑ᵗ) M M′ = do
+  r ← top-check h M M′
+  proof (r ↑ᵗ)
+top-check⁺ (h ⨾[ N ] hs) M M′ = do
+  r ← top-check h M N
+  s ← top-check⁺ hs N M′
+  proof (r ⨾ s)
+```
+
 # Lemmas
 ```
 reflexiveᴬ : {A : Set} → (_≟_ : DecidableEquality A) → (a : A) → (a ≟ a) ≡ yes refl
@@ -420,4 +450,27 @@ completePointwise σ zz (M ∷ Ms) (M′ ∷ M′s) (p Pointwise.∷ ps)
   where
   e″ : checkPointwise (h ∷ hs) σ zz (M ∷ Ms) (M′ ∷ M′s) ≡ proof (p Pointwise.∷ ps)
   e″ rewrite e | e′ = refl
+
+top-complete :
+  (M M′ : 0 ⊢)
+  (r : Inline (λ()) □ M M′)
+  → ∃[ h ] (top-check h M M′ ≡ proof r)
+top-complete M M′ r = complete (λ()) □ M M′ r
+
+complete⁺ :
+  (M M′ : 0 ⊢)
+  (s : Inline⁺ M M′)
+  → ∃[ hs ] (top-check⁺ hs M M′ ≡ proof s)
+complete⁺ M M′ (r ↑ᵗ)
+  with top-complete M M′ r
+... | (h , e) = ((h ↑ᵗ) , e′)
+  where
+  e′ : top-check⁺ (h ↑ᵗ) M M′ ≡ proof (r ↑ᵗ)
+  e′ rewrite e = refl
+complete⁺ M M′ (_⨾_ {N = N} r s)
+  with top-complete M N r | complete⁺ N M′ s
+... | (h , e) | (hs , f) = ((h ⨾[ N ] hs) , e′)
+  where
+  e′ : top-check⁺ (h ⨾[ N ] hs) M M′ ≡ proof (r ⨾ s)
+  e′ rewrite e | f = refl
 ```

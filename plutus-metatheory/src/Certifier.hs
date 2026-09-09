@@ -179,7 +179,7 @@ astModName n = passModName "AST" n
 proofModName :: Int -> ModuleName
 proofModName n = passModName "Proof" n
 
-proofFile :: Int -> UTerm -> Maybe (OptStage, Hints) -> (ModuleName, String)
+proofFile :: Int -> UTerm -> Maybe (OptStage, Hints UTerm) -> (ModuleName, String)
 proofFile n _ Nothing = (proofModName n, [])
 proofFile n _ (Just (pass, _)) =
   ( modName
@@ -233,7 +233,7 @@ proofFile n _ (Just (pass, _)) =
       , (Open, "Utils" :| [], [])
       ]
 
-mkAgdaAstFile :: Int -> UTerm -> Maybe (OptStage, Hints) -> (ModuleName, String)
+mkAgdaAstFile :: Int -> UTerm -> Maybe (OptStage, Hints UTerm) -> (ModuleName, String)
 mkAgdaAstFile n pre mHints =
   ( modName
   , unlines $
@@ -251,7 +251,7 @@ mkAgdaAstFile n pre mHints =
       , "open import Utils"
       , ""
       , "open import Untyped using (_⊢)"
-      , "open import VerifiedCompilation using (checkScope)"
+      , "open import VerifiedCompilation using (checkScope; checkScopeʰ)"
       , "open import VerifiedCompilation.Trace"
       , ""
       , "raw : Untyped"
@@ -263,8 +263,11 @@ mkAgdaAstFile n pre mHints =
         ++ case mHints of
           Just (_, hints) ->
             [ ""
-            , "hints : Hints"
-            , "hints = " <> renderAgdaUnparse hints
+            , "rawHints : Hints Untyped"
+            , "rawHints = " <> renderAgdaUnparse hints
+            , ""
+            , "hints : Hints (0 ⊢)"
+            , "hints = to-witness-T (checkScopeʰ rawHints) tt"
             ]
           Nothing -> []
   )
@@ -354,7 +357,7 @@ data AgdaCertificateProject = AgdaCertificateProject
 {-| For each term in the trace, create module contents using the given
 function, which is also passed the index in the trace. -}
 traceToFiles
-  :: (Int -> UTerm -> Maybe (OptStage, Hints) -> (ModuleName, String))
+  :: (Int -> UTerm -> Maybe (OptStage, Hints UTerm) -> (ModuleName, String))
   -> Trace UTerm
   -> [(ModuleName, String)]
 traceToFiles f t = go 0 t
