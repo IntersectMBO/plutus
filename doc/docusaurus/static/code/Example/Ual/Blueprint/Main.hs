@@ -88,7 +88,8 @@ nothing more.
 == What the blueprint says about the interface
 
 @compiledCode@ is the /unapplied/ program: a function of a @VestingParams@ and a
-@BuiltinData@. That is what makes the two-entry @arguments@ array true, since
+@ScriptContext@, both @Data@-encoded. That is what makes the two-entry
+@arguments@ array true, since
 @arguments@ is "the ordered list of terms the compiled program is applied to",
 and it is the shape the UAL design document's own worked example uses — a
 parameterised script whose parameter is applied by the verifier's wrapper rather
@@ -103,13 +104,20 @@ behaviour this code does not have. It does not make @redeemer@ optional, so that
 field is there whether a validator reads a redeemer or not; this one does not,
 and its description says so.
 
-The two argument encodings differ, and both are load-bearing. The context is
-@asData@: 'unsafeFromBuiltinData' decodes it from a @Data@ value. The parameter
-is @asScott@, UAL's name for the other case, because 'PlutusTx.liftCodeDef' uses
-the @Lift@ instance @makeLift@ generates, which builds a constructor application
-in the compiler's own representation for algebraic data types rather than a
-@Data@ value. UAL's design document is explicit that @asScott@ is emitted by this
-slice but has no consumer yet.
+Both arguments are @asData@, and the parameter's entry is where the annotation
+earns its keep. 'vestingValidator' takes it as a @BuiltinData@ and decodes it
+with 'unsafeFromBuiltinData', exactly as it does the context, so the Haskell
+signature alone says only "two @Data@ values". The @ONCHAIN@ block says which
+type the first of them /is/ — @{ VestingParams : asData }@ — and that is what
+reaches the blueprint as a @$ref@ into @definitions@. A consumer can therefore
+give the argument its declared type rather than treat it as opaque bytes.
+
+UAL's other encoding, @asScott@, names the case where a parameter is applied as a
+constructor application in the compiler's own representation, which is what
+'PlutusTx.liftCodeDef' produces from a @makeLift@-generated @Lift@ instance. This
+example does not use it: nothing consumes @asScott@ yet, because there is no
+Scott encoder to emit against, whereas @asData@ is what a verifier can act on
+today.
 
 == Where the execution budget comes from
 
@@ -150,10 +158,16 @@ Each is stated against the script itself, not against a model of it. The name
 @vestingValidator@ in a property denotes the compiled program: a consumer reads
 @validators[0].id@ and the @arguments@ list out of the blueprint and emits a
 wrapper that applies the program to the encoded arguments and runs it, so
-@isSuccessful (vestingValidator p ctx)@ is a claim about the UPLC in
-@compiledCode@. That is what makes these properties falsifiable — a claim about
-an axiom standing in for the script would be provable whether or not the script
-behaved that way.
+@isSuccessful (vestingValidator …)@ is a claim about the UPLC in @compiledCode@.
+That is what makes these properties falsifiable — a claim about an axiom standing
+in for the script would be provable whether or not the script behaved that way.
+
+Both arguments being @asData@ is what makes that wrapper emittable at all, and
+the parameter now reaches it as a @VestingParams@. The wrapper is not yet
+something these four properties can apply, though: its second binder has the
+declared type of the second argument, @BuiltinData@, while the properties
+quantify over a @ScriptContext@, and nothing here relates the two. Stating that
+gap is the point of writing the properties down before they can be checked.
 
 Everything else the properties mention comes from somewhere concrete too:
 @VestingParams@, @Tranche@ and their field names are generated from this
@@ -162,12 +176,19 @@ and @findOwnInput@ are @CardanoLedgerApi.V3@'s. The @PREDICATE@ block therefore
 carries only what is genuinely specification — the vesting schedule — rather than
 re-declaring types the blueprint already describes.
 
-Two things this leans on that do not exist yet, stated rather than glossed. The
-wrapper needs a Scott encoder for the parameter, and @CardanoLedgerApi@ has
-@IsData@ but no @IsScott@, so it cannot be emitted for an @asScott@ argument
-today. And the convention that a validator's id denotes that wrapper inside a
-property is not yet written down in the UAL specification, only proposed. Both
-are recorded in @docs/superpowers/ual-doc-corrections.md@.
+Being @CardanoLedgerApi@'s and not this module's, they take their own argument
+order, which is not always Plinth's. @txSignedBy@ is the case in point: Plinth's
+is @txSignedBy tx pk@, @CardanoLedgerApi@'s is @txSignedBy pk tx@, so the
+properties below read the other way round from 'vestingValidator'.
+
+Three things these properties lean on that do not exist yet, stated rather than
+glossed. @CardanoLedgerApi@ has no encoder from @ScriptContext@ to @Data@, which
+is the gap above. @validRangeFrom@ and @continuingValue@ are named but undefined,
+and the @PREDICATE@ block writes @0@ and @+@ at @Value@, which has neither an
+@OfNat@ nor an @HAdd@ instance. And the convention that a validator's id denotes
+the applied wrapper inside a property is not yet written down in the UAL
+specification, only proposed; that one is recorded in
+@docs/superpowers/ual-doc-corrections.md@.
 
 The @PREDICATE@ and @PROPERTY@ bodies are Lean source. Nothing in this repository
 parses or checks them; the lexer reads each block verbatim and the assurance
@@ -240,12 +261,12 @@ data VestingParams = MkVestingParams
 blueprint schema, with the constructor index pinned in the source. @Tranche@
 comes first because @VestingParams@'s schema refers to it.
 
-@makeLift@ is separate and also needed: 'PlutusTx.liftCodeDef' lifts a *Haskell*
-value into a compiled program, which the @Data@ instances say nothing about. -}
+These two splices are all this module needs. @makeLift@ would be the other half
+if the parameter were applied as a constructor application in the compiler's own
+representation, but it is applied as @Data@ here, and the @Data@ encoding is
+exactly what 'makeIsDataSchemaIndexed' provides. -}
 $(makeIsDataSchemaIndexed ''Tranche [('MkTranche, 0)])
 $(makeIsDataSchemaIndexed ''VestingParams [('MkVestingParams, 0)])
-$(PlutusTx.makeLift ''Tranche)
-$(PlutusTx.makeLift ''VestingParams)
 
 {-@ UPLC_DATA VestingParams @-}
 
@@ -266,23 +287,33 @@ def unvested (p : VestingParams) (now : POSIXTime) : Value :=
 @-}
 
 {-@ ONCHAIN [version: PlutusV3] [steps: 2500]
-    vestingValidator :: { VestingParams : asScott }
+    vestingValidator :: { VestingParams : asData }
                      -> { BuiltinData : asData }
                      -> BuiltinUnit
 @-}
 
 {-| Release what has vested; keep the rest locked.
 
+Both arguments arrive as @Data@ and are decoded here. The parameter is a
+@VestingParams@ — that is what the @ONCHAIN@ block above and the blueprint's
+@parameters@ both say, and it is what the deployer applies — but it crosses the
+on-chain boundary in its @Data@ encoding, so the Haskell type at that position is
+@BuiltinData@.
+
 The extraction splice reifies this name and counts the arrows in its type, to
 check that the arity the @ONCHAIN@ block above declares is the arity the binding
-actually has. -}
-vestingValidator :: VestingParams -> BuiltinData -> BuiltinUnit
-vestingValidator params ctxData =
+actually has. It compares arities and nothing else, which is what lets the
+annotation name @VestingParams@ where the signature says @BuiltinData@. -}
+vestingValidator :: BuiltinData -> BuiltinData -> BuiltinUnit
+vestingValidator paramsData ctxData =
   check
     ( traceIfFalse "the owner did not sign" (txSignedBy txInfo (vpOwner params))
         && traceIfFalse "unvested value was not left locked" (continuing `geq` unvested)
     )
   where
+    params :: VestingParams
+    params = unsafeFromBuiltinData paramsData
+
     ctx :: ScriptContext
     ctx = unsafeFromBuiltinData ctxData
 
@@ -318,7 +349,7 @@ trancheUnvested tranche range =
 {-@ PROPERTY owner_signature_required
       "A transaction that the owner has not signed is rejected."
     : ∀ (p : VestingParams) (ctx : ScriptContext),
-        ¬ txSignedBy ctx.scriptContextTxInfo p.vpOwner →
+        ¬ txSignedBy p.vpOwner ctx.scriptContextTxInfo →
           ¬ isSuccessful (vestingValidator p ctx)
 @-}
 
@@ -344,7 +375,7 @@ trancheUnvested tranche range =
       are not yet vested at the address of that input."
     : ∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),
         (findOwnInput ctx).isSome →
-          txSignedBy ctx.scriptContextTxInfo p.vpOwner →
+          txSignedBy p.vpOwner ctx.scriptContextTxInfo →
             validRangeFrom ctx now →
               continuingValue ctx ≥ unvested p now →
                 isSuccessful (vestingValidator p ctx)
@@ -355,7 +386,7 @@ apply.
 
 This is what the blueprint publishes, so its @arguments@ array describes both
 arguments. -}
-vestingValidatorCode :: PlutusTx.CompiledCode (VestingParams -> BuiltinData -> BuiltinUnit)
+vestingValidatorCode :: PlutusTx.CompiledCode (BuiltinData -> BuiltinData -> BuiltinUnit)
 vestingValidatorCode = $$(PlutusTx.compile [||vestingValidator||])
 
 {-| One parameter set, to show the schedule the types describe.
@@ -390,6 +421,11 @@ This is the step CIP-0057's @parameters@ field exists to announce. Applying a
 parameter changes the program and therefore its hash, so this is /not/ the script
 the blueprint describes; it is what one instance of it looks like.
 
+'toBuiltinData' first, because the program's first argument is a @Data@ value:
+that is what @{ VestingParams : asData }@ declares and what 'vestingValidator'
+decodes. Lifting @exampleParams@ itself would need the @Lift@ instance
+@makeLift@ generates and would build the wrong thing here.
+
 'PlutusTx.applyCode' returns its failures rather than throwing them, which
 'PlutusTx.unsafeApplyCode' does. It gives a @Left@ when the two programs cannot
 be applied to one another: when either arrived without its PIR, or when applying
@@ -399,7 +435,7 @@ handles it, rather than discard an @Either@. -}
 vestingInstance
   :: Haskell.Either Haskell.String (PlutusTx.CompiledCode (BuiltinData -> BuiltinUnit))
 vestingInstance =
-  vestingValidatorCode `PlutusTx.applyCode` PlutusTx.liftCodeDef exampleParams
+  vestingValidatorCode `PlutusTx.applyCode` PlutusTx.liftCodeDef (toBuiltinData exampleParams)
 
 myContractBlueprint :: ContractBlueprint
 myContractBlueprint =

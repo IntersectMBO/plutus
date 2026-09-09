@@ -14,7 +14,7 @@
     "uri": "plutus.json",
     "hash": {
       "alg": "sha256",
-      "digest": "9c2565d6f5d0b8f388b0b2a939bfdcb1b1a88de76db719d0da34be517abeee05"
+      "digest": "cdfc522cce0788de9efc7d0f2eb52fc17b65b54195e572f07f20b8ea291b3720"
     }
   },
   "languages": {
@@ -47,7 +47,7 @@
           "uses": [
             "Main"
           ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        ¬ txSignedBy ctx.scriptContextTxInfo p.vpOwner →\n          ¬ isSuccessful (vestingValidator p ctx)"
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        ¬ txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n          ¬ isSuccessful (vestingValidator p ctx)"
         }
       }
     },
@@ -101,7 +101,7 @@
           "uses": [
             "Main"
           ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),\n        (findOwnInput ctx).isSome →\n          txSignedBy ctx.scriptContextTxInfo p.vpOwner →\n            validRangeFrom ctx now →\n              continuingValue ctx ≥ unvested p now →\n                isSuccessful (vestingValidator p ctx)"
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),\n        (findOwnInput ctx).isSome →\n          txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n            validRangeFrom ctx now →\n              continuingValue ctx ≥ unvested p now →\n                isSuccessful (vestingValidator p ctx)"
         }
       }
     }
