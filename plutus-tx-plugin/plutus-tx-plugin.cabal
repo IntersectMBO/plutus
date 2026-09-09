@@ -278,6 +278,7 @@ test-suite plutus-ledger-api-plugin-test
     Spec.ReturnUnit.V2
     Spec.ReturnUnit.V3
     Spec.ScriptSize
+    Spec.V4.Encoding
     Spec.Value
     Spec.Value.WithCurrencySymbol
 

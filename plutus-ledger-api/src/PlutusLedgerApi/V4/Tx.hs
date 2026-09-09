@@ -1,9 +1,14 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
@@ -15,7 +20,7 @@ module PlutusLedgerApi.V4.Tx
     TxId (..)
 
     -- * Transaction outputs
-  , TxOutRef (..)
+  , TxOutRef (TxOutRef, txOutRefId, txOutRefIdx)
   , OutputDatum (..)
   , TxOut (..)
   , txOutPubKey
@@ -25,23 +30,48 @@ module PlutusLedgerApi.V4.Tx
   , pubKeyHashTxOut
   ) where
 
+import Control.DeepSeq (NFData)
 import Data.Maybe (isJust)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ScriptHash)
 import PlutusLedgerApi.V1.Value (Value)
 import PlutusLedgerApi.V2.Tx (OutputDatum (..))
-import PlutusLedgerApi.V3.Tx (TxId (..), TxOutRef (..))
+import PlutusLedgerApi.V3.Tx (TxId (..))
+import PlutusLedgerApi.V3.Tx qualified as V3
 import PlutusLedgerApi.V4.Address
   ( Address
   , pubKeyHashAddress
   , toPubKeyHash
   , toScriptHash
   )
+import PlutusLedgerApi.V4.Internal (ListEncoded (..))
 import PlutusTx qualified
-import PlutusTx.Blueprint (HasBlueprintDefinition, definitionRef)
+import PlutusTx.Blueprint (definitionRef)
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), UnrollAll)
 import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter (Pretty (pretty), hang, vsep, (<+>))
+
+newtype TxOutRef = TxOutRefValue V3.TxOutRef
+  deriving stock (Generic)
+  deriving newtype (Show, Eq, Ord, NFData, Pretty, PlutusTx.Eq)
+  deriving
+    (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    via ListEncoded V3.TxOutRef
+
+pattern TxOutRef :: TxId -> Integer -> TxOutRef
+pattern TxOutRef {txOutRefId, txOutRefIdx} =
+  TxOutRefValue (V3.TxOutRef txOutRefId txOutRefIdx)
+{-# COMPLETE TxOutRef #-}
+
+instance HasBlueprintDefinition TxOutRef where
+  type Unroll TxOutRef = TxOutRef ': UnrollAll '[TxId, Integer]
+
+instance HasBlueprintSchema V3.TxOutRef referencedTypes => HasBlueprintSchema TxOutRef referencedTypes where
+  schema = schema @(ListEncoded V3.TxOutRef) @referencedTypes
+
+PlutusTx.makeLift ''TxOutRef
 
 -- | Transaction output for Plutus V4.
 data TxOut = TxOut

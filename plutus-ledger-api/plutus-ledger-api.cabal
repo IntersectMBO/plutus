@@ -105,10 +105,13 @@ library
     PlutusLedgerApi.V4.Data.Contexts
     PlutusLedgerApi.V4.Data.Time
     PlutusLedgerApi.V4.Data.Tx
+    PlutusLedgerApi.V4.Data.Value
     PlutusLedgerApi.V4.EvaluationContext
     PlutusLedgerApi.V4.ParamName
+    PlutusLedgerApi.V4.Ratio
     PlutusLedgerApi.V4.Time
     PlutusLedgerApi.V4.Tx
+    PlutusLedgerApi.V4.Value
 
   other-modules:
     PlutusLedgerApi.Common.Eval
@@ -116,6 +119,7 @@ library
     PlutusLedgerApi.Common.ParamName
     PlutusLedgerApi.Common.ProtocolVersions
     PlutusLedgerApi.Common.SerialisedScript
+    PlutusLedgerApi.V4.Internal
     Prettyprinter.Extras
 
   build-depends:
@@ -233,6 +237,7 @@ test-suite plutus-ledger-api-test
     Spec.ScriptDecodeError
     Spec.V1.Data.Value
     Spec.V1.Value
+    Spec.V4.Encoding
     Spec.Versions
 
   build-depends:
