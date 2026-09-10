@@ -612,6 +612,7 @@ compileMarkedExpr _locStr codeTy origE = do
            , 'PlutusTx.AsData.Internal.droppableUnsafeCaseList
            , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
            , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsList
+           , 'PlutusTx.AsData.Internal.wrapCaseData
            , 'PlutusTx.Function.fix
            , 'PlutusTx.Optimize.Inline.inline
            , 'useToOpaque
