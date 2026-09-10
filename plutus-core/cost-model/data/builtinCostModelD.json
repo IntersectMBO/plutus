@@ -1266,8 +1266,8 @@
     },
     "memory": {
       "arguments": {
-        "intercept": 1,
-        "slope": 11
+        "intercept": 14,
+        "slope": 18
       },
       "type": "linear_in_x"
     }
@@ -1282,8 +1282,8 @@
     },
     "memory": {
       "arguments": {
-        "intercept": 45,
-        "slope": 21
+        "intercept": 47,
+        "slope": 27
       },
       "type": "linear_in_u"
     }
@@ -1300,8 +1300,8 @@
     },
     "memory": {
       "arguments": {
-        "intercept": 24,
-        "slope": 21
+        "intercept": 26,
+        "slope": 29
       },
       "type": "added_sizes"
     }
@@ -1316,8 +1316,8 @@
     },
     "memory": {
       "arguments": {
-        "intercept": 12,
-        "slope": 21
+        "intercept": 14,
+        "slope": 29
       },
       "type": "linear_in_y"
     }
@@ -1369,34 +1369,32 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope1": 517590,
-        "slope2": 3833
+        "slope": 440846
       },
-      "type": "linear_in_x_and_y"
+      "type": "linear_in_x"
     },
     "memory": {
       "arguments": {
         "intercept": 32,
-        "slope": 6
+        "slope": 32
       },
-      "type": "linear_in_y"
+      "type": "linear_in_x"
     }
   },
   "dropPolicies": {
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope1": 54105,
-        "slope2": 41353
+        "slope": 54838
       },
-      "type": "linear_in_x_and_y"
+      "type": "multiplied_sizes"
     },
     "memory": {
       "arguments": {
         "intercept": 32,
-        "slope": 6
+        "slope": 36
       },
-      "type": "linear_in_y"
+      "type": "multiplied_sizes"
     }
   }
 }

@@ -443,8 +443,16 @@ Both builtins take a policy list and a `Value`, and the cost model sees the leng
 list and the depth of the `Value`'s outer map. Neither builtin descends an inner map, and
 neither reads an amount: `keepPolicies` restricts the outer map and the per-currency
 negative counts to the ids the list names, and `dropPolicies` deletes one policy at a time
-and subtracts its cached contribution. So the work is one outer-map descent per list
-element, and the two sizes the model is given are enough to bound it.
+and subtracts its cached contribution.
+
+The two do not have the same shape, and the reason is what they spend their time on.
+`dropPolicies` does one outer-map descent per element of the list, so its cost follows the
+product of the two visible sizes. `keepPolicies` builds a `Set` from the list first, and
+that build dominates: its per-element cost tracks the length of the list and is nearly flat
+in the depth, because for a list no longer than the outer map the two logarithms trade off
+(log p + log (m/p) = log m) while the `Set` build keeps its own log p either way. Neither
+`p log p` nor a per-element cost that grows with p is expressible in the model algebra, so
+`keepPolicies` gets a single per-element slope at the envelope of the measurements.
 
 Every family puts the misses of the list before its hits. `dropPolicies` folds from the
 left, so an id the `Value` does not have costs a descent of the outer map as it stands at
@@ -476,13 +484,19 @@ spread there and nowhere else. A miss costs nearly as much as a hit because
 `Map.updateLookupWithKey` rebuilds the whole search path whether or not it finds anything,
 which is what licenses bounding the number of hits by the length of the list.
 
-`listOnly` hands the builtins an empty `Value`, and those points belong in the fit. The
-empty `Value` has depth 1 rather than 0, so they sit on the bottom edge of the plane
-instead of off it, and they are what pins the term proportional to the list alone. They
-are also the control on the rig, but a narrower one than it looks: `Map.restrictKeys`
-matches the map before the set, so against an empty `Value` `keepPolicies` never forces
-the `Set` at all. What these points establish is that unlifting the list is inside the
-measured loop, not that the `Set` build is.
+One thing the model cannot see and no family can remove: the cost of a descent step is not
+constant. An outer map of tens of thousands of 32-byte keys does not fit in cache, so a step
+into a large map costs several times a step into a small one. No available shape expresses
+that, so `dropPolicies`' slope is set by its deepest maps and overcharges shallow ones.
+
+`listOnly` hands the builtins an empty `Value`. Those points are in the fit, since the
+empty `Value` has depth 1 rather than 0 and so sits on the bottom edge of the plane rather
+than off it, but they pin less than they look like they do. `Map.restrictKeys` matches the
+map before the set, so against an empty `Value` `keepPolicies` never forces the `Set` at
+all, and these points are an order of magnitude below a `Value` of one policy at the same
+coordinate. What they establish is that unlifting the list is inside the measured loop,
+not that the `Set` build is; and because depth 1 covers both the empty `Value` and a
+`Value` of one policy, the model has to charge every one of them at the one-policy rate.
 
 The row name carries the depth, not the number of policies, so two points differing only
 in a number of policies between the same two powers of two collide. Fitting these builtins

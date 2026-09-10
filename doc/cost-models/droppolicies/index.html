@@ -14,12 +14,19 @@
     <h1>DropPolicies Cost Model Visualization</h1>
     <p>
       Interactive 3D visualization of benchmark data and the fitted cost model for the
-      <code>DropPolicies</code> builtin. The x-axis is the length of the policy list, the y-axis the total size
-      of the <code>Value</code>, and the z-axis execution time. Every benchmark point appears twice at the
-      same place on the floor: as a blue dot for what it measured, and as a red cross for what the model
-      charges for it. Where a cross sits above its dot the model overcharges that input; for a few of
-      the largest inputs the fitted plane sits below the measurement. The sizes are on log
-      axes because they are sampled log-uniformly, which leaves out the few points at p = 0 or n = 0.
+      <code>DropPolicies</code> builtin. The x-axis is the length of the policy list, the y-axis the depth
+      of the <code>Value</code>'s outer map, and the z-axis execution time. Every benchmark point appears
+      twice at the same place on the floor: as a blue dot for what it measured, and as a red cross for what
+      the model charges for it. Where a cross sits above its dot the model overcharges that input, and the
+      fit is built to leave almost every dot below its cross.
+    </p>
+    <p>
+      The model is proportional to the product of the two: the builtin does one descent of the outer map
+      per element of the list, and <code>Map.updateLookupWithKey</code> rebuilds the whole search path
+      whether or not it finds the key, so the number of elements that name a policy the <code>Value</code>
+      actually has does not enter. The depth is the measure the builtin's denotation uses, and it is 1 for
+      the empty <code>Value</code> rather than 0: a product model would otherwise charge nothing but its
+      intercept for a policy list of any length.
     </p>
 
     <div class="controls" id="data-source-controls">
@@ -79,7 +86,7 @@
             <dt>Policy list length (arg1):</dt>
             <dd id="info-x-range">-</dd>
 
-            <dt>Value size range (arg2):</dt>
+            <dt>Outer map depth (arg2):</dt>
             <dd id="info-y-range">-</dd>
 
             <dt>Time range:</dt>
