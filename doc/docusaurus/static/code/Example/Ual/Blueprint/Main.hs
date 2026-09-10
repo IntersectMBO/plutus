@@ -163,11 +163,12 @@ That is what makes these properties falsifiable — a claim about an axiom stand
 in for the script would be provable whether or not the script behaved that way.
 
 Both arguments being @asData@ is what makes that wrapper emittable at all, and
-the parameter now reaches it as a @VestingParams@. The wrapper is not yet
-something these four properties can apply, though: its second binder has the
-declared type of the second argument, @BuiltinData@, while the properties
-quantify over a @ScriptContext@, and nothing here relates the two. Stating that
-gap is the point of writing the properties down before they can be checked.
+the parameter reaches it as a @VestingParams@. Its second binder keeps the
+declared type of the second argument, @BuiltinData@, so a property that
+quantifies over a @ScriptContext@ has to encode it: @toLedgerData ctx@ is the
+ledger's own @Data@ encoding, which is what the ledger hands the script. Doing
+that in the property rather than hiding it in the wrapper is deliberate — the
+encoding is part of what is being claimed.
 
 Everything else the properties mention comes from somewhere concrete too:
 @VestingParams@, @Tranche@ and their field names are generated from this
@@ -177,18 +178,45 @@ carries only what is genuinely specification — the vesting schedule — rather
 re-declaring types the blueprint already describes.
 
 Being @CardanoLedgerApi@'s and not this module's, they take their own argument
-order, which is not always Plinth's. @txSignedBy@ is the case in point: Plinth's
-is @txSignedBy tx pk@, @CardanoLedgerApi@'s is @txSignedBy pk tx@, so the
-properties below read the other way round from 'vestingValidator'.
+order and their own types, neither always Plinth's.
 
-Three things these properties lean on that do not exist yet, stated rather than
-glossed. @CardanoLedgerApi@ has no encoder from @ScriptContext@ to @Data@, which
-is the gap above. @validRangeFrom@ and @continuingValue@ are named but undefined,
-and the @PREDICATE@ block writes @0@ and @+@ at @Value@, which has neither an
-@OfNat@ nor an @HAdd@ instance. And the convention that a validator's id denotes
-the applied wrapper inside a property is not yet written down in the UAL
-specification, only proposed; that one is recorded in
+  * @txSignedBy@ is @txSignedBy pk tx@, the reverse of Plinth's
+    @txSignedBy tx pk@, so the properties below read the other way round from
+    'vestingValidator'.
+  * @txInfoValidRange@ is kept at @Data@, so the deadline premise goes through
+    @txRangeStartsAt@, which decodes it. That premise says the range /begins/ at
+    @now@, not merely that it lies at or after it: the weaker reading would let
+    two different @now@ satisfy it and select different schedules, which is
+    enough to make @conforming_spend_accepted@ false.
+  * A blueprint types a @Value@ as a map of currency symbol to token map, so the
+    generated @trancheAmount@ and @CardanoLedgerApi@'s @Value@ are different
+    Lean types carrying the same information. @ofTypedValue@ crosses between
+    them.
+  * @Value@ is an alias for a list, which already has a lexicographic @≤@. An
+    @unvested@ premise written with @≥@ would elaborate — to list ordering, not
+    to value comparison — so the properties call @geq@ by name.
+
+@continuingValue@ is an @Option@, and binding it with @= some v@ does double
+duty: it names the value and it says the validator has an own input. That is why
+@conforming_spend_accepted@ needs no separate @findOwnInput@ premise, while
+@own_input_required@ is still a claim of its own about the @none@ case.
+
+All four elaborate. What they do not have is evidence: nothing in this
+repository proves them, and @assurance.json@ carries no @evidence@ record for
+any of them. Handing them to a prover is the next step, not one this example
+takes.
+
+One thing they lean on that is not yet written down: the convention that a
+validator's id denotes the applied wrapper inside a property is proposed rather
+than specified in UAL. It is recorded in
 @docs/superpowers/ual-doc-corrections.md@.
+
+What the properties do /not/ cover is the malformed-@Data@ path. They quantify
+over a @ScriptContext@ and encode it, so every context they range over decodes;
+a script context the validator rejects because 'unsafeFromBuiltinData' cannot
+read it is outside all four. @own_input_required@ is about a well-formed context
+whose purpose does not resolve to one of the transaction's inputs, which is a
+different thing.
 
 The @PREDICATE@ and @PROPERTY@ bodies are Lean source. Nothing in this repository
 parses or checks them; the lexer reads each block verbatim and the assurance
@@ -275,15 +303,19 @@ $(makeIsDataSchemaIndexed ''VestingParams [('MkVestingParams, 0)])
 {-@ UPLC_DATA BuiltinData @-}
 
 {-@ PREDICATE
--- What one tranche still requires to stay locked, at a time. `Value` and
--- `POSIXTime` are CardanoLedgerApi.V3's; `Tranche` and its field names come
--- from this blueprint's `definitions`.
+-- What one tranche still requires to stay locked, at a time. `Value`,
+-- `POSIXTime`, `null`, `merge` and `ofTypedValue` are CardanoLedgerApi.V3's;
+-- `Tranche` and its field names come from this blueprint's `definitions`.
+--
+-- `ofTypedValue` is the crossing between the two. A blueprint describes a
+-- Value as a map of currency symbol to token map, so the generated
+-- `trancheAmount` has that type; the ledger's Value keeps its keys as Data.
 def trancheUnvested (t : Tranche) (now : POSIXTime) : Value :=
-  if now >= t.trancheDeadline then 0 else t.trancheAmount
+  if now >= t.trancheDeadline then null else ofTypedValue t.trancheAmount
 
 -- What the whole schedule requires to stay locked.
 def unvested (p : VestingParams) (now : POSIXTime) : Value :=
-  trancheUnvested p.vpTranche1 now + trancheUnvested p.vpTranche2 now
+  merge (trancheUnvested p.vpTranche1 now) (trancheUnvested p.vpTranche2 now)
 @-}
 
 {-@ ONCHAIN [version: PlutusV3] [steps: 2500]
@@ -350,35 +382,37 @@ trancheUnvested tranche range =
       "A transaction that the owner has not signed is rejected."
     : ∀ (p : VestingParams) (ctx : ScriptContext),
         ¬ txSignedBy p.vpOwner ctx.scriptContextTxInfo →
-          ¬ isSuccessful (vestingValidator p ctx)
+          ¬ isSuccessful (vestingValidator p (toLedgerData ctx))
 @-}
 
 {-@ PROPERTY unvested_value_stays_locked
       "A transaction is rejected when it leaves less value at the address of the
       input it spends than the total of the tranches that are not yet vested."
-    : ∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),
-        validRangeFrom ctx now →
-          ¬ (continuingValue ctx ≥ unvested p now) →
-            ¬ isSuccessful (vestingValidator p ctx)
+    : ∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime) (v : Value),
+        txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →
+          continuingValue ctx = some v →
+            ¬ geq v (unvested p now) →
+              ¬ isSuccessful (vestingValidator p (toLedgerData ctx))
 @-}
 
 {-@ PROPERTY own_input_required
       "A transaction is rejected when the validator is not spending one of its
       inputs."
     : ∀ (p : VestingParams) (ctx : ScriptContext),
-        findOwnInput ctx = none → ¬ isSuccessful (vestingValidator p ctx)
+        findOwnInput ctx = none →
+          ¬ isSuccessful (vestingValidator p (toLedgerData ctx))
 @-}
 
 {-@ PROPERTY conforming_spend_accepted
       "A transaction is accepted when it spends an input the validator guards,
       is signed by the owner, and leaves at least the total of the tranches that
       are not yet vested at the address of that input."
-    : ∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),
-        (findOwnInput ctx).isSome →
-          txSignedBy p.vpOwner ctx.scriptContextTxInfo →
-            validRangeFrom ctx now →
-              continuingValue ctx ≥ unvested p now →
-                isSuccessful (vestingValidator p ctx)
+    : ∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime) (v : Value),
+        txSignedBy p.vpOwner ctx.scriptContextTxInfo →
+          txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →
+            continuingValue ctx = some v →
+              geq v (unvested p now) →
+                isSuccessful (vestingValidator p (toLedgerData ctx))
 @-}
 
 {-| The validator as the Plinth plugin compiles it, with the parameter still to

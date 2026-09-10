@@ -29,7 +29,7 @@
     {
       "id": "Main",
       "language": "ual",
-      "source": "-- What one tranche still requires to stay locked, at a time. `Value` and\n-- `POSIXTime` are CardanoLedgerApi.V3's; `Tranche` and its field names come\n-- from this blueprint's `definitions`.\ndef trancheUnvested (t : Tranche) (now : POSIXTime) : Value :=\n  if now >= t.trancheDeadline then 0 else t.trancheAmount\n\n-- What the whole schedule requires to stay locked.\ndef unvested (p : VestingParams) (now : POSIXTime) : Value :=\n  trancheUnvested p.vpTranche1 now + trancheUnvested p.vpTranche2 now"
+      "source": "-- What one tranche still requires to stay locked, at a time. `Value`,\n-- `POSIXTime`, `null`, `merge` and `ofTypedValue` are CardanoLedgerApi.V3's;\n-- `Tranche` and its field names come from this blueprint's `definitions`.\n--\n-- `ofTypedValue` is the crossing between the two. A blueprint describes a\n-- Value as a map of currency symbol to token map, so the generated\n-- `trancheAmount` has that type; the ledger's Value keeps its keys as Data.\ndef trancheUnvested (t : Tranche) (now : POSIXTime) : Value :=\n  if now >= t.trancheDeadline then null else ofTypedValue t.trancheAmount\n\n-- What the whole schedule requires to stay locked.\ndef unvested (p : VestingParams) (now : POSIXTime) : Value :=\n  merge (trancheUnvested p.vpTranche1 now) (trancheUnvested p.vpTranche2 now)"
     }
   ],
   "properties": [
@@ -47,7 +47,7 @@
           "uses": [
             "Main"
           ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        ¬ txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n          ¬ isSuccessful (vestingValidator p ctx)"
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        ¬ txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n          ¬ isSuccessful (vestingValidator p (toLedgerData ctx))"
         }
       }
     },
@@ -65,7 +65,7 @@
           "uses": [
             "Main"
           ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),\n        validRangeFrom ctx now →\n          ¬ (continuingValue ctx ≥ unvested p now) →\n            ¬ isSuccessful (vestingValidator p ctx)"
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime) (v : Value),\n        txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →\n          continuingValue ctx = some v →\n            ¬ geq v (unvested p now) →\n              ¬ isSuccessful (vestingValidator p (toLedgerData ctx))"
         }
       }
     },
@@ -83,7 +83,7 @@
           "uses": [
             "Main"
           ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        findOwnInput ctx = none → ¬ isSuccessful (vestingValidator p ctx)"
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext),\n        findOwnInput ctx = none →\n          ¬ isSuccessful (vestingValidator p (toLedgerData ctx))"
         }
       }
     },
@@ -101,7 +101,7 @@
           "uses": [
             "Main"
           ],
-          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime),\n        (findOwnInput ctx).isSome →\n          txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n            validRangeFrom ctx now →\n              continuingValue ctx ≥ unvested p now →\n                isSuccessful (vestingValidator p ctx)"
+          "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime) (v : Value),\n        txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n          txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →\n            continuingValue ctx = some v →\n              geq v (unvested p now) →\n                isSuccessful (vestingValidator p (toLedgerData ctx))"
         }
       }
     }
