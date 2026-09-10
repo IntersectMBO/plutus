@@ -14,6 +14,7 @@ import Data.Foldable qualified as F
 import Data.List.Extra (nubOrdOn, sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
+import Data.SatInt (fromSatInt)
 import Safe.Foldable (maximumMay)
 import Test.QuickCheck
 import Test.Tasty
@@ -22,6 +23,12 @@ import Test.Tasty.QuickCheck
 
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Data (Data (..))
+import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
+  ( ExMemoryUsage (..)
+  , ValueOuterDepth (..)
+  , flattenCostRose
+  )
 import PlutusCore.Flat qualified as Flat
 import PlutusCore.Generators.QuickCheck.Builtin (arbitraryBuiltin, genShortHex)
 import PlutusCore.Value (Value)
@@ -393,6 +400,28 @@ prop_flatDecodeInvalidToken =
       let flat = Flat.flat $ Map.singleton c (Map.singleton t (100 :: Integer))
        in property . isLeft $ Flat.unflat @Value flat
 
+{-| The size `keepPolicies` and `dropPolicies` are charged on: the depth of the outer map,
+floored at 1. -}
+valueOuterDepth :: Value -> Integer
+valueOuterDepth = fromSatInt . sumCostStream . flattenCostRose . memoryUsage . ValueOuterDepth
+
+{-| The measure is the bit length of the outer map size, computed here by doubling rather
+than by the logarithm the measure itself uses. -}
+prop_valueOuterDepthIsBitLength :: Value -> Property
+prop_valueOuterDepthIsBitLength v =
+  valueOuterDepth v === max 1 (bitLength (Map.size (V.unpack v)))
+  where
+    bitLength n = toInteger . length $ takeWhile (<= n) (iterate (* 2) 1)
+
+-- | A `Value` holding one policy, whose inner map has @n@ tokens.
+oneWideValue :: Int -> Value
+oneWideValue n = V.pack (Map.singleton currency inner)
+  where
+    Just currency = V.k "aaa"
+    inner = Map.fromList [(token i, one) | i <- [1 .. n]]
+    token i = fromJust . V.k . B.pack $ [fromIntegral (i `div` 256), fromIntegral (i `mod` 256)]
+    Just one = V.quantity 1
+
 checkBookkeeping :: Value -> Property
 checkBookkeeping v =
   (expectedMaxInnerSize === actualMaxInnerSize)
@@ -537,6 +566,17 @@ tests =
     [ testProperty
         "packUnpackRoundtrip"
         prop_packUnpackRoundtrip
+    , testProperty
+        "valueOuterDepthIsBitLength"
+        prop_valueOuterDepthIsBitLength
+    , -- The floor at 1 is what stops a product-shaped cost model from charging nothing
+      -- but its intercept for a policy list applied to an empty `Value`.
+      testCase "valueOuterDepthOfEmptyIsOne" $
+        valueOuterDepth V.empty @?= 1
+    , -- The measure never descends an inner map, which is why the policy filters use it
+      -- rather than `ValueMaxDepth`.
+      testCase "valueOuterDepthIgnoresTokenCount" $
+        valueOuterDepth (oneWideValue 1000) @?= valueOuterDepth (oneWideValue 1)
     , testProperty
         "packBookkeeping"
         prop_packBookkeeping

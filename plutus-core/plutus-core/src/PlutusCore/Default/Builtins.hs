@@ -32,6 +32,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords (..)
   , TextCostedByByteLength (..)
   , ValueMaxDepth (..)
+  , ValueOuterDepth (..)
   , ValueOuterSize (..)
   , ValueTotalSize (..)
   , memoryUsage
@@ -2511,15 +2512,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           assetCountDenotation
           (runCostingFunOneArgument . paramAssetCount)
   toBuiltinMeaning _semvar KeepPolicies =
-    let keepPoliciesDenotation :: [ByteString] -> Value -> Value
-        keepPoliciesDenotation = Value.keepPolicies
+    let keepPoliciesDenotation :: [ByteString] -> ValueOuterDepth -> Value
+        keepPoliciesDenotation ps (ValueOuterDepth v) = Value.keepPolicies ps v
         {-# INLINE keepPoliciesDenotation #-}
      in makeBuiltinMeaning
           keepPoliciesDenotation
           (runCostingFunTwoArguments . paramKeepPolicies)
   toBuiltinMeaning _semvar DropPolicies =
-    let dropPoliciesDenotation :: [ByteString] -> Value -> Value
-        dropPoliciesDenotation = Value.dropPolicies
+    let dropPoliciesDenotation :: [ByteString] -> ValueOuterDepth -> Value
+        dropPoliciesDenotation ps (ValueOuterDepth v) = Value.dropPolicies ps v
         {-# INLINE dropPoliciesDenotation #-}
      in makeBuiltinMeaning
           dropPoliciesDenotation
