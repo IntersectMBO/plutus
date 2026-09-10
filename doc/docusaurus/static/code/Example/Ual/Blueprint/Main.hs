@@ -42,7 +42,8 @@ dash and an at-sign. This module carries all four kinds:
   * @PREDICATE@ introduces definitions the properties are stated against;
   * @ONCHAIN@ gives a validator's applied-argument list, its Plutus version and
     its execution budget;
-  * @PROPERTY@ states one behavioural claim, in English and formally.
+  * @PROPERTY@ states one claim about the compiled program, in English and
+    formally.
 
 == The rules the validator enforces
 
@@ -201,22 +202,34 @@ duty: it names the value and it says the validator has an own input. That is why
 @conforming_spend_accepted@ needs no separate @findOwnInput@ premise, while
 @own_input_required@ is still a claim of its own about the @none@ case.
 
-All four elaborate. What they do not have is evidence: nothing in this
-repository proves them, and @assurance.json@ carries no @evidence@ record for
-any of them. Handing them to a prover is the next step, not one this example
-takes.
+All five elaborate and reach a prover. Only the fifth is discharged. Given the
+document and the blueprint, blaster settles @malformed_context_rejected@ in
+under a minute; each of the other four was given at least eight minutes, one of
+them twelve, and none of the four returned a verdict. That is one machine and
+one version of the prover, but the gap is not a close call.
 
-One thing they lean on that is not yet written down: the convention that a
+The reason is visible in the statements. The first four quantify over a
+@ScriptContext@ and pass @toLedgerData ctx@, so discharging one means relating
+@CardanoLedgerApi@'s model of a context to what the compiled program's own
+decoder makes of the same bytes, across 2500 steps of a machine walking the
+transaction's inputs and outputs. That is a functional-correctness argument
+about the decoder, arrived at sideways. The fifth passes a @Data@ that decodes
+as nothing, so the program fails early and the search stays small.
+
+None of this is recorded in @assurance.json@: 'buildAssurance' runs at build
+time, before any prover, so every property is emitted without an @evidence@
+record — including the one that would pass. Evidence is a consumer's to add.
+
+The fifth property is also the malformed-@Data@ case, which the other four
+structurally cannot reach: they range over encoded @ScriptContext@s, so every
+context they quantify over decodes by construction. @own_input_required@ is a
+different claim — a well-formed context whose purpose does not resolve to one of
+the transaction's inputs.
+
+One thing all five lean on that is not yet written down: the convention that a
 validator's id denotes the applied wrapper inside a property is proposed rather
 than specified in UAL. It is recorded in
 @docs/superpowers/ual-doc-corrections.md@.
-
-What the properties do /not/ cover is the malformed-@Data@ path. They quantify
-over a @ScriptContext@ and encode it, so every context they range over decodes;
-a script context the validator rejects because 'unsafeFromBuiltinData' cannot
-read it is outside all four. @own_input_required@ is about a well-formed context
-whose purpose does not resolve to one of the transaction's inputs, which is a
-different thing.
 
 The @PREDICATE@ and @PROPERTY@ bodies are Lean source. Nothing in this repository
 parses or checks them; the lexer reads each block verbatim and the assurance
@@ -413,6 +426,12 @@ trancheUnvested tranche range =
             continuingValue ctx = some v →
               geq v (unvested p now) →
                 isSuccessful (vestingValidator p (toLedgerData ctx))
+@-}
+
+{-@ PROPERTY malformed_context_rejected
+      "A transaction is rejected when what reaches the validator in place of a
+      script context does not decode as one."
+    : ∀ (p : VestingParams), ¬ isSuccessful (vestingValidator p (Data.I 0))
 @-}
 
 {-| The validator as the Plinth plugin compiles it, with the parameter still to

@@ -104,6 +104,24 @@
           "source": "∀ (p : VestingParams) (ctx : ScriptContext) (now : POSIXTime) (v : Value),\n        txSignedBy p.vpOwner ctx.scriptContextTxInfo →\n          txRangeStartsAt now ctx.scriptContextTxInfo.txInfoValidRange →\n            continuingValue ctx = some v →\n              geq v (unvested p now) →\n                isSuccessful (vestingValidator p (toLedgerData ctx))"
         }
       }
+    },
+    {
+      "id": "malformed_context_rejected",
+      "scope": {
+        "validators": [
+          "vestingValidator"
+        ]
+      },
+      "statement": {
+        "text": "A transaction is rejected when what reaches the validator in place of a script context does not decode as one.",
+        "formal": {
+          "language": "ual",
+          "uses": [
+            "Main"
+          ],
+          "source": "∀ (p : VestingParams), ¬ isSuccessful (vestingValidator p (Data.I 0))"
+        }
+      }
     }
   ]
 }
