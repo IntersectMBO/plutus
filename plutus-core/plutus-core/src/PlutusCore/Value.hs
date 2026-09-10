@@ -277,47 +277,48 @@ pack = pack' . normalize
 
 -- | Like `pack` but does not normalize.
 pack' :: NestedMap -> Value
-pack' v = Value v sizes total neg (Map.fromDistinctDescList negs)
+pack' v = Value v sizes total neg negs
   where
-    Caches sizes total neg negs = Map.foldlWithKey' alg (Caches mempty 0 0 []) v
-    alg (Caches ss t n ns) currency inner =
-      let innerSize = Map.size inner
-          innerNeg = countNegative inner
-       in Caches
-            (IntMap.insertWith (+) innerSize 1 ss)
-            (t + innerSize)
-            (n + innerNeg)
-            (if innerNeg == 0 then ns else (currency, innerNeg) : ns)
+    Sizes sizes total = sizeCaches v
+    negs = Map.mapMaybe nonZeroNegatives v
+    !neg = Map.foldl' (+) 0 negs
 {-# INLINEABLE pack' #-}
 
-{-| The cached fields of a `Value`, as an accumulator for `pack'`.
+{-| The size histogram and the total size of a nested map.
 
-The per-currency counts are collected as a descending association list, so that building the
-map costs one `Map.fromDistinctDescList` at the end rather than a logarithm per currency.
-The fold is over ascending keys, so consing yields a descending list.
+\(O(m)\), where \(m\) is the size of the outer map: `Map.size` is \(O(1)\), so neither
+cache has to look at an amount. -}
+sizeCaches :: NestedMap -> Sizes
+sizeCaches = Map.foldl' alg (Sizes mempty 0)
+  where
+    alg (Sizes ss t) inner =
+      let innerSize = Map.size inner
+       in Sizes (IntMap.insertWith (+) innerSize 1 ss) (t + innerSize)
+{-# INLINEABLE sizeCaches #-}
+
+{-| The two size caches, as an accumulator for `sizeCaches`.
 
 A tuple with bang patterns looks like it would do the same job. It does not: forcing a field
 is not the same as storing it inline, so every step still allocates the tuple and a box per
-`Int`. The `UNPACK`ed fields here hold the machine words themselves, which is 40 bytes per
-currency against 168 for the banged tuple. -}
-data Caches
-  = Caches
-      !(IntMap Int)
-      {-# UNPACK #-} !Int
-      {-# UNPACK #-} !Int
-      ![(K, Int)]
-
-{-| The two size caches, as an accumulator for `keepPolicies`.
-
-Separate from `Caches` because this is the fold that must not look at an amount: the
-negative counts of the currencies that survive come from restricting the input's map, and
-recounting them is exactly the per-amount term this avoids. -}
+`Int`. The `UNPACK`ed field here holds the machine word itself. -}
 data Sizes = Sizes !(IntMap Int) {-# UNPACK #-} !Int
 
 -- | Number of negative quantities in an inner map.
 countNegative :: Map K Quantity -> Int
 countNegative = Map.foldl' (\ !acc q -> if q < zeroQuantity then acc + 1 else acc) 0
 {-# INLINE countNegative #-}
+
+{-| The number of negative amounts in an inner map, or `Nothing` when it holds none.
+
+`Map.mapMaybe` with this builds the per-currency counts of a whole `Value` in one pass over
+the outer map, allocating nothing but the entries it keeps. Collecting them as an
+association list and building the map from that would allocate a cons cell, a pair and a
+box per entry on top. -}
+nonZeroNegatives :: Map K Quantity -> Maybe Int
+nonZeroNegatives inner =
+  let n = countNegative inner
+   in if n == 0 then Nothing else Just n
+{-# INLINE nonZeroNegatives #-}
 
 -- | Record one more negative amount for a currency.
 bumpNegative :: K -> Map K Int -> Map K Int
@@ -512,10 +513,7 @@ keepPolicies ps (Value outer _ _ _ negs) = Value outer' sizes total neg negs'
     outer' = Map.restrictKeys outer kept
     negs' = Map.restrictKeys negs kept
     !neg = Map.foldl' (+) 0 negs'
-    Sizes sizes total = Map.foldl' alg (Sizes mempty 0) outer'
-    alg (Sizes ss t) inner =
-      let innerSize = Map.size inner
-       in Sizes (IntMap.insertWith (+) innerSize 1 ss) (t + innerSize)
+    Sizes sizes total = sizeCaches outer'
 {-# INLINEABLE keepPolicies #-}
 
 {-| The `Value` with the given currency symbols removed.
