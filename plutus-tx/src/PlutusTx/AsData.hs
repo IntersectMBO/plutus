@@ -16,6 +16,7 @@ import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
+import PlutusTx.AsData.Internal qualified as AI
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (ToData, UnsafeFromData)
@@ -156,7 +157,7 @@ asDataForWith encodeAsList dec = do
     let
       matchPat
         | encodeAsList =
-            [p| (BI.unsafeDataAsList -> $(mkUnsafeConstrPartsMatchPattern IsAsDataProdType 0 fieldNames)) |]
+            [p| (AI.wrapUnsafeDataAsList -> $(mkUnsafeConstrPartsMatchPattern IsAsDataProdType 0 fieldNames)) |]
         | otherwise = mkUnsafeConstrMatchPattern isProductType (fromIntegral conIx) fieldNames
       pat = TH.conP cname [matchPat]
 

@@ -560,7 +560,7 @@ mkDestructorWith encodeAsList di cname cons = do
         <$> ( if encodeAsList
                 then
                   [|
-                    let $(TH.bangP argsPat) = BI.unsafeDataAsList $(TH.varE dName)
+                    let $(TH.bangP argsPat) = AI.wrapUnsafeDataAsList $(TH.varE dName)
                      in $branch
                     |]
                 else
