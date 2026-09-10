@@ -40,6 +40,7 @@ import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, Builti
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ValueMaxDepth (..)
+  , ValueOuterDepth (..)
   , ValueOuterSize (..)
   , ValueTotalSize (..)
   )
@@ -438,110 +439,184 @@ policiesBenchmark gen =
 -- KeepPolicies and DropPolicies -------------------------------------------------------------------
 
 {- Note [Benchmarking keepPolicies and dropPolicies]
-Both builtins take a list of policy ids and a `Value`, and a cost model sees only the list
-length and the total size of the argument. `keepPolicies` builds a `Set` from the list,
-drops what the list did not name, and recomputes the caches the `Value` carries over what
-is left, so its cost follows the size of the result. `dropPolicies` deletes one policy at a
-time and subtracts each one's contribution from the caches, so its cost follows the number
-of descents into the outer map, and that number is not determined by either size the model
-is given.
+Both builtins take a policy list and a `Value`, and the cost model sees the length of the
+list and the depth of the `Value`'s outer map. Neither builtin descends an inner map, and
+neither reads an amount: `keepPolicies` restricts the outer map and the per-currency
+negative counts to the ids the list names, and `dropPolicies` deletes one policy at a time
+and subtracts its cached contribution. So the work is one outer-map descent per list
+element, and the two sizes the model is given are enough to bound it.
 
-Every point of `randomSizes`, the hundred with both sizes drawn independently on a log
-scale, is built to make the visible sizes and the real work agree: the list names every
-policy the `Value` has, so nothing is dropped and the result is the whole argument. The
-pairs are packed into as few policies as the list can cover, and the rest of the list is
-ids the `Value` does not have. On an input where half the policies get dropped the same two
-sizes would buy half the work, and a fit trained on those would undercharge a script that
-names them all. The log scale is what puts the sizes that occur on chain in the sample and
-not only the large ones.
+Every family puts the misses of the list before its hits. `dropPolicies` folds from the
+left, so an id the `Value` does not have costs a descent of the outer map as it stands at
+that point, while once the map is empty the rest of the list is free. With the hits first,
+a list longer than the outer map spends most of its tail on an empty map, and the point
+gets charged for a list it never walked.
 
-`shapeSweep` and `hitSweep` hold both sizes fixed and vary what the model cannot see: how
-many policies hold the pairs, and how much of the list hits. They therefore look like
-repeated measurements of one point, and a model that cannot tell those inputs apart shows
-it as vertical spread there. For `keepPolicies` that spread is widest at short lists and
-narrows as the list grows, because building the `Set` comes to dominate and the shape of
-the `Value` barely enters. For `dropPolicies` it goes the other way and widens as the list
-grows, because a longer list means more descents into the outer map and how many of them
-find anything is exactly what the model cannot see. That is where its worst undercharge
-comes from.
+`randomSizes` draws the list length and the number of policies independently on a log
+scale, and the tokens per policy from what is left of the total-size budget. Drawing the
+two independently is what samples the plane the model is fitted on: the depth moves only
+when the number of policies crosses a power of two, so a sample that ties the sizes
+together leaves most of the plane empty. Each point is the costliest of its two sizes:
+every list element that can name a policy of the `Value` does, and every policy holds a
+negative amount.
 
-`listOnly` hands the builtins an empty `Value`, which they return from before they look at
-the list. Those points are the control on the rig: had criterion floated the list work out
-of the measured loop, a list against an empty `Value` would cost what it costs against a
-full one. It costs a small fraction of that, so the list work is inside the loop where the
-measurement can see it. `models.R` drops these points from the fit, since nothing there is
-proportional to either size.
+`depthSweep` is the direct evidence for the product term. It holds the list at a few short
+lengths and takes the outer map across the powers of two, so the per-element cost can be
+read off against the depth rather than inferred from a fit that already assumes it.
+
+`shapeSweep` holds both visible sizes fixed and varies the tokens per policy. Those times
+must be flat: a slope there means something still walks an inner map, which is what the
+per-currency negative counts exist to prevent. The family is a regression test as much as
+a sample.
+
+`hitSweep` and `signSweep` vary what the model cannot see: how much of the list names a
+policy the `Value` has, and how many policies hold a negative amount. Both look like
+repeated measurements of a single point, so whatever they measure appears as vertical
+spread there and nowhere else. A miss costs nearly as much as a hit because
+`Map.updateLookupWithKey` rebuilds the whole search path whether or not it finds anything,
+which is what licenses bounding the number of hits by the length of the list.
+
+`listOnly` hands the builtins an empty `Value`, and those points belong in the fit. The
+empty `Value` has depth 1 rather than 0, so they sit on the bottom edge of the plane
+instead of off it, and they are what pins the term proportional to the list alone. They
+are also the control on the rig, but a narrower one than it looks: `Map.restrictKeys`
+matches the map before the set, so against an empty `Value` `keepPolicies` never forces
+the `Set` at all. What these points establish is that unlifting the list is inside the
+measured loop, not that the `Set` build is.
+
+The row name carries the depth, not the number of policies, so two points differing only
+in a number of policies between the same two powers of two collide. Fitting these builtins
+against the number of policies would need a fresh run.
 -}
 
 keepPoliciesBenchmark :: StdGen -> Benchmark
 keepPoliciesBenchmark gen =
-  createTwoTermBuiltinBenchElementwise KeepPolicies [] (runBenchGen gen keepDropArgs)
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (id, ValueOuterDepth)
+    KeepPolicies
+    []
+    (runBenchGen gen keepDropArgs)
 
 dropPoliciesBenchmark :: StdGen -> Benchmark
 dropPoliciesBenchmark gen =
-  createTwoTermBuiltinBenchElementwise DropPolicies [] (runBenchGen gen keepDropArgs)
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (id, ValueOuterDepth)
+    DropPolicies
+    []
+    (runBenchGen gen keepDropArgs)
+
+{-| One benchmark point for `keepPolicies` and `dropPolicies`, as the sizes it is built
+from rather than the arguments themselves. -}
+data Shape
+  = Shape
+  { shapePolicies :: Int
+  -- ^ Size of the outer map. What the model sees of it is its depth.
+  , shapeTokens :: Int
+  -- ^ Tokens per policy. Neither builtin descends an inner map, so this must not show.
+  , shapeListLen :: Int
+  -- ^ Length of the policy list.
+  , shapeHits :: Int
+  -- ^ How many list elements name a policy the `Value` has. Invisible to the model.
+  , shapeNegative :: Int
+  -- ^ How many policies hold a negative amount. Invisible to the model.
+  }
+
+{-| The costliest shape of its two visible sizes: every list element that can name a
+policy of the `Value` does, and every policy holds a negative amount. -}
+worstCase :: Int -> Int -> Int -> Shape
+worstCase numPolicies numTokens listLen =
+  Shape
+    { shapePolicies = numPolicies
+    , shapeTokens = numTokens
+    , shapeListLen = listLen
+    , shapeHits = min numPolicies listLen
+    , shapeNegative = numPolicies
+    }
 
 -- | See Note [Benchmarking keepPolicies and dropPolicies]
 keepDropArgs :: forall g m. StatefulGen g m => g -> m [([ByteString], Value)]
 keepDropArgs g = do
-  -- Both sizes drawn independently on a log scale, each point the costliest of its sizes.
   randomSizes <- replicateM 100 do
-    totalSize <- logUniform g maxValueTotalSize
     listLen <- logUniform g maxValueTotalSize
-    worstCase totalSize listLen
-  -- One `Value`, growing list.
-  listSweep <- traverse (worstCase 1000) [1000, 3000, 10_000, maxValueTotalSize]
-  -- One total size, policy counts from one to one per pair.  Run against a short list as
-  -- well as a long one, because a long list swamps the `Value` term.
-  shapeSweep <-
-    sequence
-      [ reaching numPolicies (10_000 `div` numPolicies) listLen
-      | listLen <- [100, 10_000]
-      , numPolicies <- [1, 10, 100, 1000, 10_000]
+    numPolicies <- logUniform g maxValueTotalSize
+    numTokens <- uniformRM (1, max 1 (maxValueTotalSize `div` numPolicies)) g
+    pure (worstCase numPolicies numTokens listLen)
+  let
+    -- One short list, outer map across the powers of two.
+    depthSweep =
+      [ worstCase numPolicies 1 listLen
+      | listLen <- [1, 10, 100]
+      , numPolicies <- [1, 2, 8, 64, 512, 4096, maxValueTotalSize]
       ]
-  -- One pair of sizes, list hits from none to all.
-  hitSweep <- traverse (hitting 10_000) [0, 2500, 5000, 7500, 10_000]
-  -- The list on its own, including the empty list.
-  listOnly <-
-    traverse
-      (\listLen -> (,Value.empty) <$> paddedList [] listLen)
-      [0, 10, 100, 1000, 10_000, maxValueTotalSize]
+    -- One outer map, growing list.
+    listSweep =
+      [ worstCase maxValueTotalSize 1 listLen
+      | listLen <- [1000, 3000, 10_000, maxValueTotalSize]
+      ]
+    -- Both visible sizes fixed, tokens per policy varying. Must be flat.
+    shapeSweep =
+      [ worstCase numPolicies numTokens listLen
+      | (numPolicies, tokenCounts) <- [(100, [1, 10, 100, 400]), (10_000, [1, 4])]
+      , numTokens <- tokenCounts
+      , listLen <- [100, 10_000]
+      ]
+    -- One point, list hits from none to all.
+    hitSweep =
+      [ (worstCase 10_000 1 10_000) {shapeHits = numHits}
+      | numHits <- [0, 2500, 5000, 7500, 10_000]
+      ]
+    -- One point, policies holding a negative amount from none to all.
+    signSweep =
+      [ (worstCase 10_000 1 10_000) {shapeNegative = numNegative}
+      | numNegative <- [0, 2500, 5000, 10_000]
+      ]
+    -- The list on its own, including the empty list.
+    listOnly =
+      [ worstCase 0 0 listLen
+      | listLen <- [0, 10, 100, 1000, 10_000, maxValueTotalSize]
+      ]
+  shaped <-
+    traverse (buildShape g) $
+      randomSizes
+        <> depthSweep
+        <> listSweep
+        <> shapeSweep
+        <> hitSweep
+        <> signSweep
+        <> listOnly
   -- Lovelace: the empty bytestring is a valid policy id, and `policySet` keeps it.
   lovelace <- do
     tokenName <- generateKey g
-    pure ([BS.empty], buildValue [emptyKey] [tokenName] (mkQuantity 1))
-  pure $ randomSizes <> listSweep <> shapeSweep <> hitSweep <> listOnly <> [lovelace]
+    pure ([BS.empty], buildSignedValue 1 [emptyKey] [tokenName])
+  pure $ shaped <> [lovelace]
+
+-- | Build the arguments a `Shape` describes.
+buildShape :: StatefulGen g m => g -> Shape -> m ([ByteString], Value)
+buildShape g shape = do
+  policyIds <- replicateM (shapePolicies shape) (generateKey g)
+  tokenNames <- replicateM (shapeTokens shape) (generateKey g)
+  let numHits = min (shapeHits shape) (min (shapePolicies shape) (shapeListLen shape))
+  misses <- replicateM (shapeListLen shape - numHits) (generateKey g)
+  let ps = Value.unK <$> (misses <> take numHits policyIds)
+  pure (ps, buildSignedValue (shapeNegative shape) policyIds tokenNames)
+
+{-| A `Value` of the given policies and token names, in which the first @numNegative@
+policies hold negative amounts and the rest hold positive ones.
+
+The per-currency negative counts are a second spine carrying one entry per policy that
+holds a negative amount, so both builtins are costliest when every policy does: a policy
+with none is a descent into an empty map. Neither builtin reads an amount, so the
+magnitudes do not matter. -}
+buildSignedValue :: Int -> [K] -> [K] -> Value
+buildSignedValue numNegative policyIds tokenNames =
+  unsafeFromList
+    [ (pId, [(tName, if isNegative then negative else positive) | tName <- tokenNames])
+    | (i, pId) <- zip [0 :: Int ..] policyIds
+    , let isNegative = i < numNegative
+    ]
   where
-    -- The costliest input of its sizes: the pairs packed into as few policies as the list
-    -- covers, so that the list names every one of them.
-    worstCase :: Int -> Int -> m ([ByteString], Value)
-    worstCase totalSize listLen =
-      let numPolicies = max 1 (min listLen totalSize)
-       in reaching numPolicies (max 1 (totalSize `div` numPolicies)) listLen
-
-    -- A `Value` of the given shape, and a list of the given length that names as much of
-    -- it as it can.
-    reaching :: Int -> Int -> Int -> m ([ByteString], Value)
-    reaching numPolicies numTokens listLen = do
-      (policyIds, value) <- generateValueWithPolicyIds g numPolicies numTokens
-      ps <- paddedList policyIds listLen
-      pure (ps, value)
-
-    -- Every policy id the list has room for, padded to the given length with ids that are
-    -- absent from the `Value`.
-    paddedList :: [K] -> Int -> m [ByteString]
-    paddedList policyIds listLen = do
-      let hits = take listLen policyIds
-      misses <- replicateM (listLen - length hits) (generateKey g)
-      pure $ Value.unK <$> (hits <> misses)
-
-    -- A flat `Value` of @totalSize@ pairs, and a list of the same length hitting @numHits@
-    -- of its policies.
-    hitting :: Int -> Int -> m ([ByteString], Value)
-    hitting totalSize numHits = do
-      (policyIds, value) <- generateValueWithPolicyIds g totalSize 1
-      ps <- paddedList (take numHits policyIds) totalSize
-      pure (ps, value)
+    positive = mkQuantity 1
+    negative = mkQuantity (-1)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
