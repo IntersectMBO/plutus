@@ -14,6 +14,10 @@ wrapUnsafeDataAsConstr :: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList
 wrapUnsafeDataAsConstr = BI.unsafeDataAsConstr
 {-# OPAQUE wrapUnsafeDataAsConstr #-}
 
+wrapUnsafeDataAsList :: BuiltinData -> BuiltinList BuiltinData
+wrapUnsafeDataAsList = BI.unsafeDataAsList
+{-# OPAQUE wrapUnsafeDataAsList #-}
+
 -- We need this to let compiler know applications to asData deconstructors can be inlined directly.
 -- See Note [Compiling AsData Matchers and Their Invocations]
 wrapCaseData :: BuiltinData -> [BuiltinList BuiltinData -> a] -> a

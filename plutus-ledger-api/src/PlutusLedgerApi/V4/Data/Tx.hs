@@ -42,6 +42,7 @@ module PlutusLedgerApi.V4.Data.Tx
   , pubKeyHashTxOut
   ) where
 
+import Control.DeepSeq (NFData)
 import Data.Maybe (isJust)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
@@ -54,14 +55,7 @@ import PlutusLedgerApi.V2.Data.Tx
   , pattern OutputDatum
   , pattern OutputDatumHash
   )
-import PlutusLedgerApi.V3.Data.Tx
-  ( TxId (..)
-  , TxOutRef
-  , matchTxOutRef
-  , txOutRefId
-  , txOutRefIdx
-  , pattern TxOutRef
-  )
+import PlutusLedgerApi.V3.Data.Tx (TxId (..))
 import PlutusLedgerApi.V4.Data.Address
   ( Address
   , pubKeyHashAddress
@@ -73,8 +67,25 @@ import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter (Pretty (pretty), hang, vsep, (<+>))
 
+PlutusTx.asDataAsList
+  [d|
+    data TxOutRef = TxOutRef
+      { txOutRefId :: TxId
+      , txOutRefIdx :: Integer
+      }
+      deriving stock (Show, Eq, Ord, Generic)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving anyclass (NFData)
+    |]
+
+PlutusTx.deriveEq ''TxOutRef
+PlutusTx.makeLift ''TxOutRef
+
+instance Pretty TxOutRef where
+  pretty TxOutRef {txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
+
 -- | Transaction output for Plutus V4.
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data TxOut = TxOut
       { txOutAddress :: Address

@@ -619,7 +619,10 @@ hoistExpr var t = do
   asDataNames <-
     traverse
       lookupGhcName
-      ['PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr, 'PlutusTx.AsData.Internal.wrapCaseData]
+      [ 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
+      , 'PlutusTx.AsData.Internal.wrapCaseData
+      , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsList
+      ]
 
   let name = GHC.getName var
       lexName = LexName name

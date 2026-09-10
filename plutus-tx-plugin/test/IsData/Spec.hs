@@ -93,6 +93,18 @@ AsData.asData
       deriving newtype (P.Eq, IsData.FromData, IsData.UnsafeFromData, IsData.ToData)
     |]
 
+AsData.asDataAsList
+  [d|
+    data ListRecord = ListRecord {listFirst :: Integer, listSecond :: Integer}
+      deriving newtype (P.Eq, IsData.FromData, IsData.UnsafeFromData, IsData.ToData)
+    |]
+
+AsData.asDataAsList
+  [d|
+    data EmptyListRecord = EmptyListRecord
+      deriving newtype (P.Eq, IsData.FromData, IsData.UnsafeFromData, IsData.ToData)
+    |]
+
 -- Features a nested field which is also defined with AsData
 matchAsData :: CompiledCode (MaybeD SecretlyData -> SecretlyData)
 matchAsData =
@@ -165,6 +177,24 @@ tests =
       , assertResult "poly" (plinthc (isDataRoundtrip (Poly1 (1 :: Integer) (2 :: Integer))))
       , assertResult "record" (plinthc (isDataRoundtrip (MyMonoRecord 1 2)))
       , assertResult "recordAsList" (plinthc (isDataRoundtrip (MyMonoRecordAsList 1 2)))
+      , assertResult "asDataAsList roundtrip" (plinthc (isDataRoundtrip (ListRecord 1 2)))
+      , assertResult
+          "asDataAsList encoding"
+          (plinthc (P.toBuiltinData (ListRecord 1 2) P.== P.toBuiltinData ([1, 2] :: [Integer])))
+      , assertResult
+          "asDataAsList fields"
+          (plinthc (listFirst (ListRecord 1 2) P.== 1 && listSecond (ListRecord 1 2) P.== 2))
+      , assertResult
+          "asDataAsList matcher"
+          (plinthc (matchListRecord (ListRecord 1 2) (\first second -> first P.== 1 && second P.== 2)))
+      , assertResult
+          "asDataAsList empty"
+          ( plinthc
+              ( isDataRoundtrip EmptyListRecord
+                  && P.toBuiltinData EmptyListRecord P.== P.toBuiltinData ([] :: [Integer])
+                  && matchEmptyListRecord EmptyListRecord True
+              )
+          )
       , assertResult
           "recordAsList is List"
           ( plinthc

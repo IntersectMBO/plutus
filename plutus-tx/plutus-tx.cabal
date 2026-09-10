@@ -261,4 +261,5 @@ test-suite plutus-tx-test
     , tasty
     , tasty-hedgehog
     , tasty-hunit
+    , template-haskell
     , text

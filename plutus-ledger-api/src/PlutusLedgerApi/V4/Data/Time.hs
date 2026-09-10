@@ -30,7 +30,7 @@ import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Data.Time (POSIXTime (..))
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
-import PlutusTx.Blueprint (ConstructorSchema (..), Schema (..))
+import PlutusTx.Blueprint (Schema (..))
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (schema))
 import PlutusTx.Blueprint.Definition
   ( HasBlueprintDefinition (..)
@@ -45,7 +45,7 @@ import PlutusTx.Lift (makeLift)
 import Prettyprinter (Pretty (pretty), comma, (<+>))
 import Prelude qualified as Haskell
 
-PlutusTx.asData
+PlutusTx.asDataAsList
   [d|
     data POSIXTimeRange = POSIXTimeRange
       { -- 'Nothing' means negative infinity.
@@ -70,14 +70,11 @@ instance
   where
   {-# INLINEABLE schema #-}
   schema =
-    SchemaConstructor
+    SchemaListTuple
       emptySchemaInfo {title = Haskell.Just "POSIXTimeRange"}
-      ( MkConstructorSchema
-          0
-          [ definitionRef @(Haskell.Maybe POSIXTime) @referencedTypes
-          , definitionRef @(Haskell.Maybe POSIXTime) @referencedTypes
-          ]
-      )
+      [ definitionRef @(Haskell.Maybe POSIXTime) @referencedTypes
+      , definitionRef @(Haskell.Maybe POSIXTime) @referencedTypes
+      ]
 
 instance Pretty POSIXTimeRange where
   pretty (POSIXTimeRange lo hi) = prettyFrom <+> comma <+> prettyUntil

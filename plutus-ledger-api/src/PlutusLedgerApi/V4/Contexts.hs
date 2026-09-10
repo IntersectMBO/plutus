@@ -1,13 +1,17 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -28,13 +32,13 @@ module PlutusLedgerApi.V4.Contexts
   , TxCert (..)
   , Voter (..)
   , Vote (..)
-  , GovernanceActionId (..)
-  , Committee (..)
+  , GovernanceActionId (GovernanceActionId, gaidTxId, gaidGovActionIx)
+  , Committee (Committee, committeeMembers, committeeQuorum)
   , Constitution (..)
-  , ProtocolVersion (..)
+  , ProtocolVersion (ProtocolVersion, pvMajor, pvMinor)
   , ChangedParameters (..)
   , GovernanceAction (..)
-  , ProposalProcedure (..)
+  , ProposalProcedure (ProposalProcedure, ppDeposit, ppReturnAddr, ppGovernanceAction)
   , ScriptPurpose (..)
   , ScriptInfo (..)
   , TxInInfo (..)
@@ -63,33 +67,30 @@ import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3.Contexts
   ( ChangedParameters (..)
   , ColdCommitteeCredential (..)
-  , Committee (..)
-  , Constitution (..)
   , DRep (..)
   , DRepCredential (..)
   , Delegatee (..)
-  , GovernanceAction (..)
-  , GovernanceActionId (..)
   , HotCommitteeCredential (..)
-  , ProposalProcedure (..)
-  , ProtocolVersion (..)
   , Vote (..)
   , Voter (..)
   )
+import PlutusLedgerApi.V3.Contexts qualified as V3
 import PlutusLedgerApi.V3.MintValue qualified as V3
 import PlutusLedgerApi.V3.Tx qualified as V3
 import PlutusLedgerApi.V4.Address (AccountId (..), Address (..))
+import PlutusLedgerApi.V4.Internal (ListEncoded (..))
+import PlutusLedgerApi.V4.Ratio (Rational)
 import PlutusLedgerApi.V4.Time (POSIXTimeRange)
-import PlutusLedgerApi.V4.Tx (TxOut (..))
-import PlutusTx (makeIsDataSchemaIndexed)
+import PlutusLedgerApi.V4.Tx (TxOut (..), TxOutRef (..))
+import PlutusTx (makeIsDataSchemaAsList, makeIsDataSchemaIndexed)
 import PlutusTx qualified
 import PlutusTx.AssocMap (Map, lookup, toList)
 import PlutusTx.Blueprint
-  ( HasBlueprintDefinition
-  , HasBlueprintSchema
+  ( HasBlueprintSchema
   , SchemaInfo (..)
   )
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), UnrollAll)
 import PlutusTx.Blueprint.Definition.Derive (definitionRef)
 import PlutusTx.Blueprint.Schema (withSchemaInfo)
 import PlutusTx.Foldable qualified as F
@@ -99,6 +100,160 @@ import PlutusTx.Prelude qualified as PlutusTx
 import Prettyprinter (nest, vsep, (<+>))
 import Prettyprinter.Extras (Pretty (pretty), PrettyShow (PrettyShow))
 import Prelude qualified as Haskell
+
+newtype GovernanceActionId = GovernanceActionIdValue V3.GovernanceActionId
+  deriving stock (Generic)
+  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Pretty, PlutusTx.Eq)
+  deriving
+    (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    via ListEncoded V3.GovernanceActionId
+
+pattern GovernanceActionId :: V3.TxId -> Haskell.Integer -> GovernanceActionId
+pattern GovernanceActionId {gaidTxId, gaidGovActionIx} =
+  GovernanceActionIdValue (V3.GovernanceActionId gaidTxId gaidGovActionIx)
+{-# COMPLETE GovernanceActionId #-}
+
+instance HasBlueprintDefinition GovernanceActionId where
+  type Unroll GovernanceActionId = GovernanceActionId ': UnrollAll '[V3.TxId, Haskell.Integer]
+
+instance
+  HasBlueprintSchema V3.GovernanceActionId referencedTypes
+  => HasBlueprintSchema GovernanceActionId referencedTypes
+  where
+  schema = schema @(ListEncoded V3.GovernanceActionId) @referencedTypes
+
+PlutusTx.makeLift ''GovernanceActionId
+
+newtype ProtocolVersion = ProtocolVersionValue V3.ProtocolVersion
+  deriving stock (Generic)
+  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Pretty, PlutusTx.Eq, PlutusTx.Ord)
+  deriving
+    (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    via ListEncoded V3.ProtocolVersion
+
+pattern ProtocolVersion :: Haskell.Integer -> Haskell.Integer -> ProtocolVersion
+pattern ProtocolVersion {pvMajor, pvMinor} = ProtocolVersionValue (V3.ProtocolVersion pvMajor pvMinor)
+{-# COMPLETE ProtocolVersion #-}
+
+instance HasBlueprintDefinition ProtocolVersion where
+  type Unroll ProtocolVersion = '[ProtocolVersion, Haskell.Integer]
+
+instance
+  HasBlueprintSchema V3.ProtocolVersion referencedTypes
+  => HasBlueprintSchema ProtocolVersion referencedTypes
+  where
+  schema = schema @(ListEncoded V3.ProtocolVersion) @referencedTypes
+
+PlutusTx.makeLift ''ProtocolVersion
+
+newtype Constitution = Constitution {constitutionScript :: Haskell.Maybe V2.ScriptHash}
+  deriving stock (Generic)
+  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, PlutusTx.Eq)
+  deriving anyclass (HasBlueprintDefinition)
+  deriving
+    (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    via ListEncoded V3.Constitution
+
+instance
+  HasBlueprintSchema V3.Constitution referencedTypes
+  => HasBlueprintSchema Constitution referencedTypes
+  where
+  schema = schema @(ListEncoded V3.Constitution) @referencedTypes
+
+instance Pretty Constitution where
+  pretty (Constitution script) = "constitutionScript:" <+> pretty script
+
+PlutusTx.makeLift ''Constitution
+
+newtype Committee = CommitteeValue (Map ColdCommitteeCredential Haskell.Integer, Rational)
+  deriving stock (Generic)
+  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving
+    (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    via ListEncoded (Map ColdCommitteeCredential Haskell.Integer, Rational)
+
+pattern Committee :: Map ColdCommitteeCredential Haskell.Integer -> Rational -> Committee
+pattern Committee {committeeMembers, committeeQuorum} = CommitteeValue (committeeMembers, committeeQuorum)
+{-# COMPLETE Committee #-}
+
+instance HasBlueprintDefinition Committee where
+  type
+    Unroll Committee =
+      Committee ': UnrollAll '[Map ColdCommitteeCredential Haskell.Integer, Rational]
+
+instance
+  HasBlueprintSchema (Map ColdCommitteeCredential Haskell.Integer, Rational) referencedTypes
+  => HasBlueprintSchema Committee referencedTypes
+  where
+  schema = schema @(ListEncoded (Map ColdCommitteeCredential Haskell.Integer, Rational)) @referencedTypes
+
+instance Pretty Committee where
+  pretty Committee {..} =
+    vsep
+      ["committeeMembers:" <+> pretty committeeMembers, "committeeQuorum:" <+> pretty committeeQuorum]
+
+PlutusTx.makeLift ''Committee
+
+data GovernanceAction
+  = ParameterChange (Haskell.Maybe GovernanceActionId) ChangedParameters (Haskell.Maybe V2.ScriptHash)
+  | HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
+  | TreasuryWithdrawals (Map V2.Credential V2.Lovelace) (Haskell.Maybe V2.ScriptHash)
+  | NoConfidence (Haskell.Maybe GovernanceActionId)
+  | UpdateCommittee
+      (Haskell.Maybe GovernanceActionId)
+      [ColdCommitteeCredential]
+      (Map ColdCommitteeCredential Haskell.Integer)
+      Rational
+  | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
+  | InfoAction
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
+  deriving (Pretty) via (PrettyShow GovernanceAction)
+
+PlutusTx.makeLift ''GovernanceAction
+PlutusTx.makeIsDataSchemaIndexed
+  ''GovernanceAction
+  [ ('ParameterChange, 0)
+  , ('HardForkInitiation, 1)
+  , ('TreasuryWithdrawals, 2)
+  , ('NoConfidence, 3)
+  , ('UpdateCommittee, 4)
+  , ('NewConstitution, 5)
+  , ('InfoAction, 6)
+  ]
+
+newtype ProposalProcedure = ProposalProcedureValue (V2.Lovelace, V2.Credential, GovernanceAction)
+  deriving stock (Generic)
+  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving
+    (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    via ListEncoded (V2.Lovelace, V2.Credential, GovernanceAction)
+
+pattern ProposalProcedure :: V2.Lovelace -> V2.Credential -> GovernanceAction -> ProposalProcedure
+pattern ProposalProcedure {ppDeposit, ppReturnAddr, ppGovernanceAction} =
+  ProposalProcedureValue (ppDeposit, ppReturnAddr, ppGovernanceAction)
+{-# COMPLETE ProposalProcedure #-}
+
+instance HasBlueprintDefinition ProposalProcedure where
+  type
+    Unroll ProposalProcedure =
+      ProposalProcedure ': UnrollAll '[V2.Lovelace, V2.Credential, GovernanceAction]
+
+instance
+  HasBlueprintSchema (V2.Lovelace, V2.Credential, GovernanceAction) referencedTypes
+  => HasBlueprintSchema ProposalProcedure referencedTypes
+  where
+  schema = schema @(ListEncoded (V2.Lovelace, V2.Credential, GovernanceAction)) @referencedTypes
+
+instance Pretty ProposalProcedure where
+  pretty ProposalProcedure {..} =
+    vsep
+      [ "ppDeposit:" <+> pretty ppDeposit
+      , "ppReturnAddr:" <+> pretty ppReturnAddr
+      , "ppGovernanceAction:" <+> pretty ppGovernanceAction
+      ]
+
+PlutusTx.makeLift ''ProposalProcedure
 
 data AccountBalanceInterval
   = AccountBalanceLowerBound V2.Lovelace
@@ -164,7 +319,7 @@ PlutusTx.deriveEq ''TxCert
 
 data ScriptPurpose
   = Minting V2.ScriptHash V2.CurrencySymbol
-  | Spending V2.ScriptHash V3.TxOutRef
+  | Spending V2.ScriptHash TxOutRef
   | Withdrawing V2.ScriptHash V2.Credential
   | Certifying V2.ScriptHash Haskell.Integer TxCert
   | Voting V2.ScriptHash Voter
@@ -176,7 +331,7 @@ data ScriptPurpose
 
 -- | An input of a pending transaction.
 data TxInInfo = TxInInfo
-  { txInInfoOutRef :: V3.TxOutRef
+  { txInInfoOutRef :: TxOutRef
   , txInInfoResolved :: TxOut
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
@@ -308,7 +463,7 @@ data TopTxInfo = TopTxInfo
 
 data ScriptInfo
   = MintingScript V2.CurrencySymbol
-  | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum)
+  | SpendingScript TxOutRef (Haskell.Maybe V2.Datum)
   | WithdrawingScript AccountId
   | CertifyingScript
       Haskell.Integer
@@ -374,7 +529,7 @@ findDatumHash ds TxInfo {txInfoData} =
   PlutusTx.fst PlutusTx.<$> List.find (\(_, ds') -> ds' PlutusTx.== ds) (toList txInfoData)
 {-# INLINEABLE findDatumHash #-}
 
-findTxInByTxOutRef :: V3.TxOutRef -> TxInfo -> Haskell.Maybe TxInInfo
+findTxInByTxOutRef :: TxOutRef -> TxInfo -> Haskell.Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo {txInfoInputs} =
   List.find
     (\TxInInfo {txInInfoOutRef} -> txInInfoOutRef PlutusTx.== outRef)
@@ -438,7 +593,7 @@ ownCurrencySymbol _ = PlutusTx.traceError "Lh"
 spendsOutput :: TxInfo -> V3.TxId -> Haskell.Integer -> Haskell.Bool
 spendsOutput txInfo txId outputIndex =
   List.any
-    ( \TxInInfo {txInInfoOutRef = V3.TxOutRef refId refIndex} ->
+    ( \TxInInfo {txInInfoOutRef = TxOutRef refId refIndex} ->
         txId PlutusTx.== refId PlutusTx.&& outputIndex PlutusTx.== refIndex
     )
     (txInfoInputs txInfo)
@@ -477,16 +632,16 @@ $( makeIsDataSchemaIndexed
  )
 
 $(makeLift ''TxInInfo)
-$(makeIsDataSchemaIndexed ''TxInInfo [('TxInInfo, 0)])
+$(makeIsDataSchemaAsList ''TxInInfo)
 
 $(makeLift ''TxInfo)
-$(makeIsDataSchemaIndexed ''TxInfo [('TxInfo, 0)])
+$(makeIsDataSchemaAsList ''TxInfo)
 
 $(makeLift ''TopTxInfoSimplified)
-$(makeIsDataSchemaIndexed ''TopTxInfoSimplified [('TopTxInfoSimplified, 0)])
+$(makeIsDataSchemaAsList ''TopTxInfoSimplified)
 
 $(makeLift ''TopTxInfo)
-$(makeIsDataSchemaIndexed ''TopTxInfo [('TopTxInfo, 0)])
+$(makeIsDataSchemaAsList ''TopTxInfo)
 
 $(makeLift ''ScriptInfo)
 $( makeIsDataSchemaIndexed
@@ -502,4 +657,4 @@ $( makeIsDataSchemaIndexed
  )
 
 $(makeLift ''ScriptContext)
-$(makeIsDataSchemaIndexed ''ScriptContext [('ScriptContext, 0)])
+$(makeIsDataSchemaAsList ''ScriptContext)
