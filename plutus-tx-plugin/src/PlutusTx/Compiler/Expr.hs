@@ -621,7 +621,7 @@ hoistExpr var t = do
       lookupGhcName
       [ 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
       , 'PlutusTx.AsData.Internal.wrapCaseData
-      'PlutusTx.AsData.Internal.wrapUnsafeDataAsList
+      , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsList
       ]
 
   let name = GHC.getName var
