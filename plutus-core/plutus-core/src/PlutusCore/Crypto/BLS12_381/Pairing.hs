@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications #-}
@@ -11,26 +12,36 @@ module PlutusCore.Crypto.BLS12_381.Pairing
   , identityMlResult
   ) where
 
-import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
-import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
-
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy, prettyBy)
 
 import Control.DeepSeq (NFData, rnf)
-import Data.Coerce (coerce)
 import Data.Hashable
 import PlutusCore.Flat
 import Prettyprinter
+
+#ifdef WITH_CRYPTO
+import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
+import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
+import Data.Coerce (coerce)
+#else
+import Data.ByteString (ByteString)
+import PlutusCore.Crypto.Utils (cryptoDisabled)
+#endif
 
 {-| This type represents the result of computing a pairing using the Miller
    loop.  Values of this type are ephemeral, only created during script
    execution.  We do not provide any means of serialising, deserialising,
    printing, or parsing MlResult values. -}
+#ifdef WITH_CRYPTO
 newtype MlResult = MlResult {unMlResult :: BlstBindings.PT}
   deriving newtype (Eq)
+#else
+newtype MlResult = MlResult {unMlResult :: ByteString}
+  deriving newtype (Eq)
+#endif
 
 instance Show MlResult where
   show _ = "<opaque>"
@@ -56,6 +67,11 @@ instance NFData MlResult where
 instance Hashable MlResult where
   hashWithSalt salt _MlResult = salt
 
+-- | Memory usage of an MlResult point (576 bytes)
+mlResultMemSizeBytes :: Int
+
+#ifdef WITH_CRYPTO
+
 millerLoop :: G1.Element -> G2.Element -> MlResult
 millerLoop = coerce BlstBindings.millerLoop
 
@@ -67,11 +83,27 @@ finalVerify = coerce BlstBindings.ptFinalVerify
 
 -- Not exposed as builtins
 
--- | Memory usage of an MlResult point (576 bytes)
-mlResultMemSizeBytes :: Int
 mlResultMemSizeBytes = BlstBindings.Internal.sizePT
 
 {-| For some of the tests we need a small element of the MlResult type.  We can
 get the identity element by pairing the zero elements of G1 and G2. -}
 identityMlResult :: MlResult
 identityMlResult = millerLoop G1.offchain_zero G2.offchain_zero
+
+#else
+
+millerLoop :: G1.Element -> G2.Element -> MlResult
+millerLoop = cryptoDisabled "bls12_381_millerLoop"
+
+mulMlResult :: MlResult -> MlResult -> MlResult
+mulMlResult = cryptoDisabled "bls12_381_mulMlResult"
+
+finalVerify :: MlResult -> MlResult -> Bool
+finalVerify = cryptoDisabled "bls12_381_finalVerify"
+
+mlResultMemSizeBytes = 576
+
+identityMlResult :: MlResult
+identityMlResult = cryptoDisabled "bls12_381 identityMlResult"
+
+#endif

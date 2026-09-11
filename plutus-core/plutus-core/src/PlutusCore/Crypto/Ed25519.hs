@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -7,10 +8,13 @@ where
 import PlutusCore.Builtin.KnownType (BuiltinResult)
 import PlutusCore.Crypto.Utils
 
+import Data.ByteString qualified as BS
+
+#ifdef WITH_CRYPTO
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
-import Data.ByteString qualified as BS
 import Data.Text (Text)
+#endif
 
 {-| Ed25519 signature verification
 This will fail if the key or the signature are not of the expected length.
@@ -24,6 +28,7 @@ verifyEd25519Signature
   -> BS.ByteString
   -- ^ Signature  (64 bytes)
   -> BuiltinResult Bool
+#ifdef WITH_CRYPTO
 verifyEd25519Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @Ed25519DSIGN pk of
     Nothing -> failWithMessage loc "Invalid verification key."
@@ -37,3 +42,6 @@ verifyEd25519Signature pk msg sig =
   where
     loc :: Text
     loc = "Ed25519 signature verification"
+#else
+verifyEd25519Signature _pk _msg _sig = cryptoDisabled "verifyEd25519Signature"
+#endif
