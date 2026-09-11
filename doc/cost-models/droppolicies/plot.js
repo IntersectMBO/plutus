@@ -18,10 +18,14 @@ setupCostModelPage({
   arity: ARITY,
   render(data) {
     ({ benchmarkData, costModel, overhead } = data);
-    // The `fit.fan` of models.R, recomputed in the browser on the same points the
-    // shipped fit was built from, so that the two blocks agreeing checks that the JSON
-    // matches the fit rather than taking the JSON on trust.
-    stockModel = fitFan(benchmarkData, overhead, args => args[0] * args[1], 'multiplied_sizes');
+    // Plain least squares, which is what `dropPolicies` ships. `fit.fan` would give the
+    // same slope on this data, since its discard loop never iterates here, but a different
+    // intercept: least squares puts the intercept below zero and the floor in models.R
+    // raises it to 1000 ps, so the floor is the model. Recomputed in the browser on the same
+    // points the shipped fit was built from, so that the two blocks agreeing checks the JSON
+    // against the fit rather than taking the JSON on trust.
+    stockModel =
+      fitLeastSquares(benchmarkData, overhead, args => args[0] * args[1], 'multiplied_sizes');
     updateInfoPanel();
     renderPlot();
   },
@@ -49,7 +53,7 @@ function updateInfoPanel() {
   document.getElementById('fit-comparison').innerHTML =
     fitSummary('The shipped model (from the cost-model JSON)',
                costModel, benchmarkData, overhead, ['p', 'L'])
-    + fitSummary('The same conservative fit recomputed from the CSV',
+    + fitSummary('The same least-squares fit recomputed from the CSV',
                  stockModel, benchmarkData, overhead, ['p', 'L']);
 
   if (costModel) {

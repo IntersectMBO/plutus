@@ -418,6 +418,35 @@ function fitFan(points, overhead, regressor, modelType, threshold = 0.9, limit =
   };
 }
 
+/* Plain least squares, with the two post-processing steps models.R applies afterwards:
+`round.up` ceilings every coefficient to a whole picosecond, and `floor.intercept` raises the
+intercept to 1000 ps. On convex data the fitted intercept is negative and that floor is what
+ends up shipping, so a recomputation that skipped it would not match the JSON.
+
+`regressor` maps a point's argument sizes to the one size the model is linear in, the same way
+as for fitFan. */
+function fitLeastSquares(points, overhead, regressor, modelType) {
+  const rows = points.map(d => ({ x: regressor(d.args), t: d.time - (overhead || 0) }));
+  if (rows.length < 2) return null;
+  const n = rows.length;
+  const mx = rows.reduce((a, d) => a + d.x, 0) / n;
+  const mt = rows.reduce((a, d) => a + d.t, 0) / n;
+  const sxx = rows.reduce((a, d) => a + (d.x - mx) * (d.x - mx), 0);
+  if (sxx === 0) return null;
+  const slope = rows.reduce((a, d) => a + (d.x - mx) * (d.t - mt), 0) / sxx;
+  const intercept = mt - slope * mx;
+
+  // Coefficients are in nanoseconds here and picoseconds in the JSON.
+  const roundUp = v => Math.ceil(v * 1000);
+  return {
+    modelType,
+    coefficients: {
+      intercept: Math.max(roundUp(intercept), 1000),
+      slope: roundUp(slope)
+    }
+  };
+}
+
 function modelCharge(model, args, overhead) {
   if (!model) return null;
   const ps = evaluateCostModel(model.modelType, model.coefficients, args);

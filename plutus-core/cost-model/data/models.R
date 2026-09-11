@@ -907,22 +907,20 @@ modelFun <- function(path) {
     ## whole search path whether or not it finds the key, so the number of hits drops out of
     ## the order of the cost and every element of the list costs one descent.
     ##
-    ## `fit.fan` wants one dimension, in `x_mem`.  Hand it the product under that name and
-    ## put the coefficients back on a model of the shape the Haskell side reads; the same
-    ## manoeuvre as equalsDataModel above.
+    ## Least squares rather than `fit.fan`, unlike `keepPolicies`.  The clamp in `adjustModel`
+    ## already lifts this line: the data is convex, so the fitted intercept is negative and
+    ## becomes 1000 ps, which raises the whole model.  What is left undominated after that sits
+    ## at depths that need more currencies than a transaction can carry, and building them on
+    ## chain costs the caller more per currency than the shortfall is worth, so lifting the
+    ## slope would buy nothing a script can exploit.  See Note [Benchmarking keepPolicies and
+    ## dropPolicies] in Benchmarks.Values for the reachable region and what bounds it.
     dropPoliciesModel <- {
         fname <- "DropPolicies"
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
             discard.overhead ()
-        m <- fit.fan (mutate (filtered, x_mem = x_mem * y_mem))
-        v <- coefficients (m)
-        names (v) <- c("(Intercept)", "I(x_mem * y_mem)")
-        ## ^ The space after the comma is important.
-        m2 <- lm (t ~ I(x_mem * y_mem), filtered)
-        m2$coefficients <- v
-        ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
-        mk.result (floor.intercept (round.up (m2)), "multiplied_sizes")
+        m <- lm (t ~ I(x_mem * y_mem), filtered)
+        mk.result (floor.intercept (round.up (m)), "multiplied_sizes")
     }
 
     ## Values

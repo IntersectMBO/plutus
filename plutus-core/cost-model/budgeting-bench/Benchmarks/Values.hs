@@ -501,6 +501,16 @@ not that the `Set` build is; and because depth 1 covers both the empty `Value` a
 The row name carries the depth, not the number of policies, so two points differing only
 in a number of policies between the same two powers of two collide. Fitting these builtins
 against the number of policies would need a fresh run.
+
+The grid runs past the depth a script can reach, deliberately, and should not be trimmed to
+fit it. An arriving `Value` costs transaction bytes rather than execution units, so the depth
+it can reach is set by the size limit; a deeper outer map has to be built by repeated
+`insertCoin`, which charges on the depth it inserts into and so limits itself. The deepest
+rows are the margin between those two bounds.
+
+Raising the transaction size limit warrants refitting both models. It would let those deepest
+maps arrive rather than be built, and an arriving `Value` costs nothing to construct, so the
+charge that currently bounds the worst case would stop applying.
 -}
 
 keepPoliciesBenchmark :: StdGen -> Benchmark
