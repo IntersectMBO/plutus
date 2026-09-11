@@ -406,7 +406,7 @@ $$Q = \{n \in \Z: -2^{127} \leq n \leq 2^{127}-1\}.$$
 \hline  % Value builtins
 
   \TT{insertCoin} & $[ \ty{bytestring}, \ty{bytestring}, $
-                       $\text{\:  \ty{integer}, \ty{value} ]}$ $\to \ty{value}$
+                       \text{$\:  \ty{integer}, \ty{value} ]$} $\to \ty{value}$
                   & $(c, t, n, v)$
                   \smallskip
                   \newline
@@ -418,7 +418,7 @@ $$Q = \{n \in \Z: -2^{127} \leq n \leq 2^{127}-1\}.$$
                   \end{array}\right.$
                   & Yes & \ref{note:insertCoin-semantics} \\[2mm]
   \TT{lookupCoin} & $[ \ty{bytestring}, \ty{bytestring}, $
-                       $\text{\: \ty{value} ]}$ $\to \ty{integer}$
+                       \text{$\: \ty{value} ]$} $\to \ty{integer}$
                   & $ (c,t,v) \mapsto v(c,t) $
                   & No & \ref{note:lookupCoin-semantics} \\[2mm]
   \TT{unionValue} & $[ \ty{value}, \ty{value} ] \to \ty{value}$

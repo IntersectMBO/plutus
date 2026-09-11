@@ -15,15 +15,13 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
 \begin{minipage}{\linewidth}
     \centering
     \[\begin{array}{lrclr}
-
         \textrm{Name}          & n      & ::= & \texttt{[a-zA-Z][a-zA-Z0-9\_\textquotesingle]*(-[0-9]+)?}   & \textrm{name}\\
-
+        \\
         \textrm{Var}           & x      & ::= & n & \textrm{term variable}\\
         \textrm{BuiltinName}   & bn     & ::= & n & \textrm{built-in function name}\\
         \textrm{Version} & v & ::= & \texttt{[0-9]+.[0-9]+.[0-9]+}& \textrm{version}\\
         \textrm{Natural}  & k      & ::= & \texttt{[0-9]+} & \textrm{a natural number}\\
         \textrm{Constant} & c & ::= & \langle{\textrm{literal constant}}\rangle& \\
-
     \end{array}\]
     \captionof{figure}{Lexical grammar of Plutus Core}
     \label{fig:lexical-grammar-untyped}
@@ -74,9 +72,8 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
                         &        &     & \force{M}                       & \textrm{force execution of a term}\\
                         &        &     & \constr{k}{M_1 \ldots M_m}      & \textrm{constructor with tag $k$ and $m$ arguments ($m \geq 0$)}\\
                         &        &     & \kase{M}{N_1 \ldots N_n}        & \textrm{case analysis with $n$ alternatives ($n \geq 0$)}\\
-                        &        &     & \errorU                         & \textrm{error}\\
+                        &        &     & \errorU                         & \textrm{error}\\ \\
         \textrm{Program}& P      & ::= & \version{v}{M}                  & \textrm{versioned program}
-
     \end{array}\]
     \captionof{figure}{Grammar of untyped Plutus Core}
     \label{fig:untyped-grammar}
@@ -114,13 +111,13 @@ occurrence of \texttt{lam} in some enclosing term; in this case, we always
 assume that $x$ refers to the \textit{most recent} (ie, innermost) such binding.
 
 \paragraph{Iterated applications.}
-An application of a term $M$ to a term $N$ is represented by
-$\appU{M}{N}$. We may occasionally write
-$\appU{M}{N_1 \ldots N_k}$ or
-$\appU{M}{\repetition{N}}$ as an abbreviation for an iterated application
-$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots $  %% Try to avoid a bad line break
-  $N_k\mathtt{]}$,
-and tools may also use this as concrete syntax.
+An application of a term $M$ to a term $N$ is represented by $\appU{M}{N}$. We
+may occasionally write $\appU{M}{N_1 \ldots N_k}$ or $\appU{M}{\repetition{N}}$
+as an abbreviation for an iterated application
+$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots $ %% Try to avoid a bad line break 
+$N_k\mathtt{]}$, and tools may also use this as
+concrete syntax.  If the sequence ${N_1 \ldots N_k}$ is empty (which will happen
+when $k=0$, for instance) then $\appU{M}{\repetition{N}}$ is just $M$.
 
 \paragraph{Constructors and case analysis.}
 Plutus Core supports creating structured data using $\keyword{constr}$ and
@@ -156,9 +153,20 @@ represent values of the built-in types (the integer 123 or the string
 on these values, and possibly also general Plutus Core terms.  Precise details
 are given in Section~\ref{sec:specify-builtins}.
 
-See Section~\ref{sec:cardano-builtins}
-for a description of the types and functions which have already been deployed on
-the Cardano blockchain (or will be in the near future).
+See Section~\ref{sec:cardano-builtins} for a description of the types and
+functions which have already been deployed on the Cardano blockchain (or will be
+in the near future).
+
+\paragraph{Casing on built-in types.}  Some built-in types
+support branching using \texttt{case}.  For example, with Cardano's default
+universe, if $i$ is a variable bound to a value of the \texttt{integer} type
+then $\kase{i}{M_1 \ldots M_5}$ will cause the term $M_{i+1}$ to be evaluated if
+$i$ lies between 0 and 4, with \texttt{(error)} occurring if $i<0$ or $i>4$.
+See Section~\ref{sec:builtin-casing} for details and
+Section~\ref{sec:cardano-builtins}
+(Table~\ref{table:builtin-matching-functions}) for the types which can currently
+be used with \texttt{case} on the Cardano blockchain and a specification of how
+\texttt{case} works for them.
 
 \nomenclature[E1]{$\Fun$}{The set of built-in functions}
 
