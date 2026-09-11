@@ -15,6 +15,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , TextCostedByByteLength (..)
   , ValueTotalSize (..)
   , ValueOuterSize (..)
+  , ValueOuterDepth (..)
   , ValueMaxDepth (..)
   , DataNodeCount (..)
   ) where
@@ -428,6 +429,33 @@ newtype ValueOuterSize = ValueOuterSize {unValueOuterSize :: Value}
 
 instance ExMemoryUsage ValueOuterSize where
   memoryUsage = singletonRose . fromIntegral . Map.size . Value.unpack . unValueOuterSize
+  {-# INLINE memoryUsage #-}
+
+{- Note [ValueOuterDepth]
+This newtype wrapper measures the depth of the outer map of a `Value`, and nothing else.
+
+`keepPolicies` and `dropPolicies` locate each element of their policy list in the outer map
+and never descend an inner one, so what they cost is one outer-map descent per element.
+`ValueMaxDepth` would over-measure them by the depth of the largest inner map, which for a
+`Value` holding one policy and thousands of tokens is almost the whole of the measure.
+
+The empty `Value` measures 1, not 0. The shapes that can express "one descent per list
+element" multiply the two argument sizes, so a measure of 0 would charge such a builtin its
+intercept alone for a policy list of any length, while unlifting the list and looking each
+of its elements up costs in proportion to that length regardless of what is in the `Value`.
+This is the same reason the empty bytestring measures 1.
+
+If this is used to wrap an argument in the denotation of a builtin then it *MUST* also
+be used to wrap the same argument in the relevant budgeting benchmark.
+-}
+newtype ValueOuterDepth
+  = ValueOuterDepth {unValueOuterDepth :: Value}
+
+instance ExMemoryUsage ValueOuterDepth where
+  memoryUsage (ValueOuterDepth v) =
+    let outerSize = Map.size (Value.unpack v)
+     in singletonRose . fromIntegral $
+          if outerSize > 0 then integerLog2 (toInteger outerSize) + 1 else 1
   {-# INLINE memoryUsage #-}
 
 {- Note [ValueMaxDepth]

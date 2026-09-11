@@ -417,6 +417,25 @@ modelFun <- function(path) {
         return (mk.result(m, "constant_cost"))
     }
 
+   ## Round every coefficient up to a whole picosecond.  The ledger reads the coefficients
+   ## as whole picoseconds and truncates, so a model that dominates the data in R can be
+   ## undercut by the model the ledger actually runs.  Rounding here makes the two the same
+   ## function.
+   round.up <- function (m) {
+        m$coefficients <- ceiling (m$coefficients * 1e6) / 1e6
+        m
+   }
+
+   ## Raise the intercept to 1000 ps if it is below that.  `linear_in_x` and
+   ## `multiplied_sizes` charge nothing but their intercept when the first argument is
+   ## empty, and CostModelSafety requires every builtin to cost at least 1000 ps at its
+   ## smallest arguments.  `adjustModel` rescues only a negative coefficient, so a fitted
+   ## intercept of a few hundred picoseconds would pass here and fail there.
+   floor.intercept <- function (m) {
+        m$coefficients[["(Intercept)"]] <- max (m$coefficients[["(Intercept)"]], 1/1000)
+        m
+   }
+
    linearInX <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
@@ -447,19 +466,6 @@ modelFun <- function(path) {
             discard.overhead ()
         m <- lm(t ~ u_mem, filtered)
         return (mk.result(m, "linear_in_u"))
-   }
-
-   ## Two-variable linear model on the points with y_mem > 0.  Used by the `Value`
-   ## policy-filter builtins, which return before they look at the list when the `Value` is
-   ## empty, so the y = 0 points cost the machine sizing the list rather than the builtin
-   ## doing its work, and one slope cannot price both.
-   linearInXAndYNonzeroY <- function (fname) {
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            filter(y_mem > 0) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem + y_mem, filtered)
-        return (mk.result(m, "linear_in_x_and_y"))
    }
 
    linearOnDiagonal <- function (fname) {
@@ -871,11 +877,51 @@ modelFun <- function(path) {
     ## X wrapped with `ValueOuterSize`
     policiesModel <- linearInX ("Policies")
 
-    ## X is the length of the policy list, Y is `Value.totalSize`.  Both builtins skip the part
-    ## of the outer map the list cannot reach, so what costs anything is the pairs the list
-    ## names.  See Note [Benchmarking keepPolicies and dropPolicies] in Benchmarks.Values.
-    keepPoliciesModel <- linearInXAndYNonzeroY ("KeepPolicies")
-    dropPoliciesModel <- linearInXAndYNonzeroY ("DropPolicies")
+    ## X is the length of the policy list, Y is the depth of the outer map (`ValueOuterDepth`).
+    ## Both builtins do one outer-map descent per element of the list and touch nothing else,
+    ## so the work is proportional to the product of the two.  See
+    ## Note [Benchmarking keepPolicies and dropPolicies] in Benchmarks.Values.
+    ##
+    ## Both use `fit.fan` rather than a plain `lm`: least squares puts half the data above
+    ## the fitted line, and a cost model has to be an upper bound.  `fit.fan` discards the
+    ## points below the line and refits until nearly all of them are under it, anchoring the
+    ## intercept on the smallest argument where the fixed cost of a call is all there is.
+
+    ## `keepPolicies` is linear in the list alone.  Building a `Set` from the list dominates
+    ## anything the `Value` contributes, so its per-element cost tracks the length of the list
+    ## and is nearly flat in the depth: for a list no longer than the outer map the two log
+    ## terms trade off, since log p + log (m/p) = log m, while the `Set` build keeps its own
+    ## log p either way.  Neither `p log p` nor a per-element cost that grows with p is
+    ## expressible here, so what `fit.fan` produces is a single per-element slope at the
+    ## envelope of the measurements, loose at short lists and tight at long ones.
+    keepPoliciesModel <- {
+        fname <- "KeepPolicies"
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.overhead ()
+        m <- fit.fan (filtered)
+        mk.result (floor.intercept (round.up (m)), "linear_in_x")
+    }
+
+    ## `dropPolicies` is proportional to the product: `Map.updateLookupWithKey` rebuilds the
+    ## whole search path whether or not it finds the key, so the number of hits drops out of
+    ## the order of the cost and every element of the list costs one descent.
+    ##
+    ## Least squares rather than `fit.fan`, unlike `keepPolicies`.  The clamp in `adjustModel`
+    ## already lifts this line: the data is convex, so the fitted intercept is negative and
+    ## becomes 1000 ps, which raises the whole model.  What is left undominated after that sits
+    ## at depths that need more currencies than a transaction can carry, and building them on
+    ## chain costs the caller more per currency than the shortfall is worth, so lifting the
+    ## slope would buy nothing a script can exploit.  See Note [Benchmarking keepPolicies and
+    ## dropPolicies] in Benchmarks.Values for the reachable region and what bounds it.
+    dropPoliciesModel <- {
+        fname <- "DropPolicies"
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.overhead ()
+        m <- lm (t ~ I(x_mem * y_mem), filtered)
+        mk.result (floor.intercept (round.up (m)), "multiplied_sizes")
+    }
 
     ## Values
 

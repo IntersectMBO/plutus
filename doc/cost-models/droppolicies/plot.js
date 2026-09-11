@@ -18,11 +18,14 @@ setupCostModelPage({
   arity: ARITY,
   render(data) {
     ({ benchmarkData, costModel, overhead } = data);
-    // The plain `lm(t ~ x_mem + y_mem)` of models.R, refit in the browser on the same
-    // points the shipped fit was built from. The shipped model comes from that same fit
-    // (negative coefficients clamped), so the two blocks agreeing checks that the JSON
-    // matches the fit; the undercharge lines show where the plane sits below the data.
-    stockModel = fitLinearInXAndY(benchmarkData.filter(d => d.args[1] > 0), overhead);
+    // Plain least squares, which is what `dropPolicies` ships. `fit.fan` would give the
+    // same slope on this data, since its discard loop never iterates here, but a different
+    // intercept: least squares puts the intercept below zero and the floor in models.R
+    // raises it to 1000 ps, so the floor is the model. Recomputed in the browser on the same
+    // points the shipped fit was built from, so that the two blocks agreeing checks the JSON
+    // against the fit rather than taking the JSON on trust.
+    stockModel =
+      fitLeastSquares(benchmarkData, overhead, args => args[0] * args[1], 'multiplied_sizes');
     updateInfoPanel();
     renderPlot();
   },
@@ -44,14 +47,14 @@ function updateInfoPanel() {
     ? `${overhead.toFixed(2)} ns (arity ${ARITY}) added to predictions`
     : 'Not calculated';
 
-  // Summarize both fits over the population they were built on (the y = 0 controls are
-  // out of the fit, so they would only distort the undercharge and overcharge lines).
-  const fitted = benchmarkData.filter(d => d.args[1] > 0);
+  // Every point is in the fit. The empty `Value` has an outer-map depth of 1 rather than
+  // 0, so the points that measure the policy list on its own sit on the bottom edge of the
+  // plane instead of off it, and they are what pins the term proportional to the list.
   document.getElementById('fit-comparison').innerHTML =
     fitSummary('The shipped model (from the cost-model JSON)',
-               costModel, fitted, overhead, ['p', 'n'])
+               costModel, benchmarkData, overhead, ['p', 'L'])
     + fitSummary('The same least-squares fit recomputed from the CSV',
-                 stockModel, fitted, overhead, ['p', 'n']);
+                 stockModel, benchmarkData, overhead, ['p', 'L']);
 
   if (costModel) {
     document.getElementById('info-model-type').textContent = costModel.modelType;
@@ -65,9 +68,11 @@ function updateInfoPanel() {
 
 /* The two argument sizes on the floor, time up. Every benchmark point appears twice at the
 same place on the floor, once as what it measured and once as what the model charges for it,
-so the model is safe exactly where the red crosses sit above the blue dots. The sizes are
-sampled log-uniformly, so a log floor is what spreads them out; the cost of that is the few
-points at p = 0 or n = 0, which a log axis cannot place and which are out of the fit anyway. */
+so the model is safe exactly where the red crosses sit above the blue dots. The list length
+is sampled log-uniformly, so a log floor is what spreads it out; the cost of that is the
+single point at p = 0, which a log axis cannot place. The depth axis runs from 1 to 16 and
+is already logarithmic in the size of the `Value`, so a linear depth axis is the readable
+one. */
 function plotTraces() {
   const traces = [{
     x: benchmarkData.map(d => d.args[0]),
@@ -77,7 +82,7 @@ function plotTraces() {
     type: 'scatter3d',
     name: 'Benchmark Data',
     marker: { size: 4, color: '#0033AD', opacity: 0.8 },
-    hovertemplate: 'p %{x}, n %{y}<br>measured %{z:.3s} ns<extra></extra>'
+    hovertemplate: 'p %{x}, L %{y}<br>measured %{z:.3s} ns<extra></extra>'
   }];
 
   if (showModel && costModel) {
@@ -89,7 +94,7 @@ function plotTraces() {
       type: 'scatter3d',
       name: 'Model Predictions',
       marker: { size: 4, color: '#E53E3E', opacity: 0.6, symbol: 'x' },
-      hovertemplate: 'p %{x}, n %{y}<br>charged %{z:.3s} ns<extra></extra>'
+      hovertemplate: 'p %{x}, L %{y}<br>charged %{z:.3s} ns<extra></extra>'
     });
   }
   return traces;
@@ -105,7 +110,7 @@ function renderPlot() {
     title: { text: `${FUNCTION_NAME} - Benchmark vs Model (3D)`, font: { size: 20 } },
     scene: {
       xaxis: { title: `Policy list length (p${suffix})`, gridcolor: '#E0E0E0', type: scaled },
-      yaxis: { title: `Value total size (n${suffix})`, gridcolor: '#E0E0E0', type: scaled },
+      yaxis: { title: 'Value outer map depth (L)', gridcolor: '#E0E0E0', type: 'linear' },
       zaxis: { title: `Time (ns${suffix})`, gridcolor: '#E0E0E0', type: scaled },
       camera: { eye: { x: 1.7, y: -1.7, z: 0.7 } }
     },

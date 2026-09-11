@@ -14,6 +14,7 @@ import Data.Foldable qualified as F
 import Data.List.Extra (nubOrdOn, sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
+import Data.SatInt (fromSatInt)
 import Safe.Foldable (maximumMay)
 import Test.QuickCheck
 import Test.Tasty
@@ -22,6 +23,12 @@ import Test.Tasty.QuickCheck
 
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Data (Data (..))
+import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
+  ( ExMemoryUsage (..)
+  , ValueOuterDepth (..)
+  , flattenCostRose
+  )
 import PlutusCore.Flat qualified as Flat
 import PlutusCore.Generators.QuickCheck.Builtin (arbitraryBuiltin, genShortHex)
 import PlutusCore.Value (Value)
@@ -63,6 +70,13 @@ prop_unionCommutative v v' =
     (BuiltinSuccess r1, BuiltinSuccess r2) -> r1 === r2
     (BuiltinFailure {}, BuiltinFailure {}) -> property True
     _ -> property False
+
+-- | Verifies that @unionValue@ correctly updates the caches
+prop_unionBookkeeping :: Value -> Value -> Property
+prop_unionBookkeeping v v' =
+  case V.unionValue v v' of
+    BuiltinSuccess r -> checkBookkeeping r
+    _ -> property True
 
 prop_unionAssociative :: Value -> Value -> Value -> Property
 prop_unionAssociative v1 v2 v3 =
@@ -386,11 +400,37 @@ prop_flatDecodeInvalidToken =
       let flat = Flat.flat $ Map.singleton c (Map.singleton t (100 :: Integer))
        in property . isLeft $ Flat.unflat @Value flat
 
+{-| The size `keepPolicies` and `dropPolicies` are charged on: the depth of the outer map,
+floored at 1. -}
+valueOuterDepth :: Value -> Integer
+valueOuterDepth = fromSatInt . sumCostStream . flattenCostRose . memoryUsage . ValueOuterDepth
+
+{-| The measure is the bit length of the outer map size, computed here by doubling rather
+than by the logarithm the measure itself uses. -}
+prop_valueOuterDepthIsBitLength :: Value -> Property
+prop_valueOuterDepthIsBitLength v =
+  valueOuterDepth v === max 1 (bitLength (Map.size (V.unpack v)))
+  where
+    bitLength n = toInteger . length $ takeWhile (<= n) (iterate (* 2) 1)
+
+-- | A `Value` holding one policy, whose inner map has @n@ tokens.
+oneWideValue :: Int -> Value
+oneWideValue n = V.pack (Map.singleton currency inner)
+  where
+    Just currency = V.k "aaa"
+    inner = Map.fromList [(token i, one) | i <- [1 .. n]]
+    token i = fromJust . V.k . B.pack $ [fromIntegral (i `div` 256), fromIntegral (i `mod` 256)]
+    Just one = V.quantity 1
+
 checkBookkeeping :: Value -> Property
 checkBookkeeping v =
   (expectedMaxInnerSize === actualMaxInnerSize)
     .&&. (expectedSize === actualSize)
     .&&. (expectedNeg === actualNeg)
+    .&&. (expectedNegsByPolicy === actualNegsByPolicy)
+    .&&. counterexample
+      "negativesByPolicy stores a zero"
+      (all (/= 0) (Map.elems actualNegsByPolicy))
   where
     expectedMaxInnerSize = fromMaybe 0 . maximumMay $ Map.map Map.size (V.unpack v)
     actualMaxInnerSize = V.maxInnerSize v
@@ -399,6 +439,12 @@ checkBookkeeping v =
     expectedNeg =
       length [q | inner <- Map.elems (V.unpack v), q <- Map.elems inner, V.unQuantity q < 0]
     actualNeg = V.negativeAmounts v
+    -- The filter is what pins canonicity: an entry that reaches zero has to be gone, not
+    -- stored, or two equal `Value`s would compare unequal.
+    expectedNegsByPolicy =
+      Map.filter (/= 0) $
+        Map.map (length . filter ((< 0) . V.unQuantity) . Map.elems) (V.unpack v)
+    actualNegsByPolicy = V.negativesByPolicy v
 
 checkInvariants :: Value -> Property
 checkInvariants (V.unpack -> v) =
@@ -521,6 +567,17 @@ tests =
         "packUnpackRoundtrip"
         prop_packUnpackRoundtrip
     , testProperty
+        "valueOuterDepthIsBitLength"
+        prop_valueOuterDepthIsBitLength
+    , -- The floor at 1 is what stops a product-shaped cost model from charging nothing
+      -- but its intercept for a policy list applied to an empty `Value`.
+      testCase "valueOuterDepthOfEmptyIsOne" $
+        valueOuterDepth V.empty @?= 1
+    , -- The measure never descends an inner map, which is why the policy filters use it
+      -- rather than `ValueMaxDepth`.
+      testCase "valueOuterDepthIgnoresTokenCount" $
+        valueOuterDepth (oneWideValue 1000) @?= valueOuterDepth (oneWideValue 1)
+    , testProperty
         "packBookkeeping"
         prop_packBookkeeping
     , testProperty
@@ -535,6 +592,9 @@ tests =
     , testProperty
         "unionCommutative"
         prop_unionCommutative
+    , testProperty
+        "unionBookkeeping"
+        prop_unionBookkeeping
     , testProperty
         "unionAssociative"
         prop_unionAssociative

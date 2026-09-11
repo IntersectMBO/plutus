@@ -357,6 +357,96 @@ function fitLinearInXAndY(points, overhead) {
  * A model's predicted total time in nanoseconds for one benchmark point, overhead
  * included, or null when the model is missing or cannot be evaluated.
  */
+/* R's `quantile(x, p)`, default type 7: linear interpolation between the order
+statistics. Needed because `fit.fan` anchors its intercept on one of these. */
+function quantileType7(values, p) {
+  const sorted = [...values].sort((a, b) => a - b);
+  if (sorted.length === 0) return 0;
+  const h = (sorted.length - 1) * p;
+  const lo = Math.floor(h);
+  const hi = Math.min(lo + 1, sorted.length - 1);
+  return sorted[lo] + (h - lo) * (sorted[hi] - sorted[lo]);
+}
+
+/* A port of `fit.fan` from models.R, the fit both policy-filter models use.
+
+Least squares puts half the data above the line, and a cost model has to be an upper
+bound, so `fit.fan` discards the points below the line and refits until nearly all of them
+are below it. The intercept is fixed up front at the 80th percentile of the times at the
+smallest regressor value, where the fixed cost of a call is all there is, and the slope
+carries everything else.
+
+`regressor` maps a point's argument sizes to the one size the model is linear in: the
+first argument for `linear_in_x`, the product of the two for `multiplied_sizes`. The two
+rounding steps at the end are the `round.up` and `floor.intercept` of models.R, without
+which the recomputed coefficients would not match the shipped ones. */
+function fitFan(points, overhead, regressor, modelType, threshold = 0.9, limit = 20) {
+  const all = points.map(d => ({ x: regressor(d.args), t: d.time - (overhead || 0) }));
+  if (all.length < 2) return null;
+
+  const minX = Math.min(...all.map(d => d.x));
+  const t0 = quantileType7(all.filter(d => d.x === minX).map(d => d.t), 0.8);
+
+  // Slope of an ordinary least-squares line through the given points.
+  const slopeOf = rows => {
+    const n = rows.length;
+    const mx = rows.reduce((a, d) => a + d.x, 0) / n;
+    const mt = rows.reduce((a, d) => a + d.t, 0) / n;
+    const sxx = rows.reduce((a, d) => a + (d.x - mx) * (d.x - mx), 0);
+    return sxx === 0 ? 0 : rows.reduce((a, d) => a + (d.x - mx) * (d.t - mt), 0) / sxx;
+  };
+
+  let kept = all;
+  let slope = slopeOf(kept);
+  for (let loops = 1; loops < limit; loops++) {
+    const over = all.filter(d => t0 + slope * d.x > d.t).length;
+    if (over / all.length >= threshold) break;
+    const next = kept.filter(d => d.t > t0 + slope * d.x);
+    if (next.length < 2) break;
+    kept = next;
+    slope = slopeOf(kept);
+  }
+
+  // Coefficients are in nanoseconds here and picoseconds in the JSON.
+  const roundUp = v => Math.ceil(v * 1000);
+  return {
+    modelType,
+    coefficients: {
+      intercept: Math.max(roundUp(t0), 1000),
+      slope: roundUp(slope)
+    }
+  };
+}
+
+/* Plain least squares, with the two post-processing steps models.R applies afterwards:
+`round.up` ceilings every coefficient to a whole picosecond, and `floor.intercept` raises the
+intercept to 1000 ps. On convex data the fitted intercept is negative and that floor is what
+ends up shipping, so a recomputation that skipped it would not match the JSON.
+
+`regressor` maps a point's argument sizes to the one size the model is linear in, the same way
+as for fitFan. */
+function fitLeastSquares(points, overhead, regressor, modelType) {
+  const rows = points.map(d => ({ x: regressor(d.args), t: d.time - (overhead || 0) }));
+  if (rows.length < 2) return null;
+  const n = rows.length;
+  const mx = rows.reduce((a, d) => a + d.x, 0) / n;
+  const mt = rows.reduce((a, d) => a + d.t, 0) / n;
+  const sxx = rows.reduce((a, d) => a + (d.x - mx) * (d.x - mx), 0);
+  if (sxx === 0) return null;
+  const slope = rows.reduce((a, d) => a + (d.x - mx) * (d.t - mt), 0) / sxx;
+  const intercept = mt - slope * mx;
+
+  // Coefficients are in nanoseconds here and picoseconds in the JSON.
+  const roundUp = v => Math.ceil(v * 1000);
+  return {
+    modelType,
+    coefficients: {
+      intercept: Math.max(roundUp(intercept), 1000),
+      slope: roundUp(slope)
+    }
+  };
+}
+
 function modelCharge(model, args, overhead) {
   if (!model) return null;
   const ps = evaluateCostModel(model.modelType, model.coefficients, args);
@@ -392,11 +482,16 @@ function fitSummary(name, model, points, overhead, terms) {
     }
   }
   const fmt = v => v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  // One term per slope the model has: `terms` names them, and a model with a single slope
+  // gets a single term, which for a product model is written as the product.
+  const charge = c.slope === undefined
+    ? `${fmt(c.intercept)} + ${fmt(c.slope1)}&middot;${terms[0]} + ${fmt(c.slope2)}&middot;${terms[1]}`
+    : `${fmt(c.intercept)} + ${fmt(c.slope)}&middot;${terms.join('&middot;')}`;
   return `
     <p><strong>${name}</strong></p>
     <dl>
       <dt>Charge (ps):</dt>
-      <dd>${fmt(c.intercept)} + ${fmt(c.slope1)}&middot;${terms[0]} + ${fmt(c.slope2)}&middot;${terms[1]}</dd>
+      <dd>${charge}</dd>
       <dt>Undercharged points:</dt>
       <dd>${undercharged} of ${points.length}${undercharged
         ? `, worst ${(worstShortfall / 1000).toFixed(1)} us (${worstRatio.toFixed(2)}x)`
@@ -638,11 +733,13 @@ const PAGES = [
    'Returns the currency symbols of a Plutus <code>Value</code>; linear in the number ' +
    'of policies. (2D visualization: Policy Count vs Time)'],
   ['keeppolicies', 'KeepPolicies',
-   'Retains only the listed currencies of a Plutus <code>Value</code>. ' +
-   '(3D visualization: List Length \u00d7 Value Size \u00d7 Time)'],
+   'Retains only the listed currencies of a Plutus <code>Value</code>; linear in the ' +
+   'length of the list, independent of the <code>Value</code>. ' +
+   '(3D visualization: List Length \u00d7 Outer Map Depth \u00d7 Time)'],
   ['droppolicies', 'DropPolicies',
-   'Removes the listed currencies from a Plutus <code>Value</code>. ' +
-   '(3D visualization: List Length \u00d7 Value Size \u00d7 Time)'],
+   'Removes the listed currencies from a Plutus <code>Value</code>; one outer-map ' +
+   'descent per element of the list. ' +
+   '(3D visualization: List Length \u00d7 Outer Map Depth \u00d7 Time)'],
   ['listtoarray', 'ListToArray',
    'Converts a Plutus list to an array representation. ' +
    '(2D visualization: List Size vs Time)'],
