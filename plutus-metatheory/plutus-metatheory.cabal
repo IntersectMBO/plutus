@@ -442,6 +442,10 @@ test-suite test-NEAT
 -- against Haskell's quot/rem/div/mod.
 test-suite test-integer-division
   import:         lang, os-support, ghc-version-support
+
+  if !flag(with-crypto)
+    buildable: False
+
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test/integer-division
