@@ -1,0 +1,7 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V2.Tx.TxOut where
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V2.Tx.TxOut l1l_0 l2l_0 l3l_0 l4l_0)
+    (PlutusLedgerApi.V2.Tx.TxOut r1r_0 r2r_0 r3r_0 r4r_0) = (l1l_0 PlutusTx.Eq.Class.== r1r_0)
+      PlutusTx.Bool.&& ((l2l_0 PlutusTx.Eq.Class.== r2r_0) PlutusTx.Bool.&& ((l3l_0
+            PlutusTx.Eq.Class.== r3r_0) PlutusTx.Bool.&& (l4l_0 PlutusTx.Eq.Class.== r4r_0)))
+  {-# INLINABLE (PlutusTx.Eq.Class.==) #-}

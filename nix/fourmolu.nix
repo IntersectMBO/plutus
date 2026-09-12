@@ -21,6 +21,11 @@ let
       inherit (attrs) rev sha256;
     };
     compiler-nix-name = ghc;
+    # The fork pins an old index-state whose ghc-lib-parser snapshot no longer
+    # compiles with GHC 9.12.4; solve against a newer index instead.
+    cabalProjectLocal = ''
+      index-state: 2026-06-22T23:30:49Z
+    '';
   };
 
 in

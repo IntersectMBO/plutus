@@ -56,10 +56,7 @@ deriving stock instance
   => Eq (Type TyDeBruijn uni ann)
 
 deriving stock instance
-  ( GEq uni
-  , Closed uni
-  , uni `Everywhere` Eq
-  , Eq fun
+  ( uni `Everywhere` Eq
   , Eq ann
   , Eq (Term tyname name uni fun ann)
   )

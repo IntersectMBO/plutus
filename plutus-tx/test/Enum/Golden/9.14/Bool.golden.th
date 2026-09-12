@@ -1,0 +1,17 @@
+instance PlutusTx.Enum.Class.Enum GHC.Internal.Types.Bool where
+  PlutusTx.Enum.Class.succ (GHC.Internal.Types.False) = GHC.Internal.Types.True
+  PlutusTx.Enum.Class.succ (GHC.Internal.Types.True) = PlutusTx.Trace.traceError
+      PlutusTx.ErrorCodes.succBadArgumentError
+  {-# INLINABLE PlutusTx.Enum.Class.succ #-}
+  PlutusTx.Enum.Class.pred (GHC.Internal.Types.False) = PlutusTx.Trace.traceError
+      PlutusTx.ErrorCodes.predBadArgumentError
+  PlutusTx.Enum.Class.pred (GHC.Internal.Types.True) = GHC.Internal.Types.False
+  {-# INLINABLE PlutusTx.Enum.Class.pred #-}
+  PlutusTx.Enum.Class.toEnum 0 = GHC.Internal.Types.False
+  PlutusTx.Enum.Class.toEnum 1 = GHC.Internal.Types.True
+  PlutusTx.Enum.Class.toEnum _ = PlutusTx.Trace.traceError
+      PlutusTx.ErrorCodes.toEnumBadArgumentError
+  {-# INLINABLE PlutusTx.Enum.Class.toEnum #-}
+  PlutusTx.Enum.Class.fromEnum (GHC.Internal.Types.False) = 0
+  PlutusTx.Enum.Class.fromEnum (GHC.Internal.Types.True) = 1
+  {-# INLINABLE PlutusTx.Enum.Class.fromEnum #-}

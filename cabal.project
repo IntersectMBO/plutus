@@ -107,6 +107,11 @@ if impl (ghc >= 9.14)
     location: https://github.com/snowleopard/alga
     tag: d4e43fb42db05413459fb2df493361d5a666588a
 
+  -- microstache (dependency of criterion) does not allow aeson 2.3 yet,
+  -- and without this constraint the solver hits the backjump limit.
+  constraints:
+    , aeson <2.3
+
   allow-newer:
     , canonical-json:containers
     , cborg:base
@@ -120,5 +125,6 @@ if impl (ghc >= 9.14)
     , serialise:base
     , serialise:containers
     , serialise:time
+    , turtle:containers
     , turtle:time
     , with-utf8:base

@@ -15,15 +15,12 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
 \begin{minipage}{\linewidth}
     \centering
     \[\begin{array}{lrclr}
-
         \textrm{Name}          & n      & ::= & \texttt{[a-zA-Z][a-zA-Z0-9\_\textquotesingle]*(-[0-9]+)?}   & \textrm{name}\\
-
         \textrm{Var}           & x      & ::= & n & \textrm{term variable}\\
         \textrm{BuiltinName}   & bn     & ::= & n & \textrm{built-in function name}\\
         \textrm{Version} & v & ::= & \texttt{[0-9]+.[0-9]+.[0-9]+}& \textrm{version}\\
         \textrm{Natural}  & k      & ::= & \texttt{[0-9]+} & \textrm{a natural number}\\
         \textrm{Constant} & c & ::= & \langle{\textrm{literal constant}}\rangle& \\
-
     \end{array}\]
     \captionof{figure}{Lexical grammar of Plutus Core}
     \label{fig:lexical-grammar-untyped}
@@ -76,7 +73,6 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
                         &        &     & \kase{M}{N_1 \ldots N_n}        & \textrm{case analysis with $n$ alternatives ($n \geq 0$)}\\
                         &        &     & \errorU                         & \textrm{error}\\
         \textrm{Program}& P      & ::= & \version{v}{M}                  & \textrm{versioned program}
-
     \end{array}\]
     \captionof{figure}{Grammar of untyped Plutus Core}
     \label{fig:untyped-grammar}
