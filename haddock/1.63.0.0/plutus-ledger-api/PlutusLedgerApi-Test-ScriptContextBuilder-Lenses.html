@@ -1,0 +1,1343 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.Test.ScriptContextBuilder.Lenses</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.63.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.Test.ScriptContextBuilder.Lenses</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:scriptContextTxInfoL"
+	      >scriptContextTxInfoL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:scriptContextRedeemerL"
+	      >scriptContextRedeemerL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	      >Redeemer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:scriptContextScriptInfoL"
+	      >scriptContextScriptInfoL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptContext</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptInfo</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txInfoInputsL"
+	      >txInfoInputsL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInInfo</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoMintL"
+	      >txInfoMintL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-MintValue.html#t:MintValue" title="PlutusLedgerApi.V3.MintValue"
+	      >MintValue</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txInfoSignatoriesL"
+	      >txInfoSignatoriesL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > [<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	      >PubKeyHash</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoOutputsL"
+	      >txInfoOutputsL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > [<a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	      >TxOut</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoValidRangeL"
+	      >txInfoValidRangeL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Time.html#t:POSIXTimeRange" title="PlutusLedgerApi.V1.Time"
+	      >POSIXTimeRange</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txInfoRedeemersL"
+	      >txInfoRedeemersL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptPurpose</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	      >Redeemer</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoRedeemersAssocL"
+	      >txInfoRedeemersAssocL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose" title="PlutusLedgerApi.V3.Contexts"
+	      >ScriptPurpose</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	      >Redeemer</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoFeeL"
+	      >txInfoFeeL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	      >Lovelace</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txInfoWdrlL"
+	      >txInfoWdrlL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	      >Credential</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	      >Lovelace</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoVotesL"
+	      >txInfoVotesL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:Voter" title="PlutusLedgerApi.V3.Contexts"
+	      >Voter</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:GovernanceActionId" title="PlutusLedgerApi.V3.Contexts"
+	      >GovernanceActionId</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:Vote" title="PlutusLedgerApi.V3.Contexts"
+	      >Vote</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoTxCertsL"
+	      >txInfoTxCertsL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxCert" title="PlutusLedgerApi.V3.Contexts"
+	      >TxCert</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoTreasuryDonationL"
+	      >txInfoTreasuryDonationL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	      >Lovelace</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoReferenceInputsL"
+	      >txInfoReferenceInputsL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInInfo</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoProposalProceduresL"
+	      >txInfoProposalProceduresL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ProposalProcedure" title="PlutusLedgerApi.V3.Contexts"
+	      >ProposalProcedure</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoIdL"
+	      >txInfoIdL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxId" title="PlutusLedgerApi.V3.Tx"
+	      >TxId</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txInfoDataL"
+	      >txInfoDataL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	      >DatumHash</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Datum" title="PlutusLedgerApi.V1.Scripts"
+	      >Datum</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:txInfoCurrentTreasuryAmountL"
+	      >txInfoCurrentTreasuryAmountL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInfo</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	      >Lovelace</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:txInInfoOutRefL"
+	      >txInInfoOutRefL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInInfo</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	      >TxOutRef</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txInInfoResolvedL"
+	      >txInInfoResolvedL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	      >TxInInfo</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	      >TxOut</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutRefIdL"
+	      >txOutRefIdL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	      >TxOutRef</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxId" title="PlutusLedgerApi.V3.Tx"
+	      >TxId</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutRefIdxL"
+	      >txOutRefIdxL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	      >TxOutRef</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutAddressL"
+	      >txOutAddressL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	      >TxOut</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	      >Address</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutValueL"
+	      >txOutValueL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	      >TxOut</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutDatumL"
+	      >txOutDatumL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	      >TxOut</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:OutputDatum" title="PlutusLedgerApi.V2.Tx"
+	      >OutputDatum</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:txOutReferenceScriptL"
+	      >txOutReferenceScriptL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	      >TxOut</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:ScriptHash" title="PlutusLedgerApi.V1.Scripts"
+	      >ScriptHash</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:addressCredentialL"
+	      >addressCredentialL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	      >Address</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	      >Credential</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:addressStakingCredentialL"
+	      >addressStakingCredentialL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	      >Address</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:StakingCredential" title="PlutusLedgerApi.V1.Credential"
+	      >StakingCredential</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:mintValueMapL"
+	      >mintValueMapL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-MintValue.html#t:MintValue" title="PlutusLedgerApi.V3.MintValue"
+	      >MintValue</a
+	      > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Value"
+	      >CurrencySymbol</a
+	      > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Value"
+	      >TokenName</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:valueMapL"
+	      >valueMapL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	      >Value</a
+	      > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Value"
+	      >CurrencySymbol</a
+	      > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Value"
+	      >TokenName</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:ivFromL"
+	      >ivFromL</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Interval" title="PlutusLedgerApi.V1.Interval"
+	      >Interval</a
+	      > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:LowerBound" title="PlutusLedgerApi.V1.Interval"
+	      >LowerBound</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:ivToL"
+	      >ivToL</a
+	      > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Interval" title="PlutusLedgerApi.V1.Interval"
+	      >Interval</a
+	      > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:UpperBound" title="PlutusLedgerApi.V1.Interval"
+	      >UpperBound</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:lowerBoundExtendedL"
+	      >lowerBoundExtendedL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:LowerBound" title="PlutusLedgerApi.V1.Interval"
+	      >LowerBound</a
+	      > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	      >Extended</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:lowerBoundClosureL"
+	      >lowerBoundClosureL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:LowerBound" title="PlutusLedgerApi.V1.Interval"
+	      >LowerBound</a
+	      > a) <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Closure" title="PlutusLedgerApi.V1.Interval"
+	      >Closure</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:upperBoundExtendedL"
+	      >upperBoundExtendedL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:UpperBound" title="PlutusLedgerApi.V1.Interval"
+	      >UpperBound</a
+	      > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	      >Extended</a
+	      > a)</li
+	    ><li class="src short"
+	    ><a href="#v:upperBoundClosureL"
+	      >upperBoundClosureL</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:UpperBound" title="PlutusLedgerApi.V1.Interval"
+	      >UpperBound</a
+	      > a) <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Closure" title="PlutusLedgerApi.V1.Interval"
+	      >Closure</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:_NegInf"
+	      >_NegInf</a
+	      > &#8759; &#8704; a. Prism' (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	      >Extended</a
+	      > a) ()</li
+	    ><li class="src short"
+	    ><a href="#v:_Finite"
+	      >_Finite</a
+	      > &#8759; &#8704; a a. Prism (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	      >Extended</a
+	      > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	      >Extended</a
+	      > a) a a</li
+	    ><li class="src short"
+	    ><a href="#v:_PosInf"
+	      >_PosInf</a
+	      > &#8759; &#8704; a. Prism' (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	      >Extended</a
+	      > a) ()</li
+	    ><li class="src short"
+	    ><a href="#v:_NoOutputDatum"
+	      >_NoOutputDatum</a
+	      > &#8759; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:OutputDatum" title="PlutusLedgerApi.V2.Tx"
+	      >OutputDatum</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:_OutputDatumHash"
+	      >_OutputDatumHash</a
+	      > &#8759; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:OutputDatum" title="PlutusLedgerApi.V2.Tx"
+	      >OutputDatum</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	      >DatumHash</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:_OutputDatum"
+	      >_OutputDatum</a
+	      > &#8759; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:OutputDatum" title="PlutusLedgerApi.V2.Tx"
+	      >OutputDatum</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Datum" title="PlutusLedgerApi.V1.Scripts"
+	      >Datum</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:_Datum"
+	      >_Datum</a
+	      > &#8759; &#8704; a. (<a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:FromData" title="PlutusLedgerApi.Common"
+	      >FromData</a
+	      > a, <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:ToData" title="PlutusLedgerApi.Common"
+	      >ToData</a
+	      > a) &#8658; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Datum" title="PlutusLedgerApi.V1.Scripts"
+	      >Datum</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:_Redeemer"
+	      >_Redeemer</a
+	      > &#8759; &#8704; a. (<a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:FromData" title="PlutusLedgerApi.Common"
+	      >FromData</a
+	      > a, <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:ToData" title="PlutusLedgerApi.Common"
+	      >ToData</a
+	      > a) &#8658; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	      >Redeemer</a
+	      > a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scriptContextTxInfoL" class="def"
+	    >scriptContextTxInfoL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#scriptContextTxInfoL" class="link"
+	    >Source</a
+	    > <a href="#v:scriptContextTxInfoL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scriptContextRedeemerL" class="def"
+	    >scriptContextRedeemerL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	    >Redeemer</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#scriptContextRedeemerL" class="link"
+	    >Source</a
+	    > <a href="#v:scriptContextRedeemerL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scriptContextScriptInfoL" class="def"
+	    >scriptContextScriptInfoL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptContext" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptContext</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptInfo</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#scriptContextScriptInfoL" class="link"
+	    >Source</a
+	    > <a href="#v:scriptContextScriptInfoL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoInputsL" class="def"
+	    >txInfoInputsL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInInfo</a
+	    >] <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoInputsL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoInputsL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoMintL" class="def"
+	    >txInfoMintL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-MintValue.html#t:MintValue" title="PlutusLedgerApi.V3.MintValue"
+	    >MintValue</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoMintL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoMintL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoSignatoriesL" class="def"
+	    >txInfoSignatoriesL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > [<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Crypto.html#t:PubKeyHash" title="PlutusLedgerApi.V1.Crypto"
+	    >PubKeyHash</a
+	    >] <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoSignatoriesL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoSignatoriesL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoOutputsL" class="def"
+	    >txInfoOutputsL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > [<a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	    >TxOut</a
+	    >] <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoOutputsL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoOutputsL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoValidRangeL" class="def"
+	    >txInfoValidRangeL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Time.html#t:POSIXTimeRange" title="PlutusLedgerApi.V1.Time"
+	    >POSIXTimeRange</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoValidRangeL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoValidRangeL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoRedeemersL" class="def"
+	    >txInfoRedeemersL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptPurpose</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	    >Redeemer</a
+	    >) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoRedeemersL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoRedeemersL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoRedeemersAssocL" class="def"
+	    >txInfoRedeemersAssocL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose" title="PlutusLedgerApi.V3.Contexts"
+	    >ScriptPurpose</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	    >Redeemer</a
+	    >) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoRedeemersAssocL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoRedeemersAssocL" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Raw lens into redeemers preserving the <code
+	      >AssocMap</code
+	      > type (no <code
+	      ><a href="Data.html#v:Map" title="Data"
+		>Map</a
+		></code
+	      > conversion).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoFeeL" class="def"
+	    >txInfoFeeL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	    >Lovelace</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoFeeL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoFeeL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoWdrlL" class="def"
+	    >txInfoWdrlL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	    >Credential</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	    >Lovelace</a
+	    >) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoWdrlL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoWdrlL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoVotesL" class="def"
+	    >txInfoVotesL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:Voter" title="PlutusLedgerApi.V3.Contexts"
+	    >Voter</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:GovernanceActionId" title="PlutusLedgerApi.V3.Contexts"
+	    >GovernanceActionId</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:Vote" title="PlutusLedgerApi.V3.Contexts"
+	    >Vote</a
+	    >)) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoVotesL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoVotesL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoTxCertsL" class="def"
+	    >txInfoTxCertsL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxCert" title="PlutusLedgerApi.V3.Contexts"
+	    >TxCert</a
+	    >] <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoTxCertsL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoTxCertsL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoTreasuryDonationL" class="def"
+	    >txInfoTreasuryDonationL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	    >Lovelace</a
+	    >) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoTreasuryDonationL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoTreasuryDonationL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoReferenceInputsL" class="def"
+	    >txInfoReferenceInputsL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInInfo</a
+	    >] <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoReferenceInputsL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoReferenceInputsL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoProposalProceduresL" class="def"
+	    >txInfoProposalProceduresL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > [<a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ProposalProcedure" title="PlutusLedgerApi.V3.Contexts"
+	    >ProposalProcedure</a
+	    >] <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoProposalProceduresL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoProposalProceduresL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoIdL" class="def"
+	    >txInfoIdL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxId" title="PlutusLedgerApi.V3.Tx"
+	    >TxId</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoIdL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoIdL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoDataL" class="def"
+	    >txInfoDataL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V2.html#t:Map" title="PlutusLedgerApi.V2"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	    >DatumHash</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Datum" title="PlutusLedgerApi.V1.Scripts"
+	    >Datum</a
+	    >) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoDataL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoDataL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInfoCurrentTreasuryAmountL" class="def"
+	    >txInfoCurrentTreasuryAmountL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInfo</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Lovelace" title="PlutusLedgerApi.V1.Value"
+	    >Lovelace</a
+	    >) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInfoCurrentTreasuryAmountL" class="link"
+	    >Source</a
+	    > <a href="#v:txInfoCurrentTreasuryAmountL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInInfoOutRefL" class="def"
+	    >txInInfoOutRefL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInInfo</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	    >TxOutRef</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInInfoOutRefL" class="link"
+	    >Source</a
+	    > <a href="#v:txInInfoOutRefL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txInInfoResolvedL" class="def"
+	    >txInInfoResolvedL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:TxInInfo" title="PlutusLedgerApi.V3.Contexts"
+	    >TxInInfo</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	    >TxOut</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txInInfoResolvedL" class="link"
+	    >Source</a
+	    > <a href="#v:txInInfoResolvedL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutRefIdL" class="def"
+	    >txOutRefIdL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	    >TxOutRef</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxId" title="PlutusLedgerApi.V3.Tx"
+	    >TxId</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutRefIdL" class="link"
+	    >Source</a
+	    > <a href="#v:txOutRefIdL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutRefIdxL" class="def"
+	    >txOutRefIdxL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-Tx.html#t:TxOutRef" title="PlutusLedgerApi.V3.Tx"
+	    >TxOutRef</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutRefIdxL" class="link"
+	    >Source</a
+	    > <a href="#v:txOutRefIdxL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutAddressL" class="def"
+	    >txOutAddressL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	    >TxOut</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	    >Address</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutAddressL" class="link"
+	    >Source</a
+	    > <a href="#v:txOutAddressL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutValueL" class="def"
+	    >txOutValueL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	    >TxOut</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutValueL" class="link"
+	    >Source</a
+	    > <a href="#v:txOutValueL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutDatumL" class="def"
+	    >txOutDatumL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	    >TxOut</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:OutputDatum" title="PlutusLedgerApi.V2.Tx"
+	    >OutputDatum</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutDatumL" class="link"
+	    >Source</a
+	    > <a href="#v:txOutDatumL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:txOutReferenceScriptL" class="def"
+	    >txOutReferenceScriptL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:TxOut" title="PlutusLedgerApi.V2.Tx"
+	    >TxOut</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:ScriptHash" title="PlutusLedgerApi.V1.Scripts"
+	    >ScriptHash</a
+	    >) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#txOutReferenceScriptL" class="link"
+	    >Source</a
+	    > <a href="#v:txOutReferenceScriptL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addressCredentialL" class="def"
+	    >addressCredentialL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	    >Address</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:Credential" title="PlutusLedgerApi.V1.Credential"
+	    >Credential</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#addressCredentialL" class="link"
+	    >Source</a
+	    > <a href="#v:addressCredentialL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addressStakingCredentialL" class="def"
+	    >addressStakingCredentialL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Address.html#t:Address" title="PlutusLedgerApi.V1.Address"
+	    >Address</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Credential.html#t:StakingCredential" title="PlutusLedgerApi.V1.Credential"
+	    >StakingCredential</a
+	    >) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#addressStakingCredentialL" class="link"
+	    >Source</a
+	    > <a href="#v:addressStakingCredentialL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mintValueMapL" class="def"
+	    >mintValueMapL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V3-MintValue.html#t:MintValue" title="PlutusLedgerApi.V3.MintValue"
+	    >MintValue</a
+	    > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Value"
+	    >CurrencySymbol</a
+	    > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Value"
+	    >TokenName</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >)) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#mintValueMapL" class="link"
+	    >Source</a
+	    > <a href="#v:mintValueMapL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:valueMapL" class="def"
+	    >valueMapL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:Value" title="PlutusLedgerApi.V1.Value"
+	    >Value</a
+	    > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:CurrencySymbol" title="PlutusLedgerApi.V1.Value"
+	    >CurrencySymbol</a
+	    > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Value.html#t:TokenName" title="PlutusLedgerApi.V1.Value"
+	    >TokenName</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    >)) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#valueMapL" class="link"
+	    >Source</a
+	    > <a href="#v:valueMapL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ivFromL" class="def"
+	    >ivFromL</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Interval" title="PlutusLedgerApi.V1.Interval"
+	    >Interval</a
+	    > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:LowerBound" title="PlutusLedgerApi.V1.Interval"
+	    >LowerBound</a
+	    > a) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#ivFromL" class="link"
+	    >Source</a
+	    > <a href="#v:ivFromL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ivToL" class="def"
+	    >ivToL</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Interval" title="PlutusLedgerApi.V1.Interval"
+	    >Interval</a
+	    > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:UpperBound" title="PlutusLedgerApi.V1.Interval"
+	    >UpperBound</a
+	    > a) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#ivToL" class="link"
+	    >Source</a
+	    > <a href="#v:ivToL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lowerBoundExtendedL" class="def"
+	    >lowerBoundExtendedL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:LowerBound" title="PlutusLedgerApi.V1.Interval"
+	    >LowerBound</a
+	    > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	    >Extended</a
+	    > a) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#lowerBoundExtendedL" class="link"
+	    >Source</a
+	    > <a href="#v:lowerBoundExtendedL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lowerBoundClosureL" class="def"
+	    >lowerBoundClosureL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:LowerBound" title="PlutusLedgerApi.V1.Interval"
+	    >LowerBound</a
+	    > a) <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Closure" title="PlutusLedgerApi.V1.Interval"
+	    >Closure</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#lowerBoundClosureL" class="link"
+	    >Source</a
+	    > <a href="#v:lowerBoundClosureL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:upperBoundExtendedL" class="def"
+	    >upperBoundExtendedL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:UpperBound" title="PlutusLedgerApi.V1.Interval"
+	    >UpperBound</a
+	    > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	    >Extended</a
+	    > a) <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#upperBoundExtendedL" class="link"
+	    >Source</a
+	    > <a href="#v:upperBoundExtendedL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:upperBoundClosureL" class="def"
+	    >upperBoundClosureL</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:UpperBound" title="PlutusLedgerApi.V1.Interval"
+	    >UpperBound</a
+	    > a) <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Closure" title="PlutusLedgerApi.V1.Interval"
+	    >Closure</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#upperBoundClosureL" class="link"
+	    >Source</a
+	    > <a href="#v:upperBoundClosureL" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:_NegInf" class="def"
+	    >_NegInf</a
+	    > &#8759; &#8704; a. Prism' (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	    >Extended</a
+	    > a) () <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_NegInf" class="link"
+	    >Source</a
+	    > <a href="#v:_NegInf" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:_Finite" class="def"
+	    >_Finite</a
+	    > &#8759; &#8704; a a. Prism (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	    >Extended</a
+	    > a) (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	    >Extended</a
+	    > a) a a <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Finite" class="link"
+	    >Source</a
+	    > <a href="#v:_Finite" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:_PosInf" class="def"
+	    >_PosInf</a
+	    > &#8759; &#8704; a. Prism' (<a href="../plutus-ledger-api/PlutusLedgerApi-V1-Interval.html#t:Extended" title="PlutusLedgerApi.V1.Interval"
+	    >Extended</a
+	    > a) () <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_PosInf" class="link"
+	    >Source</a
+	    > <a href="#v:_PosInf" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:_NoOutputDatum" class="def"
+	    >_NoOutputDatum</a
+	    > &#8759; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:OutputDatum" title="PlutusLedgerApi.V2.Tx"
+	    >OutputDatum</a
+	    > () <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_NoOutputDatum" class="link"
+	    >Source</a
+	    > <a href="#v:_NoOutputDatum" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:_OutputDatumHash" class="def"
+	    >_OutputDatumHash</a
+	    > &#8759; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:OutputDatum" title="PlutusLedgerApi.V2.Tx"
+	    >OutputDatum</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:DatumHash" title="PlutusLedgerApi.V1.Scripts"
+	    >DatumHash</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_OutputDatumHash" class="link"
+	    >Source</a
+	    > <a href="#v:_OutputDatumHash" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:_OutputDatum" class="def"
+	    >_OutputDatum</a
+	    > &#8759; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V2-Tx.html#t:OutputDatum" title="PlutusLedgerApi.V2.Tx"
+	    >OutputDatum</a
+	    > <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Datum" title="PlutusLedgerApi.V1.Scripts"
+	    >Datum</a
+	    > <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_OutputDatum" class="link"
+	    >Source</a
+	    > <a href="#v:_OutputDatum" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:_Datum" class="def"
+	    >_Datum</a
+	    > &#8759; &#8704; a. (<a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:FromData" title="PlutusLedgerApi.Common"
+	    >FromData</a
+	    > a, <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:ToData" title="PlutusLedgerApi.Common"
+	    >ToData</a
+	    > a) &#8658; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Datum" title="PlutusLedgerApi.V1.Scripts"
+	    >Datum</a
+	    > a <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Datum" class="link"
+	    >Source</a
+	    > <a href="#v:_Datum" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:_Redeemer" class="def"
+	    >_Redeemer</a
+	    > &#8759; &#8704; a. (<a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:FromData" title="PlutusLedgerApi.Common"
+	    >FromData</a
+	    > a, <a href="../plutus-ledger-api/PlutusLedgerApi-Common.html#t:ToData" title="PlutusLedgerApi.Common"
+	    >ToData</a
+	    > a) &#8658; Prism' <a href="../plutus-ledger-api/PlutusLedgerApi-V1-Scripts.html#t:Redeemer" title="PlutusLedgerApi.V1.Scripts"
+	    >Redeemer</a
+	    > a <a href="src/PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.html#_Redeemer" class="link"
+	    >Source</a
+	    > <a href="#v:_Redeemer" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

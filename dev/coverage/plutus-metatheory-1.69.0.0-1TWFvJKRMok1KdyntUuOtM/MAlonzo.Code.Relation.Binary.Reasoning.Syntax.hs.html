@@ -1,0 +1,1507 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Relation.Binary.Reasoning.Syntax where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Agda.Builtin.Equality
+<span class="lineno">   21 </span>import qualified MAlonzo.Code.Agda.Primitive
+<span class="lineno">   22 </span>import qualified MAlonzo.Code.Data.Irrelevant
+<span class="lineno">   23 </span>import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+<span class="lineno">   24 </span>import qualified MAlonzo.Code.Relation.Nullary.Negation.Core
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>-- Relation.Binary.Reasoning.Syntax.begin-syntax.begin_
+<span class="lineno">   27 </span>d_begin__46 ::
+<span class="lineno">   28 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   29 </span>  () -&gt;
+<span class="lineno">   30 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   31 </span>  () -&gt;
+<span class="lineno">   32 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   33 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   34 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   35 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   36 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   37 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">d_begin__46 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8 v9 v10</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="nottickedoff">= du_begin__46 v8 v9 v10</span></span>
+<span class="lineno">   40 </span>du_begin__46 ::
+<span class="lineno">   41 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   42 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">du_begin__46 v0 v1 v2 = coe v0 v1 v2</span></span>
+<span class="lineno">   44 </span>-- Relation.Binary.Reasoning.Syntax.SubRelation
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">d_SubRelation_60 a0 a1 a2 a3 a4 a5 = ()</span></span>
+<span class="lineno">   46 </span>data T_SubRelation_60
+<span class="lineno">   47 </span>  = C_constructor_94 (AgdaAny -&gt;
+<span class="lineno">   48 </span>                      AgdaAny -&gt;
+<span class="lineno">   49 </span>                      AgdaAny -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20)
+<span class="lineno">   50 </span>                     (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   51 </span>-- Relation.Binary.Reasoning.Syntax.SubRelation.S
+<span class="lineno">   52 </span>d_S_82 :: T_SubRelation_60 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">d_S_82 = erased</span></span>
+<span class="lineno">   54 </span>-- Relation.Binary.Reasoning.Syntax.SubRelation.IsS
+<span class="lineno">   55 </span>d_IsS_84 :: T_SubRelation_60 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">d_IsS_84 = erased</span></span>
+<span class="lineno">   57 </span>-- Relation.Binary.Reasoning.Syntax.SubRelation.IsS?
+<span class="lineno">   58 </span>d_IsS'63'_88 ::
+<span class="lineno">   59 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">   60 </span>  AgdaAny -&gt;
+<span class="lineno">   61 </span>  AgdaAny -&gt;
+<span class="lineno">   62 </span>  AgdaAny -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">d_IsS'63'_88 v0</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   65 </span><span class="spaces">      </span><span class="nottickedoff">C_constructor_94 v3 v4 -&gt; coe v3</span>
+<span class="lineno">   66 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   67 </span>-- Relation.Binary.Reasoning.Syntax.SubRelation.extract
+<span class="lineno">   68 </span>d_extract_92 ::
+<span class="lineno">   69 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">   70 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   71 </span><span class="decl"><span class="nottickedoff">d_extract_92 v0</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="nottickedoff">C_constructor_94 v3 v4 -&gt; coe v4</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   75 </span>-- Relation.Binary.Reasoning.Syntax.begin-subrelation-syntax._.IsS
+<span class="lineno">   76 </span>d_IsS_112 ::
+<span class="lineno">   77 </span>  T_SubRelation_60 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">d_IsS_112 = erased</span></span>
+<span class="lineno">   79 </span>-- Relation.Binary.Reasoning.Syntax.begin-subrelation-syntax._.IsS?
+<span class="lineno">   80 </span>d_IsS'63'_114 ::
+<span class="lineno">   81 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">   82 </span>  AgdaAny -&gt;
+<span class="lineno">   83 </span>  AgdaAny -&gt;
+<span class="lineno">   84 </span>  AgdaAny -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">   85 </span><span class="decl"><span class="nottickedoff">d_IsS'63'_114 v0 = coe d_IsS'63'_88 (coe v0)</span></span>
+<span class="lineno">   86 </span>-- Relation.Binary.Reasoning.Syntax.begin-subrelation-syntax._.S
+<span class="lineno">   87 </span>d_S_116 :: T_SubRelation_60 -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">d_S_116 = erased</span></span>
+<span class="lineno">   89 </span>-- Relation.Binary.Reasoning.Syntax.begin-subrelation-syntax._.extract
+<span class="lineno">   90 </span>d_extract_118 ::
+<span class="lineno">   91 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">   92 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   93 </span><span class="decl"><span class="nottickedoff">d_extract_118 v0 = coe d_extract_92 (coe v0)</span></span>
+<span class="lineno">   94 </span>-- Relation.Binary.Reasoning.Syntax.begin-subrelation-syntax.begin_
+<span class="lineno">   95 </span>d_begin__128 ::
+<span class="lineno">   96 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   97 </span>  () -&gt;
+<span class="lineno">   98 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   99 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  100 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  101 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  102 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  103 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  104 </span><span class="decl"><span class="nottickedoff">d_begin__128 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 v7 v8 v9 ~v10</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">= du_begin__128 v6 v7 v8 v9</span></span>
+<span class="lineno">  106 </span>du_begin__128 ::
+<span class="lineno">  107 </span>  T_SubRelation_60 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  108 </span><span class="decl"><span class="nottickedoff">du_begin__128 v0 v1 v2 v3</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  110 </span><span class="spaces">      </span><span class="nottickedoff">d_extract_92 v0 v1 v2 v3</span>
+<span class="lineno">  111 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  112 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.du_toWitness_144</span>
+<span class="lineno">  113 </span><span class="spaces">         </span><span class="nottickedoff">(coe d_IsS'63'_88 v0 v1 v2 v3))</span></span>
+<span class="lineno">  114 </span>-- Relation.Binary.Reasoning.Syntax.begin-equality-syntax._.begin_
+<span class="lineno">  115 </span>d_begin__150 ::
+<span class="lineno">  116 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  117 </span>  () -&gt;
+<span class="lineno">  118 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  119 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  120 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  121 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  122 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  123 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">d_begin__150 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_begin__150 v6</span></span>
+<span class="lineno">  125 </span>du_begin__150 ::
+<span class="lineno">  126 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  127 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  128 </span><span class="decl"><span class="nottickedoff">du_begin__150 v0 v1 v2 v3 v4 = coe du_begin__128 (coe v0) v1 v2 v3</span></span>
+<span class="lineno">  129 </span>-- Relation.Binary.Reasoning.Syntax.begin-apartness-syntax._.begin_
+<span class="lineno">  130 </span>d_begin__168 ::
+<span class="lineno">  131 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  132 </span>  () -&gt;
+<span class="lineno">  133 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  134 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  135 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  136 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  137 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  138 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  139 </span><span class="decl"><span class="nottickedoff">d_begin__168 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_begin__168 v6</span></span>
+<span class="lineno">  140 </span>du_begin__168 ::
+<span class="lineno">  141 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  142 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  143 </span><span class="decl"><span class="nottickedoff">du_begin__168 v0 v1 v2 v3 v4 = coe du_begin__128 (coe v0) v1 v2 v3</span></span>
+<span class="lineno">  144 </span>-- Relation.Binary.Reasoning.Syntax.begin-strict-syntax._.begin_
+<span class="lineno">  145 </span>d_begin__186 ::
+<span class="lineno">  146 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  147 </span>  () -&gt;
+<span class="lineno">  148 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  149 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  150 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  151 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  152 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  153 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  154 </span><span class="decl"><span class="nottickedoff">d_begin__186 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_begin__186 v6</span></span>
+<span class="lineno">  155 </span>du_begin__186 ::
+<span class="lineno">  156 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  157 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  158 </span><span class="decl"><span class="nottickedoff">du_begin__186 v0 v1 v2 v3 v4 = coe du_begin__128 (coe v0) v1 v2 v3</span></span>
+<span class="lineno">  159 </span>-- Relation.Binary.Reasoning.Syntax.begin-membership-syntax.step-∈
+<span class="lineno">  160 </span>d_step'45''8712'_210 ::
+<span class="lineno">  161 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  162 </span>  () -&gt;
+<span class="lineno">  163 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  164 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  165 </span>  () -&gt;
+<span class="lineno">  166 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  167 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  168 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  169 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  170 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  171 </span><span class="decl"><span class="nottickedoff">d_step'45''8712'_210 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8 v9 v10 v11</span>
+<span class="lineno">  172 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8712'_210 v8 v9 v10 v11</span></span>
+<span class="lineno">  173 </span>du_step'45''8712'_210 ::
+<span class="lineno">  174 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  175 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">du_step'45''8712'_210 v0 v1 v2 v3 = coe v0 v1 v2 v3</span></span>
+<span class="lineno">  177 </span>-- Relation.Binary.Reasoning.Syntax.begin-contradiction-syntax._.IsS
+<span class="lineno">  178 </span>d_IsS_232 ::
+<span class="lineno">  179 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  180 </span>  () -&gt;
+<span class="lineno">  181 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  182 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  183 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  184 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  185 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  186 </span>  (AgdaAny -&gt;
+<span class="lineno">  187 </span>   AgdaAny -&gt;
+<span class="lineno">  188 </span>   AgdaAny -&gt;
+<span class="lineno">  189 </span>   AgdaAny -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  190 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  191 </span><span class="decl"><span class="nottickedoff">d_IsS_232 = erased</span></span>
+<span class="lineno">  192 </span>-- Relation.Binary.Reasoning.Syntax.begin-contradiction-syntax._.IsS?
+<span class="lineno">  193 </span>d_IsS'63'_234 ::
+<span class="lineno">  194 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  195 </span>  () -&gt;
+<span class="lineno">  196 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  197 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  198 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  199 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  200 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  201 </span>  (AgdaAny -&gt;
+<span class="lineno">  202 </span>   AgdaAny -&gt;
+<span class="lineno">  203 </span>   AgdaAny -&gt;
+<span class="lineno">  204 </span>   AgdaAny -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  205 </span>  AgdaAny -&gt;
+<span class="lineno">  206 </span>  AgdaAny -&gt;
+<span class="lineno">  207 </span>  AgdaAny -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  208 </span><span class="decl"><span class="nottickedoff">d_IsS'63'_234 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 ~v7 = du_IsS'63'_234 v6</span></span>
+<span class="lineno">  209 </span>du_IsS'63'_234 ::
+<span class="lineno">  210 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  211 </span>  AgdaAny -&gt;
+<span class="lineno">  212 </span>  AgdaAny -&gt;
+<span class="lineno">  213 </span>  AgdaAny -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  214 </span><span class="decl"><span class="nottickedoff">du_IsS'63'_234 v0 = coe d_IsS'63'_88 (coe v0)</span></span>
+<span class="lineno">  215 </span>-- Relation.Binary.Reasoning.Syntax.begin-contradiction-syntax._.S
+<span class="lineno">  216 </span>d_S_236 ::
+<span class="lineno">  217 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  218 </span>  () -&gt;
+<span class="lineno">  219 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  220 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  221 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  222 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  223 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  224 </span>  (AgdaAny -&gt;
+<span class="lineno">  225 </span>   AgdaAny -&gt;
+<span class="lineno">  226 </span>   AgdaAny -&gt;
+<span class="lineno">  227 </span>   AgdaAny -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  228 </span>  AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  229 </span><span class="decl"><span class="nottickedoff">d_S_236 = erased</span></span>
+<span class="lineno">  230 </span>-- Relation.Binary.Reasoning.Syntax.begin-contradiction-syntax._.extract
+<span class="lineno">  231 </span>d_extract_238 ::
+<span class="lineno">  232 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  233 </span>  () -&gt;
+<span class="lineno">  234 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  235 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  236 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  237 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  238 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  239 </span>  (AgdaAny -&gt;
+<span class="lineno">  240 </span>   AgdaAny -&gt;
+<span class="lineno">  241 </span>   AgdaAny -&gt;
+<span class="lineno">  242 </span>   AgdaAny -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  243 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  244 </span><span class="decl"><span class="nottickedoff">d_extract_238 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 ~v7 = du_extract_238 v6</span></span>
+<span class="lineno">  245 </span>du_extract_238 ::
+<span class="lineno">  246 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  247 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  248 </span><span class="decl"><span class="nottickedoff">du_extract_238 v0 = coe d_extract_92 (coe v0)</span></span>
+<span class="lineno">  249 </span>-- Relation.Binary.Reasoning.Syntax.begin-contradiction-syntax.begin-contradiction_
+<span class="lineno">  250 </span>d_begin'45'contradiction__248 ::
+<span class="lineno">  251 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  252 </span>  () -&gt;
+<span class="lineno">  253 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  254 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  255 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  256 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  257 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  258 </span>  (AgdaAny -&gt;
+<span class="lineno">  259 </span>   AgdaAny -&gt;
+<span class="lineno">  260 </span>   AgdaAny -&gt;
+<span class="lineno">  261 </span>   AgdaAny -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  262 </span>  AgdaAny -&gt;
+<span class="lineno">  263 </span>  AgdaAny -&gt;
+<span class="lineno">  264 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt; () -&gt; AgdaAny
+<span class="lineno">  265 </span><span class="decl"><span class="nottickedoff">d_begin'45'contradiction__248 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno">  266 </span><span class="spaces">                              </span><span class="nottickedoff">~v9 ~v10 ~v11 ~v12</span>
+<span class="lineno">  267 </span><span class="spaces">  </span><span class="nottickedoff">= du_begin'45'contradiction__248</span></span>
+<span class="lineno">  268 </span>du_begin'45'contradiction__248 :: AgdaAny
+<span class="lineno">  269 </span><span class="decl"><span class="nottickedoff">du_begin'45'contradiction__248</span>
+<span class="lineno">  270 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  271 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Negation.Core.du_contradiction_44</span>
+<span class="lineno">  272 </span><span class="spaces">      </span><span class="nottickedoff">erased</span></span>
+<span class="lineno">  273 </span>-- Relation.Binary.Reasoning.Syntax.begin-contradiction-syntax._.x&lt;x
+<span class="lineno">  274 </span>d_x'60'x_260 ::
+<span class="lineno">  275 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  276 </span>  () -&gt;
+<span class="lineno">  277 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  278 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  279 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  280 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  281 </span>  T_SubRelation_60 -&gt;
+<span class="lineno">  282 </span>  (AgdaAny -&gt;
+<span class="lineno">  283 </span>   AgdaAny -&gt;
+<span class="lineno">  284 </span>   AgdaAny -&gt;
+<span class="lineno">  285 </span>   AgdaAny -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  286 </span>  AgdaAny -&gt;
+<span class="lineno">  287 </span>  AgdaAny -&gt;
+<span class="lineno">  288 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt; () -&gt; AgdaAny
+<span class="lineno">  289 </span><span class="decl"><span class="nottickedoff">d_x'60'x_260 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 ~v7 v8 v9 ~v10 ~v11 ~v12</span>
+<span class="lineno">  290 </span><span class="spaces">  </span><span class="nottickedoff">= du_x'60'x_260 v6 v8 v9</span></span>
+<span class="lineno">  291 </span>du_x'60'x_260 :: T_SubRelation_60 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  292 </span><span class="decl"><span class="nottickedoff">du_x'60'x_260 v0 v1 v2</span>
+<span class="lineno">  293 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  294 </span><span class="spaces">      </span><span class="nottickedoff">d_extract_92 v0 v1 v1 v2</span>
+<span class="lineno">  295 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  296 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.du_toWitness_144</span>
+<span class="lineno">  297 </span><span class="spaces">         </span><span class="nottickedoff">(coe d_IsS'63'_88 v0 v1 v1 v2))</span></span>
+<span class="lineno">  298 </span>-- Relation.Binary.Reasoning.Syntax._.forward
+<span class="lineno">  299 </span>d_forward_292 ::
+<span class="lineno">  300 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  301 </span>  () -&gt;
+<span class="lineno">  302 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  303 </span>  () -&gt;
+<span class="lineno">  304 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  305 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  306 </span>  () -&gt;
+<span class="lineno">  307 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  308 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  309 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  310 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  311 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  312 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  313 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  314 </span><span class="decl"><span class="nottickedoff">d_forward_292 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10 ~v11 v12</span>
+<span class="lineno">  315 </span><span class="spaces">              </span><span class="nottickedoff">v13 v14 v15 v16 v17</span>
+<span class="lineno">  316 </span><span class="spaces">  </span><span class="nottickedoff">= du_forward_292 v12 v13 v14 v15 v16 v17</span></span>
+<span class="lineno">  317 </span>du_forward_292 ::
+<span class="lineno">  318 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  319 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  320 </span><span class="decl"><span class="nottickedoff">du_forward_292 v0 v1 v2 v3 v4 v5 = coe v0 v1 v2 v3 v5 v4</span></span>
+<span class="lineno">  321 </span>-- Relation.Binary.Reasoning.Syntax._.∼-syntax.step-∼
+<span class="lineno">  322 </span>d_step'45''8764'_302 ::
+<span class="lineno">  323 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  324 </span>  () -&gt;
+<span class="lineno">  325 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  326 </span>  () -&gt;
+<span class="lineno">  327 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  328 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  329 </span>  () -&gt;
+<span class="lineno">  330 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  331 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  332 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  333 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  334 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  335 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  336 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  337 </span><span class="decl"><span class="nottickedoff">d_step'45''8764'_302 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  338 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  339 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8764'_302 v12</span></span>
+<span class="lineno">  340 </span>du_step'45''8764'_302 ::
+<span class="lineno">  341 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  342 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  343 </span><span class="decl"><span class="nottickedoff">du_step'45''8764'_302 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  344 </span>-- Relation.Binary.Reasoning.Syntax._.≲-syntax.step-≲
+<span class="lineno">  345 </span>d_step'45''8818'_306 ::
+<span class="lineno">  346 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  347 </span>  () -&gt;
+<span class="lineno">  348 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  349 </span>  () -&gt;
+<span class="lineno">  350 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  351 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  352 </span>  () -&gt;
+<span class="lineno">  353 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  354 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  355 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  356 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  357 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  358 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  359 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  360 </span><span class="decl"><span class="nottickedoff">d_step'45''8818'_306 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  361 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  362 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8818'_306 v12</span></span>
+<span class="lineno">  363 </span>du_step'45''8818'_306 ::
+<span class="lineno">  364 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  365 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  366 </span><span class="decl"><span class="nottickedoff">du_step'45''8818'_306 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  367 </span>-- Relation.Binary.Reasoning.Syntax._.≤-syntax.step-≤
+<span class="lineno">  368 </span>d_step'45''8804'_310 ::
+<span class="lineno">  369 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  370 </span>  () -&gt;
+<span class="lineno">  371 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  372 </span>  () -&gt;
+<span class="lineno">  373 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  374 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  375 </span>  () -&gt;
+<span class="lineno">  376 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  377 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  378 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  379 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  380 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  381 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  382 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  383 </span><span class="decl"><span class="nottickedoff">d_step'45''8804'_310 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  384 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  385 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8804'_310 v12</span></span>
+<span class="lineno">  386 </span>du_step'45''8804'_310 ::
+<span class="lineno">  387 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  388 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  389 </span><span class="decl"><span class="nottickedoff">du_step'45''8804'_310 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  390 </span>-- Relation.Binary.Reasoning.Syntax._.&lt;-syntax.step-&lt;
+<span class="lineno">  391 </span>d_step'45''60'_314 ::
+<span class="lineno">  392 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  393 </span>  () -&gt;
+<span class="lineno">  394 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  395 </span>  () -&gt;
+<span class="lineno">  396 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  397 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  398 </span>  () -&gt;
+<span class="lineno">  399 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  400 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  401 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  402 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  403 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  404 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  405 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  406 </span><span class="decl"><span class="nottickedoff">d_step'45''60'_314 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  407 </span><span class="spaces">                   </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  408 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''60'_314 v12</span></span>
+<span class="lineno">  409 </span>du_step'45''60'_314 ::
+<span class="lineno">  410 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  411 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  412 </span><span class="decl"><span class="nottickedoff">du_step'45''60'_314 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  413 </span>-- Relation.Binary.Reasoning.Syntax._.⊆-syntax.step-⊆
+<span class="lineno">  414 </span>d_step'45''8838'_318 ::
+<span class="lineno">  415 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  416 </span>  () -&gt;
+<span class="lineno">  417 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  418 </span>  () -&gt;
+<span class="lineno">  419 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  420 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  421 </span>  () -&gt;
+<span class="lineno">  422 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  423 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  424 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  425 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  426 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  427 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  428 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  429 </span><span class="decl"><span class="nottickedoff">d_step'45''8838'_318 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  430 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  431 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8838'_318 v12</span></span>
+<span class="lineno">  432 </span>du_step'45''8838'_318 ::
+<span class="lineno">  433 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  434 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  435 </span><span class="decl"><span class="nottickedoff">du_step'45''8838'_318 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  436 </span>-- Relation.Binary.Reasoning.Syntax._.⊂-syntax.step-⊂
+<span class="lineno">  437 </span>d_step'45''8834'_322 ::
+<span class="lineno">  438 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  439 </span>  () -&gt;
+<span class="lineno">  440 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  441 </span>  () -&gt;
+<span class="lineno">  442 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  443 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  444 </span>  () -&gt;
+<span class="lineno">  445 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  446 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  447 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  448 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  449 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  450 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  451 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  452 </span><span class="decl"><span class="nottickedoff">d_step'45''8834'_322 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  453 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  454 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8834'_322 v12</span></span>
+<span class="lineno">  455 </span>du_step'45''8834'_322 ::
+<span class="lineno">  456 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  457 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  458 </span><span class="decl"><span class="nottickedoff">du_step'45''8834'_322 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  459 </span>-- Relation.Binary.Reasoning.Syntax._.⊑-syntax.step-⊑
+<span class="lineno">  460 </span>d_step'45''8849'_326 ::
+<span class="lineno">  461 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  462 </span>  () -&gt;
+<span class="lineno">  463 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  464 </span>  () -&gt;
+<span class="lineno">  465 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  466 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  467 </span>  () -&gt;
+<span class="lineno">  468 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  469 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  470 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  471 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  472 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  473 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  474 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  475 </span><span class="decl"><span class="nottickedoff">d_step'45''8849'_326 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  476 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  477 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8849'_326 v12</span></span>
+<span class="lineno">  478 </span>du_step'45''8849'_326 ::
+<span class="lineno">  479 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  480 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  481 </span><span class="decl"><span class="nottickedoff">du_step'45''8849'_326 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  482 </span>-- Relation.Binary.Reasoning.Syntax._.⊏-syntax.step-⊏
+<span class="lineno">  483 </span>d_step'45''8847'_330 ::
+<span class="lineno">  484 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  485 </span>  () -&gt;
+<span class="lineno">  486 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  487 </span>  () -&gt;
+<span class="lineno">  488 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  489 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  490 </span>  () -&gt;
+<span class="lineno">  491 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  492 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  493 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  494 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  495 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  496 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  497 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  498 </span><span class="decl"><span class="nottickedoff">d_step'45''8847'_330 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  499 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  500 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8847'_330 v12</span></span>
+<span class="lineno">  501 </span>du_step'45''8847'_330 ::
+<span class="lineno">  502 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  503 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  504 </span><span class="decl"><span class="nottickedoff">du_step'45''8847'_330 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  505 </span>-- Relation.Binary.Reasoning.Syntax._.∣-syntax.step-∣
+<span class="lineno">  506 </span>d_step'45''8739'_334 ::
+<span class="lineno">  507 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  508 </span>  () -&gt;
+<span class="lineno">  509 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  510 </span>  () -&gt;
+<span class="lineno">  511 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  512 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  513 </span>  () -&gt;
+<span class="lineno">  514 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  515 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  516 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  517 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  518 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  519 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  520 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  521 </span><span class="decl"><span class="nottickedoff">d_step'45''8739'_334 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  522 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  523 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8739'_334 v12</span></span>
+<span class="lineno">  524 </span>du_step'45''8739'_334 ::
+<span class="lineno">  525 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  526 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  527 </span><span class="decl"><span class="nottickedoff">du_step'45''8739'_334 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  528 </span>-- Relation.Binary.Reasoning.Syntax._.⟶-syntax.step-⟶
+<span class="lineno">  529 </span>d_step'45''10230'_338 ::
+<span class="lineno">  530 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  531 </span>  () -&gt;
+<span class="lineno">  532 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  533 </span>  () -&gt;
+<span class="lineno">  534 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  535 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  536 </span>  () -&gt;
+<span class="lineno">  537 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  538 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  539 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  540 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  541 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  542 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  543 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  544 </span><span class="decl"><span class="nottickedoff">d_step'45''10230'_338 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  545 </span><span class="spaces">                      </span><span class="nottickedoff">~v11 v12</span>
+<span class="lineno">  546 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''10230'_338 v12</span></span>
+<span class="lineno">  547 </span>du_step'45''10230'_338 ::
+<span class="lineno">  548 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  549 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  550 </span><span class="decl"><span class="nottickedoff">du_step'45''10230'_338 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  551 </span>-- Relation.Binary.Reasoning.Syntax._.⟶*-syntax.step-⟶*
+<span class="lineno">  552 </span>d_step'45''10230''42'_342 ::
+<span class="lineno">  553 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  554 </span>  () -&gt;
+<span class="lineno">  555 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  556 </span>  () -&gt;
+<span class="lineno">  557 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  558 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  559 </span>  () -&gt;
+<span class="lineno">  560 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  561 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  562 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  563 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  564 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  565 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  566 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  567 </span><span class="decl"><span class="nottickedoff">d_step'45''10230''42'_342 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  568 </span><span class="spaces">                          </span><span class="nottickedoff">~v10 ~v11 v12</span>
+<span class="lineno">  569 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''10230''42'_342 v12</span></span>
+<span class="lineno">  570 </span>du_step'45''10230''42'_342 ::
+<span class="lineno">  571 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  572 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  573 </span><span class="decl"><span class="nottickedoff">du_step'45''10230''42'_342 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  574 </span>-- Relation.Binary.Reasoning.Syntax._._.backward
+<span class="lineno">  575 </span>d_backward_360 ::
+<span class="lineno">  576 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  577 </span>  () -&gt;
+<span class="lineno">  578 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  579 </span>  () -&gt;
+<span class="lineno">  580 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  581 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  582 </span>  () -&gt;
+<span class="lineno">  583 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  584 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  585 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  586 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  587 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  588 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  589 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  590 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  591 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  592 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  593 </span><span class="decl"><span class="nottickedoff">d_backward_360 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10 ~v11</span>
+<span class="lineno">  594 </span><span class="spaces">               </span><span class="nottickedoff">v12 ~v13 ~v14 v15 v16 v17 v18 v19 v20</span>
+<span class="lineno">  595 </span><span class="spaces">  </span><span class="nottickedoff">= du_backward_360 v12 v15 v16 v17 v18 v19 v20</span></span>
+<span class="lineno">  596 </span>du_backward_360 ::
+<span class="lineno">  597 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  598 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  599 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  600 </span><span class="decl"><span class="nottickedoff">du_backward_360 v0 v1 v2 v3 v4 v5 v6</span>
+<span class="lineno">  601 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  602 </span><span class="spaces">      </span><span class="nottickedoff">du_forward_292 (coe v0) (coe v2) (coe v3) (coe v4) (coe v5)</span>
+<span class="lineno">  603 </span><span class="spaces">      </span><span class="nottickedoff">(coe v1 v3 v2 v6)</span></span>
+<span class="lineno">  604 </span>-- Relation.Binary.Reasoning.Syntax._._.≈-syntax.step-≈-⟩
+<span class="lineno">  605 </span>d_step'45''8776''45''10217'_370 ::
+<span class="lineno">  606 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  607 </span>  () -&gt;
+<span class="lineno">  608 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  609 </span>  () -&gt;
+<span class="lineno">  610 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  611 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  612 </span>  () -&gt;
+<span class="lineno">  613 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  614 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  615 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  616 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  617 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  618 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  619 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  620 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  621 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  622 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  623 </span><span class="decl"><span class="nottickedoff">d_step'45''8776''45''10217'_370 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno">  624 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno">  625 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8776''45''10217'_370 v12</span></span>
+<span class="lineno">  626 </span>du_step'45''8776''45''10217'_370 ::
+<span class="lineno">  627 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  628 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  629 </span><span class="decl"><span class="nottickedoff">du_step'45''8776''45''10217'_370 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  630 </span>-- Relation.Binary.Reasoning.Syntax._._.≈-syntax.step-≈-⟨
+<span class="lineno">  631 </span>d_step'45''8776''45''10216'_372 ::
+<span class="lineno">  632 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  633 </span>  () -&gt;
+<span class="lineno">  634 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  635 </span>  () -&gt;
+<span class="lineno">  636 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  637 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  638 </span>  () -&gt;
+<span class="lineno">  639 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  640 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  641 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  642 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  643 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  644 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  645 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  646 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  647 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  648 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  649 </span><span class="decl"><span class="nottickedoff">d_step'45''8776''45''10216'_372 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno">  650 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno">  651 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8776''45''10216'_372 v12 v15</span></span>
+<span class="lineno">  652 </span>du_step'45''8776''45''10216'_372 ::
+<span class="lineno">  653 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  654 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  655 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  656 </span><span class="decl"><span class="nottickedoff">du_step'45''8776''45''10216'_372 v0 v1</span>
+<span class="lineno">  657 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_backward_360 (coe v0) (coe v1)</span></span>
+<span class="lineno">  658 </span>-- Relation.Binary.Reasoning.Syntax._._.≈-syntax.step-≈
+<span class="lineno">  659 </span>d_step'45''8776'_374 ::
+<span class="lineno">  660 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  661 </span>  () -&gt;
+<span class="lineno">  662 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  663 </span>  () -&gt;
+<span class="lineno">  664 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  665 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  666 </span>  () -&gt;
+<span class="lineno">  667 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  668 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  669 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  670 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  671 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  672 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  673 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  674 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  675 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  676 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  677 </span><span class="decl"><span class="nottickedoff">d_step'45''8776'_374 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  678 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno">  679 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8776'_374 v12</span></span>
+<span class="lineno">  680 </span>du_step'45''8776'_374 ::
+<span class="lineno">  681 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  682 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  683 </span><span class="decl"><span class="nottickedoff">du_step'45''8776'_374 v0</span>
+<span class="lineno">  684 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''8776''45''10217'_370 (coe v0)</span></span>
+<span class="lineno">  685 </span>-- Relation.Binary.Reasoning.Syntax._._.≈-syntax.step-≈˘
+<span class="lineno">  686 </span>d_step'45''8776''728'_376 ::
+<span class="lineno">  687 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  688 </span>  () -&gt;
+<span class="lineno">  689 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  690 </span>  () -&gt;
+<span class="lineno">  691 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  692 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  693 </span>  () -&gt;
+<span class="lineno">  694 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  695 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  696 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  697 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  698 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  699 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  700 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  701 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  702 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  703 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  704 </span><span class="decl"><span class="nottickedoff">d_step'45''8776''728'_376 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  705 </span><span class="spaces">                          </span><span class="nottickedoff">~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno">  706 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8776''728'_376 v12 v15</span></span>
+<span class="lineno">  707 </span>du_step'45''8776''728'_376 ::
+<span class="lineno">  708 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  709 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  710 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  711 </span><span class="decl"><span class="nottickedoff">du_step'45''8776''728'_376 v0 v1</span>
+<span class="lineno">  712 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''8776''45''10216'_372 (coe v0) (coe v1)</span></span>
+<span class="lineno">  713 </span>-- Relation.Binary.Reasoning.Syntax._._.≋-syntax.step-≋-⟩
+<span class="lineno">  714 </span>d_step'45''8779''45''10217'_380 ::
+<span class="lineno">  715 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  716 </span>  () -&gt;
+<span class="lineno">  717 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  718 </span>  () -&gt;
+<span class="lineno">  719 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  720 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  721 </span>  () -&gt;
+<span class="lineno">  722 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  723 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  724 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  725 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  726 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  727 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  728 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  729 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  730 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  731 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  732 </span><span class="decl"><span class="nottickedoff">d_step'45''8779''45''10217'_380 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno">  733 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno">  734 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8779''45''10217'_380 v12</span></span>
+<span class="lineno">  735 </span>du_step'45''8779''45''10217'_380 ::
+<span class="lineno">  736 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  737 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  738 </span><span class="decl"><span class="nottickedoff">du_step'45''8779''45''10217'_380 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  739 </span>-- Relation.Binary.Reasoning.Syntax._._.≋-syntax.step-≋-⟨
+<span class="lineno">  740 </span>d_step'45''8779''45''10216'_382 ::
+<span class="lineno">  741 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  742 </span>  () -&gt;
+<span class="lineno">  743 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  744 </span>  () -&gt;
+<span class="lineno">  745 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  746 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  747 </span>  () -&gt;
+<span class="lineno">  748 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  749 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  750 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  751 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  752 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  753 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  754 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  755 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  756 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  757 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  758 </span><span class="decl"><span class="nottickedoff">d_step'45''8779''45''10216'_382 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno">  759 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno">  760 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8779''45''10216'_382 v12 v15</span></span>
+<span class="lineno">  761 </span>du_step'45''8779''45''10216'_382 ::
+<span class="lineno">  762 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  763 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  764 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  765 </span><span class="decl"><span class="nottickedoff">du_step'45''8779''45''10216'_382 v0 v1</span>
+<span class="lineno">  766 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_backward_360 (coe v0) (coe v1)</span></span>
+<span class="lineno">  767 </span>-- Relation.Binary.Reasoning.Syntax._._.≋-syntax.step-≋
+<span class="lineno">  768 </span>d_step'45''8779'_384 ::
+<span class="lineno">  769 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  770 </span>  () -&gt;
+<span class="lineno">  771 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  772 </span>  () -&gt;
+<span class="lineno">  773 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  774 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  775 </span>  () -&gt;
+<span class="lineno">  776 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  777 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  778 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  779 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  780 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  781 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  782 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  783 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  784 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  785 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  786 </span><span class="decl"><span class="nottickedoff">d_step'45''8779'_384 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  787 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno">  788 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8779'_384 v12</span></span>
+<span class="lineno">  789 </span>du_step'45''8779'_384 ::
+<span class="lineno">  790 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  791 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  792 </span><span class="decl"><span class="nottickedoff">du_step'45''8779'_384 v0</span>
+<span class="lineno">  793 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''8779''45''10217'_380 (coe v0)</span></span>
+<span class="lineno">  794 </span>-- Relation.Binary.Reasoning.Syntax._._.≋-syntax.step-≋˘
+<span class="lineno">  795 </span>d_step'45''8779''728'_386 ::
+<span class="lineno">  796 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  797 </span>  () -&gt;
+<span class="lineno">  798 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  799 </span>  () -&gt;
+<span class="lineno">  800 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  801 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  802 </span>  () -&gt;
+<span class="lineno">  803 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  804 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  805 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  806 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  807 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  808 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  809 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  810 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  811 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  812 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  813 </span><span class="decl"><span class="nottickedoff">d_step'45''8779''728'_386 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  814 </span><span class="spaces">                          </span><span class="nottickedoff">~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno">  815 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8779''728'_386 v12 v15</span></span>
+<span class="lineno">  816 </span>du_step'45''8779''728'_386 ::
+<span class="lineno">  817 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  818 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  819 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  820 </span><span class="decl"><span class="nottickedoff">du_step'45''8779''728'_386 v0 v1</span>
+<span class="lineno">  821 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''8779''45''10216'_382 (coe v0) (coe v1)</span></span>
+<span class="lineno">  822 </span>-- Relation.Binary.Reasoning.Syntax._._.≃-syntax.step-≃-⟩
+<span class="lineno">  823 </span>d_step'45''8771''45''10217'_390 ::
+<span class="lineno">  824 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  825 </span>  () -&gt;
+<span class="lineno">  826 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  827 </span>  () -&gt;
+<span class="lineno">  828 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  829 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  830 </span>  () -&gt;
+<span class="lineno">  831 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  832 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  833 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  834 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  835 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  836 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  837 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  838 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  839 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  840 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  841 </span><span class="decl"><span class="nottickedoff">d_step'45''8771''45''10217'_390 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno">  842 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno">  843 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8771''45''10217'_390 v12</span></span>
+<span class="lineno">  844 </span>du_step'45''8771''45''10217'_390 ::
+<span class="lineno">  845 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  846 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  847 </span><span class="decl"><span class="nottickedoff">du_step'45''8771''45''10217'_390 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  848 </span>-- Relation.Binary.Reasoning.Syntax._._.≃-syntax.step-≃-⟨
+<span class="lineno">  849 </span>d_step'45''8771''45''10216'_392 ::
+<span class="lineno">  850 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  851 </span>  () -&gt;
+<span class="lineno">  852 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  853 </span>  () -&gt;
+<span class="lineno">  854 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  855 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  856 </span>  () -&gt;
+<span class="lineno">  857 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  858 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  859 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  860 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  861 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  862 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  863 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  864 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  865 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  866 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  867 </span><span class="decl"><span class="nottickedoff">d_step'45''8771''45''10216'_392 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno">  868 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno">  869 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8771''45''10216'_392 v12 v15</span></span>
+<span class="lineno">  870 </span>du_step'45''8771''45''10216'_392 ::
+<span class="lineno">  871 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  872 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  873 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  874 </span><span class="decl"><span class="nottickedoff">du_step'45''8771''45''10216'_392 v0 v1</span>
+<span class="lineno">  875 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_backward_360 (coe v0) (coe v1)</span></span>
+<span class="lineno">  876 </span>-- Relation.Binary.Reasoning.Syntax._._.#-syntax.step-#-⟩
+<span class="lineno">  877 </span>d_step'45''35''45''10217'_396 ::
+<span class="lineno">  878 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  879 </span>  () -&gt;
+<span class="lineno">  880 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  881 </span>  () -&gt;
+<span class="lineno">  882 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  883 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  884 </span>  () -&gt;
+<span class="lineno">  885 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  886 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  887 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  888 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  889 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  890 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  891 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  892 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  893 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  894 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  895 </span><span class="decl"><span class="nottickedoff">d_step'45''35''45''10217'_396 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno">  896 </span><span class="spaces">                              </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno">  897 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''35''45''10217'_396 v12</span></span>
+<span class="lineno">  898 </span>du_step'45''35''45''10217'_396 ::
+<span class="lineno">  899 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  900 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  901 </span><span class="decl"><span class="nottickedoff">du_step'45''35''45''10217'_396 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno">  902 </span>-- Relation.Binary.Reasoning.Syntax._._.#-syntax.step-#-⟨
+<span class="lineno">  903 </span>d_step'45''35''45''10216'_398 ::
+<span class="lineno">  904 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  905 </span>  () -&gt;
+<span class="lineno">  906 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  907 </span>  () -&gt;
+<span class="lineno">  908 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  909 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  910 </span>  () -&gt;
+<span class="lineno">  911 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  912 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  913 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  914 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  915 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  916 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  917 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  918 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  919 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  920 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  921 </span><span class="decl"><span class="nottickedoff">d_step'45''35''45''10216'_398 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno">  922 </span><span class="spaces">                              </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno">  923 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''35''45''10216'_398 v12 v15</span></span>
+<span class="lineno">  924 </span>du_step'45''35''45''10216'_398 ::
+<span class="lineno">  925 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  926 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  927 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  928 </span><span class="decl"><span class="nottickedoff">du_step'45''35''45''10216'_398 v0 v1</span>
+<span class="lineno">  929 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_backward_360 (coe v0) (coe v1)</span></span>
+<span class="lineno">  930 </span>-- Relation.Binary.Reasoning.Syntax._._.#-syntax.step-#
+<span class="lineno">  931 </span>d_step'45''35'_400 ::
+<span class="lineno">  932 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  933 </span>  () -&gt;
+<span class="lineno">  934 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  935 </span>  () -&gt;
+<span class="lineno">  936 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  937 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  938 </span>  () -&gt;
+<span class="lineno">  939 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  940 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  941 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  942 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  943 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  944 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  945 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  946 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  947 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  948 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  949 </span><span class="decl"><span class="nottickedoff">d_step'45''35'_400 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno">  950 </span><span class="spaces">                   </span><span class="nottickedoff">~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno">  951 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''35'_400 v12</span></span>
+<span class="lineno">  952 </span>du_step'45''35'_400 ::
+<span class="lineno">  953 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  954 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  955 </span><span class="decl"><span class="nottickedoff">du_step'45''35'_400 v0</span>
+<span class="lineno">  956 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''35''45''10217'_396 (coe v0)</span></span>
+<span class="lineno">  957 </span>-- Relation.Binary.Reasoning.Syntax._._.#-syntax.step-#˘
+<span class="lineno">  958 </span>d_step'45''35''728'_402 ::
+<span class="lineno">  959 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  960 </span>  () -&gt;
+<span class="lineno">  961 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  962 </span>  () -&gt;
+<span class="lineno">  963 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  964 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  965 </span>  () -&gt;
+<span class="lineno">  966 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  967 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  968 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  969 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  970 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  971 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  972 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  973 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  974 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  975 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  976 </span><span class="decl"><span class="nottickedoff">d_step'45''35''728'_402 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno">  977 </span><span class="spaces">                        </span><span class="nottickedoff">~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno">  978 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''35''728'_402 v12 v15</span></span>
+<span class="lineno">  979 </span>du_step'45''35''728'_402 ::
+<span class="lineno">  980 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  981 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  982 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  983 </span><span class="decl"><span class="nottickedoff">du_step'45''35''728'_402 v0 v1</span>
+<span class="lineno">  984 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''35''45''10216'_398 (coe v0) (coe v1)</span></span>
+<span class="lineno">  985 </span>-- Relation.Binary.Reasoning.Syntax._._.⤖-syntax.step-⤖
+<span class="lineno">  986 </span>d_step'45''10518'_406 ::
+<span class="lineno">  987 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  988 </span>  () -&gt;
+<span class="lineno">  989 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  990 </span>  () -&gt;
+<span class="lineno">  991 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  992 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  993 </span>  () -&gt;
+<span class="lineno">  994 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  995 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  996 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  997 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  998 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  999 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1000 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1001 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1002 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1003 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1004 </span><span class="decl"><span class="nottickedoff">d_step'45''10518'_406 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno"> 1005 </span><span class="spaces">                      </span><span class="nottickedoff">~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno"> 1006 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''10518'_406 v12</span></span>
+<span class="lineno"> 1007 </span>du_step'45''10518'_406 ::
+<span class="lineno"> 1008 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1009 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1010 </span><span class="decl"><span class="nottickedoff">du_step'45''10518'_406 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno"> 1011 </span>-- Relation.Binary.Reasoning.Syntax._._.⤖-syntax.step-⬻
+<span class="lineno"> 1012 </span>d_step'45''11067'_408 ::
+<span class="lineno"> 1013 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1014 </span>  () -&gt;
+<span class="lineno"> 1015 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1016 </span>  () -&gt;
+<span class="lineno"> 1017 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1018 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1019 </span>  () -&gt;
+<span class="lineno"> 1020 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1021 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1022 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1023 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1024 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1025 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1026 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1027 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1028 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1029 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1030 </span><span class="decl"><span class="nottickedoff">d_step'45''11067'_408 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno"> 1031 </span><span class="spaces">                      </span><span class="nottickedoff">~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno"> 1032 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''11067'_408 v12 v15</span></span>
+<span class="lineno"> 1033 </span>du_step'45''11067'_408 ::
+<span class="lineno"> 1034 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1035 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1036 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1037 </span><span class="decl"><span class="nottickedoff">du_step'45''11067'_408 v0 v1</span>
+<span class="lineno"> 1038 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_backward_360 (coe v0) (coe v1)</span></span>
+<span class="lineno"> 1039 </span>-- Relation.Binary.Reasoning.Syntax._._.↔-syntax.step-↔-⟩
+<span class="lineno"> 1040 </span>d_step'45''8596''45''10217'_412 ::
+<span class="lineno"> 1041 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1042 </span>  () -&gt;
+<span class="lineno"> 1043 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1044 </span>  () -&gt;
+<span class="lineno"> 1045 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1046 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1047 </span>  () -&gt;
+<span class="lineno"> 1048 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1049 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1050 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1051 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1052 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1053 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1054 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1055 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1056 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1057 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1058 </span><span class="decl"><span class="nottickedoff">d_step'45''8596''45''10217'_412 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno"> 1059 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno"> 1060 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8596''45''10217'_412 v12</span></span>
+<span class="lineno"> 1061 </span>du_step'45''8596''45''10217'_412 ::
+<span class="lineno"> 1062 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1063 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1064 </span><span class="decl"><span class="nottickedoff">du_step'45''8596''45''10217'_412 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno"> 1065 </span>-- Relation.Binary.Reasoning.Syntax._._.↔-syntax.step-↔-⟨
+<span class="lineno"> 1066 </span>d_step'45''8596''45''10216'_414 ::
+<span class="lineno"> 1067 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1068 </span>  () -&gt;
+<span class="lineno"> 1069 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1070 </span>  () -&gt;
+<span class="lineno"> 1071 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1072 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1073 </span>  () -&gt;
+<span class="lineno"> 1074 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1075 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1076 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1077 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1078 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1079 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1080 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1081 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1082 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1083 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1084 </span><span class="decl"><span class="nottickedoff">d_step'45''8596''45''10216'_414 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno"> 1085 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno"> 1086 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8596''45''10216'_414 v12 v15</span></span>
+<span class="lineno"> 1087 </span>du_step'45''8596''45''10216'_414 ::
+<span class="lineno"> 1088 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1089 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1090 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1091 </span><span class="decl"><span class="nottickedoff">du_step'45''8596''45''10216'_414 v0 v1</span>
+<span class="lineno"> 1092 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_backward_360 (coe v0) (coe v1)</span></span>
+<span class="lineno"> 1093 </span>-- Relation.Binary.Reasoning.Syntax._._.↭-syntax.step-↭-⟩
+<span class="lineno"> 1094 </span>d_step'45''8621''45''10217'_418 ::
+<span class="lineno"> 1095 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1096 </span>  () -&gt;
+<span class="lineno"> 1097 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1098 </span>  () -&gt;
+<span class="lineno"> 1099 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1100 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1101 </span>  () -&gt;
+<span class="lineno"> 1102 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1103 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1104 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1105 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1106 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1107 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1108 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1109 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1110 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1111 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1112 </span><span class="decl"><span class="nottickedoff">d_step'45''8621''45''10217'_418 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno"> 1113 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno"> 1114 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8621''45''10217'_418 v12</span></span>
+<span class="lineno"> 1115 </span>du_step'45''8621''45''10217'_418 ::
+<span class="lineno"> 1116 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1117 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1118 </span><span class="decl"><span class="nottickedoff">du_step'45''8621''45''10217'_418 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno"> 1119 </span>-- Relation.Binary.Reasoning.Syntax._._.↭-syntax.step-↭-⟨
+<span class="lineno"> 1120 </span>d_step'45''8621''45''10216'_420 ::
+<span class="lineno"> 1121 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1122 </span>  () -&gt;
+<span class="lineno"> 1123 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1124 </span>  () -&gt;
+<span class="lineno"> 1125 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1126 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1127 </span>  () -&gt;
+<span class="lineno"> 1128 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1129 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1130 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1131 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1132 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1133 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1134 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1135 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1136 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1137 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1138 </span><span class="decl"><span class="nottickedoff">d_step'45''8621''45''10216'_420 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno"> 1139 </span><span class="spaces">                                </span><span class="nottickedoff">~v9 ~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno"> 1140 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8621''45''10216'_420 v12 v15</span></span>
+<span class="lineno"> 1141 </span>du_step'45''8621''45''10216'_420 ::
+<span class="lineno"> 1142 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1143 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1144 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1145 </span><span class="decl"><span class="nottickedoff">du_step'45''8621''45''10216'_420 v0 v1</span>
+<span class="lineno"> 1146 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_backward_360 (coe v0) (coe v1)</span></span>
+<span class="lineno"> 1147 </span>-- Relation.Binary.Reasoning.Syntax._._.↭-syntax.step-↭
+<span class="lineno"> 1148 </span>d_step'45''8621'_422 ::
+<span class="lineno"> 1149 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1150 </span>  () -&gt;
+<span class="lineno"> 1151 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1152 </span>  () -&gt;
+<span class="lineno"> 1153 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1154 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1155 </span>  () -&gt;
+<span class="lineno"> 1156 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1157 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1158 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1159 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1160 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1161 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1162 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1163 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1164 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1165 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1166 </span><span class="decl"><span class="nottickedoff">d_step'45''8621'_422 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10</span>
+<span class="lineno"> 1167 </span><span class="spaces">                     </span><span class="nottickedoff">~v11 v12 ~v13 ~v14 ~v15</span>
+<span class="lineno"> 1168 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8621'_422 v12</span></span>
+<span class="lineno"> 1169 </span>du_step'45''8621'_422 ::
+<span class="lineno"> 1170 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1171 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1172 </span><span class="decl"><span class="nottickedoff">du_step'45''8621'_422 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno"> 1173 </span>-- Relation.Binary.Reasoning.Syntax._._.↭-syntax.step-↭˘
+<span class="lineno"> 1174 </span>d_step'45''8621''728'_424 ::
+<span class="lineno"> 1175 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1176 </span>  () -&gt;
+<span class="lineno"> 1177 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1178 </span>  () -&gt;
+<span class="lineno"> 1179 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1180 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1181 </span>  () -&gt;
+<span class="lineno"> 1182 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1183 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1184 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1185 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1186 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1187 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1188 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1189 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1190 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1191 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1192 </span><span class="decl"><span class="nottickedoff">d_step'45''8621''728'_424 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9</span>
+<span class="lineno"> 1193 </span><span class="spaces">                          </span><span class="nottickedoff">~v10 ~v11 v12 ~v13 ~v14 v15</span>
+<span class="lineno"> 1194 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8621''728'_424 v12 v15</span></span>
+<span class="lineno"> 1195 </span>du_step'45''8621''728'_424 ::
+<span class="lineno"> 1196 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1197 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1198 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1199 </span><span class="decl"><span class="nottickedoff">du_step'45''8621''728'_424 v0 v1</span>
+<span class="lineno"> 1200 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_backward_360 (coe v0) (coe v1)</span></span>
+<span class="lineno"> 1201 </span>-- Relation.Binary.Reasoning.Syntax.≡-syntax.step-≡-⟩
+<span class="lineno"> 1202 </span>d_step'45''8801''45''10217'_438 ::
+<span class="lineno"> 1203 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1204 </span>  () -&gt;
+<span class="lineno"> 1205 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1206 </span>  () -&gt;
+<span class="lineno"> 1207 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1208 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1209 </span>  (AgdaAny -&gt;
+<span class="lineno"> 1210 </span>   AgdaAny -&gt;
+<span class="lineno"> 1211 </span>   AgdaAny -&gt;
+<span class="lineno"> 1212 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1213 </span>   AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1214 </span>  AgdaAny -&gt;
+<span class="lineno"> 1215 </span>  AgdaAny -&gt;
+<span class="lineno"> 1216 </span>  AgdaAny -&gt;
+<span class="lineno"> 1217 </span>  AgdaAny -&gt;
+<span class="lineno"> 1218 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1219 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''45''10217'_438 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6</span>
+<span class="lineno"> 1220 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801''45''10217'_438 v6</span></span>
+<span class="lineno"> 1221 </span>du_step'45''8801''45''10217'_438 ::
+<span class="lineno"> 1222 </span>  (AgdaAny -&gt;
+<span class="lineno"> 1223 </span>   AgdaAny -&gt;
+<span class="lineno"> 1224 </span>   AgdaAny -&gt;
+<span class="lineno"> 1225 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1226 </span>   AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1227 </span>  AgdaAny -&gt;
+<span class="lineno"> 1228 </span>  AgdaAny -&gt;
+<span class="lineno"> 1229 </span>  AgdaAny -&gt;
+<span class="lineno"> 1230 </span>  AgdaAny -&gt;
+<span class="lineno"> 1231 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1232 </span><span class="decl"><span class="nottickedoff">du_step'45''8801''45''10217'_438 v0 = coe du_forward_292 (coe v0)</span></span>
+<span class="lineno"> 1233 </span>-- Relation.Binary.Reasoning.Syntax.≡-syntax.step-≡-∣
+<span class="lineno"> 1234 </span>d_step'45''8801''45''8739'_444 ::
+<span class="lineno"> 1235 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1236 </span>  () -&gt;
+<span class="lineno"> 1237 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1238 </span>  () -&gt;
+<span class="lineno"> 1239 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1240 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1241 </span>  (AgdaAny -&gt;
+<span class="lineno"> 1242 </span>   AgdaAny -&gt;
+<span class="lineno"> 1243 </span>   AgdaAny -&gt;
+<span class="lineno"> 1244 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1245 </span>   AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1246 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1247 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''45''8739'_444 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8</span>
+<span class="lineno"> 1248 </span><span class="spaces">                               </span><span class="nottickedoff">v9</span>
+<span class="lineno"> 1249 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801''45''8739'_444 v9</span></span>
+<span class="lineno"> 1250 </span>du_step'45''8801''45''8739'_444 :: AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1251 </span><span class="decl"><span class="nottickedoff">du_step'45''8801''45''8739'_444 v0 = coe v0</span></span>
+<span class="lineno"> 1252 </span>-- Relation.Binary.Reasoning.Syntax.≡-syntax.step-≡-⟨
+<span class="lineno"> 1253 </span>d_step'45''8801''45''10216'_450 ::
+<span class="lineno"> 1254 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1255 </span>  () -&gt;
+<span class="lineno"> 1256 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1257 </span>  () -&gt;
+<span class="lineno"> 1258 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1259 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1260 </span>  (AgdaAny -&gt;
+<span class="lineno"> 1261 </span>   AgdaAny -&gt;
+<span class="lineno"> 1262 </span>   AgdaAny -&gt;
+<span class="lineno"> 1263 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1264 </span>   AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1265 </span>  AgdaAny -&gt;
+<span class="lineno"> 1266 </span>  AgdaAny -&gt;
+<span class="lineno"> 1267 </span>  AgdaAny -&gt;
+<span class="lineno"> 1268 </span>  AgdaAny -&gt;
+<span class="lineno"> 1269 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1270 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''45''10216'_450 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6</span>
+<span class="lineno"> 1271 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801''45''10216'_450 v6</span></span>
+<span class="lineno"> 1272 </span>du_step'45''8801''45''10216'_450 ::
+<span class="lineno"> 1273 </span>  (AgdaAny -&gt;
+<span class="lineno"> 1274 </span>   AgdaAny -&gt;
+<span class="lineno"> 1275 </span>   AgdaAny -&gt;
+<span class="lineno"> 1276 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1277 </span>   AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1278 </span>  AgdaAny -&gt;
+<span class="lineno"> 1279 </span>  AgdaAny -&gt;
+<span class="lineno"> 1280 </span>  AgdaAny -&gt;
+<span class="lineno"> 1281 </span>  AgdaAny -&gt;
+<span class="lineno"> 1282 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1283 </span><span class="decl"><span class="nottickedoff">du_step'45''8801''45''10216'_450 v0</span>
+<span class="lineno"> 1284 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_backward_360 (coe v0) erased</span></span>
+<span class="lineno"> 1285 </span>-- Relation.Binary.Reasoning.Syntax.≡-syntax.step-≡
+<span class="lineno"> 1286 </span>d_step'45''8801'_452 ::
+<span class="lineno"> 1287 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1288 </span>  () -&gt;
+<span class="lineno"> 1289 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1290 </span>  () -&gt;
+<span class="lineno"> 1291 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1292 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1293 </span>  (AgdaAny -&gt;
+<span class="lineno"> 1294 </span>   AgdaAny -&gt;
+<span class="lineno"> 1295 </span>   AgdaAny -&gt;
+<span class="lineno"> 1296 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1297 </span>   AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1298 </span>  AgdaAny -&gt;
+<span class="lineno"> 1299 </span>  AgdaAny -&gt;
+<span class="lineno"> 1300 </span>  AgdaAny -&gt;
+<span class="lineno"> 1301 </span>  AgdaAny -&gt;
+<span class="lineno"> 1302 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1303 </span><span class="decl"><span class="nottickedoff">d_step'45''8801'_452 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6</span>
+<span class="lineno"> 1304 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801'_452 v6</span></span>
+<span class="lineno"> 1305 </span>du_step'45''8801'_452 ::
+<span class="lineno"> 1306 </span>  (AgdaAny -&gt;
+<span class="lineno"> 1307 </span>   AgdaAny -&gt;
+<span class="lineno"> 1308 </span>   AgdaAny -&gt;
+<span class="lineno"> 1309 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1310 </span>   AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1311 </span>  AgdaAny -&gt;
+<span class="lineno"> 1312 </span>  AgdaAny -&gt;
+<span class="lineno"> 1313 </span>  AgdaAny -&gt;
+<span class="lineno"> 1314 </span>  AgdaAny -&gt;
+<span class="lineno"> 1315 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1316 </span><span class="decl"><span class="nottickedoff">du_step'45''8801'_452 v0</span>
+<span class="lineno"> 1317 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''8801''45''10217'_438 (coe v0)</span></span>
+<span class="lineno"> 1318 </span>-- Relation.Binary.Reasoning.Syntax.≡-syntax.step-≡˘
+<span class="lineno"> 1319 </span>d_step'45''8801''728'_454 ::
+<span class="lineno"> 1320 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1321 </span>  () -&gt;
+<span class="lineno"> 1322 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1323 </span>  () -&gt;
+<span class="lineno"> 1324 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1325 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1326 </span>  (AgdaAny -&gt;
+<span class="lineno"> 1327 </span>   AgdaAny -&gt;
+<span class="lineno"> 1328 </span>   AgdaAny -&gt;
+<span class="lineno"> 1329 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1330 </span>   AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1331 </span>  AgdaAny -&gt;
+<span class="lineno"> 1332 </span>  AgdaAny -&gt;
+<span class="lineno"> 1333 </span>  AgdaAny -&gt;
+<span class="lineno"> 1334 </span>  AgdaAny -&gt;
+<span class="lineno"> 1335 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1336 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''728'_454 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6</span>
+<span class="lineno"> 1337 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801''728'_454 v6</span></span>
+<span class="lineno"> 1338 </span>du_step'45''8801''728'_454 ::
+<span class="lineno"> 1339 </span>  (AgdaAny -&gt;
+<span class="lineno"> 1340 </span>   AgdaAny -&gt;
+<span class="lineno"> 1341 </span>   AgdaAny -&gt;
+<span class="lineno"> 1342 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1343 </span>   AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno"> 1344 </span>  AgdaAny -&gt;
+<span class="lineno"> 1345 </span>  AgdaAny -&gt;
+<span class="lineno"> 1346 </span>  AgdaAny -&gt;
+<span class="lineno"> 1347 </span>  AgdaAny -&gt;
+<span class="lineno"> 1348 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1349 </span><span class="decl"><span class="nottickedoff">du_step'45''8801''728'_454 v0</span>
+<span class="lineno"> 1350 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''8801''45''10216'_450 (coe v0)</span></span>
+<span class="lineno"> 1351 </span>-- Relation.Binary.Reasoning.Syntax.≡-noncomputing-syntax.step
+<span class="lineno"> 1352 </span>d_step_466 ::
+<span class="lineno"> 1353 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1354 </span>  () -&gt;
+<span class="lineno"> 1355 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1356 </span>  () -&gt;
+<span class="lineno"> 1357 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1358 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1359 </span>  AgdaAny -&gt;
+<span class="lineno"> 1360 </span>  AgdaAny -&gt;
+<span class="lineno"> 1361 </span>  AgdaAny -&gt;
+<span class="lineno"> 1362 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno"> 1363 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1364 </span><span class="decl"><span class="nottickedoff">d_step_466 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 v10</span>
+<span class="lineno"> 1365 </span><span class="spaces">  </span><span class="nottickedoff">= du_step_466 v10</span></span>
+<span class="lineno"> 1366 </span>du_step_466 :: AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1367 </span><span class="decl"><span class="nottickedoff">du_step_466 v0 = coe v0</span></span>
+<span class="lineno"> 1368 </span>-- Relation.Binary.Reasoning.Syntax.≡-noncomputing-syntax._.step-≡
+<span class="lineno"> 1369 </span>d_step'45''8801'_472 ::
+<span class="lineno"> 1370 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1371 </span>  () -&gt;
+<span class="lineno"> 1372 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1373 </span>  () -&gt;
+<span class="lineno"> 1374 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1375 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1376 </span>  AgdaAny -&gt;
+<span class="lineno"> 1377 </span>  AgdaAny -&gt;
+<span class="lineno"> 1378 </span>  AgdaAny -&gt;
+<span class="lineno"> 1379 </span>  AgdaAny -&gt;
+<span class="lineno"> 1380 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1381 </span><span class="decl"><span class="nottickedoff">d_step'45''8801'_472 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5</span>
+<span class="lineno"> 1382 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801'_472</span></span>
+<span class="lineno"> 1383 </span>du_step'45''8801'_472 ::
+<span class="lineno"> 1384 </span>  AgdaAny -&gt;
+<span class="lineno"> 1385 </span>  AgdaAny -&gt;
+<span class="lineno"> 1386 </span>  AgdaAny -&gt;
+<span class="lineno"> 1387 </span>  AgdaAny -&gt;
+<span class="lineno"> 1388 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1389 </span><span class="decl"><span class="nottickedoff">du_step'45''8801'_472</span>
+<span class="lineno"> 1390 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''8801'_452 (coe (\ v0 v1 v2 v3 v4 -&gt; v4))</span></span>
+<span class="lineno"> 1391 </span>-- Relation.Binary.Reasoning.Syntax.≡-noncomputing-syntax._.step-≡-∣
+<span class="lineno"> 1392 </span>d_step'45''8801''45''8739'_474 ::
+<span class="lineno"> 1393 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1394 </span>  () -&gt;
+<span class="lineno"> 1395 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1396 </span>  () -&gt;
+<span class="lineno"> 1397 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1398 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1399 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1400 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''45''8739'_474 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8</span>
+<span class="lineno"> 1401 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801''45''8739'_474 v8</span></span>
+<span class="lineno"> 1402 </span>du_step'45''8801''45''8739'_474 :: AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1403 </span><span class="decl"><span class="nottickedoff">du_step'45''8801''45''8739'_474 v0 = coe v0</span></span>
+<span class="lineno"> 1404 </span>-- Relation.Binary.Reasoning.Syntax.≡-noncomputing-syntax._.step-≡-⟨
+<span class="lineno"> 1405 </span>d_step'45''8801''45''10216'_476 ::
+<span class="lineno"> 1406 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1407 </span>  () -&gt;
+<span class="lineno"> 1408 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1409 </span>  () -&gt;
+<span class="lineno"> 1410 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1411 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1412 </span>  AgdaAny -&gt;
+<span class="lineno"> 1413 </span>  AgdaAny -&gt;
+<span class="lineno"> 1414 </span>  AgdaAny -&gt;
+<span class="lineno"> 1415 </span>  AgdaAny -&gt;
+<span class="lineno"> 1416 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1417 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''45''10216'_476 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5</span>
+<span class="lineno"> 1418 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801''45''10216'_476</span></span>
+<span class="lineno"> 1419 </span>du_step'45''8801''45''10216'_476 ::
+<span class="lineno"> 1420 </span>  AgdaAny -&gt;
+<span class="lineno"> 1421 </span>  AgdaAny -&gt;
+<span class="lineno"> 1422 </span>  AgdaAny -&gt;
+<span class="lineno"> 1423 </span>  AgdaAny -&gt;
+<span class="lineno"> 1424 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1425 </span><span class="decl"><span class="nottickedoff">du_step'45''8801''45''10216'_476</span>
+<span class="lineno"> 1426 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno"> 1427 </span><span class="spaces">      </span><span class="nottickedoff">du_step'45''8801''45''10216'_450 (coe (\ v0 v1 v2 v3 v4 -&gt; v4))</span></span>
+<span class="lineno"> 1428 </span>-- Relation.Binary.Reasoning.Syntax.≡-noncomputing-syntax._.step-≡-⟩
+<span class="lineno"> 1429 </span>d_step'45''8801''45''10217'_478 ::
+<span class="lineno"> 1430 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1431 </span>  () -&gt;
+<span class="lineno"> 1432 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1433 </span>  () -&gt;
+<span class="lineno"> 1434 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1435 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1436 </span>  AgdaAny -&gt;
+<span class="lineno"> 1437 </span>  AgdaAny -&gt;
+<span class="lineno"> 1438 </span>  AgdaAny -&gt;
+<span class="lineno"> 1439 </span>  AgdaAny -&gt;
+<span class="lineno"> 1440 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1441 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''45''10217'_478 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5</span>
+<span class="lineno"> 1442 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801''45''10217'_478</span></span>
+<span class="lineno"> 1443 </span>du_step'45''8801''45''10217'_478 ::
+<span class="lineno"> 1444 </span>  AgdaAny -&gt;
+<span class="lineno"> 1445 </span>  AgdaAny -&gt;
+<span class="lineno"> 1446 </span>  AgdaAny -&gt;
+<span class="lineno"> 1447 </span>  AgdaAny -&gt;
+<span class="lineno"> 1448 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1449 </span><span class="decl"><span class="nottickedoff">du_step'45''8801''45''10217'_478</span>
+<span class="lineno"> 1450 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno"> 1451 </span><span class="spaces">      </span><span class="nottickedoff">du_step'45''8801''45''10217'_438 (coe (\ v0 v1 v2 v3 v4 -&gt; v4))</span></span>
+<span class="lineno"> 1452 </span>-- Relation.Binary.Reasoning.Syntax.≡-noncomputing-syntax._.step-≡˘
+<span class="lineno"> 1453 </span>d_step'45''8801''728'_480 ::
+<span class="lineno"> 1454 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1455 </span>  () -&gt;
+<span class="lineno"> 1456 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1457 </span>  () -&gt;
+<span class="lineno"> 1458 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1459 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1460 </span>  AgdaAny -&gt;
+<span class="lineno"> 1461 </span>  AgdaAny -&gt;
+<span class="lineno"> 1462 </span>  AgdaAny -&gt;
+<span class="lineno"> 1463 </span>  AgdaAny -&gt;
+<span class="lineno"> 1464 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1465 </span><span class="decl"><span class="nottickedoff">d_step'45''8801''728'_480 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5</span>
+<span class="lineno"> 1466 </span><span class="spaces">  </span><span class="nottickedoff">= du_step'45''8801''728'_480</span></span>
+<span class="lineno"> 1467 </span>du_step'45''8801''728'_480 ::
+<span class="lineno"> 1468 </span>  AgdaAny -&gt;
+<span class="lineno"> 1469 </span>  AgdaAny -&gt;
+<span class="lineno"> 1470 </span>  AgdaAny -&gt;
+<span class="lineno"> 1471 </span>  AgdaAny -&gt;
+<span class="lineno"> 1472 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt; AgdaAny
+<span class="lineno"> 1473 </span><span class="decl"><span class="nottickedoff">du_step'45''8801''728'_480</span>
+<span class="lineno"> 1474 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_step'45''8801''728'_454 (coe (\ v0 v1 v2 v3 v4 -&gt; v4))</span></span>
+<span class="lineno"> 1475 </span>-- Relation.Binary.Reasoning.Syntax.end-syntax._∎
+<span class="lineno"> 1476 </span>d__'8718'_494 ::
+<span class="lineno"> 1477 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1478 </span>  () -&gt;
+<span class="lineno"> 1479 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno"> 1480 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno"> 1481 </span>  (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1482 </span><span class="decl"><span class="nottickedoff">d__'8718'_494 ~v0 ~v1 ~v2 ~v3 v4 v5 = du__'8718'_494 v4 v5</span></span>
+<span class="lineno"> 1483 </span>du__'8718'_494 :: (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno"> 1484 </span><span class="decl"><span class="nottickedoff">du__'8718'_494 v0 v1 = coe v0 v1</span></span>
+
+</pre>
+</body>
+</html>

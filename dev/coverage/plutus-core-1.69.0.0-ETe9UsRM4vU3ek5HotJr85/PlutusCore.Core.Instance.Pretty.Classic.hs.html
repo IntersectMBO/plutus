@@ -1,0 +1,217 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE AllowAmbiguousTypes #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    3 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    4 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    7 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    8 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>-- | A &quot;classic&quot; (i.e. as seen in the specification) way to pretty-print PLC entities.
+<span class="lineno">   11 </span>module PlutusCore.Core.Instance.Pretty.Classic () where
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import PlutusPrelude
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusCore.Core.Type
+<span class="lineno">   16 </span>import PlutusCore.Pretty.Classic
+<span class="lineno">   17 </span>import PlutusCore.Pretty.PrettyConst
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Prettyprinter
+<span class="lineno">   20 </span>import Prettyprinter.Custom
+<span class="lineno">   21 </span>import Universe
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>instance <span class="decl"><span class="nottickedoff">Pretty ann =&gt; PrettyBy (PrettyConfigClassic configName) (Kind ann)</span></span> where
+<span class="lineno">   24 </span>  <span class="decl"><span class="istickedoff">prettyBy config = \case</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="istickedoff">Type ann -&gt;</span>
+<span class="lineno">   26 </span><span class="spaces">      </span><span class="istickedoff">parens</span>
+<span class="lineno">   27 </span><span class="spaces">        </span><span class="istickedoff">( sep</span>
+<span class="lineno">   28 </span><span class="spaces">            </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">   29 </span><span class="spaces">                </span><span class="istickedoff">config</span>
+<span class="lineno">   30 </span><span class="spaces">                </span><span class="istickedoff">ann</span>
+<span class="lineno">   31 </span><span class="spaces">                </span><span class="istickedoff">[&quot;type&quot;]</span>
+<span class="lineno">   32 </span><span class="spaces">            </span><span class="istickedoff">)</span>
+<span class="lineno">   33 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">   34 </span><span class="spaces">    </span><span class="istickedoff">KindArrow ann k k' -&gt;</span>
+<span class="lineno">   35 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">   36 </span><span class="spaces">        </span><span class="istickedoff">&quot;fun&quot;</span>
+<span class="lineno">   37 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">   38 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">   39 </span><span class="spaces">            </span><span class="istickedoff">ann</span>
+<span class="lineno">   40 </span><span class="spaces">            </span><span class="istickedoff">[prettyBy config k, prettyBy config k']</span>
+<span class="lineno">   41 </span><span class="spaces">        </span><span class="istickedoff">)</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>instance
+<span class="lineno">   44 </span>  <span class="decl"><span class="nottickedoff">(PrettyClassicBy configName tyname, PrettyParens (SomeTypeIn uni), Pretty ann)</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy (PrettyConfigClassic configName) (Type tyname uni ann)</span></span>
+<span class="lineno">   46 </span>  where
+<span class="lineno">   47 </span>  <span class="decl"><span class="istickedoff">prettyBy config = \case</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">TyApp ann t t' -&gt;</span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="istickedoff">brackets'</span>
+<span class="lineno">   50 </span><span class="spaces">        </span><span class="istickedoff">( sep</span>
+<span class="lineno">   51 </span><span class="spaces">            </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">   52 </span><span class="spaces">                </span><span class="istickedoff">config</span>
+<span class="lineno">   53 </span><span class="spaces">                </span><span class="istickedoff">ann</span>
+<span class="lineno">   54 </span><span class="spaces">                </span><span class="istickedoff">[prettyBy config t, prettyBy config t']</span>
+<span class="lineno">   55 </span><span class="spaces">            </span><span class="istickedoff">)</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="istickedoff">TyVar ann n -&gt;</span>
+<span class="lineno">   58 </span><span class="spaces">      </span><span class="istickedoff">sep</span>
+<span class="lineno">   59 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">   60 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">   61 </span><span class="spaces">            </span><span class="istickedoff">ann</span>
+<span class="lineno">   62 </span><span class="spaces">            </span><span class="istickedoff">[prettyBy config n]</span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">   64 </span><span class="spaces">    </span><span class="istickedoff">TyFun ann t t' -&gt;</span>
+<span class="lineno">   65 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">   66 </span><span class="spaces">        </span><span class="istickedoff">&quot;fun&quot;</span>
+<span class="lineno">   67 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">   68 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">   69 </span><span class="spaces">            </span><span class="istickedoff">ann</span>
+<span class="lineno">   70 </span><span class="spaces">            </span><span class="istickedoff">[prettyBy config t, prettyBy config t']</span>
+<span class="lineno">   71 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">   72 </span><span class="spaces">    </span><span class="istickedoff">TyIFix ann pat arg -&gt;</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">   74 </span><span class="spaces">        </span><span class="istickedoff">&quot;ifix&quot;</span>
+<span class="lineno">   75 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">   76 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">   77 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">ann</span></span>
+<span class="lineno">   78 </span><span class="spaces">            </span><span class="istickedoff">[prettyBy config pat, prettyBy config arg]</span>
+<span class="lineno">   79 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="istickedoff">TyForall ann n k t -&gt;</span>
+<span class="lineno">   81 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">   82 </span><span class="spaces">        </span><span class="istickedoff">&quot;all&quot;</span>
+<span class="lineno">   83 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">   84 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">   85 </span><span class="spaces">            </span><span class="istickedoff">ann</span>
+<span class="lineno">   86 </span><span class="spaces">            </span><span class="istickedoff">[prettyBy config n, prettyBy config k, prettyBy config t]</span>
+<span class="lineno">   87 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="istickedoff">TyBuiltin ann someUni -&gt;</span>
+<span class="lineno">   89 </span><span class="spaces">      </span><span class="istickedoff">sexp &quot;con&quot; (consAnnIf config ann [prettyBy juxtRenderContext someUni])</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">TyLam ann n k t -&gt;</span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">   92 </span><span class="spaces">        </span><span class="istickedoff">&quot;lam&quot;</span>
+<span class="lineno">   93 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">   94 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">   95 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">ann</span></span>
+<span class="lineno">   96 </span><span class="spaces">            </span><span class="istickedoff">[prettyBy config n, prettyBy config k, prettyBy config t]</span>
+<span class="lineno">   97 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="istickedoff">TySOP ann tyls -&gt;</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="istickedoff">sexp &quot;sop&quot; (consAnnIf config <span class="nottickedoff">ann</span> (fmap prettyTyl tyls))</span>
+<span class="lineno">  100 </span><span class="spaces">      </span><span class="istickedoff">where</span>
+<span class="lineno">  101 </span><span class="spaces">        </span><span class="istickedoff">prettyTyl tyl = brackets (sep (fmap (prettyBy config) tyl))</span></span>
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>instance
+<span class="lineno">  104 </span>  <span class="decl"><span class="nottickedoff">( PrettyClassicBy configName tyname</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">, PrettyClassicBy configName name</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="nottickedoff">, PrettyUni uni</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">, Pretty fun</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">, Pretty ann</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="nottickedoff">)</span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy (PrettyConfigClassic configName) (Term tyname name uni fun ann)</span></span>
+<span class="lineno">  111 </span>  where
+<span class="lineno">  112 </span>  <span class="decl"><span class="istickedoff">prettyBy config = \case</span>
+<span class="lineno">  113 </span><span class="spaces">    </span><span class="istickedoff">Var ann n -&gt;</span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="istickedoff">sep (consAnnIf config <span class="nottickedoff">ann</span> [prettyBy config n])</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff">TyAbs ann tn k t -&gt;</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">  117 </span><span class="spaces">        </span><span class="istickedoff">&quot;abs&quot;</span>
+<span class="lineno">  118 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">  119 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">  120 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">ann</span></span>
+<span class="lineno">  121 </span><span class="spaces">            </span><span class="istickedoff">[prettyBy config tn, prettyBy config k, prettyBy config t]</span>
+<span class="lineno">  122 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">  123 </span><span class="spaces">    </span><span class="istickedoff">LamAbs ann n ty t -&gt;</span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">  125 </span><span class="spaces">        </span><span class="istickedoff">&quot;lam&quot;</span>
+<span class="lineno">  126 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">  127 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">  128 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">ann</span></span>
+<span class="lineno">  129 </span><span class="spaces">            </span><span class="istickedoff">[prettyBy config n, prettyBy config ty, prettyBy config t]</span>
+<span class="lineno">  130 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">  131 </span><span class="spaces">    </span><span class="istickedoff">Apply ann t1 t2 -&gt;</span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="istickedoff">brackets'</span>
+<span class="lineno">  133 </span><span class="spaces">        </span><span class="istickedoff">( sep</span>
+<span class="lineno">  134 </span><span class="spaces">            </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">  135 </span><span class="spaces">                </span><span class="istickedoff">config</span>
+<span class="lineno">  136 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">ann</span></span>
+<span class="lineno">  137 </span><span class="spaces">                </span><span class="istickedoff">[prettyBy config t1, prettyBy config t2]</span>
+<span class="lineno">  138 </span><span class="spaces">            </span><span class="istickedoff">)</span>
+<span class="lineno">  139 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">  140 </span><span class="spaces">    </span><span class="istickedoff">Constant ann c -&gt;</span>
+<span class="lineno">  141 </span><span class="spaces">      </span><span class="istickedoff">sexp &quot;con&quot; (consAnnIf config <span class="nottickedoff">ann</span> [prettyTypeOf c, pretty c])</span>
+<span class="lineno">  142 </span><span class="spaces">    </span><span class="istickedoff">Builtin ann bi -&gt;</span>
+<span class="lineno">  143 </span><span class="spaces">      </span><span class="istickedoff">sexp &quot;builtin&quot; (consAnnIf config <span class="nottickedoff">ann</span> [pretty bi])</span>
+<span class="lineno">  144 </span><span class="spaces">    </span><span class="istickedoff">TyInst ann t ty -&gt;</span>
+<span class="lineno">  145 </span><span class="spaces">      </span><span class="istickedoff">braces'</span>
+<span class="lineno">  146 </span><span class="spaces">        </span><span class="istickedoff">( sep</span>
+<span class="lineno">  147 </span><span class="spaces">            </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">  148 </span><span class="spaces">                </span><span class="istickedoff">config</span>
+<span class="lineno">  149 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">ann</span></span>
+<span class="lineno">  150 </span><span class="spaces">                </span><span class="istickedoff">[prettyBy config t, prettyBy config ty]</span>
+<span class="lineno">  151 </span><span class="spaces">            </span><span class="istickedoff">)</span>
+<span class="lineno">  152 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">  153 </span><span class="spaces">    </span><span class="istickedoff">Error ann ty -&gt;</span>
+<span class="lineno">  154 </span><span class="spaces">      </span><span class="istickedoff">sexp &quot;error&quot; (consAnnIf config <span class="nottickedoff">ann</span> [prettyBy config ty])</span>
+<span class="lineno">  155 </span><span class="spaces">    </span><span class="istickedoff">IWrap ann ty1 ty2 t -&gt;</span>
+<span class="lineno">  156 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">  157 </span><span class="spaces">        </span><span class="istickedoff">&quot;iwrap&quot;</span>
+<span class="lineno">  158 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">  159 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">  160 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">ann</span></span>
+<span class="lineno">  161 </span><span class="spaces">            </span><span class="istickedoff">[prettyBy config ty1, prettyBy config ty2, prettyBy config t]</span>
+<span class="lineno">  162 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">  163 </span><span class="spaces">    </span><span class="istickedoff">Unwrap ann t -&gt;</span>
+<span class="lineno">  164 </span><span class="spaces">      </span><span class="istickedoff">sexp &quot;unwrap&quot; (consAnnIf config <span class="nottickedoff">ann</span> [prettyBy config t])</span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="istickedoff">Constr ann ty i es -&gt;</span>
+<span class="lineno">  166 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">  167 </span><span class="spaces">        </span><span class="istickedoff">&quot;constr&quot;</span>
+<span class="lineno">  168 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">  169 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">  170 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">ann</span></span>
+<span class="lineno">  171 </span><span class="spaces">            </span><span class="istickedoff">( [prettyBy config ty, pretty i]</span>
+<span class="lineno">  172 </span><span class="spaces">                </span><span class="istickedoff">++ (fmap (prettyBy config) es)</span>
+<span class="lineno">  173 </span><span class="spaces">            </span><span class="istickedoff">)</span>
+<span class="lineno">  174 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">  175 </span><span class="spaces">    </span><span class="istickedoff">Case ann ty arg cs -&gt;</span>
+<span class="lineno">  176 </span><span class="spaces">      </span><span class="istickedoff">sexp</span>
+<span class="lineno">  177 </span><span class="spaces">        </span><span class="istickedoff">&quot;case&quot;</span>
+<span class="lineno">  178 </span><span class="spaces">        </span><span class="istickedoff">( consAnnIf</span>
+<span class="lineno">  179 </span><span class="spaces">            </span><span class="istickedoff">config</span>
+<span class="lineno">  180 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">ann</span></span>
+<span class="lineno">  181 </span><span class="spaces">            </span><span class="istickedoff">( [prettyBy config ty, prettyBy config arg]</span>
+<span class="lineno">  182 </span><span class="spaces">                </span><span class="istickedoff">++ (fmap (prettyBy config) cs)</span>
+<span class="lineno">  183 </span><span class="spaces">            </span><span class="istickedoff">)</span>
+<span class="lineno">  184 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">  185 </span><span class="spaces">    </span><span class="istickedoff">where</span>
+<span class="lineno">  186 </span><span class="spaces">      </span><span class="istickedoff">prettyTypeOf :: Some (ValueOf uni) -&gt; Doc dann</span>
+<span class="lineno">  187 </span><span class="spaces">      </span><span class="istickedoff">prettyTypeOf (Some (ValueOf uni _)) = prettyBy juxtRenderContext $ SomeTypeIn uni</span></span>
+<span class="lineno">  188 </span>
+<span class="lineno">  189 </span>instance
+<span class="lineno">  190 </span>  <span class="decl"><span class="nottickedoff">(PrettyClassicBy configName (Term tyname name uni fun ann), Pretty ann)</span>
+<span class="lineno">  191 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy (PrettyConfigClassic configName) (Program tyname name uni fun ann)</span></span>
+<span class="lineno">  192 </span>  where
+<span class="lineno">  193 </span>  <span class="decl"><span class="istickedoff">prettyBy config (Program ann version term) =</span>
+<span class="lineno">  194 </span><span class="spaces">    </span><span class="istickedoff">sexp &quot;program&quot; (consAnnIf config <span class="nottickedoff">ann</span> [pretty version, prettyBy config term])</span></span>
+
+</pre>
+</body>
+</html>

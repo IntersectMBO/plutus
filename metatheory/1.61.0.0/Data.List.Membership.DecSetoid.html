@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.List.Membership.DecSetoid</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Decidable setoid membership over lists</a>
+<a id="148" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="222" class="Symbol">{-#</a> <a id="226" class="Keyword">OPTIONS</a> <a id="234" class="Pragma">--cubical-compatible</a> <a id="255" class="Pragma">--safe</a> <a id="262" class="Symbol">#-}</a>
+
+<a id="267" class="Keyword">open</a> <a id="272" class="Keyword">import</a> <a id="279" href="Relation.Binary.Bundles.html" class="Module">Relation.Binary.Bundles</a> <a id="303" class="Keyword">using</a> <a id="309" class="Symbol">(</a><a id="310" href="Relation.Binary.Bundles.html#1563" class="Record">DecSetoid</a><a id="319" class="Symbol">)</a>
+
+<a id="322" class="Keyword">module</a> <a id="329" href="Data.List.Membership.DecSetoid.html" class="Module">Data.List.Membership.DecSetoid</a> <a id="360" class="Symbol">{</a><a id="361" href="Data.List.Membership.DecSetoid.html#361" class="Bound">a</a> <a id="363" href="Data.List.Membership.DecSetoid.html#363" class="Bound">ℓ</a><a id="364" class="Symbol">}</a> <a id="366" class="Symbol">(</a><a id="367" href="Data.List.Membership.DecSetoid.html#367" class="Bound">DS</a> <a id="370" class="Symbol">:</a> <a id="372" href="Relation.Binary.Bundles.html#1563" class="Record">DecSetoid</a> <a id="382" href="Data.List.Membership.DecSetoid.html#361" class="Bound">a</a> <a id="384" href="Data.List.Membership.DecSetoid.html#363" class="Bound">ℓ</a><a id="385" class="Symbol">)</a> <a id="387" class="Keyword">where</a>
+
+<a id="394" class="Keyword">open</a> <a id="399" class="Keyword">import</a> <a id="406" href="Data.List.Relation.Unary.Any.html" class="Module">Data.List.Relation.Unary.Any</a> <a id="435" class="Keyword">using</a> <a id="441" class="Symbol">(</a><a id="442" href="Data.List.Relation.Unary.Any.html#2684" class="Function">any?</a><a id="446" class="Symbol">)</a>
+<a id="448" class="Keyword">open</a> <a id="453" class="Keyword">import</a> <a id="460" href="Relation.Binary.Definitions.html" class="Module">Relation.Binary.Definitions</a> <a id="488" class="Keyword">using</a> <a id="494" class="Symbol">(</a><a id="495" href="Relation.Binary.Definitions.html#6713" class="Function">Decidable</a><a id="504" class="Symbol">)</a>
+<a id="506" class="Keyword">open</a> <a id="511" class="Keyword">import</a> <a id="518" href="Relation.Nullary.Decidable.html" class="Module">Relation.Nullary.Decidable</a> <a id="545" class="Keyword">using</a> <a id="551" class="Symbol">(</a><a id="552" href="Relation.Nullary.Decidable.Core.html#3011" class="Function">¬?</a><a id="554" class="Symbol">)</a>
+
+<a id="557" class="Keyword">open</a> <a id="562" href="Relation.Binary.Bundles.html#1563" class="Module">DecSetoid</a> <a id="572" href="Data.List.Membership.DecSetoid.html#367" class="Bound">DS</a>
+
+<a id="576" class="Comment">------------------------------------------------------------------------</a>
+<a id="649" class="Comment">-- Re-export contents of propositional membership</a>
+
+<a id="700" class="Keyword">open</a> <a id="705" class="Keyword">import</a> <a id="712" href="Data.List.Membership.Setoid.html" class="Module">Data.List.Membership.Setoid</a> <a id="740" class="Symbol">(</a><a id="741" href="Relation.Binary.Bundles.html#1818" class="Function">DecSetoid.setoid</a> <a id="758" href="Data.List.Membership.DecSetoid.html#367" class="Bound">DS</a><a id="760" class="Symbol">)</a> <a id="762" class="Keyword">public</a>
+
+<a id="770" class="Comment">------------------------------------------------------------------------</a>
+<a id="843" class="Comment">-- Other operations</a>
+
+<a id="864" class="Keyword">infix</a> <a id="870" class="Number">4</a> <a id="872" href="Data.List.Membership.DecSetoid.html#883" class="Function Operator">_∈?_</a> <a id="877" href="Data.List.Membership.DecSetoid.html#930" class="Function Operator">_∉?_</a>
+
+<a id="_∈?_"></a><a id="883" href="Data.List.Membership.DecSetoid.html#883" class="Function Operator">_∈?_</a> <a id="888" class="Symbol">:</a> <a id="890" href="Relation.Binary.Definitions.html#6713" class="Function">Decidable</a> <a id="900" href="Data.List.Membership.Setoid.html#925" class="Function Operator">_∈_</a>
+<a id="904" href="Data.List.Membership.DecSetoid.html#904" class="Bound">x</a> <a id="906" href="Data.List.Membership.DecSetoid.html#883" class="Function Operator">∈?</a> <a id="909" href="Data.List.Membership.DecSetoid.html#909" class="Bound">xs</a> <a id="912" class="Symbol">=</a> <a id="914" href="Data.List.Relation.Unary.Any.html#2684" class="Function">any?</a> <a id="919" class="Symbol">(</a><a id="920" href="Data.List.Membership.DecSetoid.html#904" class="Bound">x</a> <a id="922" href="Relation.Binary.Structures.html#1949" class="Function Operator">≟_</a><a id="924" class="Symbol">)</a> <a id="926" href="Data.List.Membership.DecSetoid.html#909" class="Bound">xs</a>
+
+<a id="_∉?_"></a><a id="930" href="Data.List.Membership.DecSetoid.html#930" class="Function Operator">_∉?_</a> <a id="935" class="Symbol">:</a> <a id="937" href="Relation.Binary.Definitions.html#6713" class="Function">Decidable</a> <a id="947" href="Data.List.Membership.Setoid.html#974" class="Function Operator">_∉_</a>
+<a id="951" href="Data.List.Membership.DecSetoid.html#951" class="Bound">x</a> <a id="953" href="Data.List.Membership.DecSetoid.html#930" class="Function Operator">∉?</a> <a id="956" href="Data.List.Membership.DecSetoid.html#956" class="Bound">xs</a> <a id="959" class="Symbol">=</a> <a id="961" href="Relation.Nullary.Decidable.Core.html#3011" class="Function">¬?</a> <a id="964" class="Symbol">(</a><a id="965" href="Data.List.Membership.DecSetoid.html#951" class="Bound">x</a> <a id="967" href="Data.List.Membership.DecSetoid.html#883" class="Function Operator">∈?</a> <a id="970" href="Data.List.Membership.DecSetoid.html#956" class="Bound">xs</a><a id="972" class="Symbol">)</a>
+</pre></body></html>

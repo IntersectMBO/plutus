@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Function.Metric.Nat.Core</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Core definitions for metrics over ℕ</a>
+<a id="145" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="219" class="Symbol">{-#</a> <a id="223" class="Keyword">OPTIONS</a> <a id="231" class="Pragma">--cubical-compatible</a> <a id="252" class="Pragma">--safe</a> <a id="259" class="Symbol">#-}</a>
+
+<a id="264" class="Keyword">module</a> <a id="271" href="Function.Metric.Nat.Core.html" class="Module">Function.Metric.Nat.Core</a> <a id="296" class="Keyword">where</a>
+
+<a id="303" class="Keyword">open</a> <a id="308" class="Keyword">import</a> <a id="315" href="Data.Nat.Base.html" class="Module">Data.Nat.Base</a> <a id="329" class="Keyword">using</a> <a id="335" class="Symbol">(</a><a id="336" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a><a id="337" class="Symbol">)</a>
+<a id="339" class="Keyword">import</a> <a id="346" href="Function.Metric.Core.html" class="Module">Function.Metric.Core</a> <a id="367" class="Symbol">as</a> <a id="370" class="Module">Base</a>
+
+<a id="376" class="Comment">------------------------------------------------------------------------</a>
+<a id="449" class="Comment">-- Definition</a>
+
+<a id="DistanceFunction"></a><a id="464" href="Function.Metric.Nat.Core.html#464" class="Function">DistanceFunction</a> <a id="481" class="Symbol">:</a> <a id="483" class="Symbol">∀</a> <a id="485" class="Symbol">{</a><a id="486" href="Function.Metric.Nat.Core.html#486" class="Bound">a</a><a id="487" class="Symbol">}</a> <a id="489" class="Symbol">→</a> <a id="491" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="495" href="Function.Metric.Nat.Core.html#486" class="Bound">a</a> <a id="497" class="Symbol">→</a> <a id="499" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="503" href="Function.Metric.Nat.Core.html#486" class="Bound">a</a>
+<a id="505" href="Function.Metric.Nat.Core.html#464" class="Function">DistanceFunction</a> <a id="522" href="Function.Metric.Nat.Core.html#522" class="Bound">A</a> <a id="524" class="Symbol">=</a> <a id="526" href="Function.Metric.Core.html#451" class="Function">Base.DistanceFunction</a> <a id="548" href="Function.Metric.Nat.Core.html#522" class="Bound">A</a> <a id="550" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a>
+</pre></body></html>

@@ -1,0 +1,640 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE CPP #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-comment"
+      >-- | Endian utilities</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-comment"
+      >-- Exported for testing purposes, but not meant to be used outside this package.</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Endian</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Endian.html#toBE32"
+	><span class="hs-identifier"
+	  >toBE32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Endian.html#toBE64"
+	><span class="hs-identifier"
+	  >toBE64</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Endian.html#toBE16"
+	><span class="hs-identifier"
+	  >toBE16</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Endian.html#isBigEndian"
+	><span class="hs-identifier"
+	  >isBigEndian</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- , fix64</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span class="hs-cpp"
+      >
+
+#include &quot;MachDeps.h&quot;
+</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word16"
+	><span class="hs-identifier"
+	  >Word16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word32"
+	><span class="hs-identifier"
+	  >Word32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier"
+	  >Word64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#byteSwap16"
+	><span class="hs-identifier"
+	  >byteSwap16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#byteSwap32"
+	><span class="hs-identifier"
+	  >byteSwap32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#byteSwap64"
+	><span class="hs-identifier"
+	  >byteSwap64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-comment"
+      >-- #ifdef ghcjs_HOST_OS</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-comment"
+      >-- import Data.Bits</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-comment"
+      >-- #endif</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- $setup</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import Numeric (showHex)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Endian.html#isBigEndian"
+	><span class="hs-identifier hs-type"
+	  >isBigEndian</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="isBigEndian"
+      ><span class="annot"
+	><span class="annottext"
+	  >isBigEndian :: Bool
+</span
+	  ><a href="PlutusCore.Flat.Endian.html#isBigEndian"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isBigEndian</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span class="hs-cpp"
+      >
+#if defined(WORDS_BIGENDIAN) || defined(ETA_VERSION)
+</span
+      ><span
+      >    </span
+      ><span class="hs-identifier"
+      >True</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- |
+Convert a 64 bit value in cpu endianess to big endian
+
+&gt;&gt;&gt; toBE64 0xF0F1F2F3F4F5F6F7 == if isBigEndian then 0xF0F1F2F3F4F5F6F7 else 0xF7F6F5F4F3F2F1F0
+True
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Endian.html#toBE64"
+	><span class="hs-identifier hs-type"
+	  >toBE64</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier hs-type"
+	  >Word64</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier hs-type"
+	  >Word64</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#if defined(WORDS_BIGENDIAN) || defined(ETA_VERSION)
+</span
+      ><span class="hs-identifier"
+      >toBE64</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >id</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span id="toBE64"
+      ><span class="annot"
+	><span class="annottext"
+	  >toBE64 :: Word64 -&gt; Word64
+</span
+	  ><a href="PlutusCore.Flat.Endian.html#toBE64"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toBE64</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Word64
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#byteSwap64"
+	><span class="hs-identifier hs-var"
+	  >byteSwap64</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- |
+Convert a 32 bit value in cpu endianess to big endian
+
+&gt;&gt;&gt; toBE32 0xF0F1F2F3 == if isBigEndian then 0xF0F1F2F3 else 0xF3F2F1F0
+True
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Endian.html#toBE32"
+	><span class="hs-identifier hs-type"
+	  >toBE32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word32"
+	><span class="hs-identifier hs-type"
+	  >Word32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word32"
+	><span class="hs-identifier hs-type"
+	  >Word32</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#if defined(WORDS_BIGENDIAN) || defined(ETA_VERSION)
+</span
+      ><span class="hs-identifier"
+      >toBE32</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >id</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span id="toBE32"
+      ><span class="annot"
+	><span class="annottext"
+	  >toBE32 :: Word32 -&gt; Word32
+</span
+	  ><a href="PlutusCore.Flat.Endian.html#toBE32"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toBE32</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word32 -&gt; Word32
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#byteSwap32"
+	><span class="hs-identifier hs-var"
+	  >byteSwap32</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- |
+Convert a 16 bit value in cpu endianess to big endian
+
+&gt;&gt;&gt; toBE16 0xF0F1 == if isBigEndian then 0xF0F1 else 0xF1F0
+True
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Endian.html#toBE16"
+	><span class="hs-identifier hs-type"
+	  >toBE16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word16"
+	><span class="hs-identifier hs-type"
+	  >Word16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word16"
+	><span class="hs-identifier hs-type"
+	  >Word16</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#if defined(WORDS_BIGENDIAN) || defined(ETA_VERSION)
+</span
+      ><span class="hs-identifier"
+      >toBE16</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >id</span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span id="toBE16"
+      ><span class="annot"
+	><span class="annottext"
+	  >toBE16 :: Word16 -&gt; Word16
+</span
+	  ><a href="PlutusCore.Flat.Endian.html#toBE16"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toBE16</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word16 -&gt; Word16
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#byteSwap16"
+	><span class="hs-identifier hs-var"
+	  >byteSwap16</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ></pre
+    ></body
+  ></html
+>

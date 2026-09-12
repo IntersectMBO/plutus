@@ -1,0 +1,58 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module PlutusCore.Examples.Data.Pair
+<span class="lineno">    4 </span>  ( obothPair
+<span class="lineno">    5 </span>  ) where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import PlutusCore.Core
+<span class="lineno">    8 </span>import PlutusCore.Default
+<span class="lineno">    9 </span>import PlutusCore.MkPlc
+<span class="lineno">   10 </span>import PlutusCore.Name.Unique
+<span class="lineno">   11 </span>import PlutusCore.Quote
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import PlutusCore.StdLib.Data.Pair
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusCore.Examples.Builtins
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>{-| Apply a monomorphic function to both components of a pair.
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>&gt; /\(a :: *) -&gt; \(f : a -&gt; a) (p : pair a a) -&gt;
+<span class="lineno">   20 </span>&gt;     comma {a} {a} (f (fst {a} {a} p)) (f (snd {a} {a} p)) -}
+<span class="lineno">   21 </span>obothPair :: TermLike term TyName Name DefaultUni (Either DefaultFun ExtensionFun) =&gt; term ()
+<span class="lineno">   22 </span><span class="decl"><span class="istickedoff">obothPair = runQuote $ do</span>
+<span class="lineno">   23 </span><span class="spaces">  </span><span class="istickedoff">a &lt;- freshTyName &quot;a&quot;</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- freshName &quot;f&quot;</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="istickedoff">p &lt;- freshName &quot;p&quot;</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="istickedoff">let atAA fun = mkIterInstNoAnn (builtin () fun) [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> a]</span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="istickedoff">return</span>
+<span class="lineno">   28 </span><span class="spaces">    </span><span class="istickedoff">. tyAbs () a (Type <span class="nottickedoff">()</span>)</span>
+<span class="lineno">   29 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () f (TyFun <span class="nottickedoff">()</span> (TyVar <span class="nottickedoff">()</span> a) $ TyVar <span class="nottickedoff">()</span> a)</span>
+<span class="lineno">   30 </span><span class="spaces">    </span><span class="istickedoff">. lamAbs () p (mkIterTyAppNoAnn pair [TyVar <span class="nottickedoff">()</span> a, TyVar <span class="nottickedoff">()</span> a])</span>
+<span class="lineno">   31 </span><span class="spaces">    </span><span class="istickedoff">$ mkIterAppNoAnn</span>
+<span class="lineno">   32 </span><span class="spaces">      </span><span class="istickedoff">(atAA $ Right Comma)</span>
+<span class="lineno">   33 </span><span class="spaces">      </span><span class="istickedoff">[ apply () (var () f) . apply () (atAA $ Left FstPair) $ var () p</span>
+<span class="lineno">   34 </span><span class="spaces">      </span><span class="istickedoff">, apply () (var () f) . apply () (atAA $ Left SndPair) $ var () p</span>
+<span class="lineno">   35 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+
+</pre>
+</body>
+</html>

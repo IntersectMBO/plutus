@@ -1,0 +1,877 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Transform.Optimizer</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.63.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Transform.Optimizer.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Transform.Optimizer</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:OptimizerT" class="def"
+	    >OptimizerT</a
+	    > name uni fun ann m a <a href="src/UntypedPlutusCore.Transform.Optimizer.html#OptimizerT" class="link"
+	    >Source</a
+	    > <a href="#t:OptimizerT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:OptimizerT" class="def"
+		  >OptimizerT</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:getOptimizerT" class="def"
+			  >getOptimizerT</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+			  >StateT</a
+			  > (<a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerTrace</a
+			  > name uni fun ann) m a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:OptimizerT"
+	    >Instances</h4
+	    ><details id="i:OptimizerT" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:OptimizerT:MonadTrans:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mmorph-1.2.2/docs/Control-Monad-Morph.html#t:MonadTrans" title="Control.Monad.Morph"
+		      >MonadTrans</a
+		      > (<a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+		      >OptimizerT</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Optimizer.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:OptimizerT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:OptimizerT:MonadTrans:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Optimizer.html"
+			>UntypedPlutusCore.Transform.Optimizer</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; m a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:OptimizerT:Applicative:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+		      >OptimizerT</a
+		      > name uni fun ann m)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Optimizer.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:OptimizerT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:OptimizerT:Applicative:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Optimizer.html"
+			>UntypedPlutusCore.Transform.Optimizer</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m (a &#8594; b) &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:OptimizerT:Functor:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+		      >OptimizerT</a
+		      > name uni fun ann m)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Optimizer.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:OptimizerT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:OptimizerT:Functor:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Optimizer.html"
+			>UntypedPlutusCore.Transform.Optimizer</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:OptimizerT:Monad:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+		      >OptimizerT</a
+		      > name uni fun ann m)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Optimizer.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:OptimizerT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:OptimizerT:Monad:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Optimizer.html"
+			>UntypedPlutusCore.Transform.Optimizer</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a &#8594; (a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b) &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:OptimizerT:MonadQuote:5"
+		      ></span
+		      > <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+		      >OptimizerT</a
+		      > name uni fun ann m)</span
+		    > <a href="src/UntypedPlutusCore.Transform.Optimizer.html#line-44" class="link"
+		    >Source</a
+		    > <a href="#t:OptimizerT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:OptimizerT:MonadQuote:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Optimizer.html"
+			>UntypedPlutusCore.Transform.Optimizer</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptimizerT</a
+			  > name uni fun ann m a <a href="src/PlutusCore.Quote.html#liftQuote" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:OptStage" class="def"
+	    >OptStage</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >UncertifiedOptStage</a
+	    > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >CertifiedOptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#OptStage" class="link"
+	    >Source</a
+	    > <a href="#t:OptStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:FloatDelayStage" class="def"
+	    >FloatDelayStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#FloatDelayStage" class="link"
+	    >Source</a
+	    > <a href="#v:FloatDelayStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:ForceDelayStage" class="def"
+	    >ForceDelayStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#ForceDelayStage" class="link"
+	    >Source</a
+	    > <a href="#v:ForceDelayStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:ForceCaseDelayStage" class="def"
+	    >ForceCaseDelayStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#ForceCaseDelayStage" class="link"
+	    >Source</a
+	    > <a href="#v:ForceCaseDelayStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:CaseReduceStage" class="def"
+	    >CaseReduceStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#CaseReduceStage" class="link"
+	    >Source</a
+	    > <a href="#v:CaseReduceStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:InlineStage" class="def"
+	    >InlineStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#InlineStage" class="link"
+	    >Source</a
+	    > <a href="#v:InlineStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:CseStage" class="def"
+	    >CseStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#CseStage" class="link"
+	    >Source</a
+	    > <a href="#v:CseStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:ApplyToCaseStage" class="def"
+	    >ApplyToCaseStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#ApplyToCaseStage" class="link"
+	    >Source</a
+	    > <a href="#v:ApplyToCaseStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:CaseOfCaseStage" class="def"
+	    >CaseOfCaseStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#CaseOfCaseStage" class="link"
+	    >Source</a
+	    > <a href="#v:CaseOfCaseStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:LetFloatOutStage" class="def"
+	    >LetFloatOutStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#LetFloatOutStage" class="link"
+	    >Source</a
+	    > <a href="#v:LetFloatOutStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:OptimizerTrace" class="def"
+	    >OptimizerTrace</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#OptimizerTrace" class="link"
+	    >Source</a
+	    > <a href="#t:OptimizerTrace" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:OptimizerTrace" class="def"
+		  >OptimizerTrace</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:optimizerTrace" class="def"
+			  >optimizerTrace</a
+			  > &#8759; [<a href="UntypedPlutusCore-Transform-Optimizer.html#t:Optimization" title="UntypedPlutusCore.Transform.Optimizer"
+			  >Optimization</a
+			  > name uni fun a]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Optimization" class="def"
+	    >Optimization</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#Optimization" class="link"
+	    >Source</a
+	    > <a href="#t:Optimization" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Optimization" class="def"
+		  >Optimization</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:beforeAST" class="def"
+			  >beforeAST</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:stage" class="def"
+			  >stage</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+			  >OptStage</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:hints" class="def"
+			  >hints</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Hints.html#t:Hints" title="UntypedPlutusCore.Transform.Certify.Hints"
+			  >Hints</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:afterAST" class="def"
+			  >afterAST</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runOptimizerT" class="def"
+	    >runOptimizerT</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerT</a
+	    > name uni fun ann m a &#8594; m (a, <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerTrace</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Transform.Optimizer.html#runOptimizerT" class="link"
+	    >Source</a
+	    > <a href="#v:runOptimizerT" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalOptimizerT" class="def"
+	    >evalOptimizerT</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerT</a
+	    > name uni fun ann m a &#8594; m a <a href="src/UntypedPlutusCore.Transform.Optimizer.html#evalOptimizerT" class="link"
+	    >Source</a
+	    > <a href="#v:evalOptimizerT" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:execOptimizerT" class="def"
+	    >execOptimizerT</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerT</a
+	    > name uni fun ann m a &#8594; m (<a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerTrace</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Transform.Optimizer.html#execOptimizerT" class="link"
+	    >Source</a
+	    > <a href="#v:execOptimizerT" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Optimizer" class="def"
+	    >Optimizer</a
+	    > name uni fun ann = <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerT</a
+	    > name uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+	    >Identity</a
+	    > <a href="src/UntypedPlutusCore.Transform.Optimizer.html#Optimizer" class="link"
+	    >Source</a
+	    > <a href="#t:Optimizer" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runOptimizer" class="def"
+	    >runOptimizer</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:Optimizer" title="UntypedPlutusCore.Transform.Optimizer"
+	    >Optimizer</a
+	    > name uni fun ann a &#8594; (a, <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerTrace</a
+	    > name uni fun ann) <a href="src/UntypedPlutusCore.Transform.Optimizer.html#runOptimizer" class="link"
+	    >Source</a
+	    > <a href="#v:runOptimizer" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalOptimizer" class="def"
+	    >evalOptimizer</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:Optimizer" title="UntypedPlutusCore.Transform.Optimizer"
+	    >Optimizer</a
+	    > name uni fun ann a &#8594; a <a href="src/UntypedPlutusCore.Transform.Optimizer.html#evalOptimizer" class="link"
+	    >Source</a
+	    > <a href="#v:evalOptimizer" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:execOptimizer" class="def"
+	    >execOptimizer</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:Optimizer" title="UntypedPlutusCore.Transform.Optimizer"
+	    >Optimizer</a
+	    > name uni fun ann a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerTrace</a
+	    > name uni fun ann <a href="src/UntypedPlutusCore.Transform.Optimizer.html#execOptimizer" class="link"
+	    >Source</a
+	    > <a href="#v:execOptimizer" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:initOptimizerTrace" class="def"
+	    >initOptimizerTrace</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerTrace</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#initOptimizerTrace" class="link"
+	    >Source</a
+	    > <a href="#v:initOptimizerTrace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:recordOptimization" class="def"
+	    >recordOptimization</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerT</a
+	    > name uni fun a m () <a href="src/UntypedPlutusCore.Transform.Optimizer.html#recordOptimization" class="link"
+	    >Source</a
+	    > <a href="#v:recordOptimization" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:recordOptimizationWithHints" class="def"
+	    >recordOptimizationWithHints</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m &#8658; <a href="UntypedPlutusCore-Transform-Certify-Hints.html#t:Hints" title="UntypedPlutusCore.Transform.Certify.Hints"
+	    >Hints</a
+	    > &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptStage" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptStage</a
+	    > &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Optimizer.html#t:OptimizerT" title="UntypedPlutusCore.Transform.Optimizer"
+	    >OptimizerT</a
+	    > name uni fun a m () <a href="src/UntypedPlutusCore.Transform.Optimizer.html#recordOptimizationWithHints" class="link"
+	    >Source</a
+	    > <a href="#v:recordOptimizationWithHints" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

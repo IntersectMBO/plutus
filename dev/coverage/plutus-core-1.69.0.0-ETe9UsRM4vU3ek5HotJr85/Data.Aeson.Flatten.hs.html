@@ -1,0 +1,98 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE CPP #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module Data.Aeson.Flatten
+<span class="lineno">    4 </span>  ( flattenObject
+<span class="lineno">    5 </span>  , unflattenObject
+<span class="lineno">    6 </span>  , mergeObject
+<span class="lineno">    7 </span>  , mergeValue
+<span class="lineno">    8 </span>  , objToHm
+<span class="lineno">    9 </span>  , hmToObj
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Data.Aeson
+<span class="lineno">   13 </span>#if MIN_VERSION_aeson(2,0,0)
+<span class="lineno">   14 </span>import Data.Aeson.KeyMap
+<span class="lineno">   15 </span>#endif
+<span class="lineno">   16 </span>import Data.HashMap.Strict qualified as HM
+<span class="lineno">   17 </span>import Data.Text qualified as Text
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>-- | Convert an object to a hashmap. Compatibility shim for pre-/post-aeson-2.
+<span class="lineno">   20 </span>objToHm :: Object -&gt; HM.HashMap Text.Text Value
+<span class="lineno">   21 </span>#if MIN_VERSION_aeson(2,0,0)
+<span class="lineno">   22 </span><span class="decl"><span class="istickedoff">objToHm = toHashMapText</span></span>
+<span class="lineno">   23 </span>#else
+<span class="lineno">   24 </span>objToHm = id
+<span class="lineno">   25 </span>#endif
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>-- | Convert a hashmap to an object. Compatibility shim for pre-/post-aeson-2.
+<span class="lineno">   28 </span>hmToObj :: HM.HashMap Text.Text Value -&gt; Object
+<span class="lineno">   29 </span>#if MIN_VERSION_aeson(2,0,0)
+<span class="lineno">   30 </span><span class="decl"><span class="istickedoff">hmToObj = fromHashMapText</span></span>
+<span class="lineno">   31 </span>#else
+<span class="lineno">   32 </span>hmToObj = id
+<span class="lineno">   33 </span>#endif
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>{-| Turn a nested object into a &quot;flat&quot; object where the keys represent paths into the original
+<span class="lineno">   36 </span>object. The keys in the result will be the keys in the original path, separated by `sep`.
+<span class="lineno">   37 </span>The inverse of 'unflattenObject'. -}
+<span class="lineno">   38 </span>flattenObject :: Text.Text -&gt; Object -&gt; Object
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">flattenObject sep o = hmToObj $ go Nothing (objToHm o)</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">go :: Maybe Text.Text -&gt; HM.HashMap Text.Text Value -&gt; HM.HashMap Text.Text Value</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">go mprefix = HM.foldMapWithKey $ \k v -&gt;</span>
+<span class="lineno">   43 </span><span class="spaces">      </span><span class="istickedoff">let newName = case mprefix of</span>
+<span class="lineno">   44 </span><span class="spaces">            </span><span class="istickedoff">Just prefix -&gt; prefix &lt;&gt; sep &lt;&gt; k</span>
+<span class="lineno">   45 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt; k</span>
+<span class="lineno">   46 </span><span class="spaces">       </span><span class="istickedoff">in case v of</span>
+<span class="lineno">   47 </span><span class="spaces">            </span><span class="istickedoff">Object o' -&gt; go (Just newName) $ objToHm o'</span>
+<span class="lineno">   48 </span><span class="spaces">            </span><span class="istickedoff">leaf -&gt; HM.singleton newName leaf</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>{-| Turn a &quot;flat&quot; object whose keys represent paths into an unflattened object.
+<span class="lineno">   51 </span>The keys in the result will be the resulting path, separated by `sep`.
+<span class="lineno">   52 </span>The inverse of 'flattenObject'. -}
+<span class="lineno">   53 </span>unflattenObject :: Text.Text -&gt; Object -&gt; Object
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">unflattenObject sep o =</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">HM.foldlWithKey (\acc k v -&gt; mergeObject acc (mkPathObject k v)) mempty (objToHm o)</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   57 </span><span class="spaces">    </span><span class="istickedoff">mkPathObject :: Text.Text -&gt; Value -&gt; Object</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="istickedoff">mkPathObject k value =</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="istickedoff">let path = Text.splitOn sep k</span>
+<span class="lineno">   60 </span><span class="spaces">       </span><span class="istickedoff">in hmToObj $ go path value</span>
+<span class="lineno">   61 </span><span class="spaces">      </span><span class="istickedoff">where</span>
+<span class="lineno">   62 </span><span class="spaces">        </span><span class="istickedoff">go :: [Text.Text] -&gt; Value -&gt; HM.HashMap Text.Text Value</span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="istickedoff">go [] _ = <span class="nottickedoff">error &quot;empty path&quot;</span></span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff">go [n] v = HM.singleton n v</span>
+<span class="lineno">   65 </span><span class="spaces">        </span><span class="istickedoff">go (n : n' : xs) v = HM.singleton n $ Object $ hmToObj $ go (n' : xs) v</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>{-| Merge two objects, merging the values where both sides have an entry for a key rather than
+<span class="lineno">   68 </span>taking the first. -}
+<span class="lineno">   69 </span>mergeObject :: Object -&gt; Object -&gt; Object
+<span class="lineno">   70 </span><span class="decl"><span class="istickedoff">mergeObject o1 o2 = hmToObj $ HM.unionWith mergeValue (objToHm o1) (objToHm o2)</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>-- | Merge two values, merging the objects using 'mergeObject'. Can't merge anything else.
+<span class="lineno">   73 </span>mergeValue :: Value -&gt; Value -&gt; Value
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">mergeValue (Object o1) (Object o2) = Object $ mergeObject o1 o2</span>
+<span class="lineno">   75 </span><span class="spaces"></span><span class="istickedoff">mergeValue _ _ = <span class="nottickedoff">error &quot;can't merge&quot;</span></span></span>
+
+</pre>
+</body>
+</html>

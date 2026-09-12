@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>-- | @unit@ and related functions.
+<span class="lineno">    6 </span>module PlutusCore.StdLib.Data.Unit
+<span class="lineno">    7 </span>  ( unit
+<span class="lineno">    8 </span>  , unitval
+<span class="lineno">    9 </span>  , sequ
+<span class="lineno">   10 </span>  ) where
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import PlutusCore.Core
+<span class="lineno">   13 </span>import PlutusCore.MkPlc
+<span class="lineno">   14 </span>import PlutusCore.Name.Unique
+<span class="lineno">   15 </span>import PlutusCore.Quote
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>-- | '()' as a PLC type.
+<span class="lineno">   18 </span>unit :: uni `HasTypeLevel` () =&gt; Type tyname uni ()
+<span class="lineno">   19 </span><span class="decl"><span class="istickedoff">unit = mkTyBuiltin @_ @() ()</span></span>
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>-- | '()' as a PLC term.
+<span class="lineno">   22 </span>unitval :: (TermLike term tyname name uni fun, uni `HasTermLevel` ()) =&gt; term ()
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">unitval = mkConstant () ()</span></span>
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- | 'seq' specified to '()' as a PLC term.
+<span class="lineno">   26 </span>sequ :: (TermLike term tyname Name uni fun, uni `HasTypeAndTermLevel` ()) =&gt; term ()
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">sequ = runQuote $ do</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="nottickedoff">x &lt;- freshName &quot;x&quot;</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">y &lt;- freshName &quot;y&quot;</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="nottickedoff">return</span>
+<span class="lineno">   31 </span><span class="spaces">    </span><span class="nottickedoff">. lamAbs () x unit</span>
+<span class="lineno">   32 </span><span class="spaces">    </span><span class="nottickedoff">. lamAbs () y unit</span>
+<span class="lineno">   33 </span><span class="spaces">    </span><span class="nottickedoff">$ unitval</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,1356 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Transform.Certify.Trace</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.63.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Transform.Certify.Trace.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Transform.Certify.Trace</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CertifiedOptStage"
+	      >CertifiedOptStage</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:FloatDelay"
+		  >FloatDelay</a
+		  ></li
+		><li
+		>| <a href="#v:ForceDelay"
+		  >ForceDelay</a
+		  ></li
+		><li
+		>| <a href="#v:ForceCaseDelay"
+		  >ForceCaseDelay</a
+		  ></li
+		><li
+		>| <a href="#v:Inline"
+		  >Inline</a
+		  ></li
+		><li
+		>| <a href="#v:CSE"
+		  >CSE</a
+		  ></li
+		><li
+		>| <a href="#v:ApplyToCase"
+		  >ApplyToCase</a
+		  ></li
+		><li
+		>| <a href="#v:CaseReduce"
+		  >CaseReduce</a
+		  ></li
+		><li
+		>| <a href="#v:LetFloatOut"
+		  >LetFloatOut</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:UncertifiedOptStage"
+	      >UncertifiedOptStage</a
+	      > = <a href="#v:CaseOfCase"
+	      >CaseOfCase</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:OptStage"
+	      >OptStage</a
+	      > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >UncertifiedOptStage</a
+	      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >CertifiedOptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:FloatDelayStage"
+	      >FloatDelayStage</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:ForceDelayStage"
+	      >ForceDelayStage</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:ForceCaseDelayStage"
+	      >ForceCaseDelayStage</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:CaseReduceStage"
+	      >CaseReduceStage</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:InlineStage"
+	      >InlineStage</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:CseStage"
+	      >CseStage</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:ApplyToCaseStage"
+	      >ApplyToCaseStage</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:CaseOfCaseStage"
+	      >CaseOfCaseStage</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >pattern</span
+	      > <a href="#v:LetFloatOutStage"
+	      >LetFloatOutStage</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptStage</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Optimization"
+	      >Optimization</a
+	      > name uni fun a = <a href="#v:Optimization"
+	      >Optimization</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:beforeAST"
+		  >beforeAST</a
+		  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > name uni fun a</li
+		><li
+		><a href="#v:stage"
+		  >stage</a
+		  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+		  >OptStage</a
+		  ></li
+		><li
+		><a href="#v:hints"
+		  >hints</a
+		  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Hints.html#t:Hints" title="UntypedPlutusCore.Transform.Certify.Hints"
+		  >Hints</a
+		  ></li
+		><li
+		><a href="#v:afterAST"
+		  >afterAST</a
+		  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > name uni fun a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:OptimizerTrace"
+	      >OptimizerTrace</a
+	      > name uni fun a = <a href="#v:OptimizerTrace"
+	      >OptimizerTrace</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:optimizerTrace"
+		  >optimizerTrace</a
+		  > &#8759; [<a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:Optimization" title="UntypedPlutusCore.Transform.Certify.Trace"
+		  >Optimization</a
+		  > name uni fun a]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:initOptimizerTrace"
+	      >initOptimizerTrace</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptimizerTrace</a
+	      > name uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:allASTs"
+	      >allASTs</a
+	      > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Certify.Trace"
+	      >OptimizerTrace</a
+	      > name uni fun a &#8594; [<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun a]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CertifiedOptStage" class="def"
+	    >CertifiedOptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#CertifiedOptStage" class="link"
+	    >Source</a
+	    > <a href="#t:CertifiedOptStage" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Datatype which represents optimization passes which are also
+certified.</p
+	    ><p
+	    >This means that these passes are formalized as part of the certifier,
+and adding a new pass constructor to this type means that it is expected
+the pass will be also certified in the same PR.</p
+	    ><p
+	    >WARNING: the order of the constructors MUST be the same as the order
+of their counterparts in <code
+	      ><a href="VerifiedCompilation.html#v:Trace" title="VerifiedCompilation"
+		>Trace</a
+		></code
+	      >. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:FloatDelay" class="def"
+		  >FloatDelay</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ForceDelay" class="def"
+		  >ForceDelay</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ForceCaseDelay" class="def"
+		  >ForceCaseDelay</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Inline" class="def"
+		  >Inline</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CSE" class="def"
+		  >CSE</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ApplyToCase" class="def"
+		  >ApplyToCase</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CaseReduce" class="def"
+		  >CaseReduce</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LetFloatOut" class="def"
+		  >LetFloatOut</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CertifiedOptStage"
+	    >Instances</h4
+	    ><details id="i:CertifiedOptStage" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CertifiedOptStage:Generic:1"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+		      >CertifiedOptStage</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:CertifiedOptStage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CertifiedOptStage:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Certify-Trace.html"
+			>UntypedPlutusCore.Transform.Certify.Trace</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >CertifiedOptStage</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >CertifiedOptStage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >CertifiedOptStage</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >CertifiedOptStage</a
+			  > x &#8594; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >CertifiedOptStage</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CertifiedOptStage:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+		      >CertifiedOptStage</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:CertifiedOptStage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CertifiedOptStage:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Certify-Trace.html"
+			>UntypedPlutusCore.Transform.Certify.Trace</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >CertifiedOptStage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >CertifiedOptStage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >CertifiedOptStage</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CertifiedOptStage:NFData:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+		      >CertifiedOptStage</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:CertifiedOptStage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CertifiedOptStage:NFData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Certify-Trace.html"
+			>UntypedPlutusCore.Transform.Certify.Trace</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >CertifiedOptStage</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CertifiedOptStage:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+		      >CertifiedOptStage</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:CertifiedOptStage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CertifiedOptStage:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Certify-Trace.html"
+			>UntypedPlutusCore.Transform.Certify.Trace</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			>CertifiedOptStage</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;CertifiedOptStage&quot; &quot;UntypedPlutusCore.Transform.Certify.Trace&quot; &quot;plutus-core-1.63.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;FloatDelay&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ForceDelay&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ForceCaseDelay&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Inline&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;CSE&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ApplyToCase&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;CaseReduce&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;LetFloatOut&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:UncertifiedOptStage" class="def"
+	    >UncertifiedOptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#UncertifiedOptStage" class="link"
+	    >Source</a
+	    > <a href="#t:UncertifiedOptStage" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Datatype which represents optimization passes which are not yet
+certified.</p
+	    ><p
+	    >WARNING: the order of the constructors MUST be the same as the order
+of their counterparts in <code
+	      ><a href="VerifiedCompilation.html#v:Trace" title="VerifiedCompilation"
+		>Trace</a
+		></code
+	      >.</p
+	    ><p
+	    >IMPORTANT: if you add a new pass, or modify an existing pass, without
+also modifying the certifier in the same PR, you must add/move its
+corresponding constructor to this type. Please also open an issue
+at <a href="https://github.com/IntersectMBO/plutus/issues"
+	      >https://github.com/IntersectMBO/plutus/issues</a
+	      >. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CaseOfCase" class="def"
+		  >CaseOfCase</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UncertifiedOptStage"
+	    >Instances</h4
+	    ><details id="i:UncertifiedOptStage" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UncertifiedOptStage:Generic:1"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+		      >UncertifiedOptStage</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:UncertifiedOptStage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UncertifiedOptStage:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Certify-Trace.html"
+			>UntypedPlutusCore.Transform.Certify.Trace</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >UncertifiedOptStage</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >UncertifiedOptStage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >UncertifiedOptStage</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >UncertifiedOptStage</a
+			  > x &#8594; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >UncertifiedOptStage</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UncertifiedOptStage:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+		      >UncertifiedOptStage</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:UncertifiedOptStage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UncertifiedOptStage:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Certify-Trace.html"
+			>UntypedPlutusCore.Transform.Certify.Trace</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >UncertifiedOptStage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >UncertifiedOptStage</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >UncertifiedOptStage</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UncertifiedOptStage:NFData:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+		      >UncertifiedOptStage</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:UncertifiedOptStage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UncertifiedOptStage:NFData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Certify-Trace.html"
+			>UntypedPlutusCore.Transform.Certify.Trace</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >UncertifiedOptStage</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UncertifiedOptStage:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+		      >UncertifiedOptStage</a
+		      ></span
+		    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:UncertifiedOptStage" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UncertifiedOptStage:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Transform-Certify-Trace.html"
+			>UntypedPlutusCore.Transform.Certify.Trace</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			>UncertifiedOptStage</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;UncertifiedOptStage&quot; &quot;UntypedPlutusCore.Transform.Certify.Trace&quot; &quot;plutus-core-1.63.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;CaseOfCase&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:OptStage" class="def"
+	    >OptStage</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:UncertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >UncertifiedOptStage</a
+	    > <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:CertifiedOptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >CertifiedOptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#OptStage" class="link"
+	    >Source</a
+	    > <a href="#t:OptStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:FloatDelayStage" class="def"
+	    >FloatDelayStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#FloatDelayStage" class="link"
+	    >Source</a
+	    > <a href="#v:FloatDelayStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:ForceDelayStage" class="def"
+	    >ForceDelayStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#ForceDelayStage" class="link"
+	    >Source</a
+	    > <a href="#v:ForceDelayStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:ForceCaseDelayStage" class="def"
+	    >ForceCaseDelayStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#ForceCaseDelayStage" class="link"
+	    >Source</a
+	    > <a href="#v:ForceCaseDelayStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:CaseReduceStage" class="def"
+	    >CaseReduceStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#CaseReduceStage" class="link"
+	    >Source</a
+	    > <a href="#v:CaseReduceStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:InlineStage" class="def"
+	    >InlineStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#InlineStage" class="link"
+	    >Source</a
+	    > <a href="#v:InlineStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:CseStage" class="def"
+	    >CseStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#CseStage" class="link"
+	    >Source</a
+	    > <a href="#v:CseStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:ApplyToCaseStage" class="def"
+	    >ApplyToCaseStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#ApplyToCaseStage" class="link"
+	    >Source</a
+	    > <a href="#v:ApplyToCaseStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:CaseOfCaseStage" class="def"
+	    >CaseOfCaseStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#CaseOfCaseStage" class="link"
+	    >Source</a
+	    > <a href="#v:CaseOfCaseStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:LetFloatOutStage" class="def"
+	    >LetFloatOutStage</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptStage</a
+	    > <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#LetFloatOutStage" class="link"
+	    >Source</a
+	    > <a href="#v:LetFloatOutStage" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Optimization" class="def"
+	    >Optimization</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#Optimization" class="link"
+	    >Source</a
+	    > <a href="#t:Optimization" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Optimization" class="def"
+		  >Optimization</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:beforeAST" class="def"
+			  >beforeAST</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:stage" class="def"
+			  >stage</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptStage" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >OptStage</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:hints" class="def"
+			  >hints</a
+			  > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Hints.html#t:Hints" title="UntypedPlutusCore.Transform.Certify.Hints"
+			  >Hints</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:afterAST" class="def"
+			  >afterAST</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:OptimizerTrace" class="def"
+	    >OptimizerTrace</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#OptimizerTrace" class="link"
+	    >Source</a
+	    > <a href="#t:OptimizerTrace" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:OptimizerTrace" class="def"
+		  >OptimizerTrace</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:optimizerTrace" class="def"
+			  >optimizerTrace</a
+			  > &#8759; [<a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:Optimization" title="UntypedPlutusCore.Transform.Certify.Trace"
+			  >Optimization</a
+			  > name uni fun a]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:initOptimizerTrace" class="def"
+	    >initOptimizerTrace</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptimizerTrace</a
+	    > name uni fun a <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#initOptimizerTrace" class="link"
+	    >Source</a
+	    > <a href="#v:initOptimizerTrace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:allASTs" class="def"
+	    >allASTs</a
+	    > &#8759; <a href="UntypedPlutusCore-Transform-Certify-Trace.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptimizerTrace</a
+	    > name uni fun a &#8594; [<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a] <a href="src/UntypedPlutusCore.Transform.Certify.Trace.html#allASTs" class="link"
+	    >Source</a
+	    > <a href="#v:allASTs" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

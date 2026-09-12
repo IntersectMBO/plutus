@@ -1,0 +1,79 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    3 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>module UntypedPlutusCore.Check.Scope (checkScope) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Lens hiding (index)
+<span class="lineno">    9 </span>import UntypedPlutusCore.Core.Type as UPLC
+<span class="lineno">   10 </span>import UntypedPlutusCore.DeBruijn as UPLC
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Control.Monad (unless)
+<span class="lineno">   13 </span>import Control.Monad.Except (MonadError, throwError)
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>{-| A pass to check that the input term:
+<span class="lineno">   16 </span>1) does not contain free variables and
+<span class="lineno">   17 </span>2) that all binders are set to debruijn index 0.
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>Feeding the result of the debruijnification to this function is expected to pass.
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>On the other hand, because of (2), this pass is
+<span class="lineno">   22 </span>stricter than the undebruijnification's (indirect)
+<span class="lineno">   23 </span>scope-checking, see Note [DeBruijn indices of Binders].
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>Inlining this function makes a big difference,
+<span class="lineno">   26 </span>since it will usually be called in a context where all the type variables are known.
+<span class="lineno">   27 </span>That then means that GHC can optimize go locally in a completely monomorphic setting, which helps a lot. -}
+<span class="lineno">   28 </span>checkScope
+<span class="lineno">   29 </span>  :: forall m name uni fun a
+<span class="lineno">   30 </span>   . (HasIndex name, MonadError FreeVariableError m)
+<span class="lineno">   31 </span>  =&gt; UPLC.Term name uni fun a
+<span class="lineno">   32 </span>  -&gt; m ()
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">checkScope = go 0</span>
+<span class="lineno">   34 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   35 </span><span class="spaces">    </span><span class="istickedoff">-- the current level as a reader value</span>
+<span class="lineno">   36 </span><span class="spaces">    </span><span class="istickedoff">go :: Word -&gt; UPLC.Term name uni fun a -&gt; m ()</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">go !lvl = \case</span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="istickedoff">Var _ n -&gt; do</span>
+<span class="lineno">   39 </span><span class="spaces">        </span><span class="istickedoff">let i = n ^. index</span>
+<span class="lineno">   40 </span><span class="spaces">        </span><span class="istickedoff">-- var index must be larger than 0</span>
+<span class="lineno">   41 </span><span class="spaces">        </span><span class="istickedoff">-- var index must be LEQ to the current level</span>
+<span class="lineno">   42 </span><span class="spaces">        </span><span class="istickedoff">unless (i &gt; 0 &amp;&amp; fromIntegral i &lt;= lvl) $</span>
+<span class="lineno">   43 </span><span class="spaces">          </span><span class="istickedoff">throwError $</span>
+<span class="lineno">   44 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">FreeIndex i</span></span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="istickedoff">LamAbs _ binder t -&gt; do</span>
+<span class="lineno">   46 </span><span class="spaces">        </span><span class="istickedoff">let bIx = binder ^. index</span>
+<span class="lineno">   47 </span><span class="spaces">        </span><span class="istickedoff">-- binder index must be equal to 0</span>
+<span class="lineno">   48 </span><span class="spaces">        </span><span class="istickedoff">unless (bIx == 0) $</span>
+<span class="lineno">   49 </span><span class="spaces">          </span><span class="istickedoff">throwError $</span>
+<span class="lineno">   50 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">FreeIndex bIx</span></span>
+<span class="lineno">   51 </span><span class="spaces">        </span><span class="istickedoff">go (lvl + 1) t</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="istickedoff">Apply _ t1 t2 -&gt; go lvl t1 &gt;&gt; go lvl t2</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="istickedoff">Force _ t -&gt; go lvl t</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="istickedoff">Delay _ t -&gt; go lvl t</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="istickedoff">_ -&gt; pure <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   56 </span>{-# INLINE checkScope #-}
+
+</pre>
+</body>
+</html>

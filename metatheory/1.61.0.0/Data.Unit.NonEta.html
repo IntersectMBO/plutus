@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Unit.NonEta</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Some unit types</a>
+<a id="125" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="199" class="Symbol">{-#</a> <a id="203" class="Keyword">OPTIONS</a> <a id="211" class="Pragma">--cubical-compatible</a> <a id="232" class="Pragma">--safe</a> <a id="239" class="Symbol">#-}</a>
+
+<a id="244" class="Keyword">module</a> <a id="251" href="Data.Unit.NonEta.html" class="Module">Data.Unit.NonEta</a> <a id="268" class="Keyword">where</a>
+
+<a id="275" class="Keyword">open</a> <a id="280" class="Keyword">import</a> <a id="287" href="Level.html" class="Module">Level</a>
+
+<a id="294" class="Comment">------------------------------------------------------------------------</a>
+<a id="367" class="Comment">-- A unit type defined as a data-type</a>
+
+<a id="406" class="Comment">-- The ⊤ type (see Data.Unit) comes with η-equality, which is often</a>
+<a id="474" class="Comment">-- nice to have, but sometimes it is convenient to be able to stop</a>
+<a id="541" class="Comment">-- unfolding (see &quot;Hidden types&quot; below).</a>
+
+<a id="583" class="Keyword">data</a> <a id="Unit"></a><a id="588" href="Data.Unit.NonEta.html#588" class="Datatype">Unit</a> <a id="593" class="Symbol">:</a> <a id="595" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="599" class="Keyword">where</a>
+  <a id="Unit.unit"></a><a id="607" href="Data.Unit.NonEta.html#607" class="InductiveConstructor">unit</a> <a id="612" class="Symbol">:</a> <a id="614" href="Data.Unit.NonEta.html#588" class="Datatype">Unit</a>
+
+<a id="620" class="Comment">------------------------------------------------------------------------</a>
+<a id="693" class="Comment">-- Hidden types</a>
+
+<a id="710" class="Comment">-- &quot;Hidden&quot; values.</a>
+
+<a id="Hidden"></a><a id="731" href="Data.Unit.NonEta.html#731" class="Function">Hidden</a> <a id="738" class="Symbol">:</a> <a id="740" class="Symbol">∀</a> <a id="742" class="Symbol">{</a><a id="743" href="Data.Unit.NonEta.html#743" class="Bound">a</a><a id="744" class="Symbol">}</a> <a id="746" class="Symbol">→</a> <a id="748" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="752" href="Data.Unit.NonEta.html#743" class="Bound">a</a> <a id="754" class="Symbol">→</a> <a id="756" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="760" href="Data.Unit.NonEta.html#743" class="Bound">a</a>
+<a id="762" href="Data.Unit.NonEta.html#731" class="Function">Hidden</a> <a id="769" href="Data.Unit.NonEta.html#769" class="Bound">A</a> <a id="771" class="Symbol">=</a> <a id="773" href="Data.Unit.NonEta.html#588" class="Datatype">Unit</a> <a id="778" class="Symbol">→</a> <a id="780" href="Data.Unit.NonEta.html#769" class="Bound">A</a>
+
+<a id="783" class="Comment">-- The hide function can be used to hide function applications. Note</a>
+<a id="852" class="Comment">-- that the type-checker doesn&#39;t see that &quot;hide f x&quot; contains the</a>
+<a id="918" class="Comment">-- application &quot;f x&quot;.</a>
+
+<a id="hide"></a><a id="941" href="Data.Unit.NonEta.html#941" class="Function">hide</a> <a id="946" class="Symbol">:</a> <a id="948" class="Symbol">∀</a> <a id="950" class="Symbol">{</a><a id="951" href="Data.Unit.NonEta.html#951" class="Bound">a</a> <a id="953" href="Data.Unit.NonEta.html#953" class="Bound">b</a><a id="954" class="Symbol">}</a> <a id="956" class="Symbol">{</a><a id="957" href="Data.Unit.NonEta.html#957" class="Bound">A</a> <a id="959" class="Symbol">:</a> <a id="961" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="965" href="Data.Unit.NonEta.html#951" class="Bound">a</a><a id="966" class="Symbol">}</a> <a id="968" class="Symbol">{</a><a id="969" href="Data.Unit.NonEta.html#969" class="Bound">B</a> <a id="971" class="Symbol">:</a> <a id="973" href="Data.Unit.NonEta.html#957" class="Bound">A</a> <a id="975" class="Symbol">→</a> <a id="977" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="981" href="Data.Unit.NonEta.html#953" class="Bound">b</a><a id="982" class="Symbol">}</a> <a id="984" class="Symbol">→</a>
+       <a id="993" class="Symbol">((</a><a id="995" href="Data.Unit.NonEta.html#995" class="Bound">x</a> <a id="997" class="Symbol">:</a> <a id="999" href="Data.Unit.NonEta.html#957" class="Bound">A</a><a id="1000" class="Symbol">)</a> <a id="1002" class="Symbol">→</a> <a id="1004" href="Data.Unit.NonEta.html#969" class="Bound">B</a> <a id="1006" href="Data.Unit.NonEta.html#995" class="Bound">x</a><a id="1007" class="Symbol">)</a> <a id="1009" class="Symbol">→</a> <a id="1011" class="Symbol">((</a><a id="1013" href="Data.Unit.NonEta.html#1013" class="Bound">x</a> <a id="1015" class="Symbol">:</a> <a id="1017" href="Data.Unit.NonEta.html#957" class="Bound">A</a><a id="1018" class="Symbol">)</a> <a id="1020" class="Symbol">→</a> <a id="1022" href="Data.Unit.NonEta.html#731" class="Function">Hidden</a> <a id="1029" class="Symbol">(</a><a id="1030" href="Data.Unit.NonEta.html#969" class="Bound">B</a> <a id="1032" href="Data.Unit.NonEta.html#1013" class="Bound">x</a><a id="1033" class="Symbol">))</a>
+<a id="1036" href="Data.Unit.NonEta.html#941" class="Function">hide</a> <a id="1041" href="Data.Unit.NonEta.html#1041" class="Bound">f</a> <a id="1043" href="Data.Unit.NonEta.html#1043" class="Bound">x</a> <a id="1045" href="Data.Unit.NonEta.html#607" class="InductiveConstructor">unit</a> <a id="1050" class="Symbol">=</a> <a id="1052" href="Data.Unit.NonEta.html#1041" class="Bound">f</a> <a id="1054" href="Data.Unit.NonEta.html#1043" class="Bound">x</a>
+
+<a id="1057" class="Comment">-- Reveals a hidden value.</a>
+
+<a id="reveal"></a><a id="1085" href="Data.Unit.NonEta.html#1085" class="Function">reveal</a> <a id="1092" class="Symbol">:</a> <a id="1094" class="Symbol">∀</a> <a id="1096" class="Symbol">{</a><a id="1097" href="Data.Unit.NonEta.html#1097" class="Bound">a</a><a id="1098" class="Symbol">}</a> <a id="1100" class="Symbol">{</a><a id="1101" href="Data.Unit.NonEta.html#1101" class="Bound">A</a> <a id="1103" class="Symbol">:</a> <a id="1105" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="1109" href="Data.Unit.NonEta.html#1097" class="Bound">a</a><a id="1110" class="Symbol">}</a> <a id="1112" class="Symbol">→</a> <a id="1114" href="Data.Unit.NonEta.html#731" class="Function">Hidden</a> <a id="1121" href="Data.Unit.NonEta.html#1101" class="Bound">A</a> <a id="1123" class="Symbol">→</a> <a id="1125" href="Data.Unit.NonEta.html#1101" class="Bound">A</a>
+<a id="1127" href="Data.Unit.NonEta.html#1085" class="Function">reveal</a> <a id="1134" href="Data.Unit.NonEta.html#1134" class="Bound">f</a> <a id="1136" class="Symbol">=</a> <a id="1138" href="Data.Unit.NonEta.html#1134" class="Bound">f</a> <a id="1140" href="Data.Unit.NonEta.html#607" class="InductiveConstructor">unit</a>
+</pre></body></html>

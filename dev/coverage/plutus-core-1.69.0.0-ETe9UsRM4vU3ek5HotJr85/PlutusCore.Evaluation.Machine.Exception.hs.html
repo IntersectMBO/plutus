@@ -1,0 +1,166 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FunctionalDependencies #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    8 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    9 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   10 </span>-- editorconfig-checker-disable-file
+<span class="lineno">   11 </span>-- appears in the generated instances
+<span class="lineno">   12 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>-- | The exceptions that an abstract machine can throw.
+<span class="lineno">   15 </span>module PlutusCore.Evaluation.Machine.Exception
+<span class="lineno">   16 </span>  ( UnliftingError (..)
+<span class="lineno">   17 </span>  , BuiltinError (..)
+<span class="lineno">   18 </span>  , MachineError (..)
+<span class="lineno">   19 </span>  , EvaluationError (..)
+<span class="lineno">   20 </span>  , ErrorWithCause (..)
+<span class="lineno">   21 </span>  , EvaluationException
+<span class="lineno">   22 </span>  , notAConstant
+<span class="lineno">   23 </span>  , throwErrorWithCause
+<span class="lineno">   24 </span>  , splitStructuralOperational
+<span class="lineno">   25 </span>  , unsafeSplitStructuralOperational
+<span class="lineno">   26 </span>  , BuiltinErrorToEvaluationError
+<span class="lineno">   27 </span>  , builtinErrorToEvaluationError
+<span class="lineno">   28 </span>  , throwBuiltinErrorWithCause
+<span class="lineno">   29 </span>  ) where
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>import PlutusPrelude
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>import PlutusCore.Builtin.Result
+<span class="lineno">   34 </span>import PlutusCore.Evaluation.ErrorWithCause
+<span class="lineno">   35 </span>import PlutusCore.Evaluation.Result
+<span class="lineno">   36 </span>import PlutusCore.Pretty
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>import Control.Monad.Except
+<span class="lineno">   39 </span>import Data.Either.Extras
+<span class="lineno">   40 </span>import Prettyprinter
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>-- | Errors which can occur during a run of an abstract machine.
+<span class="lineno">   43 </span>data MachineError fun
+<span class="lineno">   44 </span>  = -- | An attempt to reduce a not immediately reducible type instantiation.
+<span class="lineno">   45 </span>    NonPolymorphicInstantiationMachineError
+<span class="lineno">   46 </span>  | -- | An attempt to unwrap a not wrapped term.
+<span class="lineno">   47 </span>    NonWrapUnwrappedMachineError
+<span class="lineno">   48 </span>  | -- | An attempt to reduce a not immediately reducible application.
+<span class="lineno">   49 </span>    NonFunctionalApplicationMachineError
+<span class="lineno">   50 </span>  | -- | An attempt to evaluate an open term.
+<span class="lineno">   51 </span>    OpenTermEvaluatedMachineError
+<span class="lineno">   52 </span>  | -- | An attempt to compute a constant application resulted in 'UnliftingError'.
+<span class="lineno">   53 </span>    UnliftingMachineError UnliftingError
+<span class="lineno">   54 </span>  | -- | A builtin expected a term argument, but something else was received.
+<span class="lineno">   55 </span>    BuiltinTermArgumentExpectedMachineError
+<span class="lineno">   56 </span>  | -- | A builtin received a term argument when something else was expected
+<span class="lineno">   57 </span>    UnexpectedBuiltinTermArgumentMachineError
+<span class="lineno">   58 </span>  | -- | An attempt to scrutinize a non-constr.
+<span class="lineno">   59 </span>    NonConstrScrutinizedMachineError
+<span class="lineno">   60 </span>  | -- | An attempt to go into a non-existent case branch.
+<span class="lineno">   61 </span>    MissingCaseBranchMachineError Word64
+<span class="lineno">   62 </span>  | -- | A GHC exception was thrown.
+<span class="lineno">   63 </span>    PanicMachineError String
+<span class="lineno">   64 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   65 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>type EvaluationException structural operational =
+<span class="lineno">   68 </span>  ErrorWithCause (EvaluationError structural operational)
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>{- Note [Ignoring context in OperationalError]
+<span class="lineno">   71 </span>The 'OperationalError' error has a term argument, but 'splitStructuralOperational' just
+<span class="lineno">   72 </span>discards this and returns 'EvaluationFailure'. This means that, for example, if we use the @plc@
+<span class="lineno">   73 </span>command to execute a program containing a division by zero, @plc@ exits silently without reporting
+<span class="lineno">   74 </span>that anything has gone wrong (but returning a non-zero exit code to the shell via 'exitFailure').
+<span class="lineno">   75 </span>This is because 'OperationalError' is used in cases when a PLC program itself goes wrong
+<span class="lineno">   76 </span>(see the Haddock of 'EvaluationError'). This is used to signal unsuccessful validation and so is
+<span class="lineno">   77 </span>not regarded as a real error; in contrast structural errors are genuine errors and we report their
+<span class="lineno">   78 </span>context if available.
+<span class="lineno">   79 </span>-}
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>-- See the Haddock of 'EvaluationError' for what structural and operational errors are.
+<span class="lineno">   82 </span>-- See Note [Ignoring context in OperationalError].
+<span class="lineno">   83 </span>{-| Preserve the contents of an 'StructuralError' as a 'Left' and turn an
+<span class="lineno">   84 </span>'OperationalError' into a @Right EvaluationFailure@ (thus erasing the content of the
+<span class="lineno">   85 </span>error in the latter case). -}
+<span class="lineno">   86 </span>splitStructuralOperational
+<span class="lineno">   87 </span>  :: Either (EvaluationException structural operational term) a
+<span class="lineno">   88 </span>  -&gt; Either (ErrorWithCause structural term) (EvaluationResult a)
+<span class="lineno">   89 </span><span class="decl"><span class="istickedoff">splitStructuralOperational (Right term) = Right $ EvaluationSuccess term</span>
+<span class="lineno">   90 </span><span class="spaces"></span><span class="istickedoff">splitStructuralOperational (Left (ErrorWithCause evalErr cause)) = case evalErr of</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">StructuralError err -&gt; Left $ ErrorWithCause err cause</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="istickedoff">OperationalError _ -&gt; Right EvaluationFailure</span></span>
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>{-| Throw on a 'StructuralError' and turn an 'OperationalError' into an
+<span class="lineno">   95 </span>'EvaluationFailure' (thus erasing the content of the error in the latter case). -}
+<span class="lineno">   96 </span>unsafeSplitStructuralOperational
+<span class="lineno">   97 </span>  :: (PrettyPlc structural, PrettyPlc term, Typeable structural, Typeable term)
+<span class="lineno">   98 </span>  =&gt; Either (EvaluationException structural operational term) a
+<span class="lineno">   99 </span>  -&gt; EvaluationResult a
+<span class="lineno">  100 </span><span class="decl"><span class="istickedoff">unsafeSplitStructuralOperational = unsafeFromEither . splitStructuralOperational</span></span>
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>instance
+<span class="lineno">  103 </span>  <span class="decl"><span class="nottickedoff">(HasPrettyDefaults config ~ 'True, Pretty fun)</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy config (MachineError fun)</span></span>
+<span class="lineno">  105 </span>  where
+<span class="lineno">  106 </span>  <span class="decl"><span class="istickedoff">prettyBy _ NonPolymorphicInstantiationMachineError =</span>
+<span class="lineno">  107 </span><span class="spaces">    </span><span class="istickedoff">&quot;Attempted to instantiate a non-polymorphic term.&quot;</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ NonWrapUnwrappedMachineError =</span>
+<span class="lineno">  109 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">&quot;Cannot unwrap a not wrapped term.&quot;</span></span>
+<span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ NonFunctionalApplicationMachineError =</span>
+<span class="lineno">  111 </span><span class="spaces">    </span><span class="istickedoff">&quot;Attempted to apply a non-function.&quot;</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ OpenTermEvaluatedMachineError =</span>
+<span class="lineno">  113 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">&quot;Cannot evaluate an open term&quot;</span></span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ BuiltinTermArgumentExpectedMachineError =</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff">&quot;A builtin expected a term argument, but something else was received&quot;</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ UnexpectedBuiltinTermArgumentMachineError =</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="istickedoff">&quot;A builtin received a term argument when something else was expected&quot;</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ (UnliftingMachineError unliftingError) =</span>
+<span class="lineno">  119 </span><span class="spaces">    </span><span class="istickedoff">pretty unliftingError</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ NonConstrScrutinizedMachineError =</span>
+<span class="lineno">  121 </span><span class="spaces">    </span><span class="istickedoff">&quot;A non-constructor/non-builtin value was scrutinized in a case expression&quot;</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ (MissingCaseBranchMachineError i) =</span>
+<span class="lineno">  123 </span><span class="spaces">    </span><span class="istickedoff">&quot;Case expression missing the branch required by the scrutinee tag:&quot; &lt;+&gt; pretty i</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="istickedoff">prettyBy _ (PanicMachineError err) =</span>
+<span class="lineno">  125 </span><span class="spaces">    </span><span class="istickedoff">vcat</span>
+<span class="lineno">  126 </span><span class="spaces">      </span><span class="istickedoff">[ &quot;Panic: a GHC exception was thrown, please report this as a bug.&quot;</span>
+<span class="lineno">  127 </span><span class="spaces">      </span><span class="istickedoff">, &quot;The error: &quot; &lt;+&gt; pretty err</span>
+<span class="lineno">  128 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>class BuiltinErrorToEvaluationError structural operational where
+<span class="lineno">  131 </span>  builtinErrorToEvaluationError :: BuiltinError -&gt; EvaluationError structural operational
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>{-| Attach a @cause@ to a 'BuiltinError' and throw that.
+<span class="lineno">  134 </span>Note that an evaluator might require the cause to be computed lazily for best performance on the
+<span class="lineno">  135 </span>happy path, hence this function must not force its first argument.
+<span class="lineno">  136 </span>TODO: wrap @cause@ in 'Lazy' once we have it. -}
+<span class="lineno">  137 </span>throwBuiltinErrorWithCause
+<span class="lineno">  138 </span>  :: ( MonadError (EvaluationException structural operational cause) m
+<span class="lineno">  139 </span>     , BuiltinErrorToEvaluationError structural operational
+<span class="lineno">  140 </span>     )
+<span class="lineno">  141 </span>  =&gt; cause -&gt; BuiltinError -&gt; m void
+<span class="lineno">  142 </span><span class="decl"><span class="istickedoff">throwBuiltinErrorWithCause cause e = throwErrorWithCause (builtinErrorToEvaluationError e) cause</span></span>
+<span class="lineno">  143 </span>{-# INLINE throwBuiltinErrorWithCause #-}
+
+</pre>
+</body>
+</html>

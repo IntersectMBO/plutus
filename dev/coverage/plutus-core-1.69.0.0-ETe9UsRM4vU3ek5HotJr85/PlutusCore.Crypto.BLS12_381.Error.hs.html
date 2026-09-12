@@ -1,0 +1,54 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module PlutusCore.Crypto.BLS12_381.Error
+<span class="lineno">    2 </span>where
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>import Data.Bits (testBit)
+<span class="lineno">    5 </span>import Data.ByteString qualified as BS
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>data BLS12_381_Error
+<span class="lineno">    8 </span>  = HashToCurveDstTooBig -- DSTs can be at most 255 bytes long.
+<span class="lineno">    9 </span>  | BadCompressedData -- A compressed point failed structural (length/flag) validation.
+<span class="lineno">   10 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>{-| Structural validation of a compressed BLS12-381 point, shared by the C-free
+<span class="lineno">   13 </span>G1 and G2 `uncompress` stubs (@expectedLen@ is 48 for G1, 96 for G2). It checks
+<span class="lineno">   14 </span>exactly what can be checked without field arithmetic: the length, and the three
+<span class="lineno">   15 </span>metadata bits of the leading byte -- the compression bit must be set, and if the
+<span class="lineno">   16 </span>infinity bit is set the encoding must be the canonical @0xc0 00..00@. It
+<span class="lineno">   17 </span>deliberately does NOT verify that the bytes encode a point on the curve or in the
+<span class="lineno">   18 </span>subgroup (that needs blst), so it is weaker than the real `blsUncompress`; but it
+<span class="lineno">   19 </span>rejects the malformed inputs the real decoder rejects on structure alone, rather
+<span class="lineno">   20 </span>than accepting anything. -}
+<span class="lineno">   21 </span>checkCompressed :: Int -&gt; BS.ByteString -&gt; Either BLS12_381_Error BS.ByteString
+<span class="lineno">   22 </span><span class="decl"><span class="nottickedoff">checkCompressed expectedLen bs</span>
+<span class="lineno">   23 </span><span class="spaces">  </span><span class="nottickedoff">| BS.length bs /= expectedLen = Left BadCompressedData</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="nottickedoff">| not (testBit b0 7)          = Left BadCompressedData -- must be the compressed form</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">| testBit b0 6                = -- point at infinity: must be exactly 0xc0 00..00</span>
+<span class="lineno">   26 </span><span class="spaces">      </span><span class="nottickedoff">if b0 == 0xc0 &amp;&amp; BS.all (== 0) (BS.drop 1 bs)</span>
+<span class="lineno">   27 </span><span class="spaces">        </span><span class="nottickedoff">then Right bs</span>
+<span class="lineno">   28 </span><span class="spaces">        </span><span class="nottickedoff">else Left BadCompressedData</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise                   = Right bs</span>
+<span class="lineno">   30 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   31 </span><span class="spaces">    </span><span class="nottickedoff">b0 = BS.head bs</span></span>
+
+</pre>
+</body>
+</html>

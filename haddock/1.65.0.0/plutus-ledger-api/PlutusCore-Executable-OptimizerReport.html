@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Executable.OptimizerReport</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.65.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Executable.OptimizerReport.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Executable.OptimizerReport</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ReportEntry" class="def"
+	    >ReportEntry</a
+	    > <a href="src/PlutusCore.Executable.OptimizerReport.html#ReportEntry" class="link"
+	    >Source</a
+	    > <a href="#t:ReportEntry" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ReportEntry" class="def"
+		  >ReportEntry</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:rePassName" class="def"
+			  >rePassName</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  ><code
+			    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			      >Nothing</a
+			      ></code
+			    > for the first entry, <code
+			    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			      >Just</a
+			      ></code
+			    > for all other entries.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:reAstSize" class="def"
+			  >reAstSize</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:reCost" class="def"
+			  >reCost</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  >)</dfn
+			><div class="doc"
+			><p
+			  ><code
+			    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			      >Nothing</a
+			      ></code
+			    > means evaluation wasn't requested.  <code
+			    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#v:Left" title="Data.Either"
+			      >Left</a
+			      ></code
+			    > means evaluation failed.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:OptimizerReport" class="def"
+	    >OptimizerReport</a
+	    > = [<a href="PlutusCore-Executable-OptimizerReport.html#t:ReportEntry" title="PlutusCore.Executable.OptimizerReport"
+	    >ReportEntry</a
+	    >] <a href="src/PlutusCore.Executable.OptimizerReport.html#OptimizerReport" class="link"
+	    >Source</a
+	    > <a href="#t:OptimizerReport" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:buildReport" class="def"
+	    >buildReport</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Certify-Trace.html#t:OptimizerTrace" title="UntypedPlutusCore.Transform.Certify.Trace"
+	    >OptimizerTrace</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun a &#8594; [(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > err, <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    >)] &#8594; <a href="PlutusCore-Executable-OptimizerReport.html#t:OptimizerReport" title="PlutusCore.Executable.OptimizerReport"
+	    >OptimizerReport</a
+	    > <a href="src/PlutusCore.Executable.OptimizerReport.html#buildReport" class="link"
+	    >Source</a
+	    > <a href="#v:buildReport" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:printReport" class="def"
+	    >printReport</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-IO-Handle.html#t:Handle" title="GHC.IO.Handle"
+	    >Handle</a
+	    > &#8594; <a href="PlutusCore-Executable-OptimizerReport.html#t:OptimizerReport" title="PlutusCore.Executable.OptimizerReport"
+	    >OptimizerReport</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.OptimizerReport.html#printReport" class="link"
+	    >Source</a
+	    > <a href="#v:printReport" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

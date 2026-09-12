@@ -1,0 +1,4862 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskellQuotes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Plugin.Unsupported</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Compat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Compat</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Expr.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Expr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Type.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Type.html#splitGhcName"
+	><span class="hs-identifier"
+	  >splitGhcName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Eq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ord.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Ord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Plugin.Utils.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Plugin.Utils</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Builtin.Names.html"
+	><span class="hs-identifier"
+	  >GHC.Builtin.Names</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.TyCo.Rep.html"
+	><span class="hs-identifier"
+	  >GHC.Core.TyCo.Rep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.html"
+	><span class="hs-identifier"
+	  >GHC.Hs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Syn.Type.html"
+	><span class="hs-identifier"
+	  >GHC.Hs.Syn.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Iface.Env.html"
+	><span class="hs-identifier"
+	  >GHC.Iface.Env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Plugins.html"
+	><span class="hs-identifier"
+	  >GHC.Plugins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html"
+	><span class="hs-identifier"
+	  >GHC.Tc.Types</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.Evidence.html"
+	><span class="hs-identifier"
+	  >GHC.Tc.Types.Evidence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Utils.Env.html"
+	><span class="hs-identifier"
+	  >GHC.Tc.Utils.Env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Utils.Monad.html"
+	><span class="hs-identifier"
+	  >GHC.Tc.Utils.Monad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Finder.html"
+	><span class="hs-identifier"
+	  >GHC.Unit.Finder</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html"
+	><span class="hs-identifier"
+	  >Control.Monad.IO.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html"
+	><span class="hs-identifier"
+	  >Data.Foldable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/uniplate-1.6.13/docs/src/Data.Generics.Uniplate.Data.html"
+	><span class="hs-identifier"
+	  >Data.Generics.Uniplate.Data</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier"
+	  >Map</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html"
+	><span class="hs-identifier"
+	  >Data.Maybe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TH</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Module"
+      ><span class="annot"
+	><a href="PlutusTx.Plugin.Unsupported.html#Module"
+	  ><span class="hs-identifier hs-var"
+	    >Module</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Class"
+      ><span class="annot"
+	><a href="PlutusTx.Plugin.Unsupported.html#Class"
+	  ><span class="hs-identifier hs-var"
+	    >Class</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Method"
+      ><span class="annot"
+	><a href="PlutusTx.Plugin.Unsupported.html#Method"
+	  ><span class="hs-identifier hs-var"
+	    >Method</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="UseThisInstead"
+      ><span class="annot"
+	><a href="PlutusTx.Plugin.Unsupported.html#UseThisInstead"
+	  ><span class="hs-identifier hs-var"
+	    >UseThisInstead</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Unsupported"
+      ><span class="annot"
+	><a href="PlutusTx.Plugin.Unsupported.html#Unsupported"
+	  ><span class="hs-identifier hs-var"
+	    >Unsupported</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="BaseMethod"
+      ><span class="annot"
+	><a href="PlutusTx.Plugin.Unsupported.html#BaseMethod"
+	  ><span class="hs-identifier hs-var"
+	    >BaseMethod</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#Class"
+	><span class="hs-identifier hs-type"
+	  >Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#Method"
+	><span class="hs-identifier hs-type"
+	  >Method</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#UseThisInstead"
+	><span class="hs-identifier hs-type"
+	  >UseThisInstead</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="IO"
+      ><span class="annot"
+	><a href="PlutusTx.Plugin.Unsupported.html#IO"
+	  ><span class="hs-identifier hs-var"
+	    >IO</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#renderUnsupported"
+	><span class="hs-identifier hs-type"
+	  >renderUnsupported</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#Unsupported"
+	><span class="hs-identifier hs-type"
+	  >Unsupported</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="renderUnsupported"
+      ><span class="annot"
+	><span class="annottext"
+	  >renderUnsupported :: Unsupported -&gt; Module
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#renderUnsupported"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >renderUnsupported</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#BaseMethod"
+	><span class="hs-identifier hs-type"
+	  >BaseMethod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621252"
+      ><span class="annot"
+	><span class="annottext"
+	  >Module
+</span
+	  ><a href="#local-6989586621679621252"
+	  ><span class="hs-identifier hs-var"
+	    >cls</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621253"
+      ><span class="annot"
+	><span class="annottext"
+	  >Module
+</span
+	  ><a href="#local-6989586621679621253"
+	  ><span class="hs-identifier hs-var"
+	    >method</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621254"
+      ><span class="annot"
+	><span class="annottext"
+	  >UseThisInstead
+</span
+	  ><a href="#local-6989586621679621254"
+	  ><span class="hs-identifier hs-var"
+	    >malt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679621252"
+	><span class="hs-identifier hs-var"
+	  >cls</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Module -&gt; Module
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><span class="hs-string"
+	>&quot;.&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Module -&gt; Module
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679621253"
+	><span class="hs-identifier hs-var"
+	  >method</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Module -&gt; Module
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UseThisInstead
+</span
+	><a href="#local-6989586621679621254"
+	><span class="hs-identifier hs-var"
+	  >malt</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621255"
+      ><span class="annot"
+	><span class="annottext"
+	  >Module
+</span
+	  ><a href="#local-6989586621679621255"
+	  ><span class="hs-identifier hs-var"
+	    >alt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><span class="hs-string"
+	>&quot;, use &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Module -&gt; Module
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679621255"
+	><span class="hs-identifier hs-var"
+	  >alt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UseThisInstead
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><span class="hs-string"
+	>&quot;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unsupported
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#IO"
+	><span class="hs-identifier hs-var"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><span class="hs-string"
+	>&quot;IO actions are not supported in Plinth&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#isUnsupported"
+	><span class="hs-identifier hs-type"
+	  >isUnsupported</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.HsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#Unsupported"
+	><span class="hs-identifier hs-type"
+	  >Unsupported</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="isUnsupported"
+      ><span class="annot"
+	><span class="annottext"
+	  >isUnsupported :: HsExpr GhcTc -&gt; Maybe Unsupported
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#isUnsupported"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >isUnsupported</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621257"
+      ><span class="annot"
+	><span class="annottext"
+	  >HsExpr GhcTc
+</span
+	  ><a href="#local-6989586621679621257"
+	  ><span class="hs-identifier hs-var"
+	    >expr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Maybe Unsupported] -&gt; Maybe Unsupported
+forall (t :: * -&gt; *) (f :: * -&gt; *) a.
+(Foldable t, Alternative f) =&gt;
+t (f a) -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#asum"
+	><span class="hs-identifier hs-var"
+	  >asum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc -&gt; Maybe Unsupported
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#checkUnsupportedMethod"
+	><span class="hs-identifier hs-var"
+	  >checkUnsupportedMethod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc
+</span
+	><a href="#local-6989586621679621257"
+	><span class="hs-identifier hs-var"
+	  >expr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type -&gt; Maybe Unsupported
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#checkIO"
+	><span class="hs-identifier hs-var"
+	  >checkIO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type
+</span
+	><a href="#local-6989586621679621261"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679621261"
+      ><span class="annot"
+	><span class="annottext"
+	  >ty :: Type
+</span
+	  ><a href="#local-6989586621679621261"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc -&gt; Type
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Syn.Type.html#hsExprType"
+	><span class="hs-identifier hs-var"
+	  >GHC.hsExprType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc
+</span
+	><a href="#local-6989586621679621257"
+	><span class="hs-identifier hs-var"
+	  >expr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Check if the type involves IO.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#checkIO"
+	><span class="hs-identifier hs-type"
+	  >checkIO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.TyCo.Rep.html#Type"
+	><span class="hs-identifier hs-type"
+	  >GHC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#Unsupported"
+	><span class="hs-identifier hs-type"
+	  >Unsupported</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="checkIO"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkIO :: Type -&gt; Maybe Unsupported
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#checkIO"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkIO</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621263"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type
+</span
+	  ><a href="#local-6989586621679621263"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(() :: Constraint) =&gt; Type -&gt; Maybe (TyCon, [Type])
+Type -&gt; Maybe (TyCon, [Type])
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Type.html#splitTyConApp_maybe"
+	><span class="hs-identifier hs-var"
+	  >GHC.splitTyConApp_maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type
+</span
+	><a href="#local-6989586621679621263"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679621265"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyCon
+</span
+	  ><a href="#local-6989586621679621265"
+	  ><span class="hs-identifier hs-var"
+	    >tc</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Type]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyCon -&gt; Name
+forall a. NamedThing a =&gt; a -&gt; Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#getName"
+	><span class="hs-identifier hs-var"
+	  >GHC.getName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyCon
+</span
+	><a href="#local-6989586621679621265"
+	><span class="hs-identifier hs-var"
+	  >tc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Name -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Builtin.Names.html#ioTyConName"
+	><span class="hs-identifier hs-var"
+	  >GHC.ioTyConName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unsupported -&gt; Maybe Unsupported
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unsupported
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#IO"
+	><span class="hs-identifier hs-var"
+	  >IO</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (TyCon, [Type])
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>FunTyFlag
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679621268"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type
+</span
+	  ><a href="#local-6989586621679621268"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679621269"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type
+</span
+	  ><a href="#local-6989586621679621269"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type -&gt; Maybe (FunTyFlag, Type, Type, Type)
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Type.html#splitFunTy_maybe"
+	><span class="hs-identifier hs-var"
+	  >GHC.splitFunTy_maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type
+</span
+	><a href="#local-6989586621679621263"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Maybe Unsupported] -&gt; Maybe Unsupported
+forall (t :: * -&gt; *) (f :: * -&gt; *) a.
+(Foldable t, Alternative f) =&gt;
+t (f a) -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#asum"
+	><span class="hs-identifier hs-var"
+	  >asum</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type -&gt; Maybe Unsupported
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#checkIO"
+	><span class="hs-identifier hs-var"
+	  >checkIO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type
+</span
+	><a href="#local-6989586621679621268"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type -&gt; Maybe Unsupported
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#checkIO"
+	><span class="hs-identifier hs-var"
+	  >checkIO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type
+</span
+	><a href="#local-6989586621679621269"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Check if an expr is a method of an unsupported @base@ class.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#checkUnsupportedMethod"
+	><span class="hs-identifier hs-type"
+	  >checkUnsupportedMethod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.HsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#Unsupported"
+	><span class="hs-identifier hs-type"
+	  >Unsupported</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="checkUnsupportedMethod"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkUnsupportedMethod :: HsExpr GhcTc -&gt; Maybe Unsupported
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#checkUnsupportedMethod"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkUnsupportedMethod</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsVar"
+	><span class="hs-identifier hs-type"
+	  >GHC.HsVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XVar GhcTc
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SrcLoc.html#L"
+	><span class="hs-identifier hs-type"
+	  >GHC.L</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpanAnnN
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621273"
+      ><span class="annot"
+	><span class="annottext"
+	  >Id
+</span
+	  ><a href="#local-6989586621679621273"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621274"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679621274"
+	  ><span class="hs-identifier hs-var"
+	    >cls</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Class -&gt; Name
+forall a. NamedThing a =&gt; a -&gt; Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#getName"
+	><span class="hs-identifier hs-var"
+	  >GHC.getName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Class -&gt; Name) -&gt; Maybe Class -&gt; Maybe Name
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id -&gt; Maybe Class
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Id.html#isClassOpId_maybe"
+	><span class="hs-identifier hs-var"
+	  >GHC.isClassOpId_maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id
+</span
+	><a href="#local-6989586621679621273"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621277"
+      ><span class="annot"
+	><span class="annottext"
+	  >Module
+</span
+	  ><a href="#local-6989586621679621277"
+	  ><span class="hs-identifier hs-var"
+	    >modu</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679621278"
+      ><span class="annot"
+	><span class="annottext"
+	  >Module
+</span
+	  ><a href="#local-6989586621679621278"
+	  ><span class="hs-identifier hs-var"
+	    >occ</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; (UseThisInstead, Module)
+</span
+	><a href="PlutusTx.Compiler.Type.html#splitGhcName"
+	><span class="hs-identifier hs-var"
+	  >splitGhcName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679621274"
+	><span class="hs-identifier hs-var"
+	  >cls</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621279"
+      ><span class="annot"
+	><span class="annottext"
+	  >UseThisInstead
+</span
+	  ><a href="#local-6989586621679621279"
+	  ><span class="hs-identifier hs-var"
+	    >alt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Module, Module)
+-&gt; Map (Module, Module) UseThisInstead -&gt; Maybe UseThisInstead
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#lookup"
+	><span class="hs-identifier hs-var"
+	  >Map.lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679621277"
+	><span class="hs-identifier hs-var"
+	  >modu</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679621278"
+	><span class="hs-identifier hs-var"
+	  >occ</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map (Module, Module) UseThisInstead
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#unsupportedBaseClasses"
+	><span class="hs-identifier hs-var"
+	  >unsupportedBaseClasses</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unsupported -&gt; Maybe Unsupported
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Unsupported -&gt; Maybe Unsupported)
+-&gt; Unsupported -&gt; Maybe Unsupported
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Module -&gt; UseThisInstead -&gt; Unsupported
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#BaseMethod"
+	><span class="hs-identifier hs-var"
+	  >BaseMethod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679621277"
+	><span class="hs-identifier hs-var"
+	  >modu</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Module -&gt; Module
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><span class="hs-string"
+	>&quot;.&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Module -&gt; Module
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679621278"
+	><span class="hs-identifier hs-var"
+	  >occ</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Module
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#renderGhcName"
+	><span class="hs-identifier hs-var"
+	  >renderGhcName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name -&gt; Module) -&gt; Name -&gt; Module
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id -&gt; Name
+forall a. NamedThing a =&gt; a -&gt; Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#getName"
+	><span class="hs-identifier hs-var"
+	  >GHC.getName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id
+</span
+	><a href="#local-6989586621679621273"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UseThisInstead
+</span
+	><a href="#local-6989586621679621279"
+	><span class="hs-identifier hs-var"
+	  >alt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Unsupported
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#XExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.XExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Compat.html#WrapExpr"
+	><span class="hs-identifier hs-type"
+	  >Compat.WrapExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621285"
+      ><span class="annot"
+	><span class="annottext"
+	  >HsExpr GhcTc
+</span
+	  ><a href="#local-6989586621679621285"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc -&gt; Maybe Unsupported
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#checkUnsupportedMethod"
+	><span class="hs-identifier hs-var"
+	  >checkUnsupportedMethod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc
+</span
+	><a href="#local-6989586621679621285"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Unsupported
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#renderGhcName"
+	><span class="hs-identifier hs-type"
+	  >renderGhcName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#Name"
+	><span class="hs-identifier hs-type"
+	  >GHC.Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span id="renderGhcName"
+      ><span class="annot"
+	><span class="annottext"
+	  >renderGhcName :: Name -&gt; Module
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#renderGhcName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >renderGhcName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc -&gt; Module
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#showSDocUnsafe"
+	><span class="hs-identifier hs-var"
+	  >GHC.showSDocUnsafe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SDoc -&gt; Module) -&gt; (Name -&gt; SDoc) -&gt; Name -&gt; Module
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; SDoc
+forall doc. IsLine doc =&gt; Name -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#pprName"
+	><span class="hs-identifier hs-var"
+	  >GHC.pprName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#renderGhcName"
+	><span class="hs-pragma hs-type"
+	  >renderGhcName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#unsupportedBaseClasses"
+	><span class="hs-identifier hs-type"
+	  >unsupportedBaseClasses</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#Module"
+	><span class="hs-identifier hs-type"
+	  >Module</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#Class"
+	><span class="hs-identifier hs-type"
+	  >Class</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#UseThisInstead"
+	><span class="hs-identifier hs-type"
+	  >UseThisInstead</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span id="unsupportedBaseClasses"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsupportedBaseClasses :: Map (Module, Module) UseThisInstead
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#unsupportedBaseClasses"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsupportedBaseClasses</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[((Module, Module), UseThisInstead)]
+-&gt; Map (Module, Module) UseThisInstead
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([((Module, Module), UseThisInstead)]
+ -&gt; Map (Module, Module) UseThisInstead)
+-&gt; ([(Name, Maybe Name)] -&gt; [((Module, Module), UseThisInstead)])
+-&gt; [(Name, Maybe Name)]
+-&gt; Map (Module, Module) UseThisInstead
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Name, Maybe Name) -&gt; Maybe ((Module, Module), UseThisInstead))
+-&gt; [(Name, Maybe Name)] -&gt; [((Module, Module), UseThisInstead)]
+forall a b. (a -&gt; Maybe b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#mapMaybe"
+	><span class="hs-identifier hs-var"
+	  >mapMaybe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679621291"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679621291"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679621292"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe Name
+</span
+	  ><a href="#local-6989586621679621292"
+	  ><span class="hs-identifier hs-var"
+	    >alt</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679621293"
+      ><span class="annot"
+	><span class="annottext"
+	  >Module
+</span
+	  ><a href="#local-6989586621679621293"
+	  ><span class="hs-identifier hs-var"
+	    >modu</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; UseThisInstead
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#nameModule"
+	><span class="hs-identifier hs-var"
+	  >TH.nameModule</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679621291"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Module, Module), UseThisInstead)
+-&gt; Maybe ((Module, Module), UseThisInstead)
+forall a. a -&gt; Maybe a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679621293"
+	><span class="hs-identifier hs-var"
+	  >modu</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Module
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#nameBase"
+	><span class="hs-identifier hs-var"
+	  >TH.nameBase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679621291"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Module
+forall a. Ppr a =&gt; a -&gt; Module
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Ppr.html#pprint"
+	><span class="hs-identifier hs-var"
+	  >TH.pprint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name -&gt; Module) -&gt; Maybe Name -&gt; UseThisInstead
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Name
+</span
+	><a href="#local-6989586621679621292"
+	><span class="hs-identifier hs-var"
+	  >alt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(Name, Maybe Name)] -&gt; Map (Module, Module) UseThisInstead)
+-&gt; [(Name, Maybe Name)] -&gt; Map (Module, Module) UseThisInstead
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >''</span
+      ><span class="hs-identifier"
+      >Prelude.Eq</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Maybe Name
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >''</span
+      ><span class="hs-identifier"
+      >PlutusTx.Eq.Eq</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >''</span
+      ><span class="hs-identifier"
+      >Prelude.Ord</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Maybe Name
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >''</span
+      ><span class="hs-identifier"
+      >PlutusTx.Ord.Ord</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#unsupportedMarkerModule"
+	><span class="hs-identifier hs-type"
+	  >unsupportedMarkerModule</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#unsupportedMarkerName"
+	><span class="hs-identifier hs-type"
+	  >unsupportedMarkerName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span id="unsupportedMarkerModule"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsupportedMarkerModule :: Module
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#unsupportedMarkerModule"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsupportedMarkerModule</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UseThisInstead -&gt; Module
+forall a. HasCallStack =&gt; Maybe a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#fromJust"
+	><span class="hs-identifier hs-var"
+	  >fromJust</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UseThisInstead -&gt; Module) -&gt; UseThisInstead -&gt; Module
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; UseThisInstead
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#nameModule"
+	><span class="hs-identifier hs-var"
+	  >TH.nameModule</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-identifier"
+      >PlutusTx.Plugin.Utils.unsupported</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span id="unsupportedMarkerName"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsupportedMarkerName :: Module
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#unsupportedMarkerName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsupportedMarkerName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Module
+</span
+	><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#nameBase"
+	><span class="hs-identifier hs-var"
+	  >TH.nameBase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-identifier"
+      >PlutusTx.Plugin.Utils.unsupported</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#injectUnsupportedMarkers"
+	><span class="hs-identifier hs-type"
+	  >injectUnsupportedMarkers</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#TcGblEnv"
+	><span class="hs-identifier hs-type"
+	  >GHC.TcGblEnv</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#TcM"
+	><span class="hs-identifier hs-type"
+	  >GHC.TcM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#TcGblEnv"
+	><span class="hs-identifier hs-type"
+	  >GHC.TcGblEnv</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="injectUnsupportedMarkers"
+      ><span class="annot"
+	><span class="annottext"
+	  >injectUnsupportedMarkers :: TcGblEnv -&gt; TcM TcGblEnv
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#injectUnsupportedMarkers"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >injectUnsupportedMarkers</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621301"
+      ><span class="annot"
+	><span class="annottext"
+	  >TcGblEnv
+</span
+	  ><a href="#local-6989586621679621301"
+	  ><span class="hs-identifier hs-var"
+	    >env</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679621302"
+      ><span class="annot"
+	><span class="annottext"
+	  >HscEnv
+</span
+	  ><a href="#local-6989586621679621302"
+	  ><span class="hs-identifier hs-var"
+	    >hscEnv</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcRnIf TcGblEnv TcLclEnv HscEnv
+forall gbl lcl. TcRnIf gbl lcl HscEnv
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Utils.Monad.html#getTopEnv"
+	><span class="hs-identifier hs-var"
+	  >GHC.getTopEnv</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679621304"
+      ><span class="annot"
+	><span class="annottext"
+	  >FindResult
+</span
+	  ><a href="#local-6989586621679621304"
+	  ><span class="hs-identifier hs-var"
+	    >findResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IO FindResult -&gt; IOEnv (Env TcGblEnv TcLclEnv) FindResult
+forall a. IO a -&gt; IOEnv (Env TcGblEnv TcLclEnv) a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.IO.Class.html#liftIO"
+	><span class="hs-identifier hs-var"
+	  >liftIO</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(IO FindResult -&gt; IOEnv (Env TcGblEnv TcLclEnv) FindResult)
+-&gt; IO FindResult -&gt; IOEnv (Env TcGblEnv TcLclEnv) FindResult
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv -&gt; ModuleName -&gt; PkgQual -&gt; IO FindResult
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Finder.html#findImportedModule"
+	><span class="hs-identifier hs-var"
+	  >GHC.findImportedModule</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HscEnv
+</span
+	><a href="#local-6989586621679621302"
+	><span class="hs-identifier hs-var"
+	  >hscEnv</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; ModuleName
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Module.Name.html#mkModuleName"
+	><span class="hs-identifier hs-var"
+	  >GHC.mkModuleName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#unsupportedMarkerModule"
+	><span class="hs-identifier hs-var"
+	  >unsupportedMarkerModule</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PkgQual
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.PkgQual.html#NoPkgQual"
+	><span class="hs-identifier hs-var"
+	  >GHC.NoPkgQual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679621309"
+      ><span class="annot"
+	><span class="annottext"
+	  >Id
+</span
+	  ><a href="#local-6989586621679621309"
+	  ><span class="hs-identifier hs-var"
+	    >unsupportedId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FindResult
+</span
+	><a href="#local-6989586621679621304"
+	><span class="hs-identifier hs-var"
+	  >findResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Finder.Types.html#Found"
+	><span class="hs-identifier hs-type"
+	  >GHC.Found</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ModLocation
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621311"
+      ><span class="annot"
+	><span class="annottext"
+	  >Module
+</span
+	  ><a href="#local-6989586621679621311"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; IOEnv (Env TcGblEnv TcLclEnv) Id
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Utils.Env.html#tcLookupId"
+	><span class="hs-identifier hs-var"
+	  >GHC.tcLookupId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name -&gt; IOEnv (Env TcGblEnv TcLclEnv) Id)
+-&gt; IOEnv (Env TcGblEnv TcLclEnv) Name
+-&gt; IOEnv (Env TcGblEnv TcLclEnv) Id
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; m a -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3D%3C%3C"
+	><span class="hs-operator hs-var"
+	  >=&lt;&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; OccName -&gt; IOEnv (Env TcGblEnv TcLclEnv) Name
+forall a b. Module -&gt; OccName -&gt; TcRnIf a b Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Iface.Env.html#lookupOrig"
+	><span class="hs-identifier hs-var"
+	  >GHC.lookupOrig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679621311"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; OccName
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.Occurrence.html#mkVarOcc"
+	><span class="hs-identifier hs-var"
+	  >GHC.mkVarOcc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#unsupportedMarkerName"
+	><span class="hs-identifier hs-var"
+	  >unsupportedMarkerName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FindResult
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; SDoc -&gt; IOEnv (Env TcGblEnv TcLclEnv) Id
+forall a. HasCallStack =&gt; Module -&gt; SDoc -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Panic.html#pprPanic"
+	><span class="hs-identifier hs-var"
+	  >GHC.pprPanic</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><span class="hs-string"
+	>&quot;Plinth Compiler&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; SDoc
+forall doc. IsLine doc =&gt; Module -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#text"
+	><span class="hs-identifier hs-var"
+	  >GHC.text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Module -&gt; SDoc) -&gt; Module -&gt; SDoc
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><span class="hs-string"
+	>&quot;Could not find module &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Module -&gt; Module
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#unsupportedMarkerModule"
+	><span class="hs-identifier hs-var"
+	  >unsupportedMarkerModule</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679621318"
+      ><span class="annot"
+	><span class="annottext"
+	  >binds :: LHsBinds GhcTc
+</span
+	  ><a href="#local-6989586621679621318"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >binds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv -&gt; LHsBinds GhcTc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#tcg_binds"
+	><span class="hs-identifier hs-var"
+	  >GHC.tcg_binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv
+</span
+	><a href="#local-6989586621679621301"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679621340"
+      ><span class="annot"
+	><span class="annottext"
+	  >binds' :: LHsBinds GhcTc
+</span
+	  ><a href="#local-6989586621679621340"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >binds'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([XRec GhcTc (HsBindLR GhcTc GhcTc)]
+ -&gt; [XRec GhcTc (HsBindLR GhcTc GhcTc)])
+-&gt; LHsBinds GhcTc -&gt; LHsBinds GhcTc
+forall p.
+([LHsBindLR p p] -&gt; [LHsBindLR p p]) -&gt; LHsBinds p -&gt; LHsBinds p
+</span
+	><a href="PlutusTx.Compiler.Compat.html#modifyBinds"
+	><span class="hs-identifier hs-var"
+	  >Compat.modifyBinds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(GenLocated SrcSpanAnnA (HsExpr GhcTc)
+ -&gt; GenLocated SrcSpanAnnA (HsExpr GhcTc))
+-&gt; [XRec GhcTc (HsBindLR GhcTc GhcTc)]
+-&gt; [XRec GhcTc (HsBindLR GhcTc GhcTc)]
+forall from to. Biplate from to =&gt; (to -&gt; to) -&gt; from -&gt; from
+</span
+	><a href="https://hackage.haskell.org/package/uniplate-1.6.13/docs/src/Data.Generics.Uniplate.Operations.html#transformBi"
+	><span class="hs-identifier hs-var"
+	  >transformBi</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id -&gt; LHsExpr GhcTc -&gt; LHsExpr GhcTc
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#wrapUnsupported"
+	><span class="hs-identifier hs-var"
+	  >wrapUnsupported</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id
+</span
+	><a href="#local-6989586621679621309"
+	><span class="hs-identifier hs-var"
+	  >unsupportedId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LHsBinds GhcTc
+Bag (GenLocated SrcSpanAnnA (HsBindLR GhcTc GhcTc))
+</span
+	><a href="#local-6989586621679621318"
+	><span class="hs-identifier hs-var"
+	  >binds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv -&gt; TcM TcGblEnv
+forall a. a -&gt; IOEnv (Env TcGblEnv TcLclEnv) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TcGblEnv
+</span
+	><a href="#local-6989586621679621301"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.html#tcg_binds"
+	><span class="hs-identifier hs-var"
+	  >GHC.tcg_binds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679621340"
+	><span class="hs-identifier hs-type"
+	  >binds'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Plugin.Unsupported.html#wrapUnsupported"
+	><span class="hs-identifier hs-type"
+	  >wrapUnsupported</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Var.html#Id"
+	><span class="hs-identifier hs-type"
+	  >GHC.Id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#LHsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.LHsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#LHsExpr"
+	><span class="hs-identifier hs-type"
+	  >GHC.LHsExpr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Extension.html#GhcTc"
+	><span class="hs-identifier hs-type"
+	  >GHC.GhcTc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span id="wrapUnsupported"
+      ><span class="annot"
+	><span class="annottext"
+	  >wrapUnsupported :: Id -&gt; LHsExpr GhcTc -&gt; LHsExpr GhcTc
+</span
+	  ><a href="PlutusTx.Plugin.Unsupported.html#wrapUnsupported"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >wrapUnsupported</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621344"
+      ><span class="annot"
+	><span class="annottext"
+	  >Id
+</span
+	  ><a href="#local-6989586621679621344"
+	  ><span class="hs-identifier hs-var"
+	    >unsupportedId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621345"
+      ><span class="annot"
+	><span class="annottext"
+	  >le :: LHsExpr GhcTc
+</span
+	  ><a href="#local-6989586621679621345"
+	  ><span class="hs-identifier hs-var"
+	    >le</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SrcLoc.html#L"
+	><span class="hs-identifier hs-type"
+	  >GHC.L</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621346"
+      ><span class="annot"
+	><span class="annottext"
+	  >SrcSpanAnnA
+</span
+	  ><a href="#local-6989586621679621346"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621347"
+      ><span class="annot"
+	><span class="annottext"
+	  >HsExpr GhcTc
+</span
+	  ><a href="#local-6989586621679621347"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621348"
+      ><span class="annot"
+	><span class="annottext"
+	  >Unsupported
+</span
+	  ><a href="#local-6989586621679621348"
+	  ><span class="hs-identifier hs-var"
+	    >unsupported</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc -&gt; Maybe Unsupported
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#isUnsupported"
+	><span class="hs-identifier hs-var"
+	  >isUnsupported</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc
+</span
+	><a href="#local-6989586621679621347"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679621349"
+      ><span class="annot"
+	><span class="annottext"
+	  >RealSrcSpan
+</span
+	  ><a href="#local-6989586621679621349"
+	  ><span class="hs-identifier hs-var"
+	    >sp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpan -&gt; Maybe RealSrcSpan
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.SrcLoc.html#srcSpanToRealSrcSpan"
+	><span class="hs-identifier hs-var"
+	  >GHC.srcSpanToRealSrcSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpanAnnA -&gt; SrcSpan
+forall a. SrcSpanAnn' a -&gt; SrcSpan
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Parser.Annotation.html#locA"
+	><span class="hs-identifier hs-var"
+	  >GHC.locA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SrcSpanAnnA
+</span
+	><a href="#local-6989586621679621346"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679621352"
+      ><span class="annot"
+	><span class="annottext"
+	  >msgTy :: Type
+</span
+	  ><a href="#local-6989586621679621352"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >msgTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyLit -&gt; Type
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.TyCo.Rep.html#LitTy"
+	><span class="hs-identifier hs-var"
+	  >GHC.LitTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TyLit -&gt; Type) -&gt; (Module -&gt; TyLit) -&gt; Module -&gt; Type
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FastString -&gt; TyLit
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.TyCo.Rep.html#StrTyLit"
+	><span class="hs-identifier hs-var"
+	  >GHC.StrTyLit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FastString -&gt; TyLit) -&gt; (Module -&gt; FastString) -&gt; Module -&gt; TyLit
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; FastString
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Data.FastString.html#mkFastString"
+	><span class="hs-identifier hs-var"
+	  >GHC.mkFastString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Module -&gt; Type) -&gt; Module -&gt; Type
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unsupported -&gt; Module
+</span
+	><a href="PlutusTx.Plugin.Unsupported.html#renderUnsupported"
+	><span class="hs-identifier hs-var"
+	  >renderUnsupported</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unsupported
+</span
+	><a href="#local-6989586621679621348"
+	><span class="hs-identifier hs-var"
+	  >unsupported</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679621356"
+      ><span class="annot"
+	><span class="annottext"
+	  >locTy :: Type
+</span
+	  ><a href="#local-6989586621679621356"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >locTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyLit -&gt; Type
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.TyCo.Rep.html#LitTy"
+	><span class="hs-identifier hs-var"
+	  >GHC.LitTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TyLit -&gt; Type) -&gt; (Module -&gt; TyLit) -&gt; Module -&gt; Type
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FastString -&gt; TyLit
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.TyCo.Rep.html#StrTyLit"
+	><span class="hs-identifier hs-var"
+	  >GHC.StrTyLit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FastString -&gt; TyLit) -&gt; (Module -&gt; FastString) -&gt; Module -&gt; TyLit
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; FastString
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Data.FastString.html#mkFastString"
+	><span class="hs-identifier hs-var"
+	  >GHC.mkFastString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Module -&gt; Type) -&gt; Module -&gt; Type
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RealSrcSpan -&gt; Module
+</span
+	><a href="PlutusTx.Compiler.Expr.html#encodeSrcSpan"
+	><span class="hs-identifier hs-var"
+	  >encodeSrcSpan</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RealSrcSpan
+</span
+	><a href="#local-6989586621679621349"
+	><span class="hs-identifier hs-var"
+	  >sp</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679621358"
+      ><span class="annot"
+	><span class="annottext"
+	  >ty :: Type
+</span
+	  ><a href="#local-6989586621679621358"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc -&gt; Type
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Syn.Type.html#hsExprType"
+	><span class="hs-identifier hs-var"
+	  >GHC.hsExprType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc
+</span
+	><a href="#local-6989586621679621347"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679621359"
+      ><span class="annot"
+	><span class="annottext"
+	  >wrapper :: HsWrapper
+</span
+	  ><a href="#local-6989586621679621359"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >wrapper</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type -&gt; HsWrapper
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.Evidence.html#WpTyApp"
+	><span class="hs-identifier hs-var"
+	  >GHC.WpTyApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type
+</span
+	><a href="#local-6989586621679621358"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsWrapper -&gt; HsWrapper -&gt; HsWrapper
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.Evidence.html#WpCompose"
+	><span class="hs-operator hs-var"
+	  >`GHC.WpCompose`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type -&gt; HsWrapper
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.Evidence.html#WpTyApp"
+	><span class="hs-identifier hs-var"
+	  >GHC.WpTyApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type
+</span
+	><a href="#local-6989586621679621356"
+	><span class="hs-identifier hs-var"
+	  >locTy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsWrapper -&gt; HsWrapper -&gt; HsWrapper
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.Evidence.html#WpCompose"
+	><span class="hs-operator hs-var"
+	  >`GHC.WpCompose`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type -&gt; HsWrapper
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Tc.Types.Evidence.html#WpTyApp"
+	><span class="hs-identifier hs-var"
+	  >GHC.WpTyApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type
+</span
+	><a href="#local-6989586621679621352"
+	><span class="hs-identifier hs-var"
+	  >msgTy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679621362"
+      ><span class="annot"
+	><span class="annottext"
+	  >wrapped :: HsExpr GhcTc
+</span
+	  ><a href="#local-6989586621679621362"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >wrapped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsWrapper -&gt; HsExpr GhcTc -&gt; HsExpr GhcTc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Hs.Utils.html#mkHsWrap"
+	><span class="hs-identifier hs-var"
+	  >GHC.mkHsWrap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsWrapper
+</span
+	><a href="#local-6989586621679621359"
+	><span class="hs-identifier hs-var"
+	  >wrapper</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>XVar GhcTc -&gt; LIdP GhcTc -&gt; HsExpr GhcTc
+forall p. XVar p -&gt; LIdP p -&gt; HsExpr p
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Expr.html#HsVar"
+	><span class="hs-identifier hs-var"
+	  >GHC.HsVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>XVar GhcTc
+NoExtField
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Extension.html#noExtField"
+	><span class="hs-identifier hs-var"
+	  >GHC.noExtField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id -&gt; GenLocated SrcSpanAnnN Id
+forall a an. a -&gt; LocatedAn an a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Parser.Annotation.html#noLocA"
+	><span class="hs-identifier hs-var"
+	  >GHC.noLocA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Id
+</span
+	><a href="#local-6989586621679621344"
+	><span class="hs-identifier hs-var"
+	  >unsupportedId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >       </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc -&gt; GenLocated SrcSpanAnnA (HsExpr GhcTc)
+forall a an. a -&gt; LocatedAn an a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Parser.Annotation.html#noLocA"
+	><span class="hs-identifier hs-var"
+	  >GHC.noLocA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(HsExpr GhcTc -&gt; GenLocated SrcSpanAnnA (HsExpr GhcTc))
+-&gt; HsExpr GhcTc -&gt; GenLocated SrcSpanAnnA (HsExpr GhcTc)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LHsExpr GhcTc -&gt; LHsExpr GhcTc -&gt; HsExpr GhcTc
+</span
+	><a href="PlutusTx.Compiler.Compat.html#hsAppTc"
+	><span class="hs-identifier hs-var"
+	  >Compat.hsAppTc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc -&gt; GenLocated SrcSpanAnnA (HsExpr GhcTc)
+forall a an. a -&gt; LocatedAn an a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Parser.Annotation.html#noLocA"
+	><span class="hs-identifier hs-var"
+	  >GHC.noLocA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HsExpr GhcTc
+</span
+	><a href="#local-6989586621679621362"
+	><span class="hs-identifier hs-var"
+	  >wrapped</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LHsExpr GhcTc
+</span
+	><a href="#local-6989586621679621345"
+	><span class="hs-identifier hs-var"
+	  >le</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LHsExpr GhcTc
+</span
+	><a href="#local-6989586621679621345"
+	><span class="hs-identifier hs-var"
+	  >le</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
