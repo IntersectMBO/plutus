@@ -5,6 +5,7 @@ import AsData.Budget.Spec qualified as AsData.Budget
 import AssocMap.Spec qualified as AssocMap
 import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
+import BuiltinCasing.Scott.Spec qualified as BuiltinCasing.Scott
 import BuiltinCasing.Spec qualified as BuiltinCasing
 import BuiltinList.Budget.Spec qualified as BuiltinList.Budget
 import BuiltinList.NoCasing.Spec qualified as BuiltinList.NoCasing
@@ -73,5 +74,6 @@ tests =
     , StageViolation.tests
     , CallTrace.tests
     , BuiltinCasing.tests
+    , BuiltinCasing.Scott.tests
     , Unsupported.tests
     ]
