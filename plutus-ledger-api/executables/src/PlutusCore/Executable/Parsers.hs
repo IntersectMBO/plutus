@@ -705,16 +705,17 @@ plcConvertOpts =
     <*> plcOutputWithFormat
     <*> printmode
 
+-- 'plc optimise' currently applies no optimisations, so it must not accept
+-- the certifier options: accepting '--certify' and then producing no
+-- certificate would be misleading.
 plcOptimiseOpts :: Parser (OptimiseOptions name a)
 plcOptimiseOpts =
-  ( \(inp, ifmt) (outp, ofmt) mode cert certOut sopts eopts ->
-      OptimiseOptions inp ifmt outp ofmt mode cert certOut sopts eopts
+  ( \(inp, ifmt) (outp, ofmt) mode sopts eopts ->
+      OptimiseOptions inp ifmt outp ofmt mode Nothing CertProject sopts eopts
   )
     <$> plcInputWithFormat
     <*> plcOutputWithFormat
     <*> printmode
-    <*> certifier
-    <*> certifierOutputMode
     <*> optimizeOpts
     <*> optimiseEvalOpts
 
