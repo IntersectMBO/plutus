@@ -17,6 +17,7 @@ import Data.Aeson
 import Data.ByteString.Lazy qualified as BSL
 import Data.Either
 import Data.Either.Extras
+import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe
 import Data.Text qualified as Text
@@ -57,9 +58,9 @@ randomCekCosts =
     { cekStartupCost = pure $ ExBudget 2342 234321
     , cekVarCost = pure $ ExBudget 12312 56545
     , cekConstCost = pure $ ExBudget 23490290838 2323423
-    , cekLamCost = pure $ ExBudget 0 712127381
+    , cekLamCost = pure $ ExBudget 1 712127381
     , cekDelayCost = pure $ ExBudget 999 7777
-    , cekForceCost = pure $ ExBudget 1028234 0
+    , cekForceCost = pure $ ExBudget 1028234 1
     , cekApplyCost = pure $ ExBudget 324628348 8273
     , cekBuiltinCost = pure $ ExBudget 4 4
     , cekConstrCost = pure $ ExBudget 8 100000
@@ -190,6 +191,13 @@ testMispelled = do
     cekVarCostCpuKeyMispelled = "cekVarCost--exBudgetCPU"
     deleteLookup = Map.updateLookupWithKey (const $ const Nothing)
 
+testNonPositiveMachineCost :: Text.Text -> Int64 -> Assertion
+testNonPositiveMachineCost parameterName value =
+  Left (CMNonPositiveMachineCost parameterName value)
+    @=? applyCostModelParams
+      defaultCekCostModelForTesting
+      (Map.singleton parameterName value)
+
 test_costModelInterface :: TestTree
 test_costModelInterface =
   testGroup
@@ -251,5 +259,12 @@ test_costModelInterface =
         , -- TODO: do something here for each version of the cost model?
           testCase "default ledger params can be applied to default cost model" testApply
         , testCase "mispelled param in ledger params " testMispelled
+        ]
+    , testGroup
+        "CEK machine costs are strictly positive"
+        [ testCase "zero CPU cost is rejected" $
+            testNonPositiveMachineCost "cekVarCost-exBudgetCPU" 0
+        , testCase "negative memory cost is rejected" $
+            testNonPositiveMachineCost "cekStartupCost-exBudgetMemory" (-1)
         ]
     ]
