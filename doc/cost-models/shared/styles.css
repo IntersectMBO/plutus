@@ -398,6 +398,33 @@ select {
   font-size: 1.2em;
 }
 
+/* A footnote rather than a banner: it qualifies the field above it and should not compete
+   with it for attention. */
+.provenance-note {
+  margin: 0;
+  font-size: 0.78em;
+  line-height: 1.5;
+  color: #8A6D3B;
+  border-left: 2px solid #D69E2E;
+  padding: 0 0 0 8px;
+}
+
+.provenance-note button {
+  font-size: 1em;
+  font-weight: 400;
+  line-height: inherit;
+  padding: 0 5px;
+  margin-left: 6px;
+  background-color: transparent;
+  color: #8A6D3B;
+  border: 1px solid #D69E2E;
+  border-radius: 3px;
+}
+
+.provenance-note button:hover {
+  background-color: #FFFAF0;
+}
+
 .error {
   background-color: #FFF5F5;
   border: 2px solid #E53E3E;
