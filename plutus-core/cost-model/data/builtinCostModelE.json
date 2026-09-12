@@ -1399,5 +1399,22 @@
       },
       "type": "linear_in_y"
     }
+  },
+  "dropPolicies": {
+    "cpu": {
+      "arguments": {
+        "intercept": 1000,
+        "slope1": 54105,
+        "slope2": 41353
+      },
+      "type": "linear_in_x_and_y"
+    },
+    "memory": {
+      "arguments": {
+        "intercept": 32,
+        "slope": 6
+      },
+      "type": "linear_in_y"
+    }
   }
 }

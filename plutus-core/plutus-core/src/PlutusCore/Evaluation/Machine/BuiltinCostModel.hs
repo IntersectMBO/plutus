@@ -202,6 +202,7 @@ data BuiltinCostModelBase f
   , paramAssetCount :: f ModelOneArgument
   , paramPolicies :: f ModelOneArgument
   , paramKeepPolicies :: f ModelTwoArguments
+  , paramDropPolicies :: f ModelTwoArguments
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)

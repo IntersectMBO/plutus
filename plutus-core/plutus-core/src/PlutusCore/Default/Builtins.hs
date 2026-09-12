@@ -2523,7 +2523,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         {-# INLINE dropPoliciesDenotation #-}
      in makeBuiltinMeaning
           dropPoliciesDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+          (runCostingFunTwoArguments . paramDropPolicies)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 

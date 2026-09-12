@@ -560,4 +560,5 @@ main =
         $(genTest 2 "scaleValue") Everywhere
       , $(genTest 1 "assetCount")
       , $(genTest 2 "keepPolicies") Everywhere
+      , $(genTest 2 "dropPolicies") Everywhere
       ]

@@ -163,6 +163,7 @@ arity <- function(name) {
         "AssetCount" = 1,
         "Policies" = 1,
         "KeepPolicies" = 2,
+        "DropPolicies" = 2,
         -1  ## Default for missing values
         )
 }
@@ -870,10 +871,11 @@ modelFun <- function(path) {
     ## X wrapped with `ValueOuterSize`
     policiesModel <- linearInX ("Policies")
 
-    ## X is the length of the policy list, Y is `Value.totalSize`.  The builtin skips the part
+    ## X is the length of the policy list, Y is `Value.totalSize`.  Both builtins skip the part
     ## of the outer map the list cannot reach, so what costs anything is the pairs the list
-    ## names.  See Note [Benchmarking keepPolicies] in Benchmarks.Values.
+    ## names.  See Note [Benchmarking keepPolicies and dropPolicies] in Benchmarks.Values.
     keepPoliciesModel <- linearInXAndYNonzeroY ("KeepPolicies")
+    dropPoliciesModel <- linearInXAndYNonzeroY ("DropPolicies")
 
     ## Values
 
@@ -1034,7 +1036,8 @@ modelFun <- function(path) {
         multiIndexArrayModel                 = multiIndexArrayModel,
         assetCountModel                      = assetCountModel,
         policiesModel                        = policiesModel,
-        keepPoliciesModel                    = keepPoliciesModel
+        keepPoliciesModel                    = keepPoliciesModel,
+        dropPoliciesModel                    = dropPoliciesModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

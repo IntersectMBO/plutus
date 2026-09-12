@@ -640,6 +640,9 @@ const PAGES = [
   ['keeppolicies', 'KeepPolicies',
    'Retains only the listed currencies of a Plutus <code>Value</code>. ' +
    '(3D visualization: List Length \u00d7 Value Size \u00d7 Time)'],
+  ['droppolicies', 'DropPolicies',
+   'Removes the listed currencies from a Plutus <code>Value</code>. ' +
+   '(3D visualization: List Length \u00d7 Value Size \u00d7 Time)'],
   ['listtoarray', 'ListToArray',
    'Converts a Plutus list to an array representation. ' +
    '(2D visualization: List Size vs Time)'],

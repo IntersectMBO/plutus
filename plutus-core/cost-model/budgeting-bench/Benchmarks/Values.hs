@@ -23,6 +23,7 @@ import GHC.Stack (HasCallStack)
 import PlutusCore
   ( DefaultFun
       ( AssetCount
+      , DropPolicies
       , InsertCoin
       , KeepPolicies
       , LookupCoin
@@ -72,6 +73,7 @@ makeBenchmarks gen =
   , assetCountBenchmark gen
   , policiesBenchmark gen
   , keepPoliciesBenchmark gen
+  , dropPoliciesBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -433,31 +435,37 @@ policiesBenchmark gen =
     generate :: StatefulGen g m => g -> Int -> Int -> m Value
     generate g numPolicies numTokens = snd <$> generateValueWithPolicyIds g numPolicies numTokens
 
--- KeepPolicies ------------------------------------------------------------------------------------
+-- KeepPolicies and DropPolicies -------------------------------------------------------------------
 
-{- Note [Benchmarking keepPolicies]
-`keepPolicies` pays for three things: building a `Set` from the list, walking the outer
-map to drop what the list did not name, and recomputing the caches the `Value` carries
-over what is left. Only the first is proportional to the list length, and the last is
-proportional to the size of the result, which the cost model never sees. It sees the list
-length and the total size of the argument.
+{- Note [Benchmarking keepPolicies and dropPolicies]
+Both builtins take a list of policy ids and a `Value`, and a cost model sees only the list
+length and the total size of the argument. `keepPolicies` builds a `Set` from the list,
+drops what the list did not name, and recomputes the caches the `Value` carries over what
+is left, so its cost follows the size of the result. `dropPolicies` deletes one policy at a
+time and subtracts each one's contribution from the caches, so its cost follows the number
+of descents into the outer map, and that number is not determined by either size the model
+is given.
 
 Every point of `randomSizes`, the hundred with both sizes drawn independently on a log
-scale, is built to make those two agree: the list names every policy the `Value` has, so
-nothing is dropped and the result is the whole argument. The pairs are packed into as few
-policies as the list can cover, and the rest of the list is ids the `Value` does not have.
-On an input where half the policies get dropped the same two sizes would buy half the
-work, and a fit trained on those would undercharge a script that names them all. The log
-scale is what puts the sizes that occur on chain in the sample and not only the large ones.
+scale, is built to make the visible sizes and the real work agree: the list names every
+policy the `Value` has, so nothing is dropped and the result is the whole argument. The
+pairs are packed into as few policies as the list can cover, and the rest of the list is
+ids the `Value` does not have. On an input where half the policies get dropped the same two
+sizes would buy half the work, and a fit trained on those would undercharge a script that
+names them all. The log scale is what puts the sizes that occur on chain in the sample and
+not only the large ones.
 
 `shapeSweep` and `hitSweep` hold both sizes fixed and vary what the model cannot see: how
 many policies hold the pairs, and how much of the list hits. They therefore look like
 repeated measurements of one point, and a model that cannot tell those inputs apart shows
 it as vertical spread there. For `keepPolicies` that spread is widest at short lists and
 narrows as the list grows, because building the `Set` comes to dominate and the shape of
-the `Value` barely enters.
+the `Value` barely enters. For `dropPolicies` it goes the other way and widens as the list
+grows, because a longer list means more descents into the outer map and how many of them
+find anything is exactly what the model cannot see. That is where its worst undercharge
+comes from.
 
-`listOnly` hands the builtin an empty `Value`, which it returns from before it looks at
+`listOnly` hands the builtins an empty `Value`, which they return from before they look at
 the list. Those points are the control on the rig: had criterion floated the list work out
 of the measured loop, a list against an empty `Value` would cost what it costs against a
 full one. It costs a small fraction of that, so the list work is inside the loop where the
@@ -467,11 +475,15 @@ proportional to either size.
 
 keepPoliciesBenchmark :: StdGen -> Benchmark
 keepPoliciesBenchmark gen =
-  createTwoTermBuiltinBenchElementwise KeepPolicies [] (runBenchGen gen keepPoliciesArgs)
+  createTwoTermBuiltinBenchElementwise KeepPolicies [] (runBenchGen gen keepDropArgs)
 
--- | See Note [Benchmarking keepPolicies]
-keepPoliciesArgs :: forall g m. StatefulGen g m => g -> m [([ByteString], Value)]
-keepPoliciesArgs g = do
+dropPoliciesBenchmark :: StdGen -> Benchmark
+dropPoliciesBenchmark gen =
+  createTwoTermBuiltinBenchElementwise DropPolicies [] (runBenchGen gen keepDropArgs)
+
+-- | See Note [Benchmarking keepPolicies and dropPolicies]
+keepDropArgs :: forall g m. StatefulGen g m => g -> m [([ByteString], Value)]
+keepDropArgs g = do
   -- Both sizes drawn independently on a log scale, each point the costliest of its sizes.
   randomSizes <- replicateM 100 do
     totalSize <- logUniform g maxValueTotalSize
