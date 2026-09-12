@@ -995,7 +995,10 @@ compileExpr mloc e = do
           pure $ PIR.kase annAlwaysInline resultTy scrutinee branches
         PIR.ScottEncoding -> do
           dead <- safeFreshTyName "dead"
-          let thunkTy = PLC.TyForall annMayInline dead (PLC.Type annMayInline) resultTy
+          scrutineeName <- safeFreshName "caseIntegerScrutinee"
+          let integerTy = PLC.mkTyBuiltin @_ @Integer annMayInline
+              scrutineeVar = PIR.var annMayInline scrutineeName
+              thunkTy = PLC.TyForall annMayInline dead (PLC.Type annMayInline) resultTy
               thunk = PIR.TyAbs annMayInline dead (PLC.Type annMayInline)
               unthunk term = PIR.TyInst annMayInline term resultTy
               -- Uses the (all dead. resultTy) / (/\dead -> branch) encoding to avoid
@@ -1010,13 +1013,25 @@ compileExpr mloc e = do
                       , PIR.mkIterApp
                           (PIR.builtin annMayInline PLC.EqualsInteger)
                           [ (annMayInline, PIR.mkConstant @Integer annMayInline idx)
-                          , (annMayInline, scrutinee)
+                          , (annMayInline, scrutineeVar)
                           ]
                       )
                     , (annMayInline, thunk branch)
                     , (annMayInline, thunk (mkChain (idx + 1) laterBranches))
                     ]
-          pure $ mkChain (0 :: Integer) branches
+          -- A strict binding preserves source evaluation even when there are no branches,
+          -- while sharing the result across every equality test in the chain.
+          pure $
+            PIR.mkLet
+              annMayInline
+              PIR.NonRec
+              [ PIR.TermBind
+                  annMayInline
+                  PIR.Strict
+                  (PIR.VarDecl annMayInline scrutineeName integerTy)
+                  scrutinee
+              ]
+              (mkChain (0 :: Integer) branches)
 
     compileDataCase resultTy scrutinee branches =
       case coDatatypeStyle opts of
