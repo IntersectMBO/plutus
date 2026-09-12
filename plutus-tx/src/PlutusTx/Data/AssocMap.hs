@@ -78,7 +78,14 @@ instance P.ToData (Map k a) where
   toBuiltinData (Map d) = BI.mkMap d
 instance P.FromData (Map k a) where
   {-# INLINEABLE fromBuiltinData #-}
-  fromBuiltinData = Just . Map . BI.unsafeDataAsMap
+  fromBuiltinData d =
+    P.matchData'
+      d
+      (\_ _ -> Nothing)
+      (Just . Map)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
 
 instance P.UnsafeFromData (Map k a) where
   {-# INLINEABLE unsafeFromBuiltinData #-}
