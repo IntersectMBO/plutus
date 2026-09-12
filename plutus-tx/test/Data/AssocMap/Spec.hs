@@ -7,7 +7,7 @@ import PlutusTx.Data.AssocMap qualified as AssocMap
 import PlutusTx.IsData qualified as IsData
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, testCase, (@?=))
-import Prelude (Integer, Maybe (..), fmap)
+import Prelude (Integer, Maybe (..), fmap, ($))
 
 assocMapTests :: TestTree
 assocMapTests =
