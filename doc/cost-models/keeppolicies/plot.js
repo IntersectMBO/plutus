@@ -6,7 +6,6 @@ const ARITY = 2;
 
 let benchmarkData = [];
 let costModel = null;
-let stockModel = null;
 let overhead = 0;
 let showModel = true;
 let axisScale = 'log';
@@ -18,10 +17,6 @@ setupCostModelPage({
   arity: ARITY,
   render(data) {
     ({ benchmarkData, costModel, overhead } = data);
-    // The `fit.fan` of models.R, recomputed in the browser on the same points the
-    // shipped fit was built from, so that the two blocks agreeing checks that the JSON
-    // matches the fit rather than taking the JSON on trust.
-    stockModel = fitFan(benchmarkData, overhead, args => args[0], 'linear_in_x');
     updateInfoPanel();
     renderPlot();
   },
@@ -48,9 +43,7 @@ function updateInfoPanel() {
   // plane instead of off it, and they are what pins the term proportional to the list.
   document.getElementById('fit-comparison').innerHTML =
     fitSummary('The shipped model (from the cost-model JSON)',
-               costModel, benchmarkData, overhead, ['p'])
-    + fitSummary('The same conservative fit recomputed from the CSV',
-                 stockModel, benchmarkData, overhead, ['p']);
+               costModel, benchmarkData, overhead, ['p']);
 
   if (costModel) {
     document.getElementById('info-model-type').textContent = costModel.modelType;

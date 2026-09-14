@@ -6,7 +6,6 @@ const ARITY = 2;
 
 let benchmarkData = [];
 let costModel = null;
-let stockModel = null;
 let overhead = 0;
 let showModel = true;
 let axisScale = 'log';
@@ -18,14 +17,6 @@ setupCostModelPage({
   arity: ARITY,
   render(data) {
     ({ benchmarkData, costModel, overhead } = data);
-    // Plain least squares, which is what `dropPolicies` ships. `fit.fan` would give the
-    // same slope on this data, since its discard loop never iterates here, but a different
-    // intercept: least squares puts the intercept below zero and the floor in models.R
-    // raises it to 1000 ps, so the floor is the model. Recomputed in the browser on the same
-    // points the shipped fit was built from, so that the two blocks agreeing checks the JSON
-    // against the fit rather than taking the JSON on trust.
-    stockModel =
-      fitLeastSquares(benchmarkData, overhead, args => args[0] * args[1], 'multiplied_sizes');
     updateInfoPanel();
     renderPlot();
   },
@@ -52,9 +43,7 @@ function updateInfoPanel() {
   // plane instead of off it, and they are what pins the term proportional to the list.
   document.getElementById('fit-comparison').innerHTML =
     fitSummary('The shipped model (from the cost-model JSON)',
-               costModel, benchmarkData, overhead, ['p', 'L'])
-    + fitSummary('The same least-squares fit recomputed from the CSV',
-                 stockModel, benchmarkData, overhead, ['p', 'L']);
+               costModel, benchmarkData, overhead, ['p', 'L']);
 
   if (costModel) {
     document.getElementById('info-model-type').textContent = costModel.modelType;
