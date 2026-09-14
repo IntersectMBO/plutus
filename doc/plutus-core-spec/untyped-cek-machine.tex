@@ -156,6 +156,9 @@ state.
 \inCaseFrame{(M_1 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_1 \ldots V_m}   &~\mapsto~&
                          \inAppLeftFrame{V_1} \cons \cdots \cons \inAppLeftFrame{V_m} \cons s ;\rho \compute M_{i+1}
                          \enskip \text{if $0 \leq i \leq n-1$} \\
+\inCaseFrame{(M_1 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_1 \ldots V_m}   &~\mapsto~&
+                         \cekerror
+                         \enskip \text{if $i<0$ or $i > n-1$} \\
 \inCaseFrame{(M_1 \ldots M_n, \rho)} \cons s & \return \VCon{T}{c} &~\mapsto~& \CaseCEK(s,\rho, T, c, (M_1, \ldots, M_n))
 \end{alignat*}
 \end{minipage}
@@ -210,10 +213,13 @@ of ways.  For example, when casing on a built-in value one frame is pushed onto
 the stack for each of the values $\reify{V_1}, \ldots, \reify{V_m}$ and these
 then have to be popped off and processed one by one. It would be more efficient
 to have a single frame which contains all of the values, and in fact this
-optimisation is implemented in Cardano's production CEK machine.  However we
-have chosen to keep the evaluator in the specification minimal because
-optimisations are typically implementation-dependent and may or may not be
-sensible depending on the implementation language and implementation strategy
+optimisation is implemented in Cardano's production CEK machine.%
+\footnote{This is implemented in Haskell: see
+\url{https://github.com/IntersectMBO/plutus}, and specifically
+\url{https://github.com/IntersectMBO/plutus/tree/master/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Evaluation/Machine}.}
+However we have chosen to keep the evaluator in the specification minimal
+because optimisations are typically implementation-dependent and may or may not
+be sensible depending on the implementation language and implementation strategy
 and we do not wish to impose unsuitable optimisations on other implementers.
 Using an un-optimised machine also simplifies specification and formalisation;
 optimisations can then be proved to be correct in the sense that it should be

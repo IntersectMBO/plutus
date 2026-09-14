@@ -124,15 +124,59 @@ and that $\appU{M}{N_1 \ldots N_k}= M$ if $k=0$.
         \UnaryInfC{$\step{\kase{\constr{i}{\repetition{V}}}{M_1 \ldots M_n}}{\app{M_{i+1}}{\repetition{V}}}$}
     \end{prooftree}
 
+    % case (constr i vs) cs -> (error) if i is out of range
+    \begin{prooftree}
+      \AxiomC{$i<0\enspace \text{or}\enspace i > n-1$}
+        % \RightLabel{\textsf{case-of-constr-error}}
+        \UnaryInfC{$\step{\kase{\constr{i}{\repetition{V}}}{M_1 \ldots M_n}}{\errorU}$}
+    \end{prooftree}
+
     % case (con T c) cs -> c_i, depending on \match{T}(c)
-    % Note that this doesn't apply if \match{T}(c) = \errorX, so we'll get (error) in that case
     \begin{prooftree}
       \AxiomC{$n \leq \maxbranch(T)$}
       \AxiomC{$\match{T}(c) = (i,(v_1, \ldots, v_k))$}
       \AxiomC{$1 \leq i \leq n$}
         % \RightLabel{\textsf{case-of-constr}}
-        \TrinaryInfC{$\step{\kase{\con{T}{c}{}}{M_1 \ldots M_n}}{\app{M_{i}}{\reify{v_1} \ldots \reify{v_k}}}$}
+        \TrinaryInfC{$\step{\kase{\con{T}{c}}{M_1 \ldots M_n}}{\app{M_{i}}{\reify{v_1} \ldots \reify{v_k}}}$}
     \end{prooftree}
+
+    % case (con T c) cs -> (error) if too many branches.
+    \begin{prooftree}
+      \AxiomC{$n > \maxbranch(T)$}
+        % \RightLabel{\textsf{case-of-constr-err-1}}
+        \UnaryInfC{$\step{\kase{\con{T}{c}}{M_1 \ldots M_n}}{\errorU}$}
+    \end{prooftree}
+
+    % case (con T c) -> (error) if matching fails
+    \begin{prooftree}
+      \AxiomC{$n \leq \maxbranch(T)$}
+      \AxiomC{$\match{T}(c) = \errorX$}
+        % \RightLabel{\textsf{case-of-constr-err-2}}
+        \BinaryInfC{$\step{\kase{\con{T}{c}}{M_1 \ldots M_n}}{\errorU}$}
+    \end{prooftree}
+
+    % case (con T c) -> (error) if matching returns an index out of bounds
+    \begin{prooftree}
+      \AxiomC{$n \leq \maxbranch(T)$}
+      \AxiomC{$\match{T}(c) = (i,(v_1, \ldots, v_k))$}
+      \AxiomC{$i =0\enspace \text{or}\enspace i>n$}
+        % \RightLabel{\textsf{case-of-constr-err-3}}
+        \TrinaryInfC{$\step{\kase{\con{T}{c}}{M_1 \ldots M_n}}{\errorU}$}
+    \end{prooftree}
+
+    \caption{Reduction via contextual semantics}
+    \label{fig:untyped-reduction}
+\end{subfigure}
+
+\caption{Term reduction for Plutus Core}
+\label{fig:untyped-term-reduction}
+\end{figure}
+
+% The figure is too long to fit on a single page, so it's split into two parts
+% here.  \ContinuedFloat makes the second part keep the same figure number and
+% continue the subfigure lettering.
+\begin{figure}[H]\ContinuedFloat
+\begin{subfigure}[c]{\linewidth}
 
     % Saturated force
     \begin{prooftree}
@@ -165,8 +209,8 @@ and that $\appU{M}{N_1 \ldots N_k}= M$ if $k=0$.
     \end{prooftree}
 % \end{minipage}\hfill\hfill %% Don't know why we need two \hfills here but only one at the start
 % \\
-    \caption{Reduction via contextual semantics} %% Oops
-    \label{fig:untyped-reduction}
+    \caption{Reduction via contextual semantics (continued)}
+    \label{fig:untyped-reduction-continued}
 \end{subfigure}
 
 \bigskip
@@ -183,8 +227,7 @@ and that $\appU{M}{N_1 \ldots N_k}= M$ if $k=0$.
   \label{fig:bif-appl}
 \end{subfigure}
 
-\caption{Term reduction for Plutus Core}
-\label{fig:untyped-term-reduction}
+\caption[]{Term reduction for Plutus Core (continued)}
 \end{figure}
 
 \bigskip
