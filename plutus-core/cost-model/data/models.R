@@ -879,13 +879,10 @@ modelFun <- function(path) {
 
     ## X is the length of the policy list, Y is the depth of the outer map (`ValueOuterDepth`).
     ## Both builtins do one outer-map descent per element of the list and touch nothing else,
-    ## so the work is proportional to the product of the two.  See
+    ## but they do not charge on the same shape: `keepPolicies` also builds a `Set` from the
+    ## list, which dominates, so its per-element cost barely moves with the depth.  Each block
+    ## below gives its own shape, its own fit and the reason for both.  See
     ## Note [Benchmarking keepPolicies and dropPolicies] in Benchmarks.Values.
-    ##
-    ## Both use `fit.fan` rather than a plain `lm`: least squares puts half the data above
-    ## the fitted line, and a cost model has to be an upper bound.  `fit.fan` discards the
-    ## points below the line and refits until nearly all of them are under it, anchoring the
-    ## intercept on the smallest argument where the fixed cost of a call is all there is.
 
     ## `keepPolicies` is linear in the list alone.  Building a `Set` from the list dominates
     ## anything the `Value` contributes, so its per-element cost tracks the length of the list
@@ -903,32 +900,49 @@ modelFun <- function(path) {
         mk.result (floor.intercept (round.up (m)), "linear_in_x")
     }
 
-    ## `dropPolicies` is proportional to the product: `Map.updateLookupWithKey` rebuilds the
-    ## whole search path whether or not it finds the key, so the number of hits drops out of
-    ## the order of the cost and every element of the list costs one descent.
+    ## `dropPolicies` charges on the product: `Map.updateLookupWithKey` rebuilds the whole
+    ## search path whether or not it finds the key, so the number of hits drops out of the
+    ## order of the cost and every element of the list costs one descent.
     ##
-    ## Least squares rather than `fit.fan`, unlike `keepPolicies`.  The clamp in `adjustModel`
-    ## already lifts this line: the data is convex, so the fitted intercept is negative and
-    ## becomes 1000 ps, which raises the whole model.  What is left undominated after that sits
-    ## at depths that need more currencies than a transaction can carry, and building them on
-    ## chain costs the caller more per currency than the shortfall is worth, so lifting the
-    ## slope would buy nothing a script can exploit.  See Note [Benchmarking keepPolicies and
-    ## dropPolicies] in Benchmarks.Values for the reachable region and what bounds it.
+    ## `fit.fan`, and anchored above the empty list, which matters here in a way it does not
+    ## for `keepPolicies`.  The product shape charges the first list element the least when
+    ## the depth is one, far less than a call that descends once actually costs, so the whole
+    ## fixed cost of a working call has to sit in the intercept.  `fit.fan` anchors the
+    ## intercept on the smallest regressor value, and the smallest here is the empty list,
+    ## where the fold returns without descending at all; anchoring there leaves the fixed cost
+    ## of a working call out of the model entirely.  Dropping the zero-product rows from the
+    ## fit moves the anchor to the cheapest call that does work.  Those rows are priced by the
+    ## intercept alone in any case, so they have no business voting on the slope either.
+    ##
+    ## `keepPolicies` needs none of this because its per-element slope is an order of
+    ## magnitude larger and absorbs the fixed cost, but it dominates its own empty-list point
+    ## with almost no margin, so anything that moves its intercept wants re-checking.
+    ##
+    ## `fit.fan` wants one dimension, in `x_mem`.  Hand it the product under that name and
+    ## put the coefficients back on a model of the shape the Haskell side reads; the same
+    ## manoeuvre as equalsDataModel above.
     dropPoliciesModel <- {
         fname <- "DropPolicies"
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
             discard.overhead ()
-        m <- lm (t ~ I(x_mem * y_mem), filtered)
-        mk.result (floor.intercept (round.up (m)), "multiplied_sizes")
+        product <- mutate (filtered, x_mem = x_mem * y_mem)
+        m <- fit.fan (product[product$x_mem > 0, ])
+        v <- coefficients (m)
+        names (v) <- c("(Intercept)", "I(x_mem * y_mem)")
+        ## ^ The space after the comma is important.
+        m2 <- lm (t ~ I(x_mem * y_mem), filtered)
+        m2$coefficients <- v
+        ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
+        mk.result (floor.intercept (round.up (m2)), "multiplied_sizes")
     }
 
     ## Values
 
-    # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
-    lookupCoinModel           <- linearInZ ("LookupCoin")    
-    # U wrapped with `Logarithmic . ValueOuterOrMaxInner`
-    insertCoinModel           <- linearInU ("InsertCoin")    
+    # Z wrapped with `ValueMaxDepth`
+    lookupCoinModel           <- linearInZ ("LookupCoin")
+    # U wrapped with `ValueMaxDepth`
+    insertCoinModel           <- linearInU ("InsertCoin")
 
     # X and Y wrapped with `ValueTotalSize` (contained value size)
     unionValueModel         <- {

@@ -1384,8 +1384,8 @@
   "dropPolicies": {
     "cpu": {
       "arguments": {
-        "intercept": 1000,
-        "slope": 57318
+        "intercept": 338325,
+        "slope": 57334
       },
       "type": "multiplied_sizes"
     },
