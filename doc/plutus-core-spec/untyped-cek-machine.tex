@@ -141,14 +141,14 @@ state.
 \inAppLeftFrame{V} \cons s & \return \VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)} &~\mapsto~&
                          s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inAppRightFrame{\VBuiltin{b}{\repetition{V}}{[\iota]}} \cons s  & \return V &~\mapsto~&
-                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
+                         \EvalBuiltinCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inAppLeftFrame{V} \cons s & \return \VBuiltin{b}{\repetition{V}}{[\iota]} &~\mapsto~&
-                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
+                         \EvalBuiltinCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inForceFrame{} \cons s & \return \VDelay{M}{\rho}         &~\mapsto~& s;\rho \compute M\\
 \inForceFrame{} \cons s & \return \VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)} &~\mapsto~&
                          s \return \VBuiltin{b}{\repetition{V}}{\eta} \enskip \text{if $\iota \in \QVar$}\\
 \inForceFrame{} \cons s & \return \VBuiltin{b}{\repetition{V}}{[\iota]}   &~\mapsto~&
-                         \EvalCEK\,(s, b, \repetition{V}) \enskip \text{if $\iota \in \QVar$}\\
+                         \EvalBuiltinCEK\,(s, b, \repetition{V}) \enskip \text{if $\iota \in \QVar$}\\
 \inConstrFrame{i}{\repetition{V}}{(M \cons \repetition{M}, \rho)} \cons s & \return V   &~\mapsto~&
                          \inConstrFrame{i}{\repetition{V} \cons V}{(\repetition{M}, \rho)} \cons s;\rho \compute M \\
 \inConstrFrame{i}{\repetition{V}}{([], \rho)} \cons s & \return V   &~\mapsto~&
@@ -168,10 +168,10 @@ state.
 
 \bigskip
   \begin{subfigure}[c]{\linewidth}
-   $$ \EvalCEK(s, b, [V_1, \ldots, V_n]) =
+   $$ \EvalBuiltinCEK(s, b, [V_1, \ldots, V_n]) =
    \begin{cases}
-      \cekerror  & \text{if $\Eval\,(b,[V_1, \ldots, V_n]) = \errorX$}\\
-      s \return \Eval\,(b,[V_1, \ldots, V_n]) & \text{otherwise}
+      \cekerror  & \text{if $\EvalBuiltin\,(b,[V_1, \ldots, V_n]) = \errorX$}\\
+      s \return \EvalBuiltin\,(b,[V_1, \ldots, V_n]) & \text{otherwise}
    \end{cases}
    $$
    \caption{Evaluation of built-in functions}

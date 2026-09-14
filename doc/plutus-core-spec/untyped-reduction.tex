@@ -99,7 +99,7 @@ and that $\appU{M}{N_1 \ldots N_k}= M$ if $k=0$.
       \AxiomC{$\length(A) = \chi(\beta(A))-1$}
       \AxiomC{$\nextArg(A) \in \Unihash \cup \VarStar$}
         % \RightLabel{\textsf{final-apply}}
-        \BinaryInfC{$\step{\app{A}{V}}{\Eval'(\beta(A), \args(A)\snoc V)}$}
+        \BinaryInfC{$\step{\app{A}{V}}{\EvalBuiltin'(\beta(A), \args(A)\snoc V)}$}
     \end{prooftree}
 
     % [A V] unsaturated
@@ -183,7 +183,7 @@ and that $\appU{M}{N_1 \ldots N_k}= M$ if $k=0$.
       \AxiomC{$\length(A) = \chi(\beta(A))-1$}
       \AxiomC{$\nextArg(A) \in \QVar$}
         % \RightLabel{\textsf{final-force}}
-        \BinaryInfC{$\step{\force{A}}{\Eval'(\beta(A), \args(A))}$}
+        \BinaryInfC{$\step{\force{A}}{\EvalBuiltin'(\beta(A), \args(A))}$}
     \end{prooftree}
 
 
@@ -217,10 +217,10 @@ and that $\appU{M}{N_1 \ldots N_k}= M$ if $k=0$.
 
 \begin{subfigure}[c]{\linewidth}
   $$
-  \Eval'(b, [V_1, \ldots, V_n]) =
+  \EvalBuiltin'(b, [V_1, \ldots, V_n]) =
   \begin{cases}
-    \errorU  & \text{if $\Eval(b,[V_1, \ldots, V_n]) = \errorX$}\\
-    \Eval(b,[V_1, \ldots, V_n]) &\text{otherwise}.
+    \errorU  & \text{if $\EvalBuiltin(b,[V_1, \ldots, V_n]) = \errorX$}\\
+    \EvalBuiltin(b,[V_1, \ldots, V_n]) &\text{otherwise}.
   \end{cases}
   $$
   \caption{Built-in function application}
