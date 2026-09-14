@@ -98,9 +98,12 @@ during evaluation of a Plutus Core script.
         \ty{integer}
         &
         {\renewcommand*{\arraystretch}{1}
-        $\begin{array}{ll}
-         k &\mapsto (k+1,())
-        % We have k+1 here because we're numbering the branches from 1 to n, not 0 to n-1
+        % We have k+1 here because we're numbering the branches from 1 to n, not 0 to n-1;
+        % negative integers have to yield \errorX because \match{T} is required to return
+        % an index in \N.
+        $\begin{array}{lll}
+         k &\mapsto (k+1,()) & (k \geq 0)\\
+         k &\mapsto \errorX  & (k<0)
         \end{array}$
         }
         & $\infty$
