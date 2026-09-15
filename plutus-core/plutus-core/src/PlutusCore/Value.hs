@@ -66,8 +66,6 @@ import Data.Map.Merge.Strict qualified as M
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Maybe (fromMaybe, mapMaybe)
-import Data.Set (Set)
-import Data.Set qualified as Set
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
 import GHC.Stack
@@ -476,23 +474,25 @@ policies = map unK . Map.keys . unpack
 
 {-| The `Value` restricted to the given currency symbols.
 
-\(O(p \log p + p \log m)\), where \(p\) is the length of the policy list and \(m\) is the
-size of the outer map. The \(p \log p\) is inherent: the result is a map keyed by the list
-elements.
+\(O(p \log m)\), where \(p\) is the length of the policy list and \(m\) is the size of the
+outer map: each id is looked up in the outer map and, when found, inserted into the result.
 
-Ids the `Value` does not have, including any longer than `maxKeyLen`, are ignored.
-Restricting the outer map can neither empty an inner map nor zero a quantity, so the result
-is already normalized and needs no filtering.
+Ids the `Value` does not have, including any longer than `maxKeyLen`, are ignored. The
+length filter is what keeps the cost proportional to the list: the cost model sizes a list
+by its element count, so without it a caller could pass a few very long ids and have them
+compared byte by byte for free. Restricting the outer map can neither empty an inner map nor
+zero a quantity, so the result is already normalized.
 
-This does not go through `pack'`, which would recount the negative amounts of every currency
-that survives and so cost the total size of the result. Restricting the per-currency counts
-answers the same question in the size of the policy list. -}
+The caches are built from the currencies kept rather than through `pack'`, which would
+recount the negative amounts of every one of them. -}
 keepPolicies :: [ByteString] -> Value -> Value
 keepPolicies ps (Value outer _ _ _ negs) = Value outer' sizes total neg negs'
   where
-    kept = policySet ps
-    outer' = Map.restrictKeys outer kept
-    negs' = Map.restrictKeys negs kept
+    outer' = List.foldl' keep Map.empty (mapMaybe k ps)
+    keep acc currency = case Map.lookup currency outer of
+      Nothing -> acc
+      Just inner -> Map.insert currency inner acc
+    negs' = Map.intersection negs outer'
     !neg = Map.foldl' (+) 0 negs'
     Sizes sizes total = sizeCaches outer'
 {-# INLINEABLE keepPolicies #-}
@@ -504,9 +504,10 @@ outer map.
 
 Ids the `Value` does not have, including any longer than `maxKeyLen`, are ignored.
 
-`keepPolicies` builds its caches from the currencies that survive. This subtracts each
-dropped currency's contribution instead, so the currencies that stay are never looked at:
-dropping two of them from a huge `Value` costs the two, not the whole `Value`. -}
+`keepPolicies` builds a fresh `Value` out of the currencies the list names. This one starts
+from the whole `Value` and subtracts each dropped currency's contribution, so the currencies
+that stay are never looked at: dropping two of them from a huge `Value` costs the two, not
+the whole `Value`. -}
 dropPolicies :: [ByteString] -> Value -> Value
 dropPolicies ps v = List.foldl' dropPolicy v (mapMaybe k ps)
 {-# INLINEABLE dropPolicies #-}
@@ -529,16 +530,6 @@ dropPolicy v@(Value outer sizes total neg negs) currency =
             (neg - fromMaybe 0 mInnerNeg)
             negs'
 {-# INLINE dropPolicy #-}
-
-{-| The ids that can name a currency, as a `Set` for `keepPolicies` to restrict against.
-
-Ids longer than `maxKeyLen` are dropped. They match no key of a well-formed `Value`, and the
-cost model cannot see how long they are: it sizes a list by its element count. Without the
-filter a caller could pass a few very long ids, be charged for a few elements, and have
-`Set.fromList` compare them byte by byte for free. -}
-policySet :: [ByteString] -> Set K
-policySet = Set.fromList . mapMaybe k
-{-# INLINE policySet #-}
 
 {-| \(O(n_{2}\log \max(m_{1}, k_{1}))\), where \(n_{2}\) is the total size of the second
 `Value`, \(m_{1}\) is the size of the outer map in the first `Value` and \(k_{1}\) is
