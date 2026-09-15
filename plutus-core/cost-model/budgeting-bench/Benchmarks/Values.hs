@@ -294,7 +294,8 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (unsafeFromBuiltinResult . Value.valueData <$> generateTestValues gen)
+    -- Every amount is negative: decoding them is what builds the per-currency negative counts.
+    (unsafeFromBuiltinResult . Value.valueData . negated <$> generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------
@@ -307,6 +308,8 @@ insertCoinBenchmark gen =
     []
     (runBenchGen gen insertCoinArgs)
 
+{-| The `lookupCoin` arguments with every amount of the `Value` negated, so that each row
+rebuilds a search path in the per-currency negative counts. -}
 insertCoinArgs :: StatefulGen g m => g -> m [(ByteString, ByteString, Integer, Value)]
 insertCoinArgs gen = do
   lookupArgs <- lookupCoinArgs gen
@@ -314,7 +317,7 @@ insertCoinArgs gen = do
   amounts <- genZeroOrMaxAmount gen noOfBenches
   pure $ reorderArgs <$> zip lookupArgs amounts
   where
-    reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
+    reorderArgs ((b1, b2, val), am) = (b1, b2, am, negated val)
 
 ----------------------------------------------------------------------------------------------------
 -- UnionValue --------------------------------------------------------------------------------------
@@ -337,13 +340,14 @@ The worst case is when both Values share as many keys as possible,
 therefore we consider two Values where the first is a sub-value of the second.
 Experiments have also shown that the worst case execution time for UnionValue
 occurs for flat maps with a single token name per policy ID.
-Therefore, we fix the number of token names to 1 for both Values. -}
+Therefore, we fix the number of token names to 1 for both Values.
+Every amount is negative, so the result holds a negative amount under every currency. -}
 unionValueArgs :: StatefulGen g m => g -> m [(Value, Value)]
 unionValueArgs gen = replicateM 200 $ do
   numPolicyIdsV2 <- uniformRM (1, maxUnionValueEntries) gen
   policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
   tokenName <- generateKey gen
-  let amt = unQuantity (maxBound :: Quantity) `div` 2
+  let amt = negate (unQuantity (maxBound :: Quantity) `div` 2)
       value2 = buildValue policyIdsV2 [tokenName] (mkQuantity amt)
   numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV2) gen
   let policyIdsV1 = take numPolicyIdsToKeep policyIdsV2
@@ -369,14 +373,13 @@ maxScaleValueEntries = 90_000
 {-| Generate argument pairs for ScaleValue benchmarking.
 Since 'scaleValue' needs to traverse the entire Value, we may fix the structure
 of the Value to be a flattened map with a single token name per policy ID.
-To ensure worst-case performance, we fix the resulting scaled quantities to
-be 'maxBound'. -}
+The scalar is negative, so every scaled quantity is negative. -}
 scaleValueArgs :: StatefulGen g m => g -> m [(Integer, Value)]
 scaleValueArgs gen = replicateM 200 $ do
   numPolicyIds <- uniformRM (1, maxScaleValueEntries) gen
   policyIds <- replicateM numPolicyIds (generateKey gen)
   tokenName <- generateKey gen
-  let scalar = unQuantity (maxBound :: Quantity) `div` 2
+  let scalar = negate (unQuantity (maxBound :: Quantity) `div` 2)
       amt = mkQuantity 2
       value = buildValue policyIds [tokenName] amt
   pure (scalar, value)
@@ -603,6 +606,11 @@ unsafeFromBuiltinResult = \case
   BuiltinSuccess x -> x
   BuiltinSuccessWithLogs _ x -> x
   BuiltinFailure _ err -> error $ "BuiltinResult failed: " <> show err
+
+{-| The `Value` with every amount negated, so that every currency holds negative amounts and
+the per-currency negative counts are as large as they get. -}
+negated :: Value -> Value
+negated = unsafeFromBuiltinResult . Value.scaleValue (-1)
 
 -- | Abstracted runner for computations using stateful random generator 'StdGen'
 runBenchGen :: StdGen -> (StateGenM StdGen -> State StdGen a) -> a
