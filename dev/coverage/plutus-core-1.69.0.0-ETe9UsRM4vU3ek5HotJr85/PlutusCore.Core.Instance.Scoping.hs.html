@@ -1,0 +1,154 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    4 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>module PlutusCore.Core.Instance.Scoping () where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import PlutusPrelude
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import PlutusCore.Check.Scoping
+<span class="lineno">   11 </span>import PlutusCore.Core.Type
+<span class="lineno">   12 </span>import PlutusCore.Name.Unique
+<span class="lineno">   13 </span>import PlutusCore.Quote
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>-- In the three instances below the added variable is always the last field of a constructor.
+<span class="lineno">   16 </span>-- Just to be consistent.
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>instance tyname ~ TyName =&gt; Reference TyName (Type tyname uni) where
+<span class="lineno">   19 </span>  <span class="decl"><span class="istickedoff">referenceVia reg tyname ty = TyApp <span class="nottickedoff">NotAName</span> ty $ TyVar (reg tyname) tyname</span></span>
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>instance tyname ~ TyName =&gt; Reference TyName (Term tyname name uni fun) where
+<span class="lineno">   22 </span>  <span class="decl"><span class="istickedoff">referenceVia reg tyname term = TyInst <span class="nottickedoff">NotAName</span> term $ TyVar (reg tyname) tyname</span></span>
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>instance name ~ Name =&gt; Reference Name (Term tyname name uni fun) where
+<span class="lineno">   25 </span>  <span class="decl"><span class="istickedoff">referenceVia reg name term = Apply <span class="nottickedoff">NotAName</span> term $ Var (reg name) name</span></span>
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>-- Kinds have no names, hence the simple instance.
+<span class="lineno">   28 </span>instance EstablishScoping Kind where
+<span class="lineno">   29 </span>  <span class="decl"><span class="istickedoff">establishScoping kind = pure $ <span class="nottickedoff">NotAName &lt;$ kind</span></span></span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- Kinds have no names, hence the simple instance.
+<span class="lineno">   32 </span>instance CollectScopeInfo Kind where
+<span class="lineno">   33 </span>  <span class="decl"><span class="istickedoff">collectScopeInfo _ = mempty</span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>instance tyname ~ TyName =&gt; EstablishScoping (Type tyname uni) where
+<span class="lineno">   36 </span>  <span class="decl"><span class="istickedoff">establishScoping (TyLam _ nameDup kind ty) = do</span>
+<span class="lineno">   37 </span><span class="spaces">    </span><span class="istickedoff">name &lt;- freshenTyName nameDup</span>
+<span class="lineno">   38 </span><span class="spaces">    </span><span class="istickedoff">establishScopingBinder TyLam name <span class="nottickedoff">kind</span> ty</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (TyForall _ nameDup kind ty) = do</span>
+<span class="lineno">   40 </span><span class="spaces">    </span><span class="istickedoff">name &lt;- freshenTyName nameDup</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">establishScopingBinder TyForall name <span class="nottickedoff">kind</span> ty</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (TyIFix _ pat arg) =</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">TyIFix NotAName &lt;$&gt; establishScoping pat &lt;*&gt; establishScoping arg</span></span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (TyApp _ fun arg) =</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="istickedoff">TyApp <span class="nottickedoff">NotAName</span> &lt;$&gt; establishScoping fun &lt;*&gt; establishScoping arg</span>
+<span class="lineno">   46 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (TyFun _ dom cod) =</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="istickedoff">TyFun <span class="nottickedoff">NotAName</span> &lt;$&gt; establishScoping dom &lt;*&gt; establishScoping cod</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (TyVar _ nameDup) = do</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="istickedoff">name &lt;- freshenTyName nameDup</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">pure $ TyVar (registerFree name) name</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (TyBuiltin _ someUni) = pure $ TyBuiltin <span class="nottickedoff">NotAName</span> <span class="nottickedoff">someUni</span></span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (TySOP _ tyls) =</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="istickedoff">TySOP <span class="nottickedoff">NotAName</span> &lt;$&gt; (traverse . traverse) establishScoping tyls</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>firstBound :: Term tyname name uni fun ann -&gt; [name]
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">firstBound (Apply _ (LamAbs _ name _ body) _) = name : firstBound body</span>
+<span class="lineno">   57 </span><span class="spaces"></span><span class="istickedoff">firstBound _ = []</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>instance (tyname ~ TyName, name ~ Name) =&gt; EstablishScoping (Term tyname name uni fun) where
+<span class="lineno">   60 </span>  <span class="decl"><span class="istickedoff">establishScoping (LamAbs _ nameDup ty body) = do</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">name &lt;- freshenName nameDup</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff">establishScopingBinder LamAbs name ty body</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (TyAbs _ nameDup kind body) = do</span>
+<span class="lineno">   64 </span><span class="spaces">    </span><span class="istickedoff">name &lt;- freshenTyName nameDup</span>
+<span class="lineno">   65 </span><span class="spaces">    </span><span class="istickedoff">establishScopingBinder TyAbs name <span class="nottickedoff">kind</span> body</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (IWrap _ pat arg term) =</span>
+<span class="lineno">   67 </span><span class="spaces">    </span><span class="istickedoff">IWrap <span class="nottickedoff">NotAName</span> &lt;$&gt; establishScoping pat &lt;*&gt; establishScoping arg &lt;*&gt; establishScoping term</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (Apply _ fun arg) =</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">Apply <span class="nottickedoff">NotAName</span> &lt;$&gt; establishScoping fun &lt;*&gt; establishScoping arg</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (Unwrap _ term) = Unwrap <span class="nottickedoff">NotAName</span> &lt;$&gt; establishScoping term</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (Error _ ty) = Error <span class="nottickedoff">NotAName</span> &lt;$&gt; establishScoping ty</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (TyInst _ term ty) =</span>
+<span class="lineno">   73 </span><span class="spaces">    </span><span class="istickedoff">TyInst <span class="nottickedoff">NotAName</span> &lt;$&gt; establishScoping term &lt;*&gt; establishScoping ty</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (Var _ nameDup) = do</span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="istickedoff">name &lt;- freshenName nameDup</span>
+<span class="lineno">   76 </span><span class="spaces">    </span><span class="istickedoff">pure $ Var (registerFree name) name</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (Constant _ con) = pure $ Constant <span class="nottickedoff">NotAName</span> <span class="nottickedoff">con</span></span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (Builtin _ bi) = pure $ Builtin <span class="nottickedoff">NotAName</span> <span class="nottickedoff">bi</span></span>
+<span class="lineno">   79 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (Constr _ ty i es) =</span>
+<span class="lineno">   80 </span><span class="spaces">    </span><span class="istickedoff">Constr <span class="nottickedoff">NotAName</span> &lt;$&gt; establishScoping ty &lt;*&gt; pure <span class="nottickedoff">i</span> &lt;*&gt; traverse establishScoping es</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="istickedoff">establishScoping (Case _ ty a es) = do</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="istickedoff">esScoped &lt;- traverse establishScoping es</span>
+<span class="lineno">   83 </span><span class="spaces">    </span><span class="istickedoff">let esScopedPoked = addTheRest $ map (\e -&gt; (e, firstBound e)) esScoped</span>
+<span class="lineno">   84 </span><span class="spaces">        </span><span class="istickedoff">branchBounds = map (snd . fst) esScopedPoked</span>
+<span class="lineno">   85 </span><span class="spaces">        </span><span class="istickedoff">referenceInBranch ((branch, _), others) = referenceOutOfScope (map snd others) branch</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="istickedoff">tyScoped &lt;- establishScoping ty</span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="istickedoff">aScoped &lt;- establishScoping a</span>
+<span class="lineno">   88 </span><span class="spaces">    </span><span class="istickedoff">-- For each of the branches reference (as out-of-scope) the variables bound in that branch</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">-- in all the other ones, as well as outside of the whole case-expression. This is to check</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">-- that none of the transformations leak variables outside of the branch they're bound in.</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">pure . referenceOutOfScope branchBounds $</span>
+<span class="lineno">   92 </span><span class="spaces">      </span><span class="istickedoff">Case <span class="nottickedoff">NotAName</span> tyScoped aScoped $</span>
+<span class="lineno">   93 </span><span class="spaces">        </span><span class="istickedoff">map referenceInBranch esScopedPoked</span></span>
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>instance (tyname ~ TyName, name ~ Name) =&gt; EstablishScoping (Program tyname name uni fun) where
+<span class="lineno">   96 </span>  <span class="decl"><span class="istickedoff">establishScoping (Program _ ver term) =</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="istickedoff">Program <span class="nottickedoff">NotAName</span> <span class="nottickedoff">ver</span> &lt;$&gt; establishScoping term</span></span>
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>instance tyname ~ TyName =&gt; CollectScopeInfo (Type tyname uni) where
+<span class="lineno">  100 </span>  <span class="decl"><span class="istickedoff">collectScopeInfo (TyLam ann name kind ty) =</span>
+<span class="lineno">  101 </span><span class="spaces">    </span><span class="istickedoff">handleSname ann name &lt;&gt; collectScopeInfo <span class="nottickedoff">kind</span> &lt;&gt; collectScopeInfo ty</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (TyForall ann name kind ty) =</span>
+<span class="lineno">  103 </span><span class="spaces">    </span><span class="istickedoff">handleSname ann name &lt;&gt; collectScopeInfo <span class="nottickedoff">kind</span> &lt;&gt; collectScopeInfo ty</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (TyIFix _ pat arg) = <span class="nottickedoff">collectScopeInfo pat &lt;&gt; collectScopeInfo arg</span></span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (TyApp _ fun arg) = collectScopeInfo fun &lt;&gt; collectScopeInfo arg</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (TyFun _ dom cod) = collectScopeInfo dom &lt;&gt; collectScopeInfo cod</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (TyVar ann name) = handleSname ann name</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (TyBuiltin _ _) = mempty</span>
+<span class="lineno">  109 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (TySOP _ tyls) = (foldMap . foldMap) collectScopeInfo tyls</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>instance (tyname ~ TyName, name ~ Name) =&gt; CollectScopeInfo (Term tyname name uni fun) where
+<span class="lineno">  112 </span>  <span class="decl"><span class="istickedoff">collectScopeInfo (LamAbs ann name ty body) =</span>
+<span class="lineno">  113 </span><span class="spaces">    </span><span class="istickedoff">handleSname ann name &lt;&gt; collectScopeInfo ty &lt;&gt; collectScopeInfo body</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (TyAbs ann name kind body) =</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff">handleSname ann name &lt;&gt; collectScopeInfo <span class="nottickedoff">kind</span> &lt;&gt; collectScopeInfo body</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (IWrap _ pat arg term) =</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="istickedoff">collectScopeInfo pat &lt;&gt; collectScopeInfo arg &lt;&gt; collectScopeInfo term</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (Apply _ fun arg) = collectScopeInfo fun &lt;&gt; collectScopeInfo arg</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (Unwrap _ term) = collectScopeInfo term</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (Error _ ty) = collectScopeInfo ty</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (TyInst _ term ty) = collectScopeInfo term &lt;&gt; collectScopeInfo ty</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (Var ann name) = handleSname ann name</span>
+<span class="lineno">  123 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (Constant _ _) = mempty</span>
+<span class="lineno">  124 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (Builtin _ _) = mempty</span>
+<span class="lineno">  125 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (Constr _ ty _ es) =</span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="istickedoff">collectScopeInfo ty &lt;&gt; foldMap collectScopeInfo es</span>
+<span class="lineno">  127 </span><span class="spaces">  </span><span class="istickedoff">collectScopeInfo (Case _ ty arg cs) =</span>
+<span class="lineno">  128 </span><span class="spaces">    </span><span class="istickedoff">collectScopeInfo ty &lt;&gt; collectScopeInfo arg &lt;&gt; foldMap collectScopeInfo cs</span></span>
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>instance (tyname ~ TyName, name ~ Name) =&gt; CollectScopeInfo (Program tyname name uni fun) where
+<span class="lineno">  131 </span>  <span class="decl"><span class="istickedoff">collectScopeInfo (Program _ _ term) = collectScopeInfo term</span></span>
+
+</pre>
+</body>
+</html>

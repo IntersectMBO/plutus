@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Relation.Nullary.Recomputable.Core</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Recomputable types and their algebra as Harrop formulas</a>
+<a id="165" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="239" class="Symbol">{-#</a> <a id="243" class="Keyword">OPTIONS</a> <a id="251" class="Pragma">--cubical-compatible</a> <a id="272" class="Pragma">--safe</a> <a id="279" class="Symbol">#-}</a>
+
+<a id="284" class="Keyword">module</a> <a id="291" href="Relation.Nullary.Recomputable.Core.html" class="Module">Relation.Nullary.Recomputable.Core</a> <a id="326" class="Keyword">where</a>
+
+<a id="333" class="Keyword">open</a> <a id="338" class="Keyword">import</a> <a id="345" href="Agda.Builtin.Equality.html" class="Module">Agda.Builtin.Equality</a> <a id="367" class="Keyword">using</a> <a id="373" class="Symbol">(</a><a id="374" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a><a id="377" class="Symbol">;</a> <a id="379" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a><a id="383" class="Symbol">)</a>
+<a id="385" class="Keyword">open</a> <a id="390" class="Keyword">import</a> <a id="397" href="Level.html" class="Module">Level</a> <a id="403" class="Keyword">using</a> <a id="409" class="Symbol">(</a><a id="410" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="415" class="Symbol">)</a>
+<a id="417" class="Keyword">open</a> <a id="422" class="Keyword">import</a> <a id="429" href="Relation.Nullary.Irrelevant.html" class="Module">Relation.Nullary.Irrelevant</a> <a id="457" class="Keyword">using</a> <a id="463" class="Symbol">(</a><a id="464" href="Relation.Nullary.Irrelevant.html#497" class="Function">Irrelevant</a><a id="474" class="Symbol">)</a>
+
+<a id="477" class="Keyword">private</a>
+  <a id="487" class="Keyword">variable</a>
+    <a id="500" href="Relation.Nullary.Recomputable.Core.html#500" class="Generalizable">a</a> <a id="502" class="Symbol">:</a> <a id="504" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+    <a id="514" href="Relation.Nullary.Recomputable.Core.html#514" class="Generalizable">A</a> <a id="516" class="Symbol">:</a> <a id="518" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="522" href="Relation.Nullary.Recomputable.Core.html#500" class="Generalizable">a</a>
+
+
+<a id="526" class="Comment">------------------------------------------------------------------------</a>
+<a id="599" class="Comment">-- Definition</a>
+<a id="613" class="Comment">--</a>
+<a id="616" class="Comment">-- The idea of being &#39;recomputable&#39; is that, given an *irrelevant* proof</a>
+<a id="689" class="Comment">-- of a proposition `A` (signalled by being a value of type `.A`, all of</a>
+<a id="762" class="Comment">-- whose inhabitants are identified up to definitional equality, and hence</a>
+<a id="837" class="Comment">-- do *not* admit pattern-matching), one may &#39;promote&#39; such a value to a</a>
+<a id="910" class="Comment">-- &#39;genuine&#39; value of `A`, available for subsequent eg. pattern-matching.</a>
+
+<a id="Recomputable"></a><a id="985" href="Relation.Nullary.Recomputable.Core.html#985" class="Function">Recomputable</a> <a id="998" class="Symbol">:</a> <a id="1000" class="Symbol">(</a><a id="1001" href="Relation.Nullary.Recomputable.Core.html#1001" class="Bound">A</a> <a id="1003" class="Symbol">:</a> <a id="1005" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="1009" href="Relation.Nullary.Recomputable.Core.html#500" class="Generalizable">a</a><a id="1010" class="Symbol">)</a> <a id="1012" class="Symbol">→</a> <a id="1014" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="1018" href="Relation.Nullary.Recomputable.Core.html#500" class="Generalizable">a</a>
+<a id="1020" href="Relation.Nullary.Recomputable.Core.html#985" class="Function">Recomputable</a> <a id="1033" href="Relation.Nullary.Recomputable.Core.html#1033" class="Bound">A</a> <a id="1035" class="Symbol">=</a> <a id="1037" class="Symbol">.</a><a id="1038" href="Relation.Nullary.Recomputable.Core.html#1033" class="Bound">A</a> <a id="1040" class="Symbol">→</a> <a id="1042" href="Relation.Nullary.Recomputable.Core.html#1033" class="Bound">A</a>
+
+<a id="1045" class="Comment">------------------------------------------------------------------------</a>
+<a id="1118" class="Comment">-- Fundamental properties:</a>
+<a id="1145" class="Comment">-- given `Recomputable A`, `recompute` is a constant function;</a>
+<a id="1208" class="Comment">-- moreover, the identity, if `A` is propositionally irrelevant.</a>
+
+<a id="1274" class="Keyword">module</a> <a id="1281" href="Relation.Nullary.Recomputable.Core.html#1281" class="Module">_</a> <a id="1283" class="Symbol">(</a><a id="1284" href="Relation.Nullary.Recomputable.Core.html#1284" class="Bound">recompute</a> <a id="1294" class="Symbol">:</a> <a id="1296" href="Relation.Nullary.Recomputable.Core.html#985" class="Function">Recomputable</a> <a id="1309" href="Relation.Nullary.Recomputable.Core.html#514" class="Generalizable">A</a><a id="1310" class="Symbol">)</a> <a id="1312" class="Keyword">where</a>
+
+  <a id="1321" href="Relation.Nullary.Recomputable.Core.html#1321" class="Function">recompute-constant</a> <a id="1340" class="Symbol">:</a> <a id="1342" class="Symbol">(</a><a id="1343" href="Relation.Nullary.Recomputable.Core.html#1343" class="Bound">p</a> <a id="1345" href="Relation.Nullary.Recomputable.Core.html#1345" class="Bound">q</a> <a id="1347" class="Symbol">:</a> <a id="1349" href="Relation.Nullary.Recomputable.Core.html#1309" class="Bound">A</a><a id="1350" class="Symbol">)</a> <a id="1352" class="Symbol">→</a> <a id="1354" href="Relation.Nullary.Recomputable.Core.html#1284" class="Bound">recompute</a> <a id="1364" href="Relation.Nullary.Recomputable.Core.html#1343" class="Bound">p</a> <a id="1366" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1368" href="Relation.Nullary.Recomputable.Core.html#1284" class="Bound">recompute</a> <a id="1378" href="Relation.Nullary.Recomputable.Core.html#1345" class="Bound">q</a>
+  <a id="1382" href="Relation.Nullary.Recomputable.Core.html#1321" class="Function">recompute-constant</a> <a id="1401" class="Symbol">_</a> <a id="1403" class="Symbol">_</a> <a id="1405" class="Symbol">=</a> <a id="1407" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+
+  <a id="1415" href="Relation.Nullary.Recomputable.Core.html#1415" class="Function">recompute-irrelevant-id</a> <a id="1439" class="Symbol">:</a> <a id="1441" href="Relation.Nullary.Irrelevant.html#497" class="Function">Irrelevant</a> <a id="1452" href="Relation.Nullary.Recomputable.Core.html#1309" class="Bound">A</a> <a id="1454" class="Symbol">→</a> <a id="1456" class="Symbol">(</a><a id="1457" href="Relation.Nullary.Recomputable.Core.html#1457" class="Bound">a</a> <a id="1459" class="Symbol">:</a> <a id="1461" href="Relation.Nullary.Recomputable.Core.html#1309" class="Bound">A</a><a id="1462" class="Symbol">)</a> <a id="1464" class="Symbol">→</a> <a id="1466" href="Relation.Nullary.Recomputable.Core.html#1284" class="Bound">recompute</a> <a id="1476" href="Relation.Nullary.Recomputable.Core.html#1457" class="Bound">a</a> <a id="1478" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">≡</a> <a id="1480" href="Relation.Nullary.Recomputable.Core.html#1457" class="Bound">a</a>
+  <a id="1484" href="Relation.Nullary.Recomputable.Core.html#1415" class="Function">recompute-irrelevant-id</a> <a id="1508" href="Relation.Nullary.Recomputable.Core.html#1508" class="Bound">irr</a> <a id="1512" href="Relation.Nullary.Recomputable.Core.html#1512" class="Bound">a</a> <a id="1514" class="Symbol">=</a> <a id="1516" href="Relation.Nullary.Recomputable.Core.html#1508" class="Bound">irr</a> <a id="1520" class="Symbol">(</a><a id="1521" href="Relation.Nullary.Recomputable.Core.html#1284" class="Bound">recompute</a> <a id="1531" href="Relation.Nullary.Recomputable.Core.html#1512" class="Bound">a</a><a id="1532" class="Symbol">)</a> <a id="1534" href="Relation.Nullary.Recomputable.Core.html#1512" class="Bound">a</a>
+
+</pre></body></html>

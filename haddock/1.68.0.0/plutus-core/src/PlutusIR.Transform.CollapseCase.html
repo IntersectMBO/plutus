@@ -1,0 +1,4006 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A top-down pass converting 2 or more consecutive casing on lists,
+if the heads are all unused, and the tails are all unused except for
+being immediately matched on.
+
+Example:
+
+case xs of _h1 t1 -&gt;
+  case t1 of _h2 t2 -&gt;
+    case t2 of _h3 t3 -&gt;
+      case t3 of _h4 t4 -&gt;
+        case t4 of h5 t5 -&gt; ...t5...
+
+===&gt;
+
+case (drop 4 xs) of h5 t5 -&gt; ...t5... -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Transform.CollapseCase</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.CollapseCase.html#collapseCase"
+	><span class="hs-identifier"
+	  >collapseCase</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.CollapseCase.html#collapseCasePassSC"
+	><span class="hs-identifier"
+	  >collapseCasePassSC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Analysis.Usages.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Analysis.Usages</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Usages</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Annotation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Pass.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Pass</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Subst.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Subst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Subst.html#termUsages"
+	><span class="hs-identifier"
+	  >termUsages</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.Rename.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Transform.Rename</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.TypeCheck.html"
+	><span class="hs-identifier"
+	  >PlutusIR.TypeCheck</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>over</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>transformOf</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>view</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="local-6989586621679499296"
+      ><span id="local-6989586621679499298"
+	><span id="local-6989586621679499300"
+	  ><span id="local-6989586621679499301"
+	    ><span class="annot"
+	      ><a href="PlutusIR.Transform.CollapseCase.html#collapseCasePassSC"
+		><span class="hs-identifier hs-type"
+		  >collapseCasePassSC</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-38"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499296"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		><span class="hs-operator hs-type"
+		  >~</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+		><span class="hs-identifier hs-type"
+		  >PLC.DefaultUni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499298"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		><span class="hs-operator hs-type"
+		  >~</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+		><span class="hs-identifier hs-type"
+		  >PLC.DefaultFun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Applicative"
+		><span class="hs-identifier hs-type"
+		  >Applicative</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499300"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Annotation.html#AnnCase"
+		><span class="hs-identifier hs-type"
+		  >AnnCase</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499301"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-39"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#PirTCConfig"
+		><span class="hs-identifier hs-type"
+		  >TC.PirTCConfig</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499296"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499298"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-40"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Pass.html#Pass"
+		><span class="hs-identifier hs-type"
+		  >Pass</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499300"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499296"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499298"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679499301"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="collapseCasePassSC"
+      ><span class="annot"
+	><span class="annottext"
+	  >collapseCasePassSC :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(uni ~ DefaultUni, fun ~ DefaultFun, Applicative m, AnnCase a) =&gt;
+PirTCConfig uni fun -&gt; Pass m TyName Name uni fun a
+</span
+	  ><a href="PlutusIR.Transform.CollapseCase.html#collapseCasePassSC"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >collapseCasePassSC</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499463"
+      ><span class="annot"
+	><span class="annottext"
+	  >PirTCConfig uni fun
+</span
+	  ><a href="#local-6989586621679499463"
+	  ><span class="hs-identifier hs-var"
+	    >tcconfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Pass m TyName Name uni fun a -&gt; Pass m TyName Name uni fun a
+forall (m :: * -&gt; *) tyname name (uni :: * -&gt; *) fun a.
+String
+-&gt; Pass m tyname name uni fun a -&gt; Pass m tyname name uni fun a
+</span
+	><a href="PlutusIR.Pass.html#NamedPass"
+	><span class="hs-identifier hs-var"
+	  >NamedPass</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;collapse cases on lists into dropLists&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Pass m TyName Name uni fun a -&gt; Pass m TyName Name uni fun a)
+-&gt; Pass m TyName Name uni fun a -&gt; Pass m TyName Name uni fun a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name uni fun a -&gt; m (Term TyName Name uni fun a))
+-&gt; [Condition TyName Name uni fun a]
+-&gt; [BiCondition TyName Name uni fun a]
+-&gt; Pass m TyName Name uni fun a
+forall (m :: * -&gt; *) tyname name (uni :: * -&gt; *) fun a.
+(Term tyname name uni fun a -&gt; m (Term tyname name uni fun a))
+-&gt; [Condition tyname name uni fun a]
+-&gt; [BiCondition tyname name uni fun a]
+-&gt; Pass m tyname name uni fun a
+</span
+	><a href="PlutusIR.Pass.html#Pass"
+	><span class="hs-identifier hs-var"
+	  >Pass</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun a -&gt; m (Term TyName Name uni fun a)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name uni fun a -&gt; m (Term TyName Name uni fun a))
+-&gt; (Term TyName Name uni fun a -&gt; Term TyName Name uni fun a)
+-&gt; Term TyName Name uni fun a
+-&gt; m (Term TyName Name uni fun a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun a -&gt; Term TyName Name uni fun a
+forall name (uni :: * -&gt; *) fun a.
+(uni ~ DefaultUni, fun ~ DefaultFun, HasUnique name TermUnique,
+ AnnCase a) =&gt;
+Term TyName name uni fun a -&gt; Term TyName name uni fun a
+</span
+	><a href="PlutusIR.Transform.CollapseCase.html#collapseCase"
+	><span class="hs-identifier hs-var"
+	  >collapseCase</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun -&gt; Condition TyName Name uni fun a
+forall (uni :: * -&gt; *) fun a.
+(Typecheckable uni fun, GEq uni) =&gt;
+PirTCConfig uni fun -&gt; Condition TyName Name uni fun a
+</span
+	><a href="PlutusIR.Pass.html#Typechecks"
+	><span class="hs-identifier hs-var"
+	  >Typechecks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+</span
+	><a href="#local-6989586621679499463"
+	><span class="hs-identifier hs-var"
+	  >tcconfig</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Condition TyName Name uni fun a
+-&gt; BiCondition TyName Name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+Condition tyname name uni fun a
+-&gt; BiCondition tyname name uni fun a
+</span
+	><a href="PlutusIR.Pass.html#ConstCondition"
+	><span class="hs-identifier hs-var"
+	  >ConstCondition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun -&gt; Condition TyName Name uni fun a
+forall (uni :: * -&gt; *) fun a.
+(Typecheckable uni fun, GEq uni) =&gt;
+PirTCConfig uni fun -&gt; Condition TyName Name uni fun a
+</span
+	><a href="PlutusIR.Pass.html#Typechecks"
+	><span class="hs-identifier hs-var"
+	  >Typechecks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PirTCConfig uni fun
+</span
+	><a href="#local-6989586621679499463"
+	><span class="hs-identifier hs-var"
+	  >tcconfig</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Transform.CollapseCase.html#collapseCase"
+	><span class="hs-identifier hs-type"
+	  >collapseCase</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679499344"
+      ><span class="annot"
+	><a href="#local-6989586621679499344"
+	  ><span class="hs-identifier hs-type"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499342"
+      ><span class="annot"
+	><a href="#local-6989586621679499342"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499343"
+      ><span class="annot"
+	><a href="#local-6989586621679499343"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499345"
+      ><span class="annot"
+	><a href="#local-6989586621679499345"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	><span class="hs-operator hs-type"
+	  >~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultUni</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499343"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	><span class="hs-operator hs-type"
+	  >~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#HasUnique"
+	><span class="hs-identifier hs-type"
+	  >HasUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499344"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier hs-type"
+	  >TermUnique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html#AnnCase"
+	><span class="hs-identifier hs-type"
+	  >AnnCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499344"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499343"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499344"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499343"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="collapseCase"
+      ><span class="annot"
+	><span class="annottext"
+	  >collapseCase :: forall name (uni :: * -&gt; *) fun a.
+(uni ~ DefaultUni, fun ~ DefaultFun, HasUnique name TermUnique,
+ AnnCase a) =&gt;
+Term TyName name uni fun a -&gt; Term TyName name uni fun a
+</span
+	  ><a href="PlutusIR.Transform.CollapseCase.html#collapseCase"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >collapseCase</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499536"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName name uni fun a
+</span
+	  ><a href="#local-6989586621679499536"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+-&gt; (Term TyName name uni fun a -&gt; Term TyName name uni fun a)
+-&gt; Maybe (Term TyName name uni fun a)
+-&gt; Term TyName name uni fun a
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#maybe"
+	><span class="hs-identifier hs-var"
+	  >maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (Term TyName name uni fun a)
+  (Term TyName name uni fun a)
+  (Term TyName name uni fun a)
+  (Term TyName name uni fun a)
+-&gt; (Term TyName name uni fun a -&gt; Term TyName name uni fun a)
+-&gt; Term TyName name uni fun a
+-&gt; Term TyName name uni fun a
+forall s t a b. ASetter s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span
+	><span class="hs-identifier hs-var"
+	>over</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (Term TyName name uni fun a)
+  (Term TyName name uni fun a)
+  (Term TyName name uni fun a)
+  (Term TyName name uni fun a)
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Applicative f =&gt;
+(Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a -&gt; Term TyName name uni fun a
+forall name (uni :: * -&gt; *) fun a.
+(uni ~ DefaultUni, fun ~ DefaultFun, HasUnique name TermUnique,
+ AnnCase a) =&gt;
+Term TyName name uni fun a -&gt; Term TyName name uni fun a
+</span
+	><a href="PlutusIR.Transform.CollapseCase.html#collapseCase"
+	><span class="hs-identifier hs-var"
+	  >collapseCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499536"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a -&gt; Term TyName name uni fun a
+forall name (uni :: * -&gt; *) fun a.
+(uni ~ DefaultUni, fun ~ DefaultFun, HasUnique name TermUnique,
+ AnnCase a) =&gt;
+Term TyName name uni fun a -&gt; Term TyName name uni fun a
+</span
+	><a href="PlutusIR.Transform.CollapseCase.html#collapseCase"
+	><span class="hs-identifier hs-var"
+	  >collapseCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a -&gt; Maybe (Term TyName name uni fun a)
+</span
+	><a href="#local-6989586621679499539"
+	><span class="hs-identifier hs-var"
+	  >collapse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499536"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679499539"
+      ><span class="annot"
+	><span class="annottext"
+	  >collapse :: Term TyName name uni fun a -&gt; Maybe (Term TyName name uni fun a)
+</span
+	  ><a href="#local-6989586621679499539"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >collapse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- First casing in the sequence - go from here</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Case"
+	><span class="hs-identifier hs-type"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499550"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679499550"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499551"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni a
+</span
+	  ><a href="#local-6989586621679499551"
+	  ><span class="hs-identifier hs-var"
+	    >_resTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499552"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName name uni fun a
+</span
+	  ><a href="#local-6989586621679499552"
+	  ><span class="hs-identifier hs-var"
+	    >scrut</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499554"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679499554"
+	  ><span class="hs-identifier hs-var"
+	    >hd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499555"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni a
+</span
+	  ><a href="#local-6989586621679499555"
+	  ><span class="hs-identifier hs-var"
+	    >elemTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499556"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679499556"
+	  ><span class="hs-identifier hs-var"
+	    >tl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499557"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName name uni fun a
+</span
+	  ><a href="#local-6989586621679499557"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bool
+forall a. AnnCase a =&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annIsSafeToDrop"
+	><span class="hs-identifier hs-var"
+	  >annIsSafeToDrop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679499550"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Usages -&gt; Int
+forall n unique. HasUnique n unique =&gt; n -&gt; Usages -&gt; Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Analysis.Usages.html#getUsageCount"
+	><span class="hs-identifier hs-var"
+	  >Usages.getUsageCount</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679499554"
+	><span class="hs-identifier hs-var"
+	  >hd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a -&gt; Usages
+forall name tyname (uni :: * -&gt; *) fun ann.
+(HasUnique name TermUnique, HasUnique tyname TypeUnique) =&gt;
+Term tyname name uni fun ann -&gt; Usages
+</span
+	><a href="PlutusIR.Subst.html#termUsages"
+	><span class="hs-identifier hs-var"
+	  >termUsages</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499557"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+-&gt; a
+-&gt; Term TyName name uni fun a
+-&gt; Type TyName uni a
+-&gt; name
+-&gt; Term TyName name uni fun a
+-&gt; Maybe (Term TyName name uni fun a)
+</span
+	><a href="#local-6989586621679499560"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a -&gt; a
+forall a. Term TyName name uni fun a -&gt; a
+forall (f :: * -&gt; *) a. HasAnn f =&gt; f a -&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusPrelude.html#getAnn"
+	><span class="hs-identifier hs-var"
+	  >getAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499552"
+	><span class="hs-identifier hs-var"
+	  >scrut</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499552"
+	><span class="hs-identifier hs-var"
+	  >scrut</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni a
+</span
+	><a href="#local-6989586621679499555"
+	><span class="hs-identifier hs-var"
+	  >elemTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679499556"
+	><span class="hs-identifier hs-var"
+	  >tl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499557"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Term TyName name uni fun a)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499560"
+	><span class="hs-identifier hs-type"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- \^ annotation on the first scrutinee in the sequence</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499344"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499343"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- \^ first scrutinee in the sequence</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- \^ list element type</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499344"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- \^ current tail</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499344"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499343"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- \^ current body</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499344"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499343"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679499560"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: Integer
+-&gt; a
+-&gt; Term TyName name uni fun a
+-&gt; Type TyName uni a
+-&gt; name
+-&gt; Term TyName name uni fun a
+-&gt; Maybe (Term TyName name uni fun a)
+</span
+	  ><a href="#local-6989586621679499560"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499562"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679499562"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499563"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679499563"
+	  ><span class="hs-identifier hs-var"
+	    >aTop</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499564"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName name uni fun a
+</span
+	  ><a href="#local-6989586621679499564"
+	  ><span class="hs-identifier hs-var"
+	    >scrutTop</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499565"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni a
+</span
+	  ><a href="#local-6989586621679499565"
+	  ><span class="hs-identifier hs-var"
+	    >elemTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499566"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679499566"
+	  ><span class="hs-identifier hs-var"
+	    >tl0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499567"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName name uni fun a
+</span
+	  ><a href="#local-6989586621679499567"
+	  ><span class="hs-identifier hs-var"
+	    >body0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499567"
+	><span class="hs-identifier hs-var"
+	  >body0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Case"
+	><span class="hs-identifier hs-type"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499568"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679499568"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499569"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni a
+</span
+	  ><a href="#local-6989586621679499569"
+	  ><span class="hs-identifier hs-var"
+	    >_resTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Var"
+	><span class="hs-identifier hs-type"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499571"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679499571"
+	  ><span class="hs-identifier hs-var"
+	    >scrut</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499572"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679499572"
+	  ><span class="hs-identifier hs-var"
+	    >hd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499573"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni a
+</span
+	  ><a href="#local-6989586621679499573"
+	  ><span class="hs-identifier hs-var"
+	    >_tyElem'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499574"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621679499574"
+	  ><span class="hs-identifier hs-var"
+	    >tl</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499575"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName name uni fun a
+</span
+	  ><a href="#local-6989586621679499575"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bool
+forall a. AnnCase a =&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annIsSafeToDrop"
+	><span class="hs-identifier hs-var"
+	  >annIsSafeToDrop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679499568"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique -&gt; name -&gt; Unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' name Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679499571"
+	><span class="hs-identifier hs-var"
+	  >scrut</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; Unique -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique -&gt; name -&gt; Unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique name Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' name Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679499566"
+	><span class="hs-identifier hs-var"
+	  >tl0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679499580"
+      ><span class="annot"
+	><span class="annottext"
+	  >usages :: Usages
+</span
+	  ><a href="#local-6989586621679499580"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >usages</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a -&gt; Usages
+forall name tyname (uni :: * -&gt; *) fun ann.
+(HasUnique name TermUnique, HasUnique tyname TypeUnique) =&gt;
+Term tyname name uni fun ann -&gt; Usages
+</span
+	><a href="PlutusIR.Subst.html#termUsages"
+	><span class="hs-identifier hs-var"
+	  >termUsages</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499575"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- new head must be unused in the body for the sequence to continue</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Usages -&gt; Int
+forall n unique. HasUnique n unique =&gt; n -&gt; Usages -&gt; Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Analysis.Usages.html#getUsageCount"
+	><span class="hs-identifier hs-var"
+	  >Usages.getUsageCount</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679499572"
+	><span class="hs-identifier hs-var"
+	  >hd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Usages
+</span
+	><a href="#local-6989586621679499580"
+	><span class="hs-identifier hs-var"
+	  >usages</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- original tail must be unused in the body for the sequence to continue</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Usages -&gt; Int
+forall n unique. HasUnique n unique =&gt; n -&gt; Usages -&gt; Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Analysis.Usages.html#getUsageCount"
+	><span class="hs-identifier hs-var"
+	  >Usages.getUsageCount</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679499566"
+	><span class="hs-identifier hs-var"
+	  >tl0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Usages
+</span
+	><a href="#local-6989586621679499580"
+	><span class="hs-identifier hs-var"
+	  >usages</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- recursive with new tail and new body</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+-&gt; a
+-&gt; Term TyName name uni fun a
+-&gt; Type TyName uni a
+-&gt; name
+-&gt; Term TyName name uni fun a
+-&gt; Maybe (Term TyName name uni fun a)
+</span
+	><a href="#local-6989586621679499560"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679499562"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679499563"
+	><span class="hs-identifier hs-var"
+	  >aTop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499564"
+	><span class="hs-identifier hs-var"
+	  >scrutTop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni a
+</span
+	><a href="#local-6989586621679499565"
+	><span class="hs-identifier hs-var"
+	  >elemTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679499574"
+	><span class="hs-identifier hs-var"
+	  >tl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499575"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; Usages -&gt; Int
+forall n unique. HasUnique n unique =&gt; n -&gt; Usages -&gt; Int
+</span
+	><a href="../../plutus-core/src/PlutusCore.Analysis.Usages.html#getUsageCount"
+	><span class="hs-identifier hs-var"
+	  >Usages.getUsageCount</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679499566"
+	><span class="hs-identifier hs-var"
+	  >tl0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a -&gt; Usages
+forall name tyname (uni :: * -&gt; *) fun ann.
+(HasUnique name TermUnique, HasUnique tyname TypeUnique) =&gt;
+Term tyname name uni fun ann -&gt; Usages
+</span
+	><a href="PlutusIR.Subst.html#termUsages"
+	><span class="hs-identifier hs-var"
+	  >termUsages</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499567"
+	><span class="hs-identifier hs-var"
+	  >body0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679499562"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>2</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a -&gt; Maybe (Term TyName name uni fun a)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName name uni fun a -&gt; Maybe (Term TyName name uni fun a))
+-&gt; Term TyName name uni fun a -&gt; Maybe (Term TyName name uni fun a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+-&gt; Term TyName name uni fun a
+-&gt; Term TyName name uni fun a
+-&gt; Term TyName name uni fun a
+forall {unique} {unique} {s} {s} {tyname} {uni :: * -&gt; *} {fun}
+       {a}.
+(Coercible unique Int, Coercible unique Int, HasUnique s unique,
+ HasUnique s unique) =&gt;
+s
+-&gt; Term tyname s uni fun a
+-&gt; Term tyname s uni fun a
+-&gt; Term tyname s uni fun a
+</span
+	><a href="#local-6989586621679499582"
+	><span class="hs-identifier hs-var"
+	  >substVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621679499566"
+	><span class="hs-identifier hs-var"
+	  >tl0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499583"
+	><span class="hs-identifier hs-var"
+	  >dropped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499567"
+	><span class="hs-identifier hs-var"
+	  >body0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Term TyName name uni fun a)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679499583"
+      ><span class="annot"
+	><span class="annottext"
+	  >dropped :: Term TyName name uni fun a
+</span
+	  ><a href="#local-6989586621679499583"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >dropped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+-&gt; Integer
+-&gt; Type TyName uni a
+-&gt; Term TyName name uni fun a
+-&gt; Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499584"
+	><span class="hs-identifier hs-var"
+	  >mkDrop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679499563"
+	><span class="hs-identifier hs-var"
+	  >aTop</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679499562"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni a
+</span
+	><a href="#local-6989586621679499565"
+	><span class="hs-identifier hs-var"
+	  >elemTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName name uni fun a
+</span
+	><a href="#local-6989586621679499564"
+	><span class="hs-identifier hs-var"
+	  >scrutTop</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679499582"
+      ><span class="annot"
+	><span class="annottext"
+	  >substVar :: s
+-&gt; Term tyname s uni fun a
+-&gt; Term tyname s uni fun a
+-&gt; Term tyname s uni fun a
+</span
+	  ><a href="#local-6989586621679499582"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >substVar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499607"
+      ><span class="annot"
+	><span class="annottext"
+	  >s
+</span
+	  ><a href="#local-6989586621679499607"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499608"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname s uni fun a
+</span
+	  ><a href="#local-6989586621679499608"
+	  ><span class="hs-identifier hs-var"
+	    >new</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (Term tyname s uni fun a)
+  (Term tyname s uni fun a)
+  (Term tyname s uni fun a)
+  (Term tyname s uni fun a)
+-&gt; (Term tyname s uni fun a -&gt; Term tyname s uni fun a)
+-&gt; Term tyname s uni fun a
+-&gt; Term tyname s uni fun a
+forall a b. ASetter a b a b -&gt; (b -&gt; b) -&gt; a -&gt; b
+</span
+	><span class="hs-identifier hs-var"
+	>transformOf</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (Term tyname s uni fun a)
+  (Term tyname s uni fun a)
+  (Term tyname s uni fun a)
+  (Term tyname s uni fun a)
+forall tyname name (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Applicative f =&gt;
+(Term tyname name uni fun a -&gt; f (Term tyname name uni fun a))
+-&gt; Term tyname name uni fun a -&gt; f (Term tyname name uni fun a)
+</span
+	><a href="PlutusIR.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Term tyname s uni fun a -&gt; Term tyname s uni fun a)
+ -&gt; Term tyname s uni fun a -&gt; Term tyname s uni fun a)
+-&gt; (Term tyname s uni fun a -&gt; Term tyname s uni fun a)
+-&gt; Term tyname s uni fun a
+-&gt; Term tyname s uni fun a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Var"
+	><span class="hs-identifier hs-type"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499609"
+      ><span class="annot"
+	><span class="annottext"
+	  >s
+</span
+	  ><a href="#local-6989586621679499609"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique s Unique -&gt; s -&gt; Unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique s Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' s Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>s
+</span
+	><a href="#local-6989586621679499609"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; Unique -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique s Unique -&gt; s -&gt; Unique
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique s Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' s Unique
+</span
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>s
+</span
+	><a href="#local-6989586621679499607"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname s uni fun a
+</span
+	><a href="#local-6989586621679499608"
+	><span class="hs-identifier hs-var"
+	  >new</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679499610"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname s uni fun a
+</span
+	  ><a href="#local-6989586621679499610"
+	  ><span class="hs-identifier hs-var"
+	    >other</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname s uni fun a
+</span
+	><a href="#local-6989586621679499610"
+	><span class="hs-identifier hs-var"
+	  >other</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499584"
+	><span class="hs-identifier hs-type"
+	  >mkDrop</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499344"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499343"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499344"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499342"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499343"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679499345"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679499584"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkDrop :: a
+-&gt; Integer
+-&gt; Type TyName uni a
+-&gt; Term TyName name uni fun a
+-&gt; Term TyName name uni fun a
+</span
+	  ><a href="#local-6989586621679499584"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkDrop</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499611"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679499611"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499612"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679499612"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679499613"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni a
+</span
+	  ><a href="#local-6989586621679499613"
+	  ><span class="hs-identifier hs-var"
+	    >elemTy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+-&gt; Term TyName name uni fun a
+-&gt; Term TyName name uni fun a
+-&gt; Term TyName name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679499611"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+-&gt; Term TyName name uni fun a
+-&gt; Term TyName name uni fun a
+-&gt; Term TyName name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#Apply"
+	><span class="hs-identifier hs-var"
+	  >Apply</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679499611"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+-&gt; Term TyName name uni fun a
+-&gt; Type TyName uni a
+-&gt; Term TyName name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; Term tyname name uni fun a
+-&gt; Type tyname uni a
+-&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#TyInst"
+	><span class="hs-identifier hs-var"
+	  >TyInst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679499611"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; fun -&gt; Term TyName name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+a -&gt; fun -&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-var"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679499611"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DropList"
+	><span class="hs-identifier hs-var"
+	  >PLC.DropList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni a
+</span
+	><a href="#local-6989586621679499613"
+	><span class="hs-identifier hs-var"
+	  >elemTy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Some (ValueOf uni) -&gt; Term TyName name uni fun a
+forall tyname name (uni :: * -&gt; *) fun a.
+a -&gt; Some (ValueOf uni) -&gt; Term tyname name uni fun a
+</span
+	><a href="PlutusIR.Core.Type.html#Constant"
+	><span class="hs-identifier hs-var"
+	  >Constant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679499611"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Some (ValueOf uni)
+forall a (uni :: * -&gt; *). Contains uni a =&gt; a -&gt; Some (ValueOf uni)
+</span
+	><a href="../../plutus-core/src/Universe.Core.html#someValue"
+	><span class="hs-identifier hs-var"
+	  >PLC.someValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679499612"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

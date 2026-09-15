@@ -1,0 +1,140 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE KindSignatures #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import PlutusCore.Unroll (NatToPeano, UpwardsM (..))
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import Control.Monad.Primitive
+<span class="lineno">   10 </span>import Data.Coerce (coerce)
+<span class="lineno">   11 </span>import Data.Primitive qualified as P
+<span class="lineno">   12 </span>import Data.Proxy
+<span class="lineno">   13 </span>import Data.Word
+<span class="lineno">   14 </span>import GHC.TypeNats (KnownNat, Nat, natVal)
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>-- See Note [Step counter data structure]
+<span class="lineno">   17 </span>-- You might think that since we can store whatever we like in here we might as well
+<span class="lineno">   18 </span>-- use machine words (i.e. 'Word64'), but that is actually slower.
+<span class="lineno">   19 </span>{-| A set of 'Word8' counters that is used in the CEK machine
+<span class="lineno">   20 </span>to count steps. -}
+<span class="lineno">   21 </span>newtype StepCounter (n :: Nat) s = StepCounter (P.MutablePrimArray s Word8)
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- | Make a new 'StepCounter' with the given number of counters.
+<span class="lineno">   24 </span>newCounter :: (KnownNat n, PrimMonad m) =&gt; Proxy n -&gt; m (StepCounter n (PrimState m))
+<span class="lineno">   25 </span><span class="decl"><span class="istickedoff">newCounter p = do</span>
+<span class="lineno">   26 </span><span class="spaces">  </span><span class="istickedoff">let sz = fromIntegral $ natVal <span class="nottickedoff">p</span></span>
+<span class="lineno">   27 </span><span class="spaces">  </span><span class="istickedoff">c &lt;- StepCounter &lt;$&gt; P.newPrimArray sz</span>
+<span class="lineno">   28 </span><span class="spaces">  </span><span class="istickedoff">resetCounter c</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="istickedoff">pure c</span></span>
+<span class="lineno">   30 </span>{-# INLINE newCounter #-}
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>-- | Reset all the counters in the given 'StepCounter' to zero.
+<span class="lineno">   33 </span>resetCounter :: forall n m. (KnownNat n, PrimMonad m) =&gt; StepCounter n (PrimState m) -&gt; m ()
+<span class="lineno">   34 </span><span class="decl"><span class="istickedoff">resetCounter (StepCounter arr) =</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="istickedoff">let sz = fromIntegral $ natVal <span class="nottickedoff">(Proxy @n)</span></span>
+<span class="lineno">   36 </span><span class="spaces">   </span><span class="istickedoff">in P.setPrimArray arr 0 sz 0</span></span>
+<span class="lineno">   37 </span>{-# INLINE resetCounter #-}
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>-- | Read the value of a counter.
+<span class="lineno">   40 </span>readCounter :: forall m n. PrimMonad m =&gt; StepCounter n (PrimState m) -&gt; Int -&gt; m Word8
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">readCounter =</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="istickedoff">coerce</span>
+<span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff">@(P.MutablePrimArray (PrimState m) Word8 -&gt; Int -&gt; m Word8)</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="istickedoff">@(StepCounter n (PrimState m) -&gt; Int -&gt; m Word8)</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="istickedoff">P.readPrimArray</span></span>
+<span class="lineno">   46 </span>{-# INLINE readCounter #-}
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>-- | Write to a counter.
+<span class="lineno">   49 </span>writeCounter
+<span class="lineno">   50 </span>  :: forall m n
+<span class="lineno">   51 </span>   . PrimMonad m
+<span class="lineno">   52 </span>  =&gt; StepCounter n (PrimState m)
+<span class="lineno">   53 </span>  -&gt; Int
+<span class="lineno">   54 </span>  -&gt; Word8
+<span class="lineno">   55 </span>  -&gt; m ()
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">writeCounter =</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">coerce</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="istickedoff">@(P.MutablePrimArray (PrimState m) Word8 -&gt; Int -&gt; Word8 -&gt; m ())</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">@(StepCounter n (PrimState m) -&gt; Int -&gt; Word8 -&gt; m ())</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">P.writePrimArray</span></span>
+<span class="lineno">   61 </span>{-# INLINE writeCounter #-}
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>-- | Modify the value of a counter. Returns the modified value.
+<span class="lineno">   64 </span>modifyCounter
+<span class="lineno">   65 </span>  :: PrimMonad m
+<span class="lineno">   66 </span>  =&gt; Int
+<span class="lineno">   67 </span>  -&gt; (Word8 -&gt; Word8)
+<span class="lineno">   68 </span>  -&gt; StepCounter n (PrimState m)
+<span class="lineno">   69 </span>  -&gt; m Word8
+<span class="lineno">   70 </span><span class="decl"><span class="istickedoff">modifyCounter i f c = do</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">v &lt;- readCounter c i</span>
+<span class="lineno">   72 </span><span class="spaces">  </span><span class="istickedoff">let modified = f v</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">writeCounter c i modified</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">pure modified</span></span>
+<span class="lineno">   75 </span>{-# INLINE modifyCounter #-}
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>-- | Traverse the counters with an effectful function.
+<span class="lineno">   78 </span>itraverseCounter_
+<span class="lineno">   79 </span>  :: forall n m
+<span class="lineno">   80 </span>   . (UpwardsM m (NatToPeano n), PrimMonad m)
+<span class="lineno">   81 </span>  =&gt; (Int -&gt; Word8 -&gt; m ())
+<span class="lineno">   82 </span>  -&gt; StepCounter n (PrimState m)
+<span class="lineno">   83 </span>  -&gt; m ()
+<span class="lineno">   84 </span><span class="decl"><span class="istickedoff">itraverseCounter_ f (StepCounter arr) = do</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">-- The safety of this operation is a little subtle. The frozen array is only</span>
+<span class="lineno">   86 </span><span class="spaces">  </span><span class="istickedoff">-- safe to use if the underlying mutable array is not mutated 'afterwards'.</span>
+<span class="lineno">   87 </span><span class="spaces">  </span><span class="istickedoff">-- In our case it likely _will_ be mutated afterwards... but not until we</span>
+<span class="lineno">   88 </span><span class="spaces">  </span><span class="istickedoff">-- are done with the frozen version. That ordering is enforced by the fact that</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="istickedoff">-- the whole thing runs in 'm': future accesses to the mutable array can't</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="istickedoff">-- happen until this whole function is finished.</span>
+<span class="lineno">   91 </span><span class="spaces">  </span><span class="istickedoff">arr' &lt;- P.unsafeFreezePrimArray arr</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="istickedoff">upwardsM @_ @(NatToPeano n) 0 $ \i -&gt; f i $ P.indexPrimArray arr' i</span></span>
+<span class="lineno">   93 </span>{-# INLINE itraverseCounter_ #-}
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>-- | Traverse the counters with an effectful function.
+<span class="lineno">   96 </span>iforCounter_
+<span class="lineno">   97 </span>  :: (UpwardsM m (NatToPeano n), PrimMonad m)
+<span class="lineno">   98 </span>  =&gt; StepCounter n (PrimState m)
+<span class="lineno">   99 </span>  -&gt; (Int -&gt; Word8 -&gt; m ())
+<span class="lineno">  100 </span>  -&gt; m ()
+<span class="lineno">  101 </span><span class="decl"><span class="istickedoff">iforCounter_ = flip itraverseCounter_</span></span>
+<span class="lineno">  102 </span>{-# INLINE iforCounter_ #-}
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>{- Note [Step counter data structure]
+<span class="lineno">  105 </span>The step counter data structure has had several iterations.
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>Previously we used a &quot;word array&quot;, which was a single 'Word64' into which we
+<span class="lineno">  108 </span>packed 8 'Word8's. This worked pretty well: it was pure, and everything reduced
+<span class="lineno">  109 </span>to a bunch of primitive integer operations.
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>However, it has a key limitation which is that it can only hold 8 counters.
+<span class="lineno">  112 </span>The obvious attempt to expand it to use a 'Word128' performed badly.
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span>The 'PrimArray' approach on the other hand was fairly competitive with the
+<span class="lineno">  115 </span>original 'WordArray', and scales fine to more than 8 counters, so we switched
+<span class="lineno">  116 </span>to using that instead.
+<span class="lineno">  117 </span>-}
+
+</pre>
+</body>
+</html>

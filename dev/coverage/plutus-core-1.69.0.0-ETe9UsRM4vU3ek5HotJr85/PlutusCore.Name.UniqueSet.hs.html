@@ -1,0 +1,127 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-| A type for sets of things identified by 'Unique's, usually names.
+<span class="lineno">    2 </span> This approach is preferred when it is more efficient to compare the associated
+<span class="lineno">    3 </span> 'Unique's instead of the underlying type. -}
+<span class="lineno">    4 </span>module PlutusCore.Name.UniqueSet
+<span class="lineno">    5 </span>  ( UniqueSet (..)
+<span class="lineno">    6 </span>  , insertByUnique
+<span class="lineno">    7 </span>  , insertByName
+<span class="lineno">    8 </span>  , singletonName
+<span class="lineno">    9 </span>  , fromFoldable
+<span class="lineno">   10 </span>  , fromUniques
+<span class="lineno">   11 </span>  , fromNames
+<span class="lineno">   12 </span>  , memberByUnique
+<span class="lineno">   13 </span>  , memberByName
+<span class="lineno">   14 </span>  , notMemberByName
+<span class="lineno">   15 </span>  , (\\)
+<span class="lineno">   16 </span>  , union
+<span class="lineno">   17 </span>  , setOfByUnique
+<span class="lineno">   18 </span>  , setOfByName
+<span class="lineno">   19 </span>  ) where
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Control.Lens (Getting, view)
+<span class="lineno">   22 </span>import Control.Lens.Getter (views)
+<span class="lineno">   23 </span>import Data.Coerce (Coercible, coerce)
+<span class="lineno">   24 </span>import Data.IntSet qualified as IS
+<span class="lineno">   25 </span>import Data.IntSet.Lens qualified as IS
+<span class="lineno">   26 </span>import Data.List as List (foldl')
+<span class="lineno">   27 </span>import PlutusCore.Name.Unique (HasUnique (..), Unique (Unique))
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>{-| A set containing 'Unique's. Since 'Unique' is equivalent to 'Int'
+<span class="lineno">   30 </span> (see &quot;PlutusCore.Name.Unique&quot;), we can use an 'IntSet' representation for this type. -}
+<span class="lineno">   31 </span>newtype UniqueSet unique = UniqueSet
+<span class="lineno">   32 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">unUniqueSet</span></span></span> :: IS.IntSet
+<span class="lineno">   33 </span>  }
+<span class="lineno">   34 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   35 </span>  deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>)
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>-- | Insert a @unique@.
+<span class="lineno">   38 </span>insertByUnique
+<span class="lineno">   39 </span>  :: Coercible unique Unique
+<span class="lineno">   40 </span>  =&gt; unique
+<span class="lineno">   41 </span>  -&gt; UniqueSet unique
+<span class="lineno">   42 </span>  -&gt; UniqueSet unique
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">insertByUnique = coerce . IS.insert . coerce</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>-- | Insert the @unique@ associated to the @name@.
+<span class="lineno">   46 </span>insertByName :: HasUnique name unique =&gt; name -&gt; UniqueSet unique -&gt; UniqueSet unique
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">insertByName = insertByUnique . view unique</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>-- | Create the singleton set of the @unique@ associated to the @name@.
+<span class="lineno">   50 </span>singletonName :: HasUnique name unique =&gt; name -&gt; UniqueSet unique
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">singletonName n = insertByName n mempty</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>-- | Convert a 'Foldable' into a 'UniqueSet' using the given insertion function.
+<span class="lineno">   54 </span>fromFoldable
+<span class="lineno">   55 </span>  :: Foldable f
+<span class="lineno">   56 </span>  =&gt; (i -&gt; UniqueSet unique -&gt; UniqueSet unique)
+<span class="lineno">   57 </span>  -&gt; f i
+<span class="lineno">   58 </span>  -&gt; UniqueSet unique
+<span class="lineno">   59 </span><span class="decl"><span class="nottickedoff">fromFoldable ins = List.foldl' (flip ins) mempty</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>-- | Convert a 'Foldable' with uniques into a 'UniqueSet'.
+<span class="lineno">   62 </span>fromUniques :: Foldable f =&gt; Coercible Unique unique =&gt; f unique -&gt; UniqueSet unique
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">fromUniques = fromFoldable insertByUnique</span></span>
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>-- | Convert a 'Foldable' with names into a 'UniqueSet'.
+<span class="lineno">   66 </span>fromNames :: Foldable f =&gt; HasUnique name unique =&gt; f name -&gt; UniqueSet unique
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">fromNames = fromFoldable insertByName</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>-- | Is the @unique@ a member of the set?
+<span class="lineno">   70 </span>memberByUnique :: Coercible unique Unique =&gt; unique -&gt; UniqueSet unique -&gt; Bool
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff">memberByUnique uniq = IS.member (coerce uniq) . unUniqueSet</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>-- | Is the @name@ associated to the @unique@ a member of the set?
+<span class="lineno">   74 </span>memberByName :: HasUnique name unique =&gt; name -&gt; UniqueSet unique -&gt; Bool
+<span class="lineno">   75 </span><span class="decl"><span class="istickedoff">memberByName = memberByUnique . view unique</span></span>
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>{-| The negation of 'memberByName', useful for converting to operator form,
+<span class="lineno">   78 </span> e.g. @name `notMemberByName` set@. -}
+<span class="lineno">   79 </span>notMemberByName :: HasUnique name unique =&gt; name -&gt; UniqueSet unique -&gt; Bool
+<span class="lineno">   80 </span><span class="decl"><span class="istickedoff">notMemberByName n = not . memberByName n</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>-- | The difference of two 'UniqueSet's.
+<span class="lineno">   83 </span>(\\) :: UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+<span class="lineno">   84 </span><span class="decl"><span class="istickedoff">(\\) (UniqueSet s1) (UniqueSet s2) = UniqueSet $ s1 IS.\\ s2</span></span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>-- | The union of two 'UniqueSet's.
+<span class="lineno">   87 </span>union :: UniqueSet unique -&gt; UniqueSet unique -&gt; UniqueSet unique
+<span class="lineno">   88 </span><span class="decl"><span class="istickedoff">union (UniqueSet s1) (UniqueSet s2) = UniqueSet $ s1 `IS.union` s2</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>-- | Build a set of @unique@s from the 'Getting'.
+<span class="lineno">   91 </span>setOfByUnique
+<span class="lineno">   92 </span>  :: Coercible unique Unique
+<span class="lineno">   93 </span>  =&gt; Getting (UniqueSet unique) s unique
+<span class="lineno">   94 </span>  -&gt; s
+<span class="lineno">   95 </span>  -&gt; UniqueSet unique
+<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">setOfByUnique g = UniqueSet &lt;$&gt; IS.setOf (coerce g)</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>-- | Build a set of @unique@s associated to the names in the 'Getting'.
+<span class="lineno">   99 </span>setOfByName
+<span class="lineno">  100 </span>  :: HasUnique name unique
+<span class="lineno">  101 </span>  =&gt; Getting (UniqueSet unique) s name
+<span class="lineno">  102 </span>  -&gt; s
+<span class="lineno">  103 </span>  -&gt; UniqueSet unique
+<span class="lineno">  104 </span><span class="decl"><span class="istickedoff">setOfByName l = views l singletonName</span></span>
+
+</pre>
+</body>
+</html>

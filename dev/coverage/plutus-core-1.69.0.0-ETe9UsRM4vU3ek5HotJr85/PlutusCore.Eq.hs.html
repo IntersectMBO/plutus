@@ -1,0 +1,207 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    2 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    5 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>{-| An internal module that defines functions for deciding equality of values of data types
+<span class="lineno">    8 </span>that encode things with binders. -}
+<span class="lineno">    9 </span>module PlutusCore.Eq
+<span class="lineno">   10 </span>  ( LR (..)
+<span class="lineno">   11 </span>  , RL (..)
+<span class="lineno">   12 </span>  , EqRename
+<span class="lineno">   13 </span>  , ScopedEqRename
+<span class="lineno">   14 </span>  , runEqRename
+<span class="lineno">   15 </span>  , withTwinBindings
+<span class="lineno">   16 </span>  , eqNameM
+<span class="lineno">   17 </span>  , eqM
+<span class="lineno">   18 </span>  ) where
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import PlutusPrelude
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import PlutusCore.Name.Unique
+<span class="lineno">   23 </span>import PlutusCore.Rename.Monad
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>import Control.Lens
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>{- Note [Modulo alpha]
+<span class="lineno">   28 </span>The implemented algorithm of checking equality modulo alpha works as follows
+<span class="lineno">   29 </span>(taking types as an example):
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>- traverse both the types simultaneously
+<span class="lineno">   32 </span>- if the outermost constructors differ, return 'False'
+<span class="lineno">   33 </span>- otherwise if the constructors are binders, then record that the two possibly distinct bound
+<span class="lineno">   34 </span>    variables map to each other
+<span class="lineno">   35 </span>- otherwise if the constructors are variables, look them up in the current scope
+<span class="lineno">   36 </span>    * if both are in scope, then those are bound variables, so check that they map to each other
+<span class="lineno">   37 </span>        (i.e. are introduced by twin binders)
+<span class="lineno">   38 </span>    * if both are not in scope, then those are free variables, so check if their uniques are equal
+<span class="lineno">   39 </span>    * if one is in scope and the other one is not, then return 'False'
+<span class="lineno">   40 </span>- otherwise check equality of non-recursive constituents and recurse for recursive occurrences
+<span class="lineno">   41 </span>-}
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>{- Note [Scope tracking]
+<span class="lineno">   44 </span>Scopes (term level vs type level) are resolved automatically in a type-driven way much like we do
+<span class="lineno">   45 </span>in the renamer. This allows not to think about scopes when implementing the actual equality checks
+<span class="lineno">   46 </span>and makes it impossible to confuse the scopes and e.g. insert a type-level name into a term-level
+<span class="lineno">   47 </span>scope. Also allows to define a function that records bindings and a function that checks equality
+<span class="lineno">   48 </span>of two names in a general manner for both the scopes.
+<span class="lineno">   49 </span>-}
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>{- Note [Side tracking]
+<span class="lineno">   52 </span>The simplest way to track that twin variables map to each other is to have two contexts:
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>- left-hand side variables and what they map to
+<span class="lineno">   55 </span>- right-hand side variables and what they map to
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>(we refer to a first argument as being on the left-hand side and to a second argument as being on
+<span class="lineno">   58 </span>the right-hand side)
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>E.g. when checking equality of these two types:
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>    all (x_3 :: *) (x_3 :: *). x_3 -&gt; x_3
+<span class="lineno">   63 </span>    all (y_4 :: *) (z_5 :: *). y_4 -&gt; z_5
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>we first record that @x_3@ maps to @y_4@ and vice versa, then record that @x_3@ maps to @z_5@ and
+<span class="lineno">   66 </span>vice versa. This way when we later check equality of @x_3@ and @y_4@ we know that it doesn't hold,
+<span class="lineno">   67 </span>because even though @y_4@ maps to @x_3@, @x_3@ doesn't map to @y_4@, because that mapping was
+<span class="lineno">   68 </span>overwritten by the @x_3@-to-@z_5@ one.
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>For storing the left-to-right and right-to-left mappings separately we use the 'Bilateral' data
+<span class="lineno">   71 </span>type. Given that we track not only sides, but also scopes, we instantiate 'Bilateral' with either
+<span class="lineno">   72 </span>type-level-only renamings (for checking equality of types) or scoped ones (for checking equality
+<span class="lineno">   73 </span>of terms and programs). This amounts to the following generic monad:
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>    RenameT (Bilateral ren) m
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>i.e. regardless of what the underlying renaming is, it has to be bilateral.
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>We zoom into the sides of a bilateral renaming using the 'LR' and 'RL' newtype wrappers using the
+<span class="lineno">   80 </span>same 'HasRenaming' machinery that we use for zooming into the scopes of a scoped renaming:
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>- the 'LR' wrapper allows to retrieve a lens focusing on the left  renaming
+<span class="lineno">   83 </span>- the 'RL' wrapper allows to retrieve a lens focusing on the right renaming
+<span class="lineno">   84 </span>
+<span class="lineno">   85 </span>I.e. you wrap a name into either 'LR' and 'RL' and depending on that you get focused on either
+<span class="lineno">   86 </span>left-to-right or right-to-left part of a 'Bilateral' renaming.
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>So e.g.
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>    withRenamedName (LR name1) (LR name2)
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>reads as &quot;record that @name1@ maps to @name2@ from left to right&quot;
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>and
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>    lookupNameM $ RL name2
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>reads as &quot;look the right-to-left mapping of @name2@ up&quot;.
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>I.e. we first resolve sides using explicit wrappers and then scope resolution happens automatically
+<span class="lineno">  101 </span>on the basis of existing type information (e.g. 'TyName' is a type-level name, hence we need the
+<span class="lineno">  102 </span>type-level renaming).
+<span class="lineno">  103 </span>-}
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>-- See Note [Side tracking].
+<span class="lineno">  106 </span>-- | From left to right.
+<span class="lineno">  107 </span>newtype LR a = LR
+<span class="lineno">  108 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unLR</span></span></span> :: a
+<span class="lineno">  109 </span>  }
+<span class="lineno">  110 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>-- See Note [Side tracking].
+<span class="lineno">  113 </span>-- | From right to left.
+<span class="lineno">  114 </span>newtype RL a = RL
+<span class="lineno">  115 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unRL</span></span></span> :: a
+<span class="lineno">  116 </span>  }
+<span class="lineno">  117 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>-- See Note [Side tracking].
+<span class="lineno">  120 </span>-- | A left @a@ and a right @a@.
+<span class="lineno">  121 </span>data Bilateral a = Bilateral
+<span class="lineno">  122 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_bilateralL</span></span></span> :: a
+<span class="lineno">  123 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_bilateralR</span></span></span> :: a
+<span class="lineno">  124 </span>  }
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">makeLenses ''Bilateral</span></span></span></span></span>
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>instance <span class="decl"><span class="istickedoff">Wrapped (LR a)</span></span>
+<span class="lineno">  129 </span>instance <span class="decl"><span class="istickedoff">Wrapped (RL a)</span></span>
+<span class="lineno">  130 </span>instance <span class="decl"><span class="istickedoff">HasUnique name unique =&gt; HasUnique (LR name) (LR unique)</span></span>
+<span class="lineno">  131 </span>instance <span class="decl"><span class="istickedoff">HasUnique name unique =&gt; HasUnique (RL name) (RL unique)</span></span>
+<span class="lineno">  132 </span>
+<span class="lineno">  133 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup a =&gt; Semigroup (Bilateral a)</span></span></span></span> where
+<span class="lineno">  134 </span>  <span class="decl"><span class="nottickedoff">Bilateral l1 r1 &lt;&gt; Bilateral l2 r2 = Bilateral (l1 &lt;&gt; l2) (r1 &lt;&gt; r2)</span></span>
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid a =&gt; Monoid (Bilateral a)</span></span></span></span> where
+<span class="lineno">  137 </span>  <span class="decl"><span class="istickedoff">mempty = Bilateral mempty mempty</span></span>
+<span class="lineno">  138 </span>
+<span class="lineno">  139 </span>-- To rename from left to right is to update the left renaming.
+<span class="lineno">  140 </span>instance HasRenaming ren unique =&gt; HasRenaming (Bilateral ren) (LR unique) where
+<span class="lineno">  141 </span>  <span class="decl"><span class="istickedoff">renaming = bilateralL . renaming . coerced @(Renaming unique)</span></span>
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>-- To rename from right to left is to update the right renaming.
+<span class="lineno">  144 </span>instance HasRenaming ren unique =&gt; HasRenaming (Bilateral ren) (RL unique) where
+<span class="lineno">  145 </span>  <span class="decl"><span class="istickedoff">renaming = bilateralR . renaming . coerced @(Renaming unique)</span></span>
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>{-| The type of a runnable equality check. @Maybe ()@ is isomorphic to 'Bool' and we use it
+<span class="lineno">  148 </span>instead of 'Bool', because this unlocks the convenient and readable do-notation and allows for
+<span class="lineno">  149 </span>automatic short-circuiting, which would be tedious with @Rename (Bilateral ren) Bool@. -}
+<span class="lineno">  150 </span>type EqRename ren = RenameT (Bilateral ren) Maybe ()
+<span class="lineno">  151 </span>
+<span class="lineno">  152 </span>type ScopedEqRename = EqRename ScopedRenaming
+<span class="lineno">  153 </span>
+<span class="lineno">  154 </span>-- | Run an 'EqRename' computation.
+<span class="lineno">  155 </span>runEqRename :: Monoid ren =&gt; EqRename ren -&gt; Bool
+<span class="lineno">  156 </span><span class="decl"><span class="istickedoff">runEqRename = isJust . runRenameT</span></span>
+<span class="lineno">  157 </span>
+<span class="lineno">  158 </span>-- See Note [Modulo alpha].
+<span class="lineno">  159 </span>-- | Record that two names map to each other.
+<span class="lineno">  160 </span>withTwinBindings
+<span class="lineno">  161 </span>  :: (HasRenaming ren unique, HasUnique name unique, Monad m)
+<span class="lineno">  162 </span>  =&gt; name -&gt; name -&gt; RenameT (Bilateral ren) m c -&gt; RenameT (Bilateral ren) m c
+<span class="lineno">  163 </span><span class="decl"><span class="istickedoff">withTwinBindings name1 name2 k =</span>
+<span class="lineno">  164 </span><span class="spaces">  </span><span class="istickedoff">withRenamedName (LR name1) (LR name2) $</span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="istickedoff">withRenamedName (RL name2) (RL name1) k</span></span>
+<span class="lineno">  166 </span>
+<span class="lineno">  167 </span>-- See Note [Modulo alpha].
+<span class="lineno">  168 </span>-- | Check equality of two names.
+<span class="lineno">  169 </span>eqNameM
+<span class="lineno">  170 </span>  :: (HasRenaming ren unique, HasUnique name unique, Eq unique)
+<span class="lineno">  171 </span>  =&gt; name -&gt; name -&gt; EqRename ren
+<span class="lineno">  172 </span><span class="decl"><span class="istickedoff">eqNameM name1 name2 = do</span>
+<span class="lineno">  173 </span><span class="spaces">  </span><span class="istickedoff">mayUniq2' &lt;- lookupNameM $ LR name1</span>
+<span class="lineno">  174 </span><span class="spaces">  </span><span class="istickedoff">mayUniq1' &lt;- lookupNameM $ RL name2</span>
+<span class="lineno">  175 </span><span class="spaces">  </span><span class="istickedoff">let uniq1 = name1 ^. unique</span>
+<span class="lineno">  176 </span><span class="spaces">      </span><span class="istickedoff">uniq2 = name2 ^. unique</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="istickedoff">guard $ case (mayUniq1', mayUniq2') of</span>
+<span class="lineno">  178 </span><span class="spaces">    </span><span class="istickedoff">(Nothing, Nothing) -&gt; uniq1 == uniq2</span>
+<span class="lineno">  179 </span><span class="spaces">    </span><span class="istickedoff">(Just (RL uniq1'), Just (LR uniq2')) -&gt; uniq1 == uniq1' &amp;&amp; uniq2 == uniq2'</span>
+<span class="lineno">  180 </span><span class="spaces">    </span><span class="istickedoff">(_, _) -&gt; False</span></span>
+<span class="lineno">  181 </span>
+<span class="lineno">  182 </span>-- | Check equality of things having an 'Eq' instance.
+<span class="lineno">  183 </span>eqM :: Eq a =&gt; a -&gt; a -&gt; EqRename ren
+<span class="lineno">  184 </span><span class="decl"><span class="istickedoff">eqM x1 x2 = guard $ x1 == x2</span></span>
+
+</pre>
+</body>
+</html>

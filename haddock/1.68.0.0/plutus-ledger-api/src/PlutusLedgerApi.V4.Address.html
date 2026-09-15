@@ -1,0 +1,3056 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE BlockArguments #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingVia #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-specialise #-}</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Addresses and account identifiers for Plutus V4.
+
+In Plutus V1-V3 an `Address` pairs a payment credential with an optional
+staking credential. In V4 staking credentials no longer exist: the funds
+locked by an address are staked via an account, identified by an `AccountId`. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.V4.Address</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#AccountId"
+	><span class="hs-identifier"
+	  >AccountId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#pubKeyHashAddress"
+	><span class="hs-identifier"
+	  >pubKeyHashAddress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#toPubKeyHash"
+	><span class="hs-identifier"
+	  >toPubKeyHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#toScriptHash"
+	><span class="hs-identifier"
+	  >toScriptHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#scriptHashAddress"
+	><span class="hs-identifier"
+	  >scriptHashAddress</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#stakingAccountId"
+	><span class="hs-identifier"
+	  >stakingAccountId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html"
+	><span class="hs-identifier"
+	  >Data.Function</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator"
+	  >(&amp;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Credential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#Credential"
+	><span class="hs-identifier"
+	  >Credential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Crypto</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Scripts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	><span class="hs-identifier"
+	  >ScriptHash</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	><span class="hs-identifier"
+	  >HasBlueprintSchema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Internal.html#HasSchemaDefinition"
+	><span class="hs-identifier"
+	  >HasSchemaDefinition</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaInfo"
+	><span class="hs-identifier"
+	  >SchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Derive.html#definitionRef"
+	><span class="hs-identifier"
+	  >definitionRef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#withSchemaInfo"
+	><span class="hs-identifier"
+	  >withSchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Eq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier"
+	  >pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Symbols.Ascii.html#parens"
+	><span class="hs-identifier"
+	  >parens</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator"
+	  >(&lt;+&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Prettyprinter.Extras.html"
+	><span class="hs-identifier"
+	  >Prettyprinter.Extras</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Prettyprinter.Extras.html#PrettyShow"
+	><span class="hs-identifier"
+	  >PrettyShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Prettyprinter.Extras.html#PrettyShow"
+	><span class="hs-identifier"
+	  >PrettyShow</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="AccountId"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V4.Address.html#AccountId"
+	  ><span class="hs-identifier hs-var"
+	    >AccountId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="AccountId"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V4.Address.html#AccountId"
+	  ><span class="hs-identifier hs-var"
+	    >AccountId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#Credential"
+	><span class="hs-identifier hs-type"
+	  >Credential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682030417"
+      ><span id="local-6989586621682030419"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. AccountId -&gt; Rep AccountId x)
+-&gt; (forall x. Rep AccountId x -&gt; AccountId) -&gt; Generic AccountId
+forall x. Rep AccountId x -&gt; AccountId
+forall x. AccountId -&gt; Rep AccountId x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. AccountId -&gt; Rep AccountId x
+from :: forall x. AccountId -&gt; Rep AccountId x
+$cto :: forall x. Rep AccountId x -&gt; AccountId
+to :: forall x. Rep AccountId x -&gt; AccountId
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682030423"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition AccountId
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682030429"
+      ><span id="local-6989586621682030435"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. AccountId -&gt; Doc ann)
+-&gt; (forall ann. [AccountId] -&gt; Doc ann) -&gt; Pretty AccountId
+forall ann. [AccountId] -&gt; Doc ann
+forall ann. AccountId -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. AccountId -&gt; Doc ann
+pretty :: forall ann. AccountId -&gt; Doc ann
+$cprettyList :: forall ann. [AccountId] -&gt; Doc ann
+prettyList :: forall ann. [AccountId] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Prettyprinter.Extras.html#PrettyShow"
+	><span class="hs-identifier hs-type"
+	  >PrettyShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#AccountId"
+	><span class="hs-identifier hs-type"
+	  >AccountId</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030443"
+      ><span id="local-6989586621682030448"
+	><span class="annot"
+	  ><span class="annottext"
+	    >AccountId -&gt; AccountId -&gt; Bool
+(AccountId -&gt; AccountId -&gt; Bool)
+-&gt; (AccountId -&gt; AccountId -&gt; Bool) -&gt; Eq AccountId
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: AccountId -&gt; AccountId -&gt; Bool
+== :: AccountId -&gt; AccountId -&gt; Bool
+$c/= :: AccountId -&gt; AccountId -&gt; Bool
+/= :: AccountId -&gt; AccountId -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030456"
+      ><span id="local-6989586621682030461"
+	><span id="local-6989586621682030465"
+	  ><span id="local-6989586621682030469"
+	    ><span id="local-6989586621682030473"
+	      ><span id="local-6989586621682030477"
+		><span id="local-6989586621682030481"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq AccountId
+Eq AccountId =&gt;
+(AccountId -&gt; AccountId -&gt; Ordering)
+-&gt; (AccountId -&gt; AccountId -&gt; Bool)
+-&gt; (AccountId -&gt; AccountId -&gt; Bool)
+-&gt; (AccountId -&gt; AccountId -&gt; Bool)
+-&gt; (AccountId -&gt; AccountId -&gt; Bool)
+-&gt; (AccountId -&gt; AccountId -&gt; AccountId)
+-&gt; (AccountId -&gt; AccountId -&gt; AccountId)
+-&gt; Ord AccountId
+AccountId -&gt; AccountId -&gt; Bool
+AccountId -&gt; AccountId -&gt; Ordering
+AccountId -&gt; AccountId -&gt; AccountId
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: AccountId -&gt; AccountId -&gt; Ordering
+compare :: AccountId -&gt; AccountId -&gt; Ordering
+$c&lt; :: AccountId -&gt; AccountId -&gt; Bool
+&lt; :: AccountId -&gt; AccountId -&gt; Bool
+$c&lt;= :: AccountId -&gt; AccountId -&gt; Bool
+&lt;= :: AccountId -&gt; AccountId -&gt; Bool
+$c&gt; :: AccountId -&gt; AccountId -&gt; Bool
+&gt; :: AccountId -&gt; AccountId -&gt; Bool
+$c&gt;= :: AccountId -&gt; AccountId -&gt; Bool
+&gt;= :: AccountId -&gt; AccountId -&gt; Bool
+$cmax :: AccountId -&gt; AccountId -&gt; AccountId
+max :: AccountId -&gt; AccountId -&gt; AccountId
+$cmin :: AccountId -&gt; AccountId -&gt; AccountId
+min :: AccountId -&gt; AccountId -&gt; AccountId
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030487"
+      ><span id="local-6989586621682030492"
+	><span id="local-6989586621682030496"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; AccountId -&gt; ShowS
+[AccountId] -&gt; ShowS
+AccountId -&gt; String
+(Int -&gt; AccountId -&gt; ShowS)
+-&gt; (AccountId -&gt; String)
+-&gt; ([AccountId] -&gt; ShowS)
+-&gt; Show AccountId
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; AccountId -&gt; ShowS
+showsPrec :: Int -&gt; AccountId -&gt; ShowS
+$cshow :: AccountId -&gt; String
+show :: AccountId -&gt; String
+$cshowList :: [AccountId] -&gt; ShowS
+showList :: [AccountId] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030501"
+      ><span class="annot"
+	><span class="annottext"
+	  >AccountId -&gt; AccountId -&gt; Bool
+(AccountId -&gt; AccountId -&gt; Bool) -&gt; Eq AccountId
+forall a. (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: AccountId -&gt; AccountId -&gt; Bool
+== :: AccountId -&gt; AccountId -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.Class.html#Eq"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.Eq</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030508"
+      ><span class="annot"
+	><span class="annottext"
+	  >AccountId -&gt; BuiltinData
+(AccountId -&gt; BuiltinData) -&gt; ToData AccountId
+forall a. (a -&gt; BuiltinData) -&gt; ToData a
+$ctoBuiltinData :: AccountId -&gt; BuiltinData
+toBuiltinData :: AccountId -&gt; BuiltinData
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.ToData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030515"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; Maybe AccountId
+(BuiltinData -&gt; Maybe AccountId) -&gt; FromData AccountId
+forall a. (BuiltinData -&gt; Maybe a) -&gt; FromData a
+$cfromBuiltinData :: BuiltinData -&gt; Maybe AccountId
+fromBuiltinData :: BuiltinData -&gt; Maybe AccountId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.FromData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030522"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData -&gt; AccountId
+(BuiltinData -&gt; AccountId) -&gt; UnsafeFromData AccountId
+forall a. (BuiltinData -&gt; a) -&gt; UnsafeFromData a
+$cunsafeFromBuiltinData :: BuiltinData -&gt; AccountId
+unsafeFromBuiltinData :: BuiltinData -&gt; AccountId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >PlutusTx.UnsafeFromData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682030110"
+      ><span class="hs-special"
+	>(</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Internal.html#HasSchemaDefinition"
+	  ><span class="hs-identifier hs-type"
+	    >HasSchemaDefinition</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	  ><span class="hs-identifier hs-type"
+	    >PubKeyHash</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682030110"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-64"
+	></span
+	><span
+	>  </span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Internal.html#HasSchemaDefinition"
+	  ><span class="hs-identifier hs-type"
+	    >HasSchemaDefinition</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	  ><span class="hs-identifier hs-type"
+	    >ScriptHash</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682030110"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-65"
+	></span
+	><span
+	>  </span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-66"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasBlueprintSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V4.Address.html#AccountId"
+	  ><span class="hs-identifier hs-type"
+	    >AccountId</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682030110"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682030540"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema referencedTypes
+</span
+	  ><a href="#local-6989586621682030540"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t (referencedTypes :: [*]).
+HasBlueprintSchema t referencedTypes =&gt;
+Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Class.html#schema"
+	><span class="hs-identifier hs-var"
+	  >schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#Credential"
+	><span class="hs-identifier hs-type"
+	  >Credential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621682030110"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Schema referencedTypes
+-&gt; (Schema referencedTypes -&gt; Schema referencedTypes)
+-&gt; Schema referencedTypes
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SchemaInfo -&gt; SchemaInfo)
+-&gt; Schema referencedTypes -&gt; Schema referencedTypes
+forall (referencedTypes :: [*]).
+(SchemaInfo -&gt; SchemaInfo)
+-&gt; Schema referencedTypes -&gt; Schema referencedTypes
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.html#withSchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >withSchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682030542"
+      ><span class="annot"
+	><span class="annottext"
+	  >SchemaInfo
+</span
+	  ><a href="#local-6989586621682030542"
+	  ><span class="hs-identifier hs-var"
+	    >info</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="#local-6989586621682030542"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#title"
+	><span class="hs-identifier hs-var"
+	  >title</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-string"
+	>&quot;AccountId&quot;</span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| An address may contain two things: the payment credential, and optionally
+the 'AccountId' of the account the funds are staked to. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Address"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V4.Address.html#Address"
+	  ><span class="hs-identifier hs-var"
+	    >Address</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Address"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V4.Address.html#Address"
+	  ><span class="hs-identifier hs-var"
+	    >Address</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="addressCredential"
+      ><span class="annot"
+	><span class="annottext"
+	  >Address -&gt; Credential
+</span
+	  ><a href="PlutusLedgerApi.V4.Address.html#addressCredential"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addressCredential</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#Credential"
+	><span class="hs-identifier hs-type"
+	  >Credential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ the payment credential</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="addressStakingAccountId"
+      ><span class="annot"
+	><span class="annottext"
+	  >Address -&gt; Maybe AccountId
+</span
+	  ><a href="PlutusLedgerApi.V4.Address.html#addressStakingAccountId"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addressStakingAccountId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#AccountId"
+	><span class="hs-identifier hs-type"
+	  >AccountId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ the account the funds locked by this address are staked to</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682030547"
+      ><span id="local-6989586621682030553"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Address -&gt; Address -&gt; Bool
+(Address -&gt; Address -&gt; Bool)
+-&gt; (Address -&gt; Address -&gt; Bool) -&gt; Eq Address
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Address -&gt; Address -&gt; Bool
+== :: Address -&gt; Address -&gt; Bool
+$c/= :: Address -&gt; Address -&gt; Bool
+/= :: Address -&gt; Address -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030559"
+      ><span id="local-6989586621682030565"
+	><span id="local-6989586621682030570"
+	  ><span id="local-6989586621682030574"
+	    ><span id="local-6989586621682030577"
+	      ><span id="local-6989586621682030580"
+		><span id="local-6989586621682030583"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq Address
+Eq Address =&gt;
+(Address -&gt; Address -&gt; Ordering)
+-&gt; (Address -&gt; Address -&gt; Bool)
+-&gt; (Address -&gt; Address -&gt; Bool)
+-&gt; (Address -&gt; Address -&gt; Bool)
+-&gt; (Address -&gt; Address -&gt; Bool)
+-&gt; (Address -&gt; Address -&gt; Address)
+-&gt; (Address -&gt; Address -&gt; Address)
+-&gt; Ord Address
+Address -&gt; Address -&gt; Bool
+Address -&gt; Address -&gt; Ordering
+Address -&gt; Address -&gt; Address
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Address -&gt; Address -&gt; Ordering
+compare :: Address -&gt; Address -&gt; Ordering
+$c&lt; :: Address -&gt; Address -&gt; Bool
+&lt; :: Address -&gt; Address -&gt; Bool
+$c&lt;= :: Address -&gt; Address -&gt; Bool
+&lt;= :: Address -&gt; Address -&gt; Bool
+$c&gt; :: Address -&gt; Address -&gt; Bool
+&gt; :: Address -&gt; Address -&gt; Bool
+$c&gt;= :: Address -&gt; Address -&gt; Bool
+&gt;= :: Address -&gt; Address -&gt; Bool
+$cmax :: Address -&gt; Address -&gt; Address
+max :: Address -&gt; Address -&gt; Address
+$cmin :: Address -&gt; Address -&gt; Address
+min :: Address -&gt; Address -&gt; Address
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030586"
+      ><span id="local-6989586621682030594"
+	><span id="local-6989586621682030598"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Address -&gt; ShowS
+[Address] -&gt; ShowS
+Address -&gt; String
+(Int -&gt; Address -&gt; ShowS)
+-&gt; (Address -&gt; String) -&gt; ([Address] -&gt; ShowS) -&gt; Show Address
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Address -&gt; ShowS
+showsPrec :: Int -&gt; Address -&gt; ShowS
+$cshow :: Address -&gt; String
+show :: Address -&gt; String
+$cshowList :: [Address] -&gt; ShowS
+showList :: [Address] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030601"
+      ><span id="local-6989586621682030603"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Address -&gt; Rep Address x)
+-&gt; (forall x. Rep Address x -&gt; Address) -&gt; Generic Address
+forall x. Rep Address x -&gt; Address
+forall x. Address -&gt; Rep Address x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Address -&gt; Rep Address x
+from :: forall x. Address -&gt; Rep Address x
+$cto :: forall x. Rep Address x -&gt; Address
+to :: forall x. Rep Address x -&gt; Address
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682030606"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition Address
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="local-6989586621682030611"
+      ><span class="hs-identifier"
+	>PlutusTx.deriveEq</span
+	><span
+	> </span
+	><span class="hs-special"
+	>''</span
+	><span class="hs-identifier"
+	>Address</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030625"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.V4.Address.html#Address"
+	  ><span class="hs-identifier hs-type"
+	    >Address</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621682030630"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. Address -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682030631"
+      ><span class="annot"
+	><span class="annottext"
+	  >Credential
+</span
+	  ><a href="#local-6989586621682030631"
+	  ><span class="hs-identifier hs-var"
+	    >cred</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682030632"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe AccountId
+</span
+	  ><a href="#local-6989586621682030632"
+	  ><span class="hs-identifier hs-var"
+	    >accountId</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682030636"
+      ><span class="annot"
+	><span class="annottext"
+	  >staking :: Doc ann
+</span
+	  ><a href="#local-6989586621682030636"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >staking</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; (AccountId -&gt; Doc ann) -&gt; Maybe AccountId -&gt; Doc ann
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Maybe.html#maybe"
+	><span class="hs-identifier hs-var"
+	  >maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;no staking account&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AccountId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. AccountId -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe AccountId
+</span
+	><a href="#local-6989586621682030632"
+	><span class="hs-identifier hs-var"
+	  >accountId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >     </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Credential -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential
+</span
+	><a href="#local-6989586621682030631"
+	><span class="hs-identifier hs-var"
+	  >cred</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.2/docs/src/Prettyprinter.Symbols.Ascii.html#parens"
+	><span class="hs-identifier hs-var"
+	  >parens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall {ann}. Doc ann
+</span
+	><a href="#local-6989586621682030636"
+	><span class="hs-identifier hs-var"
+	  >staking</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#pubKeyHashAddress"
+	><span class="hs-pragma hs-type"
+	  >pubKeyHashAddress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The address that should be targeted by a transaction output
+locked by the public key with the given hash. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#pubKeyHashAddress"
+	><span class="hs-identifier hs-type"
+	  >pubKeyHashAddress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span id="pubKeyHashAddress"
+      ><span class="annot"
+	><span class="annottext"
+	  >pubKeyHashAddress :: PubKeyHash -&gt; Address
+</span
+	  ><a href="PlutusLedgerApi.V4.Address.html#pubKeyHashAddress"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >pubKeyHashAddress</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682030638"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621682030638"
+	  ><span class="hs-identifier hs-var"
+	    >pkh</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential -&gt; Maybe AccountId -&gt; Address
+</span
+	><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-var"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash -&gt; Credential
+</span
+	><a href="PlutusLedgerApi.V1.Credential.html#PubKeyCredential"
+	><span class="hs-identifier hs-var"
+	  >PubKeyCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621682030638"
+	><span class="hs-identifier hs-var"
+	  >pkh</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe AccountId
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#toPubKeyHash"
+	><span class="hs-pragma hs-type"
+	  >toPubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The PubKeyHash of the address, if any</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#toPubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >toPubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span id="toPubKeyHash"
+      ><span class="annot"
+	><span class="annottext"
+	  >toPubKeyHash :: Address -&gt; Maybe PubKeyHash
+</span
+	  ><a href="PlutusLedgerApi.V4.Address.html#toPubKeyHash"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toPubKeyHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#PubKeyCredential"
+	><span class="hs-identifier hs-type"
+	  >PubKeyCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682030640"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621682030640"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe AccountId
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash -&gt; Maybe PubKeyHash
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621682030640"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#toPubKeyHash"
+	><span class="hs-identifier hs-var"
+	  >toPubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Address
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe PubKeyHash
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#toScriptHash"
+	><span class="hs-pragma hs-type"
+	  >toScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The validator hash of the address, if any</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#toScriptHash"
+	><span class="hs-identifier hs-type"
+	  >toScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	><span class="hs-identifier hs-type"
+	  >ScriptHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span id="toScriptHash"
+      ><span class="annot"
+	><span class="annottext"
+	  >toScriptHash :: Address -&gt; Maybe ScriptHash
+</span
+	  ><a href="PlutusLedgerApi.V4.Address.html#toScriptHash"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toScriptHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#ScriptCredential"
+	><span class="hs-identifier hs-type"
+	  >ScriptCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682030642"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptHash
+</span
+	  ><a href="#local-6989586621682030642"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe AccountId
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptHash -&gt; Maybe ScriptHash
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptHash
+</span
+	><a href="#local-6989586621682030642"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#toScriptHash"
+	><span class="hs-identifier hs-var"
+	  >toScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Address
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ScriptHash
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#scriptHashAddress"
+	><span class="hs-pragma hs-type"
+	  >scriptHashAddress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The address that should be used by a transaction output
+locked by the given validator script hash. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#scriptHashAddress"
+	><span class="hs-identifier hs-type"
+	  >scriptHashAddress</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Scripts.html#ScriptHash"
+	><span class="hs-identifier hs-type"
+	  >ScriptHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span id="scriptHashAddress"
+      ><span class="annot"
+	><span class="annottext"
+	  >scriptHashAddress :: ScriptHash -&gt; Address
+</span
+	  ><a href="PlutusLedgerApi.V4.Address.html#scriptHashAddress"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >scriptHashAddress</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682030643"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptHash
+</span
+	  ><a href="#local-6989586621682030643"
+	  ><span class="hs-identifier hs-var"
+	    >vh</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential -&gt; Maybe AccountId -&gt; Address
+</span
+	><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-var"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptHash -&gt; Credential
+</span
+	><a href="PlutusLedgerApi.V1.Credential.html#ScriptCredential"
+	><span class="hs-identifier hs-var"
+	  >ScriptCredential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptHash
+</span
+	><a href="#local-6989586621682030643"
+	><span class="hs-identifier hs-var"
+	  >vh</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe AccountId
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#stakingAccountId"
+	><span class="hs-pragma hs-type"
+	  >stakingAccountId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The account the funds locked by an address are staked to (if any)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#stakingAccountId"
+	><span class="hs-identifier hs-type"
+	  >stakingAccountId</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#AccountId"
+	><span class="hs-identifier hs-type"
+	  >AccountId</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span id="stakingAccountId"
+      ><span class="annot"
+	><span class="annottext"
+	  >stakingAccountId :: Address -&gt; Maybe AccountId
+</span
+	  ><a href="PlutusLedgerApi.V4.Address.html#stakingAccountId"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >stakingAccountId</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V4.Address.html#Address"
+	><span class="hs-identifier hs-type"
+	  >Address</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Credential
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682030644"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe AccountId
+</span
+	  ><a href="#local-6989586621682030644"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe AccountId
+</span
+	><a href="#local-6989586621682030644"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="hs-comment"
+      >----------------------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="hs-comment"
+      >-- TH Splices --------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621682030646"
+      ><span id="local-6989586621682030648"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="hs-identifier"
+	  >PlutusTx.makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >AccountId</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621682030283"
+      ><span id="local-6989586621682030767"
+	><span id="local-6989586621682030773"
+	  ><span id="local-6989586621682030775"
+	    ><span id="local-6989586621682030783"
+	      ><span class="hs-special"
+		>(</span
+		><span class="hs-identifier"
+		>PlutusTx.makeIsDataSchemaIndexed</span
+		><span
+		> </span
+		><span class="hs-special"
+		>''</span
+		><span class="hs-identifier"
+		>Address</span
+		><span
+		> </span
+		><span class="hs-special"
+		>[</span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>Address</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>0</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>]</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621682030836"
+      ><span id="local-6989586621682030838"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="hs-identifier"
+	  >PlutusTx.makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >Address</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

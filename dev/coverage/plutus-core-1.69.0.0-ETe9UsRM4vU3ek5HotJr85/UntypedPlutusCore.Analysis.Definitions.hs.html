@@ -1,0 +1,79 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>{-| Definition analysis for untyped Plutus Core.
+<span class="lineno">    4 </span>This just adapts term-related code from PlutusCore.Analysis.Definitions;
+<span class="lineno">    5 </span>we just re-use the typed machinery to do the hard work here. -}
+<span class="lineno">    6 </span>module UntypedPlutusCore.Analysis.Definitions
+<span class="lineno">    7 </span>  ( termDefs
+<span class="lineno">    8 </span>  , runTermDefs
+<span class="lineno">    9 </span>  ) where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import UntypedPlutusCore.Core
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addDef, addUsage)
+<span class="lineno">   14 </span>import PlutusCore.Error (UniqueError)
+<span class="lineno">   15 </span>import PlutusCore.Name.Unique (HasUnique, TermUnique (TermUnique), Unique (Unique))
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Control.Lens (forMOf_)
+<span class="lineno">   18 </span>import Control.Monad.State (MonadState, execStateT)
+<span class="lineno">   19 </span>import Control.Monad.Writer (MonadWriter, WriterT (runWriterT))
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>{-| Given a UPLC term, add all of its term definitions and usages, including its subterms,
+<span class="lineno">   22 </span>to a global map. -}
+<span class="lineno">   23 </span>termDefs
+<span class="lineno">   24 </span>  :: ( Ord ann
+<span class="lineno">   25 </span>     , HasUnique name TermUnique
+<span class="lineno">   26 </span>     , MonadState (UniqueInfos ann) m
+<span class="lineno">   27 </span>     , MonadWriter [UniqueError ann] m
+<span class="lineno">   28 </span>     )
+<span class="lineno">   29 </span>  =&gt; Term name uni fun ann
+<span class="lineno">   30 </span>  -&gt; m ()
+<span class="lineno">   31 </span><span class="decl"><span class="istickedoff">termDefs tm = do</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="istickedoff">forMOf_ termSubtermsDeep tm handleTerm</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>handleTerm
+<span class="lineno">   35 </span>  :: ( Ord ann
+<span class="lineno">   36 </span>     , HasUnique name TermUnique
+<span class="lineno">   37 </span>     , MonadState (UniqueInfos ann) m
+<span class="lineno">   38 </span>     , MonadWriter [UniqueError ann] m
+<span class="lineno">   39 </span>     )
+<span class="lineno">   40 </span>  =&gt; Term name uni fun ann
+<span class="lineno">   41 </span>  -&gt; m ()
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">handleTerm = \case</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">Var ann n -&gt;</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="istickedoff">addUsage n ann TermScope</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="istickedoff">LamAbs ann n _ -&gt;</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="istickedoff">addDef n <span class="nottickedoff">ann</span> TermScope</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">_ -&gt; pure <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>runTermDefs
+<span class="lineno">   50 </span>  :: ( Ord ann
+<span class="lineno">   51 </span>     , HasUnique name TermUnique
+<span class="lineno">   52 </span>     , Monad m
+<span class="lineno">   53 </span>     )
+<span class="lineno">   54 </span>  =&gt; Term name uni fun ann
+<span class="lineno">   55 </span>  -&gt; m (UniqueInfos ann, [UniqueError ann])
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">runTermDefs = runWriterT . flip execStateT mempty . termDefs</span></span>
+
+</pre>
+</body>
+</html>
