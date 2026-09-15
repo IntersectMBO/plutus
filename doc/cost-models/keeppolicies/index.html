@@ -26,7 +26,8 @@
       number of elements that name a policy the <code>Value</code> actually has does not change the order
       of the cost. The depth is the measure the builtin's denotation uses, and it is 1 for the empty
       <code>Value</code> rather than 0: a product model would otherwise charge nothing but its intercept
-      for a policy list of any length.
+      for a policy list of any length. Both builtins refuse a <code>Value</code> with more than 8191 policies, so the grid stops at
+      depth 13 and the model is fitted to cover every row of it rather than nine in ten.
     </p>
 
     <div class="controls" id="data-source-controls">

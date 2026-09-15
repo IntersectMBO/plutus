@@ -39,6 +39,7 @@ module PlutusCore.Value
   , unionValue
   , valueData
   , valueDataMaxSize
+  , policyFilterMaxSize
   , unValueData
   , buildValueWith
   ) where
@@ -491,6 +492,22 @@ policies :: Value -> [ByteString]
 policies = map unK . Map.keys . unpack
 {-# INLINEABLE policies #-}
 
+{-| The most policies `keepPolicies` and `dropPolicies` accept in their `Value`; both fail on
+more.
+
+Both are charged on the length of the policy list times the depth of the outer map, and a
+descent into an outer map too large for the cache costs more than that shape can express. The
+bound puts the inputs the models would undercharge out of reach. It is the largest outer size
+of depth 13, several times the most policies a transaction can carry. -}
+policyFilterMaxSize :: Int
+policyFilterMaxSize = 8191
+
+-- | The failure both policy filters raise on a `Value` with too many policies.
+policyFilterOverflow :: String -> BuiltinResult a
+policyFilterOverflow name =
+  fail $ name <> ": maximum number of policies (" <> show policyFilterMaxSize <> ") exceeded"
+{-# INLINE policyFilterOverflow #-}
+
 {-| The `Value` restricted to the given currency symbols.
 
 \(O(p \log m)\), where \(p\) is the length of the policy list and \(m\) is the size of the
@@ -503,9 +520,13 @@ compared byte by byte for free. Restricting the outer map can neither empty an i
 zero a quantity, so the result is already normalized.
 
 The caches are built from the currencies kept rather than through `pack'`, which would
-recount the negative amounts of every one of them. -}
-keepPolicies :: [ByteString] -> Value -> Value
-keepPolicies ps (Value outer _ _ _ negs) = Value outer' sizes total neg negs'
+recount the negative amounts of every one of them.
+
+Fails if the `Value` holds more than `policyFilterMaxSize` policies; see there for why. -}
+keepPolicies :: [ByteString] -> Value -> BuiltinResult Value
+keepPolicies ps (Value outer _ _ _ negs)
+  | Map.size outer > policyFilterMaxSize = policyFilterOverflow "keepPolicies"
+  | otherwise = pure $ Value outer' sizes total neg negs'
   where
     outer' = List.foldl' keep Map.empty (mapMaybe k ps)
     keep acc currency = case Map.lookup currency outer of
@@ -526,9 +547,13 @@ Ids the `Value` does not have, including any longer than `maxKeyLen`, are ignore
 `keepPolicies` builds a fresh `Value` out of the currencies the list names. This one starts
 from the whole `Value` and subtracts each dropped currency's contribution, so the currencies
 that stay are never looked at: dropping two of them from a huge `Value` costs the two, not
-the whole `Value`. -}
-dropPolicies :: [ByteString] -> Value -> Value
-dropPolicies ps v = List.foldl' dropPolicy v (mapMaybe k ps)
+the whole `Value`.
+
+Fails if the `Value` holds more than `policyFilterMaxSize` policies; see there for why. -}
+dropPolicies :: [ByteString] -> Value -> BuiltinResult Value
+dropPolicies ps v@(Value outer _ _ _ _)
+  | Map.size outer > policyFilterMaxSize = policyFilterOverflow "dropPolicies"
+  | otherwise = pure $ List.foldl' dropPolicy v (mapMaybe k ps)
 {-# INLINEABLE dropPolicies #-}
 
 {-| Remove one currency and subtract its contribution from the cached fields.
