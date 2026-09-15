@@ -7,7 +7,6 @@ const ARITY = 2;
 
 // Global state
 let benchmarkData = [];
-let modelPredictions = [];
 let costModel = null;
 let overhead = 0;
 let showModel = true;
@@ -19,7 +18,7 @@ setupCostModelPage({
   costModelName: COST_MODEL_NAME,
   arity: ARITY,
   render(data) {
-    ({ benchmarkData, costModel, overhead, modelPredictions } = data);
+    ({ benchmarkData, costModel, overhead } = data);
     updateInfoPanel();
     renderPlot();
   },
@@ -92,28 +91,8 @@ function renderPlot() {
 
   const traces = [benchmarkTrace];
 
-  // Prepare model trace if available
-  if (showModel && modelPredictions.length > 0) {
-    const modelX = modelPredictions.map(d => d.args[0]);
-    const modelY = modelPredictions.map(d => d.args[1]);
-    const modelZ = modelPredictions.map(d => d.predictedTime);
-
-    const modelTrace = {
-      x: modelX,
-      y: modelY,
-      z: modelZ,
-      mode: 'markers',
-      type: 'scatter3d',
-      name: 'Model Predictions',
-      marker: {
-        size: 4,
-        color: '#E53E3E',
-        opacity: 0.4,
-        symbol: 'x'
-      }
-    };
-
-    traces.push(modelTrace);
+  if (showModel && costModel) {
+    traces.push(modelTrace3d(costModel, benchmarkData, overhead));
   }
 
   // Layout configuration
@@ -147,9 +126,11 @@ function renderPlot() {
     paper_bgcolor: 'rgba(0,0,0,0)'
   };
 
-  // Set Z-axis range based on mode
+  // Set Z-axis range based on mode. The model is in the range too, or a surface that
+  // overcharges the largest inputs would be cut off at the top.
+  const allZ = traces.flatMap(t => t.z.flat()).filter(z => z !== null);
   if (zAxisMode === 'zero') {
-    layout.scene.zaxis.range = [0, Math.max(...benchmarkZ) * 1.1];
+    layout.scene.zaxis.range = [0, Math.max(...allZ) * 1.1];
   } else {
     const minZ = Math.min(...benchmarkZ);
     const maxZ = Math.max(...benchmarkZ);
@@ -178,6 +159,7 @@ function setupControls() {
     showModel = e.target.checked;
     renderPlot();
   });
+  setupModelDisplay(renderPlot);
 
   // Z-axis mode selector
   const zAxisModeSelect = document.getElementById('z-axis-mode');
