@@ -421,17 +421,18 @@ builtinMemoryModels =
       -- `multiIndexArray`). The size measure is the number of policies (`ValueOuterSize`).
       paramPolicies = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 3
     , -- Both builtins share the inner maps of the `Value` and its policy ids by pointer, so
-      -- what they allocate is spine, and both charge it against the policy list: the result
-      -- of `keepPolicies` holds at most one policy per element of the list, and
-      -- `dropPolicies` rebuilds at most one search path per element.
+      -- what they allocate is spine, and both charge it against the product of the list
+      -- length and the depth: each element of the list rebuilds at most one search path, of
+      -- one node per level.
       --
       -- `keepPolicies` allocates, per element of the list, 3 words for a cons cell of
-      -- `mapMaybe k` and 5 for a node of the `Set` it builds from that, and then per policy
-      -- it keeps 6 words for an outer-map `Bin`, 6 for a negative-counts `Bin` whose value
-      -- is shared with the input, and about 10 for an `IntMap` entry (a 3-word `Tip`, an
+      -- `mapMaybe k` and a rebuilt path in the map it collects into at 6 words per level,
+      -- and then per policy it keeps 6 words for a negative-counts `Bin` whose value is
+      -- shared with the input and about 10 for an `IntMap` entry (a 3-word `Tip`, an
       -- amortised 5-word `Bin` and a 2-word boxed `Int`). Kept policies are bounded by the
-      -- length of the list, so 30 words per element, rounded up for margin.
-      paramKeepPolicies = Id $ ModelTwoArgumentsLinearInX $ OneVariableLinearFunction 32 32
+      -- length of the list, so 19 + 6 words per level, worst at a depth of one, rounded up
+      -- to leave the rebalancing of an insert some room.
+      paramKeepPolicies = Id $ ModelTwoArgumentsMultipliedSizes $ OneVariableLinearFunction 32 32
     , -- `dropPolicies` folds over the list, and each step allocates a fresh `Value` closure
       -- of 6 words, a 3-word cons cell, a rebuilt search path in the outer map and another
       -- in the negative counts at 6 words per level each, and an `IntMap` path of about 5

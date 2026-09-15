@@ -441,24 +441,21 @@ policiesBenchmark gen =
 {- Note [Benchmarking keepPolicies and dropPolicies]
 Both builtins take a policy list and a `Value`, and the cost model sees the length of the
 list and the depth of the `Value`'s outer map. Neither builtin descends an inner map, and
-neither reads an amount: `keepPolicies` restricts the outer map and the per-currency
-negative counts to the ids the list names, and `dropPolicies` deletes one policy at a time
-and subtracts its cached contribution.
+neither reads an amount: `keepPolicies` looks each id up in the outer map and collects what
+it finds, and `dropPolicies` deletes one policy at a time and subtracts its cached
+contribution.
 
-The two do not have the same shape, and the reason is what they spend their time on.
-`dropPolicies` does one outer-map descent per element of the list, so its cost follows the
-product of the two visible sizes. `keepPolicies` builds a `Set` from the list first, and
-that build costs `p log p` whatever the `Value` is. It is the larger half of what the
-builtin spends, so the depth still moves the total, but by less and less of it as the list
-grows. Neither `p log p` nor a per-element cost that grows with p is expressible in the
-model algebra, so `keepPolicies` gets a single per-element slope at the envelope of the
-measurements.
+Both charge on the product of the two visible sizes, for the same reason: each walks the
+list once and costs one outer-map descent per element. Neither cost depends on how many of
+the ids the `Value` actually has, so the product is a tight visible bound for both, and the
+two take the same fit.
 
 Every family puts the misses of the list before its hits. `dropPolicies` folds from the
 left, so an id the `Value` does not have costs a descent of the outer map as it stands at
 that point, while once the map is empty the rest of the list is free. With the hits first,
 a list longer than the outer map spends most of its tail on an empty map, and the point
-gets charged for a list it never walked.
+gets charged for a list it never walked. `keepPolicies` reads the `Value` it was given and
+never changes it, so the order does not reach it.
 
 `randomSizes` draws the list length and the number of policies independently on a log
 scale, and the tokens per policy from what is left of the total-size budget. Drawing the
@@ -482,28 +479,26 @@ policy the `Value` has, and how many policies hold a negative amount. Both look 
 repeated measurements of a single point, so whatever they measure appears as vertical
 spread there and nowhere else.
 
-The two builtins answer the hit sweep in opposite directions. For `dropPolicies` a miss
-costs nearly as much as a hit, because `Map.updateLookupWithKey` rebuilds the whole search
-path whether or not it finds anything, which is what licenses bounding the number of hits
-by the length of the list. For `keepPolicies` a miss costs more: `Map.restrictKeys` returns
-a subtree unchanged when it keeps all of it and glues two restricted subtrees together at
-every key it drops, so the drops are what it spends on. Its costliest list of a given
-length is therefore one that names nothing in the `Value`, which `worstCase` never builds,
-and at long lists the peak sits in the interior of the sweep rather than at either end.
+Both are costliest where `worstCase` puts them, on a list that hits as often as its length
+allows, and for different reasons. `keepPolicies` pays for a hit and barely for a miss: a
+miss is a lookup that fails and nothing more, while a hit also inserts. `dropPolicies` pays
+nearly the same for either, because `Map.updateLookupWithKey` rebuilds the whole search path
+whether or not it finds anything. So neither is understated by a shape that bounds the hits
+by the length of the list, and `hitSweep` is the check on that rather than its source.
 
 One thing the model cannot see and no family can remove: the cost of a descent step is not
 constant. An outer map of tens of thousands of 32-byte keys does not fit in cache, so a step
 into a large map costs several times a step into a small one. No available shape expresses
-that, so `dropPolicies`' slope is set by its deepest maps and overcharges shallow ones.
+that, so both slopes are set by the deepest maps and overcharge shallow ones.
 
 `listOnly` hands the builtins an empty `Value`. Those points are in the fit, since the
 empty `Value` has depth 1 rather than 0 and so sits on the bottom edge of the plane rather
-than off it, but they pin less than they look like they do. `Map.restrictKeys` matches the
-map before the set, so against an empty `Value` `keepPolicies` never forces the `Set` at
-all, and these points are an order of magnitude below a `Value` of one policy at the same
-coordinate. What they establish is that unlifting the list is inside the measured loop,
-not that the `Set` build is; and because depth 1 covers both the empty `Value` and a
-`Value` of one policy, the model has to charge every one of them at the one-policy rate.
+than off it, but they pin less than they look like they do: a lookup or a delete on an empty
+map returns at once, so what they measure is the list walk and none of a descent. They are
+also the rows the product shape prices by its intercept alone, which is why the fit sets
+that intercept from the cheapest call that does work rather than from these. And because
+depth 1 covers both the empty `Value` and a `Value` of one policy, the model has to charge
+every one of them at the one-policy rate.
 
 The row name carries the depth, not the number of policies, so two points differing only
 in a number of policies between the same two powers of two collide. Fitting these builtins
@@ -615,7 +610,7 @@ keepDropArgs g = do
         <> hitSweep
         <> signSweep
         <> listOnly
-  -- Lovelace: the empty bytestring is a valid policy id, and `policySet` keeps it.
+  -- Lovelace: the empty bytestring is a valid policy id, and both builtins keep it.
   lovelace <- do
     tokenName <- generateKey g
     pure ([BS.empty], buildSignedValue 1 [emptyKey] [tokenName])

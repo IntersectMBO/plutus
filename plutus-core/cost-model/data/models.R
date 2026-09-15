@@ -436,6 +436,33 @@ modelFun <- function(path) {
         m
    }
 
+   ## Fit `I + s*x*y` with `fit.fan`, which wants one regressor.  Hand it the product under
+   ## the name `fit.fan` reads and put the coefficients back onto a model of the shape the
+   ## Haskell side reads; the same manoeuvre as equalsDataModel below.
+   ##
+   ## The rows whose product is zero are dropped from the fit and kept in the model.  A
+   ## product shape charges the first list element the least when the depth is one, far less
+   ## than a call that descends once actually costs, so the whole fixed cost of a working call
+   ## has to sit in the intercept.  `fit.fan` anchors the intercept on the smallest regressor
+   ## value, and the smallest here is the empty list, where neither builtin descends at all;
+   ## anchoring there would leave the fixed cost of a working call out of the model entirely.
+   ## Those rows are priced by the intercept alone in any case, so they have no business
+   ## voting on the slope either.
+   multipliedSizesFan <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.overhead ()
+        product <- mutate (filtered, x_mem = x_mem * y_mem)
+        m <- fit.fan (product[product$x_mem > 0, ])
+        v <- coefficients (m)
+        names (v) <- c("(Intercept)", "I(x_mem * y_mem)")
+        ## ^ The space after the comma is important.
+        m2 <- lm (t ~ I(x_mem * y_mem), filtered)
+        m2$coefficients <- v
+        ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
+        return (mk.result (floor.intercept (round.up (m2)), "multiplied_sizes"))
+   }
+
    linearInX <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
@@ -878,63 +905,12 @@ modelFun <- function(path) {
     policiesModel <- linearInX ("Policies")
 
     ## X is the length of the policy list, Y is the depth of the outer map (`ValueOuterDepth`).
-    ## Both builtins do one outer-map descent per element of the list and touch nothing else,
-    ## but they do not charge on the same shape: `keepPolicies` also builds a `Set` from the
-    ## list, and that build is the larger half of what it spends.  Each block below gives its
-    ## own shape, its own fit and the reason for both.  See
-    ## Note [Benchmarking keepPolicies and dropPolicies] in Benchmarks.Values.
-
-    ## `keepPolicies` is linear in the list alone.  Building a `Set` from the list costs
-    ## `p log p` whatever the `Value` is, and that is the larger half of what the builtin
-    ## spends, so the depth still moves the total but by less and less of it as the list
-    ## grows.  Neither `p log p` nor a per-element cost that grows with p is expressible
-    ## here, so what `fit.fan` produces is a single per-element slope at the envelope of the
-    ## measurements, loose at short lists and tight at long ones.
-    keepPoliciesModel <- {
-        fname <- "KeepPolicies"
-        filtered <- data %>%
-            filter.and.check.nonempty (fname) %>%
-            discard.overhead ()
-        m <- fit.fan (filtered)
-        mk.result (floor.intercept (round.up (m)), "linear_in_x")
-    }
-
-    ## `dropPolicies` charges on the product: `Map.updateLookupWithKey` rebuilds the whole
-    ## search path whether or not it finds the key, so the number of hits drops out of the
-    ## order of the cost and every element of the list costs one descent.
-    ##
-    ## `fit.fan`, and anchored above the empty list, which matters here in a way it does not
-    ## for `keepPolicies`.  The product shape charges the first list element the least when
-    ## the depth is one, far less than a call that descends once actually costs, so the whole
-    ## fixed cost of a working call has to sit in the intercept.  `fit.fan` anchors the
-    ## intercept on the smallest regressor value, and the smallest here is the empty list,
-    ## where the fold returns without descending at all; anchoring there leaves the fixed cost
-    ## of a working call out of the model entirely.  Dropping the zero-product rows from the
-    ## fit moves the anchor to the cheapest call that does work.  Those rows are priced by the
-    ## intercept alone in any case, so they have no business voting on the slope either.
-    ##
-    ## `keepPolicies` needs none of this because its per-element slope is an order of
-    ## magnitude larger and absorbs the fixed cost, but it dominates its own empty-list point
-    ## with almost no margin, so anything that moves its intercept wants re-checking.
-    ##
-    ## `fit.fan` wants one dimension, in `x_mem`.  Hand it the product under that name and
-    ## put the coefficients back on a model of the shape the Haskell side reads; the same
-    ## manoeuvre as equalsDataModel above.
-    dropPoliciesModel <- {
-        fname <- "DropPolicies"
-        filtered <- data %>%
-            filter.and.check.nonempty (fname) %>%
-            discard.overhead ()
-        product <- mutate (filtered, x_mem = x_mem * y_mem)
-        m <- fit.fan (product[product$x_mem > 0, ])
-        v <- coefficients (m)
-        names (v) <- c("(Intercept)", "I(x_mem * y_mem)")
-        ## ^ The space after the comma is important.
-        m2 <- lm (t ~ I(x_mem * y_mem), filtered)
-        m2$coefficients <- v
-        ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
-        mk.result (floor.intercept (round.up (m2)), "multiplied_sizes")
-    }
+    ## Both builtins walk the list once and cost one outer-map descent per element, and
+    ## neither reads anything else, so both charge on the product of the two visible sizes and
+    ## take the same fit.  See Note [Benchmarking keepPolicies and dropPolicies] in
+    ## Benchmarks.Values.
+    keepPoliciesModel <- multipliedSizesFan ("KeepPolicies")
+    dropPoliciesModel <- multipliedSizesFan ("DropPolicies")
 
     ## Values
 
