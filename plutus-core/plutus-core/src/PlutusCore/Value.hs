@@ -39,6 +39,7 @@ module PlutusCore.Value
   , unionValue
   , valueData
   , valueDataMaxSize
+  , policyFilterMaxSize
   , unValueData
   , buildValueWith
   ) where
@@ -469,21 +470,25 @@ policies :: Value -> [ByteString]
 policies = map unK . Map.keys . unpack
 {-# INLINEABLE policies #-}
 
-{-| The `Value` restricted to the given currency symbols.
+{-| The most policies `keepPolicies` and `dropPolicies` accept in their `Value`; both fail
+on more.  It is the largest outer size of depth 13. -}
+policyFilterMaxSize :: Int
+policyFilterMaxSize = 8191
 
-\(O(p \log m)\), where \(p\) is the length of the policy list and \(m\) is the size of the
-outer map: each id is looked up in the outer map and, when found, inserted into the result.
+-- | The failure both policy filters raise on a `Value` with too many policies.
+policyFilterOverflow :: String -> BuiltinResult a
+policyFilterOverflow name =
+  fail $ name <> ": maximum number of policies (" <> show policyFilterMaxSize <> ") exceeded"
+{-# INLINE policyFilterOverflow #-}
 
-Ids the `Value` does not have, including any longer than `maxKeyLen`, are ignored. The
-length filter is what keeps the cost proportional to the list: the cost model sizes a list
-by its element count, so without it a caller could pass a few very long ids and have them
-compared byte by byte for free. Restricting the outer map can neither empty an inner map nor
-zero a quantity, so the result is already normalized.
-
-The caches are built from the currencies kept rather than through `pack'`, which would
-recount the negative amounts of every one of them. -}
-keepPolicies :: [ByteString] -> Value -> Value
-keepPolicies ps (Value outer _ _ _ negs) = Value outer' sizes total neg negs'
+{-| The `Value` restricted to the given currency symbols, in \(O(p \log m)\) for a list of
+\(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
+longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
+`policyFilterMaxSize` policies. -}
+keepPolicies :: [ByteString] -> Value -> BuiltinResult Value
+keepPolicies ps (Value outer _ _ _ negs)
+  | Map.size outer > policyFilterMaxSize = policyFilterOverflow "keepPolicies"
+  | otherwise = pure $ Value outer' sizes total neg negs'
   where
     outer' = List.foldl' keep Map.empty (mapMaybe k ps)
     keep acc currency = case Map.lookup currency outer of
@@ -494,19 +499,14 @@ keepPolicies ps (Value outer _ _ _ negs) = Value outer' sizes total neg negs'
     Sizes sizes total = sizeCaches outer'
 {-# INLINEABLE keepPolicies #-}
 
-{-| The `Value` with the given currency symbols removed.
-
-\(O(p \log m)\), where \(p\) is the length of the policy list and \(m\) is the size of the
-outer map.
-
-Ids the `Value` does not have, including any longer than `maxKeyLen`, are ignored.
-
-`keepPolicies` builds a fresh `Value` out of the currencies the list names. This one starts
-from the whole `Value` and subtracts each dropped currency's contribution, so the currencies
-that stay are never looked at: dropping two of them from a huge `Value` costs the two, not
-the whole `Value`. -}
-dropPolicies :: [ByteString] -> Value -> Value
-dropPolicies ps v = List.foldl' dropPolicy v (mapMaybe k ps)
+{-| The `Value` with the given currency symbols removed, in \(O(p \log m)\) for a list of
+\(p\) ids and an outer map of size \(m\).  Ids the `Value` does not have, including any
+longer than `maxKeyLen`, are ignored.  Fails if the `Value` holds more than
+`policyFilterMaxSize` policies. -}
+dropPolicies :: [ByteString] -> Value -> BuiltinResult Value
+dropPolicies ps v@(Value outer _ _ _ _)
+  | Map.size outer > policyFilterMaxSize = policyFilterOverflow "dropPolicies"
+  | otherwise = pure $ List.foldl' dropPolicy v (mapMaybe k ps)
 {-# INLINEABLE dropPolicies #-}
 
 {-| Remove one currency and subtract its contribution from the cached fields.
