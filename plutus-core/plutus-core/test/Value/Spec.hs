@@ -64,6 +64,13 @@ prop_unionCommutative v v' =
     (BuiltinFailure {}, BuiltinFailure {}) -> property True
     _ -> property False
 
+-- | Verifies that @unionValue@ correctly updates the caches
+prop_unionBookkeeping :: Value -> Value -> Property
+prop_unionBookkeeping v v' =
+  case V.unionValue v v' of
+    BuiltinSuccess r -> checkBookkeeping r
+    _ -> property True
+
 prop_unionAssociative :: Value -> Value -> Value -> Property
 prop_unionAssociative v1 v2 v3 =
   let succeeded = not . null
@@ -391,6 +398,10 @@ checkBookkeeping v =
   (expectedMaxInnerSize === actualMaxInnerSize)
     .&&. (expectedSize === actualSize)
     .&&. (expectedNeg === actualNeg)
+    .&&. (expectedNegsByPolicy === actualNegsByPolicy)
+    .&&. counterexample
+      "negativesByPolicy stores a zero"
+      (all (/= 0) (Map.elems actualNegsByPolicy))
   where
     expectedMaxInnerSize = fromMaybe 0 . maximumMay $ Map.map Map.size (V.unpack v)
     actualMaxInnerSize = V.maxInnerSize v
@@ -399,6 +410,12 @@ checkBookkeeping v =
     expectedNeg =
       length [q | inner <- Map.elems (V.unpack v), q <- Map.elems inner, V.unQuantity q < 0]
     actualNeg = V.negativeAmounts v
+    -- The filter is what pins canonicity: an entry that reaches zero has to be gone, not
+    -- stored, or two equal `Value`s would compare unequal.
+    expectedNegsByPolicy =
+      Map.filter (/= 0) $
+        Map.map (length . filter ((< 0) . V.unQuantity) . Map.elems) (V.unpack v)
+    actualNegsByPolicy = V.negativesByPolicy v
 
 checkInvariants :: Value -> Property
 checkInvariants (V.unpack -> v) =
@@ -535,6 +552,9 @@ tests =
     , testProperty
         "unionCommutative"
         prop_unionCommutative
+    , testProperty
+        "unionBookkeeping"
+        prop_unionBookkeeping
     , testProperty
         "unionAssociative"
         prop_unionAssociative
