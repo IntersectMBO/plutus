@@ -641,8 +641,8 @@ const PAGES = [
    'Returns the currency symbols of a Plutus <code>Value</code>; linear in the number ' +
    'of policies. (2D visualization: Policy Count vs Time)'],
   ['keeppolicies', 'KeepPolicies',
-   'Retains only the listed currencies of a Plutus <code>Value</code>; linear in the ' +
-   'length of the list, independent of the <code>Value</code>. ' +
+   'Retains only the listed currencies of a Plutus <code>Value</code>; one outer-map ' +
+   'descent per element of the list. ' +
    '(3D visualization: List Length \u00d7 Outer Map Depth \u00d7 Time)'],
   ['droppolicies', 'DropPolicies',
    'Removes the listed currencies from a Plutus <code>Value</code>; one outer-map ' +

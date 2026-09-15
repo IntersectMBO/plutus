@@ -43,7 +43,7 @@ function updateInfoPanel() {
   // plane instead of off it, and they are what pins the term proportional to the list.
   document.getElementById('fit-comparison').innerHTML =
     fitSummary('The shipped model (from the cost-model JSON)',
-               costModel, benchmarkData, overhead, ['p']);
+               costModel, benchmarkData, overhead, ['p', 'L']);
 
   if (costModel) {
     document.getElementById('info-model-type').textContent = costModel.modelType;

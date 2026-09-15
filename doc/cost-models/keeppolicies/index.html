@@ -21,11 +21,12 @@
       fit is built to leave almost every dot below its cross.
     </p>
     <p>
-      The model is linear in the list alone: building a <code>Set</code> from the list dominates anything
-      the <code>Value</code> contributes, so the surface is flat along the depth axis. The depth is the
-      measure the builtin's denotation uses, and it is 1 for the empty <code>Value</code> rather than 0,
-      which is why the points that measure the policy list on its own sit on the bottom edge of the plane
-      rather than off it.
+      The model is proportional to the product of the two: the builtin looks each element of the list up
+      in the outer map, one descent per element, and inserts what it finds into a map of its own, so the
+      number of elements that name a policy the <code>Value</code> actually has does not change the order
+      of the cost. The depth is the measure the builtin's denotation uses, and it is 1 for the empty
+      <code>Value</code> rather than 0: a product model would otherwise charge nothing but its intercept
+      for a policy list of any length.
     </p>
 
     <div class="controls" id="data-source-controls">
