@@ -1382,5 +1382,37 @@
       },
       "type": "linear_in_x"
     }
+  },
+  "keepPolicies": {
+    "cpu": {
+      "arguments": {
+        "intercept": 355913,
+        "slope": 46004
+      },
+      "type": "multiplied_sizes"
+    },
+    "memory": {
+      "arguments": {
+        "intercept": 32,
+        "slope": 32
+      },
+      "type": "multiplied_sizes"
+    }
+  },
+  "dropPolicies": {
+    "cpu": {
+      "arguments": {
+        "intercept": 356925,
+        "slope": 57953
+      },
+      "type": "multiplied_sizes"
+    },
+    "memory": {
+      "arguments": {
+        "intercept": 32,
+        "slope": 36
+      },
+      "type": "multiplied_sizes"
+    }
   }
 }
